@@ -1,7 +1,10 @@
+# Virtual Environment
 venv/
 .venv/
 __pycache__/
 
+# PyCharm Settings
 .idea/
 
+# Environment Variables (SENSITIVE DATA)
 .env
