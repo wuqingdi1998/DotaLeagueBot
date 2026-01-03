@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from database.core import init_db
 
 load_dotenv()
-TEST_GUILD_ID = 328205360466755584
+TEST_GUILD_ID = 1414564930366996612
 
 
 class LeagueBot(commands.Bot):
