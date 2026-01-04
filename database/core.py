@@ -3,7 +3,7 @@ from database.models import Base
 
 # Connection string for SQLite.
 # In production, this will be replaced with PostgreSQL.
-DB_URL = "sqlite+aiosqlite:///league.db"
+DB_URL = "sqlite+aiosqlite:///league_test.db"
 
 # Create the async engine.
 # echo=True enables SQL logging in console (disable in production).
