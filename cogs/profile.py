@@ -4,14 +4,18 @@ from discord.ext import commands, tasks
 import aiohttp
 import re
 import asyncio
+import os
 from sqlalchemy import select
+from dotenv import load_dotenv
 
+from DotaLeagueBot.main import GUILD_ID
 # --- Project Imports ---
 from database.core import async_session
 from database.models import Player, Team
 from utils.logger import send_log
 from utils.steam_tools import extract_steam_id32
 
+GUILD_ID = int(os.getenv("GUILD_ID"))
 
 class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     real_name = ui.TextInput(label='Ваше настоящее имя', placeholder=' Например: Даня', min_length=2, max_length=15)
@@ -337,43 +341,53 @@ class Profile(commands.Cog):
         if not self.bot.guilds: return
         guild = self.bot.guilds[0]
 
-        print("[TASKS] Запуск массового обновления рангов...")
+        print("[TASKS] Starting mass rank update...")
 
         async with async_session() as session:
             players = (await session.execute(select(Player))).scalars().all()
-
-            sem = asyncio.Semaphore(5)
+            print(f"[TASKS] 1. Fetching data from OpenDota for {len(players)} players...")
+            sem = asyncio.Semaphore(10)
+            updated_count = 0
 
             async with aiohttp.ClientSession() as hs:
-
-                async def update_one_player(p):
+                async def fetch_dota_data(p):
+                    nonlocal updated_count
                     async with sem:
                         try:
                             url = f"https://api.opendota.com/api/players/{p.steam_id32}"
                             async with hs.get(url) as res:
                                 if res.status == 200:
                                     data = await res.json()
-                                    p.rank_tier = data.get('rank_tier', 0)
+                                    new_rank = data.get('rank_tier', 0)
+                                    p.rank_tier = new_rank
+                                    updated_count += 1
                                 elif res.status == 429:
-                                    print(f"[WARN] OpenDota Rate Limit на игроке {p.ingame_name}")
-                                    return
-
-                            member = guild.get_member(p.discord_id)
-                            if member:
-                                await self.update_discord_profile(member, p)
-
+                                    print(f"[WARN] OpenDota Rate Limit: {p.ingame_name}")
                         except Exception as e:
-                            print(f"[ERROR] Ошибка обновления {p.steam_id32}: {e}")
+                            print(f"[ERROR] Dota API fail {p.steam_id32}: {e}")
 
-                        await asyncio.sleep(0.5)
+                        await asyncio.sleep(0.1)
 
-                tasks_list = [update_one_player(p) for p in players]
-
+                tasks_list = [fetch_dota_data(p) for p in players]
                 await asyncio.gather(*tasks_list)
 
             await session.commit()
+            print(f"[TASKS] OpenDota data saved. Success: {updated_count}/{len(players)}")
+            print("[TASKS] 2. Starting Discord profile updates (sequential mode)...")
 
-        print(f"[TASKS] Обновление завершено. Обработано {len(players)} игроков.")
+            for i, p in enumerate(players):
+                member = guild.get_member(p.discord_id)
+                if member:
+                    try:
+                        await self.update_discord_profile(member, p)
+
+                        if i % 10 == 0:
+                            print(f"[PROGRESS] Processed {i}/{len(players)} profiles...")
+                    except Exception as e:
+                        print(f"[ERROR] Failed to update Discord user {member.name}: {e}")
+                        await asyncio.sleep(2)
+
+        print("[TASKS] Mass update completed successfully.")
 
     @update_ranks_task.before_loop
     async def before_tasks(self):
