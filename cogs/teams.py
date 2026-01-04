@@ -86,9 +86,9 @@ class Teams(commands.Cog):
                 roster = ""
                 for i, p in enumerate(players):
                     r_name = p.real_name or "Без имени"
-                    s_nick = p.personaname or "NoNick"
+                    s_nick = p.ingame_name or "NoNick"
                     pos = p.positions or "?/?"
-                    roster += f"{i + 1}. **{p.real_name}** ({p.personaname}) `[{p.positions}]` \n"
+                    roster += f"{i + 1}. **{p.real_name}** ({p.ingame_name}) `[{p.positions}]` \n"
                     line = f"{i + 1}. **{r_name}** ({s_nick}) `[{pos}]`"
                     lines.append(line)
 

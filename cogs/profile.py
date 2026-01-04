@@ -121,12 +121,17 @@ class Profile(commands.Cog):
                 "4": "Soft Support",
                 "5": "Hard Support"
             }
-            primary_pos = player_data.positions.split('/')
+            primary_pos = player_data.positions.split('/')[0]
+            second_pos = player_data.positions.split('/')[1]
             target_pos_names = []
-            for digit in primary_pos:
-                name = pos_roles_map[digit]
+            if primary_pos:
+                name = pos_roles_map[primary_pos]
+                name2 = pos_roles_map[second_pos]
                 if name:
                     target_pos_names.append(name)
+                if name2:
+                    target_pos_names.append(name2)
+
 
 
             rank_names = {
@@ -143,9 +148,16 @@ class Profile(commands.Cog):
                 r = discord.utils.get(member.guild.roles, name=target_rank_name)
                 if r: roles_to_add.append(r)
 
-            for pos_name in target_pos_names:
-                p = discord.utils.get(member.guild.roles, name=pos_name)
-                if p: roles_to_add.append(p)
+            for i, pos_name in enumerate(target_pos_names):
+                if i == 0:
+                    target_color = discord.Color.gold()
+                else:
+                    target_color = discord.Color.default()
+                p = discord.utils.get(member.guild.roles, name=pos_name, color=target_color)
+                if p:
+                    roles_to_add.append(p)
+                else:
+                    print(f"[WARN] Не нашел роль '{pos_name}' с цветом {target_color}")
 
             ids_to_add = [r.id for r in roles_to_add]
             for role in member.roles:
