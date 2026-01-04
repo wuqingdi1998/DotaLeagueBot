@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from database.core import init_db
 
 load_dotenv()
-TEST_GUILD_ID = 1414564930366996612
+GUILD_ID = os.getenv("GUILD_ID")
 
 
 class LeagueBot(commands.Bot):
@@ -38,10 +38,10 @@ class LeagueBot(commands.Bot):
         # 3. Simple Sync (Only to your Guild)
         print("--- Syncing Commands ---")
         try:
-            guild_obj = discord.Object(id=TEST_GUILD_ID)
+            guild_obj = discord.Object(id=GUILD_ID)
             self.tree.copy_global_to(guild=guild_obj)
             synced = await self.tree.sync(guild=guild_obj)
-            print(f'[OK] Synced {len(synced)} command(s) to Guild {TEST_GUILD_ID}.')
+            print(f'[OK] Synced {len(synced)} command(s) to Guild {GUILD_ID}.')
         except Exception as e:
             print(f'[ERROR] Command sync failed: {e}')
 

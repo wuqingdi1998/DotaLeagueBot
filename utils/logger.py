@@ -1,8 +1,10 @@
 import aiohttp
 import discord
+import os
 from discord import Webhook
+from dotenv import load_dotenv
 
-LOG_WEBHOOK_URL = "https://discord.com/api/webhooks/1456999075953250446/nk9fuRJtCiDBLfD9Szep5WlIE29RHjH7TLsZIgdzpsoQvMGwF5i3fYHk3W8nkeNbx-BW"
+LOG_WEBHOOK_URL = os.getenv("LOG_WEBHOOK_URL")
 
 
 async def send_log(title: str, description: str, color: discord.Color):
