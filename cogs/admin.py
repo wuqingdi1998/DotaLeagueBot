@@ -2,62 +2,68 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 import io
+import re
+import asyncio
 
 
-# 1. КЛАСС КНОПКИ ПОДТВЕРЖДЕНИЯ
+# --- 1. CONFIRMATION VIEW CLASS ---
 class ConfirmSendView(discord.ui.View):
     def __init__(self, channel, username, avatar_url, content, embed, files_data):
-        super().__init__(timeout=300)
+        super().__init__(timeout=300)  # Button active for 5 minutes
         self.channel = channel
         self.username = username
         self.avatar_url = avatar_url
         self.content = content
         self.embed = embed
-        self.files_data = files_data  # Список кортежей [(имя, байты)]
+        self.files_data = files_data  # List of tuples [(filename, bytes)]
 
     @discord.ui.button(label="Отправить в канал", style=discord.ButtonStyle.green, emoji="🚀")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Чтобы кнопка не "думала" вечно после нажатия
+        # Defer immediately to avoid interaction timeout
         await interaction.response.defer(ephemeral=True)
 
         try:
+            # 1. Create a temporary webhook
             webhook = await self.channel.create_webhook(name="TempSender")
 
+            # 2. Re-construct files from memory bytes
             final_files = []
             for f_name, f_bytes in self.files_data:
-                # Создаем файл из байтов для отправки
                 final_files.append(discord.File(io.BytesIO(f_bytes), filename=f_name))
-                # Если есть рамка (embed), привязываем картинку к ней, чтобы не было дубля
+
+                # If using Embed, bind the image to it to avoid duplication in chat
                 if self.embed:
                     self.embed.set_image(url=f"attachment://{f_name}")
 
+            # 3. Send the actual message via Webhook
             await webhook.send(
                 content=self.content,
                 embed=self.embed,
                 files=final_files,
                 username=self.username,
                 avatar_url=self.avatar_url,
-                allowed_mentions=discord.AllowedMentions.all()
+                allowed_mentions=discord.AllowedMentions.all()  # Allow pings
             )
 
+            # 4. Cleanup: Delete webhook and disable button
             await webhook.delete()
-            self.stop()  # Отключаем View
-            await interaction.followup.send(f"✅ Опубликовано в {self.channel.mention}", ephemeral=True)
+            self.stop()
+
+            await interaction.followup.send(f"✅ Успешно опубликовано в {self.channel.mention}", ephemeral=True)
 
         except Exception as e:
-            await interaction.followup.send(f"❌ Ошибка отправки: {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Error sending webhook: {e}", ephemeral=True)
 
 
-# 2. ОСНОВНОЙ КЛАСС КОГОВ
+# --- 2. MAIN ADMIN COG ---
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name="say", description="[Admin] Сообщение через вебхук с кнопкой и эмодзи")
+    @app_commands.command(name="say", description="[Admin] Создать пост (Текст вводится следующим сообщением)")
     @app_commands.checks.has_permissions(administrator=True)
     async def say(self, interaction: discord.Interaction,
                   channel: discord.TextChannel,
-                  text: str = None,
                   title: str = None,
                   image: discord.Attachment = None,
                   ping_role: discord.Role = None,
@@ -65,50 +71,88 @@ class Admin(commands.Cog):
                   username: str = "League System",
                   avatar_url: str = None):
 
-        # Превью всегда скрытое (ephemeral)
-        await interaction.response.defer(ephemeral=True)
+        # 1. Prompt the user to send the text message
+        await interaction.response.send_message(
+            f"✍️ **Ожидание ввода текста...**\n"
+            f"Напишите текст объявления следующим сообщением в этот чат.\n"
+            f"Вы можете использовать переносы строк (Enter), пинги и смайлики.\n"
+            f"*(У вас есть 5 минут)*",
+            ephemeral=True
+        )
 
-        if not text and not title and not image:
-            return await interaction.followup.send("❌ Напишите хотя бы что-то!", ephemeral=True)
+        # 2. Define check: wait for message from THIS user in THIS channel
+        def check(m):
+            return m.author == interaction.user and m.channel == interaction.channel
 
         try:
-            # --- Обработка Эмодзи ---
-            proc_text = text or ""
-            proc_title = title or ""
-            for emoji in self.bot.emojis:
-                emoji_code = f":{emoji.name}:"
-                if emoji_code in proc_text: proc_text = proc_text.replace(emoji_code, str(emoji))
-                if emoji_code in proc_title: proc_title = proc_title.replace(emoji_code, str(emoji))
+            # Wait for user input
+            user_msg = await self.bot.wait_for('message', check=check, timeout=300)
 
-            # --- Формирование Пингов ---
+            # Capture content and attempt to delete user's message for cleanliness
+            raw_text = user_msg.content
+            try:
+                await user_msg.delete()
+            except:
+                pass  # Ignore if bot lacks permission to delete messages
+
+        except asyncio.TimeoutError:
+            return await interaction.followup.send("⏰ Время вышло! Попробуйте снова.", ephemeral=True)
+
+        # --- 3. PROCESSING CONTENT ---
+        try:
+            # --- EMOJI REPLACEMENT LOGIC (REGEX) ---
+            def replace_emoji(match):
+                # Extract name (e.g. "pepe")
+                name = match.group(1)
+                # Find emoji in cache
+                emoji = discord.utils.get(self.bot.emojis, name=name)
+                if emoji: return str(emoji)
+                return match.group(0)
+
+            # Regex: Match :name: ONLY if not preceded by < (to avoid breaking existing custom emojis)
+            pattern = r"(?<!<):([a-zA-Z0-9_]+):"
+
+            proc_text = raw_text
+            proc_title = title or ""
+
+            if proc_text: proc_text = re.sub(pattern, replace_emoji, proc_text)
+            if proc_title: proc_title = re.sub(pattern, replace_emoji, proc_title)
+
+            # --- MENTIONS SETUP ---
             mentions = ""
             if ping_everyone: mentions += "@everyone "
             if ping_role: mentions += f"{ping_role.mention} "
 
-            # --- Подготовка Контента ---
+            # --- CONTENT ASSEMBLY ---
             final_embed = None
             final_content = mentions
             files_to_save = []
             preview_files = []
 
-            # Если есть картинка, читаем её один раз
+            # Handle Image
             if image:
                 img_data = await image.read()
                 files_to_save.append((image.filename, img_data))
-                # Для превью тоже создаем объект файла
                 preview_files.append(discord.File(io.BytesIO(img_data), filename=image.filename))
 
+            # Handle Embed vs Plain Text
             if title:
+                # If title exists -> Use Embed
                 final_embed = discord.Embed(title=proc_title, description=proc_text, color=discord.Color.gold())
                 if image:
                     final_embed.set_image(url=f"attachment://{image.filename}")
             else:
+                # No title -> Use Plain Text
                 final_content += f"\n{proc_text}"
 
-            # --- Создание View и Превью-сообщения ---
+            # Validation: Ensure we are not sending an empty message
+            if not final_content.strip() and not final_embed and not files_to_save:
+                if not raw_text:
+                    return await interaction.followup.send("❌ Вы прислали пустое сообщение!", ephemeral=True)
+
+            # --- PREVIEW GENERATION ---
             current_avatar = avatar_url or self.bot.user.display_avatar.url
 
-            # Вот та самая переменная view
             confirm_view = ConfirmSendView(
                 channel=channel,
                 username=username,
@@ -118,9 +162,9 @@ class Admin(commands.Cog):
                 files_data=files_to_save
             )
 
-            # Вот та самая переменная preview_msg
             preview_msg = f"**ПРЕВЬЮ ДЛЯ КАНАЛА {channel.mention}:**\n"
 
+            # Send private preview
             await interaction.followup.send(
                 content=preview_msg + final_content,
                 embed=final_embed,
@@ -130,7 +174,7 @@ class Admin(commands.Cog):
             )
 
         except Exception as e:
-            await interaction.followup.send(f"❌ Произошла ошибка: {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ System Error: {e}", ephemeral=True)
 
 
 async def setup(bot):
