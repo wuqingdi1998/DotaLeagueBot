@@ -8,7 +8,6 @@ import os
 from sqlalchemy import select
 from dotenv import load_dotenv
 
-from DotaLeagueBot.main import GUILD_ID
 # --- Project Imports ---
 from database.core import async_session
 from database.models import Player, Team
