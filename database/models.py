@@ -9,8 +9,9 @@ class Team(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
-    captain_id = Column(BigInteger, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    role_id = Column(BigInteger, nullable=True)
+    channel_id = Column(BigInteger, nullable=True)
 
     players = relationship("Player", back_populates="team")
 
