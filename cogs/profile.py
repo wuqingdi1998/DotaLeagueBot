@@ -12,7 +12,7 @@ from dotenv import load_dotenv
 from database.core import async_session
 from database.models import Player, Team
 from utils.logger import send_log
-from utils.steam_tools import extract_steam_id32
+from utils.steam_tools import resolve_steam_id
 
 GUILD_ID = int(os.getenv("GUILD_ID"))
 
@@ -40,7 +40,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
         await interaction.response.defer(ephemeral=True)
 
-        sid32 = extract_steam_id32(self.steam.value)
+        sid32 = await resolve_steam_id(self.steam.value)
         if not sid32:
             return await interaction.followup.send("❌ **Ошибка:** Неверный формат Steam ID.", ephemeral=True)
 
