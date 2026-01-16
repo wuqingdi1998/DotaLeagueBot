@@ -1,23 +1,27 @@
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+import os
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
 from database.models import Base
+from dotenv import load_dotenv
 
-# Connection string for SQLite.
-# In production, this will be replaced with PostgreSQL.
-DB_URL = "sqlite+aiosqlite:///league_test.db"
+load_dotenv()
 
-# Create the async engine.
-# echo=True enables SQL logging in console (disable in production).
-engine = create_async_engine(DB_URL, echo=True)
+user = os.getenv("POSTGRES_USER")
+password = os.getenv("POSTGRES_PASSWORD")
+db_name = os.getenv("POSTGRES_DB")
+host = os.getenv("POSTGRES_HOST", "localhost")
+debug_mode = os.getenv("DEBUG", "False").lower() == "true"
 
-# Session factory for interaction with the DB in other parts of the app.
-async_session = async_sessionmaker(engine, expire_on_commit=False)
+
+DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{host}/{db_name}"
+
+engine = create_async_engine(DATABASE_URL, echo=debug_mode)
+
+async_session = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 async def init_db():
-    """
-    Initializes the database.
-    Creates tables defined in models.py if they do not exist.
-    """
     async with engine.begin() as conn:
-        # Create all tables inheriting from Base
         await conn.run_sync(Base.metadata.create_all)
-        print("[DATABASE] Schema initialized and tables checked.")
+    print("[DATABASE] PostgreSQL connected and tables created.")
