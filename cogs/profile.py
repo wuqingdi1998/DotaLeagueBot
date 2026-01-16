@@ -118,11 +118,11 @@ class Profile(commands.Cog):
             # 2. Roles
 
             pos_roles_map = {
-                "1": "Carry",
-                "2": "Mid",
-                "3": "Offlaner",
-                "4": "Soft Support",
-                "5": "Hard Support"
+                "1": "Керри",
+                "2": "Мид",
+                "3": "Оффлэйнер",
+                "4": "Поддержка",
+                "5": "Полная поддержка"
             }
             primary_pos = player_data.positions.split('/')[0]
             second_pos = player_data.positions.split('/')[1]
@@ -138,8 +138,8 @@ class Profile(commands.Cog):
 
 
             rank_names = {
-                1: "Herald", 2: "Guardian", 3: "Crusader", 4: "Archon",
-                5: "Legend", 6: "Ancient", 7: "Divine", 8: "Immortal"
+                1: "Рекрут", 2: "Страж", 3: "Рыцарь", 4: "Герой",
+                5: "Легенда", 6: "Властелин", 7: "Божество", 8: "Титан"
             }
             target_rank_name = rank_names.get((player_data.rank_tier // 10) if player_data.rank_tier else 0)
 
