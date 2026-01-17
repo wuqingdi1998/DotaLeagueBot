@@ -1,5 +1,8 @@
+import os
 import discord
+from dotenv import load_dotenv
 
+CATEGORY_ID = int(os.getenv("CATEGORY_ID"))
 
 class TeamService:
     def __init__(self, guild: discord.Guild):
@@ -41,11 +44,9 @@ class TeamService:
         )
 
     async def _create_text_channel(self, team_name: str, team_role: discord.Role) -> discord.TextChannel:
-        category_name = "DOTA LEAGUE TEAMS"
-        category = discord.utils.get(self.guild.categories, name=category_name)
+        category_id = CATEGORY_ID
+        category = discord.utils.get(self.guild.categories, id = category_id)
 
-        if not category:
-            category = await self.guild.create_category(name=category_name)
 
         overwrites = {
             self.guild.default_role: discord.PermissionOverwrite(read_messages=False),
