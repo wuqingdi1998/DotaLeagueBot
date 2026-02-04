@@ -35,8 +35,12 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
 
         # 1. Validation
-        if not re.match(r"^[1-5]/[1-5]$", self.pos.value):
-            return await interaction.followup.send("❌ **Ошибка:** Укажите позиции в формате `1/2`.", ephemeral=True)
+        match = re.match(r"^([1-5])/([1-5])$", self.pos.value)
+        if not match:
+            return await interaction.response.send_message("❌ **Ошибка:** Укажите позиции в формате `1/2`.", ephemeral=True)
+        pos1, pos2 = match.groups()
+        if pos1 == pos2:
+            return await interaction.response.send_message("❌ **Ошибка:** Позиции не могут быть одинаковыми.", ephemeral=True)
 
         await interaction.response.defer(ephemeral=True)
 

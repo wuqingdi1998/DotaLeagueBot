@@ -68,7 +68,7 @@ class Admin(commands.Cog):
                   image: discord.Attachment = None,
                   ping_role: discord.Role = None,
                   ping_everyone: bool = False,
-                  username: str = "League System",
+                  username: str = "Linken's Sphere Esports",
                   avatar_url: str = None):
 
         # 1. Prompt the user to send the text message
