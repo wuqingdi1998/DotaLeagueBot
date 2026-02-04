@@ -1,0 +1,5 @@
+# .dockerignore
+postgres_data
+.venv
+.git
+__pycache__
