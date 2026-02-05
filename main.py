@@ -2,6 +2,9 @@ import discord
 from discord.ext import commands
 import os
 from dotenv import load_dotenv
+
+# Импортируем алхимию
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from database.core import init_db
 
 load_dotenv()
@@ -19,13 +22,32 @@ class LeagueBot(commands.Bot):
             intents=intents,
             help_command=None
         )
+        self.session_maker = None  # Заготовка
 
     async def setup_hook(self):
-        # 1. Init Database
         print("--- Initializing Database ---")
+
+        # 1. СОБИРАЕМ URL ИЗ ТВОИХ ПЕРЕМЕННЫХ
+        # Подставь сюда названия переменных, как они у тебя в .env файле
+        user = os.getenv("POSTGRES_USER")
+        password = os.getenv("POSTGRES_PASSWORD")
+        db_name = os.getenv("POSTGRES_DB")
+        # В Docker host обычно равен имени сервиса базы в docker-compose (например, "dota_postgres" или "db")
+        # Если запускаешь локально (не в докере), то "localhost"
+        host = os.getenv("POSTGRES_HOST", "dota_postgres")
+
+        # Склеиваем строку подключения
+        database_url = f"postgresql+asyncpg://{user}:{password}@{host}/{db_name}"
+
+        # 2. Создаем движок и фабрику сессий
+        # echo=True будет показывать SQL запросы в консоли (удобно для отладки)
+        engine = create_async_engine(database_url, echo=False)
+        self.session_maker = async_sessionmaker(engine, expire_on_commit=False)
+
+        # 3. Запускаем создание таблиц (твой старый код)
         await init_db()
 
-        # 2. Load Cogs
+        # 4. Load Cogs
         print("--- Loading Extensions ---")
         for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
@@ -35,7 +57,7 @@ class LeagueBot(commands.Bot):
                 except Exception as e:
                     print(f'[ERROR] Failed to load {filename}: {e}')
 
-        # 3. Simple Sync (Only to your Guild)
+        # 5. Sync Commands
         print("--- Syncing Commands ---")
         try:
             guild_obj = discord.Object(id=GUILD_ID)
@@ -53,9 +75,9 @@ class LeagueBot(commands.Bot):
 
 
 if __name__ == '__main__':
-    bot = LeagueBot()
     token = os.getenv('DISCORD_TOKEN')
     if token:
+        bot = LeagueBot()
         bot.run(token)
     else:
         print("[CRITICAL] Token not found in .env file!")
