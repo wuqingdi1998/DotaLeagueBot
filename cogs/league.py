@@ -257,7 +257,7 @@ class League(commands.Cog):
 
             link = player.ingame_name
             if player.steam_id32:
-                link = f"[{player.ingame_name}](https://www.opendota.com/players/{player.steam_id32})"
+                link = f"[{player.ingame_name}](https://www.stratz.com/players/{player.steam_id32})"
 
             evd = f" [📸]({reg.screenshot_url})" if reg.screenshot_url else ""
 

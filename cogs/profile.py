@@ -291,7 +291,7 @@ class Profile(commands.Cog):
                 changes.append(f"⚔️ **Позиции:** `{new_positions}`")
 
             if new_steam:
-                sid32 = extract_steam_id32(new_steam)
+                sid32 = await resolve_steam_id(new_steam)
                 if sid32:
                     player.steam_id32 = sid32
                     changes.append(f"🎮 **Steam:** `{sid32}`")
