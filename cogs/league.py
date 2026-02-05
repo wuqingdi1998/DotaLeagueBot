@@ -192,6 +192,7 @@ class League(commands.Cog):
     # --- КОМАНДЫ ---
     league_group = app_commands.Group(name="league", description="Управление лигой")
 
+
     @league_group.command(name="open", description="Открыть регистрацию (время по МСК)")
     @app_commands.checks.has_role("Admin")
     @app_commands.describe(
@@ -204,8 +205,10 @@ class League(commands.Cog):
         try:
             current_year = datetime.now().year
             dt_naive = datetime.strptime(f"{day_month}.{current_year} {time}", "%d.%m.%Y %H:%M")
+
             msk_zone = timezone(timedelta(hours=3))
             start_datetime_msk = dt_naive.replace(tzinfo=msk_zone)
+
             start_datetime_utc = start_datetime_msk.astimezone(timezone.utc).replace(tzinfo=None)
         except ValueError:
             await interaction.followup.send("❌ Формат: `/league open 07.02 19:00`", ephemeral=True)
@@ -214,18 +217,21 @@ class League(commands.Cog):
         async with self.bot.session_maker() as session:
             service = LeagueService(session)
             week_id, week_num = await service.create_new_week(start_time=start_datetime_utc, season=season)
-            # Сбрасываем кэш отправки при создании новой недели
             if week_id in self.checkin_sent_weeks:
                 self.checkin_sent_weeks.remove(week_id)
 
+        time_str_msk = start_datetime_msk.strftime("%d.%m.%Y %H:%M")
+
         timestamp = int(start_datetime_msk.timestamp())
+
         view = RegistrationView(self.bot)
 
         embed = discord.Embed(
             title=f"🏆 Лига Dota 2 - Неделя #{week_num}",
             description=(
-                f"📅 **Старт игр:** <t:{timestamp}:F>\n"
-                f"⏳ **Чек-ин:** Автоматически в ЛС за 1 час до начала.\n\n"
+                f"📅 **Старт игр:** {time_str_msk} (МСК)\n" 
+                f"⏳ **До старта:** <t:{timestamp}:R>\n\n"
+                "⏳ **Чек-ин:** Автоматически в ЛС за 1 час до начала.\n\n"
                 "**Жми кнопку ниже, чтобы записаться!**"
             ),
             color=discord.Color.gold()
