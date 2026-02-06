@@ -8,6 +8,22 @@ class LeagueService:
     def __init__(self, db_session: AsyncSession):
         self.session = db_session
 
+    async def is_registered(self, user_id: int) -> bool:
+        session_query = select(LeagueSession).where(LeagueSession.status == SessionStatus.OPEN.value).limit(1)
+        res = await self.session.execute(session_query)
+        active_session = res.scalar_one_or_none()
+
+        if not active_session:
+            return False
+
+        reg_query = select(LeagueRegistration).where(
+            LeagueRegistration.session_id == active_session.id,
+            LeagueRegistration.player_id == user_id
+        )
+        res = await self.session.execute(reg_query)
+        registration = res.scalar_one_or_none()
+
+        return registration is not None
 
     async def process_checkin(self, user_id: int):
         """
@@ -177,3 +193,11 @@ class LeagueService:
             return True, "Игрок удален из регистрации."
         else:
             return False, "Игрок не найден в списке регистрации."
+    async def update_player_internal_rating(self, discord_id: int, rating: int):
+        stmt = (
+            update(Player)
+            .where(Player.discord_id == discord_id)
+            .values(internal_rating=rating)
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()

@@ -38,6 +38,7 @@ class Player(Base):
     positions = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
     rank_tier = Column(Integer, default=0)
+    internal_rating = Column(Integer, default=0)
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     team_id = Column(Integer, ForeignKey('teams.id'), nullable=True)
     team = relationship("Team", back_populates="players")

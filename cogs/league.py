@@ -2,12 +2,186 @@ import discord
 import asyncio
 from discord import app_commands
 from discord.ext import commands, tasks  # tasks нужен для автоматики
+from discord.ui import Modal, View, Select, Button, TextInput
 from sqlalchemy import select
 from database.models import Player
 from services.league_service import LeagueService
 from services.profile_service import ProfileService
 from datetime import datetime, timedelta, timezone
 
+
+class TierModalInternal(Modal):
+    rating_input = TextInput(
+        label="Новый тир (4-10)",
+        placeholder="0 = авто-ранк (сброс)",
+        min_length=1,
+        max_length=2
+    )
+
+    def __init__(self, bot, parent_view, player_discord_id, player_name):
+        super().__init__(title=f"Edit: {player_name}")
+        self.bot = bot
+        self.parent_view = parent_view
+        self.player_discord_id = player_discord_id
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            val = int(self.rating_input.value)
+            if val < 0 or val > 10:
+                await interaction.response.send_message("❌ Ошибка: Тир должен быть от **1 до 10** (или 0 для сброса).",ephemeral=True)
+                return
+            # Сохраняем в БД
+            async with self.bot.session_maker() as session:
+                service = LeagueService(session)
+                # Вызываем метод обновления (убедись, что добавил его в Service)
+                await service.update_player_internal_rating(self.player_discord_id, val)
+
+            await interaction.response.send_message(f"✅ Рейтинг изменен на **{val}**. Нажми кнопку 'Обновить'.",
+                                                    ephemeral=True)
+
+        except ValueError:
+            await interaction.response.send_message("❌ Ошибка: нужно ввести число.", ephemeral=True)
+
+
+class TierAdjustmentViewWrapper(View):
+    def __init__(self, bot, registrations):
+        super().__init__(timeout=600)
+        self.bot = bot
+        self.registrations = registrations
+        # Сортируем сразу при инициализации
+        self.registrations.sort(key=lambda x: x[1].ingame_name.lower())
+
+        self.page = 0  # Текущая страница
+        self.items_per_page = 10  # Лимит дискорда
+        self.update_components()
+
+    def _get_display_tier(self, player):
+        """Вспомогательный метод для получения отображаемого тира"""
+        if player.internal_rating and player.internal_rating > 0:
+            return player.internal_rating, True  # True означает "ручной"
+
+        # Если ручного нет, берем автоматический (первую цифру)
+        raw = player.rank_tier or 0
+        # Если число >= 10 (например 72), берем 7. Если меньше (например 0), оставляем как есть.
+        val = raw // 10 if raw >= 10 else raw
+        return val, False  # False означает "авто"
+
+    def update_components(self):
+        self.clear_items()
+
+        # 1. Вычисляем срез для текущей страницы
+        start = self.page * self.items_per_page
+        end = start + self.items_per_page
+        current_batch = self.registrations[start:end]
+
+        # Всего страниц
+        total_pages = (len(self.registrations) - 1) // self.items_per_page + 1
+
+        # 2. Формируем опции для Select
+        options = []
+        for reg, player in current_batch:
+            val, is_manual = self._get_display_tier(player)
+            if is_manual:
+                desc = f"🛠️ Manual: {val}"
+                emoji = "🛠️"
+            else:
+                desc = f"🤖 Auto: {val}"
+                emoji = "🤖"
+
+            label = f"{player.ingame_name}"
+            options.append(
+                discord.SelectOption(label=label, description=desc, value=str(player.discord_id), emoji=emoji))
+
+        # 3. Добавляем Select (если есть игроки)
+        if options:
+            select_menu = Select(
+                placeholder=f"Игроки {start + 1}-{start + len(options)} (Всего: {len(self.registrations)})",
+                options=options,
+                row=0
+            )
+            select_menu.callback = self.select_callback
+            self.add_item(select_menu)
+
+        # 4. КНОПКИ УПРАВЛЕНИЯ (Row 1)
+
+        # Кнопка НАЗАД
+        btn_prev = Button(label="⬅️", style=discord.ButtonStyle.secondary, row=1, disabled=(self.page == 0))
+        btn_prev.callback = self.prev_page
+        self.add_item(btn_prev)
+
+        # Кнопка ОБНОВИТЬ (показывает текущую страницу)
+        btn_refresh = Button(label=f"🔄 Стр {self.page + 1}/{total_pages}", style=discord.ButtonStyle.primary, row=1)
+        btn_refresh.callback = self.refresh_btn
+        self.add_item(btn_refresh)
+
+        # Кнопка ВПЕРЕД
+        # Активна, только если есть следующая страница
+        btn_next = Button(label="➡️", style=discord.ButtonStyle.secondary, row=1,
+                          disabled=(end >= len(self.registrations)))
+        btn_next.callback = self.next_page
+        self.add_item(btn_next)
+
+    async def select_callback(self, interaction: discord.Interaction):
+        selected_id = int(interaction.data['values'][0])
+
+        # Ищем имя (нужно искать во всем списке, а не только на странице, хотя id уникален)
+        p_name = "Unknown"
+        for reg, p in self.registrations:
+            if p.discord_id == selected_id:
+                p_name = p.ingame_name
+                break
+
+        await interaction.response.send_modal(TierModalInternal(self.bot, self, selected_id, p_name))
+
+    async def prev_page(self, interaction: discord.Interaction):
+        if self.page > 0:
+            self.page -= 1
+            self.update_components()
+            await interaction.response.edit_message(view=self)
+        else:
+            await interaction.response.defer()
+
+    async def next_page(self, interaction: discord.Interaction):
+        # Проверка границ
+        if (self.page + 1) * self.items_per_page < len(self.registrations):
+            self.page += 1
+            self.update_components()
+            await interaction.response.edit_message(view=self)
+        else:
+            await interaction.response.defer()
+
+    async def refresh_btn(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        async with self.bot.session_maker() as session:
+            service = LeagueService(session)
+            week, registrations = await service.get_active_registrations()
+
+        self.registrations = registrations
+        self.registrations.sort(key=lambda x: x[1].ingame_name.lower())
+
+        # Если после обновления игроков стало меньше и текущая страница исчезла
+        if self.page * self.items_per_page >= len(self.registrations):
+            self.page = 0
+
+        self.update_components()
+
+        embed = self.build_embed()
+        await interaction.edit_original_response(embed=embed, view=self)
+
+    def build_embed(self):
+        lines = []
+        for reg, p in self.registrations:
+            val, is_manual = self._get_display_tier(p)
+            icon = "🛠️" if is_manual else "🤖"
+            lines.append(f"`{val:>2}` {icon} | **{p.ingame_name}**")
+
+        full_text = "\n".join(lines)
+        if len(full_text) > 4000:
+            full_text = full_text[:3900] + "\n... (список слишком длинный)"
+
+        desc = "**Настройка баланса**\n🛠️ = Ручной рейтинг\n🤖 = Ранг из Доты\n\n" + full_text
+        return discord.Embed(title="🔧 Корректировка Тиров", description=desc, color=discord.Color.orange())
 
 # --- КНОПКИ ДЛЯ ЛИЧКИ (CHECK-IN) ---
 class DMCheckinView(discord.ui.View):
@@ -60,15 +234,21 @@ class RegistrationView(discord.ui.View):
         await interaction.response.defer(ephemeral=True)
 
         async with self.bot.session_maker() as session:
-            # 1. Проверяем профиль
             profile_service = ProfileService(session)
-            player = await profile_service.get_player(interaction.user.id)
+            league_service = LeagueService(session)  # Создаем сервис сразу
 
+            # 1. Проверяем наличие профиля
+            player = await profile_service.get_player(interaction.user.id)
             if not player or not player.rank_tier:
                 await interaction.followup.send("❌ Сначала создай профиль: `/profile me`", ephemeral=True)
                 return
 
-            # 2. Если Титан
+            # 2. ПРОВЕРЯЕМ, НЕ ЗАРЕГИСТРИРОВАН ЛИ УЖЕ (для всех: и титанов, и обычных)
+            if await league_service.is_registered(interaction.user.id):
+                await interaction.followup.send("✅ Ты уже зарегистрирован в этом лобби!", ephemeral=True)
+                return
+
+            # 3. Если Титан (сюда дойдет только если не зарегистрирован)
             if player.rank_tier >= 80:
                 try:
                     await interaction.user.send(
@@ -80,8 +260,8 @@ class RegistrationView(discord.ui.View):
                     await interaction.followup.send("❌ Открой личку, чтобы я мог принять скриншот!", ephemeral=True)
                 return
 
-            # 3. Если обычный игрок
-            league_service = LeagueService(session)
+            # 4. Если обычный игрок (регистрируем)
+            # Тут метод register_player тоже сделает проверку, но мы её уже прошли выше, так что всё ок.
             success, message = await league_service.register_player(user_id=interaction.user.id)
 
         if success:
@@ -237,6 +417,24 @@ class League(commands.Cog):
             color=discord.Color.gold()
         )
         await interaction.followup.send(embed=embed, view=view)
+
+    @league_group.command(name="adjust_tiers", description="[ADMIN] Изменить рейтинг игроков вручную")
+    @app_commands.checks.has_role("Admin")
+    async def adjust_tiers(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        async with self.bot.session_maker() as session:
+            service = LeagueService(session)
+            # Получаем список зарегистрированных на текущую неделю
+            week, registrations = await service.get_active_registrations()
+
+        if not registrations:
+            return await interaction.followup.send("❌ Нет активных регистраций.", ephemeral=True)
+
+        view = TierAdjustmentViewWrapper(self.bot, registrations)
+        embed = view.build_embed()
+
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @league_group.command(name="status", description="Статус регистрации и чек-ина")
     @app_commands.checks.has_role("Admin")
