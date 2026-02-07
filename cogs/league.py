@@ -238,7 +238,7 @@ class MultiLobbyView(View):
 
         # 1. СТАРТ: Все в запасе
         self.bench = active_players + bench_players
-        # Сортируем по ТИРУ (функция get_tier), а не по сырым очкам
+        # Сортируем по ТИРУ (функция get_tier)
         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
 
         self.lobbies = []
@@ -254,7 +254,7 @@ class MultiLobbyView(View):
 
         self.update_components()
 
-    # --- НОВАЯ ФУНКЦИЯ РАСЧЕТА ТИРА ---
+    # --- РАСЧЕТ ТИРА ---
     def get_tier(self, p):
         if p.internal_rating and p.internal_rating > 0:
             return int(p.internal_rating)
@@ -274,27 +274,18 @@ class MultiLobbyView(View):
             if p.discord_id == p_id: return p
         return None
 
-    # --- ФОРМАТИРОВАНИЕ СТРОКИ ---
+    # --- ФОРМАТИРОВАНИЕ ---
     def format_player_str(self, p):
-        # Используем нашу новую функцию для получения цифры 1-8
         tier = self.get_tier(p)
-
         name = p.ingame_name[:15]
         link = f"https://stratz.com/players/{p.steam_id32}"
-
-        if p.positions:
-            pos_str = f" `[{p.positions}]`"
-        else:
-            pos_str = ""
-
-        # Вывод: `8` [Name](Link) `[Pos]`
+        pos_str = f" `[{p.positions}]`" if p.positions else ""
         return f"`{tier}` [**{name}**]({link}){pos_str}"
 
     def calculate_avg(self, team):
         if not team: return 0
-        # Считаем среднее арифметическое по Тирам (1-8)
         total = sum([self.get_tier(p) for p in team])
-        return round(total / len(team), 1)  # Округляем до 1 знака (например 7.5)
+        return round(total / len(team), 1)
 
     # --- ВИЗУАЛ (EMBED) ---
     def build_embed(self):
@@ -306,7 +297,7 @@ class MultiLobbyView(View):
         rad_text = "\n".join([self.format_player_str(p) for p in lobby['radiant']]) or "*(Пусто)*"
         dire_text = "\n".join([self.format_player_str(p) for p in lobby['dire']]) or "*(Пусто)*"
 
-        # Сортировка запаса тоже по Тирам
+        # Сортировка запаса
         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
 
         lobby_num = self.current_lobby_idx + 1
@@ -324,128 +315,129 @@ class MultiLobbyView(View):
 
         if self.bench:
             bench_strings = [self.format_player_str(p) for p in self.bench]
+            # Показываем запас компактно, если он большой
             chunk_size = 12
             for i in range(0, len(bench_strings), chunk_size):
                 chunk = bench_strings[i: i + chunk_size]
-                chunk_text = "\n".join(chunk)
-                name = f"🪑 Запас (Всего: {len(self.bench)})" if i == 0 else "🪑 Запас (продолжение)"
-                embed.add_field(name=name, value=chunk_text, inline=True)
+                name = f"🪑 Запас ({len(self.bench)})" if i == 0 else "..."
+                embed.add_field(name=name, value="\n".join(chunk), inline=True)
         else:
             embed.add_field(name="🪑 Запас", value="*(Пусто)*", inline=False)
 
         return embed
 
-    # --- ИНТЕРФЕЙС (МЕНЮ И КНОПКИ) ---
+    # --- ИНТЕРФЕЙС ---
     def update_components(self):
-        self.clear_items()
+        self.clear_items()  # Очищаем все
         lobby = self.get_current_lobby()
 
-        # --- ЛОГИКА СОРТИРОВКИ ---
-        # Ключ: Сначала Тир (по убыванию, поэтому минус), потом Имя (по возрастанию)
+        # --- 1. СЕЛЕКТЫ ИГРОКОВ (Ряды 0 и 1) ---
         sort_key = lambda p: (-self.get_tier(p), p.ingame_name.lower())
-
-        # Сортируем тех, кто уже в лобби (Radiant + Dire)
         in_game = sorted(lobby['radiant'] + lobby['dire'], key=sort_key)
-
-        # Сортируем запасных
         bench_sorted = sorted(self.bench, key=sort_key)
-
-        # Объединяем: Сверху списка будут активные игроки, снизу — запасные
         all_players = in_game + bench_sorted
 
         chunk_size = 25
         chunks = [all_players[i:i + chunk_size] for i in range(0, len(all_players), chunk_size)]
 
         current_row = 0
-
-        # Меню (Макс 2, так как лимит дискорда 5 строк компонентов)
+        # Лимит 2 меню (до 50 игроков)
         for i, chunk in enumerate(chunks[:2]):
             options = []
             for p in chunk:
-                # Определение иконки
-                if p in lobby['radiant']:
-                    icon = "🌳"
-                elif p in lobby['dire']:
-                    icon = "🌋"
-                else:
-                    icon = "🪑"
-
+                icon = "🌳" if p in lobby['radiant'] else "🌋" if p in lobby['dire'] else "🪑"
                 tier = self.get_tier(p)
+                label = f"[{tier}] {p.ingame_name}"[:100]
 
-                # --- ВИЗУАЛ В МЕНЮ ---
-                # Добавляем Тир в самое начало имени, чтобы было видно сортировку: "[8] Dendi"
-                label_str = f"[{tier}] {p.ingame_name}"
+                # Обработка позиций
+                pos_text = "Rank only"
+                if p.positions:
+                    if isinstance(p.positions, list):
+                        pos_text = "/".join([str(x) for x in p.positions if str(x).strip() and str(x) != "/"])
+                    else:
+                        pos_text = str(p.positions).replace("///", "/")
 
-                desc = f"Pos: {p.positions} | Rank: {p.rank_tier}" if p.positions else f"Rank: {p.rank_tier}"
+                desc = f"Pos: {pos_text}"
                 is_def = (self.selected_player_id == p.discord_id)
 
                 options.append(discord.SelectOption(
-                    label=label_str[:100],  # Обрезаем на всякий случай
-                    value=str(p.discord_id),
-                    emoji=icon,
-                    description=desc[:100],
-                    default=is_def
+                    label=label, value=str(p.discord_id), emoji=icon,
+                    description=desc[:100], default=is_def
                 ))
 
             if options:
-                start_n = i * 25 + 1
-                end_n = i * 25 + len(chunk)
-
                 sel = Select(
-                    placeholder=f"🔍 Игроки {start_n}-{end_n} (Сорт: Tier)",
-                    options=options,
-                    row=current_row
+                    placeholder=f"🔍 Игроки {i * 25 + 1}-{i * 25 + len(chunk)}",
+                    options=options, row=current_row
                 )
                 sel.callback = self.select_callback
                 self.add_item(sel)
                 current_row += 1
 
-        # КНОПКИ
-        action_row = current_row
+        # --- 2. ПЕРЕМЕЩЕНИЕ (Ряд 2) ---
+        move_row = current_row
         dis = (self.selected_player_id is None)
 
-        btn_rad = Button(label="В Radiant", style=discord.ButtonStyle.success, emoji="🌳", row=action_row, disabled=dis)
-        btn_rad.callback = self.move_to_radiant
-        self.add_item(btn_rad)
+        b_rad = Button(style=discord.ButtonStyle.success, emoji="🌳", row=move_row, disabled=dis)
+        b_rad.callback = self.move_to_radiant
+        self.add_item(b_rad)
 
-        btn_dire = Button(label="В Dire", style=discord.ButtonStyle.danger, emoji="🌋", row=action_row, disabled=dis)
-        btn_dire.callback = self.move_to_dire
-        self.add_item(btn_dire)
+        b_dire = Button(style=discord.ButtonStyle.danger, emoji="🌋", row=move_row, disabled=dis)
+        b_dire.callback = self.move_to_dire
+        self.add_item(b_dire)
 
-        btn_bench = Button(label="В Запас", style=discord.ButtonStyle.secondary, emoji="🪑", row=action_row,
-                           disabled=dis)
-        btn_bench.callback = self.move_to_bench
-        self.add_item(btn_bench)
+        b_bench = Button(style=discord.ButtonStyle.secondary, emoji="🪑", row=move_row, disabled=dis)
+        b_bench.callback = self.move_to_bench
+        self.add_item(b_bench)
 
-        # НАВИГАЦИЯ
-        nav_row = action_row + 1
+        # --- 3. НАВИГАЦИЯ И УТИЛИТЫ (Ряд 3) ---
+        nav_row = move_row + 1
 
-        if self.current_lobby_idx > 0:
-            btn_prev = Button(label="⬅️ Лобби", style=discord.ButtonStyle.primary, row=nav_row)
-            btn_prev.callback = self.prev_lobby
-            self.add_item(btn_prev)
+        b_prev = Button(label="⬅️", style=discord.ButtonStyle.primary, row=nav_row,
+                        disabled=(self.current_lobby_idx == 0))
+        b_prev.callback = self.prev_lobby
+        self.add_item(b_prev)
 
-        if self.current_lobby_idx < len(self.lobbies) - 1:
-            btn_next = Button(label="Лобби ➡️", style=discord.ButtonStyle.primary, row=nav_row)
-            btn_next.callback = self.next_lobby
-            self.add_item(btn_next)
+        b_shuf = Button(emoji="🎲", style=discord.ButtonStyle.secondary, row=nav_row)
+        b_shuf.callback = self.auto_balance_current
+        self.add_item(b_shuf)
 
-        btn_auto = Button(label="🎲 Shuffle", style=discord.ButtonStyle.secondary, row=nav_row)
-        btn_auto.callback = self.auto_balance_current
-        self.add_item(btn_auto)
+        b_next = Button(label="➡️", style=discord.ButtonStyle.primary, row=nav_row,
+                        disabled=(self.current_lobby_idx >= len(self.lobbies) - 1))
+        b_next.callback = self.next_lobby
+        self.add_item(b_next)
 
-        # УТИЛИТЫ
-        utils_row = nav_row + 1
-        # Проверяем, не вылезли ли мы за лимит (максимум 5 строк, индексы 0-4)
-        if utils_row < 5:
-            btn_reset = Button(label="Очистить лобби", style=discord.ButtonStyle.danger, row=utils_row, emoji="🗑️")
-            btn_reset.callback = self.reset_current_to_bench
-            self.add_item(btn_reset)
+        b_reset = Button(emoji="🗑️", style=discord.ButtonStyle.danger, row=nav_row)
+        b_reset.callback = self.reset_current_to_bench
+        self.add_item(b_reset)
 
-            btn_pub = Button(label="✅ Опубликовать", style=discord.ButtonStyle.green, row=utils_row)
-            btn_pub.callback = self.publish_all
-            self.add_item(btn_pub)
-    # --- CALLBACKS ---
+        b_pub = Button(label="Start", style=discord.ButtonStyle.green, row=nav_row)
+        b_pub.callback = self.publish_all
+        self.add_item(b_pub)
+
+        # --- 4. GOOGLE TOOLS (Ряд 4) - ТОЛЬКО MASSIVE ---
+        google_row = nav_row + 1
+        if google_row < 5:
+            # 4.1 Export ALL
+            btn_ex_all = Button(
+                label="Export ALL",
+                style=discord.ButtonStyle.blurple,
+                emoji="📤",
+                row=google_row
+            )
+            btn_ex_all.callback = self.export_all_callback
+            self.add_item(btn_ex_all)
+
+            # 4.2 Import ALL
+            btn_im_all = Button(
+                label="Import ALL",
+                style=discord.ButtonStyle.blurple,
+                emoji="📥",
+                row=google_row
+            )
+            btn_im_all.callback = self.import_all_callback
+            self.add_item(btn_im_all)
+    # --- CALLBACKS (Стандартные) ---
     async def select_callback(self, interaction):
         self.selected_player_id = int(interaction.data['values'][0])
         self.update_components()
@@ -469,7 +461,6 @@ class MultiLobbyView(View):
         if not p: return
 
         lobby = self.get_current_lobby()
-
         if p in lobby['radiant']: lobby['radiant'].remove(p)
         if p in lobby['dire']: lobby['dire'].remove(p)
         if p in self.bench: self.bench.remove(p)
@@ -481,7 +472,6 @@ class MultiLobbyView(View):
         elif target_dest == 'bench':
             self.bench.append(p)
 
-        # Сортируем запас по Тирам
         if target_dest == 'bench':
             self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
 
@@ -500,46 +490,289 @@ class MultiLobbyView(View):
     async def auto_balance_current(self, interaction):
         lobby = self.get_current_lobby()
         pool = lobby['radiant'] + lobby['dire']
-        if not pool:
-            return await interaction.response.send_message("⚠️ Лобби пустое.", ephemeral=True)
+        if not pool: return await interaction.response.send_message("⚠️ Лобби пустое.", ephemeral=True)
         lobby['radiant'], lobby['dire'] = simple_balance(pool)
         self.update_components()
         await interaction.response.edit_message(embed=self.build_embed(), view=self)
 
     async def reset_current_to_bench(self, interaction):
         lobby = self.get_current_lobby()
-        self.bench.extend(lobby['radiant'])
-        self.bench.extend(lobby['dire'])
-        lobby['radiant'] = []
-        lobby['dire'] = []
+        self.bench.extend(lobby['radiant'] + lobby['dire'])
+        lobby['radiant'], lobby['dire'] = [], []
         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
         self.selected_player_id = None
         self.update_components()
         await interaction.response.edit_message(embed=self.build_embed(), view=self)
 
-    async def publish_all(self, interaction):
+    async def publish_all(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        await interaction.edit_original_response(view=None, content="✅ **Матчи опубликованы!**")
 
-        for i, lobby in enumerate(self.lobbies):
-            if not lobby['radiant'] and not lobby['dire']: continue
+        # --- НАСТРОЙКИ КОМАНД ---
+        TEAM_NAMES = {
+            0: ("Natus Vincere", "Team Empire"),
+            1: ("The Alliance", "Team Secret"),
+            2: ("Evil Geniuses", "NewBee"),
+        }
+        # ------------------------
 
-            rad_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['radiant']])
-            dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['dire']])
+        await interaction.edit_original_response(view=None, content="✅ **Матчи публикуются...**")
 
-            rad_list = "\n".join([self.format_player_str(p) for p in lobby['radiant']])
-            dire_list = "\n".join([self.format_player_str(p) for p in lobby['dire']])
+        try:
+            for i, lobby in enumerate(self.lobbies):
+                if not lobby['radiant'] and not lobby['dire']:
+                    continue
 
-            embed = discord.Embed(title=f"⚔️ Матч #{i + 1} (Start)", color=discord.Color.purple())
-            embed.add_field(name="🌳 Radiant", value=rad_list if rad_list else "-", inline=False)
-            embed.add_field(name="🌋 Dire", value=dire_list if dire_list else "-", inline=False)
+                r_name, d_name = TEAM_NAMES.get(i, (f"Radiant {i + 1}", f"Dire {i + 1}"))
 
-            await interaction.channel.send(content=f"**Lobby {i + 1}** Summon: {rad_pings} {dire_pings}", embed=embed)
+                # -----------------------------------------------------------
+                # 🔥 ШАГ 1: ПОДГРУЖАЕМ STEAM_ID32 ИЗ БАЗЫ
+                # -----------------------------------------------------------
+                all_players_in_lobby = lobby['radiant'] + lobby['dire']
+                discord_ids = [p.discord_id for p in all_players_in_lobby]
 
-        if self.bench:
-            bench_pings = " ".join([f"<@{p.discord_id}>" for p in self.bench])
-            await interaction.channel.send(f"🪑 **В запасе:** {bench_pings}")
+                steam_map = {}  # {discord_id: steam_id32}
 
+                if discord_ids:
+                    async with self.bot.session_maker() as session:
+                        # 👇 ТУТ ИЗМЕНЕНИЕ: запрашиваем Player.steam_id32
+                        stmt = select(Player.discord_id, Player.steam_id32).where(Player.discord_id.in_(discord_ids))
+                        result = await session.execute(stmt)
+                        for row in result:
+                            # row[0] = discord_id, row[1] = steam_id32
+                            steam_map[row.discord_id] = row.steam_id32
+
+                # -----------------------------------------------------------
+
+                # === ВНУТРЕННЯЯ ФУНКЦИЯ ФОРМАТИРОВАНИЯ ===
+                def format_p(p):
+                    # 1. ТИР/ММР
+                    tier_val = self.get_tier(p)
+
+                    # 2. РОЛИ
+                    roles_str = ""
+                    clean_pos = []
+
+                    if hasattr(p, 'positions') and p.positions:
+                        raw_pos = p.positions
+                        if isinstance(raw_pos, list):
+                            for x in raw_pos:
+                                if x is None: continue
+                                s = str(x).strip()
+                                if s and s != "/": clean_pos.append(s)
+                        elif isinstance(raw_pos, str):
+                            clean_pos = [s.strip() for s in raw_pos.split('/') if s.strip()]
+
+                    if clean_pos:
+                        roles_str = f" | Pos: {'/'.join(clean_pos)}"
+
+                    # 3. ГИПЕРССЫЛКА (Stratz)
+                    display_name = f"**{p.ingame_name}**"
+
+                    # Берем ID из карты, которую загрузили выше
+                    sid = steam_map.get(p.discord_id)
+
+                    # Если вдруг в объекте регистрации уже есть ID
+                    if not sid and hasattr(p, 'steam_id32') and p.steam_id32:
+                        sid = p.steam_id32
+
+                    # Формируем ссылку
+                    if sid:
+                        try:
+                            # На всякий случай проверяем, вдруг там все-таки 64-битный ID
+                            sid_int = int(sid)
+                            if sid_int > 76561190000000000:
+                                sid_int -= 76561197960265728
+
+                            url = f"https://stratz.com/players/{sid_int}"
+                            display_name = f"[{display_name}]({url})"
+                        except:
+                            pass
+
+                    return f"[{tier_val}] {display_name}{roles_str}"
+
+                # ==========================================
+
+                rad_list = "\n".join([format_p(p) for p in lobby['radiant']])
+                dire_list = "\n".join([format_p(p) for p in lobby['dire']])
+
+                rad_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['radiant']])
+                dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['dire']])
+
+                embed = discord.Embed(
+                    title=f"⚔️ Match #{i + 1} (Start)",
+                    color=discord.Color.purple()
+                )
+
+                embed.add_field(name=f"🌳 {r_name}", value=rad_list or "-", inline=False)
+                embed.add_field(name=f"🌋 {d_name}", value=dire_list or "-", inline=False)
+
+                await interaction.channel.send(
+                    content=f"**Lobby {i + 1}** Summon: {rad_pings} {dire_pings}",
+                    embed=embed
+                )
+
+            if self.bench:
+                bench_pings = " ".join([f"<@{p.discord_id}>" for p in self.bench])
+                await interaction.channel.send(f"🪑 **В запасе:** {bench_pings}")
+
+            await interaction.edit_original_response(content="✅ **Все матчи опубликованы!**")
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            await interaction.channel.send(f"❌ Ошибка: {e}")
+
+    async def export_all_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            self.bot.sheet_service.export_custom_format(self.lobbies, self.bench)
+
+            await interaction.followup.send(f"✅ Таблица обновлена!\n<{self.bot.sheet_url}>", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"❌ Ошибка: {e}", ephemeral=True)
+
+    async def import_all_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            # 1. Читаем таблицу
+            imported_data, bench_names = self.bot.sheet_service.import_all_lobbies()
+
+            # 2. Создаем ПОЛНЫЙ пул игроков из памяти бота (до импорта)
+            pool = []
+            if self.lobbies:
+                for l in self.lobbies: pool.extend(l['radiant'] + l['dire'])
+            if self.bench:
+                pool.extend(self.bench)
+
+            def find(n):
+                if not n: return None
+                for p in pool:
+                    if p.ingame_name.lower().strip() == n.lower().strip(): return p
+                return None
+
+            # 3. Строим структуру новых лобби
+            new_lobbies = []
+            # ID игроков, которые нашлись в таблице и попали в лобби/бенч
+            processed_ids = set()
+
+            for l_data in imported_data:
+                nl = {'radiant': [], 'dire': []}
+                for name in l_data.get('radiant', []):
+                    if p := find(name):
+                        nl['radiant'].append(p)
+                        processed_ids.add(p.discord_id)
+                for name in l_data.get('dire', []):
+                    if p := find(name):
+                        nl['dire'].append(p)
+                        processed_ids.add(p.discord_id)
+                new_lobbies.append(nl)
+
+            # 4. Строим новый запас из таблицы
+            new_bench = []
+            for name in bench_names:
+                if p := find(name):
+                    # Если игрок еще не обработан (не в лобби), добавляем
+                    if p.discord_id not in processed_ids:
+                        new_bench.append(p)
+                        processed_ids.add(p.discord_id)
+
+            # 5. SAFETY NET (СПАСЕНИЕ ПОТЕРЯШЕК)
+            # Если игрока не было в таблице, но он был в пуле -> ВОЗВРАЩАЕМ В ЗАПАС
+            restored_count = 0
+            for p in pool:
+                if p.discord_id not in processed_ids:
+                    new_bench.append(p)
+                    processed_ids.add(p.discord_id)
+                    restored_count += 1
+
+            # 6. Применяем
+            if new_lobbies:
+                self.lobbies = new_lobbies
+            else:
+                self.lobbies = []
+
+            # Гарантируем 3 лобби
+            while len(self.lobbies) < 3:
+                self.lobbies.append({'radiant': [], 'dire': []})
+
+            self.bench = new_bench
+            try:
+                self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
+            except:
+                pass
+
+            if self.current_lobby_idx >= len(self.lobbies): self.current_lobby_idx = 0
+
+            self.update_components()
+            await interaction.edit_original_response(embed=self.build_embed(), view=self)
+
+            msg = "✅ **Импорт завершен!**"
+            if restored_count > 0:
+                msg += f"\n🛡️ **Восстановлено {restored_count} игроков**, которых не было в таблице (или ошибки чтения)."
+
+            await interaction.followup.send(msg, ephemeral=True)
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+
+    # ==========================
+    # === GOOGLE: ONE LOBBY ====
+    # ==========================
+
+    async def export_current_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        lobby = self.get_current_lobby()
+        try:
+            # Используем старый метод export_lobby (только для текущего)
+            # Он запишет данные только в первые колонки (или как настроено)
+            self.bot.sheet_service.export_lobby(lobby['radiant'], lobby['dire'], self.bench)
+            await interaction.followup.send(f"✅ **Текущее** лобби выгружено!\n<{self.bot.sheet_url}>", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"❌ Error Export One: {e}", ephemeral=True)
+
+    async def import_current_callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        try:
+            # Читаем ТОЛЬКО первые колонки (старый метод)
+            r_names, d_names, b_names = self.bot.sheet_service.import_lobby()
+
+            lobby = self.get_current_lobby()
+
+            # Пул: берем игроков только из ЭТОГО лобби и ЗАПАСА
+            # (Игроков других лобби не трогаем, чтобы не сломать соседние игры)
+            pool = lobby['radiant'] + lobby['dire'] + self.bench
+
+            new_rad, new_dire, new_bench = [], [], []
+            found_ids = set()
+
+            def find(n):
+                for p in pool:
+                    if p.ingame_name.lower().strip() == n.lower().strip(): return p
+                return None
+
+            for n in r_names:
+                if p := find(n): new_rad.append(p); found_ids.add(p.discord_id)
+            for n in d_names:
+                if p := find(n): new_dire.append(p); found_ids.add(p.discord_id)
+
+            # Тех, кого нет в таблице для этого лобби, кидаем в ОБЩИЙ запас
+            for p in pool:
+                if p.discord_id not in found_ids: new_bench.append(p)
+
+            # Обновляем только текущее лобби
+            lobby['radiant'] = new_rad
+            lobby['dire'] = new_dire
+            self.bench = new_bench  # Запас обновляется глобально
+            self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
+
+            self.update_components()
+            await interaction.edit_original_response(embed=self.build_embed(), view=self)
+            await interaction.followup.send("✅ **Текущее** лобби обновлено!", ephemeral=True)
+
+        except Exception as e:
+            await interaction.followup.send(f"❌ Error Import One: {e}", ephemeral=True)
 
 class RegistrationView(discord.ui.View):
     def __init__(self, bot):
