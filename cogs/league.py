@@ -1163,31 +1163,53 @@ class League(commands.Cog):
             await interaction.followup.send("ℹ️ Нет активных участников.", ephemeral=True)
             return
 
-        # Сортировка: Сначала подтвержденные
-        registrations.sort(key=lambda x: x[0].is_checked_in, reverse=True)
+        # СОРТИРОВКА
+        # 1. Сначала те, кто НЕ готов (False < True, поэтому not is_checked_in ставит готовых вверх)
+        # 2. Потом по ID регистрации (кто раньше нажал кнопку, тот выше)
+        registrations.sort(key=lambda x: (not x[0].is_checked_in, x[0].id))
 
         checked_cnt = sum(1 for r, p in registrations if r.is_checked_in)
 
         lines = []
-        for reg, player in registrations:
+        for i, (reg, player) in enumerate(registrations, start=1):
             status = "✅" if reg.is_checked_in else "💤"
             mmr = f"**{reg.mmr_snapshot}**"
 
+            # ССЫЛКА НА STRATZ
             link = player.ingame_name
             if player.steam_id32:
                 link = f"[{player.ingame_name}](https://www.stratz.com/players/{player.steam_id32})"
 
+            # СКРИНШОТ
             evd = f" [📸]({reg.screenshot_url})" if reg.screenshot_url else ""
 
-            lines.append(f"{status} {mmr} | {link} (<@{player.discord_id}>){evd}")
+            # --- ВЫРАВНИВАНИЕ ---
+            # {i:>2} добавит пробел перед 1..9 (будет " 1", " 2"... "10")
+            # Оборачиваем в `...`, чтобы ширина символов была фиксированной
+            num_display = f"`{i:>2}.`"
 
-        desc = (
-                f"**Всего заявок:** {len(registrations)}\n"
-                f"**Подтвердили (Ready):** {checked_cnt}\n\n"
-                + "\n".join(lines)
+            row_str = f"{num_display} {status} {mmr} | {link} (<@{player.discord_id}>){evd}"
+            lines.append(row_str)
+
+        # Собираем описание
+        desc_header = (
+            f"**Всего заявок:** {len(registrations)}\n"
+            f"**Подтвердили (Ready):** {checked_cnt}\n"
+            f"*(Сортировка: Готовые -> По времени регистрации)*\n\n"
         )
-        embed = discord.Embed(title=f"📊 Статус Недели #{week.week_number}", description=desc,
-                              color=discord.Color.blue())
+
+        # Объединяем строки
+        full_text = desc_header + "\n".join(lines)
+
+        # Обрезаем, если слишком длинно (лимит Discord 4096)
+        if len(full_text) > 4096:
+            full_text = full_text[:4000] + "\n... (список обрезан)"
+
+        embed = discord.Embed(
+            title=f"📊 Статус Недели #{week.week_number}",
+            description=full_text,
+            color=discord.Color.blue()
+        )
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     @league_group.command(name="delete_last", description="Удалить неделю")
