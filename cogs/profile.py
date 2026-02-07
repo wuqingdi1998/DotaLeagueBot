@@ -1,6 +1,7 @@
 import discord
 from discord import app_commands, ui
 from discord.ext import commands, tasks
+from discord.ui import View, Modal, TextInput, Button, Select
 import aiohttp
 import re
 import asyncio
@@ -314,30 +315,32 @@ class Profile(commands.Cog):
         )
         await interaction.followup.send(f"✅ Данные {member.mention} обновлены.")
 
-    @app_commands.command(name="player_info", description="Показать профиль")
+    @app_commands.command(name="player_info", description="Показать профиль игрока и тир")
     async def player_info(self, interaction: discord.Interaction, member: discord.Member = None):
         await interaction.response.defer()
         target = member or interaction.user
-        async with async_session() as session:
+
+        async with self.bot.session_maker() as session:  # Используй self.bot.session_maker или async_session() как у тебя настроено
             player = (await session.execute(select(Player).where(Player.discord_id == target.id))).scalar_one_or_none()
-            if not player: return await interaction.followup.send("❌ Профиль не найден.")
 
-            rank_names = {1: "Herald", 2: "Guardian", 3: "Crusader", 4: "Archon", 5: "Legend", 6: "Ancient",
-                          7: "Divine", 8: "Immortal"}
-            rank_label = rank_names.get((player.rank_tier // 10) if player.rank_tier else 0, "Uncalibrated")
+            if not player:
+                return await interaction.followup.send("❌ Профиль не найден. Игрок не зарегистрирован.")
 
-            embed = discord.Embed(title=f"👤 {player.ingame_name}", color=discord.Color.blue())
-            if player.avatar_url: embed.set_thumbnail(url=player.avatar_url)
-            embed.add_field(name="Discord", value=target.mention)
-            embed.add_field(name="Rank", value=rank_label)
-            embed.add_field(name="Pos", value=f"`{player.positions}`")
-            embed.add_field(name="Steam", value=f"[Link](https://www.dotabuff.com/players/{player.steam_id32})")
-
+            # Если у игрока есть команда (Team)
+            team_name = "No Team"
             if player.team_id:
                 team = await session.get(Team, player.team_id)
-                embed.add_field(name="Team", value=team.name if team else "Err")
+                if team: team_name = team.name
 
-            await interaction.followup.send(embed=embed)
+            # Создаем Embed
+            embed = create_player_embed(player, target)
+            if player.team_id:
+                embed.add_field(name="Team", value=team_name, inline=True)
+
+            # Создаем кнопки (View)
+            view = PlayerInfoView(self.bot, player.discord_id, player.ingame_name, interaction)
+
+            await interaction.followup.send(embed=embed, view=view)
 
     @tasks.loop(hours=24)
     async def update_ranks_task(self):
@@ -397,5 +400,121 @@ class Profile(commands.Cog):
         await self.bot.wait_until_ready()
 
 
+# --- Вставь этот класс ВЫШЕ класса PlayerInfoView в файле cogs/profile.py ---
+
+class TierModalInternal(discord.ui.Modal):
+    def __init__(self, bot, parent_view, player_id, player_name):
+        super().__init__(title=f"Изменение тира: {player_name}")
+        self.bot = bot
+        self.parent_view = parent_view
+        self.player_id = player_id
+
+        self.tier_input = discord.ui.TextInput(
+            label="Новый Тир (1-10)",
+            placeholder="Введите число (например: 8)",
+            min_length=1,
+            max_length=2,
+            required=True
+        )
+        self.add_item(self.tier_input)
+
+    async def on_submit(self, interaction: discord.Interaction):
+        try:
+            val = int(self.tier_input.value)
+            if not 1 <= val <= 10:
+                raise ValueError
+        except ValueError:
+            return await interaction.response.send_message("❌ Ошибка: Введите число от 1 до 10.", ephemeral=True)
+
+        # Сохранение в БД
+        async with self.bot.session_maker() as session:
+            stmt = select(Player).where(Player.discord_id == self.player_id)
+            result = await session.execute(stmt)
+            player = result.scalar_one_or_none()
+
+            if player:
+                player.internal_rating = val
+                await session.commit()
+                # Логируем или сообщаем об успехе
+                await interaction.response.send_message(f"✅ Тир игрока **{player.ingame_name}** изменен на **{val}**.",
+                                                        ephemeral=True)
+            else:
+                await interaction.response.send_message("❌ Игрок не найден в БД.", ephemeral=True)
+
+class PlayerInfoView(View):
+    def __init__(self, bot, player_discord_id, player_name, original_interaction):
+        super().__init__(timeout=180)  # Кнопка активна 3 минуты
+        self.bot = bot
+        self.player_id = player_discord_id
+        self.player_name = player_name
+        self.original_interaction = original_interaction
+
+    @discord.ui.button(label="Изменить тир", style=discord.ButtonStyle.secondary, emoji="⚙️")
+    async def edit_tier_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # 1. Проверка прав (только админы могут менять)
+        if not interaction.user.guild_permissions.administrator:
+            return await interaction.response.send_message("⛔ Только администраторы могут менять тир.", ephemeral=True)
+
+        # 2. Открываем модалку
+        # Мы передаем 'self' как parent_view, чтобы модалка могла (если нужно) обратиться назад
+        # Но для обновления сообщения профиля мы используем отдельный трюк ниже.
+        modal = TierModalInternal(self.bot, self, self.player_id, self.player_name)
+
+        # Переопределяем метод on_submit у этого экземпляра модалки,
+        # чтобы он обновил именно сообщение с профилем, а не таблицу
+        original_on_submit = modal.on_submit
+
+        async def custom_on_submit(modal_interaction: discord.Interaction):
+            # Выполняем стандартное сохранение в БД
+            await original_on_submit(modal_interaction)
+
+            # После сохранения обновляем сам профиль (Embed)
+            # Нам нужно заново получить данные игрока
+            async with self.bot.session_maker() as session:
+                new_player_data = (await session.execute(
+                    select(Player).where(Player.discord_id == self.player_id))).scalar_one_or_none()
+
+            if new_player_data:
+                # Генерируем новый Embed с обновленным тиром
+                new_embed = create_player_embed(new_player_data, interaction.guild.get_member(self.player_id))
+                # Редактируем исходное сообщение (где была нажата кнопка)
+                await interaction.message.edit(embed=new_embed)
+
+        # Подменяем метод
+        modal.on_submit = custom_on_submit
+
+        await interaction.response.send_modal(modal)
+
+
+# Вспомогательная функция для создания красивого Embed (чтобы не дублировать код)
+def create_player_embed(player, discord_member):
+    rank_names = {1: "Herald", 2: "Guardian", 3: "Crusader", 4: "Archon", 5: "Legend", 6: "Ancient",
+                  7: "Divine", 8: "Immortal"}
+    rank_label = rank_names.get((player.rank_tier // 10) if player.rank_tier else 0, "Uncalibrated")
+
+    # --- ЛОГИКА ТИРА ---
+    if player.internal_rating and player.internal_rating > 0:
+        tier_str = f"🛠️ **{player.internal_rating}** (Manual)"
+    else:
+        raw = player.rank_tier or 0
+        val = raw // 10 if raw >= 10 else raw
+        tier_str = f"🤖 {val} (Auto)"
+    # -------------------
+
+    embed = discord.Embed(title=f"👤 {player.ingame_name}", color=discord.Color.blue())
+    if player.avatar_url: embed.set_thumbnail(url=player.avatar_url)
+
+    # Пытаемся красиво отобразить Discord юзера
+    user_str = discord_member.mention if discord_member else f"<@{player.discord_id}>"
+
+    embed.add_field(name="Discord", value=user_str, inline=True)
+    embed.add_field(name="Rank", value=rank_label, inline=True)
+    embed.add_field(name="League Tier", value=tier_str, inline=True)  # Добавили поле
+
+    embed.add_field(name="Pos", value=f"`{player.positions}`", inline=True)
+    embed.add_field(name="Steam", value=f"[Stratz](https://www.stratz.com/players/{player.steam_id32})",
+                    inline=True)
+
+    return embed
 async def setup(bot):
     await bot.add_cog(Profile(bot))

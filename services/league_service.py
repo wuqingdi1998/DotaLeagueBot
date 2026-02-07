@@ -1,8 +1,7 @@
 from sqlalchemy import select, update, func, and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import LeagueSession, LeagueRegistration, Player, SessionStatus, PlayerStatus
-from datetime import datetime
-
+from datetime import datetime, timedelta, timezone
 
 class LeagueService:
     def __init__(self, db_session: AsyncSession):
@@ -108,27 +107,27 @@ class LeagueService:
         return result.scalar_one_or_none()
 
     async def register_player(self, user_id: int, screenshot_url: str=None):
-
         session = await self.get_active_session()
 
         if not session:
-            return False, "Сейчас нет активных лиг. Ждите анонса!"
+            return False, "Сейчас нет активных лиг.", False
 
         if session.status != SessionStatus.OPEN.value:
-            return False, "Регистрация уже закрыта!"
-
+            return False, "Регистрация уже закрыта!", False
 
         query_player = select(Player).where(Player.discord_id == user_id)
         result_player = await self.session.execute(query_player)
         player = result_player.scalar_one_or_none()
 
-
         if not player or player.rank_tier == 0:
-            return False, "Сначала настрой профиль и синхронизируй данные Dotabuff!"
+            return False, "Сначала настрой профиль!", False
 
+        # --- СТРОГАЯ ПРОВЕРКА ТИТАНА ---
+        # Никаких "and not auto_checkin". Всегда требуем скриншот.
         if player.rank_tier >= 80 and not screenshot_url:
-            return False, "Игроки ранга Титан обязаны предоставить скриншот текущего показателя **MMR**!"
+            return False, "Titan (Immortal) обязан предоставить скриншот MMR!", False
 
+        # Проверка на дубликат
         query_reg = select(LeagueRegistration).where(
             and_(
                 LeagueRegistration.session_id == session.id,
@@ -139,7 +138,16 @@ class LeagueService:
         existing_reg = result_reg.scalar_one_or_none()
 
         if existing_reg:
-            return False, "Ты уже зарегистрирован на эту неделю!"
+            return False, "Ты уже зарегистрирован!", False
+
+        # --- ЛОГИКА АВТО-ЧЕКИНА ---
+        # Вычисляем её. Она пригодится, когда Титан таки скинет скрин.
+        auto_checkin = False
+        if session.start_time:
+            now = datetime.utcnow()
+            time_until_start = session.start_time - now
+            if timedelta(minutes=0) < time_until_start <= timedelta(minutes=60):
+                auto_checkin = True
 
         new_registration = LeagueRegistration(
             session_id=session.id,
@@ -147,13 +155,18 @@ class LeagueService:
             chosen_role=player.positions,
             mmr_snapshot=player.rank_tier,
             status=PlayerStatus.REGISTERED.value,
-            screenshot_url = screenshot_url
+            screenshot_url=screenshot_url,
+            is_checked_in=auto_checkin
         )
 
         self.session.add(new_registration)
         await self.session.commit()
 
-        return True, f"Ты успешно зарегистрирован на неделю #{session.week_number}!"
+        msg = f"Ты успешно зарегистрирован на неделю #{session.week_number}!"
+        if auto_checkin:
+            msg += " **(Автоматический Check-in выполнен ✅)**"
+
+        return True, msg, auto_checkin
 
     async def get_active_registrations(self):
         stmt_week = select(LeagueSession).order_by(LeagueSession.id.desc()).limit(1)
