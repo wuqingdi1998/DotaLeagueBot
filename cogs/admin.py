@@ -176,7 +176,7 @@ class Admin(commands.Cog):
         except Exception as e:
             await interaction.followup.send(f"❌ System Error: {e}", ephemeral=True)
 
-    @commands.command(name="debug_me")
+    @app_commands.command(name="debug_me")
     async def debug_me(self, ctx):
         user = ctx.author
         perms = user.guild_permissions
