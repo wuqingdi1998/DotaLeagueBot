@@ -1131,7 +1131,7 @@ class League(commands.Cog):
             color=discord.Color.gold()
         )
         await interaction.followup.send(embed=embed, view=view)
-// das
+
     @league_group.command(name="adjust_tiers", description="[ADMIN] Изменить рейтинг игроков вручную")
     @app_commands.checks.has_permissions(administrator=True)
     async def adjust_tiers(self, interaction: discord.Interaction):
