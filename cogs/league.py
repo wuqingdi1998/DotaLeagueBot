@@ -952,93 +952,93 @@ class League(commands.Cog):
     # --- КОМАНДЫ ---
     league_group = app_commands.Group(name="league", description="Управление лигой")
 
-    @league_group.command(name="debug_fill", description="[DEBUG] Создать 12 фейковых игроков для теста")
-    @app_commands.checks.has_role("Admin")
-    async def debug_fill(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
+    # @league_group.command(name="debug_fill", description="[DEBUG] Создать 12 фейковых игроков для теста")
+    # @app_commands.checks.has_role("Admin")
+    # async def debug_fill(self, interaction: discord.Interaction):
+    #     await interaction.response.defer(ephemeral=True)
+    #
+    #     import random
+    #     adjectives = ["Super", "Mega", "Lazy", "Angry", "Pro", "Noob", "Fast", "Drunk"]
+    #     nouns = ["Carry", "Support", "Pudge", "Techies", "Mid", "Feeder", "Gamer", "Knight"]
+    #
+    #     created_count = 0
+    #
+    #     async with self.bot.session_maker() as session:
+    #         service = LeagueService(session)
+    #         week, _ = await service.get_active_registrations()
+    #
+    #         if not week:
+    #             return await interaction.followup.send("❌ Сначала создай неделю: `/league open ...`", ephemeral=True)
+    #
+    #         for i in range(1, 32):
+    #             fake_id = 99000 + i
+    #             fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
+    #             fake_rank = random.randint(10, 80)
+    #             fake_mmr = 1000 + (fake_rank * 80)
+    #             fake_steam_id = 80000000 + i
+    #
+    #             # 1. Создаем игрока или получаем существующего
+    #             stmt = select(Player).where(Player.discord_id == fake_id)
+    #             result = await session.execute(stmt)
+    #             player = result.scalar_one_or_none()
+    #
+    #             if not player:
+    #                 player = Player(
+    #                     discord_id=fake_id,
+    #                     ingame_name=fake_name,
+    #                     rank_tier=fake_rank,
+    #                     steam_id32=fake_steam_id
+    #                 )
+    #                 session.add(player)
+    #             else:
+    #                 player.ingame_name = fake_name
+    #                 player.rank_tier = fake_rank
+    #
+    #             # Сохраняем, чтобы убедиться, что объект зафиксирован
+    #             await session.flush()
+    #
+    #             # 2. Регистрируем
+    #             await service.register_player(fake_id)
+    #
+    #             # 3. Делаем Check-In вручную (ИСПРАВЛЕННАЯ ЧАСТЬ)
+    #             from database.models import LeagueRegistration
+    #
+    #             # Мы ищем регистрацию по player.discord_id, так как у Player нет поля id
+    #             reg_stmt = select(LeagueRegistration).where(
+    #                 LeagueRegistration.player_id == player.discord_id,  # <--- ТУТ БЫЛА ОШИБКА
+    #                 LeagueRegistration.session_id == week.id
+    #             )
+    #             reg_res = await session.execute(reg_stmt)
+    #             reg = reg_res.scalar_one_or_none()
+    #
+    #             if reg:
+    #                 reg.is_checked_in = True
+    #                 reg.mmr_snapshot = fake_mmr
+    #                 created_count += 1
+    #
+    #         await session.commit()
+    #
+    #     await interaction.followup.send(
+    #         f"✅ Успешно создано **{created_count}** фейковых игроков с Check-In.\nТеперь жми `/league make_teams`",
+    #         ephemeral=True)
 
-        import random
-        adjectives = ["Super", "Mega", "Lazy", "Angry", "Pro", "Noob", "Fast", "Drunk"]
-        nouns = ["Carry", "Support", "Pudge", "Techies", "Mid", "Feeder", "Gamer", "Knight"]
-
-        created_count = 0
-
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
-            week, _ = await service.get_active_registrations()
-
-            if not week:
-                return await interaction.followup.send("❌ Сначала создай неделю: `/league open ...`", ephemeral=True)
-
-            for i in range(1, 32):
-                fake_id = 99000 + i
-                fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
-                fake_rank = random.randint(10, 80)
-                fake_mmr = 1000 + (fake_rank * 80)
-                fake_steam_id = 80000000 + i
-
-                # 1. Создаем игрока или получаем существующего
-                stmt = select(Player).where(Player.discord_id == fake_id)
-                result = await session.execute(stmt)
-                player = result.scalar_one_or_none()
-
-                if not player:
-                    player = Player(
-                        discord_id=fake_id,
-                        ingame_name=fake_name,
-                        rank_tier=fake_rank,
-                        steam_id32=fake_steam_id
-                    )
-                    session.add(player)
-                else:
-                    player.ingame_name = fake_name
-                    player.rank_tier = fake_rank
-
-                # Сохраняем, чтобы убедиться, что объект зафиксирован
-                await session.flush()
-
-                # 2. Регистрируем
-                await service.register_player(fake_id)
-
-                # 3. Делаем Check-In вручную (ИСПРАВЛЕННАЯ ЧАСТЬ)
-                from database.models import LeagueRegistration
-
-                # Мы ищем регистрацию по player.discord_id, так как у Player нет поля id
-                reg_stmt = select(LeagueRegistration).where(
-                    LeagueRegistration.player_id == player.discord_id,  # <--- ТУТ БЫЛА ОШИБКА
-                    LeagueRegistration.session_id == week.id
-                )
-                reg_res = await session.execute(reg_stmt)
-                reg = reg_res.scalar_one_or_none()
-
-                if reg:
-                    reg.is_checked_in = True
-                    reg.mmr_snapshot = fake_mmr
-                    created_count += 1
-
-            await session.commit()
-
-        await interaction.followup.send(
-            f"✅ Успешно создано **{created_count}** фейковых игроков с Check-In.\nТеперь жми `/league make_teams`",
-            ephemeral=True)
-
-    @league_group.command(name="debug_clear", description="[DEBUG] Удалить фейковых игроков")
-    @app_commands.checks.has_role("Admin")
-    async def debug_clear(self, interaction: discord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
-        async with self.bot.session_maker() as session:
-            # Удаляем всех, у кого ID от 99000 (наши фейки)
-            # В SQLAlchemy 2.0 delete делается так:
-            from sqlalchemy import delete
-
-            stmt = delete(Player).where(Player.discord_id >= 99000)
-            result = await session.execute(stmt)
-            await session.commit()
-
-            deleted = result.rowcount
-
-        await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков.", ephemeral=True)
+    # @league_group.command(name="debug_clear", description="[DEBUG] Удалить фейковых игроков")
+    # @app_commands.checks.has_role("Admin")
+    # async def debug_clear(self, interaction: discord.Interaction):
+    #     await interaction.response.defer(ephemeral=True)
+    #
+    #     async with self.bot.session_maker() as session:
+    #         # Удаляем всех, у кого ID от 99000 (наши фейки)
+    #         # В SQLAlchemy 2.0 delete делается так:
+    #         from sqlalchemy import delete
+    #
+    #         stmt = delete(Player).where(Player.discord_id >= 99000)
+    #         result = await session.execute(stmt)
+    #         await session.commit()
+    #
+    #         deleted = result.rowcount
+    #
+    #     await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков.", ephemeral=True)
 
     @league_group.command(name="make_teams", description="Создать матчи (Мульти-лобби)")
     @app_commands.checks.has_role("Admin")
