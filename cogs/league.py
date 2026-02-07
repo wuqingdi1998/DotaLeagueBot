@@ -1131,8 +1131,7 @@ class League(commands.Cog):
             color=discord.Color.gold()
         )
         await interaction.channel.send(embed=embed, view=view)
-        await interaction.response.send_message("✅ Регистрация успешно опубликована в канале!", ephemeral=True)
-
+        await interaction.followup.send("✅ Регистрация опубликована!", ephemeral=True)
     @league_group.command(name="adjust_tiers", description="[ADMIN] Изменить рейтинг игроков вручную")
     @app_commands.checks.has_permissions(administrator=True)
     async def adjust_tiers(self, interaction: discord.Interaction):
