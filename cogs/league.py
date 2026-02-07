@@ -1088,7 +1088,7 @@ class League(commands.Cog):
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @league_group.command(name="open", description="Открыть регистрацию (время по МСК)")
-    @app_commands.checks.has_role("Admin")
+    @app_commands.checks.has_permissions(administrator=True)
     @app_commands.describe(
         day_month="Дата старта (формат: 07.02)",
         time="Время старта по МСК (формат: 19:00)",
