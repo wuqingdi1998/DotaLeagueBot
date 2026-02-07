@@ -176,7 +176,21 @@ class Admin(commands.Cog):
         except Exception as e:
             await interaction.followup.send(f"❌ System Error: {e}", ephemeral=True)
 
+    @commands.command(name="debug_me")
+    async def debug_me(self, ctx):
+        user = ctx.author
+        perms = user.guild_permissions
 
+        # Вывод в консоль сервера (Docker logs)
+        print(f"\n--- 🕵️ DEBUG INFO FOR {user.name} ---")
+        print(f"User ID: {user.id}")
+        print(f"Is Server Owner? {ctx.guild.owner_id == user.id}")
+        print(f"Roles: {[r.name for r in user.roles]}")
+        print(f"Has Administrator Permission? -> {perms.administrator}")
+        print(f"--------------------------------------\n")
 
+        # Вывод прямо в чат, чтобы ты сразу увидел
+        await ctx.send(
+            f"👮 **Твои права:**\nAdmin: `{perms.administrator}`\nRoles: `{', '.join([r.name for r in user.roles])}`")
 async def setup(bot):
     await bot.add_cog(Admin(bot))
