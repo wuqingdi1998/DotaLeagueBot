@@ -953,7 +953,7 @@ class League(commands.Cog):
     league_group = app_commands.Group(name="league", description="Управление лигой")
 
     # @league_group.command(name="debug_fill", description="[DEBUG] Создать 12 фейковых игроков для теста")
-    # @app_commands.checks.has_role("Admin")
+    # @app_commands.checks.has_permissions(administrator=True)
     # async def debug_fill(self, interaction: discord.Interaction):
     #     await interaction.response.defer(ephemeral=True)
     #
@@ -1023,7 +1023,7 @@ class League(commands.Cog):
     #         ephemeral=True)
 
     # @league_group.command(name="debug_clear", description="[DEBUG] Удалить фейковых игроков")
-    # @app_commands.checks.has_role("Admin")
+    # @app_commands.checks.has_permissions(administrator=True)
     # async def debug_clear(self, interaction: discord.Interaction):
     #     await interaction.response.defer(ephemeral=True)
     #
@@ -1041,7 +1041,7 @@ class League(commands.Cog):
     #     await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков.", ephemeral=True)
 
     @league_group.command(name="make_teams", description="Создать матчи (Мульти-лобби)")
-    @app_commands.checks.has_role("Admin")
+    @app_commands.checks.has_permissions(administrator=True)
     async def make_teams(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -1131,9 +1131,9 @@ class League(commands.Cog):
             color=discord.Color.gold()
         )
         await interaction.followup.send(embed=embed, view=view)
-
+// das
     @league_group.command(name="adjust_tiers", description="[ADMIN] Изменить рейтинг игроков вручную")
-    @app_commands.checks.has_role("Admin")
+    @app_commands.checks.has_permissions(administrator=True)
     async def adjust_tiers(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -1151,7 +1151,7 @@ class League(commands.Cog):
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @league_group.command(name="status", description="Статус регистрации и чек-ина")
-    @app_commands.checks.has_role("Admin")
+    @app_commands.checks.has_permissions(administrator=True)
     async def league_status(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -1213,7 +1213,7 @@ class League(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     @league_group.command(name="delete_last", description="Удалить неделю")
-    @app_commands.checks.has_role("Admin")
+    @app_commands.checks.has_permissions(administrator=True)
     async def league_delete(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
         async with self.bot.session_maker() as session:
@@ -1222,7 +1222,7 @@ class League(commands.Cog):
         await interaction.followup.send(msg, ephemeral=True)
 
     @league_group.command(name="kick", description="Кикнуть игрока")
-    @app_commands.checks.has_role("Admin")
+    @app_commands.checks.has_permissions(administrator=True)
     async def league_kick(self, interaction: discord.Interaction, user: discord.User):
         async with self.bot.session_maker() as session:
             service = LeagueService(session)
