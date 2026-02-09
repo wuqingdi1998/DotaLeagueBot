@@ -7,7 +7,11 @@ from dotenv import load_dotenv
 LOG_WEBHOOK_URL = os.getenv("LOG_WEBHOOK_URL")
 
 
-async def send_log(title: str, description: str, color: discord.Color):
+async def send_log(title: str, description: str, color: discord.Color, content: str = None):
+    """
+    Отправляет лог через вебхук.
+    :param content: Текст сообщения (здесь работают пинги <@ID>)
+    """
     if not LOG_WEBHOOK_URL: return
 
     async with aiohttp.ClientSession() as session:
@@ -17,6 +21,7 @@ async def send_log(title: str, description: str, color: discord.Color):
         embed.set_footer(text="Dota League System Log")
 
         try:
-            await webhook.send(embed=embed, username="League Observer")
+            # 👇 ВАЖНО: передаем content=content
+            await webhook.send(content=content, embed=embed, username="League Observer")
         except Exception as e:
             print(f"[ERROR] Failed to send webhook log: {e}")

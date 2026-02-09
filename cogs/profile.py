@@ -8,6 +8,7 @@ import asyncio
 import os
 from sqlalchemy import select
 from dotenv import load_dotenv
+from utils.logger import send_log
 
 # --- Project Imports ---
 from database.core import async_session
