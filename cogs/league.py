@@ -36,8 +36,7 @@ class TierModalInternal(Modal):
                 return await interaction.response.send_message("❌ Число от 0 до 10!", ephemeral=True)
 
             # 1. Сохраняем в БД
-            async with self.bot.session_maker() as session:
-                service = LeagueService(session)
+            async with LeagueService(self.bot) as service:
                 await service.update_player_internal_rating(self.player_discord_id, val)
 
             # 2. ОБНОВЛЯЕМ ПАМЯТЬ VIEW (чтобы цифра сменилась мгновенно)
@@ -163,8 +162,7 @@ class TierAdjustmentViewWrapper(View):
     async def refresh_btn(self, interaction: discord.Interaction):
         # Полная перезагрузка из БД
         await interaction.response.defer()
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             _, registrations = await service.get_active_registrations()
 
         self.registrations = registrations
@@ -190,29 +188,84 @@ class TierAdjustmentViewWrapper(View):
         desc = "**Список игроков**\n" + ("\n".join(lines) if lines else "Пусто")
         return discord.Embed(title="🔧 Корректировка Тиров", description=desc, color=discord.Color.orange())
 
-# --- КНОПКИ ДЛЯ ЛИЧКИ (CHECK-IN) ---
+
 class DMCheckinView(discord.ui.View):
-    def __init__(self, bot):
+    def __init__(self, bot, week_id: int):
         super().__init__(timeout=None)
         self.bot = bot
+        self.week_id = int(week_id)  # Гарантируем, что это число
 
-    @discord.ui.button(label="✅ Я буду играть", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="✅ Я буду играть", style=discord.ButtonStyle.green, custom_id="dm_checkin_confirm_v2")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
+        # 1. Сразу говорим Дискорду "подожди", чтобы кнопка не зависла
+        await interaction.response.defer(ephemeral=True)
+        print(f"[BUTTON] Нажата кнопка чекина игроком {interaction.user.name}")
 
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
-            # Ставим галочку is_checked_in = True
-            success, msg = await service.process_checkin(interaction.user.id)
+        try:
+            # 2. Логика проверки
+            async with LeagueService(self.bot) as service:
+                # Получаем текущую неделю
+                week, _ = await service.get_active_registrations()
 
-        if success:
-            # Отключаем кнопки
-            for child in self.children:
-                child.disabled = True
-            await interaction.edit_original_response(
-                content="✅ **Отлично! Твое участие подтверждено.**\nОжидай анонса команд в канале Discord.", view=self)
-        else:
-            await interaction.followup.send(f"⚠️ {msg}", ephemeral=True)
+                if not week:
+                    print("[BUTTON] Нет активной недели")
+                    return await interaction.followup.send("❌ Сейчас нет активных игр.", ephemeral=True)
+
+                print(f"[BUTTON] Сравниваю: ID кнопки={self.week_id} vs Текущая={week.id}")
+
+                # 3. Сравнение ID (защита от старых кнопок)
+                if week.id != self.week_id:
+                    print("[BUTTON] ID не совпали!")
+                    return await interaction.followup.send(
+                        f"⚠️ **Эта кнопка устарела.**\n"
+                        f"Это чек-ин для тура #{self.week_id}, а сейчас идет тур #{week.id}.",
+                        ephemeral=True
+                    )
+
+                # 4. Выполняем чекин
+                print(f"[BUTTON] Пробую сделать чекин для {interaction.user.id}...")
+
+                # ВНИМАНИЕ: Если у тебя нет метода do_checkin, раскомментируй код ниже, а этот вызов удали
+                # success, msg = await service.do_checkin(interaction.user.id, week.id)
+
+                # --- ВСТАВКА ЛОГИКИ ЧЕКИНА ПРЯМО СЮДА (если нет метода do_checkin) ---
+                session = service.session
+                from database.models import LeagueRegistration
+                from sqlalchemy import select
+
+                reg_stmt = select(LeagueRegistration).where(
+                    LeagueRegistration.player_id == interaction.user.id,
+                    LeagueRegistration.session_id == week.id
+                )
+                res = await session.execute(reg_stmt)
+                reg = res.scalar_one_or_none()
+
+                if not reg:
+                    success = False
+                    msg = "Ты не зарегистрирован на эту неделю."
+                elif reg.is_checked_in:
+                    success = True
+                    msg = "Ты уже подтвердил участие!"
+                else:
+                    reg.is_checked_in = True
+                    await session.commit()
+                    success = True
+                    msg = "Участие подтверждено! Жди сбора команд."
+                # -------------------------------------------------------------------
+
+                if success:
+                    await interaction.followup.send(f"✅ {msg}", ephemeral=True)
+                    # Отключаем кнопку визуально
+                    button.disabled = True
+                    button.label = "✅ Вы в игре"
+                    await interaction.message.edit(view=self)
+                else:
+                    await interaction.followup.send(f"❌ {msg}", ephemeral=True)
+
+        except Exception as e:
+            print(f"[ERROR] Ошибка кнопки: {e}")
+            traceback.print_exc()
+            await interaction.followup.send(f"❌ Произошла ошибка: {e}", ephemeral=True)
 
 
 
@@ -509,6 +562,8 @@ class MultiLobbyView(View):
     async def publish_all(self, interaction: discord.Interaction):
         await interaction.response.defer()
         from datetime import datetime, timedelta
+        from sqlalchemy import select  # Убедись, что импорт есть
+        from database.models import Player  # Убедись, что импорт есть
 
         TEAM_NAMES = {
             0: ("Natus Vincere", "Team Empire"),
@@ -518,27 +573,31 @@ class MultiLobbyView(View):
 
         await interaction.edit_original_response(view=None, content="⏳ **Публикую матчи (Время МСК)...**")
 
-        # 1. Получаем время старта из сервиса
+        # Переменные для данных из БД
         base_start_time = datetime.now()
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        steam_map = {}
+
+        # ✅ ОТКРЫВАЕМ СЕРВИС ОДИН РАЗ
+        async with LeagueService(self.bot) as service:
+            # 1. Получаем время старта
             active_session = await service.get_active_session()
             if active_session and active_session.start_time:
                 base_start_time = active_session.start_time
 
-        # 2. Подгружаем SteamID (общий список)
-        all_discord_ids = []
-        for lobby in self.lobbies:
-            if lobby['radiant'] or lobby['dire']:
-                all_discord_ids.extend([p.discord_id for p in lobby['radiant'] + lobby['dire']])
+            # 2. Подгружаем SteamID (используем service.session)
+            all_discord_ids = []
+            for lobby in self.lobbies:
+                if lobby['radiant'] or lobby['dire']:
+                    all_discord_ids.extend([p.discord_id for p in lobby['radiant'] + lobby['dire']])
 
-        steam_map = {}
-        if all_discord_ids:
-            async with self.bot.session_maker() as session:
+            if all_discord_ids:
+                # Вместо self.bot.session_maker() используем service.session
                 stmt = select(Player.discord_id, Player.steam_id32).where(Player.discord_id.in_(all_discord_ids))
-                result = await session.execute(stmt)
+                result = await service.session.execute(stmt)
                 for row in result:
                     steam_map[row.discord_id] = row.steam_id32
+
+        # СЕССИЯ ЗАКРЫТА, ДАЛЬШЕ РАБОТАЕМ С DISCORD API
 
         try:
             for i, lobby in enumerate(self.lobbies):
@@ -547,19 +606,17 @@ class MultiLobbyView(View):
 
                 r_name, d_name = TEAM_NAMES.get(i, (f"Radiant {i + 1}", f"Dire {i + 1}"))
 
-                # --- 🕒 ИЗМЕНЕНИЕ ЗДЕСЬ 🕒 ---
+                # --- ВРЕМЯ ---
                 lobby_match_time = base_start_time + timedelta(minutes=i * 5)
-
-                # Если время отображается на 3 часа меньше, раскомментируй строку ниже:
+                # Корректировка времени (раскомментируй, если нужно +3 часа)
                 lobby_match_time += timedelta(hours=3)
 
                 time_str = lobby_match_time.strftime("%H:%M")
                 discord_time_str = f"{time_str} МСК"
 
-                # ------------------------------
-
-                # Внутренняя функция форматирования (без изменений)
+                # --- ФОРМАТИРОВАНИЕ ---
                 def format_p(p):
+                    # ВАЖНО: get_tier должен быть доступен (self.get_tier)
                     tier_val = self.get_tier(p)
                     roles_str = ""
                     clean_pos = []
@@ -574,11 +631,15 @@ class MultiLobbyView(View):
                             clean_pos = [s.strip() for s in raw_pos.split('/') if s.strip()]
                     if clean_pos:
                         roles_str = f" | Pos: {'/'.join(clean_pos)}"
+
                     base_name = getattr(p, 'ingame_name', str(p.discord_id))
                     display_name = f"**{base_name}**"
+
+                    # Берем SteamID из карты, которую мы заполнили выше
                     sid = steam_map.get(p.discord_id)
                     if not sid and hasattr(p, 'steam_id32') and p.steam_id32:
                         sid = p.steam_id32
+
                     if sid:
                         try:
                             sid_int = int(sid)
@@ -595,7 +656,6 @@ class MultiLobbyView(View):
                 dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['dire']])
 
                 embed = discord.Embed(
-                    # В заголовке теперь будет: ⚔️ Match #1 (22:00 МСК)
                     title=f"⚔️ Match #{i + 1} ({discord_time_str})",
                     color=discord.Color.purple()
                 )
@@ -618,7 +678,10 @@ class MultiLobbyView(View):
         except Exception as e:
             import traceback
             traceback.print_exc()
-            await interaction.channel.send(f"❌ Ошибка: {e}")
+            try:
+                await interaction.channel.send(f"❌ Ошибка: {e}")
+            except:
+                pass
 
     async def export_all_callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
@@ -781,23 +844,36 @@ class RegistrationView(discord.ui.View):
     async def join_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
-        async with self.bot.session_maker() as session:
+        # ✅ ОТКРЫВАЕМ СЕССИЮ ЧЕРЕЗ LeagueService
+        async with LeagueService(interaction.client) as league_service:
+            # Получаем сессию, которую создал LeagueService
+            session = league_service.session
+
+            # Создаем ProfileService, используя ТУ ЖЕ сессию
             profile_service = ProfileService(session)
-            league_service = LeagueService(session)
+
+            # --- ДАЛЬШЕ ТВОЙ КОД ПОЧТИ БЕЗ ИЗМЕНЕНИЙ ---
 
             # 1. Проверки профиля
+            # (Тут, возможно, надо проверить метод get_player - принимает ли он ID или что-то еще,
+            # но судя по твоему коду он принимает ID)
             player = await profile_service.get_player(interaction.user.id)
-            if not player or not player.rank_tier:
-                await interaction.followup.send("❌ Сначала создай профиль", ephemeral=True)
+
+            # ВАЖНО: player может быть None, если профиля нет
+            if not player or not getattr(player, 'rank_tier', None):
+                # Используем followup, так как сделали defer
+                await interaction.followup.send("❌ Сначала создай профиль (команда /profile или настройки).",
+                                                ephemeral=True)
                 return
 
             # 2. Попытка регистрации
-            # Если это Титан, сервис вернет False и текст про скриншот
+            # Метод register_player теперь вызывается у league_service, который уже имеет сессию
+            # Обрати внимание: register_player возвращает (success, message, is_auto_checked)
             success, message, is_auto_checked = await league_service.register_player(user_id=interaction.user.id)
 
             if not success:
                 # Если ошибка про Титана — шлем инструкцию
-                if "Titan" in message:
+                if "Titan" in str(message):  # str() на всякий случай
                     try:
                         await interaction.user.send(
                             "📸 **Подтверждение ранга**\n"
@@ -813,13 +889,16 @@ class RegistrationView(discord.ui.View):
                     await interaction.followup.send(f"❌ {message}", ephemeral=True)
                 return
 
-            # 3. Успех (для обычных игроков)
+            # 3. Успех
             await interaction.followup.send(f"✅ {message}", ephemeral=True)
 
-            # Если сработал авточекин (для обычных игроков)
-            if hasattr(self.bot, 'active_checkin') and self.bot.active_checkin:
-                if not self.bot.active_checkin.is_finished() and is_auto_checked:
-                    await self.bot.active_checkin.add_player_external(player, interaction.channel)
+            # Если сработал авточекин
+            # Тут self.bot недоступен напрямую, если это View.
+            # В View бот обычно лежит в interaction.client
+            bot = interaction.client
+            if hasattr(bot, 'active_checkin') and bot.active_checkin:
+                if not bot.active_checkin.is_finished() and is_auto_checked:
+                    await bot.active_checkin.add_player_external(player, interaction.channel)
 
 
 # --- ОСНОВНОЙ КОГ ---
@@ -838,32 +917,29 @@ class League(commands.Cog):
     # --- ФОНОВАЯ ЗАДАЧА: АВТО-ЧЕКИН ---
     @tasks.loop(minutes=1)
     async def check_upcoming_games(self):
-        """Проверяет каждую минуту, не пора ли делать чек-ин (за 1 час до старта)"""
         try:
-            async with self.bot.session_maker() as session:
-                service = LeagueService(session)
+            async with LeagueService(self.bot) as service:
                 week, registrations = await service.get_active_registrations()
 
                 if not week or not registrations:
                     return
 
-                # Если для этой недели уже рассылали - пропускаем
                 if week.id in self.checkin_sent_weeks:
                     return
 
-                # Время сейчас (UTC)
                 now_utc = datetime.now(timezone.utc).replace(tzinfo=None)
-                # Время старта (UTC из базы)
                 start_utc = week.start_time
 
-                # Если старт в будущем
                 if start_utc > now_utc:
                     diff = start_utc - now_utc
-                    # Если осталось меньше или равно 60 минут (и больше 0)
                     if timedelta(minutes=0) < diff <= timedelta(minutes=60):
                         print(f"[AUTO-CHECKIN] Запускаю рассылку для Тура #{week.week_number}")
-                        await self.send_checkin_dms(registrations, week.week_number)
+
+                        # 🔥 ИСПРАВЛЕНИЕ: Сначала добавляем в список, чтобы не запустить дважды
                         self.checkin_sent_weeks.add(week.id)
+
+                        # А потом уже отправляем
+                        await self.send_checkin_dms(registrations, week.id)
 
         except Exception as e:
             print(f"[ERROR] Auto-checkin task failed: {e}")
@@ -880,72 +956,102 @@ class League(commands.Cog):
             color=discord.Color.gold()
         )
 
+        week_id = registrations[0][0].session_id if registrations else None
+
+        if not week_id: return  # Защита
+
         for reg, player in registrations:
-            # Если уже подтвердил - не трогаем
             if reg.is_checked_in:
                 continue
 
             try:
                 user = self.bot.get_user(player.discord_id) or await self.bot.fetch_user(player.discord_id)
-                view = DMCheckinView(self.bot)
+
+                # 🔥 ИСПРАВЛЕНИЕ: Передаем week_id в View
+                view = DMCheckinView(self.bot, week_id=week_id)
+
                 await user.send(embed=embed, view=view)
-                await asyncio.sleep(0.2)  # Анти-спам задержка
+                await asyncio.sleep(0.2)
             except Exception as e:
                 print(f"Не удалось отправить чек-ин игроку {player.ingame_name}: {e}")
 
-    # --- СЛУШАТЕЛЬ СКРИНШОТОВ ---
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        if message.author.bot: return
-        if not isinstance(message.channel, discord.DMChannel): return
-        if not message.attachments: return
+        # --- ОТЛАДКА: СМОТРИМ, ВИДИТ ЛИ БОТ ХОТЬ ЧТО-ТО ---
+        # Если в консоли не появится эта строка при отправке сообщения — проблема в Intents!
+        # print(f"[DEBUG] Message from {message.author}: {message.content} (Attachments: {len(message.attachments)})")
 
-        attachment = message.attachments[0]
-        if not attachment.content_type or not attachment.content_type.startswith('image/'):
+        # 1. Отсеиваем самого бота
+        if message.author.bot:
             return
 
-        # Сообщаем, что начали обработку (для UX)
-        processing_msg = await message.channel.send("⏳ Обрабатываю скриншот...")
+        # 2. Проверка на ЛС (упрощенная)
+        # Если message.guild is None — значит это ЛС
+        if message.guild is not None:
+            return
 
-        player_obj = None # Сюда сохраним объект игрока, если всё пройдет успешно
+        print(f"[DEBUG] Получено сообщение в ЛС от {message.author.name}")
 
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
-            profile_service = ProfileService(session) # Нужен сервис профилей
+        # 3. Проверка на наличие картинки
+        if not message.attachments:
+            print("[DEBUG] Нет вложений, игнорирую.")
+            return
 
-            # --- ИСПРАВЛЕНИЕ ТУТ: Принимаем 3 значения ---
-            success, response_text, is_auto_checked = await service.register_player(
-                user_id=message.author.id,
-                screenshot_url=attachment.url
-            )
+        attachment = message.attachments[0]
+        # Проверка типа контента (иногда content_type бывает None, добавим защиту)
+        ctype = attachment.content_type
+        if not ctype or not ctype.startswith('image/'):
+            print(f"[DEBUG] Вложение есть, но это не картинка: {ctype}")
+            return
 
-            # Если всё ок и сработал авто-чекин, нам нужен объект игрока для обновления меню
-            if success and is_auto_checked:
-                player_obj = await profile_service.get_player(message.author.id)
+        print(f"[DEBUG] Картинка найдена! Начинаю обработку...")
 
-        # Сессия закрыта, работаем с результатами
+        # Сообщаем пользователю
+        processing_msg = await message.channel.send("⏳ Вижу картинку, проверяю...")
+
+        # --- ДАЛЬШЕ ТВОЯ ЛОГИКА ---
+        success = False
+        response_text = ""
+        is_auto_checked = False
+        player_obj = None
+
+        try:
+            async with LeagueService(self.bot) as service:
+                print("[DEBUG] Сервис лиги запущен")
+                session = service.session
+                profile_service = ProfileService(session)
+
+                success, response_text, is_auto_checked = await service.register_player(
+                    user_id=message.author.id,
+                    screenshot_url=attachment.url
+                )
+                print(f"[DEBUG] Результат регистрации: {success}, {response_text}")
+
+                if success and is_auto_checked:
+                    player_obj = await profile_service.get_player(message.author.id)
+
+        except Exception as e:
+            print(f"[ERROR] Ошибка внутри on_message: {e}")
+            import traceback
+            traceback.print_exc()
+            await processing_msg.edit(content=f"❌ Ошибка бота: {e}")
+            return
+
         if success:
             await processing_msg.edit(content=f"✅ {response_text}")
 
-            # --- ОБНОВЛЕНИЕ ГЛОБАЛЬНОГО МЕНЮ (VIEW) ---
-            # Если сервис сказал, что авто-чекин был (значит время игры близко),
-            # мы должны обновить цифру в канале.
-            if is_auto_checked and hasattr(self.bot, 'active_checkin') and self.bot.active_checkin:
-                if not self.bot.active_checkin.is_finished() and player_obj:
-                    # Находим канал, в котором висит меню чекина
-                    if self.bot.active_checkin.message:
-                        target_channel = self.bot.active_checkin.message.channel
-                        await self.bot.active_checkin.add_player_external(player_obj, target_channel)
-
+            # Обновление меню чекина
+            if is_auto_checked and player_obj:
+                if hasattr(self.bot, 'active_checkin') and self.bot.active_checkin:
+                    if not self.bot.active_checkin.is_finished():
+                        try:
+                            if self.bot.active_checkin.message:
+                                await self.bot.active_checkin.add_player_external(player_obj,
+                                                                                  self.bot.active_checkin.message.channel)
+                        except Exception as e:
+                            print(f"[WARN] Ошибка обновления меню: {e}")
         else:
-            # Обработка ошибок
-            # Если "Титан" в тексте — значит что-то не так с проверкой, показываем
-            # Если просто левая картинка — можно игнорить, но лучше обработать
-            if "Титан" in response_text or "уже" in response_text or "нет" in response_text:
-                 await processing_msg.edit(content=f"❌ {response_text}")
-            else:
-                 # Если ошибка совсем неясная, можно удалить сообщение о загрузке или написать детали
-                 await processing_msg.delete()
+            await processing_msg.edit(content=f"❌ {response_text}")
 
     # --- КОМАНДЫ ---
     league_group = app_commands.Group(name="league", description="Управление лигой")
@@ -956,95 +1062,114 @@ class League(commands.Cog):
     #     await interaction.response.defer(ephemeral=True)
     #
     #     import random
+    #     from sqlalchemy import select
+    #     from database.models import Player, LeagueRegistration
+    #
     #     adjectives = ["Super", "Mega", "Lazy", "Angry", "Pro", "Noob", "Fast", "Drunk"]
     #     nouns = ["Carry", "Support", "Pudge", "Techies", "Mid", "Feeder", "Gamer", "Knight"]
     #
     #     created_count = 0
     #
-    #     async with self.bot.session_maker() as session:
-    #         service = LeagueService(session)
+    #     async with LeagueService(interaction.client) as service:
+    #         session = service.session
+    #
+    #         # 1. Получаем текущую неделю
     #         week, _ = await service.get_active_registrations()
-    #
     #         if not week:
-    #             return await interaction.followup.send("❌ Сначала создай неделю: `/league open ...`", ephemeral=True)
+    #             return await interaction.followup.send("❌ Нет открытой недели (Session). Сначала `/league open`",
+    #                                                    ephemeral=True)
     #
-    #         for i in range(1, 22):
+    #         # 2. Создаем 12 фейков
+    #         for i in range(1, 13):
     #             fake_id = 99000 + i
     #             fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
     #             fake_rank = random.randint(10, 80)
-    #             fake_mmr = 1000 + (fake_rank * 80)
-    #             fake_steam_id = 80000000 + i
+    #             fake_mmr = 1000 + (fake_rank * 50)
     #
-    #             # 1. Создаем игрока или получаем существующего
+    #             # ✅ ИСПРАВЛЕНИЕ: Теперь это число (int), а не строка
+    #             fake_steam_id = 70000000 + i
+    #
+    #             # --- ШАГ А: ИГРОК ---
     #             stmt = select(Player).where(Player.discord_id == fake_id)
-    #             result = await session.execute(stmt)
-    #             player = result.scalar_one_or_none()
+    #             res = await session.execute(stmt)
+    #             player = res.scalar_one_or_none()
     #
     #             if not player:
     #                 player = Player(
     #                     discord_id=fake_id,
     #                     ingame_name=fake_name,
     #                     rank_tier=fake_rank,
-    #                     steam_id32=fake_steam_id
+    #                     steam_id32=fake_steam_id,  # Передаем int
+    #                     internal_rating=fake_mmr
     #                 )
     #                 session.add(player)
     #             else:
     #                 player.ingame_name = fake_name
     #                 player.rank_tier = fake_rank
+    #                 player.internal_rating = fake_mmr
     #
-    #             # Сохраняем, чтобы убедиться, что объект зафиксирован
     #             await session.flush()
     #
-    #             # 2. Регистрируем
-    #             await service.register_player(fake_id)
-    #
-    #             # 3. Делаем Check-In вручную (ИСПРАВЛЕННАЯ ЧАСТЬ)
-    #             from database.models import LeagueRegistration
-    #
-    #             # Мы ищем регистрацию по player.discord_id, так как у Player нет поля id
+    #             # --- ШАГ Б: РЕГИСТРАЦИЯ (ВРУЧНУЮ) ---
     #             reg_stmt = select(LeagueRegistration).where(
-    #                 LeagueRegistration.player_id == player.discord_id,  # <--- ТУТ БЫЛА ОШИБКА
+    #                 LeagueRegistration.player_id == fake_id,
     #                 LeagueRegistration.session_id == week.id
     #             )
     #             reg_res = await session.execute(reg_stmt)
     #             reg = reg_res.scalar_one_or_none()
     #
-    #             if reg:
+    #             if not reg:
+    #                 reg = LeagueRegistration(
+    #                     player_id=fake_id,
+    #                     session_id=week.id,
+    #                     is_checked_in=True,
+    #                     mmr_snapshot=fake_mmr,
+    #                     created_at=datetime.utcnow()
+    #                 )
+    #                 session.add(reg)
+    #                 created_count += 1
+    #             else:
     #                 reg.is_checked_in = True
     #                 reg.mmr_snapshot = fake_mmr
-    #                 created_count += 1
     #
     #         await session.commit()
     #
     #     await interaction.followup.send(
-    #         f"✅ Успешно создано **{created_count}** фейковых игроков с Check-In.\nТеперь жми `/league make_teams`",
-    #         ephemeral=True)
-    #
+    #         f"✅ Создано/Обновлено **{created_count}** фейковых регистраций.\nВсе они помечены как Checked-In.\nЖми `/league make_teams`",
+    #         ephemeral=True
+    #     )
+
     # @league_group.command(name="debug_clear", description="[DEBUG] Удалить фейковых игроков")
     # @app_commands.checks.has_permissions(administrator=True)
     # async def debug_clear(self, interaction: discord.Interaction):
     #     await interaction.response.defer(ephemeral=True)
     #
-    #     async with self.bot.session_maker() as session:
-    #         # Удаляем всех, у кого ID от 99000 (наши фейки)
-    #         # В SQLAlchemy 2.0 delete делается так:
-    #         from sqlalchemy import delete
+    #     from sqlalchemy import delete
+    #     from database.models import Player, LeagueRegistration
     #
-    #         stmt = delete(Player).where(Player.discord_id >= 99000)
-    #         result = await session.execute(stmt)
+    #     async with LeagueService(interaction.client) as service:
+    #         session = service.session
+    #
+    #         # 1. Сначала удаляем РЕГИСТРАЦИИ фейков (чтобы не ругались FK)
+    #         # Удаляем записи, где player_id >= 99000
+    #         stmt_reg = delete(LeagueRegistration).where(LeagueRegistration.player_id >= 99000)
+    #         await session.execute(stmt_reg)
+    #
+    #         # 2. Теперь удаляем самих ИГРОКОВ
+    #         stmt_player = delete(Player).where(Player.discord_id >= 99000)
+    #         result = await session.execute(stmt_player)
+    #
     #         await session.commit()
-    #
     #         deleted = result.rowcount
     #
-    #     await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков.", ephemeral=True)
-    #
+    #     await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков и их регистрации.", ephemeral=True)
+
     @league_group.command(name="make_teams", description="Создать матчи (Мульти-лобби)")
     @app_commands.checks.has_permissions(administrator=True)
     async def make_teams(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             week, registrations = await service.get_active_registrations()
 
         if not registrations:
@@ -1106,8 +1231,7 @@ class League(commands.Cog):
             await interaction.followup.send("❌ Формат: `/league open 07.02 19:00`", ephemeral=True)
             return
 
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             week_id, week_num = await service.create_new_week(start_time=start_datetime_utc, season=season)
             if week_id in self.checkin_sent_weeks:
                 self.checkin_sent_weeks.remove(week_id)
@@ -1135,8 +1259,7 @@ class League(commands.Cog):
     async def adjust_tiers(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             # Получаем список зарегистрированных на текущую неделю
             week, registrations = await service.get_active_registrations()
 
@@ -1153,77 +1276,64 @@ class League(commands.Cog):
     async def league_status(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        # ✅ ИСПОЛЬЗУЕМ НОВЫЙ ПОДХОД
+        # Передаем interaction.client (бота). Сессия создастся и закроется сама.
+        async with LeagueService(interaction.client) as service:
             week, registrations = await service.get_active_registrations()
 
-        if not week or not registrations:
-            await interaction.followup.send("ℹ️ Нет активных участников.", ephemeral=True)
-            return
+            if not week or not registrations:
+                await interaction.followup.send("ℹ️ Нет активных участников.", ephemeral=True)
+                return
 
-        # СОРТИРОВКА
-        # 1. Сначала те, кто НЕ готов (False < True, поэтому not is_checked_in ставит готовых вверх)
-        # 2. Потом по ID регистрации (кто раньше нажал кнопку, тот выше)
-        registrations.sort(key=lambda x: (not x[0].is_checked_in, x[0].id))
+            # Сортировка: Сначала НЕ готовые, потом по ID
+            registrations.sort(key=lambda x: (not x[0].is_checked_in, x[0].id))
 
-        checked_cnt = sum(1 for r, p in registrations if r.is_checked_in)
+            checked_cnt = sum(1 for r, p in registrations if r.is_checked_in)
 
-        lines = []
-        for i, (reg, player) in enumerate(registrations, start=1):
-            status = "✅" if reg.is_checked_in else "💤"
-            mmr = f"**{reg.mmr_snapshot}**"
+            lines = []
+            for i, (reg, player) in enumerate(registrations, start=1):
+                status = "✅" if reg.is_checked_in else "💤"
+                mmr = f"**{reg.mmr_snapshot}**"
 
-            # ССЫЛКА НА STRATZ
-            link = player.ingame_name
-            if player.steam_id32:
-                link = f"[{player.ingame_name}](https://www.stratz.com/players/{player.steam_id32})"
+                link = player.ingame_name
+                if player.steam_id32:
+                    link = f"[{player.ingame_name}](https://www.stratz.com/players/{player.steam_id32})"
 
-            # СКРИНШОТ
-            evd = f" [📸]({reg.screenshot_url})" if reg.screenshot_url else ""
+                evd = f" [📸]({reg.screenshot_url})" if reg.screenshot_url else ""
+                num_display = f"`{i:>2}.`"
 
-            # --- ВЫРАВНИВАНИЕ ---
-            # {i:>2} добавит пробел перед 1..9 (будет " 1", " 2"... "10")
-            # Оборачиваем в `...`, чтобы ширина символов была фиксированной
-            num_display = f"`{i:>2}.`"
+                row_str = f"{num_display} {status} {mmr} | {link} (<@{player.discord_id}>){evd}"
+                lines.append(row_str)
 
-            row_str = f"{num_display} {status} {mmr} | {link} (<@{player.discord_id}>){evd}"
-            lines.append(row_str)
+            desc_header = (
+                f"**Всего заявок:** {len(registrations)}\n"
+                f"**Подтвердили (Ready):** {checked_cnt}\n"
+                f"*(Сортировка: Готовые -> По времени регистрации)*\n\n"
+            )
 
-        # Собираем описание
-        desc_header = (
-            f"**Всего заявок:** {len(registrations)}\n"
-            f"**Подтвердили (Ready):** {checked_cnt}\n"
-            f"*(Сортировка: Готовые -> По времени регистрации)*\n\n"
-        )
+            full_text = desc_header + "\n".join(lines)
+            if len(full_text) > 4096:
+                full_text = full_text[:4000] + "\n... (список обрезан)"
 
-        # Объединяем строки
-        full_text = desc_header + "\n".join(lines)
-
-        # Обрезаем, если слишком длинно (лимит Discord 4096)
-        if len(full_text) > 4096:
-            full_text = full_text[:4000] + "\n... (список обрезан)"
-
-        embed = discord.Embed(
-            title=f"📊 Статус Тура #{week.week_number}",
-            description=full_text,
-            color=discord.Color.blue()
-        )
-        await interaction.followup.send(embed=embed, ephemeral=True)
+            embed = discord.Embed(
+                title=f"📊 Статус Тура #{week.week_number}",
+                description=full_text,
+                color=discord.Color.blue()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
     @league_group.command(name="delete_last", description="Удалить тур")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_delete(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             success, msg = await service.delete_last_week()
         await interaction.followup.send(msg, ephemeral=True)
 
     @league_group.command(name="kick", description="Кикнуть игрока")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_kick(self, interaction: discord.Interaction, user: discord.User):
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             success, msg = await service.remove_registration(user.id)
         if success:
             await interaction.response.send_message(f"✅ {user.name} удален.", ephemeral=True)
@@ -1244,8 +1354,7 @@ class League(commands.Cog):
         await interaction.response.defer()
 
         # 1. Получаем данные
-        async with self.bot.session_maker() as session:
-            service = LeagueService(session)
+        async with LeagueService(self.bot) as service:
             active_session, registrations = await service.get_active_registrations()
 
         if not active_session or not registrations:
