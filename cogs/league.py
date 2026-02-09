@@ -1209,7 +1209,7 @@ class League(commands.Cog):
         )
         await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @league_group.command(name="delete_last", description="Удалить неделю")
+    @league_group.command(name="delete_last", description="Удалить тур")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_delete(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)

@@ -42,7 +42,11 @@ class Player(Base):
     last_updated = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     team_id = Column(Integer, ForeignKey('teams.id'), nullable=True)
     team = relationship("Team", back_populates="players")
-    registrations = relationship("LeagueRegistration", back_populates="player")
+    registrations = relationship(
+        "LeagueRegistration",
+        back_populates="player",
+        cascade="all, delete-orphan"
+    )
     last_season_update = Column(Integer, default=1)
     nick_changes_used = Column(Integer, default=0)
     role_changes_used = Column(Integer, default=0)
