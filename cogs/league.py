@@ -684,16 +684,35 @@ class MultiLobbyView(View):
                 pass
 
     async def export_all_callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        # Делаем defer ephemeral, чтобы никто не видел сообщение "Bot thinks..."
+        await interaction.response.defer(ephemeral=True)
+
+        # --- ЗАЩИТА ---
+        # Проверяем, существует ли сервис вообще
+        if not getattr(self.bot, 'sheet_service', None):
+            return await interaction.followup.send("❌ Ошибка: Сервис Google Таблиц не подключен в main.py",
+                                                   ephemeral=True)
+        # --------------
+
         try:
             self.bot.sheet_service.export_custom_format(self.lobbies, self.bench)
 
-            await interaction.followup.send(f"✅ Таблица обновлена!\n<{self.bot.sheet_url}>", ephemeral=True)
+            # Безопасно получаем URL (если его нет, пишем заглушку)
+            url = getattr(self.bot, 'sheet_url', 'URL не найден')
+
+            await interaction.followup.send(f"✅ Таблица обновлена!\n<{url}>", ephemeral=True)
         except Exception as e:
-            await interaction.followup.send(f"❌ Ошибка: {e}", ephemeral=True)
+            await interaction.followup.send(f"❌ Ошибка экспорта: {e}", ephemeral=True)
 
     async def import_all_callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
+
+        # --- ЗАЩИТА ---
+        if not getattr(self.bot, 'sheet_service', None):
+            return await interaction.followup.send("❌ Ошибка: Сервис Google Таблиц не подключен в main.py",
+                                                   ephemeral=True)
+        # --------------
+
         try:
             # 1. Читаем таблицу
             imported_data, bench_names = self.bot.sheet_service.import_all_lobbies()
@@ -707,13 +726,14 @@ class MultiLobbyView(View):
 
             def find(n):
                 if not n: return None
+                # Сравниваем без учета регистра и пробелов
+                search_n = str(n).lower().strip()
                 for p in pool:
-                    if p.ingame_name.lower().strip() == n.lower().strip(): return p
+                    if p.ingame_name.lower().strip() == search_n: return p
                 return None
 
             # 3. Строим структуру новых лобби
             new_lobbies = []
-            # ID игроков, которые нашлись в таблице и попали в лобби/бенч
             processed_ids = set()
 
             for l_data in imported_data:
@@ -732,13 +752,11 @@ class MultiLobbyView(View):
             new_bench = []
             for name in bench_names:
                 if p := find(name):
-                    # Если игрок еще не обработан (не в лобби), добавляем
                     if p.discord_id not in processed_ids:
                         new_bench.append(p)
                         processed_ids.add(p.discord_id)
 
-            # 5. SAFETY NET (СПАСЕНИЕ ПОТЕРЯШЕК)
-            # Если игрока не было в таблице, но он был в пуле -> ВОЗВРАЩАЕМ В ЗАПАС
+            # 5. SAFETY NET (Возвращаем тех, кто был в пуле, но исчез из таблицы)
             restored_count = 0
             for p in pool:
                 if p.discord_id not in processed_ids:
@@ -746,17 +764,16 @@ class MultiLobbyView(View):
                     processed_ids.add(p.discord_id)
                     restored_count += 1
 
-            # 6. Применяем
-            if new_lobbies:
-                self.lobbies = new_lobbies
-            else:
-                self.lobbies = []
+            # 6. Применяем изменения
+            self.lobbies = new_lobbies
 
-            # Гарантируем 3 лобби
+            # Гарантируем минимум 1 лобби (или 3, как у тебя было)
             while len(self.lobbies) < 3:
                 self.lobbies.append({'radiant': [], 'dire': []})
 
             self.bench = new_bench
+
+            # Сортировка бенча (если есть get_tier)
             try:
                 self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
             except:
@@ -767,73 +784,72 @@ class MultiLobbyView(View):
             self.update_components()
             await interaction.edit_original_response(embed=self.build_embed(), view=self)
 
-            msg = "✅ **Импорт завершен!**"
+            msg = "✅ **Импорт из таблицы завершен!**"
             if restored_count > 0:
-                msg += f"\n🛡️ **Восстановлено {restored_count} игроков**, которых не было в таблице (или ошибки чтения)."
+                msg += f"\n🛡️ **Восстановлено {restored_count} игроков**, которых бот не нашел в таблице."
 
             await interaction.followup.send(msg, ephemeral=True)
 
         except Exception as e:
             import traceback
             traceback.print_exc()
-            await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
-
+            await interaction.followup.send(f"❌ Ошибка импорта: {e}", ephemeral=True)
     # ==========================
     # === GOOGLE: ONE LOBBY ====
     # ==========================
 
-    async def export_current_callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        lobby = self.get_current_lobby()
-        try:
-            # Используем старый метод export_lobby (только для текущего)
-            # Он запишет данные только в первые колонки (или как настроено)
-            self.bot.sheet_service.export_lobby(lobby['radiant'], lobby['dire'], self.bench)
-            await interaction.followup.send(f"✅ **Текущее** лобби выгружено!\n<{self.bot.sheet_url}>", ephemeral=True)
-        except Exception as e:
-            await interaction.followup.send(f"❌ Error Export One: {e}", ephemeral=True)
-
-    async def import_current_callback(self, interaction: discord.Interaction):
-        await interaction.response.defer()
-        try:
-            # Читаем ТОЛЬКО первые колонки (старый метод)
-            r_names, d_names, b_names = self.bot.sheet_service.import_lobby()
-
-            lobby = self.get_current_lobby()
-
-            # Пул: берем игроков только из ЭТОГО лобби и ЗАПАСА
-            # (Игроков других лобби не трогаем, чтобы не сломать соседние игры)
-            pool = lobby['radiant'] + lobby['dire'] + self.bench
-
-            new_rad, new_dire, new_bench = [], [], []
-            found_ids = set()
-
-            def find(n):
-                for p in pool:
-                    if p.ingame_name.lower().strip() == n.lower().strip(): return p
-                return None
-
-            for n in r_names:
-                if p := find(n): new_rad.append(p); found_ids.add(p.discord_id)
-            for n in d_names:
-                if p := find(n): new_dire.append(p); found_ids.add(p.discord_id)
-
-            # Тех, кого нет в таблице для этого лобби, кидаем в ОБЩИЙ запас
-            for p in pool:
-                if p.discord_id not in found_ids: new_bench.append(p)
-
-            # Обновляем только текущее лобби
-            lobby['radiant'] = new_rad
-            lobby['dire'] = new_dire
-            self.bench = new_bench  # Запас обновляется глобально
-            self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
-
-            self.update_components()
-            await interaction.edit_original_response(embed=self.build_embed(), view=self)
-            await interaction.followup.send("✅ **Текущее** лобби обновлено!", ephemeral=True)
-
-        except Exception as e:
-            await interaction.followup.send(f"❌ Error Import One: {e}", ephemeral=True)
+    # async def export_current_callback(self, interaction: discord.Interaction):
+    #     await interaction.response.defer()
+    #     lobby = self.get_current_lobby()
+    #     try:
+    #         # Используем старый метод export_lobby (только для текущего)
+    #         # Он запишет данные только в первые колонки (или как настроено)
+    #         self.bot.sheet_service.export_lobby(lobby['radiant'], lobby['dire'], self.bench)
+    #         await interaction.followup.send(f"✅ **Текущее** лобби выгружено!\n<{self.bot.sheet_url}>", ephemeral=True)
+    #     except Exception as e:
+    #         await interaction.followup.send(f"❌ Error Export One: {e}", ephemeral=True)
+    #
+    # async def import_current_callback(self, interaction: discord.Interaction):
+    #     await interaction.response.defer()
+    #     try:
+    #         # Читаем ТОЛЬКО первые колонки (старый метод)
+    #         r_names, d_names, b_names = self.bot.sheet_service.import_lobby()
+    #
+    #         lobby = self.get_current_lobby()
+    #
+    #         # Пул: берем игроков только из ЭТОГО лобби и ЗАПАСА
+    #         # (Игроков других лобби не трогаем, чтобы не сломать соседние игры)
+    #         pool = lobby['radiant'] + lobby['dire'] + self.bench
+    #
+    #         new_rad, new_dire, new_bench = [], [], []
+    #         found_ids = set()
+    #
+    #         def find(n):
+    #             for p in pool:
+    #                 if p.ingame_name.lower().strip() == n.lower().strip(): return p
+    #             return None
+    #
+    #         for n in r_names:
+    #             if p := find(n): new_rad.append(p); found_ids.add(p.discord_id)
+    #         for n in d_names:
+    #             if p := find(n): new_dire.append(p); found_ids.add(p.discord_id)
+    #
+    #         # Тех, кого нет в таблице для этого лобби, кидаем в ОБЩИЙ запас
+    #         for p in pool:
+    #             if p.discord_id not in found_ids: new_bench.append(p)
+    #
+    #         # Обновляем только текущее лобби
+    #         lobby['radiant'] = new_rad
+    #         lobby['dire'] = new_dire
+    #         self.bench = new_bench  # Запас обновляется глобально
+    #         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
+    #
+    #         self.update_components()
+    #         await interaction.edit_original_response(embed=self.build_embed(), view=self)
+    #         await interaction.followup.send("✅ **Текущее** лобби обновлено!", ephemeral=True)
+    #
+    #     except Exception as e:
+    #         await interaction.followup.send(f"❌ Error Import One: {e}", ephemeral=True)
 
 class RegistrationView(discord.ui.View):
     def __init__(self, bot):
@@ -1056,88 +1072,88 @@ class League(commands.Cog):
     # --- КОМАНДЫ ---
     league_group = app_commands.Group(name="league", description="Управление лигой")
 
-    # @league_group.command(name="debug_fill", description="[DEBUG] Создать 12 фейковых игроков для теста")
-    # @app_commands.checks.has_permissions(administrator=True)
-    # async def debug_fill(self, interaction: discord.Interaction):
-    #     await interaction.response.defer(ephemeral=True)
-    #
-    #     import random
-    #     from sqlalchemy import select
-    #     from database.models import Player, LeagueRegistration
-    #
-    #     adjectives = ["Super", "Mega", "Lazy", "Angry", "Pro", "Noob", "Fast", "Drunk"]
-    #     nouns = ["Carry", "Support", "Pudge", "Techies", "Mid", "Feeder", "Gamer", "Knight"]
-    #
-    #     created_count = 0
-    #
-    #     async with LeagueService(interaction.client) as service:
-    #         session = service.session
-    #
-    #         # 1. Получаем текущую неделю
-    #         week, _ = await service.get_active_registrations()
-    #         if not week:
-    #             return await interaction.followup.send("❌ Нет открытой недели (Session). Сначала `/league open`",
-    #                                                    ephemeral=True)
-    #
-    #         # 2. Создаем 12 фейков
-    #         for i in range(1, 13):
-    #             fake_id = 99000 + i
-    #             fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
-    #             fake_rank = random.randint(10, 80)
-    #             fake_mmr = 1000 + (fake_rank * 50)
-    #
-    #             # ✅ ИСПРАВЛЕНИЕ: Теперь это число (int), а не строка
-    #             fake_steam_id = 70000000 + i
-    #
-    #             # --- ШАГ А: ИГРОК ---
-    #             stmt = select(Player).where(Player.discord_id == fake_id)
-    #             res = await session.execute(stmt)
-    #             player = res.scalar_one_or_none()
-    #
-    #             if not player:
-    #                 player = Player(
-    #                     discord_id=fake_id,
-    #                     ingame_name=fake_name,
-    #                     rank_tier=fake_rank,
-    #                     steam_id32=fake_steam_id,  # Передаем int
-    #                     internal_rating=fake_mmr
-    #                 )
-    #                 session.add(player)
-    #             else:
-    #                 player.ingame_name = fake_name
-    #                 player.rank_tier = fake_rank
-    #                 player.internal_rating = fake_mmr
-    #
-    #             await session.flush()
-    #
-    #             # --- ШАГ Б: РЕГИСТРАЦИЯ (ВРУЧНУЮ) ---
-    #             reg_stmt = select(LeagueRegistration).where(
-    #                 LeagueRegistration.player_id == fake_id,
-    #                 LeagueRegistration.session_id == week.id
-    #             )
-    #             reg_res = await session.execute(reg_stmt)
-    #             reg = reg_res.scalar_one_or_none()
-    #
-    #             if not reg:
-    #                 reg = LeagueRegistration(
-    #                     player_id=fake_id,
-    #                     session_id=week.id,
-    #                     is_checked_in=True,
-    #                     mmr_snapshot=fake_mmr,
-    #                     created_at=datetime.utcnow()
-    #                 )
-    #                 session.add(reg)
-    #                 created_count += 1
-    #             else:
-    #                 reg.is_checked_in = True
-    #                 reg.mmr_snapshot = fake_mmr
-    #
-    #         await session.commit()
-    #
-    #     await interaction.followup.send(
-    #         f"✅ Создано/Обновлено **{created_count}** фейковых регистраций.\nВсе они помечены как Checked-In.\nЖми `/league make_teams`",
-    #         ephemeral=True
-    #     )
+    @league_group.command(name="debug_fill", description="[DEBUG] Создать 12 фейковых игроков для теста")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def debug_fill(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        import random
+        from sqlalchemy import select
+        from database.models import Player, LeagueRegistration
+
+        adjectives = ["Super", "Mega", "Lazy", "Angry", "Pro", "Noob", "Fast", "Drunk"]
+        nouns = ["Carry", "Support", "Pudge", "Techies", "Mid", "Feeder", "Gamer", "Knight"]
+
+        created_count = 0
+
+        async with LeagueService(interaction.client) as service:
+            session = service.session
+
+            # 1. Получаем текущую неделю
+            week, _ = await service.get_active_registrations()
+            if not week:
+                return await interaction.followup.send("❌ Нет открытой недели (Session). Сначала `/league open`",
+                                                       ephemeral=True)
+
+            # 2. Создаем 12 фейков
+            for i in range(1, 13):
+                fake_id = 99000 + i
+                fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
+                fake_rank = random.randint(10, 80)
+                fake_mmr = 1000 + (fake_rank * 50)
+
+                # ✅ ИСПРАВЛЕНИЕ: Теперь это число (int), а не строка
+                fake_steam_id = 70000000 + i
+
+                # --- ШАГ А: ИГРОК ---
+                stmt = select(Player).where(Player.discord_id == fake_id)
+                res = await session.execute(stmt)
+                player = res.scalar_one_or_none()
+
+                if not player:
+                    player = Player(
+                        discord_id=fake_id,
+                        ingame_name=fake_name,
+                        rank_tier=fake_rank,
+                        steam_id32=fake_steam_id,  # Передаем int
+                        internal_rating=fake_mmr
+                    )
+                    session.add(player)
+                else:
+                    player.ingame_name = fake_name
+                    player.rank_tier = fake_rank
+                    player.internal_rating = fake_mmr
+
+                await session.flush()
+
+                # --- ШАГ Б: РЕГИСТРАЦИЯ (ВРУЧНУЮ) ---
+                reg_stmt = select(LeagueRegistration).where(
+                    LeagueRegistration.player_id == fake_id,
+                    LeagueRegistration.session_id == week.id
+                )
+                reg_res = await session.execute(reg_stmt)
+                reg = reg_res.scalar_one_or_none()
+
+                if not reg:
+                    reg = LeagueRegistration(
+                        player_id=fake_id,
+                        session_id=week.id,
+                        is_checked_in=True,
+                        mmr_snapshot=fake_mmr,
+                        created_at=datetime.utcnow()
+                    )
+                    session.add(reg)
+                    created_count += 1
+                else:
+                    reg.is_checked_in = True
+                    reg.mmr_snapshot = fake_mmr
+
+            await session.commit()
+
+        await interaction.followup.send(
+            f"✅ Создано/Обновлено **{created_count}** фейковых регистраций.\nВсе они помечены как Checked-In.\nЖми `/league make_teams`",
+            ephemeral=True
+        )
 
     # @league_group.command(name="debug_clear", description="[DEBUG] Удалить фейковых игроков")
     # @app_commands.checks.has_permissions(administrator=True)
