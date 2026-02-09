@@ -6,12 +6,34 @@ import traceback
 
 
 class LeagueService:
-    def __init__(self, bot):
-        self.bot = bot
-        self.session_maker = bot.session_maker
-        # Создаем сессию по умолчанию для старых методов, которые используют self.session
-        # (Хотя лучше перевести все методы на context manager, оставим так для совместимости)
-        self.session = self.session_maker()
+    def __init__(self, bot_or_session):
+        # --- МАГИЯ: ОПРЕДЕЛЯЕМ, ЧТО НАМ ПЕРЕДАЛИ ---
+
+        # Если у объекта есть 'session_maker', значит это БОТ (или клиент)
+        if hasattr(bot_or_session, "session_maker"):
+            self.bot = bot_or_session
+            self.session_maker = bot_or_session.session_maker
+            self.session = None  # Сессия будет создана в __aenter__
+            self._owns_session = True  # Флаг: мы сами управляем сессией
+        else:
+            # Иначе это уже готовая СЕССИЯ (старый стиль)
+            self.session = bot_or_session
+            self.bot = None
+            self.session_maker = None
+            self._owns_session = False
+
+    # Вход в контекстный менеджер (async with ...)
+    async def __aenter__(self):
+        if self._owns_session:
+            self.session = self.session_maker()
+        return self
+
+    # Выход из контекстного менеджера
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self._owns_session and self.session:
+            await self.session.close()
+
+    # --- МЕТОДЫ СЕРВИСА ---
 
     async def is_registered(self, user_id: int) -> bool:
         session_query = select(LeagueSession).where(LeagueSession.status == SessionStatus.OPEN.value).limit(1)
@@ -31,9 +53,6 @@ class LeagueService:
         return registration is not None
 
     async def process_checkin(self, user_id: int):
-        """
-        Отмечает игрока как 'Check-in' (присутствует).
-        """
         active_week = await self.get_active_session()
         if not active_week:
             return False, "Нет активного тура лиги."
@@ -105,12 +124,12 @@ class LeagueService:
         return result.scalar_one_or_none()
 
     async def register_player(self, user_id: int, screenshot_url: str = None):
-        session = await self.get_active_session()
+        session_obj = await self.get_active_session()  # переименовал переменную, чтобы не путать с self.session
 
-        if not session:
+        if not session_obj:
             return False, "Сейчас нет активных лиг.", False
 
-        if session.status != SessionStatus.OPEN.value:
+        if session_obj.status != SessionStatus.OPEN.value:
             return False, "Регистрация уже закрыта!", False
 
         query_player = select(Player).where(Player.discord_id == user_id)
@@ -125,7 +144,7 @@ class LeagueService:
 
         query_reg = select(LeagueRegistration).where(
             and_(
-                LeagueRegistration.session_id == session.id,
+                LeagueRegistration.session_id == session_obj.id,
                 LeagueRegistration.player_id == user_id
             )
         )
@@ -136,14 +155,14 @@ class LeagueService:
             return False, "Ты уже зарегистрирован!", False
 
         auto_checkin = False
-        if session.start_time:
+        if session_obj.start_time:
             now = datetime.utcnow()
-            time_until_start = session.start_time - now
+            time_until_start = session_obj.start_time - now
             if timedelta(minutes=0) < time_until_start <= timedelta(minutes=60):
                 auto_checkin = True
 
         new_registration = LeagueRegistration(
-            session_id=session.id,
+            session_id=session_obj.id,
             player_id=user_id,
             chosen_role=player.positions,
             mmr_snapshot=player.rank_tier,
@@ -155,7 +174,7 @@ class LeagueService:
         self.session.add(new_registration)
         await self.session.commit()
 
-        msg = f"Ты успешно зарегистрирован на тур #{session.week_number}!"
+        msg = f"Ты успешно зарегистрирован на тур #{session_obj.week_number}!"
         if auto_checkin:
             msg += " **(Автоматический Check-in выполнен ✅)**"
 
@@ -210,9 +229,7 @@ class LeagueService:
         await self.session.commit()
 
     async def _get_current_season(self, db_session=None) -> int:
-        """
-        Получает номер текущего сезона.
-        """
+        # Если сессия передана явно - используем её, иначе self.session
         session_to_use = db_session if db_session else self.session
 
         # 1. Пробуем активную сессию
@@ -231,9 +248,6 @@ class LeagueService:
         return max_season if max_season else 1
 
     async def _check_season_reset(self, player: Player, db_session=None):
-        """
-        Проверяет, наступил ли новый сезон. Если да — сбрасывает счетчики игрока.
-        """
         current_season = await self._get_current_season(db_session)
 
         if player.last_season_update is None or player.last_season_update < current_season:
@@ -244,105 +258,95 @@ class LeagueService:
 
         return False
 
+    # --- ИСПРАВЛЕНО: ТЕПЕРЬ ИСПОЛЬЗУЕТ self.session ---
     async def change_nickname(self, user_id: int, new_nickname: str):
-        # 1. Используем безопасный контекстный менеджер
-        async with self.session_maker() as session:
+        # Используем self.session, которая уже открыта контекстным менеджером
+        stmt = select(Player).where(Player.discord_id == user_id)
+        result = await self.session.execute(stmt)
+        player = result.scalar_one_or_none()
+
+        if not player:
+            return False, "❌ Игрок не найден в базе данных."
+
+        # Передаем self.session
+        await self._check_season_reset(player, db_session=self.session)
+
+        LIMIT = 1
+        if player.nick_changes_used >= LIMIT:
+            return False, f"⚠️ Лимит смены ника исчерпан ({player.nick_changes_used}/{LIMIT}). Жди следующего сезона."
+
+        old_name = player.ingame_name
+        player.ingame_name = new_nickname
+        player.nick_changes_used += 1
+
+        try:
+            await self.session.commit()
+            remaining = LIMIT - player.nick_changes_used
+            return True, (old_name, remaining)
+
+        except Exception as e:
+            await self.session.rollback()
+            return False, f"❌ Ошибка базы данных: {e}"
+
+    # --- ИСПРАВЛЕНО: ТЕПЕРЬ ИСПОЛЬЗУЕТ self.session ---
+    async def change_roles(self, user_id: int, new_roles: list):
+        try:
+            # Используем self.session
             stmt = select(Player).where(Player.discord_id == user_id)
-            result = await session.execute(stmt)
+            result = await self.session.execute(stmt)
             player = result.scalar_one_or_none()
 
             if not player:
-                return False, "❌ Игрок не найден в базе данных."
+                return False, "❌ Игрок не найден."
 
-            # 2. Проверяем сезон
-            await self._check_season_reset(player, db_session=session)
+            await self._check_season_reset(player, db_session=self.session)
 
-            # 3. Проверяем лимиты
-            LIMIT = 1
-            if player.nick_changes_used >= LIMIT:
-                return False, f"⚠️ Лимит смены ника исчерпан ({player.nick_changes_used}/{LIMIT}). Жди следующего сезона."
+            LIMIT = 2
+            if player.role_changes_used >= LIMIT:
+                return False, (
+                    f"⛔ **Лимит исчерпан!**\n"
+                    f"Ты уже менял роли {player.role_changes_used}/{LIMIT} раз за этот сезон.\n"
+                    f"Следующая попытка только в новом сезоне."
+                )
 
-            # 4. Сохраняем старый ник перед сменой
-            old_name = player.ingame_name
+            now = datetime.now(timezone.utc)
+            # Приводим last_role_change_at к UTC, если он offset-naive
+            last_change = player.last_role_change_at
+            if last_change and last_change.tzinfo is None:
+                last_change = last_change.replace(tzinfo=timezone.utc)
 
-            # 5. Меняем
-            player.ingame_name = new_nickname
-            player.nick_changes_used += 1
+            cooldown_period = timedelta(weeks=2)
 
-            try:
-                await session.commit()
-                remaining = LIMIT - player.nick_changes_used
+            if last_change:
+                time_passed = now - last_change
 
-                # ✅ ВОЗВРАЩАЕМ ДАННЫЕ, А НЕ ТЕКСТ
-                # (Успех, Старый_Ник, Осталось_Попыток)
-                return True, (old_name, remaining)
+                if time_passed < cooldown_period:
+                    remaining = cooldown_period - time_passed
+                    days = remaining.days
+                    hours = remaining.seconds // 3600
 
-            except Exception as e:
-                await session.rollback()
-                return False, f"❌ Ошибка базы данных: {e}"
-
-    async def change_roles(self, user_id: int, new_roles: list):
-        """
-        Меняет роли игрока с проверкой кулдауна (2 недели) и лимита сезона (2 раза).
-        """
-        try:
-            async with self.session_maker() as session:
-                # 1. Ищем игрока
-                stmt = select(Player).where(Player.discord_id == user_id)
-                result = await session.execute(stmt)
-                player = result.scalar_one_or_none()
-
-                if not player:
-                    return False, "❌ Игрок не найден."
-
-                # 2. Проверяем сброс сезона (передаем текущую сессию)
-                await self._check_season_reset(player, db_session=session)
-
-                # --- ПРАВИЛО 1: ЖЕСТКИЙ ЛИМИТ (2 РАЗА ЗА СЕЗОН) ---
-                LIMIT = 2
-                if player.role_changes_used >= LIMIT:
                     return False, (
-                        f"⛔ **Лимит исчерпан!**\n"
-                        f"Ты уже менял роли {player.role_changes_used}/{LIMIT} раз за этот сезон.\n"
-                        f"Следующая попытка только в новом сезоне."
+                        f"⏳ **Слишком часто!**\n"
+                        f"Между сменами ролей должно пройти 2 недели.\n"
+                        f"Осталось ждать: **{days} д. {hours} ч.**"
                     )
 
-                # --- ПРАВИЛО 2: КУЛДАУН (2 НЕДЕЛИ) ---
-                now = datetime.now(timezone.utc)
-                cooldown_period = timedelta(weeks=2)
+            if isinstance(new_roles, list):
+                roles_str = "/".join(new_roles)
+            else:
+                roles_str = new_roles
 
-                if player.last_role_change_at:
-                    time_passed = now - player.last_role_change_at
+            player.positions = roles_str
+            player.last_role_change_at = now
+            player.role_changes_used += 1
 
-                    if time_passed < cooldown_period:
-                        remaining = cooldown_period - time_passed
-                        days = remaining.days
-                        hours = remaining.seconds // 3600
+            await self.session.commit()
 
-                        return False, (
-                            f"⏳ **Слишком часто!**\n"
-                            f"Между сменами ролей должно пройти 2 недели.\n"
-                            f"Осталось ждать: **{days} д. {hours} ч.**"
-                        )
-
-                # 4. Форматируем список
-                if isinstance(new_roles, list):
-                    roles_str = "/".join(new_roles)
-                else:
-                    roles_str = new_roles
-
-                # 5. Обновляем данные
-                player.positions = roles_str
-                player.last_role_change_at = now
-                player.role_changes_used += 1
-
-                await session.commit()
-
-                remaining_uses = LIMIT - player.role_changes_used
-                return True, (
-                    f"✅ Роли обновлены: **{roles_str}**\n"
-                    f"Осталось смен в сезоне: **{remaining_uses}**"
-                )
+            remaining_uses = LIMIT - player.role_changes_used
+            return True, (
+                f"✅ Роли обновлены: **{roles_str}**\n"
+                f"Осталось смен в сезоне: **{remaining_uses}**"
+            )
 
         except Exception as e:
             traceback.print_exc()
