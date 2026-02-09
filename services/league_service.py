@@ -31,7 +31,7 @@ class LeagueService:
         # 1. Находим активную неделю
         active_week = await self.get_active_session()
         if not active_week:
-            return False, "Нет активной недели лиги."
+            return False, "Нет активного тура лиги."
 
         # 2. Ищем регистрацию этого игрока
         stmt = select(LeagueRegistration).join(Player).where(
@@ -42,7 +42,7 @@ class LeagueService:
         registration = result.scalar_one_or_none()
 
         if not registration:
-            return False, "Ты не зарегистрирован на эту неделю! Сначала нажми 'Участвовать' в анонсе."
+            return False, "Ты не зарегистрирован на этот тур! Сначала нажми 'Участвовать' в анонсе."
 
         if registration.is_checked_in:
             return False, "Ты уже подтвердил участие! ✅"
@@ -98,7 +98,7 @@ class LeagueService:
 
         await self.session.commit()
 
-        return True, f"Неделя #{week_num} и все её регистрации были удалены."
+        return True, f"Тур #{week_num} и все её регистрации были удалены."
 
 
     async def get_active_session(self):
@@ -162,7 +162,7 @@ class LeagueService:
         self.session.add(new_registration)
         await self.session.commit()
 
-        msg = f"Ты успешно зарегистрирован на неделю #{session.week_number}!"
+        msg = f"Ты успешно зарегистрирован на тур #{session.week_number}!"
         if auto_checkin:
             msg += " **(Автоматический Check-in выполнен ✅)**"
 
@@ -297,7 +297,6 @@ class LeagueService:
         # 4. Форматируем список ['1', '5'] -> строку "1, 5"
         # Важно! База данных хранит строку, а не список.
         if isinstance(new_roles, list):
-            new_roles.sort()  # Сортируем для красоты (1, 5 вместо 5, 1)
             roles_str = "/".join(new_roles)
         else:
             roles_str = new_roles  # На случай если передали строку
@@ -313,3 +312,8 @@ class LeagueService:
         except Exception as e:
             await self.session.rollback()
             return False, f"❌ Ошибка базы данных: {e}"
+
+    async def get_player_by_id(self, user_id: int):
+        # Импортируй свою модель Player
+        result = await self.session.execute(select(Player).where(Player.discord_id == user_id))
+        return result.scalars().first()

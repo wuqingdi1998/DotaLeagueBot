@@ -212,71 +212,75 @@ class Profile(commands.Cog):
         )
         await webhook.delete()
 
-    @app_commands.command(name="admin_delete_player", description="[Admin] Удалить игрока (База + Роли + Ник)")
-    @app_commands.describe(member="Игрок")
+    @app_commands.command(name="admin_delete_player", description="[Admin] Удалить игрока")
     @app_commands.checks.has_permissions(administrator=True)
     async def admin_delete_player(self, interaction: discord.Interaction, member: discord.Member):
         await interaction.response.defer(ephemeral=True)
+        report = []
+        db_msg = "Неизвестно"
+
+        print(f"\n🚀 [START DELETE] Юзер: {member.display_name} (ID: {member.id})")
 
         # 1. DB DELETE
-        async with async_session() as session:
-            player = await session.get(Player, member.id)
-            if player:
-                await session.delete(player)
-                await session.commit()
-                db_msg = "✅ Удален из базы."
-            else:
-                db_msg = "⚠️ Не был в базе."
+        try:
+            async with async_session() as session:
+                print(f"🔎 [DB] Поиск игрока {member.id}...")
+                player = await session.get(Player, member.id)
+                if player:
+                    print(f"🗑️ [DB] Игрок найден. Удаляю...")
+                    await session.delete(player)
+                    await session.commit()
+                    db_msg = "✅ Удален из базы."
+                else:
+                    print(f"❓ [DB] Игрок не найден в таблице.")
+                    db_msg = "⚠️ Не был в базе."
+        except Exception as e:
+            print(f"❌ [DB ERROR] {e}")
+            db_msg = f"❌ Ошибка БД: {e}"
 
         # 2. DISCORD CLEANUP
-        report = []
-
         try:
-            member = await interaction.guild.fetch_member(member.id)
-        except:
-            pass
-
-        try:
-            if member.nick:
-                await member.edit(nick=None)
-                report.append("Ник сброшен")
-        except discord.Forbidden:
-            report.append("ОШИБКА: Нет прав менять ник (Роль бота ниже?)")
-        except Exception as e:
-            print(f"[ERROR] Nick reset: {e}")
-
-        target_names = [
-            "Herald", "Guardian", "Crusader", "Archon",
-            "Legend", "Ancient", "Divine", "Immortal"
-        ]
-
-        to_remove = []
-        print(f"\n[DEBUG] Роли у {member.display_name}: {[r.name for r in member.roles]}")
-
-        for role in member.roles:
-            if role.name in target_names:
-                to_remove.append(role)
-
-        print(f"[DEBUG] Бот пытается снять роли: {[r.name for r in to_remove]}")
-
-        if to_remove:
+            # Пытаемся получить свежий объект мембера
             try:
-                await member.remove_roles(*to_remove)
-                report.append(f"Роли сняты: {', '.join([r.name for r in to_remove])}")
-            except discord.Forbidden:
-                report.append("⛔ ОШИБКА: Роль бота НИЖЕ, чем роль ранга!")
-                print("[ERROR] 403 Forbidden: Move bot role HIGHER in server settings.")
+                member = await interaction.guild.fetch_member(member.id)
+                print(f"👤 [DISCORD] Данные мембера получены. Ролей: {len(member.roles)}")
             except Exception as e:
-                report.append(f"Ошибка ролей: {e}")
-        else:
-            report.append("Роли ранга не найдены")
+                print(f"⚠️ [DISCORD] Не удалось сделать fetch_member: {e}")
 
-        await send_log(
-            title="🗑️ Игрок удален",
-            description=f"Админ {interaction.user.mention} удалил игрока {member.mention}.",
-            color=discord.Color.red()
-        )
-        await interaction.followup.send(f"🗑️ **Результат:**\n1. {db_msg}\n2. {', '.join(report)}")
+            # Сброс ника
+            if member.nick:
+                try:
+                    await member.edit(nick=None)
+                    report.append("Ник сброшен")
+                except discord.Forbidden:
+                    report.append("🚫 Нет прав на ник")
+
+            # Работа с ролями
+            target_names = ["Herald", "Guardian", "Crusader", "Archon", "Legend", "Ancient", "Divine", "Immortal"]
+            to_remove = [r for r in member.roles if r.name in target_names]
+
+            print(f"🎭 [ROLES] Найдено ролей для удаления: {[r.name for r in to_remove]}")
+
+            if to_remove:
+                try:
+                    await member.remove_roles(*to_remove)
+                    report.append(f"Роли сняты: {len(to_remove)}")
+                except discord.Forbidden:
+                    print("🚫 [ERROR] 403 Forbidden: Роль бота ниже рангов!")
+                    report.append("⛔ Ошибка иерархии ролей")
+                except Exception as e:
+                    print(f"❌ [ROLES ERROR] {e}")
+                    report.append(f"Ошибка ролей: {e}")
+            else:
+                report.append("Роли не найдены")
+
+        except Exception as e:
+            print(f"💥 [CRITICAL ERROR] {e}")
+            report.append(f"Критический сбой: {e}")
+
+        print(f"🏁 [FINISH DELETE] Операция завершена.\n")
+
+        await interaction.followup.send(f"🗑️ **Итог:**\n1. {db_msg}\n2. {', '.join(report)}")
 
     @app_commands.command(name="admin_edit_player", description="[Admin] Изменить данные игрока")
     @app_commands.checks.has_permissions(administrator=True)
