@@ -73,7 +73,7 @@ class ChangeNickModal(ui.Modal, title="Смена никнейма"):
                         await interaction.followup.send(msg, ephemeral=True)
 
                         # --- ЛОГИРОВАНИЕ ---
-                        ADMIN_ID = 346583856285628562  # ID админа для уведомлений
+                        ADMIN_ID = 311247030422863882  # ID админа для уведомлений
 
                         log_desc = (
                             f"👤 **Игрок:** {interaction.user.mention}\n"
