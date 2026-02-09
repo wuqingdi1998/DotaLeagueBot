@@ -22,47 +22,44 @@ class SheetService:
     def export_custom_format(self, lobbies, bench):
         ws = self.sh.get_worksheet(0)
 
-        # Очистка листа перед записью
+        # 1. Очистка
         try:
-            ws.unmerge_cells("A1:J200")
             ws.batch_clear(["A1:J200"])
-        except:
-            pass
+            ws.unmerge_cells("A1:J200")
+        except Exception as e:
+            print(f"[SheetService] Clear warning: {e}")
 
-        merge_ranges = ["A1:C1"]
-        format_ranges = ["A1:C1"]
+        # Списки для форматирования
+        merge_ranges = ["A1:C1"]  # Диапазоны для объединения
+        bold_ranges = ["A1:C2"]  # Диапазоны для жирного шрифта (Сразу добавляем шапку Бенча и строку ниже)
 
+        # --- ХЕЛПЕРЫ ---
         def get_pos_str(p):
             if not hasattr(p, 'positions') or not p.positions: return "-"
-
             val = p.positions
-
-            # ВАРИАНТ 1: Если в памяти записана строка (например "1///5" после кривого импорта)
             if isinstance(val, str):
-                # Мы разбиваем её по слэшу, выкидываем пустоту и собираем заново
-                clean_parts = [s.strip() for s in val.split('/') if s.strip()]
-                return "/".join(clean_parts)
-
-            # ВАРИАНТ 2: Если в памяти список (['1', '', '5'])
+                return "/".join([s.strip() for s in val.split('/') if s.strip()])
             if isinstance(val, list):
                 clean_parts = []
                 for x in val:
-                    if x is None: continue
-                    s = str(x).strip()
-                    # Исключаем сами слэши, если они вдруг попали в список
-                    if s and s != "/":
-                        clean_parts.append(s)
+                    if x:
+                        s = str(x).strip()
+                        if s and s != "/": clean_parts.append(s)
                 return "/".join(clean_parts)
-
             return str(val)
 
-
         def get_tier_val(p):
-            if hasattr(p, 'internal_rating') and p.internal_rating: return int(p.internal_rating)
-            if hasattr(p, 'rank_tier') and p.rank_tier: return int(p.rank_tier)
+            # 1. Internal Rating
+            if hasattr(p, 'internal_rating') and p.internal_rating:
+                return int(p.internal_rating)
+            # 2. Dota Rank Tier (делим на 10)
+            if hasattr(p, 'rank_tier') and p.rank_tier:
+                return int(int(p.rank_tier) / 10)
             return 0
 
-        # Формируем левую колонку (BENCH)
+        # --- СБОР ДАННЫХ ---
+
+        # ЛЕВАЯ КОЛОНКА (BENCH)
         left_column = []
         left_column.append(["BENCH", "", ""])
         left_column.append(["Tier", "Nick", "Pos"])
@@ -71,84 +68,102 @@ class SheetService:
         for p in sorted_bench:
             left_column.append([get_tier_val(p), p.ingame_name, get_pos_str(p)])
 
-        # Формируем правую часть (LOBBIES)
+        # ПРАВАЯ КОЛОНКА (LOBBIES)
         right_column = []
-
-        # Можете тут тоже поменять названия на Team Alpha и т.д., если хотите
         lobby_names = ["HIGH LOBBY", "MID LOBBY", "LOW LOBBY"]
 
         for i, lobby in enumerate(lobbies):
             rad = lobby['radiant']
             dire = lobby['dire']
-
-            # Название лобби
             l_name = lobby_names[i] if i < len(lobby_names) else f"LOBBY {i + 1}"
 
-            current_row = len(right_column) + 1
-            player_start = current_row + 2
-            player_end = player_start + 4
+            # Индекс первой строки текущего лобби в Excel (начинается с 1)
+            start_row_idx = len(right_column) + 1
 
-            # Формулы для подсчета MMR
-            f_rad = f'="Total: "&SUM(E{player_start}:E{player_end})'
-            f_dire = f'="Total: "&SUM(H{player_start}:H{player_end})'
-
-            # Объединение заголовка лобби
-            rng = f"E{current_row}:J{current_row}"
-            merge_ranges.append(rng)
-            format_ranges.append(rng)
-
+            # Строка 1: Название лобби
             right_column.append([l_name, "", "", "", "", ""])
+
+            # Строка 2: Тоталы и названия команд
+            p_start = start_row_idx + 2
+            p_end = p_start + 4
+            f_rad = f'="Total: "&SUM(E{p_start}:E{p_end})'
+            f_dire = f'="Total: "&SUM(H{p_start}:H{p_end})'
+
             right_column.append([f_rad, "Radiant", "", f_dire, "Dire", ""])
 
-            # Заполняем 5 слотов (или пустые, если игроков нет)
+            # --- ЗАПОМИНАЕМ ФОРМАТИРОВАНИЕ ДЛЯ ЛОББИ ---
+            # 1. Объединяем только заголовок лобби
+            merge_ranges.append(f"E{start_row_idx}:J{start_row_idx}")
+
+            # 2. Жирным делаем ДВЕ строки: Заголовок лобби + Строку с Total/Radiant/Dire
+            # start_row_idx = строка названия, start_row_idx+1 = строка команд
+            bold_ranges.append(f"E{start_row_idx}:J{start_row_idx + 1}")
+
+            # Игроки
             for j in range(5):
                 row = []
-                # Radiant Player
+                # Radiant
                 if j < len(rad):
                     p = rad[j]
                     row.extend([get_tier_val(p), p.ingame_name, get_pos_str(p)])
                 else:
                     row.extend([0, "", ""])
-
-                # Dire Player
+                # Dire
                 if j < len(dire):
                     p = dire[j]
                     row.extend([get_tier_val(p), p.ingame_name, get_pos_str(p)])
                 else:
                     row.extend([0, "", ""])
-
                 right_column.append(row)
 
-            # Пустая строка между лобби
+            # Пустая строка
             right_column.append(["", "", "", "", "", ""])
 
-        # Склеиваем левую и правую части
+        # СБОРКА МАТРИЦЫ
         final_data = []
         max_len = max(len(left_column), len(right_column))
 
         for i in range(max_len):
             l_row = left_column[i] if i < len(left_column) else ["", "", ""]
+            sep = [""]
             r_row = right_column[i] if i < len(right_column) else ["", "", "", "", "", ""]
-            final_data.append(l_row + [""] + r_row)
+            final_data.append(l_row + sep + r_row)
 
-        # Отправляем в Google Sheets
-        ws.update("A1", final_data, value_input_option='USER_ENTERED')
+        # 2. ЗАПИСЬ ДАННЫХ
+        end_row = len(final_data)
+        ws.update(range_name=f"A1:J{end_row}", values=final_data, value_input_option='USER_ENTERED')
 
-        # Применяем форматирование
-        for rng in merge_ranges:
-            try:
-                ws.merge_cells(rng, merge_type='MERGE_ALL')
-            except:
-                pass
-
+        # 3. ФОРМАТИРОВАНИЕ
         try:
-            for rng in format_ranges:
+            # А. Применяем объединение ячеек
+            for rng in merge_ranges:
+                ws.merge_cells(rng, merge_type='MERGE_ALL')
+
+            # Б. Базовый стиль для ВСЕЙ таблицы (Montserrat + Center)
+            ws.format(f"A1:J{end_row}", {
+                "horizontalAlignment": "CENTER",
+                "verticalAlignment": "MIDDLE",
+                "textFormat": {
+                    "fontFamily": "Montserrat",
+                    "fontSize": 10,
+                    "bold": False
+                }
+            })
+
+            # В. Применяем ЖИРНЫЙ шрифт для заголовков (Bench, Lobbies, Totals, Radiant/Dire)
+            for rng in bold_ranges:
                 ws.format(rng, {
                     "horizontalAlignment": "CENTER",
-                    "textFormat": {"bold": True, "fontSize": 12}
+                    "verticalAlignment": "MIDDLE",
+                    "textFormat": {
+                        "fontFamily": "Montserrat",
+                        "bold": True,  # <--- Жирный
+                        "fontSize": 11  # Чуть крупнее
+                    }
                 })
-        except:
-            pass
+
+        except Exception as e:
+            print(f"[SheetService] Formatting error: {e}")
 
     # ==========================================
     # ИМПОРТ (ИСПРАВЛЕННЫЙ)
