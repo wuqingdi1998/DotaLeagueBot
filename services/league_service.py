@@ -158,7 +158,7 @@ class LeagueService:
         if session_obj.start_time:
             now = datetime.utcnow()
             time_until_start = session_obj.start_time - now
-            if timedelta(minutes=0) < time_until_start <= timedelta(minutes=60):
+            if timedelta(minutes=0) < time_until_start <= timedelta(minutes=120):
                 auto_checkin = True
 
         new_registration = LeagueRegistration(

@@ -948,7 +948,7 @@ class League(commands.Cog):
 
                 if start_utc > now_utc:
                     diff = start_utc - now_utc
-                    if timedelta(minutes=0) < diff <= timedelta(minutes=60):
+                    if timedelta(minutes=0) < diff <= timedelta(minutes=120):
                         print(f"[AUTO-CHECKIN] Запускаю рассылку для Тура #{week.week_number}")
 
                         # 🔥 ИСПРАВЛЕНИЕ: Сначала добавляем в список, чтобы не запустить дважды
@@ -1263,7 +1263,7 @@ class League(commands.Cog):
             description=(
                 f"📅 **Старт игр:** {time_str_msk} (МСК)\n" 
                 f"⏳ **До старта:** <t:{timestamp}:R>\n\n"
-                "⏳ **Чек-ин:** Автоматически в ЛС за 1 час до начала.\n\n"
+                "⏳ **Чек-ин:** Автоматически в ЛС за 2 часа до начала.\n\n"
                 "**Жми кнопку ниже, чтобы записаться!**"
             ),
             color=discord.Color.blue()
