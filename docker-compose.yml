@@ -23,6 +23,8 @@ services:
     build: .
     container_name: my_bot_container
     restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
     env_file:
       - .env
     depends_on:

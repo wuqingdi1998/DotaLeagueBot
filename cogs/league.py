@@ -7,7 +7,9 @@ from sqlalchemy import select
 from database.models import Player
 from services.league_service import LeagueService
 from services.profile_service import ProfileService
+from services.stratz_service import StratzService
 from datetime import datetime, timedelta, timezone
+
 
 
 class TierModalInternal(Modal):
@@ -506,16 +508,37 @@ class MultiLobbyView(View):
 
     async def publish_all(self, interaction: discord.Interaction):
         await interaction.response.defer()
+        from datetime import datetime, timedelta
 
-        # --- НАСТРОЙКИ КОМАНД ---
         TEAM_NAMES = {
             0: ("Natus Vincere", "Team Empire"),
             1: ("The Alliance", "Team Secret"),
             2: ("Evil Geniuses", "NewBee"),
         }
-        # ------------------------
 
-        await interaction.edit_original_response(view=None, content="✅ **Матчи публикуются...**")
+        await interaction.edit_original_response(view=None, content="⏳ **Публикую матчи (Время МСК)...**")
+
+        # 1. Получаем время старта из сервиса
+        base_start_time = datetime.now()
+        async with self.bot.session_maker() as session:
+            service = LeagueService(session)
+            active_session = await service.get_active_session()
+            if active_session and active_session.start_time:
+                base_start_time = active_session.start_time
+
+        # 2. Подгружаем SteamID (общий список)
+        all_discord_ids = []
+        for lobby in self.lobbies:
+            if lobby['radiant'] or lobby['dire']:
+                all_discord_ids.extend([p.discord_id for p in lobby['radiant'] + lobby['dire']])
+
+        steam_map = {}
+        if all_discord_ids:
+            async with self.bot.session_maker() as session:
+                stmt = select(Player.discord_id, Player.steam_id32).where(Player.discord_id.in_(all_discord_ids))
+                result = await session.execute(stmt)
+                for row in result:
+                    steam_map[row.discord_id] = row.steam_id32
 
         try:
             for i, lobby in enumerate(self.lobbies):
@@ -524,34 +547,22 @@ class MultiLobbyView(View):
 
                 r_name, d_name = TEAM_NAMES.get(i, (f"Radiant {i + 1}", f"Dire {i + 1}"))
 
-                # -----------------------------------------------------------
-                # 🔥 ШАГ 1: ПОДГРУЖАЕМ STEAM_ID32 ИЗ БАЗЫ
-                # -----------------------------------------------------------
-                all_players_in_lobby = lobby['radiant'] + lobby['dire']
-                discord_ids = [p.discord_id for p in all_players_in_lobby]
+                # --- 🕒 ИЗМЕНЕНИЕ ЗДЕСЬ 🕒 ---
+                lobby_match_time = base_start_time + timedelta(minutes=i * 5)
 
-                steam_map = {}  # {discord_id: steam_id32}
+                # Если время отображается на 3 часа меньше, раскомментируй строку ниже:
+                lobby_match_time += timedelta(hours=3)
 
-                if discord_ids:
-                    async with self.bot.session_maker() as session:
-                        # 👇 ТУТ ИЗМЕНЕНИЕ: запрашиваем Player.steam_id32
-                        stmt = select(Player.discord_id, Player.steam_id32).where(Player.discord_id.in_(discord_ids))
-                        result = await session.execute(stmt)
-                        for row in result:
-                            # row[0] = discord_id, row[1] = steam_id32
-                            steam_map[row.discord_id] = row.steam_id32
+                time_str = lobby_match_time.strftime("%H:%M")
+                discord_time_str = f"{time_str} МСК"
 
-                # -----------------------------------------------------------
+                # ------------------------------
 
-                # === ВНУТРЕННЯЯ ФУНКЦИЯ ФОРМАТИРОВАНИЯ ===
+                # Внутренняя функция форматирования (без изменений)
                 def format_p(p):
-                    # 1. ТИР/ММР
                     tier_val = self.get_tier(p)
-
-                    # 2. РОЛИ
                     roles_str = ""
                     clean_pos = []
-
                     if hasattr(p, 'positions') and p.positions:
                         raw_pos = p.positions
                         if isinstance(raw_pos, list):
@@ -561,50 +572,37 @@ class MultiLobbyView(View):
                                 if s and s != "/": clean_pos.append(s)
                         elif isinstance(raw_pos, str):
                             clean_pos = [s.strip() for s in raw_pos.split('/') if s.strip()]
-
                     if clean_pos:
                         roles_str = f" | Pos: {'/'.join(clean_pos)}"
-
-                    # 3. ГИПЕРССЫЛКА (Stratz)
-                    display_name = f"**{p.ingame_name}**"
-
-                    # Берем ID из карты, которую загрузили выше
+                    base_name = getattr(p, 'ingame_name', str(p.discord_id))
+                    display_name = f"**{base_name}**"
                     sid = steam_map.get(p.discord_id)
-
-                    # Если вдруг в объекте регистрации уже есть ID
                     if not sid and hasattr(p, 'steam_id32') and p.steam_id32:
                         sid = p.steam_id32
-
-                    # Формируем ссылку
                     if sid:
                         try:
-                            # На всякий случай проверяем, вдруг там все-таки 64-битный ID
                             sid_int = int(sid)
-                            if sid_int > 76561190000000000:
-                                sid_int -= 76561197960265728
-
+                            if sid_int > 76561190000000000: sid_int -= 76561197960265728
                             url = f"https://stratz.com/players/{sid_int}"
-                            display_name = f"[{display_name}]({url})"
+                            display_name = f"[{base_name}]({url})"
                         except:
                             pass
-
                     return f"[{tier_val}] {display_name}{roles_str}"
-
-                # ==========================================
 
                 rad_list = "\n".join([format_p(p) for p in lobby['radiant']])
                 dire_list = "\n".join([format_p(p) for p in lobby['dire']])
-
                 rad_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['radiant']])
                 dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['dire']])
 
                 embed = discord.Embed(
-                    title=f"⚔️ Match #{i + 1} (Start)",
+                    # В заголовке теперь будет: ⚔️ Match #1 (22:00 МСК)
+                    title=f"⚔️ Match #{i + 1} ({discord_time_str})",
                     color=discord.Color.purple()
                 )
 
-                embed.add_field(name=f"🌳 {r_name}", value=rad_list or "-", inline=False)
-                embed.add_field(name=f"🌋 {d_name}", value=dire_list or "-", inline=False)
+                embed.add_field(name=f"🌳 {r_name}", value=rad_list or "-", inline=True)
+                embed.add_field(name="⚔️", value="\u200b", inline=True)
+                embed.add_field(name=f"🌋 {d_name}", value=dire_list or "-", inline=True)
 
                 await interaction.channel.send(
                     content=f"**Lobby {i + 1}** Summon: {rad_pings} {dire_pings}",
@@ -790,7 +788,7 @@ class RegistrationView(discord.ui.View):
             # 1. Проверки профиля
             player = await profile_service.get_player(interaction.user.id)
             if not player or not player.rank_tier:
-                await interaction.followup.send("❌ Сначала создай профиль: `/profile me`", ephemeral=True)
+                await interaction.followup.send("❌ Сначала создай профиль", ephemeral=True)
                 return
 
             # 2. Попытка регистрации
@@ -829,9 +827,8 @@ class League(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot.add_view(RegistrationView(bot))
-        # Кэш, чтобы не отправлять чек-ин дважды для одной и той же недели
         self.checkin_sent_weeks = set()
-        # Запускаем фоновую задачу
+        self.stratz = StratzService()
         self.check_upcoming_games.start()
 
     def cog_unload(self):
@@ -970,7 +967,7 @@ class League(commands.Cog):
             if not week:
                 return await interaction.followup.send("❌ Сначала создай неделю: `/league open ...`", ephemeral=True)
 
-            for i in range(1, 32):
+            for i in range(1, 22):
                 fake_id = 99000 + i
                 fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
                 fake_rank = random.randint(10, 80)
@@ -1053,7 +1050,7 @@ class League(commands.Cog):
             return await interaction.followup.send("❌ Нет регистраций.", ephemeral=True)
 
         # 1. Берем всех CHECKED_IN
-        ready_players = [p for reg, p in registrations if reg.is_checked_in]
+        ready_players = [p for reg, p in registrations]
 
         if len(ready_players) < 2:
             return await interaction.followup.send(f"⚠️ Мало людей: {len(ready_players)}.", ephemeral=True)
@@ -1128,7 +1125,7 @@ class League(commands.Cog):
                 "⏳ **Чек-ин:** Автоматически в ЛС за 1 час до начала.\n\n"
                 "**Жми кнопку ниже, чтобы записаться!**"
             ),
-            color=discord.Color.gold()
+            color=discord.Color.blue()
         )
         await interaction.channel.send(embed=embed, view=view)
         await interaction.followup.send("✅ Регистрация опубликована!", ephemeral=True)
@@ -1239,6 +1236,126 @@ class League(commands.Cog):
             await interaction.followup.send(msg, ephemeral=True)
         else:
             await interaction.response.send_message(msg, ephemeral=True)
+
+    @league_group.command(name="check_activity", description="Проверка (Stratz) у всех зарегистрированных")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def check_activity(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        # 1. Получаем данные
+        async with self.bot.session_maker() as session:
+            service = LeagueService(session)
+            active_session, registrations = await service.get_active_registrations()
+
+        if not active_session or not registrations:
+            await interaction.followup.send("ℹ️ Нет активных регистраций.", ephemeral=True)
+            return
+
+        # Сортировка: сначала те, кто не чекин, потом по ID
+        registrations.sort(key=lambda x: (not x[0].is_checked_in, x[0].id))
+
+        total_players = len(registrations)
+        embed = discord.Embed(
+            title=f"📊 Проверка активности (Stratz): Тур #{active_session.season_number}",
+            description="⏳ **Начинаю сканирование...**",
+            color=discord.Color.gold()
+        )
+        message = await interaction.followup.send(embed=embed)
+
+        report_lines = []
+
+        # --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
+        def get_clean_steam_id(raw_id):
+            if not raw_id: return None
+            try:
+                val = int(str(raw_id).strip())
+                # Конвертация Steam64 -> Steam32
+                if val > 76561190000000000:
+                    val -= 76561197960265728
+                return val
+            except ValueError:
+                return None
+
+        # 2. Цикл проверки
+        for i, (reg, player) in enumerate(registrations, start=1):
+            num_display = f"`{i:>2}.`"
+            p_name = player.ingame_name
+
+            # Чистим ID
+            clean_id = get_clean_steam_id(player.steam_id32)
+
+            # Логируем
+            print(f"[Check] {p_name}: Raw={player.steam_id32} -> Clean={clean_id}")
+
+            # Ссылка на Stratz
+            player_link = f"[{p_name}](https://www.stratz.com/players/{clean_id})" if clean_id else f"**{p_name}**"
+
+            # === ОПРЕДЕЛЕНИЕ РОЛЕЙ ===
+            if not player.positions:
+                main_role, side_role = "1", "1"
+            else:
+                roles = str(player.positions).split('/')
+                main_role = roles[0]
+                side_role = roles[1] if len(roles) > 1 else roles[0]
+
+            # Формируем красивую строку ролей: (1/5)
+            roles_display = f"**({main_role}/{side_role})**"
+
+            # === ЕСЛИ ID КРИВОЙ ===
+            if not clean_id:
+                line = f"{num_display} ⚠️ {p_name} {roles_display} | ❌ **Некорректный Steam ID**"
+                report_lines.append(line)
+                continue
+
+            # === ЗАПРОС К STRATZ ===
+            # (Используем clean_id и ожидаемые роли)
+            data = await self.stratz.get_player_activity(clean_id, main_role, side_role)
+
+            if not data['success']:
+                line = f"{num_display} ❓ {player_link} {roles_display} | **Ошибка API**"
+
+            elif data.get('is_private'):
+                line = f"{num_display} 🔒 {player_link} {roles_display} | **Профиль скрыт**"
+
+            else:
+                # Иконки статусов
+                # T = Total, M = Main role, S = Side role
+                t_ico = "✅" if data['total'] >= 20 else "🔻"
+                m_ico = "✅" if data['main'] >= 10 else "🔻"
+                s_ico = "✅" if data['side'] >= 5 else "🔻"
+
+                # Общий зачет
+                status_icon = "✅" if data['passed'] else "❌"
+
+                # Компактная статистика
+                stats_str = f"Tot:{data['total']}{t_ico} M:{data['main']}{m_ico} S:{data['side']}{s_ico}"
+
+                # ИТОГОВАЯ СТРОКА
+                line = f"{num_display} {status_icon} {player_link} {roles_display} | `{stats_str}`"
+
+            report_lines.append(line)
+
+            # Обновление сообщения (каждые 5 игроков или в конце)
+            if i % 5 == 0 or i == total_players:
+                full_text = "\n".join(report_lines)
+                if len(full_text) > 4000:
+                    full_text = full_text[:3900] + "\n... (список обрезан)"
+
+                embed.description = full_text
+                embed.set_footer(text=f"Проверено: {i}/{total_players}")
+                try:
+                    await message.edit(embed=embed)
+                except:
+                    break  # Если сообщение удалили, останавливаемся
+
+            await asyncio.sleep(0.5)
+
+        embed.title = f"🏁 Проверка завершена (Тур #{active_session.season_number})"
+        embed.color = discord.Color.green()
+        try:
+            await message.edit(embed=embed)
+        except:
+            pass
 
 
 async def setup(bot):

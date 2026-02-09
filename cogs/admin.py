@@ -190,5 +190,24 @@ class Admin(commands.Cog):
             f"🛠 Роли: {', '.join([r.name for r in user.roles if r.name != '@everyone'])}",
             ephemeral=True
         )
+
+    @app_commands.command(name="setup_profile_panel", description="Создать панель управления профилем")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def setup_profile_panel(self, interaction: discord.Interaction):
+        # Импортируем нашу View (поправь путь импорта)
+        from cogs.ui.profile_menu import ProfileManageView
+
+        embed = discord.Embed(
+            title="⚙️ Управление профилем игрока",
+            description=(
+                "Здесь вы можете обновить свои данные для текущего сезона.\n\n"
+                "🔹 **Смена ника:** Доступна **1 раз** за сезон.\n"
+                "🔹 **Смена ролей:** Доступна **2 раза** за сезон.\n\n"
+            ),
+            color=discord.Color.blue()
+        )
+
+        await interaction.channel.send(embed=embed, view=ProfileManageView())
+        await interaction.response.send_message("✅ Панель создана!", ephemeral=True)
 async def setup(bot):
     await bot.add_cog(Admin(bot))
