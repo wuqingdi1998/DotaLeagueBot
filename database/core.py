@@ -15,7 +15,7 @@ debug_mode = os.getenv("DEBUG", "False").lower() == "true"
 
 DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{host}/{db_name}"
 
-engine = create_async_engine(DATABASE_URL, echo=debug_mode)
+engine = create_async_engine(DATABASE_URL, echo=False)
 
 async_session = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False

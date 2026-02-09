@@ -214,3 +214,102 @@ class LeagueService:
         )
         await self.session.execute(stmt)
         await self.session.commit()
+
+    async def _get_current_season(self) -> int:
+        """
+        Получает номер текущего сезона.
+        Если активной сессии нет, берет максимальный номер сезона из истории.
+        """
+        # 1. Пробуем активную сессию
+        active_session = await self.get_active_session()
+        if active_session:
+            return active_session.season_number
+
+        # 2. Если нет активной, ищем последний сезон в БД
+        query = select(func.max(LeagueSession.season_number))
+        result = await self.session.execute(query)
+        max_season = result.scalar()
+
+        return max_season if max_season else 1
+
+    async def _check_season_reset(self, player: Player):
+        """
+        Проверяет, наступил ли новый сезон. Если да — сбрасывает счетчики игрока.
+        """
+        current_season = await self._get_current_season()
+
+        # Если у игрока null или старый сезон
+        if player.last_season_update is None or player.last_season_update < current_season:
+            player.nick_changes_used = 0
+            player.role_changes_used = 0
+            player.last_season_update = current_season
+            return True  # Был сброс
+
+        return False
+
+    async def change_nickname(self, user_id: int, new_nickname: str):
+        # 1. Ищем игрока
+        stmt = select(Player).where(Player.discord_id == user_id)
+        result = await self.session.execute(stmt)
+        player = result.scalar_one_or_none()
+
+        if not player:
+            return False, "❌ Игрок не найден в базе данных."
+
+        # 2. Проверяем сброс сезона (автоматически обнулит счетчики если новый сезон)
+        await self._check_season_reset(player)
+
+        # 3. Проверяем лимиты
+        LIMIT = 1  # Лимит: 2 смены за сезон
+        if player.nick_changes_used >= LIMIT:
+            return False, f"⚠️ Лимит смены ника исчерпан ({player.nick_changes_used}/{LIMIT}). Жди следующего сезона."
+
+        # 4. Меняем
+        old_name = player.ingame_name
+        player.ingame_name = new_nickname
+        player.nick_changes_used += 1
+
+        try:
+            await self.session.commit()
+            remaining = LIMIT - player.nick_changes_used
+            return True, f"✅ Ник изменен с **{old_name}** на **{new_nickname}**. (Осталось попыток: {remaining})"
+        except Exception as e:
+            await self.session.rollback()
+            return False, f"❌ Ошибка базы данных: {e}"
+
+    async def change_roles(self, user_id: int, new_roles: list):
+        # 1. Ищем игрока
+        stmt = select(Player).where(Player.discord_id == user_id)
+        result = await self.session.execute(stmt)
+        player = result.scalar_one_or_none()
+
+        if not player:
+            return False, "❌ Игрок не найден."
+
+        # 2. Проверяем сброс сезона
+        await self._check_season_reset(player)
+
+        # 3. Проверяем лимиты
+        LIMIT = 2  # Лимит: 2 смены за сезон
+        if player.role_changes_used >= LIMIT:
+            return False, f"⚠️ Лимит смены ролей исчерпан ({player.role_changes_used}/{LIMIT}). Жди следующего сезона."
+
+        # 4. Форматируем список ['1', '5'] -> строку "1, 5"
+        # Важно! База данных хранит строку, а не список.
+        if isinstance(new_roles, list):
+            new_roles.sort()  # Сортируем для красоты (1, 5 вместо 5, 1)
+            roles_str = "/".join(new_roles)
+        else:
+            roles_str = new_roles  # На случай если передали строку
+
+        # 5. Обновляем
+        player.positions = roles_str
+        player.role_changes_used += 1
+
+        try:
+            await self.session.commit()
+            remaining = LIMIT - player.role_changes_used
+            return True, f"✅ Роли обновлены: **{roles_str}**. (Осталось попыток: {remaining})"
+        except Exception as e:
+            await self.session.rollback()
+            return False, f"❌ Ошибка базы данных: {e}"

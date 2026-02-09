@@ -24,7 +24,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     steam = ui.TextInput(label='Steam ID или ссылка', placeholder='Вставьте ID32 или ссылку')
 
     async def on_submit(self, interaction: discord.Interaction):
-
+        # --- 1. ВАЛИДАЦИЯ НИКА (Спецсимволы) ---
         forbidden_pool = "~`!@#$:;%^&*(){}[]/<>"
         count = sum(1 for char in self.nickname.value if char in forbidden_pool)
         if count > 1:
@@ -34,14 +34,21 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
                 ephemeral=True
             )
 
-
-        # 1. Validation
+        # --- 2. ВАЛИДАЦИЯ ПОЗИЦИЙ (Формат 1/2) ---
         match = re.match(r"^([1-5])/([1-5])$", self.pos.value)
         if not match:
-            return await interaction.response.send_message("❌ **Ошибка:** Укажите позиции в формате `1/2`.", ephemeral=True)
+            return await interaction.response.send_message("❌ **Ошибка:** Укажите позиции в формате `1/2`.",
+                                                           ephemeral=True)
+
         pos1, pos2 = match.groups()
         if pos1 == pos2:
-            return await interaction.response.send_message("❌ **Ошибка:** Позиции не могут быть одинаковыми.", ephemeral=True)
+            return await interaction.response.send_message("❌ **Ошибка:** Позиции не могут быть одинаковыми.",
+                                                           ephemeral=True)
+
+        # --- 3. ФОРМАТИРОВАНИЕ ИМЕНИ (Новое) ---
+        # .strip() убирает пробелы по краям
+        # .title() делает первую букву заглавной (dany -> Dany, dany kos -> Dany Kos)
+        formatted_real_name = self.real_name.value.strip().title()
 
         await interaction.response.defer(ephemeral=True)
 
@@ -49,7 +56,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
         if not sid32:
             return await interaction.followup.send("❌ **Ошибка:** Неверный формат Steam ID.", ephemeral=True)
 
-        # 2. Fetch Data
+        # --- 4. ЗАПРОС К OPENDOTA ---
         url = f"https://api.opendota.com/api/players/{sid32}"
         async with aiohttp.ClientSession() as hs:
             async with hs.get(url) as res:
@@ -58,7 +65,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
         rank = data.get('rank_tier', 0)
         avatar = data.get('profile', {}).get('avatarfull', None)
 
-        # 3. DB Operations
+        # --- 5. ЗАПИСЬ В БД ---
         async with async_session() as session:
             existing_p = (await session.execute(
                 select(Player).where(Player.discord_id == interaction.user.id))).scalar_one_or_none()
@@ -68,7 +75,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             new_p = Player(
                 discord_id=interaction.user.id,
                 steam_id32=sid32,
-                real_name=self.real_name.value,
+                real_name=formatted_real_name,  # 👈 ИСПОЛЬЗУЕМ ОТФОРМАТИРОВАННОЕ ИМЯ
                 ingame_name=self.nickname.value,
                 positions=self.pos.value,
                 rank_tier=rank,
@@ -83,13 +90,16 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             cog = interaction.client.get_cog("Profile")
             if cog:
                 await cog.update_discord_profile(interaction.user, new_p)
+
+        # --- 6. ЛОГИРОВАНИЕ ---
         await send_log(
             title="🆕 Новая регистрация",
-            description=f"Игрок: {interaction.user.mention}\nНик: `{self.nickname.value}`\nSteam: `{sid32}`",
+            description=f"Игрок: {interaction.user.mention}\nНик: `{self.nickname.value}`\nИмя: `{formatted_real_name}`\nSteam: `{sid32}`",
             color=discord.Color.green()
         )
 
-        await interaction.followup.send(f"✅ Регистрация успешна! Ваш никнейм и роль обновлены.", ephemeral=True)
+        await interaction.followup.send(f"✅ Регистрация успешна! Добро пожаловать, {formatted_real_name}!",
+                                        ephemeral=True)
 
 class RegistrationView(ui.View):
     def __init__(self):
@@ -315,6 +325,10 @@ class Profile(commands.Cog):
         )
         await interaction.followup.send(f"✅ Данные {member.mention} обновлены.")
 
+
+
+
+
     @app_commands.command(name="player_info", description="Показать профиль игрока и тир")
     async def player_info(self, interaction: discord.Interaction, member: discord.Member = None):
         await interaction.response.defer()
@@ -398,6 +412,8 @@ class Profile(commands.Cog):
     @update_ranks_task.before_loop
     async def before_tasks(self):
         await self.bot.wait_until_ready()
+
+
 
 
 # --- Вставь этот класс ВЫШЕ класса PlayerInfoView в файле cogs/profile.py ---
