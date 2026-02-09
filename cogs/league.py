@@ -829,6 +829,7 @@ class League(commands.Cog):
         self.bot.add_view(RegistrationView(bot))
         self.checkin_sent_weeks = set()
         self.stratz = StratzService()
+        self.service = LeagueService(bot)
         self.check_upcoming_games.start()
 
     def cog_unload(self):
@@ -1037,52 +1038,52 @@ class League(commands.Cog):
     #
     #     await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков.", ephemeral=True)
     #
-    # @league_group.command(name="make_teams", description="Создать матчи (Мульти-лобби)")
-    # @app_commands.checks.has_permissions(administrator=True)
-    # async def make_teams(self, interaction: discord.Interaction):
-    #     await interaction.response.defer(ephemeral=True)
-    #
-    #     async with self.bot.session_maker() as session:
-    #         service = LeagueService(session)
-    #         week, registrations = await service.get_active_registrations()
-    #
-    #     if not registrations:
-    #         return await interaction.followup.send("❌ Нет регистраций.", ephemeral=True)
-    #
-    #     # 1. Берем всех CHECKED_IN
-    #     ready_players = [p for reg, p in registrations]
-    #
-    #     if len(ready_players) < 2:
-    #         return await interaction.followup.send(f"⚠️ Мало людей: {len(ready_players)}.", ephemeral=True)
-    #
-    #     # 2. Сортируем всех по скиллу (Internal Rating -> Rank Tier)
-    #     # Это критично, чтобы Лобби 1 было самым сильным
-    #     sorted_all = sorted(ready_players, key=lambda x: x.internal_rating if x.internal_rating else (x.rank_tier or 0),
-    #                         reverse=True)
-    #
-    #     # 3. Определяем, сколько полных лобби получается
-    #     total_players = len(sorted_all)
-    #     games_count = total_players // 10
-    #
-    #     if games_count == 0:
-    #         # Если меньше 10 человек, пробуем сделать хотя бы одну неполную игру
-    #         games_count = 1
-    #
-    #     cutoff = games_count * 10
-    #
-    #     active_pool = sorted_all[:cutoff]  # Те кто точно играет
-    #     bench_pool = sorted_all[cutoff:]  # Остаток (лишние люди)
-    #
-    #     # Если игроков меньше 10 (например 8), active_pool будет пустым из-за логики среза, поправим:
-    #     if total_players < 10:
-    #         active_pool = sorted_all
-    #         bench_pool = []
-    #
-    #     # 4. Запускаем MultiLobbyView
-    #     view = MultiLobbyView(self.bot, active_pool, bench_pool)
-    #     embed = view.build_embed()
-    #
-    #     await interaction.followup.send(embed=embed, view=view, ephemeral=True)
+    @league_group.command(name="make_teams", description="Создать матчи (Мульти-лобби)")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def make_teams(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        async with self.bot.session_maker() as session:
+            service = LeagueService(session)
+            week, registrations = await service.get_active_registrations()
+
+        if not registrations:
+            return await interaction.followup.send("❌ Нет регистраций.", ephemeral=True)
+
+        # 1. Берем всех CHECKED_IN
+        ready_players = [p for reg, p in registrations]
+
+        if len(ready_players) < 2:
+            return await interaction.followup.send(f"⚠️ Мало людей: {len(ready_players)}.", ephemeral=True)
+
+        # 2. Сортируем всех по скиллу (Internal Rating -> Rank Tier)
+        # Это критично, чтобы Лобби 1 было самым сильным
+        sorted_all = sorted(ready_players, key=lambda x: x.internal_rating if x.internal_rating else (x.rank_tier or 0),
+                            reverse=True)
+
+        # 3. Определяем, сколько полных лобби получается
+        total_players = len(sorted_all)
+        games_count = total_players // 10
+
+        if games_count == 0:
+            # Если меньше 10 человек, пробуем сделать хотя бы одну неполную игру
+            games_count = 1
+
+        cutoff = games_count * 10
+
+        active_pool = sorted_all[:cutoff]  # Те кто точно играет
+        bench_pool = sorted_all[cutoff:]  # Остаток (лишние люди)
+
+        # Если игроков меньше 10 (например 8), active_pool будет пустым из-за логики среза, поправим:
+        if total_players < 10:
+            active_pool = sorted_all
+            bench_pool = []
+
+        # 4. Запускаем MultiLobbyView
+        view = MultiLobbyView(self.bot, active_pool, bench_pool)
+        embed = view.build_embed()
+
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @league_group.command(name="open", description="Открыть регистрацию (время по МСК)")
     @app_commands.checks.has_permissions(administrator=True)

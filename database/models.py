@@ -50,6 +50,7 @@ class Player(Base):
     last_season_update = Column(Integer, default=1)
     nick_changes_used = Column(Integer, default=0)
     role_changes_used = Column(Integer, default=0)
+    last_role_change_at = Column(DateTime(timezone=True), nullable=True)
 
 
 class LeagueSession(Base):
