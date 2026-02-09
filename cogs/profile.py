@@ -365,47 +365,51 @@ class Profile(commands.Cog):
 
         async with async_session() as session:
             players = (await session.execute(select(Player))).scalars().all()
-            print(f"[TASKS] 1. Fetching data from OpenDota for {len(players)} players...")
-            sem = asyncio.Semaphore(10)
+            total_players = len(players)
+            print(f"[TASKS] 1. Fetching data from OpenDota for {total_players} players...")
+
             updated_count = 0
 
             async with aiohttp.ClientSession() as hs:
-                async def fetch_dota_data(p):
-                    nonlocal updated_count
-                    async with sem:
-                        try:
-                            url = f"https://api.opendota.com/api/players/{p.steam_id32}"
-                            async with hs.get(url) as res:
-                                if res.status == 200:
-                                    data = await res.json()
-                                    new_rank = data.get('rank_tier', 0)
-                                    p.rank_tier = new_rank
-                                    updated_count += 1
-                                elif res.status == 429:
-                                    print(f"[WARN] OpenDota Rate Limit: {p.ingame_name}")
-                        except Exception as e:
-                            print(f"[ERROR] Dota API fail {p.steam_id32}: {e}")
+                for p in players:
+                    try:
+                        url = f"https://api.opendota.com/api/players/{p.steam_id32}"
+                        async with hs.get(url, timeout=10) as res:
+                            if res.status == 200:
+                                data = await res.json()
+                                # Ранг может прийти как None, поэтому ставим or 0
+                                new_rank = data.get('rank_tier') or 0
+                                p.rank_tier = new_rank
+                                updated_count += 1
+                            elif res.status == 429:
+                                print(f"[WARN] OpenDota Rate Limit: {p.ingame_name} (Ждем...)")
+                                await asyncio.sleep(5)  # Если поймали лимит, отдыхаем подольше
+                            else:
+                                print(f"[ERROR] API вернул {res.status} для {p.ingame_name}")
+                    except Exception as e:
+                        print(f"[ERROR] Dota API fail {p.steam_id32}: {e}")
 
-                        await asyncio.sleep(0.1)
-
-                tasks_list = [fetch_dota_data(p) for p in players]
-                await asyncio.gather(*tasks_list)
+                    # ВАЖНО: Пауза 1.1 сек гарантирует, что мы не превысим 60 запросов в минуту
+                    await asyncio.sleep(1.1)
 
             await session.commit()
-            print(f"[TASKS] OpenDota data saved. Success: {updated_count}/{len(players)}")
-            print("[TASKS] 2. Starting Discord profile updates (sequential mode)...")
+            print(f"[TASKS] OpenDota data saved. Success: {updated_count}/{total_players}")
 
-            for i, p in enumerate(players):
+            # --- Часть 2: Обновление ников в Дискорде ---
+            print("[TASKS] 2. Starting Discord profile updates...")
+            for i, p in enumerate(players, 1):
                 member = guild.get_member(p.discord_id)
                 if member:
                     try:
                         await self.update_discord_profile(member, p)
-
-                        if i % 10 == 0:
-                            print(f"[PROGRESS] Processed {i}/{len(players)} profiles...")
                     except Exception as e:
-                        print(f"[ERROR] Failed to update Discord user {member.name}: {e}")
-                        await asyncio.sleep(2)
+                        print(f"[WARN] Missing permissions to edit {member.display_name}")
+
+                if i % 10 == 0 or i == total_players:
+                    print(f"[PROGRESS] Processed {i}/{total_players} profiles...")
+
+                # Небольшая пауза, чтобы не спамить в API Дискорда
+                await asyncio.sleep(0.5)
 
         print("[TASKS] Mass update completed successfully.")
 
