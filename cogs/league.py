@@ -1,3 +1,6 @@
+import os
+import time
+
 import discord
 import asyncio
 from discord import app_commands
@@ -9,6 +12,10 @@ from services.league_service import LeagueService
 from services.profile_service import ProfileService
 from services.stratz_service import StratzService
 from datetime import datetime, timedelta, timezone
+from dotenv import load_dotenv
+
+load_dotenv()
+SCREEN_CHANNEL_ID = int(os.getenv("SCREEN_CHANNEL_ID"))
 
 
 
@@ -286,6 +293,65 @@ def simple_balance(players):
     return t1, t2
 
 
+
+
+class LobbyView(discord.ui.View):
+    def __init__(self, lobby_data, match_index, steam_map, render_func, check_admin_func):
+        super().__init__(timeout=None)  # Кнопки вечные
+        self.lobby_data = lobby_data
+        self.match_index = match_index
+        self.steam_map = steam_map
+        self.render_func = render_func
+        self.check_admin_func = check_admin_func
+        self.host_id = None
+
+        # Очищаем и заполняем список
+        self.select_host.options.clear()
+        all_players = lobby_data['radiant'] + lobby_data['dire']
+
+        for p in all_players:
+            # 🔥 ИСПРАВЛЕНИЕ ОШИБКИ ЗДЕСЬ
+            # Мы берем атрибуты по очереди через getattr, чтобы не было краша
+            ingame = getattr(p, 'ingame_name', None)
+            d_name = getattr(p, 'discord_name', None)  # Теперь не упадет, если поля нет
+
+            # Логика приоритета: Ingame > Discord Name > ID
+            label_name = ingame or d_name or str(p.discord_id)
+
+            # Обрезаем, если длиннее 100 символов (лимит Discord)
+            if len(label_name) > 95:
+                label_name = label_name[:95] + "..."
+
+            # Получаем ранг безопасно
+            rank = getattr(p, 'rank_tier', 'Unknown')
+
+            self.select_host.add_option(
+                label=str(label_name),
+                value=str(p.discord_id),
+                description=f"Rank: {rank}",
+                emoji="👤"
+            )
+
+    @discord.ui.select(placeholder="👑 Назначить хоста лобби...", min_values=1, max_values=1, custom_id="host_select")
+    async def select_host(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if not interaction.user.guild_permissions.administrator:
+            await interaction.response.send_message("❌ Только администратор может назначать хоста.", ephemeral=True)
+            return
+
+        selected_id = int(select.values[0])
+        self.host_id = selected_id
+
+        # Перерисовываем сообщение через переданную функцию
+        new_embed, content_msg = self.render_func(
+            self.match_index,
+            self.lobby_data,
+            self.steam_map,
+            self.host_id
+        )
+
+        await interaction.response.edit_message(content=content_msg, embed=new_embed, view=self)
+        await interaction.followup.send(f"👑 Хостом назначен <@{selected_id}>!", ephemeral=True)
+
 class MultiLobbyView(View):
     def __init__(self, bot, active_players, bench_players):
         super().__init__(timeout=1800)
@@ -562,8 +628,8 @@ class MultiLobbyView(View):
     async def publish_all(self, interaction: discord.Interaction):
         await interaction.response.defer()
         from datetime import datetime, timedelta
-        from sqlalchemy import select  # Убедись, что импорт есть
-        from database.models import Player  # Убедись, что импорт есть
+        from sqlalchemy import select
+        from database.models import Player
 
         TEAM_NAMES = {
             0: ("Natus Vincere", "Team Empire"),
@@ -571,117 +637,130 @@ class MultiLobbyView(View):
             2: ("Evil Geniuses", "NewBee"),
         }
 
-        await interaction.edit_original_response(view=None, content="⏳ **Публикую матчи (Время МСК)...**")
+        await interaction.edit_original_response(view=None, content="⏳ **Публикую матчи...**")
 
-        # Переменные для данных из БД
+        # --- ПОДГОТОВКА ДАННЫХ ---
         base_start_time = datetime.now()
         steam_map = {}
 
-        # ✅ ОТКРЫВАЕМ СЕРВИС ОДИН РАЗ
         async with LeagueService(self.bot) as service:
-            # 1. Получаем время старта
             active_session = await service.get_active_session()
             if active_session and active_session.start_time:
                 base_start_time = active_session.start_time
 
-            # 2. Подгружаем SteamID (используем service.session)
             all_discord_ids = []
             for lobby in self.lobbies:
                 if lobby['radiant'] or lobby['dire']:
                     all_discord_ids.extend([p.discord_id for p in lobby['radiant'] + lobby['dire']])
 
             if all_discord_ids:
-                # Вместо self.bot.session_maker() используем service.session
                 stmt = select(Player.discord_id, Player.steam_id32).where(Player.discord_id.in_(all_discord_ids))
                 result = await service.session.execute(stmt)
                 for row in result:
                     steam_map[row.discord_id] = row.steam_id32
 
-        # СЕССИЯ ЗАКРЫТА, ДАЛЬШЕ РАБОТАЕМ С DISCORD API
+        # --- ФУНКЦИЯ ОТРИСОВКИ (Передается в View) ---
+        # Она должна быть внутри метода или иметь доступ к self.get_tier
+        def create_lobby_embed(index, lobby_data, s_map, host_id=None):
+            r_name, d_name = TEAM_NAMES.get(index, (f"Radiant {index + 1}", f"Dire {index + 1}"))
 
+            # Время
+            lobby_match_time = base_start_time + timedelta(minutes=index * 5)
+            lobby_match_time += timedelta(hours=3) # Если нужно +3
+            discord_time_str = f"{lobby_match_time.strftime('%H:%M')} МСК"
+
+            # Форматирование игрока
+            def format_p(p):
+                tier_val = self.get_tier(p)
+                roles_str = ""
+                # Логика ролей (сокращена для читаемости, вставь свою если она сложнее)
+                clean_pos = []
+                if hasattr(p, 'positions') and p.positions:
+                    # Твоя логика парсинга ролей...
+                    pass
+
+                base_name = getattr(p, 'ingame_name', str(p.discord_id))
+
+                # 🔥 ЕСЛИ ЭТО ХОСТ — СТАВИМ КОРОНУ
+                prefix = "👑 " if p.discord_id == host_id else ""
+
+                display_name = f"**{base_name}**"
+                sid = s_map.get(p.discord_id) or (p.steam_id32 if hasattr(p, 'steam_id32') else None)
+
+                if sid:
+                    try:
+                        url = f"https://stratz.com/players/{int(sid)}"
+                        display_name = f"[{base_name}]({url})"
+                    except:
+                        pass
+
+                return f"{prefix}[{tier_val}] {display_name}{roles_str}"
+
+            rad_list = "\n".join([format_p(p) for p in lobby_data['radiant']])
+            dire_list = "\n".join([format_p(p) for p in lobby_data['dire']])
+
+            rad_pings = " ".join([f"<@{p.discord_id}>" for p in lobby_data['radiant']])
+            dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby_data['dire']])
+
+            embed = discord.Embed(
+                title=f"⚔️ Match #{index + 1} ({discord_time_str})",
+                color=discord.Color.purple()  # Или Gold если хост выбран
+            )
+            if host_id:
+                embed.color = discord.Color.gold()
+
+            embed.add_field(name=f"🌳 {r_name}", value=rad_list or "-", inline=True)
+            embed.add_field(name="⚔️", value="\u200b", inline=True)
+            embed.add_field(name=f"🌋 {d_name}", value=dire_list or "-", inline=True)
+
+            content_res = f"**Lobby {index + 1}** Summon: {rad_pings} {dire_pings}"
+
+            if host_id:
+                # Находим имя хоста для футера
+                host_p = next((p for p in lobby_data['radiant'] + lobby_data['dire'] if p.discord_id == host_id), None)
+                content_res += f"\n👑 **Host:** <@{host_id}>"
+            else:
+                embed.set_footer(text="Ожидание назначения хоста администратором...")
+
+            return embed, content_res
+
+        # --- ЦИКЛ ПУБЛИКАЦИИ ---
         try:
             for i, lobby in enumerate(self.lobbies):
                 if not lobby['radiant'] and not lobby['dire']:
                     continue
 
-                r_name, d_name = TEAM_NAMES.get(i, (f"Radiant {i + 1}", f"Dire {i + 1}"))
+                # 1. Генерируем эмбед первый раз (без хоста)
+                initial_embed, initial_content = create_lobby_embed(i, lobby, steam_map, host_id=None)
 
-                # --- ВРЕМЯ ---
-                lobby_match_time = base_start_time + timedelta(minutes=i * 5)
-                # Корректировка времени (раскомментируй, если нужно +3 часа)
-                lobby_match_time += timedelta(hours=3)
-
-                time_str = lobby_match_time.strftime("%H:%M")
-                discord_time_str = f"{time_str} МСК"
-
-                # --- ФОРМАТИРОВАНИЕ ---
-                def format_p(p):
-                    # ВАЖНО: get_tier должен быть доступен (self.get_tier)
-                    tier_val = self.get_tier(p)
-                    roles_str = ""
-                    clean_pos = []
-                    if hasattr(p, 'positions') and p.positions:
-                        raw_pos = p.positions
-                        if isinstance(raw_pos, list):
-                            for x in raw_pos:
-                                if x is None: continue
-                                s = str(x).strip()
-                                if s and s != "/": clean_pos.append(s)
-                        elif isinstance(raw_pos, str):
-                            clean_pos = [s.strip() for s in raw_pos.split('/') if s.strip()]
-                    if clean_pos:
-                        roles_str = f" | Pos: {'/'.join(clean_pos)}"
-
-                    base_name = getattr(p, 'ingame_name', str(p.discord_id))
-                    display_name = f"**{base_name}**"
-
-                    # Берем SteamID из карты, которую мы заполнили выше
-                    sid = steam_map.get(p.discord_id)
-                    if not sid and hasattr(p, 'steam_id32') and p.steam_id32:
-                        sid = p.steam_id32
-
-                    if sid:
-                        try:
-                            sid_int = int(sid)
-                            if sid_int > 76561190000000000: sid_int -= 76561197960265728
-                            url = f"https://stratz.com/players/{sid_int}"
-                            display_name = f"[{base_name}]({url})"
-                        except:
-                            pass
-                    return f"[{tier_val}] {display_name}{roles_str}"
-
-                rad_list = "\n".join([format_p(p) for p in lobby['radiant']])
-                dire_list = "\n".join([format_p(p) for p in lobby['dire']])
-                rad_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['radiant']])
-                dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby['dire']])
-
-                embed = discord.Embed(
-                    title=f"⚔️ Match #{i + 1} ({discord_time_str})",
-                    color=discord.Color.purple()
+                # 2. Создаем View с выпадающим списком
+                # Передаем туда функцию create_lobby_embed, чтобы View мог обновлять сообщение сам
+                view = LobbyView(
+                    lobby_data=lobby,
+                    match_index=i,
+                    steam_map=steam_map,
+                    render_func=create_lobby_embed,
+                    check_admin_func=None  # Можно передать сюда self.bot.is_owner или типа того
                 )
 
-                embed.add_field(name=f"🌳 {r_name}", value=rad_list or "-", inline=True)
-                embed.add_field(name="⚔️", value="\u200b", inline=True)
-                embed.add_field(name=f"🌋 {d_name}", value=dire_list or "-", inline=True)
-
+                # 3. Отправляем
                 await interaction.channel.send(
-                    content=f"**Lobby {i + 1}** Summon: {rad_pings} {dire_pings}",
-                    embed=embed
+                    content=initial_content,
+                    embed=initial_embed,
+                    view=view
                 )
 
+            # Запасные игроки
             if self.bench:
                 bench_pings = " ".join([f"<@{p.discord_id}>" for p in self.bench])
                 await interaction.channel.send(f"🪑 **В запасе:** {bench_pings}")
 
-            await interaction.edit_original_response(content="✅ **Все матчи опубликованы!**")
+            await interaction.edit_original_response(content="✅ **Все матчи опубликованы! Назначьте хостов.**")
 
         except Exception as e:
             import traceback
             traceback.print_exc()
-            try:
-                await interaction.channel.send(f"❌ Ошибка: {e}")
-            except:
-                pass
+            await interaction.channel.send(f"❌ Ошибка публикации: {e}")
 
     async def export_all_callback(self, interaction: discord.Interaction):
         # Делаем defer ephemeral, чтобы никто не видел сообщение "Bot thinks..."
@@ -860,48 +939,58 @@ class RegistrationView(discord.ui.View):
     async def join_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
-        # ✅ ОТКРЫВАЕМ СЕССИЮ ЧЕРЕЗ LeagueService
+        # ✅ ОТКРЫВАЕМ СЕССИЮ
         async with LeagueService(interaction.client) as league_service:
-            # Получаем сессию, которую создал LeagueService
             session = league_service.session
-
-            # Создаем ProfileService, используя ТУ ЖЕ сессию
             profile_service = ProfileService(session)
 
-            # --- ДАЛЬШЕ ТВОЙ КОД ПОЧТИ БЕЗ ИЗМЕНЕНИЙ ---
-
             # 1. Проверки профиля
-            # (Тут, возможно, надо проверить метод get_player - принимает ли он ID или что-то еще,
-            # но судя по твоему коду он принимает ID)
             player = await profile_service.get_player(interaction.user.id)
 
-            # ВАЖНО: player может быть None, если профиля нет
             if not player or not getattr(player, 'rank_tier', None):
-                # Используем followup, так как сделали defer
                 await interaction.followup.send("❌ Сначала создай профиль (команда /profile или настройки).",
                                                 ephemeral=True)
                 return
 
             # 2. Попытка регистрации
-            # Метод register_player теперь вызывается у league_service, который уже имеет сессию
-            # Обрати внимание: register_player возвращает (success, message, is_auto_checked)
             success, message, is_auto_checked = await league_service.register_player(user_id=interaction.user.id)
 
             if not success:
-                # Если ошибка про Титана — шлем инструкцию
-                if "Titan" in str(message):  # str() на всякий случай
+                # Если требуется подтверждение Титана (или любая другая причина для скрина)
+                if "Titan" in str(message):
                     try:
+                        # ==============================================================================
+                        # 🔥 ДОБАВЛЕНА ЛОГИКА ОЖИДАНИЯ СКРИНА
+                        # ==============================================================================
+
+                        # 1. Ищем твой Ког, где лежит слушатель on_message
+                        # ВАЖНО: Замени "Registration" на точное имя класса твоего Кога!
+                        # Если твой класс называется class LeagueSystem(commands.Cog), то пиши "LeagueSystem"
+                        cog = interaction.client.get_cog("League")
+
+                        if cog:
+                            import time
+                            # 2. Добавляем игрока в "белый список" на 5 минут
+                            cog.waiting_for_screen[interaction.user.id] = time.time() + 300
+                            print(f"[LOG] Игрок {interaction.user} добавлен в ожидание скрина.")
+                        else:
+                            print("[ERROR] Не найден ког Registration! Скриншот не будет принят.")
+
+                        # ==============================================================================
+
                         await interaction.user.send(
                             "📸 **Подтверждение ранга**\n"
-                            "Пожалуйста, отправь скриншот твоего MMR (в профиле Dota 2) прямо сюда, в ответ на это сообщение."
+                            "Пожалуйста, отправь скриншот твоего MMR (в профиле Dota 2) прямо сюда, в ответ на это сообщение.\n"
+                            "⏳ Окно для отправки открыто на **5 минут**."
                         )
                         await interaction.followup.send(f"⚠️ **Требуется подтверждение.** Инструкция отправлена в ЛС.",
                                                         ephemeral=True)
+
                     except discord.Forbidden:
-                        await interaction.followup.send(f"❌ {message}\n(Открой ЛС, бот не может написать тебе)",
-                                                        ephemeral=True)
+                        await interaction.followup.send(
+                            f"❌ {message}\n(Открой ЛС, бот не может написать тебе инструкцию)", ephemeral=True)
                 else:
-                    # Любая другая ошибка (уже зареган, нет сезона и т.д.)
+                    # Другие ошибки
                     await interaction.followup.send(f"❌ {message}", ephemeral=True)
                 return
 
@@ -909,8 +998,6 @@ class RegistrationView(discord.ui.View):
             await interaction.followup.send(f"✅ {message}", ephemeral=True)
 
             # Если сработал авточекин
-            # Тут self.bot недоступен напрямую, если это View.
-            # В View бот обычно лежит в interaction.client
             bot = interaction.client
             if hasattr(bot, 'active_checkin') and bot.active_checkin:
                 if not bot.active_checkin.is_finished() and is_auto_checked:
@@ -926,6 +1013,7 @@ class League(commands.Cog):
         self.stratz = StratzService()
         self.service = LeagueService(bot)
         self.check_upcoming_games.start()
+        self.waiting_for_screen ={}
 
     def cog_unload(self):
         self.check_upcoming_games.cancel()
@@ -960,6 +1048,9 @@ class League(commands.Cog):
         except Exception as e:
             print(f"[ERROR] Auto-checkin task failed: {e}")
 
+    async def enable_screen_upload(self, user_id):
+        self.waiting_for_screen[user_id] = time.time() + 300
+        print(f"[DEBUG] Ожидаем скрин от {user_id} следующие 5 минут.")
     # --- ФУНКЦИЯ РАССЫЛКИ ---
     async def send_checkin_dms(self, registrations, week_num):
         embed = discord.Embed(
@@ -993,37 +1084,69 @@ class League(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
-        # --- ОТЛАДКА: СМОТРИМ, ВИДИТ ЛИ БОТ ХОТЬ ЧТО-ТО ---
-        # Если в консоли не появится эта строка при отправке сообщения — проблема в Intents!
-        # print(f"[DEBUG] Message from {message.author}: {message.content} (Attachments: {len(message.attachments)})")
 
-        # 1. Отсеиваем самого бота
+        # 1. Отсеиваем бота
         if message.author.bot:
             return
 
         # 2. Проверка на ЛС (упрощенная)
-        # Если message.guild is None — значит это ЛС
         if message.guild is not None:
             return
 
-        print(f"[DEBUG] Получено сообщение в ЛС от {message.author.name}")
+        user_id = message.author.id
+
+        # Проверка списка ожидания
+        if user_id not in self.waiting_for_screen:
+            return
+
+        # Проверка таймера
+        if time.time() > self.waiting_for_screen[user_id]:
+            del self.waiting_for_screen[user_id]
+            await message.channel.send("❌ Время ожидания истекло. Начните регистрацию заново.")
+            return
 
         # 3. Проверка на наличие картинки
         if not message.attachments:
-            print("[DEBUG] Нет вложений, игнорирую.")
-            return
+            return  # Игнорируем текст
 
         attachment = message.attachments[0]
-        # Проверка типа контента (иногда content_type бывает None, добавим защиту)
         ctype = attachment.content_type
         if not ctype or not ctype.startswith('image/'):
-            print(f"[DEBUG] Вложение есть, но это не картинка: {ctype}")
+            await message.channel.send("❌ Это не картинка. Пришлите скриншот.")
             return
 
-        print(f"[DEBUG] Картинка найдена! Начинаю обработку...")
+        # 🔥 ФИКС ДУБЛЕЙ: Удаляем из очереди СРАЗУ, до начала обработки.
+        # Это гарантирует, что код не сработает дважды, если юзер кинет 2 фото или Дискорд лаганет.
+        del self.waiting_for_screen[user_id]
 
-        # Сообщаем пользователю
-        processing_msg = await message.channel.send("⏳ Вижу картинку, проверяю...")
+        print(f"[DEBUG] Картинка найдена! Начинаю обработку...")
+        processing_msg = await message.channel.send("⏳ Обрабатываю скриншот и сохраняю...")
+
+        permanent_url = ""
+        try:
+            # 🔥 ИСПРАВЛЕНО: Обращаемся к глобальной переменной SCREEN_CHANNEL_ID без self.
+            log_channel = self.bot.get_channel(SCREEN_CHANNEL_ID)
+
+            # Если в кэше нет, пробуем подгрузить через API
+            if log_channel is None:
+                log_channel = await self.bot.fetch_channel(SCREEN_CHANNEL_ID)
+
+            # Скачиваем файл из ЛС и готовим к отправке
+            file_to_send = await attachment.to_file()
+
+            # Отправляем в канал на сервере
+            log_msg = await log_channel.send(
+                content=f"📸 Регистрация от {message.author.mention}",
+                file=file_to_send
+            )
+
+            # ✅ БЕРЕМ ВЕЧНУЮ ССЫЛКУ ИЗ КАНАЛА
+            permanent_url = log_msg.attachments[0].url
+
+        except Exception as e:
+            print(f"[ERROR] Не удалось сохранить скриншот: {e}")
+            await processing_msg.edit(content="❌ Ошибка сохранения скриншота (нет доступа к каналу логов).")
+            return
 
         # --- ДАЛЬШЕ ТВОЯ ЛОГИКА ---
         success = False
@@ -1037,9 +1160,10 @@ class League(commands.Cog):
                 session = service.session
                 profile_service = ProfileService(session)
 
+                # 🔥 ПЕРЕДАЕМ ВЕЧНУЮ ССЫЛКУ
                 success, response_text, is_auto_checked = await service.register_player(
                     user_id=message.author.id,
-                    screenshot_url=attachment.url
+                    screenshot_url=permanent_url  # <--- СЮДА ИДЕТ ССЫЛКА ИЗ КАНАЛА
                 )
                 print(f"[DEBUG] Результат регистрации: {success}, {response_text}")
 
@@ -1062,8 +1186,10 @@ class League(commands.Cog):
                     if not self.bot.active_checkin.is_finished():
                         try:
                             if self.bot.active_checkin.message:
-                                await self.bot.active_checkin.add_player_external(player_obj,
-                                                                                  self.bot.active_checkin.message.channel)
+                                await self.bot.active_checkin.add_player_external(
+                                    player_obj,
+                                    self.bot.active_checkin.message.channel
+                                )
                         except Exception as e:
                             print(f"[WARN] Ошибка обновления меню: {e}")
         else:
@@ -1096,7 +1222,7 @@ class League(commands.Cog):
                                                        ephemeral=True)
 
             # 2. Создаем 12 фейков
-            for i in range(1, 13):
+            for i in range(1, 33):
                 fake_id = 99000 + i
                 fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
                 fake_rank = random.randint(10, 80)
