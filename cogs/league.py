@@ -1043,7 +1043,7 @@ class League(commands.Cog):
                         self.checkin_sent_weeks.add(week.id)
 
                         # А потом уже отправляем
-                        await self.send_checkin_dms(registrations, week.id)
+                        await self.send_checkin_dms(registrations, week.week_number)
 
         except Exception as e:
             print(f"[ERROR] Auto-checkin task failed: {e}")
