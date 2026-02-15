@@ -1043,7 +1043,7 @@ class League(commands.Cog):
                         self.checkin_sent_weeks.add(week.id)
 
                         # А потом уже отправляем
-                        await self.send_checkin_dms(registrations, week.id)
+                        await self.send_checkin_dms(registrations, week.week_number)
 
         except Exception as e:
             print(f"[ERROR] Auto-checkin task failed: {e}")
@@ -1056,7 +1056,7 @@ class League(commands.Cog):
         embed = discord.Embed(
             title="⚠️ Check-In: Подтверждение участия",
             description=(
-                f"Игры лиги (Тур #{week_num}) начнутся менее чем через час.\n"
+                f"Игры лиги (Тур #{week_num}) начнутся через 2 часа.\n"
                 "**Ты готов играть?**\n\n"
                 "Нажми **✅ Я буду играть**, чтобы подтвердить.\n"
             ),
@@ -1222,7 +1222,7 @@ class League(commands.Cog):
                                                        ephemeral=True)
 
             # 2. Создаем 12 фейков
-            for i in range(1, 33):
+            for i in range(1, 37):
                 fake_id = 99000 + i
                 fake_name = f"{random.choice(adjectives)}_{random.choice(nouns)}_{i}"
                 fake_rank = random.randint(10, 80)
@@ -1418,51 +1418,71 @@ class League(commands.Cog):
     async def league_status(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        # ✅ ИСПОЛЬЗУЕМ НОВЫЙ ПОДХОД
-        # Передаем interaction.client (бота). Сессия создастся и закроется сама.
         async with LeagueService(interaction.client) as service:
-            week, registrations = await service.get_active_registrations()
+            active_session, registrations = await service.get_active_registrations()
 
-            if not week or not registrations:
+            if not active_session or not registrations:
                 await interaction.followup.send("ℹ️ Нет активных участников.", ephemeral=True)
                 return
 
-            # Сортировка: Сначала НЕ готовые, потом по ID
-            registrations.sort(key=lambda x: (not x[0].is_checked_in, x[0].id))
+            # 🔥 СОРТИРОВКА: Строго по времени регистрации (ID)
+            registrations.sort(key=lambda x: x[0].id)
 
             checked_cnt = sum(1 for r, p in registrations if r.is_checked_in)
+            total_cnt = len(registrations)
 
-            lines = []
+            all_lines = []
             for i, (reg, player) in enumerate(registrations, start=1):
                 status = "✅" if reg.is_checked_in else "💤"
                 mmr = f"**{reg.mmr_snapshot}**"
 
+                # Ссылка на Stratz (если есть ID)
                 link = player.ingame_name
                 if player.steam_id32:
                     link = f"[{player.ingame_name}](https://www.stratz.com/players/{player.steam_id32})"
 
-                evd = f" [📸]({reg.screenshot_url})" if reg.screenshot_url else ""
+                # 🔥 ВОЗВРАЩАЕМ ФОТО
+                # Если url есть, ставим просто иконку (без длинной ссылки)
+                photo_icon = " 📸" if reg.screenshot_url else ""
+
+                # Номер
                 num_display = f"`{i:>2}.`"
 
-                row_str = f"{num_display} {status} {mmr} | {link} (<@{player.discord_id}>){evd}"
-                lines.append(row_str)
+                # Собираем строку
+                row_str = f"{num_display} {status} {mmr} | {link} (<@{player.discord_id}>){photo_icon}"
+                all_lines.append(row_str)
 
-            desc_header = (
-                f"**Всего заявок:** {len(registrations)}\n"
-                f"**Подтвердили (Ready):** {checked_cnt}\n"
-                f"*(Сортировка: Готовые -> По времени регистрации)*\n\n"
-            )
+            # --- ПАГИНАЦИЯ ---
+            CHUNK_SIZE = 20
+            total_pages = (len(all_lines) + CHUNK_SIZE - 1) // CHUNK_SIZE
 
-            full_text = desc_header + "\n".join(lines)
-            if len(full_text) > 4096:
-                full_text = full_text[:4000] + "\n... (список обрезан)"
+            if total_pages == 0:
+                await interaction.followup.send("Список пуст.", ephemeral=True)
+                return
 
-            embed = discord.Embed(
-                title=f"📊 Статус Тура #{week.week_number}",
-                description=full_text,
-                color=discord.Color.blue()
-            )
-            await interaction.followup.send(embed=embed, ephemeral=True)
+            for page_num, i in enumerate(range(0, len(all_lines), CHUNK_SIZE), start=1):
+                chunk = all_lines[i: i + CHUNK_SIZE]
+
+                description_text = "\n".join(chunk)
+
+                # Заголовок только на первой странице
+                if page_num == 1:
+                    header = (
+                        f"**Тур #{active_session.week_number}**\n"
+                        f"Всего: **{total_cnt}** | Ready: **{checked_cnt}**\n"
+                        f"*(Сортировка: По времени регистрации)*\n\n"
+                    )
+                    final_text = header + description_text
+                else:
+                    final_text = description_text
+
+                embed = discord.Embed(
+                    title=f"📊 Статус (Стр. {page_num}/{total_pages})",
+                    description=final_text,
+                    color=discord.Color.blue()
+                )
+
+                await interaction.followup.send(embed=embed, ephemeral=True)
 
     @league_group.command(name="delete_last", description="Удалить тур")
     @app_commands.checks.has_permissions(administrator=True)
@@ -1503,111 +1523,124 @@ class League(commands.Cog):
             await interaction.followup.send("ℹ️ Нет активных регистраций.", ephemeral=True)
             return
 
-        # Сортировка: сначала те, кто не чекин, потом по ID
-        registrations.sort(key=lambda x: (not x[0].is_checked_in, x[0].id))
+        # 🔥 СОРТИРОВКА: По времени регистрации (ID)
+        registrations.sort(key=lambda x: x[0].id)
 
-        total_players = len(registrations)
-        embed = discord.Embed(
-            title=f"📊 Проверка активности (Stratz): Тур #{active_session.season_number}",
-            description="⏳ **Начинаю сканирование...**",
+        # Стартовое сообщение анимации
+        progress_embed = discord.Embed(
+            title="⏳ Сканирование Stratz...",
+            description="Подготовка...",
             color=discord.Color.gold()
         )
-        message = await interaction.followup.send(embed=embed)
+        status_msg = await interaction.followup.send(embed=progress_embed)
 
         report_lines = []
 
-        # --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ---
+        # Вспомогательная функция
         def get_clean_steam_id(raw_id):
             if not raw_id: return None
             try:
                 val = int(str(raw_id).strip())
-                # Конвертация Steam64 -> Steam32
-                if val > 76561190000000000:
-                    val -= 76561197960265728
+                if val > 76561190000000000: val -= 76561197960265728
                 return val
             except ValueError:
                 return None
 
-        # 2. Цикл проверки
+        # 2. Сканирование
+        total = len(registrations)
         for i, (reg, player) in enumerate(registrations, start=1):
-            num_display = f"`{i:>2}.`"
+
+            clean_id = get_clean_steam_id(player.steam_id32)
             p_name = player.ingame_name
 
-            # Чистим ID
-            clean_id = get_clean_steam_id(player.steam_id32)
-
-            # Логируем
-            print(f"[Check] {p_name}: Raw={player.steam_id32} -> Clean={clean_id}")
-
-            # Ссылка на Stratz
-            player_link = f"[{p_name}](https://www.stratz.com/players/{clean_id})" if clean_id else f"**{p_name}**"
-
-            # === ОПРЕДЕЛЕНИЕ РОЛЕЙ ===
+            # Роли
             if not player.positions:
-                main_role, side_role = "1", "1"
+                m_role, s_role = "1", "1"
             else:
                 roles = str(player.positions).split('/')
-                main_role = roles[0]
-                side_role = roles[1] if len(roles) > 1 else roles[0]
+                m_role = roles[0]
+                s_role = roles[1] if len(roles) > 1 else roles[0]
 
-            # Формируем красивую строку ролей: (1/5)
-            roles_display = f"**({main_role}/{side_role})**"
+            roles_disp = f"({m_role}/{s_role})"
 
-            # === ЕСЛИ ID КРИВОЙ ===
+            # Ссылка
+            player_link = f"[{p_name}](https://www.stratz.com/players/{clean_id})" if clean_id else f"**{p_name}**"
+
+            # Номер
+            num_display = f"`{i:>2}.`"
+
+            # Логика
+            line = ""
             if not clean_id:
-                line = f"{num_display} ⚠️ {p_name} {roles_display} | ❌ **Некорректный Steam ID**"
-                report_lines.append(line)
-                continue
-
-            # === ЗАПРОС К STRATZ ===
-            # (Используем clean_id и ожидаемые роли)
-            data = await self.stratz.get_player_activity(clean_id, main_role, side_role)
-
-            if not data['success']:
-                line = f"{num_display} ❓ {player_link} {roles_display} | **Ошибка API**"
-
-            elif data.get('is_private'):
-                line = f"{num_display} 🔒 {player_link} {roles_display} | **Профиль скрыт**"
-
+                line = f"{num_display} ⚠️ {player_link} | ❌ **Bad ID**"
             else:
-                # Иконки статусов
-                # T = Total, M = Main role, S = Side role
-                t_ico = "✅" if data['total'] >= 20 else "🔻"
-                m_ico = "✅" if data['main'] >= 10 else "🔻"
-                s_ico = "✅" if data['side'] >= 5 else "🔻"
+                data = await self.stratz.get_player_activity(clean_id, m_role, s_role)
 
-                # Общий зачет
-                status_icon = "✅" if data['passed'] else "❌"
+                if not data['success']:
+                    line = f"{num_display} ❓ {player_link} | **Err**"
+                elif data.get('is_private'):
+                    line = f"{num_display} 🔒 {player_link} | **Hidden**"
+                else:
+                    # Иконки (проходим по порогам)
+                    # Tot >= 20, Main >= 10, Side >= 5
+                    t_ico = "✅" if data['total'] >= 20 else "🔻"
+                    m_ico = "✅" if data['main'] >= 10 else "🔻"
+                    s_ico = "✅" if data['side'] >= 5 else "🔻"
 
-                # Компактная статистика
-                stats_str = f"Tot:{data['total']}{t_ico} M:{data['main']}{m_ico} S:{data['side']}{s_ico}"
+                    pass_icon = "✅" if data['passed'] else "❌"
 
-                # ИТОГОВАЯ СТРОКА
-                line = f"{num_display} {status_icon} {player_link} {roles_display} | `{stats_str}`"
+                    # 🔥 ВЕРНУЛ TOTAL (Tot)
+                    stats = f"Tot:{data['total']}{t_ico} M:{data['main']}{m_ico} S:{data['side']}{s_ico}"
+
+                    line = f"{num_display} {pass_icon} {player_link} {roles_disp} | `{stats}`"
 
             report_lines.append(line)
 
-            # Обновление сообщения (каждые 5 игроков или в конце)
-            if i % 5 == 0 or i == total_players:
-                full_text = "\n".join(report_lines)
-                if len(full_text) > 4000:
-                    full_text = full_text[:3900] + "\n... (список обрезан)"
+            # --- АНИМАЦИЯ ---
+            # Обновляем каждые 4 игрока (или в конце)
+            if i % 4 == 0 or i == total:
+                # Если список длинный, показываем только хвост (последние 15 строк)
+                # чтобы не словить ошибку 4096 символов во время анимации
+                if len(report_lines) <= 20:
+                    preview_text = "\n".join(report_lines)
+                else:
+                    preview_text = "...\n" + "\n".join(report_lines[-15:])
 
-                embed.description = full_text
-                embed.set_footer(text=f"Проверено: {i}/{total_players}")
+                progress_embed.description = preview_text
+                progress_embed.set_footer(text=f"Проверено: {i}/{total}")
+
                 try:
-                    await message.edit(embed=embed)
+                    await status_msg.edit(embed=progress_embed)
                 except:
-                    break  # Если сообщение удалили, останавливаемся
+                    pass  # Если сообщение удалено, не падаем
 
             await asyncio.sleep(0.5)
 
-        embed.title = f"🏁 Проверка завершена (Тур #{active_session.season_number})"
-        embed.color = discord.Color.green()
+            # 3. ФИНАЛ (удаляем анимацию, шлем страницы)
         try:
-            await message.edit(embed=embed)
+            await status_msg.delete()
         except:
             pass
+
+        CHUNK_SIZE = 20
+        total_pages = (len(report_lines) + CHUNK_SIZE - 1) // CHUNK_SIZE
+
+        for page_num, start_idx in enumerate(range(0, len(report_lines), CHUNK_SIZE), start=1):
+            chunk = report_lines[start_idx: start_idx + CHUNK_SIZE]
+            desc_text = "\n".join(chunk)
+
+            if page_num == 1:
+                header = f"*(Сортировка: По времени регистрации)*\n\n"
+                final_desc = header + desc_text
+            else:
+                final_desc = desc_text
+
+            embed = discord.Embed(
+                title=f"🏁 Результаты Stratz (Стр. {page_num}/{total_pages})",
+                description=final_desc,
+                color=discord.Color.green()
+            )
+            await interaction.followup.send(embed=embed)
 
 
 async def setup(bot):
