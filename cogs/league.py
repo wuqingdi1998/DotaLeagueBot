@@ -1756,10 +1756,14 @@ class League(commands.Cog):
     @league_group.command(name="spawn_checker", description="Создать панель проверки активности")
     @app_commands.checks.has_permissions(administrator=True)
     async def spawn_checker(self, interaction: discord.Interaction):
-        # Создаем View, передавая бота и сервис Stratz
+        # 1. Отвечаем невидимо, чтобы закрыть команду
+        await interaction.response.send_message("Создаю панель...", ephemeral=True, delete_after=1)
+
+        # 2. Создаем View
         view = ActivityCheckView()
 
-        await interaction.response.send_message(
+        # 3. ВАЖНО: Тут используем .send(), а не .send_message()
+        await interaction.channel.send(
             embed=discord.Embed(
                 title="🏆 Проверка активности для текущего тура",
                 description=(
