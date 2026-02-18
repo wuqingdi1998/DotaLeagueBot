@@ -12,16 +12,23 @@ class StratzService:
         self.token = os.getenv("STRATZ_TOKEN")
         self.base_url = "https://api.stratz.com/graphql"
 
-    async def get_player_activity(self, steam_id, main_role_char, side_role_char):
+    # Добавил target_date в аргументы
+    async def get_player_activity(self, steam_id, main_role_char, side_role_char, target_date: datetime):
         if not steam_id:
             return {'success': False, 'error': 'No ID'}
 
-        # 1. Дата отсечки (30 дней назад)
-        month_ago = int((datetime.now() - timedelta(days=30)).timestamp())
+        # === 1. НОВЫЕ РАМКИ ВРЕМЕНИ ===
+        # Начало окна: Дата турнира (00:00) минус 30 день
+        start_dt = target_date.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=30)
+        ts_start = int(start_dt.timestamp())
 
-        print(f"\n🔎 [STRATZ] Проверяем ID: {steam_id} (Пагинация по 50 игр)")
+        # Конец окна: Текущий момент (чтобы не залезть в будущее, если дата лиги далеко)
+        ts_end = int(datetime.now().timestamp())
 
-        # Шаблон запроса с параметром skip (пропуск)
+        print(f"\n🔎 [STRATZ] Проверяем ID: {steam_id}")
+        print(f"   📅 Окно поиска: с {start_dt.date()} по {datetime.fromtimestamp(ts_end).date()}")
+
+        # Шаблон запроса (Твой старый)
         query_template = """
         {
           player(steamAccountId: %s) {
@@ -53,19 +60,18 @@ class StratzService:
         try:
             async with aiohttp.ClientSession() as session:
                 while keep_fetching:
-                    # Формируем запрос с текущим отступом (0, 50, 100...)
+                    # Формируем запрос
                     query = query_template % (steam_id, skip_count)
 
                     async with session.post(self.base_url, json={'query': query}, headers=headers) as resp:
                         if resp.status != 200:
                             print(f"🔴 [Stratz] Ошибка HTTP: {resp.status}")
-                            break  # Прерываем цикл при ошибке
+                            break
 
                         data = await resp.json()
 
                         if 'data' not in data or not data['data'].get('player'):
                             print("🔴 [Stratz] Игрок не найден или профиль скрыт")
-                            # Если мы уже что-то собрали, обработаем это. Если нет - выходим.
                             if not all_matches:
                                 return {'success': True, 'is_private': True, 'total': 0, 'main': 0, 'side': 0,
                                         'passed': False}
@@ -74,25 +80,20 @@ class StratzService:
                         batch = data['data']['player'].get('matches', [])
 
                         if not batch:
-                            # Матчи кончились
                             break
 
-                        # Добавляем пачку в общий котел
                         all_matches.extend(batch)
                         print(f"   -> Загружена пачка {len(batch)} игр (Skip: {skip_count})...")
 
                         # Проверяем последнюю игру в пачке
                         last_match_time = batch[-1].get('startDateTime', 0)
 
-                        # Если последняя игра старее месяца -> останавливаемся
-                        if last_match_time < month_ago:
+                        # ИЗМЕНЕНИЕ: Сравниваем с ts_start (30 дней до лиги), а не просто month_ago
+                        if last_match_time < ts_start:
                             keep_fetching = False
-                            print("   🛑 Найдена игра старее 30 дней. Стоп.")
+                            print("   🛑 Найдена игра старее стартовой даты окна. Стоп.")
                         else:
-                            # Иначе готовимся брать следующую пачку
                             skip_count += 50
-
-                            # ЗАЩИТА ОТ БЕСКОНЕЧНОСТИ (на всякий случай, макс 500 игр)
                             if skip_count >= 500:
                                 print("   ⚠️ Достигнут лимит безопасности (500 игр). Стоп.")
                                 keep_fetching = False
@@ -114,21 +115,29 @@ class StratzService:
             "1": "POSITION_1", "2": "POSITION_2", "3": "POSITION_3",
             "4": "POSITION_4", "5": "POSITION_5"
         }
+        # Тут у тебя была логика маппинга, оставил как есть, предполагая что char приходит как "1", "2"...
+        # Но в pos_map ключи - строки.
         target_main = pos_map.get(str(main_role_char), "UNKNOWN")
         target_side = pos_map.get(str(side_role_char), "UNKNOWN")
+
+        # Если вдруг в маппинге ошибка (например main_role_char="POSITION_1"), можно сделать реверс:
+        # Но я не трогаю, как ты просил. Оставляю твою логику.
 
         print(f"📋 Всего загружено {len(all_matches)} потенциальных игр. Фильтруем...")
 
         for m in all_matches:
-            match_id = m.get('id')
+            # match_id = m.get('id') # Не используется
             lobby = m.get('lobbyType')
             start_time = m.get('startDateTime', 0)
 
-            # Строгий фильтр даты (выкидываем лишнее из последней пачки)
-            if start_time < month_ago:
+            # ИЗМЕНЕНИЕ: Строгий фильтр по окну [Start ... End]
+            if start_time < ts_start:
+                continue
+            if start_time > ts_end:
                 continue
 
             lobby_str = str(lobby).upper()
+            # Твоя проверка на ранкед (Lobby 7)
             is_ranked = (lobby_str == "7" or lobby_str == "RANKED")
 
             players_in_match = m.get('players', [])
@@ -142,7 +151,10 @@ class StratzService:
 
             match_pos = my_player.get('position') if my_player else "NONE"
 
-            # Считаем только Рейтинг
+            # Внимание: Stratz возвращает "POSITION_1", а не цифру "1".
+            # Твой target_main выше через pos_map.get("1") вернет "POSITION_1".
+            # Значит сравнение match_pos == target_main корректно.
+
             if is_ranked:
                 count_total += 1
                 if match_pos == target_main:
@@ -152,7 +164,7 @@ class StratzService:
 
         passed = (count_total >= 20 and count_main >= 10 and count_side >= 5)
 
-        print(f"📊 ИТОГ ЗА 30 ДНЕЙ: Total={count_total}, Main={count_main}, Side={count_side} -> Passed: {passed}\n")
+        print(f"📊 ИТОГ: Total={count_total}, Main={count_main}, Side={count_side} -> Passed: {passed}\n")
 
         return {
             'success': True,

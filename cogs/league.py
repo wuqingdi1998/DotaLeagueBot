@@ -18,7 +18,112 @@ load_dotenv()
 SCREEN_CHANNEL_ID = int(os.getenv("SCREEN_CHANNEL_ID"))
 
 
+class ActivityCheckView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+        self._cooldowns = {}
 
+    @discord.ui.button(label="📊 Проверить активность", style=discord.ButtonStyle.primary, custom_id="check_activity_btn_persistent")
+    async def check_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = interaction.user.id
+        current_time = time.time()
+
+        # 1. ПРОВЕРКА КУЛДАУНА (Сначала проверяем, потом деферим)
+        last_press = self._cooldowns.get(user_id, 0)
+        if current_time - last_press < 30:
+            retry_after = int(30 - (current_time - last_press))
+            # Здесь используем обычный response.send_message
+            return await interaction.response.send_message(
+                f"⏳ Слишком часто! Попробуй снова через {retry_after} сек.",
+                ephemeral=True
+            )
+
+        # 2. Если кулдаун пройден — только тогда "деферим" и обновляем время
+        await interaction.response.defer(ephemeral=True)
+        self._cooldowns[user_id] = current_time
+
+        # 3. Достаем Ког
+        league_cog = interaction.client.get_cog("League")
+        if not league_cog:
+            return await interaction.followup.send("❌ Ошибка: Модуль лиги не найден.", ephemeral=True)
+
+        # 2. Работаем с БД через LeagueService (как в твоем методе регистрации)
+        async with LeagueService(interaction.client) as league_service:
+            session = league_service.session
+            profile_service = ProfileService(session)
+
+            player = await profile_service.get_player(interaction.user.id)
+
+            if not player:
+                return await interaction.followup.send("❌ **Профиль не найден.**\nСначала создай профиль.", ephemeral=True)
+
+            if not player.steam_id32:
+                return await interaction.followup.send("❌ **Нет Steam ID.**", ephemeral=True)
+
+            active_session, _ = await league_service.get_active_registrations()
+            target_date = active_session.start_time if (active_session and active_session.start_time) else datetime.now()
+
+            # Подготовка данных
+            steam_id = int(player.steam_id32)
+            if steam_id > 76561190000000000:
+                steam_id -= 76561197960265728
+
+            if hasattr(player, 'positions') and player.positions:
+                roles = str(player.positions).split('/')
+                m_role = roles[0]
+                s_role = roles[1] if len(roles) > 1 else roles[0]
+            else:
+                m_role, s_role = "1", "1"
+
+        # 3. Запрос к Stratz через сервис из Кога
+        try:
+            stats = await league_cog.stratz.get_player_activity(steam_id, m_role, s_role, target_date)
+        except Exception as e:
+            return await interaction.followup.send(f"⚠️ Ошибка Stratz: {e}", ephemeral=True)
+
+        if not stats['success']:
+            return await interaction.followup.send(f"⚠️ Ошибка API: {stats.get('error')}", ephemeral=True)
+
+        if stats.get('is_private'):
+            return await interaction.followup.send("🔒 **Твой профиль скрыт!** Открой историю матчей в Dota 2.", ephemeral=True)
+
+        # 4. 🔥 ВОЗВРАЩАЕМ ТВОЙ ФОРМАТ ЭМБЕДА
+        if stats['passed']:
+            color = 0x00ff00  # Зеленый
+            title = "✅ ДОПУЩЕН К ЛИГЕ"
+            desc = "Ты проходишь по критериям активности."
+        else:
+            color = 0xff0000  # Красный
+            title = "❌ НЕДОСТАТОЧНО ИГР"
+            desc = "Нужно сыграть больше рейтинговых игр."
+
+        embed = discord.Embed(title=title, description=desc, color=color)
+
+        # Иконки для полей
+        t_ico = "✅" if stats['total'] >= 20 else "❌"
+        m_ico = "✅" if stats['main'] >= 10 else "❌"
+        s_ico = "✅" if stats['side'] >= 5 else "❌"
+
+        embed.add_field(
+            name="Всего (надо 20)",
+            value=f"{t_ico} **{stats['total']}**",
+            inline=True
+        )
+        embed.add_field(
+            name=f"Main {m_role} pos (надо 10)",
+            value=f"{m_ico} **{stats['main']}**",
+            inline=True
+        )
+        embed.add_field(
+            name=f"Side {s_role} pos (надо 5)",
+            value=f"{s_ico} **{stats['side']}**",
+            inline=True
+        )
+
+        date_str = target_date.strftime('%d.%m')
+        embed.set_footer(text=f"Поиск за 30 дней до: {date_str} | ID: {steam_id}")
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
 class TierModalInternal(Modal):
     def __init__(self, bot, view, player_discord_id, player_name):
         super().__init__(title=f"Edit: {player_name}")
@@ -1083,6 +1188,10 @@ class League(commands.Cog):
                 print(f"Не удалось отправить чек-ин игроку {player.ingame_name}: {e}")
 
     @commands.Cog.listener()
+    async def on_ready(self):
+        self.bot.add_view(ActivityCheckView())
+        print("✅ Кнопка проверки активности зарегистрирована")
+    @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
 
         # 1. Отсеиваем бота
@@ -1519,6 +1628,8 @@ class League(commands.Cog):
         async with LeagueService(self.bot) as service:
             active_session, registrations = await service.get_active_registrations()
 
+        target_date = active_session.start_time if active_session.start_time else datetime.now()
+
         if not active_session or not registrations:
             await interaction.followup.send("ℹ️ Нет активных регистраций.", ephemeral=True)
             return
@@ -1574,7 +1685,7 @@ class League(commands.Cog):
             if not clean_id:
                 line = f"{num_display} ⚠️ {player_link} | ❌ **Bad ID**"
             else:
-                data = await self.stratz.get_player_activity(clean_id, m_role, s_role)
+                data = await self.stratz.get_player_activity(clean_id, m_role, s_role, target_date)
 
                 if not data['success']:
                     line = f"{num_display} ❓ {player_link} | **Err**"
@@ -1641,6 +1752,25 @@ class League(commands.Cog):
                 color=discord.Color.green()
             )
             await interaction.followup.send(embed=embed)
+
+    @league_group.command(name="spawn_checker", description="Создать панель проверки активности")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def spawn_checker(self, interaction: discord.Interaction):
+        # Создаем View, передавая бота и сервис Stratz
+        view = ActivityCheckView()
+
+        await interaction.response.send_message(
+            embed=discord.Embed(
+                title="🏆 Проверка активности для текущего тура",
+                description=(
+                    "Нажми на кнопку ниже, чтобы проверить свой наигрыш.\n"
+                    "Бот просканирует твои рейтинговые матчи за 30 дней до старта тура."
+                ),
+                color=discord.Color.gold()
+            ),
+            view=view
+        )
+
 
 
 async def setup(bot):
