@@ -8,6 +8,7 @@ __pycache__/
 
 # Environment Variables (SENSITIVE DATA)
 .env
+credentials.json
 
 league_test.db
 postgres_data/
