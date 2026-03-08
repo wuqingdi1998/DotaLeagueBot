@@ -10,5 +10,7 @@ __pycache__/
 .env
 credentials.json
 
+# Database Files
 league_test.db
 postgres_data/
+*.sql
