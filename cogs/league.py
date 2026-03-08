@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 SCREEN_CHANNEL_ID = int(os.getenv("SCREEN_CHANNEL_ID"))
+NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
+LEAGUE_PARTICIPANT_ROLE_ID = int(os.getenv("LEAGUE_PARTICIPANT_ROLE_ID", "0"))
 
 
 class ActivityCheckView(discord.ui.View):
@@ -1101,6 +1103,20 @@ class RegistrationView(discord.ui.View):
 
             # 3. Успех
             await interaction.followup.send(f"✅ {message}", ephemeral=True)
+
+            # 4. Если у игрока есть роль "новичка" — выдаём роль участника лиги
+            member = interaction.user
+            if NEW_USER_ROLE_ID and any(r.id == NEW_USER_ROLE_ID for r in member.roles):
+                try:
+                    guild = interaction.guild
+                    participant_role = guild.get_role(LEAGUE_PARTICIPANT_ROLE_ID)
+                    if participant_role and participant_role not in member.roles:
+                        await member.add_roles(participant_role)
+                        print(f"[ROLE] Выдана роль участника лиги игроку {member.display_name}")
+                except discord.Forbidden:
+                    print(f"[WARN] Нет прав для выдачи роли участника лиги {member.display_name}")
+                except Exception as e:
+                    print(f"[ERROR] Ошибка выдачи роли: {e}")
 
             # Если сработал авточекин
             bot = interaction.client

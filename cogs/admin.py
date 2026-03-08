@@ -4,6 +4,7 @@ from discord.ext import commands
 import io
 import re
 import asyncio
+from datetime import timedelta
 
 
 # --- 1. CONFIRMATION VIEW CLASS ---
@@ -209,5 +210,66 @@ class Admin(commands.Cog):
 
         await interaction.channel.send(embed=embed, view=ProfileManageView())
         await interaction.response.send_message("✅ Панель создана!", ephemeral=True)
+
+    @app_commands.command(name="timeout", description="[Admin] Выдать тайм-аут на произвольное время")
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.describe(
+        member="Участник для тайм-аута",
+        minutes="Длительность в минутах (например: 90 = 1.5 часа, 360 = 6 часов)",
+        reason="Причина тайм-аута"
+    )
+    async def custom_timeout(self, interaction: discord.Interaction, member: discord.Member,
+                             minutes: int, reason: str = None):
+        if minutes < 1:
+            return await interaction.response.send_message("❌ Минимальный тайм-аут — 1 минута.", ephemeral=True)
+
+        max_minutes = 40320  # 28 days — Discord's maximum
+        if minutes > max_minutes:
+            return await interaction.response.send_message(
+                f"❌ Максимальный тайм-аут — {max_minutes} минут (28 дней).", ephemeral=True
+            )
+
+        duration = timedelta(minutes=minutes)
+
+        try:
+            await member.timeout(duration, reason=reason)
+        except discord.Forbidden:
+            return await interaction.response.send_message(
+                "❌ Нет прав для тайм-аута этого пользователя (проверьте иерархию ролей).", ephemeral=True
+            )
+        except Exception as e:
+            return await interaction.response.send_message(f"❌ Ошибка: {e}", ephemeral=True)
+
+        # Format duration for display
+        days = minutes // 1440
+        hours = (minutes % 1440) // 60
+        mins = minutes % 60
+        parts = []
+        if days: parts.append(f"{days} д.")
+        if hours: parts.append(f"{hours} ч.")
+        if mins: parts.append(f"{mins} мин.")
+        duration_str = " ".join(parts)
+
+        reason_str = f"\n📝 Причина: {reason}" if reason else ""
+
+        await interaction.response.send_message(
+            f"🔇 {member.mention} получил тайм-аут на **{duration_str}**{reason_str}",
+            ephemeral=True
+        )
+
+    @app_commands.command(name="untimeout", description="[Admin] Снять тайм-аут с пользователя")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def remove_timeout(self, interaction: discord.Interaction, member: discord.Member):
+        try:
+            await member.timeout(None)
+        except discord.Forbidden:
+            return await interaction.response.send_message(
+                "❌ Нет прав для снятия тайм-аута.", ephemeral=True
+            )
+        except Exception as e:
+            return await interaction.response.send_message(f"❌ Ошибка: {e}", ephemeral=True)
+
+        await interaction.response.send_message(f"🔊 Тайм-аут снят с {member.mention}.", ephemeral=True)
+
 async def setup(bot):
     await bot.add_cog(Admin(bot))
