@@ -3,8 +3,10 @@ venv/
 .venv/
 __pycache__/
 
-# PyCharm Settings
+# IDE / Editor Settings
 .idea/
+.vscode/
+.claude/
 
 # Environment Variables (SENSITIVE DATA)
 .env

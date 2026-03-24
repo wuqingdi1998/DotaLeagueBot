@@ -1106,6 +1106,7 @@ class RegistrationView(discord.ui.View):
 
             # 4. Если у игрока есть роль "новичка" — выдаём роль участника лиги
             member = interaction.user
+            print(f"[DEBUG] NEW_USER_ROLE_ID={NEW_USER_ROLE_ID}, LEAGUE_PARTICIPANT_ROLE_ID={LEAGUE_PARTICIPANT_ROLE_ID}, member roles={[r.id for r in member.roles]}")
             if NEW_USER_ROLE_ID and any(r.id == NEW_USER_ROLE_ID for r in member.roles):
                 try:
                     guild = interaction.guild
