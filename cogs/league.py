@@ -1193,16 +1193,22 @@ class League(commands.Cog):
             if reg.is_checked_in:
                 continue
 
-            try:
-                user = self.bot.get_user(player.discord_id) or await self.bot.fetch_user(player.discord_id)
-
-                # 🔥 ИСПРАВЛЕНИЕ: Передаем week_id в View
-                view = DMCheckinView(self.bot, week_id=week_id)
-
-                await user.send(embed=embed, view=view)
-                await asyncio.sleep(0.2)
-            except Exception as e:
-                print(f"Не удалось отправить чек-ин игроку {player.ingame_name}: {e}")
+            for attempt in range(3):
+                try:
+                    user = self.bot.get_user(player.discord_id) or await self.bot.fetch_user(player.discord_id)
+                    view = DMCheckinView(self.bot, week_id=week_id)
+                    await user.send(embed=embed, view=view)
+                    await asyncio.sleep(0.2)
+                    break
+                except discord.HTTPException as e:
+                    if e.status >= 500 and attempt < 2:
+                        await asyncio.sleep(2 ** attempt)
+                        continue
+                    print(f"Не удалось отправить чек-ин игроку {player.ingame_name}: {e}")
+                    break
+                except Exception as e:
+                    print(f"Не удалось отправить чек-ин игроку {player.ingame_name}: {e}")
+                    break
 
     @commands.Cog.listener()
     async def on_ready(self):
