@@ -28,7 +28,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
     async def on_submit(self, interaction: discord.Interaction):
         # --- 1. ВАЛИДАЦИЯ НИКА (Спецсимволы) ---
-        forbidden_pool = "~`!@#$:;%^&*(){}[]/<>"
+        forbidden_pool = "~`!@#$:;%^&*(){}[]/<>.?"
         count = sum(1 for char in self.nickname.value if char in forbidden_pool)
         if count > 1:
             return await interaction.response.send_message(
