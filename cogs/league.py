@@ -16,8 +16,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 SCREEN_CHANNEL_ID = int(os.getenv("SCREEN_CHANNEL_ID"))
-NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
-LEAGUE_PARTICIPANT_ROLE_ID = int(os.getenv("LEAGUE_PARTICIPANT_ROLE_ID", "0"))
 
 
 class ActivityCheckView(discord.ui.View):
@@ -1037,6 +1035,43 @@ class MultiLobbyView(View):
     #     except Exception as e:
     #         await interaction.followup.send(f"❌ Error Import One: {e}", ephemeral=True)
 
+class ReuploadScreenView(discord.ui.View):
+    """View with a reupload button shown after successful screenshot upload. Active for 5 minutes."""
+    def __init__(self, cog, user_id: int, log_msg_id: int, log_channel_id: int):
+        super().__init__(timeout=300)
+        self.cog = cog
+        self.user_id = user_id
+        self.log_msg_id = log_msg_id
+        self.log_channel_id = log_channel_id
+
+    @discord.ui.button(label="Перезалить скрин", style=discord.ButtonStyle.secondary, emoji="🔄")
+    async def reupload_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Disable the button immediately
+        button.disabled = True
+        await interaction.response.edit_message(view=self)
+
+        # Delete old screenshot from the screen channel
+        try:
+            log_channel = self.cog.bot.get_channel(self.log_channel_id)
+            if log_channel is None:
+                log_channel = await self.cog.bot.fetch_channel(self.log_channel_id)
+            old_msg = await log_channel.fetch_message(self.log_msg_id)
+            await old_msg.delete()
+        except Exception as e:
+            print(f"[WARN] Не удалось удалить старый скриншот: {e}")
+
+        # Re-open upload window for 5 minutes
+        self.cog.waiting_for_screen[self.user_id] = time.time() + 300
+
+        await interaction.followup.send(
+            "🔄 **Перезалив скрина**\n"
+            "Отправьте новый скриншот в ответ на это сообщение.\n"
+            "⏳ Окно открыто на **5 минут**.",
+            ephemeral=False
+        )
+        self.stop()
+
+
 class RegistrationView(discord.ui.View):
     def __init__(self, bot):
         super().__init__(timeout=None)
@@ -1103,21 +1138,6 @@ class RegistrationView(discord.ui.View):
 
             # 3. Успех
             await interaction.followup.send(f"✅ {message}", ephemeral=True)
-
-            # 4. Если у игрока есть роль "новичка" — выдаём роль участника лиги
-            member = interaction.user
-            print(f"[DEBUG] NEW_USER_ROLE_ID={NEW_USER_ROLE_ID}, LEAGUE_PARTICIPANT_ROLE_ID={LEAGUE_PARTICIPANT_ROLE_ID}, member roles={[r.id for r in member.roles]}")
-            if NEW_USER_ROLE_ID and any(r.id == NEW_USER_ROLE_ID for r in member.roles):
-                try:
-                    guild = interaction.guild
-                    participant_role = guild.get_role(LEAGUE_PARTICIPANT_ROLE_ID)
-                    if participant_role and participant_role not in member.roles:
-                        await member.add_roles(participant_role)
-                        print(f"[ROLE] Выдана роль участника лиги игроку {member.display_name}")
-                except discord.Forbidden:
-                    print(f"[WARN] Нет прав для выдачи роли участника лиги {member.display_name}")
-                except Exception as e:
-                    print(f"[ERROR] Ошибка выдачи роли: {e}")
 
             # Если сработал авточекин
             bot = interaction.client
@@ -1280,11 +1300,12 @@ class League(commands.Cog):
             await processing_msg.edit(content="❌ Ошибка сохранения скриншота (нет доступа к каналу логов).")
             return
 
-        # --- ДАЛЬШЕ ТВОЯ ЛОГИКА ---
+        # --- ДАЛЬШЕ ЛОГИКА РЕГИСТРАЦИИ / ПЕРЕЗАЛИВА ---
         success = False
         response_text = ""
         is_auto_checked = False
         player_obj = None
+        is_reupload = False
 
         try:
             async with LeagueService(self.bot) as service:
@@ -1292,14 +1313,42 @@ class League(commands.Cog):
                 session = service.session
                 profile_service = ProfileService(session)
 
-                # 🔥 ПЕРЕДАЕМ ВЕЧНУЮ ССЫЛКУ
-                success, response_text, is_auto_checked = await service.register_player(
-                    user_id=message.author.id,
-                    screenshot_url=permanent_url  # <--- СЮДА ИДЕТ ССЫЛКА ИЗ КАНАЛА
-                )
-                print(f"[DEBUG] Результат регистрации: {success}, {response_text}")
+                # Проверяем, есть ли уже регистрация (перезалив скрина)
+                from sqlalchemy import and_
+                from database.models import LeagueRegistration, LeagueSession, SessionStatus
+                active_session = await service.get_active_session()
+                if active_session:
+                    existing_reg = (await session.execute(
+                        select(LeagueRegistration).where(
+                            and_(
+                                LeagueRegistration.session_id == active_session.id,
+                                LeagueRegistration.player_id == message.author.id
+                            )
+                        )
+                    )).scalar_one_or_none()
 
-                if success and is_auto_checked:
+                    if existing_reg:
+                        # Перезалив: обновляем screenshot_url
+                        existing_reg.screenshot_url = permanent_url
+                        await session.commit()
+                        success = True
+                        response_text = "Скриншот успешно обновлён!"
+                        is_reupload = True
+                    else:
+                        # Первичная регистрация
+                        success, response_text, is_auto_checked = await service.register_player(
+                            user_id=message.author.id,
+                            screenshot_url=permanent_url
+                        )
+                else:
+                    success, response_text, is_auto_checked = await service.register_player(
+                        user_id=message.author.id,
+                        screenshot_url=permanent_url
+                    )
+
+                print(f"[DEBUG] Результат: {success}, {response_text}, reupload={is_reupload}")
+
+                if success and is_auto_checked and not is_reupload:
                     player_obj = await profile_service.get_player(message.author.id)
 
         except Exception as e:
@@ -1310,10 +1359,20 @@ class League(commands.Cog):
             return
 
         if success:
-            await processing_msg.edit(content=f"✅ {response_text}")
+            # Отправляем кнопку перезалива (активна 5 минут)
+            reupload_view = ReuploadScreenView(
+                cog=self,
+                user_id=user_id,
+                log_msg_id=log_msg.id,
+                log_channel_id=SCREEN_CHANNEL_ID
+            )
+            await processing_msg.edit(
+                content=f"✅ {response_text}",
+                view=reupload_view
+            )
 
-            # Обновление меню чекина
-            if is_auto_checked and player_obj:
+            # Обновление меню чекина (только для первичной регистрации)
+            if is_auto_checked and player_obj and not is_reupload:
                 if hasattr(self.bot, 'active_checkin') and self.bot.active_checkin:
                     if not self.bot.active_checkin.is_finished():
                         try:

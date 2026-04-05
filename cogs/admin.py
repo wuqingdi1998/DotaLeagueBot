@@ -7,6 +7,19 @@ import asyncio
 from datetime import timedelta
 
 
+WEBHOOK_NAME = "LS Bot"
+
+
+# --- HELPER: Get or create persistent webhook ---
+async def get_or_create_webhook(channel: discord.TextChannel) -> discord.Webhook:
+    """Find an existing persistent webhook or create one."""
+    webhooks = await channel.webhooks()
+    for wh in webhooks:
+        if wh.name == WEBHOOK_NAME:
+            return wh
+    return await channel.create_webhook(name=WEBHOOK_NAME)
+
+
 # --- 1. CONFIRMATION VIEW CLASS ---
 class ConfirmSendView(discord.ui.View):
     def __init__(self, channel, username, avatar_url, content, embed, files_data):
@@ -24,8 +37,8 @@ class ConfirmSendView(discord.ui.View):
         await interaction.response.defer(ephemeral=True)
 
         try:
-            # 1. Create a temporary webhook
-            webhook = await self.channel.create_webhook(name="TempSender")
+            # 1. Get or create persistent webhook
+            webhook = await get_or_create_webhook(self.channel)
 
             # 2. Re-construct files from memory bytes
             final_files = []
@@ -37,20 +50,23 @@ class ConfirmSendView(discord.ui.View):
                     self.embed.set_image(url=f"attachment://{f_name}")
 
             # 3. Send the actual message via Webhook
-            await webhook.send(
+            sent_msg = await webhook.send(
                 content=self.content,
                 embed=self.embed,
                 files=final_files,
                 username=self.username,
                 avatar_url=self.avatar_url,
-                allowed_mentions=discord.AllowedMentions.all()  # Allow pings
+                allowed_mentions=discord.AllowedMentions.all(),
+                wait=True  # Returns the Message object
             )
 
-            # 4. Cleanup: Delete webhook and disable button
-            await webhook.delete()
             self.stop()
 
-            await interaction.followup.send(f"✅ Успешно опубликовано в {self.channel.mention}", ephemeral=True)
+            await interaction.followup.send(
+                f"✅ Успешно опубликовано в {self.channel.mention}\n"
+                f"🔗 ID сообщения: `{sent_msg.id}`",
+                ephemeral=True
+            )
 
         except Exception as e:
             await interaction.followup.send(f"❌ Error sending webhook: {e}", ephemeral=True)
@@ -270,6 +286,107 @@ class Admin(commands.Cog):
             return await interaction.response.send_message(f"❌ Ошибка: {e}", ephemeral=True)
 
         await interaction.response.send_message(f"🔊 Тайм-аут снят с {member.mention}.", ephemeral=True)
+
+    @app_commands.command(name="edit_say", description="[Admin] Редактировать текст поста, созданного через /say")
+    @app_commands.checks.has_permissions(administrator=True)
+    @app_commands.describe(
+        message_link="Ссылка на сообщение или ID сообщения (если ID — берётся текущий канал)"
+    )
+    async def edit_say(self, interaction: discord.Interaction, message_link: str):
+        # --- 1. ПАРСИНГ ССЫЛКИ / ID ---
+        # Format: https://discord.com/channels/guild_id/channel_id/message_id
+        link_match = re.match(r'https?://(?:ptb\.|canary\.)?discord(?:app)?\.com/channels/(\d+)/(\d+)/(\d+)', message_link)
+
+        if link_match:
+            channel_id = int(link_match.group(2))
+            message_id = int(link_match.group(3))
+        elif message_link.isdigit():
+            channel_id = interaction.channel.id
+            message_id = int(message_link)
+        else:
+            return await interaction.response.send_message(
+                "❌ Неверный формат. Укажите ссылку на сообщение или ID сообщения.", ephemeral=True
+            )
+
+        # --- 2. ПОЛУЧАЕМ КАНАЛ И СООБЩЕНИЕ ---
+        target_channel = self.bot.get_channel(channel_id)
+        if not target_channel:
+            try:
+                target_channel = await self.bot.fetch_channel(channel_id)
+            except Exception:
+                return await interaction.response.send_message("❌ Канал не найден.", ephemeral=True)
+
+        try:
+            target_msg = await target_channel.fetch_message(message_id)
+        except discord.NotFound:
+            return await interaction.response.send_message("❌ Сообщение не найдено.", ephemeral=True)
+        except Exception as e:
+            return await interaction.response.send_message(f"❌ Ошибка: {e}", ephemeral=True)
+
+        # --- 3. ОПРЕДЕЛЯЕМ ТИП (EMBED ИЛИ PLAIN TEXT) ---
+        has_embed = bool(target_msg.embeds)
+
+        if has_embed:
+            old_text = target_msg.embeds[0].description or "(пусто)"
+            msg_type = "Embed"
+        else:
+            old_text = target_msg.content or "(пусто)"
+            msg_type = "Текст"
+
+        # --- 4. ЗАПРАШИВАЕМ НОВЫЙ ТЕКСТ ---
+        await interaction.response.send_message(
+            f"✍️ **Редактирование сообщения** (тип: {msg_type})\n"
+            f"Текущий текст:\n```\n{old_text[:500]}\n```\n"
+            f"Напишите новый текст следующим сообщением.\n*(5 минут на ввод)*",
+            ephemeral=True
+        )
+
+        def check(m):
+            return m.author == interaction.user and m.channel == interaction.channel
+
+        try:
+            user_msg = await self.bot.wait_for('message', check=check, timeout=300)
+            raw_text = user_msg.content
+            try:
+                await user_msg.delete()
+            except:
+                pass
+        except asyncio.TimeoutError:
+            return await interaction.followup.send("⏰ Время вышло!", ephemeral=True)
+
+        # --- 5. ОБРАБОТКА EMOJI ---
+        def replace_emoji(match):
+            name = match.group(1)
+            emoji = discord.utils.get(self.bot.emojis, name=name)
+            if emoji: return str(emoji)
+            return match.group(0)
+
+        pattern = r"(?<!<):([a-zA-Z0-9_]+):"
+        proc_text = re.sub(pattern, replace_emoji, raw_text)
+
+        # --- 6. РЕДАКТИРОВАНИЕ ЧЕРЕЗ WEBHOOK ---
+        try:
+            webhook = await get_or_create_webhook(target_channel)
+
+            if has_embed:
+                embed = target_msg.embeds[0].copy()
+                embed.description = proc_text
+                await webhook.edit_message(message_id, embed=embed)
+            else:
+                # Сохраняем пинги, если они были в начале контента
+                # Находим часть с пингами (до текста пользователя)
+                await webhook.edit_message(message_id, content=proc_text)
+
+            await interaction.followup.send(
+                f"✅ Сообщение отредактировано в {target_channel.mention}", ephemeral=True
+            )
+        except discord.NotFound:
+            await interaction.followup.send(
+                "❌ Не удалось отредактировать. Убедитесь, что сообщение было отправлено через бота (/say).",
+                ephemeral=True
+            )
+        except Exception as e:
+            await interaction.followup.send(f"❌ Ошибка редактирования: {e}", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Admin(bot))

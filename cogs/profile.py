@@ -17,6 +17,8 @@ from utils.logger import send_log
 from utils.steam_tools import resolve_steam_id
 
 GUILD_ID = int(os.getenv("GUILD_ID"))
+NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
+LEAGUE_PARTICIPANT_ROLE_ID = int(os.getenv("LEAGUE_PARTICIPANT_ROLE_ID", "0"))
 
 class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     real_name = ui.TextInput(label='Ваше настоящее имя', placeholder=' Например: Даня', min_length=2, max_length=15)
@@ -46,10 +48,15 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             return await interaction.response.send_message("❌ **Ошибка:** Позиции не могут быть одинаковыми.",
                                                            ephemeral=True)
 
-        # --- 3. ФОРМАТИРОВАНИЕ ИМЕНИ (Новое) ---
-        # .strip() убирает пробелы по краям
-        # .title() делает первую букву заглавной (dany -> Dany, dany kos -> Dany Kos)
+        # --- 3. ФОРМАТИРОВАНИЕ ИМЕНИ ---
         formatted_real_name = self.real_name.value.strip().title()
+
+        # --- 3.1 ВАЛИДАЦИЯ ИМЕНИ (Только кириллица) ---
+        if not re.match(r'^[а-яА-ЯёЁ\s\-]+$', formatted_real_name):
+            return await interaction.response.send_message(
+                "❌ **Ошибка:** Имя должно содержать только кириллицу (допускаются пробелы и дефис).",
+                ephemeral=True
+            )
 
         await interaction.response.defer(ephemeral=True)
 
@@ -92,7 +99,23 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             if cog:
                 await cog.update_discord_profile(interaction.user, new_p)
 
-        # --- 6. ЛОГИРОВАНИЕ ---
+        # --- 6. ЗАМЕНА РОЛИ НОВИЧКА НА РОЛЬ УЧАСТНИКА ---
+        if NEW_USER_ROLE_ID and any(r.id == NEW_USER_ROLE_ID for r in interaction.user.roles):
+            try:
+                guild = interaction.guild
+                new_user_role = guild.get_role(NEW_USER_ROLE_ID)
+                participant_role = guild.get_role(LEAGUE_PARTICIPANT_ROLE_ID)
+                if new_user_role:
+                    await interaction.user.remove_roles(new_user_role)
+                if participant_role and participant_role not in interaction.user.roles:
+                    await interaction.user.add_roles(participant_role)
+                print(f"[ROLE] Роль новичка заменена на участника для {interaction.user.display_name}")
+            except discord.Forbidden:
+                print(f"[WARN] Нет прав для замены роли у {interaction.user.display_name}")
+            except Exception as e:
+                print(f"[ERROR] Ошибка замены роли: {e}")
+
+        # --- 7. ЛОГИРОВАНИЕ ---
         await send_log(
             title="🆕 Новая регистрация",
             description=f"Игрок: {interaction.user.mention}\nНик: `{self.nickname.value}`\nИмя: `{formatted_real_name}`\nSteam: `{sid32}`",
