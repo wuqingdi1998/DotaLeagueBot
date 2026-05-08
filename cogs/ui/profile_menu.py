@@ -7,6 +7,7 @@ from discord import ui
 # Импортируем сервис и модели
 from services.league_service import LeagueService
 from database.models import Player
+from utils.nickname_validator import validate_nickname
 
 # Логгер (заглушка, если нет модуля)
 try:
@@ -26,7 +27,7 @@ class ChangeNickModal(ui.Modal, title="Смена никнейма"):
         label="Новый никнейм",
         placeholder="Введите новый ник...",
         min_length=2,
-        max_length=16,
+        max_length=20,
         required=True
     )
 
@@ -41,9 +42,10 @@ class ChangeNickModal(ui.Modal, title="Смена никнейма"):
         try:
             nick_value = self.new_nick.value
 
-            # 1. Валидация символов (Буквы, цифры, _, -, точка, пробел)
-            if not re.match(r"^[a-zA-Z0-9_а-яА-ЯёЁ \-\.]+$", nick_value):
-                return await interaction.followup.send("❌ Ник содержит недопустимые символы.", ephemeral=True)
+            # 1. Валидация ника
+            ok, err = validate_nickname(nick_value)
+            if not ok:
+                return await interaction.followup.send(f"❌ {err}", ephemeral=True)
 
             # 2. Получаем session_maker из бота
             session_maker = interaction.client.session_maker

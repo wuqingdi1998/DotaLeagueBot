@@ -1089,9 +1089,19 @@ class RegistrationView(discord.ui.View):
             # 1. Проверки профиля
             player = await profile_service.get_player(interaction.user.id)
 
-            if not player or not getattr(player, 'rank_tier', None):
-                await interaction.followup.send("❌ Сначала создай профиль (команда /profile или настройки).",
-                                                ephemeral=True)
+            if not player:
+                await interaction.followup.send(
+                    "❌ Сначала создай профиль (команда /profile или настройки).",
+                    ephemeral=True,
+                )
+                return
+            if not getattr(player, 'rank_tier', None):
+                await interaction.followup.send(
+                    "⚠️ Твой ранг не определён (OpenDota не вернул данные).\n"
+                    "Сделай скриншот профиля Dota 2 с MMR и обратись к администратору — "
+                    "он может перезапросить данные или установить ранг вручную.",
+                    ephemeral=True,
+                )
                 return
 
             # 2. Попытка регистрации

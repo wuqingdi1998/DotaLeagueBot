@@ -15,10 +15,32 @@ from database.core import async_session
 from database.models import Player, Team
 from utils.logger import send_log
 from utils.steam_tools import resolve_steam_id
+from utils.nickname_validator import validate_nickname
 
 GUILD_ID = int(os.getenv("GUILD_ID"))
 NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
 LEAGUE_PARTICIPANT_ROLE_ID = int(os.getenv("LEAGUE_PARTICIPANT_ROLE_ID", "0"))
+
+
+RANK_BRACKETS_RU = [
+    ("Рекрут (Herald)", 1),
+    ("Страж (Guardian)", 2),
+    ("Рыцарь (Crusader)", 3),
+    ("Герой (Archon)", 4),
+    ("Легенда (Legend)", 5),
+    ("Властелин (Ancient)", 6),
+    ("Божество (Divine)", 7),
+    ("Титан (Immortal)", 8),
+]
+
+
+async def fetch_opendota_rank(steam_id32: int) -> tuple[int, str | None]:
+    """Returns (rank_tier, avatar_url). rank_tier is 0 if OpenDota has no data."""
+    url = f"https://api.opendota.com/api/players/{steam_id32}"
+    async with aiohttp.ClientSession() as hs:
+        async with hs.get(url, timeout=10) as res:
+            data = await res.json() if res.status == 200 else {}
+    return data.get('rank_tier') or 0, data.get('profile', {}).get('avatarfull')
 
 class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     real_name = ui.TextInput(label='Ваше настоящее имя', placeholder=' Например: Даня', min_length=2, max_length=15)
@@ -27,15 +49,10 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     steam = ui.TextInput(label='Steam ID или ссылка', placeholder='Вставьте ID32 или ссылку')
 
     async def on_submit(self, interaction: discord.Interaction):
-        # --- 1. ВАЛИДАЦИЯ НИКА (Спецсимволы) ---
-        forbidden_pool = "~`!@#$:;%^&*(){}[]/<>.?"
-        count = sum(1 for char in self.nickname.value if char in forbidden_pool)
-        if count > 1:
-            return await interaction.response.send_message(
-                f"❌ Ошибка: В никнейме разрешен максимум **1** спецсимвол из списка: `{forbidden_pool}`.\n"
-                f"У вас найдено: **{count}**.",
-                ephemeral=True
-            )
+        # --- 1. ВАЛИДАЦИЯ НИКА ---
+        ok, err = validate_nickname(self.nickname.value)
+        if not ok:
+            return await interaction.response.send_message(f"❌ {err}", ephemeral=True)
 
         # --- 2. ВАЛИДАЦИЯ ПОЗИЦИЙ (Формат 1/2) ---
         match = re.match(r"^([1-5])/([1-5])$", self.pos.value)
@@ -65,13 +82,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             return await interaction.followup.send("❌ **Ошибка:** Неверный формат Steam ID.", ephemeral=True)
 
         # --- 4. ЗАПРОС К OPENDOTA ---
-        url = f"https://api.opendota.com/api/players/{sid32}"
-        async with aiohttp.ClientSession() as hs:
-            async with hs.get(url) as res:
-                data = await res.json() if res.status == 200 else {}
-
-        rank = data.get('rank_tier', 0)
-        avatar = data.get('profile', {}).get('avatarfull', None)
+        rank, avatar = await fetch_opendota_rank(sid32)
 
         # --- 5. ЗАПИСЬ В БД ---
         async with async_session() as session:
@@ -353,8 +364,47 @@ class Profile(commands.Cog):
         )
         await interaction.followup.send(f"✅ Данные {member.mention} обновлены.")
 
+    @app_commands.command(name="admin_recheck_rank",
+                          description="[Admin] Перезапросить ранг игрока через OpenDota")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def admin_recheck_rank(self, interaction: discord.Interaction, member: discord.Member):
+        await interaction.response.defer(ephemeral=True)
+        async with async_session() as session:
+            player = await session.get(Player, member.id)
+            if not player:
+                return await interaction.followup.send("❌ Игрок не зарегистрирован.")
+            old = player.rank_tier or 0
+            new_rank, new_avatar = await fetch_opendota_rank(player.steam_id32)
+            player.rank_tier = new_rank
+            if new_avatar:
+                player.avatar_url = new_avatar
+            await session.commit()
+            await self.update_discord_profile(member, player)
 
+        await send_log(
+            title="🔄 Перезапрос ранга",
+            description=(f"**Админ:** {interaction.user.mention}\n"
+                         f"**Игрок:** {member.mention}\n"
+                         f"**Было:** `{old}` → **Стало:** `{new_rank}`"),
+            color=discord.Color.blurple(),
+        )
+        suffix = "" if new_rank else " ⚠️ OpenDota по-прежнему не вернул ранг — используй `/admin_set_rank`."
+        await interaction.followup.send(
+            f"✅ Перепроверка завершена. `rank_tier`: {old} → {new_rank}.{suffix}"
+        )
 
+    @app_commands.command(name="admin_set_rank",
+                          description="[Admin] Установить ранг игрока вручную")
+    @app_commands.checks.has_permissions(administrator=True)
+    async def admin_set_rank(self, interaction: discord.Interaction, member: discord.Member):
+        async with async_session() as session:
+            player = await session.get(Player, member.id)
+        if not player:
+            return await interaction.response.send_message(
+                "❌ Игрок не зарегистрирован.", ephemeral=True)
+        view = SetRankView(self, member)
+        await interaction.response.send_message(
+            f"Выбери ранг для {member.mention}:", view=view, ephemeral=True)
 
 
     @app_commands.command(name="player_info", description="Показать профиль игрока и тир")
@@ -532,6 +582,72 @@ class PlayerInfoView(View):
         modal.on_submit = custom_on_submit
 
         await interaction.response.send_modal(modal)
+
+
+class SetRankView(discord.ui.View):
+    def __init__(self, cog, member):
+        super().__init__(timeout=180)
+        self.cog = cog
+        self.member = member
+        self.bracket: int | None = None
+        self.star_select: discord.ui.Select | None = None
+        self.add_item(self._make_bracket_select())
+
+    def _make_bracket_select(self):
+        sel = discord.ui.Select(
+            placeholder="1) Выбери бракет",
+            options=[discord.SelectOption(label=lbl, value=str(v))
+                     for lbl, v in RANK_BRACKETS_RU],
+        )
+
+        async def cb(i: discord.Interaction):
+            self.bracket = int(sel.values[0])
+            if self.bracket == 8:
+                await self._save(i, rank_tier=80)
+                return
+            if self.star_select:
+                self.remove_item(self.star_select)
+            self.star_select = self._make_star_select()
+            self.add_item(self.star_select)
+            await i.response.edit_message(view=self)
+
+        sel.callback = cb
+        return sel
+
+    def _make_star_select(self):
+        sel = discord.ui.Select(
+            placeholder="2) Выбери звезду (1–5)",
+            options=[discord.SelectOption(label=str(s), value=str(s)) for s in range(1, 6)],
+        )
+
+        async def cb(i: discord.Interaction):
+            star = int(sel.values[0])
+            await self._save(i, rank_tier=self.bracket * 10 + star)
+
+        sel.callback = cb
+        return sel
+
+    async def _save(self, interaction: discord.Interaction, rank_tier: int):
+        async with async_session() as session:
+            p = await session.get(Player, self.member.id)
+            old = p.rank_tier or 0
+            p.rank_tier = rank_tier
+            await session.commit()
+            await self.cog.update_discord_profile(self.member, p)
+        await send_log(
+            title="🛠️ Ранг установлен вручную",
+            description=(f"**Админ:** {interaction.user.mention}\n"
+                         f"**Игрок:** {self.member.mention}\n"
+                         f"**Было:** `{old}` → **Стало:** `{rank_tier}`"),
+            color=discord.Color.orange(),
+        )
+        for child in self.children:
+            child.disabled = True
+        await interaction.response.edit_message(
+            content=f"✅ Установлен `rank_tier={rank_tier}` для {self.member.mention}.",
+            view=self,
+        )
+        self.stop()
 
 
 # Вспомогательная функция для создания красивого Embed (чтобы не дублировать код)
