@@ -355,3 +355,15 @@ class LeagueService:
     async def get_player_by_id(self, user_id: int):
         result = await self.session.execute(select(Player).where(Player.discord_id == user_id))
         return result.scalars().first()
+
+    async def reset_uses(self, discord_id: int | None):
+        stmt = update(Player).values(
+            nick_changes_used=0,
+            role_changes_used=0,
+            last_role_change_at=None,
+        )
+        if discord_id is not None:
+            stmt = stmt.where(Player.discord_id == discord_id)
+        result = await self.session.execute(stmt)
+        await self.session.commit()
+        return result.rowcount or 0

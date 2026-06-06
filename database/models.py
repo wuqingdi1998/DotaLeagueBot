@@ -51,6 +51,14 @@ class Player(Base):
     nick_changes_used = Column(Integer, default=0)
     role_changes_used = Column(Integer, default=0)
     last_role_change_at = Column(DateTime(timezone=True), nullable=True)
+    seasonal_free_reg_used = Column(Integer, default=0)
+    last_seasonal_season_update = Column(Integer, default=0)
+
+    seasonal_registrations = relationship(
+        "SeasonalLeagueRegistration",
+        back_populates="player",
+        cascade="all, delete-orphan"
+    )
 
 
 class LeagueSession(Base):
@@ -89,6 +97,49 @@ class LeagueRegistration(Base):
     player = relationship("Player", back_populates="registrations")
 
     session = relationship("LeagueSession", back_populates="registrations")
+
+    is_checked_in = Column(Boolean, default=False)
+
+    screenshot_url = Column(String, nullable=True)
+
+
+class SeasonalLeagueSession(Base):
+    __tablename__ = 'seasonal_league_sessions'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    season_number = Column(Integer, default=1)
+    week_number = Column(Integer, nullable=False)
+
+    status = Column(String, default=SessionStatus.OPEN.value)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    is_current = Column(Boolean, default=True)
+
+    registrations = relationship("SeasonalLeagueRegistration", back_populates="session")
+
+    start_time = Column(DateTime, nullable=True)
+
+
+class SeasonalLeagueRegistration(Base):
+    __tablename__ = 'seasonal_league_registrations'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+
+    player_id = Column(BigInteger, ForeignKey('players.discord_id'), nullable=False)
+
+    session_id = Column(Integer, ForeignKey('seasonal_league_sessions.id'), nullable=False)
+
+    mmr_snapshot = Column(Integer, nullable=True)
+
+    chosen_role = Column(String, nullable=True)
+
+    status = Column(String, default=PlayerStatus.REGISTERED.value)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    player = relationship("Player", back_populates="seasonal_registrations")
+
+    session = relationship("SeasonalLeagueSession", back_populates="registrations")
 
     is_checked_in = Column(Boolean, default=False)
 
