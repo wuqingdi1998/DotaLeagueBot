@@ -1716,12 +1716,13 @@ class League(commands.Cog):
     @league_group.command(name="kick", description="Кикнуть игрока")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_kick(self, interaction: discord.Interaction, user: discord.User):
+        await interaction.response.defer(ephemeral=True)
         async with LeagueService(self.bot) as service:
             success, msg = await service.remove_registration(user.id)
         if success:
-            await interaction.response.send_message(f"✅ {user.name} удален.", ephemeral=True)
+            await interaction.followup.send(f"✅ {user.name} удален.", ephemeral=True)
         else:
-            await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
+            await interaction.followup.send(f"❌ {msg}", ephemeral=True)
 
     @league_group.command(
         name="reset_uses",
@@ -1729,15 +1730,16 @@ class League(commands.Cog):
     )
     @app_commands.checks.has_permissions(administrator=True)
     async def league_reset_uses(self, interaction: discord.Interaction, user: discord.User):
+        await interaction.response.defer(ephemeral=True)
         async with LeagueService(self.bot) as service:
             updated = await service.reset_uses(user.id)
         if updated:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"✅ Счётчики сброшены для {user.mention} (ник + роли + кулдаун).",
                 ephemeral=True
             )
         else:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"❌ Игрок {user.mention} не найден в БД.", ephemeral=True
             )
 
@@ -1747,9 +1749,10 @@ class League(commands.Cog):
     )
     @app_commands.checks.has_permissions(administrator=True)
     async def league_reset_uses_all(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
         async with LeagueService(self.bot) as service:
             updated = await service.reset_uses(None)
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"✅ Сброшено для **{updated}** игроков (ник + роли + кулдаун).",
             ephemeral=True
         )
@@ -1757,10 +1760,13 @@ class League(commands.Cog):
     async def cog_app_command_error(self, interaction: discord.Interaction, error):
         msg = f"❌ Ошибка: {error}"
         if isinstance(error, app_commands.MissingRole): msg = "❌ Нужны права Admin!"
-        if interaction.response.is_done():
-            await interaction.followup.send(msg, ephemeral=True)
-        else:
-            await interaction.response.send_message(msg, ephemeral=True)
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(msg, ephemeral=True)
+            else:
+                await interaction.response.send_message(msg, ephemeral=True)
+        except (discord.NotFound, discord.HTTPException) as e:
+            print(f"[cog_app_command_error] Не удалось доставить сообщение об ошибке: {e}. Исходная ошибка: {error}")
 
     @league_group.command(name="check_activity", description="Проверка (Stratz) у всех зарегистрированных")
     @app_commands.checks.has_permissions(administrator=True)
