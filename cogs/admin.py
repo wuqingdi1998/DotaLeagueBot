@@ -9,6 +9,10 @@ from datetime import timedelta
 
 WEBHOOK_NAME = "LS Bot"
 
+DISCORD_CONTENT_LIMIT = 2000
+DISCORD_EMBED_DESC_LIMIT = 4096
+DISCORD_EMBED_TITLE_LIMIT = 256
+
 
 # --- HELPER: Get or create persistent webhook ---
 async def get_or_create_webhook(channel: discord.TextChannel) -> discord.Webhook:
@@ -20,16 +24,85 @@ async def get_or_create_webhook(channel: discord.TextChannel) -> discord.Webhook
     return await channel.create_webhook(name=WEBHOOK_NAME)
 
 
+def split_for_discord(text: str, limit: int = DISCORD_CONTENT_LIMIT) -> list[str]:
+    """Split text into <= limit-char chunks, preferring line breaks, then spaces."""
+    if not text:
+        return []
+    if len(text) <= limit:
+        return [text]
+
+    chunks: list[str] = []
+    remaining = text
+    while len(remaining) > limit:
+        window = remaining[:limit]
+        cut = window.rfind("\n")
+        if cut <= 0:
+            cut = window.rfind(" ")
+        if cut <= 0:
+            cut = limit
+        chunk = remaining[:cut].rstrip()
+        if chunk:
+            chunks.append(chunk)
+        remaining = remaining[cut:].lstrip("\n").lstrip(" ")
+
+    tail = remaining.rstrip()
+    if tail:
+        chunks.append(tail)
+    return chunks
+
+
+def build_messages(prefix: str, body: str, limit: int = DISCORD_CONTENT_LIMIT) -> list[str]:
+    """Build a list of Discord-sized messages: `prefix` is prepended to the first only."""
+    prefix = prefix or ""
+    body = body or ""
+    sep = "\n" if prefix and body else ""
+    first_budget = limit - len(prefix) - len(sep)
+
+    if not body:
+        head = prefix.rstrip()
+        return [head] if head else []
+
+    if first_budget < 1:
+        # Prefix alone already at/over the limit — emit it separately.
+        head = prefix.rstrip()
+        rest = split_for_discord(body, limit)
+        return ([head] if head else []) + rest
+
+    if len(body) <= first_budget:
+        head = (prefix + sep + body).rstrip()
+        return [head] if head else []
+
+    window = body[:first_budget]
+    cut = window.rfind("\n")
+    if cut <= 0:
+        cut = window.rfind(" ")
+    if cut <= 0:
+        cut = first_budget
+    first_body = body[:cut].rstrip()
+    remaining = body[cut:].lstrip()
+
+    head = (prefix + sep + first_body).rstrip()
+    rest = split_for_discord(remaining, limit) if remaining else []
+    return ([head] if head else []) + rest
+
+
 # --- 1. CONFIRMATION VIEW CLASS ---
 class ConfirmSendView(discord.ui.View):
-    def __init__(self, channel, username, avatar_url, content, embed, files_data):
+    def __init__(self, channel, username, avatar_url, mentions, proc_text, embed, files_data):
         super().__init__(timeout=300)  # Button active for 5 minutes
         self.channel = channel
         self.username = username
         self.avatar_url = avatar_url
-        self.content = content
+        self.mentions = mentions or ""
+        self.proc_text = proc_text or ""
         self.embed = embed
         self.files_data = files_data  # List of tuples [(filename, bytes)]
+
+    def _build_files(self):
+        files = []
+        for f_name, f_bytes in self.files_data:
+            files.append(discord.File(io.BytesIO(f_bytes), filename=f_name))
+        return files
 
     @discord.ui.button(label="Отправить в канал", style=discord.ButtonStyle.green, emoji="🚀")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -37,34 +110,51 @@ class ConfirmSendView(discord.ui.View):
         await interaction.response.defer(ephemeral=True)
 
         try:
-            # 1. Get or create persistent webhook
             webhook = await get_or_create_webhook(self.channel)
 
-            # 2. Re-construct files from memory bytes
-            final_files = []
-            for f_name, f_bytes in self.files_data:
-                final_files.append(discord.File(io.BytesIO(f_bytes), filename=f_name))
+            if self.embed:
+                files = self._build_files()
+                if files:
+                    self.embed.set_image(url=f"attachment://{self.files_data[0][0]}")
+                first_msg = await webhook.send(
+                    content=self.mentions or None,
+                    embed=self.embed,
+                    files=files,
+                    username=self.username,
+                    avatar_url=self.avatar_url,
+                    allowed_mentions=discord.AllowedMentions.all(),
+                    wait=True,
+                )
+            else:
+                messages = build_messages(self.mentions, self.proc_text, DISCORD_CONTENT_LIMIT)
+                if not messages:
+                    await interaction.followup.send("❌ Пустое сообщение.", ephemeral=True)
+                    return
 
-                # If using Embed, bind the image to it to avoid duplication in chat
-                if self.embed:
-                    self.embed.set_image(url=f"attachment://{f_name}")
-
-            # 3. Send the actual message via Webhook
-            sent_msg = await webhook.send(
-                content=self.content,
-                embed=self.embed,
-                files=final_files,
-                username=self.username,
-                avatar_url=self.avatar_url,
-                allowed_mentions=discord.AllowedMentions.all(),
-                wait=True  # Returns the Message object
-            )
+                first_msg = None
+                last_idx = len(messages) - 1
+                for i, content in enumerate(messages):
+                    files = self._build_files() if i == last_idx else []
+                    allowed = (
+                        discord.AllowedMentions.all() if i == 0
+                        else discord.AllowedMentions.none()
+                    )
+                    sent = await webhook.send(
+                        content=content,
+                        files=files,
+                        username=self.username,
+                        avatar_url=self.avatar_url,
+                        allowed_mentions=allowed,
+                        wait=True,
+                    )
+                    if i == 0:
+                        first_msg = sent
 
             self.stop()
 
             await interaction.followup.send(
                 f"✅ Успешно опубликовано в {self.channel.mention}\n"
-                f"🔗 ID сообщения: `{sent_msg.id}`",
+                f"🔗 ID сообщения: `{first_msg.id}`",
                 ephemeral=True
             )
 
@@ -139,10 +229,10 @@ class Admin(commands.Cog):
             mentions = ""
             if ping_everyone: mentions += "@everyone "
             if ping_role: mentions += f"{ping_role.mention} "
+            mentions = mentions.rstrip()
 
             # --- CONTENT ASSEMBLY ---
             final_embed = None
-            final_content = mentions
             files_to_save = []
             preview_files = []
 
@@ -154,18 +244,28 @@ class Admin(commands.Cog):
 
             # Handle Embed vs Plain Text
             if title:
-                # If title exists -> Use Embed
+                if len(proc_title) > DISCORD_EMBED_TITLE_LIMIT:
+                    return await interaction.followup.send(
+                        f"❌ Заголовок слишком длинный: {len(proc_title)} симв. "
+                        f"(максимум {DISCORD_EMBED_TITLE_LIMIT}). Сократите его.",
+                        ephemeral=True
+                    )
+                if len(proc_text) > DISCORD_EMBED_DESC_LIMIT:
+                    return await interaction.followup.send(
+                        f"❌ Текст слишком длинный для embed: {len(proc_text)} симв. "
+                        f"(максимум {DISCORD_EMBED_DESC_LIMIT}). Сократите его или "
+                        f"уберите параметр `title`, чтобы отправить обычным текстом "
+                        f"(будет разбит на несколько сообщений).",
+                        ephemeral=True
+                    )
                 final_embed = discord.Embed(title=proc_title, description=proc_text, color=discord.Color.gold())
                 if image:
                     final_embed.set_image(url=f"attachment://{image.filename}")
-            else:
-                # No title -> Use Plain Text
-                final_content += f"\n{proc_text}"
 
             # Validation: Ensure we are not sending an empty message
-            if not final_content.strip() and not final_embed and not files_to_save:
-                if not raw_text:
-                    return await interaction.followup.send("❌ Вы прислали пустое сообщение!", ephemeral=True)
+            has_body = bool(proc_text) or bool(final_embed) or bool(files_to_save) or bool(mentions)
+            if not has_body:
+                return await interaction.followup.send("❌ Вы прислали пустое сообщение!", ephemeral=True)
 
             # --- PREVIEW GENERATION ---
             current_avatar = avatar_url or self.bot.user.display_avatar.url
@@ -174,21 +274,63 @@ class Admin(commands.Cog):
                 channel=channel,
                 username=username,
                 avatar_url=current_avatar,
-                content=final_content,
+                mentions=mentions,
+                proc_text="" if final_embed else proc_text,
                 embed=final_embed,
                 files_data=files_to_save
             )
 
-            preview_msg = f"**ПРЕВЬЮ ДЛЯ КАНАЛА {channel.mention}:**\n"
+            preview_header = f"**ПРЕВЬЮ ДЛЯ КАНАЛА {channel.mention}:**"
 
-            # Send private preview
-            await interaction.followup.send(
-                content=preview_msg + final_content,
-                embed=final_embed,
-                view=confirm_view,
-                files=preview_files,
-                ephemeral=True
-            )
+            if final_embed:
+                await interaction.followup.send(
+                    content=(preview_header + ("\n" + mentions if mentions else "")) or None,
+                    embed=final_embed,
+                    view=confirm_view,
+                    files=preview_files,
+                    ephemeral=True,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
+            else:
+                preview_msgs = build_messages(mentions, proc_text, DISCORD_CONTENT_LIMIT)
+                if not preview_msgs:
+                    preview_msgs = [""]
+
+                # Send header + first preview chunk
+                first_combined = preview_header + "\n" + preview_msgs[0] if preview_msgs[0] else preview_header
+                if len(first_combined) > DISCORD_CONTENT_LIMIT:
+                    await interaction.followup.send(
+                        content=preview_header,
+                        ephemeral=True,
+                        allowed_mentions=discord.AllowedMentions.none(),
+                    )
+                    for chunk in preview_msgs:
+                        await interaction.followup.send(
+                            content=chunk,
+                            ephemeral=True,
+                            allowed_mentions=discord.AllowedMentions.none(),
+                        )
+                else:
+                    await interaction.followup.send(
+                        content=first_combined,
+                        ephemeral=True,
+                        allowed_mentions=discord.AllowedMentions.none(),
+                    )
+                    for chunk in preview_msgs[1:]:
+                        await interaction.followup.send(
+                            content=chunk,
+                            ephemeral=True,
+                            allowed_mentions=discord.AllowedMentions.none(),
+                        )
+
+                # Final ephemeral message with the publish button + preview image
+                await interaction.followup.send(
+                    content="✅ Готов к публикации? Нажмите кнопку ниже.",
+                    view=confirm_view,
+                    files=preview_files,
+                    ephemeral=True,
+                    allowed_mentions=discord.AllowedMentions.none(),
+                )
 
         except Exception as e:
             await interaction.followup.send(f"❌ System Error: {e}", ephemeral=True)
@@ -364,7 +506,22 @@ class Admin(commands.Cog):
         pattern = r"(?<!<):([a-zA-Z0-9_]+):"
         proc_text = re.sub(pattern, replace_emoji, raw_text)
 
-        # --- 6. РЕДАКТИРОВАНИЕ ЧЕРЕЗ WEBHOOK ---
+        # --- 6. ВАЛИДАЦИЯ ДЛИНЫ ---
+        if has_embed and len(proc_text) > DISCORD_EMBED_DESC_LIMIT:
+            return await interaction.followup.send(
+                f"❌ Текст слишком длинный для embed: {len(proc_text)} симв. "
+                f"(максимум {DISCORD_EMBED_DESC_LIMIT}). Сократите его.",
+                ephemeral=True
+            )
+        if not has_embed and len(proc_text) > DISCORD_CONTENT_LIMIT:
+            return await interaction.followup.send(
+                f"❌ Текст слишком длинный: {len(proc_text)} симв. "
+                f"(максимум {DISCORD_CONTENT_LIMIT}). Редактирование не поддерживает "
+                f"разбивку на несколько сообщений — сократите текст.",
+                ephemeral=True
+            )
+
+        # --- 7. РЕДАКТИРОВАНИЕ ЧЕРЕЗ WEBHOOK ---
         try:
             webhook = await get_or_create_webhook(target_channel)
 
