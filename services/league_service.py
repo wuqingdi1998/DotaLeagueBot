@@ -301,35 +301,10 @@ class LeagueService:
 
             await self._check_season_reset(player, db_session=self.session)
 
-            LIMIT = 2
-            if player.role_changes_used >= LIMIT:
-                return False, (
-                    f"⛔ **Лимит исчерпан!**\n"
-                    f"Ты уже менял роли {player.role_changes_used}/{LIMIT} раз за этот сезон.\n"
-                    f"Следующая попытка только в новом сезоне."
-                )
-
+            # TEMP: role-change limit lifted — restore this block when re-enabling.
+            # The per-season count check (LIMIT = 2) and the 2-week cooldown were
+            # removed intentionally so role changes are currently unrestricted.
             now = datetime.now(timezone.utc)
-            # Приводим last_role_change_at к UTC, если он offset-naive
-            last_change = player.last_role_change_at
-            if last_change and last_change.tzinfo is None:
-                last_change = last_change.replace(tzinfo=timezone.utc)
-
-            cooldown_period = timedelta(weeks=2)
-
-            if last_change:
-                time_passed = now - last_change
-
-                if time_passed < cooldown_period:
-                    remaining = cooldown_period - time_passed
-                    days = remaining.days
-                    hours = remaining.seconds // 3600
-
-                    return False, (
-                        f"⏳ **Слишком часто!**\n"
-                        f"Между сменами ролей должно пройти 2 недели.\n"
-                        f"Осталось ждать: **{days} д. {hours} ч.**"
-                    )
 
             if isinstance(new_roles, list):
                 roles_str = "/".join(new_roles)
@@ -338,14 +313,11 @@ class LeagueService:
 
             player.positions = roles_str
             player.last_role_change_at = now
-            player.role_changes_used += 1
 
             await self.session.commit()
 
-            remaining_uses = LIMIT - player.role_changes_used
             return True, (
-                f"✅ Роли обновлены: **{roles_str}**\n"
-                f"Осталось смен в сезоне: **{remaining_uses}**"
+                f"✅ Роли обновлены: **{roles_str}**"
             )
 
         except Exception as e:
