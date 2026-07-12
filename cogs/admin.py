@@ -128,6 +128,23 @@ class ConfirmSendView(discord.ui.View):
             else:
                 messages = build_messages(self.mentions, self.proc_text, DISCORD_CONTENT_LIMIT)
                 if not messages:
+                    # No text, but there may still be an image-only post to send.
+                    if self.files_data:
+                        first_msg = await webhook.send(
+                            content=self.mentions or None,
+                            files=self._build_files(),
+                            username=self.username,
+                            avatar_url=self.avatar_url,
+                            allowed_mentions=discord.AllowedMentions.all(),
+                            wait=True,
+                        )
+                        self.stop()
+                        await interaction.followup.send(
+                            f"✅ Успешно опубликовано в {self.channel.mention}\n"
+                            f"🔗 ID сообщения: `{first_msg.id}`",
+                            ephemeral=True
+                        )
+                        return
                     await interaction.followup.send("❌ Пустое сообщение.", ephemeral=True)
                     return
 
@@ -195,8 +212,16 @@ class Admin(commands.Cog):
             # Wait for user input
             user_msg = await self.bot.wait_for('message', check=check, timeout=300)
 
-            # Capture content and attempt to delete user's message for cleanliness
+            # Capture content and any attachments from the follow-up message.
+            # This lets an admin post an image with no caption (image-only).
             raw_text = user_msg.content
+            followup_files = []
+            for att in user_msg.attachments:
+                try:
+                    followup_files.append((att.filename, await att.read()))
+                except Exception:
+                    pass  # Skip attachments we can't read
+
             try:
                 await user_msg.delete()
             except:
@@ -236,11 +261,16 @@ class Admin(commands.Cog):
             files_to_save = []
             preview_files = []
 
-            # Handle Image
+            # Handle Image (from the slash option)
             if image:
                 img_data = await image.read()
                 files_to_save.append((image.filename, img_data))
                 preview_files.append(discord.File(io.BytesIO(img_data), filename=image.filename))
+
+            # Handle images attached to the follow-up message (image-only support)
+            for f_name, f_bytes in followup_files:
+                files_to_save.append((f_name, f_bytes))
+                preview_files.append(discord.File(io.BytesIO(f_bytes), filename=f_name))
 
             # Handle Embed vs Plain Text
             if title:
@@ -259,8 +289,8 @@ class Admin(commands.Cog):
                         ephemeral=True
                     )
                 final_embed = discord.Embed(title=proc_title, description=proc_text, color=discord.Color.gold())
-                if image:
-                    final_embed.set_image(url=f"attachment://{image.filename}")
+                if files_to_save:
+                    final_embed.set_image(url=f"attachment://{files_to_save[0][0]}")
 
             # Validation: Ensure we are not sending an empty message
             has_body = bool(proc_text) or bool(final_embed) or bool(files_to_save) or bool(mentions)
@@ -334,6 +364,94 @@ class Admin(commands.Cog):
 
         except Exception as e:
             await interaction.followup.send(f"❌ System Error: {e}", ephemeral=True)
+
+    @app_commands.command(name="poll", description="[Admin] Создать опрос (голосование) в канале")
+    @app_commands.describe(
+        channel="Канал для опроса",
+        question="Вопрос опроса",
+        options="Варианты ответа через точку с запятой ';' (от 2 до 10)",
+        duration_hours="Длительность в часах (1–768, по умолчанию 24)",
+        multiple="Разрешить выбор нескольких вариантов",
+        ping_role="Роль для пинга",
+        ping_everyone="Пинг @everyone",
+    )
+    @app_commands.checks.has_permissions(administrator=True)
+    async def poll(self, interaction: discord.Interaction,
+                   channel: discord.TextChannel,
+                   question: str,
+                   options: str,
+                   duration_hours: int = 24,
+                   multiple: bool = False,
+                   ping_role: discord.Role = None,
+                   ping_everyone: bool = False):
+
+        # --- ВАЛИДАЦИЯ ---
+        question = question.strip()
+        if not question:
+            return await interaction.response.send_message("❌ Вопрос не может быть пустым.", ephemeral=True)
+        if len(question) > 300:
+            return await interaction.response.send_message(
+                f"❌ Вопрос слишком длинный: {len(question)} симв. (максимум 300).", ephemeral=True
+            )
+
+        answers = [opt.strip() for opt in options.split(";") if opt.strip()]
+        if len(answers) < 2:
+            return await interaction.response.send_message(
+                "❌ Нужно минимум 2 варианта ответа (разделяйте через `;`).", ephemeral=True
+            )
+        if len(answers) > 10:
+            return await interaction.response.send_message(
+                "❌ Максимум 10 вариантов ответа.", ephemeral=True
+            )
+        too_long = [a for a in answers if len(a) > 55]
+        if too_long:
+            return await interaction.response.send_message(
+                f"❌ Вариант ответа слишком длинный (максимум 55 симв.): `{too_long[0][:60]}`", ephemeral=True
+            )
+
+        if not (1 <= duration_hours <= 768):
+            return await interaction.response.send_message(
+                "❌ Длительность должна быть от 1 до 768 часов (32 дня).", ephemeral=True
+            )
+
+        # --- СБОРКА ОПРОСА ---
+        try:
+            poll = discord.Poll(
+                question=question,
+                duration=timedelta(hours=duration_hours),
+                multiple=multiple,
+            )
+            for ans in answers:
+                poll.add_answer(text=ans)
+        except Exception as e:
+            return await interaction.response.send_message(f"❌ Ошибка создания опроса: {e}", ephemeral=True)
+
+        # --- ПИНГИ ---
+        mentions = ""
+        if ping_everyone:
+            mentions += "@everyone "
+        if ping_role:
+            mentions += f"{ping_role.mention} "
+        mentions = mentions.rstrip()
+
+        # --- ОТПРАВКА ---
+        try:
+            sent = await channel.send(
+                content=mentions or None,
+                poll=poll,
+                allowed_mentions=discord.AllowedMentions.all(),
+            )
+        except discord.Forbidden:
+            return await interaction.response.send_message(
+                f"❌ Нет прав отправлять сообщения/опросы в {channel.mention}.", ephemeral=True
+            )
+        except Exception as e:
+            return await interaction.response.send_message(f"❌ Ошибка отправки опроса: {e}", ephemeral=True)
+
+        await interaction.response.send_message(
+            f"✅ Опрос опубликован в {channel.mention}\n🔗 ID сообщения: `{sent.id}`",
+            ephemeral=True
+        )
 
     @app_commands.command(name="debug_me", description="[Admin] Проверка прав доступа")
     async def debug_me(self, interaction: discord.Interaction):
