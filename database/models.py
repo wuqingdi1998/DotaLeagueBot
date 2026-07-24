@@ -17,6 +17,20 @@ class PlayerStatus(enum.Enum):
 class Base(DeclarativeBase):
     pass
 
+class CloseEvent(Base):
+    __tablename__ = 'close_events'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    message_id = Column(BigInteger, unique=True, nullable=False, index=True)
+    channel_id = Column(BigInteger, nullable=False)
+    host_id = Column(BigInteger, nullable=False)
+    game_format = Column(String, nullable=False)   # free text entered by host
+    series = Column(String, nullable=False)         # "1" | "2" | "3" (Best of N)
+    start_ts = Column(BigInteger, nullable=False)   # Unix timestamp
+    participant_ids = Column(String, nullable=False, default="")  # "id,id,id" in join order
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
 class Team(Base):
     __tablename__ = 'teams'
 
