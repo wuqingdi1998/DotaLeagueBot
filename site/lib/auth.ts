@@ -13,6 +13,7 @@ const organizerAttemptLimit = 5;
 
 export type AuthUser = {
   discordId: string;
+  dotaId: string;
   username: string;
   avatarUrl: string | null;
   playerName: string;
@@ -24,6 +25,7 @@ export type AuthUser = {
 
 type SessionRow = {
   discord_id: string;
+  dota_id: string;
   discord_username: string;
   discord_avatar_url: string | null;
   ingame_name: string;
@@ -112,6 +114,7 @@ export async function getSession(): Promise<AuthUser | null> {
   const row = await one<SessionRow>(
     `SELECT
        s.discord_id::text,
+       p.steam_id32::text AS dota_id,
        s.discord_username,
        s.discord_avatar_url,
        p.ingame_name,
@@ -132,6 +135,7 @@ export async function getSession(): Promise<AuthUser | null> {
   if (!row) return null;
   return {
     discordId: row.discord_id,
+    dotaId: row.dota_id,
     username: row.discord_username,
     avatarUrl: row.discord_avatar_url,
     playerName: row.ingame_name,

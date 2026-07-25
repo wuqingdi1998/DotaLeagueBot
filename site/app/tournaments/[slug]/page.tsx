@@ -61,10 +61,13 @@ type TeamApplication = {
   player_4_role: PlayerRole;
   player_5_role: PlayerRole;
   logo_key: string | null;
+  placement: number | null;
+  result_label: string | null;
   status: "approved" | "pending" | "awaiting_members" | "declined" | "withdrawn";
   created_at: string;
   members: Array<{
     discord_id: string;
+    dota_id: string;
     name: string;
     role: PlayerRole;
     is_captain: boolean;
@@ -117,6 +120,7 @@ type SiteData = {
   groups: TournamentGroup[];
   user: {
     discordId: string;
+    dotaId: string;
     username: string;
     avatarUrl: string | null;
     playerName: string;
@@ -272,13 +276,20 @@ function fromDateTimeInput(value: string) {
 }
 
 function getTeamPlayers(team: TeamApplication) {
-  const players = [
-    { name: team.captain, role: team.captain_role, isCaptain: true },
-    { name: team.player_2, role: team.player_2_role, isCaptain: false },
-    { name: team.player_3, role: team.player_3_role, isCaptain: false },
-    { name: team.player_4, role: team.player_4_role, isCaptain: false },
-    { name: team.player_5, role: team.player_5_role, isCaptain: false },
-  ];
+  const players = team.members.length
+    ? team.members.map((member) => ({
+        name: member.name,
+        role: member.role,
+        isCaptain: member.is_captain,
+        dotaId: member.dota_id,
+      }))
+    : [
+        { name: team.captain, role: team.captain_role, isCaptain: true, dotaId: null },
+        { name: team.player_2, role: team.player_2_role, isCaptain: false, dotaId: null },
+        { name: team.player_3, role: team.player_3_role, isCaptain: false, dotaId: null },
+        { name: team.player_4, role: team.player_4_role, isCaptain: false, dotaId: null },
+        { name: team.player_5, role: team.player_5_role, isCaptain: false, dotaId: null },
+      ];
 
   return players.sort(
     (a, b) =>
@@ -696,6 +707,31 @@ export default function Home() {
     if (response.ok) await loadData();
   }
 
+  async function saveTeamResult(
+    event: FormEvent<HTMLFormElement>,
+    applicationId: number,
+  ) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const rawPlacement = String(form.get("placement") ?? "").trim();
+    const response = await fetch("/api/admin/tournament-results", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        applicationId,
+        placement: rawPlacement ? Number(rawPlacement) : null,
+        resultLabel: String(form.get("resultLabel") ?? "").trim() || null,
+      }),
+    });
+    const result = (await response.json()) as { error?: string };
+    setToast(
+      response.ok
+        ? "Итог команды сохранён"
+        : result.error ?? "Не удалось сохранить итог команды",
+    );
+    if (response.ok) await loadData();
+  }
+
   async function transferCaptain(applicationId: number) {
     const newCaptainId = captainChoices[applicationId];
     if (!newCaptainId) return;
@@ -766,7 +802,9 @@ export default function Home() {
           {data.user ? (
             <button
               className="player-profile-button"
-              onClick={() => setLoginOpen(true)}
+              onClick={() =>
+                window.location.assign(`/players/${data.user?.dotaId}`)
+              }
             >
               {data.user.avatarUrl ? (
                 <Image
@@ -1015,11 +1053,25 @@ export default function Home() {
                   </div>
                   <p className="team-tag">{team.tag}</p>
                   <h3>{team.team_name}</h3>
+                  {(team.result_label || team.placement) && (
+                    <div className="team-result-badge">
+                      {team.result_label || `${team.placement}-е место`}
+                    </div>
+                  )}
                   <ul>
                     {getTeamPlayers(team).map((player) => (
                       <li key={`${team.id}-${player.name}`}>
                         <RoleIcon role={player.role} />
-                        <span className="player-name">{player.name}</span>
+                        {player.dotaId ? (
+                          <Link
+                            className="player-name player-profile-link"
+                            href={`/players/${player.dotaId}`}
+                          >
+                            {player.name}
+                          </Link>
+                        ) : (
+                          <span className="player-name">{player.name}</span>
+                        )}
                         {player.isCaptain && (
                           <small className="captain-badge"><FaCrown aria-hidden="true" /> капитан</small>
                         )}
@@ -1290,6 +1342,59 @@ export default function Home() {
                     </div>
                   </article>
                 ))}
+              </div>
+            </section>
+
+            <section className="applications-panel team-results-admin">
+              <div className="editor-heading">
+                <div>
+                  <p className="card-kicker">История турнира</p>
+                  <h3>Итоги команд</h3>
+                  <p>
+                    Укажите место и, при необходимости, понятную подпись —
+                    например «Чемпион», «Финалист» или «5–6-е место». Итог
+                    автоматически появится в профилях всех игроков команды.
+                  </p>
+                </div>
+              </div>
+              <div className="team-result-editor-list">
+                {approvedTeams.map((application) => (
+                  <form
+                    className="team-result-editor-row"
+                    key={application.id}
+                    onSubmit={(event) =>
+                      void saveTeamResult(event, application.id)
+                    }
+                  >
+                    <strong>{application.team_name}</strong>
+                    <label>
+                      <span>Место</span>
+                      <input
+                        name="placement"
+                        type="number"
+                        min="1"
+                        max="64"
+                        defaultValue={application.placement ?? ""}
+                        placeholder="1"
+                      />
+                    </label>
+                    <label>
+                      <span>Подпись результата</span>
+                      <input
+                        name="resultLabel"
+                        maxLength={120}
+                        defaultValue={application.result_label ?? ""}
+                        placeholder="Например: Чемпион"
+                      />
+                    </label>
+                    <button type="submit">Сохранить</button>
+                  </form>
+                ))}
+                {!approvedTeams.length && (
+                  <p className="empty-admin-list">
+                    Сначала допустите команды к турниру.
+                  </p>
+                )}
               </div>
             </section>
 
@@ -1641,6 +1746,12 @@ export default function Home() {
               <div className="account-actions">
                 <strong>{data.user.serverName}</strong>
                 <span>Discord: {data.user.username}</span>
+                <Link
+                  className="primary-button"
+                  href={`/players/${data.user.dotaId}`}
+                >
+                  Открыть страницу игрока <FiArrowRight />
+                </Link>
                 {data.user.isAdmin && (
                   <button
                     className="primary-button"

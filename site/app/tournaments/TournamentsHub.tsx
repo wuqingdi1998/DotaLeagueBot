@@ -46,8 +46,9 @@ type TournamentSummary = {
   finished_match_count: number;
 };
 
-type SessionUser = {
+export type SessionUser = {
   discordId: string;
+  dotaId: string;
   username: string;
   avatarUrl: string | null;
   playerName: string;
@@ -254,6 +255,13 @@ function SiteHeader({
               <div className="player-profile-popover">
                 <strong>{user.serverName}</strong>
                 <span>Discord: {user.username}</span>
+                <Link
+                  className="profile-popover-link"
+                  href={`/players/${user.dotaId}`}
+                  onClick={() => setProfileOpen(false)}
+                >
+                  Открыть страницу игрока <FiArrowRight aria-hidden="true" />
+                </Link>
                 <button
                   onClick={async () => {
                     await fetch("/api/auth/logout", { method: "POST" });
@@ -659,7 +667,7 @@ function useTournamentList() {
   return { data, loading, error, reload };
 }
 
-function PlatformShell({
+export function PlatformShell({
   children,
   user,
 }: {
@@ -761,7 +769,7 @@ export function CommunityHome() {
             </div>
             <div>
               <strong>500+</strong>
-              <span>участников сообщества</span>
+              <span>участников приняли участие в наших турнирах</span>
             </div>
           </div>
         </div>

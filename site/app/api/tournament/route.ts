@@ -7,6 +7,7 @@ type TournamentRow = Record<string, unknown> & { id: number };
 type MemberRow = {
   application_id: number;
   player_id: string;
+  dota_id: string;
   ingame_name: string;
   role: string;
   is_captain: boolean;
@@ -44,6 +45,7 @@ function publicApplication(
     player_5_role: (others[3] ?? fallback).role,
     members: members.map((member) => ({
       discord_id: member.player_id,
+      dota_id: member.dota_id,
       name: member.ingame_name,
       role: member.role,
       is_captain: member.is_captain,
@@ -107,15 +109,19 @@ export async function GET(request: Request) {
       query<ApplicationRow>(
         `SELECT a.id::int, a.tournament_id::int, a.team_name, a.tag,
            a.contact, a.logo_key, a.status, a.created_at,
+           result.placement::int, result.result_label,
            captain.ingame_name AS captain_name
          FROM tournament_team_applications a
          JOIN players captain ON captain.discord_id = a.captain_discord_id
+         LEFT JOIN tournament_team_results result
+           ON result.application_id = a.id
          WHERE a.tournament_id = $1 ${visibility}
          ORDER BY a.created_at ASC`,
         visibilityValues,
       ),
       query<MemberRow>(
-        `SELECT m.application_id::int, m.player_id::text, p.ingame_name,
+        `SELECT m.application_id::int, m.player_id::text,
+           p.steam_id32::text AS dota_id, p.ingame_name,
            m.role, m.is_captain, m.invitation_status
          FROM tournament_team_members m
          JOIN players p ON p.discord_id = m.player_id
