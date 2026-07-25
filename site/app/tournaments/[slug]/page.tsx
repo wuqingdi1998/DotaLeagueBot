@@ -751,7 +751,9 @@ export default function Home() {
 
         <nav className="platform-navigation" aria-label="Главная навигация">
           <Link href="/">Главная</Link>
-          <Link href="/tournaments">Турниры</Link>
+          <Link className="active" href="/tournaments" aria-current="page">
+            Турниры
+          </Link>
           <a href={tournament.discord_url} target="_blank" rel="noreferrer">
             Наш Discord <FiArrowUpRight aria-hidden="true" />
           </a>

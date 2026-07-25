@@ -187,8 +187,22 @@ function SiteHeader({
       </Link>
 
       <nav className="platform-navigation" aria-label="Основная навигация">
-        <Link href="/">Главная</Link>
-        <Link href="/tournaments">Турниры</Link>
+        <Link
+          className={pathname === "/" ? "active" : undefined}
+          href="/"
+          aria-current={pathname === "/" ? "page" : undefined}
+        >
+          Главная
+        </Link>
+        <Link
+          className={pathname.startsWith("/tournaments") ? "active" : undefined}
+          href="/tournaments"
+          aria-current={
+            pathname.startsWith("/tournaments") ? "page" : undefined
+          }
+        >
+          Турниры
+        </Link>
         <a
           href="https://discord.gg/lsesports"
           target="_blank"
