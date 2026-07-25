@@ -82,12 +82,15 @@ type TeamApplication = {
 type Match = {
   id: number;
   tournament_id: number;
+  group_id: number | null;
   scheduled_at: string;
   stage: string;
   team_a: string;
   team_b: string;
   team_a_application_id: number | null;
   team_b_application_id: number | null;
+  team_a_placeholder: string | null;
+  team_b_placeholder: string | null;
   team_a_score: number | null;
   team_b_score: number | null;
   result_type: "normal" | "technical" | "forfeit" | "cancelled";
@@ -510,6 +513,18 @@ export default function Home() {
     return Array.from(groups.entries());
   }, [data]);
 
+  const playoffRounds = useMemo(() => {
+    const rounds = new Map<number, Match[]>();
+    for (const match of data?.matches ?? []) {
+      if (!match.bracket_side || match.bracket_side === "group") continue;
+      const round = match.bracket_round ?? 0;
+      const matches = rounds.get(round) ?? [];
+      matches.push(match);
+      rounds.set(round, matches);
+    }
+    return Array.from(rounds.entries()).sort(([left], [right]) => left - right);
+  }, [data]);
+
   const captainApplicationIds = useMemo(
     () =>
       new Set(
@@ -756,7 +771,27 @@ export default function Home() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         id: match.id,
+        tournamentId: tournament.id,
         status: String(form.get("status")),
+        groupId: String(form.get("groupId") ?? "").trim()
+          ? Number(form.get("groupId"))
+          : null,
+        scheduledAt: new Date(
+          String(form.get("scheduledAt")),
+        ).toISOString(),
+        stage: String(form.get("stage") ?? "").trim(),
+        teamAId: String(form.get("teamAId") ?? "").trim()
+          ? Number(form.get("teamAId"))
+          : null,
+        teamBId: String(form.get("teamBId") ?? "").trim()
+          ? Number(form.get("teamBId"))
+          : null,
+        teamAPlaceholder:
+          String(form.get("teamAPlaceholder") ?? "").trim() || null,
+        teamBPlaceholder:
+          String(form.get("teamBPlaceholder") ?? "").trim() || null,
+        bestOf: Number(form.get("bestOf")),
+        sortOrder: match.sort_order,
         teamAScore: rawTeamAScore ? Number(rawTeamAScore) : null,
         teamBScore: rawTeamBScore ? Number(rawTeamBScore) : null,
         resultType: String(form.get("resultType")),
@@ -771,6 +806,22 @@ export default function Home() {
     const result = (await response.json()) as { error?: string };
     setToast(
       response.ok ? "Результат матча сохранён" : result.error ?? "Ошибка",
+    );
+    if (response.ok) await loadData();
+  }
+
+  async function deleteMatch(match: Match) {
+    if (!window.confirm(`Удалить матч ${match.team_a} — ${match.team_b}?`)) {
+      return;
+    }
+    const response = await fetch(`/api/admin/matches?id=${match.id}`, {
+      method: "DELETE",
+    });
+    const result = (await response.json()) as { error?: string };
+    setToast(
+      response.ok
+        ? "Матч удалён"
+        : result.error ?? "Не удалось удалить матч",
     );
     if (response.ok) await loadData();
   }
@@ -1221,6 +1272,55 @@ export default function Home() {
               </div>
               <span className="timezone">Московское время · UTC+3</span>
             </div>
+            {playoffRounds.length > 0 && (
+              <section className="playoff-bracket" aria-label="Сетка плей-офф">
+                {playoffRounds.map(([round, matches], roundIndex) => (
+                  <div className="bracket-round" key={round}>
+                    <h4>
+                      {matches.some(
+                        (match) => match.bracket_side === "grand_final",
+                      )
+                        ? "Гранд-финал"
+                        : `Раунд ${round || roundIndex + 1}`}
+                    </h4>
+                    <div>
+                      {matches.map((match) => (
+                        <article className="bracket-match" key={match.id}>
+                          <small>
+                            {{
+                              upper: "Верхняя сетка",
+                              lower: "Нижняя сетка",
+                              grand_final: "Гранд-финал",
+                              group: "Группы",
+                            }[match.bracket_side ?? "group"]}
+                          </small>
+                          <div>
+                            <strong>{match.team_a}</strong>
+                            <b>
+                              {match.team_a_result_label ??
+                                match.team_a_score ??
+                                "—"}
+                            </b>
+                          </div>
+                          <div>
+                            <strong>{match.team_b}</strong>
+                            <b>
+                              {match.team_b_result_label ??
+                                match.team_b_score ??
+                                "—"}
+                            </b>
+                          </div>
+                          <span>BO{match.best_of}</span>
+                          {match.decision_note && (
+                            <p>{match.decision_note}</p>
+                          )}
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            )}
             <div className="matches-list">
               {data.matches.map((match) => (
                 <article className="match-row" key={match.id}>
@@ -1916,6 +2016,65 @@ export default function Home() {
                       </span>
                     </div>
                     <input
+                      name="stage"
+                      required
+                      defaultValue={match.stage}
+                      placeholder="Этап"
+                    />
+                    <input
+                      name="scheduledAt"
+                      required
+                      type="datetime-local"
+                      defaultValue={toDateTimeInput(match.scheduled_at)}
+                    />
+                    <select name="groupId" defaultValue={match.group_id ?? ""}>
+                      <option value="">Без группы</option>
+                      {data.groups.map((group) => (
+                        <option value={group.id} key={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      name="teamAId"
+                      defaultValue={match.team_a_application_id ?? ""}
+                    >
+                      <option value="">Команда A — текстом</option>
+                      {approvedTeams.map((team) => (
+                        <option value={team.id} key={team.id}>
+                          {team.team_name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      name="teamAPlaceholder"
+                      defaultValue={match.team_a_placeholder ?? ""}
+                      placeholder="Команда A / место в группе"
+                    />
+                    <select
+                      name="teamBId"
+                      defaultValue={match.team_b_application_id ?? ""}
+                    >
+                      <option value="">Команда B — текстом</option>
+                      {approvedTeams.map((team) => (
+                        <option value={team.id} key={team.id}>
+                          {team.team_name}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      name="teamBPlaceholder"
+                      defaultValue={match.team_b_placeholder ?? ""}
+                      placeholder="Команда B / место в группе"
+                    />
+                    <select name="bestOf" defaultValue={match.best_of}>
+                      {[1, 2, 3, 5].map((bestOf) => (
+                        <option value={bestOf} key={bestOf}>
+                          BO{bestOf}
+                        </option>
+                      ))}
+                    </select>
+                    <input
                       aria-label={`Счёт ${match.team_a}`}
                       name="teamAScore"
                       type="number"
@@ -1985,6 +2144,13 @@ export default function Home() {
                       placeholder="Комментарий организатора к техническому результату"
                     />
                     <button type="submit">Сохранить</button>
+                    <button
+                      className="danger"
+                      type="button"
+                      onClick={() => void deleteMatch(match)}
+                    >
+                      Удалить матч
+                    </button>
                   </form>
                 ))}
               </div>

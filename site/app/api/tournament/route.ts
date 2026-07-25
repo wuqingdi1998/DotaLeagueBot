@@ -169,8 +169,10 @@ export async function GET(request: Request) {
         visibilityValues,
       ),
       query<Record<string, unknown>>(
-         `SELECT m.id::int, m.tournament_id::int, m.scheduled_at, m.stage,
+         `SELECT m.id::int, m.tournament_id::int, m.group_id::int,
+           m.scheduled_at, m.stage,
            m.team_a_application_id::int, m.team_b_application_id::int,
+           m.team_a_placeholder, m.team_b_placeholder,
            COALESCE(a.team_name, m.team_a_placeholder) AS team_a,
            COALESCE(b.team_name, m.team_b_placeholder) AS team_b,
            m.team_a_score, m.team_b_score, m.best_of, m.sort_order, m.status,

@@ -100,6 +100,15 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    const fullMatchUpdate = Boolean(
+      body.tournamentId && body.scheduledAt && body.stage?.trim() && body.bestOf,
+    );
+    if (fullMatchUpdate) {
+      const validationError = validMatch(body);
+      if (validationError) {
+        return Response.json({ error: validationError }, { status: 400 });
+      }
+    }
     const allowedStatuses = [
       "scheduled",
       "ready",
@@ -140,8 +149,17 @@ export async function PATCH(request: Request) {
          result_type = $4, team_a_result_label = $5,
          team_b_result_label = $6, decision_note = $7,
          bracket_round = $8, bracket_side = $9, bracket_slot = $10,
+         group_id = CASE WHEN $11 THEN $12 ELSE group_id END,
+         scheduled_at = CASE WHEN $11 THEN $13 ELSE scheduled_at END,
+         stage = CASE WHEN $11 THEN $14 ELSE stage END,
+         team_a_application_id = CASE WHEN $11 THEN $15 ELSE team_a_application_id END,
+         team_b_application_id = CASE WHEN $11 THEN $16 ELSE team_b_application_id END,
+         team_a_placeholder = CASE WHEN $11 THEN $17 ELSE team_a_placeholder END,
+         team_b_placeholder = CASE WHEN $11 THEN $18 ELSE team_b_placeholder END,
+         best_of = CASE WHEN $11 THEN $19 ELSE best_of END,
+         sort_order = CASE WHEN $11 THEN COALESCE($20, sort_order) ELSE sort_order END,
          updated_at = NOW()
-       WHERE id = $11
+       WHERE id = $21
        RETURNING tournament_id::int`,
       [
         body.teamAScore ?? null,
@@ -154,6 +172,16 @@ export async function PATCH(request: Request) {
         body.bracketRound ?? null,
         body.bracketSide ?? null,
         body.bracketSlot ?? null,
+        fullMatchUpdate,
+        body.groupId ?? null,
+        body.scheduledAt ?? null,
+        body.stage?.trim() ?? null,
+        body.teamAId ?? null,
+        body.teamBId ?? null,
+        body.teamAPlaceholder?.trim() || null,
+        body.teamBPlaceholder?.trim() || null,
+        body.bestOf ?? null,
+        body.sortOrder ?? null,
         body.id,
       ],
     );
@@ -176,6 +204,11 @@ export async function PATCH(request: Request) {
           teamAResultLabel: body.teamAResultLabel,
           teamBResultLabel: body.teamBResultLabel,
           decisionNote: body.decisionNote,
+          scheduledAt: body.scheduledAt,
+          stage: body.stage,
+          teamAId: body.teamAId,
+          teamBId: body.teamBId,
+          bestOf: body.bestOf,
         }),
       ],
     );

@@ -92,6 +92,20 @@ export function ArchiveRosterEditor({
     await onSaved();
   }
 
+  async function removeTeam() {
+    if (!team || !window.confirm(`Удалить команду ${team.team_name}?`)) return;
+    const response = await fetch(`/api/admin/archive-rosters?id=${team.id}`, {
+      method: "DELETE",
+    });
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      onMessage(result.error ?? "Не удалось удалить команду");
+      return;
+    }
+    onMessage("Команда удалена");
+    await onSaved();
+  }
+
   return (
     <form className="archive-roster-editor" onSubmit={submit}>
       <div className="archive-roster-team-fields">
@@ -189,10 +203,20 @@ export function ArchiveRosterEditor({
           </div>
         ))}
       </div>
-      <button type="submit" disabled={saving}>
-        {saving ? "Сохраняем…" : team ? "Сохранить состав" : "Добавить команду"}
-      </button>
+      <div className="archive-roster-actions">
+        <button type="submit" disabled={saving}>
+          {saving
+            ? "Сохраняем…"
+            : team
+              ? "Сохранить состав"
+              : "Добавить команду"}
+        </button>
+        {team && (
+          <button className="danger" type="button" onClick={removeTeam}>
+            Удалить команду
+          </button>
+        )}
+      </div>
     </form>
   );
 }
-
