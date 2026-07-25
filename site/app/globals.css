@@ -4116,7 +4116,7 @@ footer button {
 .bracket-round > h4 {
   margin: 0 0 12px;
   color: var(--muted);
-  font-size: 0.88rem;
+  font-size: 1rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -4140,6 +4140,7 @@ footer button {
   display: block;
   margin-bottom: 8px;
   color: var(--accent);
+  font-size: 0.92rem;
   font-weight: 800;
 }
 
@@ -4159,6 +4160,7 @@ footer button {
 
 .bracket-match > div strong {
   overflow: hidden;
+  font-size: 1rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -4174,7 +4176,7 @@ footer button {
   display: block;
   margin-top: 8px;
   color: var(--muted);
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: 800;
 }
 
@@ -4183,7 +4185,7 @@ footer button {
   padding-top: 10px;
   border-top: 1px solid color-mix(in srgb, #ffb547 45%, transparent);
   color: var(--text);
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   line-height: 1.45;
 }
 
@@ -4273,7 +4275,7 @@ footer button {
   border: 1px solid var(--border);
   border-radius: 999px;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.92rem;
   font-weight: 700;
 }
 
@@ -4285,7 +4287,7 @@ footer button {
   display: block;
   margin-top: 4px;
   color: var(--accent);
-  font-size: 0.76rem;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
