@@ -35,7 +35,7 @@ jobs:
           pip-audit -r requirements.txt
           ruff check .
           mypy database/core.py database/migrate.py cogs/website_bridge.py utils/website_notifications.py
-          pytest
+          python -m pytest
       - name: Check site
         working-directory: site
         run: |
