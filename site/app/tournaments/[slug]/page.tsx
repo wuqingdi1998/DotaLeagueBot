@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import { FaCrown, FaDiscord, FaHandHoldingMedical } from "react-icons/fa";
-import { FiArrowRight, FiArrowUpRight, FiMoon, FiSun, FiUploadCloud } from "react-icons/fi";
+import { FiArrowRight, FiArrowUpRight, FiUploadCloud } from "react-icons/fi";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
+import { SiteHeader } from "@/app/components/SiteHeader";
 import { isPastTournament } from "@/lib/tournaments";
 import { OrganizerAccess } from "../OrganizerAccess";
 import { ArchiveRosterEditor } from "./ArchiveRosterEditor";
@@ -565,12 +566,6 @@ export default function Home() {
       registration.player_5,
     ].every((value) => value.trim().length > 0);
 
-  function switchTheme() {
-    const nextTheme = theme === "light" ? "dark" : "light";
-    setTheme(nextTheme);
-    window.localStorage.setItem("ls-theme", nextTheme);
-  }
-
   function startDiscordLogin(returnTo?: string) {
     const destination =
       returnTo ?? `${window.location.pathname}${window.location.search}`;
@@ -923,63 +918,12 @@ export default function Home() {
 
   return (
     <main className="site-shell" data-theme={theme}>
-      <header className="site-header">
-        <Link className="brand" href="/" aria-label="Linken's Sphere Esports">
-          <Image src="/linkens-sphere-logo.png" alt="Логотип Linken's Sphere Esports" width={48} height={48} priority unoptimized />
-          <span>
-            <strong>Linken&apos;s Sphere</strong>
-            <small>Esports community</small>
-          </span>
-        </Link>
-
-        <nav className="platform-navigation" aria-label="Главная навигация">
-          <Link href="/">Главная</Link>
-          <Link className="active" href="/tournaments" aria-current="page">
-            Турниры
-          </Link>
-          <a href={tournament.discord_url} target="_blank" rel="noreferrer">
-            Наш Discord <FiArrowUpRight aria-hidden="true" />
-          </a>
-        </nav>
-
-        <div className="header-actions">
-          <button className="theme-button" onClick={switchTheme} aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}>
-            {theme === "light" ? <FiMoon /> : <FiSun />}
-          </button>
-          {data.user ? (
-            <button
-              className="player-profile-button"
-              onClick={() =>
-                window.location.assign(`/players/${data.user?.dotaId}`)
-              }
-            >
-              {data.user.avatarUrl ? (
-                <Image
-                  className="player-profile-avatar"
-                  src={data.user.avatarUrl}
-                  alt=""
-                  width={38}
-                  height={38}
-                  unoptimized
-                />
-              ) : (
-                <span className="player-profile-avatar fallback">
-                  {data.user.playerName.slice(0, 1).toUpperCase()}
-                </span>
-              )}
-              <span className="player-profile-copy">
-                <strong>{data.user.serverName}</strong>
-                <small>Профиль участника</small>
-              </span>
-            </button>
-          ) : (
-            <button className="discord-login" onClick={() => startDiscordLogin()}>
-              <FaDiscord aria-hidden="true" />
-              <span>Вход через Discord</span>
-            </button>
-          )}
-        </div>
-      </header>
+      <SiteHeader
+        theme={theme}
+        setTheme={setTheme}
+        user={data.user}
+        discordUrl={tournament.discord_url}
+      />
 
       <section className="hero" id="top">
         <div className="hero-orb hero-orb-one" />
@@ -1032,7 +976,6 @@ export default function Home() {
           <div className="poster-meta">
             <div><small>Формат</small><strong>{tournament.format}</strong></div>
             <div><small>Слотов</small><strong>{tournament.max_teams} команд</strong></div>
-            <div><small>Регион</small><strong>{tournament.region}</strong></div>
           </div>
         </div>
       </section>
@@ -1080,13 +1023,9 @@ export default function Home() {
             </p>
             <h2>{tournament.name}</h2>
           </div>
-          <div className="countdown">
+          <div className={isPast ? "tournament-status archived" : "countdown"}>
             {isPast ? (
-              <>
-                <span>Статус</span>
-                <strong>✓</strong>
-                <span>{tournament.status === "archived" ? "в архиве" : "завершён"}</span>
-              </>
+              tournament.status === "archived" ? "Архив" : "Завершён"
             ) : (
               <>
                 <span>До начала</span>
@@ -1161,14 +1100,18 @@ export default function Home() {
             </aside>
             {data.prizes.length > 0 && (
               <article className="content-card tournament-prizes">
-                <p className="card-kicker">Призовые места</p>
-                <h3>Итоги и награды</h3>
+                <div className="prize-heading">
+                  <p className="card-kicker">Призовые места</p>
+                  <h3>Итоги и награды</h3>
+                </div>
                 <div className="prize-list">
                   {data.prizes.map((prize) => (
                     <div key={prize.id}>
                       <strong>{prize.placement}</strong>
-                      <span>{prize.team_name}</span>
-                      <b>{prize.prize_text || "—"}</b>
+                      <span>
+                        <b>{prize.team_name}</b>
+                        {prize.prize_text && <small>{prize.prize_text}</small>}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -2185,17 +2128,6 @@ export default function Home() {
           manageHref={`/tournaments/${tournament.slug}?manage=1`}
         />
       </footer>
-
-      <div className="mobile-cta">
-        <div><small>{tournament.name}</small><strong>{formatDayMonth(tournament.start_at)} — {formatDayMonth(tournament.end_at)}</strong></div>
-        {canRegister ? (
-          <button onClick={openRegistration}>Подать заявку</button>
-        ) : (
-          <button onClick={openMatches}>
-            {isPast ? "Результаты" : "Матчи"}
-          </button>
-        )}
-      </div>
 
       {registrationOpen && (
         <div className="modal-backdrop" onMouseDown={() => setRegistrationOpen(false)}>

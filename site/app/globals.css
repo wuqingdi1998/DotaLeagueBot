@@ -88,7 +88,7 @@ a {
   --shadow: 0 24px 70px rgba(26, 104, 148, 0.13);
   --header: rgba(255, 255, 255, 0.9);
   min-height: 100vh;
-  overflow: hidden;
+  overflow-x: clip;
   background: var(--bg);
   color: var(--text);
   transition: background 180ms ease, color 180ms ease;
@@ -265,6 +265,21 @@ a {
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
+.mobile-menu-button {
+  display: none;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 22px;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.mobile-menu-button:hover,
 .theme-button:hover {
   border-color: var(--line-strong);
   background: var(--surface-blue);
@@ -696,7 +711,7 @@ a {
 
 .poster-meta {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   border-top: 1px solid var(--line);
   padding-top: 21px;
 }
@@ -1765,10 +1780,6 @@ footer button {
   color: var(--text);
 }
 
-.mobile-cta {
-  display: none;
-}
-
 .modal-backdrop {
   position: fixed;
   z-index: 100;
@@ -2155,6 +2166,7 @@ footer button {
   .hero {
     grid-template-columns: 1fr;
     gap: 70px;
+    padding-top: 56px;
   }
 
   .hero-poster {
@@ -2259,7 +2271,7 @@ footer button {
 
   .hero {
     min-height: auto;
-    padding: 123px 20px 70px;
+    padding: 48px 20px 70px;
   }
 
   .hero h1 {
@@ -2441,65 +2453,17 @@ footer button {
   }
 
   .community-section {
-    min-height: 560px;
-    padding: 70px 20px 118px;
+    min-height: auto;
+    padding: 56px 20px;
   }
 
   footer {
-    min-height: 190px;
+    min-height: auto;
     align-items: flex-start;
     flex-direction: column;
     justify-content: center;
     gap: 20px;
-    padding-bottom: 72px;
-  }
-
-  .mobile-cta {
-    position: fixed;
-    z-index: 50;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    min-height: 70px;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid var(--line-strong);
-    padding: 10px 13px 10px 17px;
-    background: var(--header);
-    backdrop-filter: blur(14px);
-  }
-
-  .mobile-cta div {
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-  }
-
-  .mobile-cta small {
-    max-width: 170px;
-    overflow: hidden;
-    color: var(--muted);
-    font-size: 14px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .mobile-cta strong {
-    margin-top: 4px;
-    font-size: 15px;
-  }
-
-  .mobile-cta button {
-    min-height: 44px;
-    border: 0;
-    border-radius: 11px;
-    padding: 0 16px;
-    border: 1px solid rgba(121, 221, 255, 0.62);
-    background: var(--blue-gradient);
-    color: #fff;
-    font-size: 15px;
-    font-weight: 600;
+    padding: 30px 20px;
   }
 
   .modal-backdrop {
@@ -2923,7 +2887,7 @@ footer button {
 
 /* Permanent community home and tournaments directory */
 .platform-shell {
-  overflow: clip;
+  overflow-x: clip;
 }
 
 .platform-header {
@@ -2965,6 +2929,10 @@ footer button {
   background: var(--surface-blue);
   color: var(--blue-deep);
   box-shadow: 0 9px 24px rgba(0, 143, 209, 0.13);
+}
+
+.mobile-navigation {
+  display: none;
 }
 
 [data-theme="dark"] .platform-navigation a.active,
@@ -3442,8 +3410,53 @@ footer button {
 }
 
 @media (max-width: 1050px) {
+  .site-header.platform-header {
+    position: sticky;
+    z-index: 80;
+    top: 0;
+  }
+
   .platform-navigation {
     display: none;
+  }
+
+  .mobile-menu-button {
+    display: grid;
+  }
+
+  .mobile-navigation {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+  }
+
+  .mobile-navigation a {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0 14px;
+    color: var(--muted);
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .mobile-navigation a.active,
+  .mobile-navigation a[aria-current="page"] {
+    border-color: var(--line-strong);
+    background: var(--surface-blue);
+    color: var(--blue-deep);
+  }
+
+  [data-theme="dark"] .mobile-navigation a.active,
+  [data-theme="dark"] .mobile-navigation a[aria-current="page"] {
+    color: var(--blue-soft);
   }
 
   .platform-hero {
@@ -3460,6 +3473,22 @@ footer button {
 }
 
 @media (max-width: 760px) {
+  .mobile-menu-button {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    font-size: 19px;
+  }
+
+  .mobile-navigation {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-navigation a {
+    justify-content: flex-start;
+    padding: 0 16px;
+  }
+
   .platform-hero {
     min-height: auto;
     gap: 45px;
@@ -4225,25 +4254,42 @@ footer button {
 }
 
 .tournament-prizes {
+  display: grid;
   grid-column: 1 / -1;
+  grid-template-columns: minmax(190px, 0.55fr) minmax(0, 1.45fr);
+  align-items: center;
+  gap: 28px;
+  padding: 24px 28px;
+}
+
+.prize-heading .card-kicker {
+  margin: 0 0 7px;
+}
+
+.prize-heading h3 {
+  margin: 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 600;
+  line-height: 1;
 }
 
 .prize-list {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 12px;
-  margin-top: 20px;
 }
 
 .prize-list > div {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-columns: 46px minmax(0, 1fr);
   align-items: center;
-  gap: 16px;
-  min-height: 58px;
-  padding: 10px 16px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: color-mix(in srgb, var(--panel) 88%, var(--accent));
+  gap: 12px;
+  min-height: 68px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
 }
 
 .prize-list strong {
@@ -4252,14 +4298,30 @@ footer button {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  color: #061b29;
-  background: var(--accent);
-  font-size: 1.2rem;
+  color: #fff;
+  background: var(--blue-gradient);
+  font-size: 1.15rem;
 }
 
-.prize-list span,
-.prize-list b {
-  font-size: 1.05rem;
+.prize-list span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prize-list span b {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.prize-list span small {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 
 .team-archive-meta {
@@ -4441,11 +4503,56 @@ footer button {
     grid-column: 1 / -1;
   }
 
+  .tournament-prizes {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 22px;
+  }
+
   .prize-list > div {
     grid-template-columns: 44px minmax(0, 1fr);
   }
+}
 
-  .prize-list b {
-    grid-column: 2;
+@media (max-width: 430px) {
+  .site-header {
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .brand {
+    gap: 8px;
+  }
+
+  .brand img {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand strong {
+    font-size: 14px;
+  }
+
+  .brand small {
+    font-size: 11px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .mobile-menu-button,
+  .theme-button,
+  .discord-login,
+  .player-profile-button {
+    width: 42px;
+    min-height: 42px;
+    height: 42px;
+  }
+
+  .player-profile-avatar {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
   }
 }

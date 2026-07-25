@@ -3,7 +3,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import {
   FiArchive,
@@ -13,12 +12,14 @@ import {
   FiCheckCircle,
   FiClock,
   FiEdit3,
-  FiMoon,
   FiPlus,
-  FiSun,
   FiUsers,
   FiX,
 } from "react-icons/fi";
+import {
+  SiteHeader,
+  type SessionUser,
+} from "@/app/components/SiteHeader";
 import {
   isPastTournament,
   isUpcomingTournament,
@@ -44,18 +45,6 @@ type TournamentSummary = {
   team_count: number;
   match_count: number;
   finished_match_count: number;
-};
-
-export type SessionUser = {
-  discordId: string;
-  dotaId: string;
-  username: string;
-  avatarUrl: string | null;
-  playerName: string;
-  realName: string | null;
-  positions: string | null;
-  serverName: string;
-  isAdmin: boolean;
 };
 
 type TournamentListResponse = {
@@ -153,140 +142,6 @@ function loadSavedTheme() {
     : ("dark" as const);
 }
 
-function SiteHeader({
-  theme,
-  setTheme,
-  user,
-}: {
-  theme: "light" | "dark";
-  setTheme: (theme: "light" | "dark") => void;
-  user: SessionUser | null;
-}) {
-  const pathname = usePathname();
-  const [profileOpen, setProfileOpen] = useState(false);
-  function switchTheme() {
-    const next = theme === "light" ? "dark" : "light";
-    setTheme(next);
-    window.localStorage.setItem("ls-theme", next);
-  }
-
-  return (
-    <header className="site-header platform-header">
-      <Link className="brand" href="/" aria-label="Linken's Sphere Esports">
-        <Image
-          src="/linkens-sphere-logo.png"
-          alt="Логотип Linken's Sphere Esports"
-          width={48}
-          height={48}
-          priority
-          unoptimized
-        />
-        <span>
-          <strong>Linken&apos;s Sphere</strong>
-          <small>Esports community</small>
-        </span>
-      </Link>
-
-      <nav className="platform-navigation" aria-label="Основная навигация">
-        <Link
-          className={pathname === "/" ? "active" : undefined}
-          href="/"
-          aria-current={pathname === "/" ? "page" : undefined}
-        >
-          Главная
-        </Link>
-        <Link
-          className={pathname.startsWith("/tournaments") ? "active" : undefined}
-          href="/tournaments"
-          aria-current={
-            pathname.startsWith("/tournaments") ? "page" : undefined
-          }
-        >
-          Турниры
-        </Link>
-        <a
-          href="https://discord.gg/lsesports"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Наш Discord <FiArrowUpRight aria-hidden="true" />
-        </a>
-      </nav>
-
-      <div className="header-actions">
-        <button
-          className="theme-button"
-          onClick={switchTheme}
-          aria-label={
-            theme === "light"
-              ? "Включить тёмную тему"
-              : "Включить светлую тему"
-          }
-        >
-          {theme === "light" ? <FiMoon /> : <FiSun />}
-        </button>
-        {user ? (
-          <div className="player-profile-control">
-            <button
-              className="player-profile-button"
-              onClick={() => setProfileOpen((current) => !current)}
-              aria-expanded={profileOpen}
-            >
-              {user.avatarUrl ? (
-                <Image
-                  className="player-profile-avatar"
-                  src={user.avatarUrl}
-                  alt=""
-                  width={38}
-                  height={38}
-                  unoptimized
-                />
-              ) : (
-                <span className="player-profile-avatar fallback">
-                  {user.playerName.slice(0, 1).toUpperCase()}
-                </span>
-              )}
-              <span className="player-profile-copy">
-                <strong>{user.serverName}</strong>
-                <small>Профиль участника</small>
-              </span>
-            </button>
-            {profileOpen && (
-              <div className="player-profile-popover">
-                <strong>{user.serverName}</strong>
-                <span>Discord: {user.username}</span>
-                <Link
-                  className="profile-popover-link"
-                  href={`/players/${user.dotaId}`}
-                  onClick={() => setProfileOpen(false)}
-                >
-                  Открыть страницу игрока <FiArrowRight aria-hidden="true" />
-                </Link>
-                <button
-                  onClick={async () => {
-                    await fetch("/api/auth/logout", { method: "POST" });
-                    window.location.reload();
-                  }}
-                >
-                  Выйти из профиля
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <a
-            className="discord-login"
-            href={`/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`}
-          >
-            <FaDiscord aria-hidden="true" />
-            <span>Вход через Discord</span>
-          </a>
-        )}
-      </div>
-    </header>
-  );
-}
-
 function TournamentCard({
   tournament,
   isAdmin,
@@ -304,7 +159,6 @@ function TournamentCard({
           {tournament.status === "active" && <i />}
           {statusDetails[tournament.status].label}
         </span>
-        <span>{tournament.region}</span>
       </div>
       <p className="card-kicker">{tournament.eyebrow || "Турнир сообщества"}</p>
       <h2>{tournament.name}</h2>
