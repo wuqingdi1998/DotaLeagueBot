@@ -2187,11 +2187,17 @@ footer button {
 @media (max-width: 760px) {
   .site-header {
     min-height: 74px;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
     padding: 12px 17px;
   }
 
   .brand {
     min-width: 0;
+  }
+
+  .brand > span {
+    gap: 4px;
   }
 
   .brand img {
@@ -2202,10 +2208,20 @@ footer button {
 
   .brand strong {
     font-size: 15px;
+    line-height: 1.25;
+    white-space: nowrap;
   }
 
   .brand small {
-    font-size: 13px;
+    margin-top: 0;
+    font-size: 12px;
+    line-height: 1.25;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .header-actions {
+    grid-column: 2;
   }
 
   .discord-login {
