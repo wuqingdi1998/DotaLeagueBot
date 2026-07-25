@@ -3544,7 +3544,7 @@ footer button {
 .player-profile-hero {
   display: grid;
   gap: 42px;
-  padding: clamp(20px, 2vw, 32px) clamp(24px, 7vw, 110px)
+  padding: clamp(42px, 4vw, 58px) clamp(24px, 7vw, 110px)
     clamp(50px, 5vw, 76px);
   background:
     radial-gradient(circle at 84% 20%, rgba(0, 195, 255, 0.2), transparent 28%),
@@ -3585,10 +3585,12 @@ footer button {
 }
 
 .public-profile-real-name {
-  margin: 0 0 7px;
-  color: var(--muted);
-  font-size: 17px;
-  font-weight: 700;
+  margin: 0 0 9px;
+  color: var(--text);
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 31px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .public-profile-name-row h1 {
@@ -3988,7 +3990,7 @@ footer button {
 @media (max-width: 760px) {
   .player-profile-hero {
     gap: 30px;
-    padding: 22px 18px 50px;
+    padding: 38px 18px 50px;
   }
 
   .player-profile-identity {
