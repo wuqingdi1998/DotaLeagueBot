@@ -51,6 +51,7 @@ export function SiteHeader({
 
   const homeActive = pathname === "/";
   const tournamentsActive = pathname.startsWith("/tournaments");
+  const hallActive = pathname.startsWith("/hall-of-fame");
 
   return (
     <header className="site-header platform-header">
@@ -83,6 +84,13 @@ export function SiteHeader({
           aria-current={tournamentsActive ? "page" : undefined}
         >
           Турниры
+        </Link>
+        <Link
+          className={hallActive ? "active" : undefined}
+          href="/hall-of-fame"
+          aria-current={hallActive ? "page" : undefined}
+        >
+          Зал славы
         </Link>
         <a href={discordUrl} target="_blank" rel="noreferrer">
           Наш Discord <FiArrowUpRight aria-hidden="true" />
@@ -194,6 +202,14 @@ export function SiteHeader({
             onClick={() => setMobileMenuOpen(false)}
           >
             Турниры
+          </Link>
+          <Link
+            className={hallActive ? "active" : undefined}
+            href="/hall-of-fame"
+            aria-current={hallActive ? "page" : undefined}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Зал славы
           </Link>
           <a
             href={discordUrl}

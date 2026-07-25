@@ -36,6 +36,13 @@ FASTCUP_DATE_FIX_MIGRATION = (
     / "0006_fastcup_end_date.sql"
 ).read_text(encoding="utf-8")
 
+PROFILE_AND_BRACKET_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0007_profile_roles_and_bracket_links.sql"
+).read_text(encoding="utf-8")
+
 
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
@@ -104,3 +111,17 @@ def test_fastcup_archive_has_all_teams_players_and_matches() -> None:
 def test_fastcup_archive_ends_on_source_second_day() -> None:
     assert "'2026-05-24 23:59:00+03'" in FASTCUP_DATE_FIX_MIGRATION
     assert "WHERE slug = 'cd-fastcup-5'" in FASTCUP_DATE_FIX_MIGRATION
+
+
+def test_profile_roles_and_backgrounds_are_persistent() -> None:
+    assert "player_discord_roles" in PROFILE_AND_BRACKET_MIGRATION
+    assert "player_profile_preferences" in PROFILE_AND_BRACKET_MIGRATION
+    assert "'damage'" in PROFILE_AND_BRACKET_MIGRATION
+    assert "'water'" not in PROFILE_AND_BRACKET_MIGRATION
+
+
+def test_bracket_matches_can_link_winners_and_losers() -> None:
+    assert "winner_to_match_id" in PROFILE_AND_BRACKET_MIGRATION
+    assert "winner_to_slot" in PROFILE_AND_BRACKET_MIGRATION
+    assert "loser_to_match_id" in PROFILE_AND_BRACKET_MIGRATION
+    assert "loser_to_slot" in PROFILE_AND_BRACKET_MIGRATION

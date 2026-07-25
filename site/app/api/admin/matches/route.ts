@@ -23,6 +23,10 @@ type MatchBody = {
   bracketRound?: number | null;
   bracketSide?: "group" | "upper" | "lower" | "grand_final" | null;
   bracketSlot?: number | null;
+  winnerToMatchId?: number | null;
+  winnerToSlot?: "a" | "b" | null;
+  loserToMatchId?: number | null;
+  loserToSlot?: "a" | "b" | null;
 };
 
 function validMatch(body: MatchBody): string {
@@ -123,6 +127,58 @@ export async function PATCH(request: Request) {
     if (!allowedResultTypes.includes(body.resultType ?? "normal")) {
       return Response.json({ error: "Некорректный тип результата" }, { status: 400 });
     }
+    for (const [targetId, targetSlot] of [
+      [body.winnerToMatchId, body.winnerToSlot],
+      [body.loserToMatchId, body.loserToSlot],
+    ] as const) {
+      if ((targetId && !targetSlot) || (!targetId && targetSlot)) {
+        return Response.json(
+          { error: "Для связи сетки укажите и следующий матч, и сторону A/B" },
+          { status: 400 },
+        );
+      }
+      if (targetId === body.id) {
+        return Response.json(
+          { error: "Матч нельзя связать с самим собой" },
+          { status: 400 },
+        );
+      }
+    }
+    const linkedMatchIds = [
+      body.winnerToMatchId,
+      body.loserToMatchId,
+    ].filter((value): value is number => Boolean(value));
+    if (linkedMatchIds.length) {
+      const linkedMatches = await query<{
+        id: number;
+        tournament_id: number;
+      }>(
+        `SELECT id::int, tournament_id::int
+         FROM tournament_matches
+         WHERE id = ANY($1::bigint[])
+            OR id = $2`,
+        [linkedMatchIds, body.id],
+      );
+      const source = linkedMatches.find((match) => match.id === body.id);
+      const validTargets = new Set(
+        linkedMatches
+          .filter(
+            (match) =>
+              match.id !== body.id &&
+              match.tournament_id === source?.tournament_id,
+          )
+          .map((match) => match.id),
+      );
+      if (
+        !source ||
+        linkedMatchIds.some((targetId) => !validTargets.has(targetId))
+      ) {
+        return Response.json(
+          { error: "Связанные матчи должны находиться в этом же турнире" },
+          { status: 400 },
+        );
+      }
+    }
     if (
       body.status === "finished" &&
       (body.resultType ?? "normal") === "normal" &&
@@ -149,17 +205,19 @@ export async function PATCH(request: Request) {
          result_type = $4, team_a_result_label = $5,
          team_b_result_label = $6, decision_note = $7,
          bracket_round = $8, bracket_side = $9, bracket_slot = $10,
-         group_id = CASE WHEN $11 THEN $12 ELSE group_id END,
-         scheduled_at = CASE WHEN $11 THEN $13 ELSE scheduled_at END,
-         stage = CASE WHEN $11 THEN $14 ELSE stage END,
-         team_a_application_id = CASE WHEN $11 THEN $15 ELSE team_a_application_id END,
-         team_b_application_id = CASE WHEN $11 THEN $16 ELSE team_b_application_id END,
-         team_a_placeholder = CASE WHEN $11 THEN $17 ELSE team_a_placeholder END,
-         team_b_placeholder = CASE WHEN $11 THEN $18 ELSE team_b_placeholder END,
-         best_of = CASE WHEN $11 THEN $19 ELSE best_of END,
-         sort_order = CASE WHEN $11 THEN COALESCE($20, sort_order) ELSE sort_order END,
+         winner_to_match_id = $11, winner_to_slot = $12,
+         loser_to_match_id = $13, loser_to_slot = $14,
+         group_id = CASE WHEN $15 THEN $16 ELSE group_id END,
+         scheduled_at = CASE WHEN $15 THEN $17 ELSE scheduled_at END,
+         stage = CASE WHEN $15 THEN $18 ELSE stage END,
+         team_a_application_id = CASE WHEN $15 THEN $19 ELSE team_a_application_id END,
+         team_b_application_id = CASE WHEN $15 THEN $20 ELSE team_b_application_id END,
+         team_a_placeholder = CASE WHEN $15 THEN $21 ELSE team_a_placeholder END,
+         team_b_placeholder = CASE WHEN $15 THEN $22 ELSE team_b_placeholder END,
+         best_of = CASE WHEN $15 THEN $23 ELSE best_of END,
+         sort_order = CASE WHEN $15 THEN COALESCE($24, sort_order) ELSE sort_order END,
          updated_at = NOW()
-       WHERE id = $21
+       WHERE id = $25
        RETURNING tournament_id::int`,
       [
         body.teamAScore ?? null,
@@ -172,6 +230,10 @@ export async function PATCH(request: Request) {
         body.bracketRound ?? null,
         body.bracketSide ?? null,
         body.bracketSlot ?? null,
+        body.winnerToMatchId ?? null,
+        body.winnerToSlot ?? null,
+        body.loserToMatchId ?? null,
+        body.loserToSlot ?? null,
         fullMatchUpdate,
         body.groupId ?? null,
         body.scheduledAt ?? null,

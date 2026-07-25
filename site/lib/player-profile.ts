@@ -3,6 +3,31 @@ import { one, query } from "./db";
 const steamId64Offset = BigInt("76561197960265728");
 const maximumDotaAccountId = BigInt("4294967295");
 
+export const subscriptionRoleNames = [
+  "Руна Регенерации",
+  "Руна Ускорения",
+  "Руна Невидимости",
+  "Руна Волшебства",
+  "Руна Иллюзий",
+  "Руна Усиления урона",
+  "Руна Воды",
+] as const;
+
+export const customizableSubscriptionRoleNames =
+  subscriptionRoleNames.filter((role) => role !== "Руна Воды");
+
+export const profileBackgroundKeys = [
+  "default",
+  "regeneration",
+  "haste",
+  "invisibility",
+  "arcane",
+  "illusion",
+  "damage",
+] as const;
+
+export type ProfileBackgroundKey = (typeof profileBackgroundKeys)[number];
+
 export type PlayerMedals = {
   gold: number;
   silver: number;
@@ -27,6 +52,10 @@ export type PublicPlayerProfile = {
   realName: string | null;
   positions: string | null;
   avatarUrl: string | null;
+  subscriptionRole: string | null;
+  subscriptionRoleColor: number | null;
+  backgroundKey: ProfileBackgroundKey;
+  canCustomizeBackground: boolean;
   links: {
     dotabuff: string;
     stratz: string;
@@ -51,6 +80,16 @@ type PlayerRow = {
   real_name: string | null;
   positions: string | null;
   avatar_url: string | null;
+  subscription_role: string | null;
+  subscription_role_color: number | null;
+  background_key: ProfileBackgroundKey | null;
+};
+
+export type HallOfFamePlayer = {
+  dotaId: string;
+  nickname: string;
+  avatarUrl: string | null;
+  medals: PlayerMedals;
 };
 
 type TournamentHistoryRow = {
@@ -114,7 +153,10 @@ export async function loadPublicPlayerProfile(
        COALESCE(
          NULLIF(p.avatar_url, ''),
          NULLIF(latest_session.discord_avatar_url, '')
-       ) AS avatar_url
+       ) AS avatar_url,
+       subscription.role_name AS subscription_role,
+       subscription.role_color::int AS subscription_role_color,
+       preference.background_key
      FROM players p
      LEFT JOIN LATERAL (
        SELECT s.discord_avatar_url
@@ -124,6 +166,32 @@ export async function loadPublicPlayerProfile(
        ORDER BY s.created_at DESC
        LIMIT 1
      ) latest_session ON TRUE
+     LEFT JOIN LATERAL (
+       SELECT role.role_name, role.role_color
+       FROM player_discord_roles role
+       WHERE role.player_id = p.discord_id
+         AND role.role_name IN (
+           'Руна Регенерации',
+           'Руна Ускорения',
+           'Руна Невидимости',
+           'Руна Волшебства',
+           'Руна Иллюзий',
+           'Руна Усиления урона',
+           'Руна Воды'
+         )
+       ORDER BY CASE role.role_name
+         WHEN 'Руна Регенерации' THEN 1
+         WHEN 'Руна Ускорения' THEN 2
+         WHEN 'Руна Невидимости' THEN 3
+         WHEN 'Руна Волшебства' THEN 4
+         WHEN 'Руна Иллюзий' THEN 5
+         WHEN 'Руна Усиления урона' THEN 6
+         ELSE 7
+       END
+       LIMIT 1
+     ) subscription ON TRUE
+     LEFT JOIN player_profile_preferences preference
+       ON preference.player_id = p.discord_id
      WHERE p.steam_id32 = $1`,
     [dotaId],
   );
@@ -238,6 +306,15 @@ export async function loadPublicPlayerProfile(
     (tournament) =>
       tournament.placement !== null && tournament.placement <= 3,
   ).length;
+  const canCustomizeBackground =
+    player.subscription_role !== null &&
+    customizableSubscriptionRoleNames.includes(
+      player.subscription_role as (typeof customizableSubscriptionRoleNames)[number],
+    );
+  const backgroundKey =
+    canCustomizeBackground && player.background_key
+      ? player.background_key
+      : "default";
 
   return {
     dotaId: player.dota_id,
@@ -245,6 +322,10 @@ export async function loadPublicPlayerProfile(
     realName: player.real_name,
     positions: player.positions,
     avatarUrl: player.avatar_url,
+    subscriptionRole: player.subscription_role,
+    subscriptionRoleColor: player.subscription_role_color,
+    backgroundKey,
+    canCustomizeBackground,
     links: buildPlayerLinks(player.dota_id),
     statistics: {
       tournaments: tournamentHistory.length,
@@ -257,4 +338,59 @@ export async function loadPublicPlayerProfile(
     lastTournament: tournamentHistory[0] ?? null,
     tournamentHistory,
   };
+}
+
+export async function loadHallOfFame(): Promise<HallOfFamePlayer[]> {
+  const rows = await query<{
+    dota_id: string;
+    nickname: string;
+    avatar_url: string | null;
+    gold: number;
+    silver: number;
+    bronze: number;
+  }>(
+    `SELECT
+       player.steam_id32::text AS dota_id,
+       player.ingame_name AS nickname,
+       COALESCE(
+         NULLIF(player.avatar_url, ''),
+         NULLIF(latest_session.discord_avatar_url, '')
+       ) AS avatar_url,
+       COUNT(medal.id) FILTER (WHERE medal.medal_type = 'gold')::int AS gold,
+       COUNT(medal.id) FILTER (WHERE medal.medal_type = 'silver')::int AS silver,
+       COUNT(medal.id) FILTER (WHERE medal.medal_type = 'bronze')::int AS bronze
+     FROM players player
+     LEFT JOIN LATERAL (
+       SELECT session.discord_avatar_url
+       FROM web_sessions session
+       WHERE session.discord_id = player.discord_id
+         AND session.discord_avatar_url IS NOT NULL
+       ORDER BY session.created_at DESC
+       LIMIT 1
+     ) latest_session ON TRUE
+     LEFT JOIN player_medals medal ON medal.player_id = player.discord_id
+     GROUP BY
+       player.discord_id,
+       player.steam_id32,
+       player.ingame_name,
+       player.avatar_url,
+       latest_session.discord_avatar_url
+     ORDER BY
+       gold DESC,
+       silver DESC,
+       bronze DESC,
+       LOWER(player.ingame_name),
+       player.discord_id`,
+  );
+
+  return rows.map((row) => ({
+    dotaId: row.dota_id,
+    nickname: row.nickname,
+    avatarUrl: row.avatar_url,
+    medals: {
+      gold: row.gold,
+      silver: row.silver,
+      bronze: row.bronze,
+    },
+  }));
 }

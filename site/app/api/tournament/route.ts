@@ -178,6 +178,8 @@ export async function GET(request: Request) {
            m.team_a_score, m.team_b_score, m.best_of, m.sort_order, m.status,
            m.result_type, m.team_a_result_label, m.team_b_result_label,
            m.decision_note, m.bracket_round, m.bracket_side, m.bracket_slot,
+           m.winner_to_match_id::int, m.winner_to_slot,
+           m.loser_to_match_id::int, m.loser_to_slot,
            EXISTS (
              SELECT 1 FROM tournament_match_checkins c
              WHERE c.match_id = m.id AND c.application_id = m.team_a_application_id
@@ -199,13 +201,24 @@ export async function GET(request: Request) {
         `WITH team_results AS (
            SELECT gt.group_id, gt.application_id,
              COUNT(m.id) FILTER (WHERE m.status = 'finished')::int AS games,
-             COUNT(m.id) FILTER (
-               WHERE m.status = 'finished' AND (
-                 (m.team_a_application_id = gt.application_id AND m.team_a_score > m.team_b_score)
-                 OR
-                 (m.team_b_application_id = gt.application_id AND m.team_b_score > m.team_a_score)
-               )
-             )::int AS wins
+             COALESCE(SUM(
+               CASE
+                 WHEN m.status <> 'finished' THEN 0
+                 WHEN m.team_a_application_id = gt.application_id THEN
+                   CASE
+                     WHEN LOWER(COALESCE(m.team_a_result_label, '')) = 'tw' THEN 1
+                     WHEN LOWER(COALESCE(m.team_a_result_label, '')) = 'tl' THEN 0
+                     ELSE COALESCE(m.team_a_score, 0)
+                   END
+                 WHEN m.team_b_application_id = gt.application_id THEN
+                   CASE
+                     WHEN LOWER(COALESCE(m.team_b_result_label, '')) = 'tw' THEN 1
+                     WHEN LOWER(COALESCE(m.team_b_result_label, '')) = 'tl' THEN 0
+                     ELSE COALESCE(m.team_b_score, 0)
+                   END
+                 ELSE 0
+               END
+             ), 0)::int AS maps_won
            FROM tournament_group_teams gt
            LEFT JOIN tournament_matches m
              ON m.group_id = gt.group_id
@@ -217,19 +230,17 @@ export async function GET(request: Request) {
          SELECT
            ROW_NUMBER() OVER (
              PARTITION BY g.id
-             ORDER BY COALESCE(r.wins, 0) DESC, gt.sort_order, a.team_name
+             ORDER BY COALESCE(r.maps_won, 0) DESC, gt.sort_order, a.team_name
            )::int AS id,
            g.tournament_id::int,
            g.name AS group_name,
            ROW_NUMBER() OVER (
              PARTITION BY g.id
-             ORDER BY COALESCE(r.wins, 0) DESC, gt.sort_order, a.team_name
+             ORDER BY COALESCE(r.maps_won, 0) DESC, gt.sort_order, a.team_name
            )::int AS place,
            a.team_name,
            COALESCE(r.games, 0)::int AS games,
-           COALESCE(r.wins, 0)::int AS wins,
-           (COALESCE(r.games, 0) - COALESCE(r.wins, 0))::int AS losses,
-           (COALESCE(r.wins, 0) * 3)::int AS points
+           COALESCE(r.maps_won, 0)::int AS maps_won
          FROM tournament_groups g
          JOIN tournament_group_teams gt ON gt.group_id = g.id
          JOIN tournament_team_applications a ON a.id = gt.application_id

@@ -9,7 +9,6 @@ import {
   FiArrowRight,
   FiArrowUpRight,
   FiCalendar,
-  FiCheckCircle,
   FiClock,
   FiEdit3,
   FiPlus,
@@ -207,14 +206,6 @@ function TournamentCard({
                 onClick={() => void onStatusChange(tournament.id, "archived")}
               >
                 <FiArchive /> В архив
-              </button>
-            )}
-            {tournament.status === "archived" && (
-              <button
-                className="text-action"
-                onClick={() => void onStatusChange(tournament.id, "finished")}
-              >
-                <FiCheckCircle /> Вернуть
               </button>
             )}
           </>
@@ -615,11 +606,11 @@ export function CommunityHome() {
           <div className="platform-numbers">
             <div>
               <strong>{upcomingCount}</strong>
-              <span>текущих и будущих</span>
+              <span>текущих и будущих турниров</span>
             </div>
             <div>
               <strong>{archiveCount}</strong>
-              <span>турниров в истории</span>
+              <span>турниров проведено</span>
             </div>
             <div>
               <strong>500+</strong>
@@ -653,7 +644,7 @@ export function CommunityHome() {
             </>
           ) : (
             <>
-              <p className="card-kicker">Календарь сообщества</p>
+              <p className="card-kicker">Турниры сообщества</p>
               <h2>Новый турнир скоро появится</h2>
               <p>
                 Здесь будут опубликованы регистрация, расписание и результаты.
@@ -734,7 +725,6 @@ export function TournamentsDirectory() {
     <PlatformShell user={data.user}>
       <section className="directory-hero">
         <div>
-          <p className="eyebrow">Календарь Linken&apos;s Sphere</p>
           <h1>Турниры</h1>
           <p>
             Будущие регистрации, идущие соревнования и полная история

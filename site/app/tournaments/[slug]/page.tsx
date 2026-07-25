@@ -11,6 +11,8 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { isPastTournament } from "@/lib/tournaments";
 import { OrganizerAccess } from "../OrganizerAccess";
 import { ArchiveRosterEditor } from "./ArchiveRosterEditor";
+import { TournamentBracket } from "./TournamentBracket";
+import { TournamentContentEditor } from "./TournamentContentEditor";
 
 type PlayerRole =
   | "safe_lane"
@@ -101,6 +103,10 @@ type Match = {
   bracket_round: number | null;
   bracket_side: "group" | "upper" | "lower" | "grand_final" | null;
   bracket_slot: number | null;
+  winner_to_match_id: number | null;
+  winner_to_slot: "a" | "b" | null;
+  loser_to_match_id: number | null;
+  loser_to_slot: "a" | "b" | null;
   best_of: number;
   sort_order: number;
   status: "scheduled" | "ready" | "live" | "finished" | "cancelled";
@@ -115,9 +121,7 @@ type Standing = {
   place: number;
   team_name: string;
   games: number;
-  wins: number;
-  losses: number;
-  points: number;
+  maps_won: number;
 };
 
 type TournamentGroup = {
@@ -402,15 +406,6 @@ export default function Home() {
   const [captainChoices, setCaptainChoices] = useState<Record<number, string>>(
     {},
   );
-  const [rulesText, setRulesText] = useState("");
-  const [prizeDrafts, setPrizeDrafts] = useState<
-    Array<{
-      placement: number;
-      applicationId: number | null;
-      teamName: string;
-      prizeText: string;
-    }>
-  >([]);
 
   const loadData = useCallback(async () => {
     try {
@@ -429,15 +424,6 @@ export default function Home() {
       setData(nextData);
       setAdminMode(Boolean(nextData.user?.isAdmin));
       setTournamentDraft(nextData.tournament);
-      setRulesText(nextData.rules.map((rule) => rule.rule_text).join("\n"));
-      setPrizeDrafts(
-        nextData.prizes.map((prize) => ({
-          placement: prize.placement,
-          applicationId: prize.application_id,
-          teamName: prize.team_name,
-          prizeText: prize.prize_text ?? "",
-        })),
-      );
       if (nextData.user?.isAdmin && searchParams.get("manage") === "1") {
         setActiveTab("admin");
       }
@@ -512,18 +498,6 @@ export default function Home() {
       groups.set(row.group_name, rows);
     }
     return Array.from(groups.entries());
-  }, [data]);
-
-  const playoffRounds = useMemo(() => {
-    const rounds = new Map<number, Match[]>();
-    for (const match of data?.matches ?? []) {
-      if (!match.bracket_side || match.bracket_side === "group") continue;
-      const round = match.bracket_round ?? 0;
-      const matches = rounds.get(round) ?? [];
-      matches.push(match);
-      rounds.set(round, matches);
-    }
-    return Array.from(rounds.entries()).sort(([left], [right]) => left - right);
   }, [data]);
 
   const captainApplicationIds = useMemo(
@@ -761,6 +735,10 @@ export default function Home() {
     const rawTeamBScore = String(form.get("teamBScore") ?? "").trim();
     const rawBracketRound = String(form.get("bracketRound") ?? "").trim();
     const rawBracketSlot = String(form.get("bracketSlot") ?? "").trim();
+    const rawWinnerTarget = String(
+      form.get("winnerToMatchId") ?? "",
+    ).trim();
+    const rawLoserTarget = String(form.get("loserToMatchId") ?? "").trim();
     const response = await fetch("/api/admin/matches", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -796,6 +774,11 @@ export default function Home() {
         bracketRound: rawBracketRound ? Number(rawBracketRound) : null,
         bracketSide: String(form.get("bracketSide") ?? "").trim() || null,
         bracketSlot: rawBracketSlot ? Number(rawBracketSlot) : null,
+        winnerToMatchId: rawWinnerTarget ? Number(rawWinnerTarget) : null,
+        winnerToSlot:
+          String(form.get("winnerToSlot") ?? "").trim() || null,
+        loserToMatchId: rawLoserTarget ? Number(rawLoserTarget) : null,
+        loserToSlot: String(form.get("loserToSlot") ?? "").trim() || null,
       }),
     });
     const result = (await response.json()) as { error?: string };
@@ -842,34 +825,6 @@ export default function Home() {
       response.ok
         ? "Итог команды сохранён"
         : result.error ?? "Не удалось сохранить итог команды",
-    );
-    if (response.ok) await loadData();
-  }
-
-  async function saveTournamentContent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const response = await fetch("/api/admin/tournament-content", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        tournamentId: tournament.id,
-        rules: rulesText
-          .split("\n")
-          .map((rule) => rule.trim())
-          .filter(Boolean),
-        prizes: prizeDrafts.map((prize) => ({
-          placement: prize.placement,
-          applicationId: prize.applicationId,
-          teamName: prize.teamName,
-          prizeText: prize.prizeText,
-        })),
-      }),
-    });
-    const result = (await response.json()) as { error?: string };
-    setToast(
-      response.ok
-        ? "Регламент и призовые сохранены"
-        : result.error ?? "Не удалось сохранить данные турнира",
     );
     if (response.ok) await loadData();
   }
@@ -1036,25 +991,59 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="tabs" role="tablist" aria-label="Разделы турнира">
-          {[
-            ["overview", "Обзор"],
-            ["teams", `Команды ${approvedTeams.length}/${tournament.max_teams}`],
-            ["matches", "Матчи"],
-            ["standings", "Таблица"],
-            ...(data.rules.length ? [["rules", "Регламент"]] : []),
-            ...(adminMode ? [["admin", `Управление${pendingTeams.length ? ` · ${pendingTeams.length}` : ""}`]] : []),
-          ].map(([id, label]) => (
-            <button
-              key={id}
-              className={activeTab === id ? "active" : ""}
-              onClick={() => setActiveTab(id)}
-              role="tab"
-              aria-selected={activeTab === id}
-            >
-              {label}
-            </button>
-          ))}
+        <div
+          className="tabs tournament-tabs"
+          role="tablist"
+          aria-label="Разделы турнира"
+        >
+          <div className="tournament-tabs-main">
+            {[
+              ["overview", "Обзор"],
+              [
+                "teams",
+                `Команды ${approvedTeams.length}/${tournament.max_teams}`,
+              ],
+              ["matches", "Матчи"],
+              ["rules", "Дополнительные правила"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                className={activeTab === id ? "active" : ""}
+                onClick={() => setActiveTab(id)}
+                role="tab"
+                aria-selected={activeTab === id}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="tournament-tabs-stages">
+            {[
+              ["groups", "Групповой этап"],
+              ["playoffs", "Плей-офф"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                className={activeTab === id ? "active" : ""}
+                onClick={() => setActiveTab(id)}
+                role="tab"
+                aria-selected={activeTab === id}
+              >
+                {label}
+              </button>
+            ))}
+            {adminMode && (
+              <button
+                className={`admin-tab${activeTab === "admin" ? " active" : ""}`}
+                onClick={() => setActiveTab("admin")}
+                role="tab"
+                aria-selected={activeTab === "admin"}
+              >
+                Управление
+                {pendingTeams.length ? ` · ${pendingTeams.length}` : ""}
+              </button>
+            )}
+          </div>
         </div>
 
         {activeTab === "overview" && (
@@ -1086,17 +1075,16 @@ export default function Home() {
             <aside className="details-card">
               <div><span>Сервер</span><strong>{tournament.server}</strong></div>
               <div><span>Сбор участников</span><strong>Discord Linken&apos;s Sphere</strong></div>
-              <div>
-                <span>Check-in</span>
-                <strong>
-                  Капитан подтверждает готовность за{" "}
-                  {tournament.check_in_minutes} минут до матча
-                </strong>
-              </div>
+              {!isPast && (
+                <div>
+                  <span>Check-in</span>
+                  <strong>
+                    Капитан подтверждает готовность за{" "}
+                    {tournament.check_in_minutes} минут до матча
+                  </strong>
+                </div>
+              )}
               <div><span>Даты</span><strong>{formatShortDate(tournament.start_at)} — {formatShortDate(tournament.end_at)}</strong></div>
-              <a href={tournament.discord_url} target="_blank" rel="noreferrer">
-                Задать вопрос в Discord <FiArrowUpRight />
-              </a>
             </aside>
             {data.prizes.length > 0 && (
               <article className="content-card tournament-prizes">
@@ -1215,55 +1203,6 @@ export default function Home() {
               </div>
               <span className="timezone">Московское время · UTC+3</span>
             </div>
-            {playoffRounds.length > 0 && (
-              <section className="playoff-bracket" aria-label="Сетка плей-офф">
-                {playoffRounds.map(([round, matches], roundIndex) => (
-                  <div className="bracket-round" key={round}>
-                    <h4>
-                      {matches.some(
-                        (match) => match.bracket_side === "grand_final",
-                      )
-                        ? "Гранд-финал"
-                        : `Раунд ${round || roundIndex + 1}`}
-                    </h4>
-                    <div>
-                      {matches.map((match) => (
-                        <article className="bracket-match" key={match.id}>
-                          <small>
-                            {{
-                              upper: "Верхняя сетка",
-                              lower: "Нижняя сетка",
-                              grand_final: "Гранд-финал",
-                              group: "Группы",
-                            }[match.bracket_side ?? "group"]}
-                          </small>
-                          <div>
-                            <strong>{match.team_a}</strong>
-                            <b>
-                              {match.team_a_result_label ??
-                                match.team_a_score ??
-                                "—"}
-                            </b>
-                          </div>
-                          <div>
-                            <strong>{match.team_b}</strong>
-                            <b>
-                              {match.team_b_result_label ??
-                                match.team_b_score ??
-                                "—"}
-                            </b>
-                          </div>
-                          <span>BO{match.best_of}</span>
-                          {match.decision_note && (
-                            <p>{match.decision_note}</p>
-                          )}
-                        </article>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </section>
-            )}
             <div className="matches-list">
               {data.matches.map((match) => (
                 <article className="match-row" key={match.id}>
@@ -1295,11 +1234,20 @@ export default function Home() {
                   </div>
                   <div className="match-team second"><strong>{match.team_b}</strong><i>{initials(match.team_b)}</i></div>
                   <span className="best-of">BO{match.best_of}</span>
-                  <span className="checkin-state">
-                    {match.team_a_checked_in ? "A ✓" : "A —"} ·{" "}
-                    {match.team_b_checked_in ? "B ✓" : "B —"}
-                  </span>
+                  {!isPast && (
+                    <span className="checkin-state">
+                      {match.team_a_checked_in || match.team_b_checked_in
+                        ? `Готовы: ${[
+                            match.team_a_checked_in ? match.team_a : "",
+                            match.team_b_checked_in ? match.team_b : "",
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}`
+                        : "Готовность ожидается"}
+                    </span>
+                  )}
                   {data.user &&
+                    !isPast &&
                     match.status === "scheduled" &&
                     ((match.team_a_application_id !== null &&
                       captainApplicationIds.has(
@@ -1325,14 +1273,16 @@ export default function Home() {
           </div>
         )}
 
-        {activeTab === "standings" && (
+        {activeTab === "groups" && (
           <div className="tab-panel">
             <div className="panel-heading">
               <div>
                 <p className="card-kicker">Групповой этап</p>
                 <h3>Турнирное положение</h3>
               </div>
-              <span className="timezone">Победа · 3 очка</span>
+              <span className="timezone">
+                Место определяется по выигранным картам
+              </span>
             </div>
             <div className="standings-groups">
               {standingGroups.map(([groupName, rows]) => (
@@ -1340,13 +1290,17 @@ export default function Home() {
                   <h4>{groupName}</h4>
                   <div className="standings">
                     <div className="standing-row standing-head">
-                      <span>#</span><span>Команда</span><span>И</span><span>В</span><span>П</span><span>Очки</span>
+                      <span>#</span>
+                      <span>Команда</span>
+                      <span>Матчи</span>
+                      <span>Выиграно карт</span>
                     </div>
                     {rows.map((row) => (
                       <div className="standing-row" key={row.id}>
                         <span className="place">{row.place}</span>
                         <span className="standing-team"><i>{initials(row.team_name)}</i><strong>{row.team_name}</strong></span>
-                        <span>{row.games}</span><span>{row.wins}</span><span>{row.losses}</span><strong>{row.points}</strong>
+                        <span>{row.games}</span>
+                        <strong>{row.maps_won}</strong>
                       </div>
                     ))}
                   </div>
@@ -1359,12 +1313,33 @@ export default function Home() {
           </div>
         )}
 
+        {activeTab === "playoffs" && (
+          <div className="tab-panel">
+            <div className="panel-heading">
+              <div>
+                <p className="card-kicker">Плей-офф</p>
+                <h3>Турнирная сетка</h3>
+              </div>
+              <span className="timezone">
+                Наведите на команду, чтобы увидеть её путь
+              </span>
+            </div>
+            <TournamentBracket
+              matches={data.matches.filter(
+                (match) =>
+                  match.bracket_side !== null &&
+                  match.bracket_side !== "group",
+              )}
+            />
+          </div>
+        )}
+
         {activeTab === "rules" && (
           <div className="tab-panel rules-panel">
             <div className="panel-heading">
               <div>
                 <p className="card-kicker">Документы турнира</p>
-                <h3>Дополнительный регламент</h3>
+                <h3>Дополнительные правила</h3>
               </div>
               <span className="timezone">{data.rules.length} пунктов</span>
             </div>
@@ -1373,6 +1348,11 @@ export default function Home() {
                 <li key={rule.id}>{rule.rule_text}</li>
               ))}
             </ol>
+            {!data.rules.length && (
+              <div className="empty-standings">
+                Дополнительные правила для этого турнира не указаны
+              </div>
+            )}
           </div>
         )}
 
@@ -1492,129 +1472,14 @@ export default function Home() {
               </div>
             </form>
 
-            <form
-              className="applications-panel tournament-content-editor"
-              onSubmit={saveTournamentContent}
-            >
-              <div className="editor-heading">
-                <div>
-                  <p className="card-kicker">Содержание турнира</p>
-                  <h3>Регламент и призовые</h3>
-                  <p>
-                    Каждый пункт регламента вводится с новой строки. Призовые
-                    можно оставить без суммы, если в архиве она не указана.
-                  </p>
-                </div>
-                <button type="submit">Сохранить</button>
-              </div>
-              <label className="content-rules-field">
-                <span>Дополнительные правила</span>
-                <textarea
-                  rows={12}
-                  value={rulesText}
-                  onChange={(event) => setRulesText(event.target.value)}
-                  placeholder={"Первый пункт регламента\nВторой пункт регламента"}
-                />
-              </label>
-              <div className="prize-admin-list">
-                {prizeDrafts.map((prize, index) => (
-                  <div className="prize-admin-row" key={`${prize.placement}-${index}`}>
-                    <label>
-                      <span>Место</span>
-                      <input
-                        type="number"
-                        min="1"
-                        max="64"
-                        value={prize.placement}
-                        onChange={(event) =>
-                          setPrizeDrafts((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, placement: Number(event.target.value) }
-                                : item,
-                            ),
-                          )
-                        }
-                      />
-                    </label>
-                    <label>
-                      <span>Команда</span>
-                      <select
-                        value={prize.applicationId ?? ""}
-                        onChange={(event) => {
-                          const applicationId = Number(event.target.value);
-                          const team = data.applications.find(
-                            (application) => application.id === applicationId,
-                          );
-                          setPrizeDrafts((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? {
-                                    ...item,
-                                    applicationId: applicationId || null,
-                                    teamName: team?.team_name ?? "",
-                                  }
-                                : item,
-                            ),
-                          );
-                        }}
-                      >
-                        <option value="">Выберите команду</option>
-                        {data.applications.map((application) => (
-                          <option value={application.id} key={application.id}>
-                            {application.team_name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      <span>Награда</span>
-                      <input
-                        maxLength={160}
-                        value={prize.prizeText}
-                        onChange={(event) =>
-                          setPrizeDrafts((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, prizeText: event.target.value }
-                                : item,
-                            ),
-                          )
-                        }
-                        placeholder="Например: 4 000 ₽"
-                      />
-                    </label>
-                    <button
-                      className="danger"
-                      type="button"
-                      onClick={() =>
-                        setPrizeDrafts((current) =>
-                          current.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() =>
-                    setPrizeDrafts((current) => [
-                      ...current,
-                      {
-                        placement: current.length + 1,
-                        applicationId: null,
-                        teamName: "",
-                        prizeText: "",
-                      },
-                    ])
-                  }
-                >
-                  + Добавить призовое место
-                </button>
-              </div>
-            </form>
+            <TournamentContentEditor
+              key={`${tournament.id}-${tournament.updated_at}`}
+              tournamentId={tournament.id}
+              initialRules={data.rules}
+              initialPrizes={data.prizes}
+              applications={data.applications}
+              onSaved={loadData}
+            />
 
             <section className="applications-panel">
               <div className="editor-heading">
@@ -2081,6 +1946,73 @@ export default function Home() {
                       defaultValue={match.bracket_slot ?? ""}
                       placeholder="Позиция"
                     />
+                    <fieldset className="bracket-link-editor">
+                      <legend>Связи в сетке</legend>
+                      <label>
+                        <span>Победитель проходит в</span>
+                        <select
+                          name="winnerToMatchId"
+                          defaultValue={match.winner_to_match_id ?? ""}
+                        >
+                          <option value="">Не задано</option>
+                          {data.matches
+                            .filter(
+                              (target) =>
+                                target.id !== match.id &&
+                                target.bracket_side !== null &&
+                                target.bracket_side !== "group",
+                            )
+                            .map((target) => (
+                              <option value={target.id} key={target.id}>
+                                {target.stage}: {target.team_a} — {target.team_b}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Сторона</span>
+                        <select
+                          name="winnerToSlot"
+                          defaultValue={match.winner_to_slot ?? ""}
+                        >
+                          <option value="">—</option>
+                          <option value="a">Команда A</option>
+                          <option value="b">Команда B</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Проигравший проходит в</span>
+                        <select
+                          name="loserToMatchId"
+                          defaultValue={match.loser_to_match_id ?? ""}
+                        >
+                          <option value="">Не задано</option>
+                          {data.matches
+                            .filter(
+                              (target) =>
+                                target.id !== match.id &&
+                                target.bracket_side !== null &&
+                                target.bracket_side !== "group",
+                            )
+                            .map((target) => (
+                              <option value={target.id} key={target.id}>
+                                {target.stage}: {target.team_a} — {target.team_b}
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Сторона</span>
+                        <select
+                          name="loserToSlot"
+                          defaultValue={match.loser_to_slot ?? ""}
+                        >
+                          <option value="">—</option>
+                          <option value="a">Команда A</option>
+                          <option value="b">Команда B</option>
+                        </select>
+                      </label>
+                    </fieldset>
                     <textarea
                       name="decisionNote"
                       defaultValue={match.decision_note ?? ""}

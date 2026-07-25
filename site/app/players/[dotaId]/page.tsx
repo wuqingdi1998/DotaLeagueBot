@@ -17,6 +17,7 @@ import {
   tournamentResultLabel,
 } from "@/lib/player-profile";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
+import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
 
   return (
     <PlatformShell user={user}>
-      <section className="player-profile-hero">
+      <section
+        className={`player-profile-hero profile-background-${profile.backgroundKey}`}
+      >
         <div className="player-profile-identity">
           {profile.avatarUrl ? (
             <Image
@@ -148,7 +151,30 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               <span className="public-profile-dota-id">
                 Dota ID {profile.dotaId}
               </span>
+              {profile.subscriptionRole && (
+                <span
+                  className="profile-subscription-role"
+                  style={
+                    profile.subscriptionRoleColor
+                      ? {
+                          "--role-color": `#${profile.subscriptionRoleColor
+                            .toString(16)
+                            .padStart(6, "0")}`,
+                        } as React.CSSProperties
+                      : undefined
+                  }
+                >
+                  {profile.subscriptionRole}
+                </span>
+              )}
             </div>
+            {user?.dotaId === profile.dotaId &&
+              profile.canCustomizeBackground && (
+                <ProfileBackgroundPicker
+                  dotaId={profile.dotaId}
+                  currentKey={profile.backgroundKey}
+                />
+              )}
           </div>
         </div>
         <div className="profile-stat-grid">
@@ -254,9 +280,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 </div>
               ))}
             </div>
-            <p className="profile-card-note">
-              Правила и полный «Зал славы» будут добавлены отдельным разделом.
-            </p>
+            <Link className="profile-card-link" href="/hall-of-fame">
+              Открыть полный медальный зачёт <FiArrowRight aria-hidden="true" />
+            </Link>
           </section>
 
           <section className="profile-side-card last-tournament-card">

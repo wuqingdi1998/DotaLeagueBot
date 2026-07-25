@@ -2,6 +2,9 @@ import os
 import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
+from sqlalchemy import text
+
+from database.core import async_session
 
 load_dotenv()
 
@@ -38,6 +41,106 @@ class Boosty(commands.Cog):
 
     def _enabled(self) -> bool:
         return bool(GRANT_ROLE_ID and SUBSCRIPTION_ROLE_IDS)
+
+    async def _store_member_subscription_roles(
+        self,
+        member: discord.Member,
+    ) -> None:
+        async with async_session() as session:
+            registered = await session.execute(
+                text("SELECT 1 FROM players WHERE discord_id = :player_id"),
+                {"player_id": member.id},
+            )
+            if registered.scalar_one_or_none() is None:
+                return
+
+            await session.execute(
+                text(
+                    "DELETE FROM player_discord_roles "
+                    "WHERE player_id = :player_id"
+                ),
+                {"player_id": member.id},
+            )
+            rows = [
+                {
+                    "player_id": member.id,
+                    "role_id": role.id,
+                    "role_name": role.name,
+                    "role_color": role.color.value,
+                }
+                for role in member.roles
+                if role.id in SUBSCRIPTION_ROLE_IDS
+            ]
+            if rows:
+                await session.execute(
+                    text(
+                        """
+                        INSERT INTO player_discord_roles (
+                            player_id, role_id, role_name, role_color, synced_at
+                        )
+                        VALUES (
+                            :player_id, :role_id, :role_name, :role_color, NOW()
+                        )
+                        ON CONFLICT (player_id, role_id) DO UPDATE
+                        SET role_name = EXCLUDED.role_name,
+                            role_color = EXCLUDED.role_color,
+                            synced_at = NOW()
+                        """
+                    ),
+                    rows,
+                )
+            await session.commit()
+
+    async def _store_guild_subscription_roles(
+        self,
+        guild: discord.Guild,
+    ) -> None:
+        async with async_session() as session:
+            registered_result = await session.execute(
+                text("SELECT discord_id FROM players")
+            )
+            registered_ids = {row[0] for row in registered_result.all()}
+            members = [
+                member
+                for member in guild.members
+                if not member.bot and member.id in registered_ids
+            ]
+            await session.execute(
+                text(
+                    "DELETE FROM player_discord_roles "
+                    "WHERE player_id IN (SELECT discord_id FROM players)"
+                )
+            )
+            rows = [
+                {
+                    "player_id": member.id,
+                    "role_id": role.id,
+                    "role_name": role.name,
+                    "role_color": role.color.value,
+                }
+                for member in members
+                for role in member.roles
+                if role.id in SUBSCRIPTION_ROLE_IDS
+            ]
+            if rows:
+                await session.execute(
+                    text(
+                        """
+                        INSERT INTO player_discord_roles (
+                            player_id, role_id, role_name, role_color, synced_at
+                        )
+                        VALUES (
+                            :player_id, :role_id, :role_name, :role_color, NOW()
+                        )
+                        ON CONFLICT (player_id, role_id) DO UPDATE
+                        SET role_name = EXCLUDED.role_name,
+                            role_color = EXCLUDED.role_color,
+                            synced_at = NOW()
+                        """
+                    ),
+                    rows,
+                )
+            await session.commit()
 
     async def _sync_member(self, member: discord.Member, grant_role: discord.Role) -> str | None:
         """Returns 'added', 'removed', or None."""
@@ -84,6 +187,7 @@ class Boosty(commands.Cog):
                         added += 1
                     elif result == "removed":
                         removed += 1
+                await self._store_guild_subscription_roles(guild)
                 if added or removed:
                     print(f"[BOOSTY] Guild {guild.id}: +{added} / -{removed} grant-role changes")
         except Exception as e:
@@ -114,6 +218,7 @@ class Boosty(commands.Cog):
             return
 
         await self._sync_member(after, grant_role)
+        await self._store_member_subscription_roles(after)
 
 
 async def setup(bot):

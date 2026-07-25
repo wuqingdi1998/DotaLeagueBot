@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   buildPlayerLinks,
+  customizableSubscriptionRoleNames,
   normalizeDotaAccountId,
+  profileBackgroundKeys,
+  subscriptionRoleNames,
   tournamentResultLabel,
 } from "./player-profile";
 
@@ -28,5 +31,20 @@ describe("public player profile", () => {
     expect(tournamentResultLabel(null, null, "archived")).toBe(
       "Результат пока не указан",
     );
+  });
+
+  it("allows every colored rune except the water rune to customize a profile", () => {
+    expect(subscriptionRoleNames).toContain("Руна Воды");
+    expect(customizableSubscriptionRoleNames).not.toContain("Руна Воды");
+    expect(customizableSubscriptionRoleNames).toHaveLength(6);
+    expect(profileBackgroundKeys).toEqual([
+      "default",
+      "regeneration",
+      "haste",
+      "invisibility",
+      "arcane",
+      "illusion",
+      "damage",
+    ]);
   });
 });
