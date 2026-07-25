@@ -6,17 +6,18 @@ export const dynamic = "force-dynamic";
 type TournamentRow = Record<string, unknown> & { id: number };
 type MemberRow = {
   application_id: number;
-  player_id: string;
-  dota_id: string;
+  player_id: string | null;
+  dota_id: string | null;
   ingame_name: string;
   role: string;
   is_captain: boolean;
   invitation_status: string;
+  tier_snapshot: number | null;
 };
 
 type ApplicationRow = Record<string, unknown> & {
   id: number;
-  captain_name: string;
+  captain_name: string | null;
 };
 
 function publicApplication(
@@ -50,6 +51,7 @@ function publicApplication(
       role: member.role,
       is_captain: member.is_captain,
       invitation_status: member.invitation_status,
+      tier_snapshot: member.tier_snapshot,
     })),
   };
 }
@@ -104,15 +106,25 @@ export async function GET(request: Request) {
     : user
       ? [tournament.id, user.discordId]
       : [tournament.id];
-  const [applications, members, matches, standings, groups, invitations] =
+  const [
+    applications,
+    members,
+    matches,
+    standings,
+    groups,
+    invitations,
+    rules,
+    prizes,
+  ] =
     await Promise.all([
       query<ApplicationRow>(
         `SELECT a.id::int, a.tournament_id::int, a.team_name, a.tag,
            a.contact, a.logo_key, a.status, a.created_at,
+           a.selection_method, a.team_tier_total_snapshot,
            result.placement::int, result.result_label,
-           captain.ingame_name AS captain_name
+           COALESCE(captain.ingame_name, a.captain_name_snapshot) AS captain_name
          FROM tournament_team_applications a
-         JOIN players captain ON captain.discord_id = a.captain_discord_id
+         LEFT JOIN players captain ON captain.discord_id = a.captain_discord_id
          LEFT JOIN tournament_team_results result
            ON result.application_id = a.id
          WHERE a.tournament_id = $1 ${visibility}
@@ -120,15 +132,40 @@ export async function GET(request: Request) {
         visibilityValues,
       ),
       query<MemberRow>(
-        `SELECT m.application_id::int, m.player_id::text,
-           p.steam_id32::text AS dota_id, p.ingame_name,
-           m.role, m.is_captain, m.invitation_status
-         FROM tournament_team_members m
-         JOIN players p ON p.discord_id = m.player_id
-         JOIN tournament_team_applications a ON a.id = m.application_id
-         WHERE a.tournament_id = $1
-           ${visibility}
-         ORDER BY m.application_id, m.is_captain DESC, m.role`,
+        `WITH visible_applications AS (
+           SELECT a.*
+           FROM tournament_team_applications a
+           WHERE a.tournament_id = $1 ${visibility}
+         ),
+         roster AS (
+           SELECT m.application_id, m.player_id, p.steam_id32 AS dota_id,
+             p.ingame_name, m.role, m.is_captain, m.invitation_status,
+             NULL::smallint AS tier_snapshot, 0 AS source_order
+           FROM tournament_team_members m
+           JOIN players p ON p.discord_id = m.player_id
+           JOIN visible_applications a ON a.id = m.application_id
+           UNION ALL
+           SELECT snapshot.application_id, snapshot.player_id,
+             p.steam_id32 AS dota_id, snapshot.nickname_snapshot AS ingame_name,
+             snapshot.role, snapshot.is_captain, 'accepted' AS invitation_status,
+             snapshot.tier_snapshot, 1 AS source_order
+           FROM tournament_roster_snapshots snapshot
+           JOIN visible_applications a ON a.id = snapshot.application_id
+           LEFT JOIN players p ON p.discord_id = snapshot.player_id
+           WHERE NOT EXISTS (
+             SELECT 1 FROM tournament_team_members live
+             WHERE live.application_id = snapshot.application_id
+           )
+         )
+         SELECT application_id::int, player_id::text, dota_id::text,
+           ingame_name, role, is_captain, invitation_status,
+           tier_snapshot::int
+         FROM roster
+         ORDER BY application_id,
+           CASE role
+             WHEN 'safe_lane' THEN 1 WHEN 'mid_lane' THEN 2
+             WHEN 'off_lane' THEN 3 WHEN 'soft_support' THEN 4 ELSE 5
+           END`,
         visibilityValues,
       ),
       query<Record<string, unknown>>(
@@ -137,6 +174,8 @@ export async function GET(request: Request) {
            COALESCE(a.team_name, m.team_a_placeholder) AS team_a,
            COALESCE(b.team_name, m.team_b_placeholder) AS team_b,
            m.team_a_score, m.team_b_score, m.best_of, m.sort_order, m.status,
+           m.result_type, m.team_a_result_label, m.team_b_result_label,
+           m.decision_note, m.bracket_round, m.bracket_side, m.bracket_slot,
            EXISTS (
              SELECT 1 FROM tournament_match_checkins c
              WHERE c.match_id = m.id AND c.application_id = m.team_a_application_id
@@ -217,6 +256,25 @@ export async function GET(request: Request) {
             [user.discordId],
           )
         : Promise.resolve([]),
+      query<Record<string, unknown>>(
+        `SELECT id::int, tournament_id::int, sort_order, rule_text
+         FROM tournament_rules
+         WHERE tournament_id = $1
+         ORDER BY sort_order, id`,
+        [tournament.id],
+      ),
+      query<Record<string, unknown>>(
+        `SELECT prize.id::int, prize.tournament_id::int, prize.placement::int,
+           prize.application_id::int,
+           COALESCE(application.team_name, prize.team_name_snapshot) AS team_name,
+           prize.prize_text
+         FROM tournament_prizes prize
+         LEFT JOIN tournament_team_applications application
+           ON application.id = prize.application_id
+         WHERE prize.tournament_id = $1
+         ORDER BY prize.placement, prize.id`,
+        [tournament.id],
+      ),
     ]);
 
   const membersByApplication = new Map<number, MemberRow[]>();
@@ -238,6 +296,8 @@ export async function GET(request: Request) {
     matches,
     standings,
     groups,
+    rules,
+    prizes,
     user,
     invitations,
   });

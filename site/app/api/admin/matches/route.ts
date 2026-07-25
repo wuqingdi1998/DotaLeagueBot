@@ -16,6 +16,13 @@ type MatchBody = {
   bestOf?: number;
   status?: string;
   sortOrder?: number;
+  resultType?: "normal" | "technical" | "forfeit" | "cancelled";
+  teamAResultLabel?: string | null;
+  teamBResultLabel?: string | null;
+  decisionNote?: string | null;
+  bracketRound?: number | null;
+  bracketSide?: "group" | "upper" | "lower" | "grand_final" | null;
+  bracketSlot?: number | null;
 };
 
 function validMatch(body: MatchBody): string {
@@ -47,8 +54,9 @@ export async function POST(request: Request) {
         `INSERT INTO tournament_matches (
           tournament_id, group_id, scheduled_at, stage,
           team_a_application_id, team_b_application_id,
-          team_a_placeholder, team_b_placeholder, best_of, sort_order
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+          team_a_placeholder, team_b_placeholder, best_of, sort_order,
+          result_type, bracket_round, bracket_side, bracket_slot
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
         RETURNING id::int`,
         [
           body.tournamentId,
@@ -61,6 +69,10 @@ export async function POST(request: Request) {
           body.teamBPlaceholder?.trim() || null,
           body.bestOf,
           body.sortOrder ?? 0,
+          body.resultType ?? "normal",
+          body.bracketRound ?? null,
+          body.bracketSide ?? null,
+          body.bracketSlot ?? null,
         ],
       );
       const id = result.rows[0].id;
@@ -98,8 +110,13 @@ export async function PATCH(request: Request) {
     if (!allowedStatuses.includes(body.status)) {
       return Response.json({ error: "Некорректный статус" }, { status: 400 });
     }
+    const allowedResultTypes = ["normal", "technical", "forfeit", "cancelled"];
+    if (!allowedResultTypes.includes(body.resultType ?? "normal")) {
+      return Response.json({ error: "Некорректный тип результата" }, { status: 400 });
+    }
     if (
       body.status === "finished" &&
+      (body.resultType ?? "normal") === "normal" &&
       (!Number.isInteger(body.teamAScore) || !Number.isInteger(body.teamBScore))
     ) {
       return Response.json(
@@ -107,15 +124,36 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    if (
+      body.status === "finished" &&
+      (body.resultType ?? "normal") !== "normal" &&
+      (!body.teamAResultLabel?.trim() || !body.teamBResultLabel?.trim())
+    ) {
+      return Response.json(
+        { error: "Для технического результата укажите обозначения обеих команд" },
+        { status: 400 },
+      );
+    }
     const updated = await query<{ tournament_id: number }>(
       `UPDATE tournament_matches
-       SET team_a_score = $1, team_b_score = $2, status = $3, updated_at = NOW()
-       WHERE id = $4
+       SET team_a_score = $1, team_b_score = $2, status = $3,
+         result_type = $4, team_a_result_label = $5,
+         team_b_result_label = $6, decision_note = $7,
+         bracket_round = $8, bracket_side = $9, bracket_slot = $10,
+         updated_at = NOW()
+       WHERE id = $11
        RETURNING tournament_id::int`,
       [
         body.teamAScore ?? null,
         body.teamBScore ?? null,
         body.status,
+        body.resultType ?? "normal",
+        body.teamAResultLabel?.trim() || null,
+        body.teamBResultLabel?.trim() || null,
+        body.decisionNote?.trim() || null,
+        body.bracketRound ?? null,
+        body.bracketSide ?? null,
+        body.bracketSlot ?? null,
         body.id,
       ],
     );
@@ -134,6 +172,10 @@ export async function PATCH(request: Request) {
           status: body.status,
           teamAScore: body.teamAScore,
           teamBScore: body.teamBScore,
+          resultType: body.resultType ?? "normal",
+          teamAResultLabel: body.teamAResultLabel,
+          teamBResultLabel: body.teamBResultLabel,
+          decisionNote: body.decisionNote,
         }),
       ],
     );

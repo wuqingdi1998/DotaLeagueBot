@@ -9,6 +9,7 @@ import { FiArrowRight, FiArrowUpRight, FiMoon, FiSun, FiUploadCloud } from "reac
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { isPastTournament } from "@/lib/tournaments";
 import { OrganizerAccess } from "../OrganizerAccess";
+import { ArchiveRosterEditor } from "./ArchiveRosterEditor";
 
 type PlayerRole =
   | "safe_lane"
@@ -61,17 +62,20 @@ type TeamApplication = {
   player_4_role: PlayerRole;
   player_5_role: PlayerRole;
   logo_key: string | null;
+  selection_method: string;
+  team_tier_total_snapshot: number | null;
   placement: number | null;
   result_label: string | null;
   status: "approved" | "pending" | "awaiting_members" | "declined" | "withdrawn";
   created_at: string;
   members: Array<{
-    discord_id: string;
-    dota_id: string;
+    discord_id: string | null;
+    dota_id: string | null;
     name: string;
     role: PlayerRole;
     is_captain: boolean;
     invitation_status: "invited" | "accepted" | "declined";
+    tier_snapshot: number | null;
   }>;
 };
 
@@ -86,6 +90,13 @@ type Match = {
   team_b_application_id: number | null;
   team_a_score: number | null;
   team_b_score: number | null;
+  result_type: "normal" | "technical" | "forfeit" | "cancelled";
+  team_a_result_label: string | null;
+  team_b_result_label: string | null;
+  decision_note: string | null;
+  bracket_round: number | null;
+  bracket_side: "group" | "upper" | "lower" | "grand_final" | null;
+  bracket_slot: number | null;
   best_of: number;
   sort_order: number;
   status: "scheduled" | "ready" | "live" | "finished" | "cancelled";
@@ -118,6 +129,20 @@ type SiteData = {
   matches: Match[];
   standings: Standing[];
   groups: TournamentGroup[];
+  rules: Array<{
+    id: number;
+    tournament_id: number;
+    sort_order: number;
+    rule_text: string;
+  }>;
+  prizes: Array<{
+    id: number;
+    tournament_id: number;
+    placement: number;
+    application_id: number | null;
+    team_name: string;
+    prize_text: string | null;
+  }>;
   user: {
     discordId: string;
     dotaId: string;
@@ -147,6 +172,9 @@ type MatchDraft = {
   teamAPlaceholder: string;
   teamBPlaceholder: string;
   bestOf: string;
+  bracketSide: string;
+  bracketRound: string;
+  bracketSlot: string;
 };
 
 type RegistrationForm = {
@@ -200,6 +228,9 @@ const emptyMatchDraft: MatchDraft = {
   teamAPlaceholder: "",
   teamBPlaceholder: "",
   bestOf: "1",
+  bracketSide: "",
+  bracketRound: "",
+  bracketSlot: "",
 };
 
 const editableTournamentFields = [
@@ -282,13 +313,14 @@ function getTeamPlayers(team: TeamApplication) {
         role: member.role,
         isCaptain: member.is_captain,
         dotaId: member.dota_id,
+        tier: member.tier_snapshot,
       }))
     : [
-        { name: team.captain, role: team.captain_role, isCaptain: true, dotaId: null },
-        { name: team.player_2, role: team.player_2_role, isCaptain: false, dotaId: null },
-        { name: team.player_3, role: team.player_3_role, isCaptain: false, dotaId: null },
-        { name: team.player_4, role: team.player_4_role, isCaptain: false, dotaId: null },
-        { name: team.player_5, role: team.player_5_role, isCaptain: false, dotaId: null },
+        { name: team.captain, role: team.captain_role, isCaptain: true, dotaId: null, tier: null },
+        { name: team.player_2, role: team.player_2_role, isCaptain: false, dotaId: null, tier: null },
+        { name: team.player_3, role: team.player_3_role, isCaptain: false, dotaId: null, tier: null },
+        { name: team.player_4, role: team.player_4_role, isCaptain: false, dotaId: null, tier: null },
+        { name: team.player_5, role: team.player_5_role, isCaptain: false, dotaId: null, tier: null },
       ];
 
   return players.sort(
@@ -366,6 +398,15 @@ export default function Home() {
   const [captainChoices, setCaptainChoices] = useState<Record<number, string>>(
     {},
   );
+  const [rulesText, setRulesText] = useState("");
+  const [prizeDrafts, setPrizeDrafts] = useState<
+    Array<{
+      placement: number;
+      applicationId: number | null;
+      teamName: string;
+      prizeText: string;
+    }>
+  >([]);
 
   const loadData = useCallback(async () => {
     try {
@@ -384,6 +425,15 @@ export default function Home() {
       setData(nextData);
       setAdminMode(Boolean(nextData.user?.isAdmin));
       setTournamentDraft(nextData.tournament);
+      setRulesText(nextData.rules.map((rule) => rule.rule_text).join("\n"));
+      setPrizeDrafts(
+        nextData.prizes.map((prize) => ({
+          placement: prize.placement,
+          applicationId: prize.application_id,
+          teamName: prize.team_name,
+          prizeText: prize.prize_text ?? "",
+        })),
+      );
       if (nextData.user?.isAdmin && searchParams.get("manage") === "1") {
         setActiveTab("admin");
       }
@@ -673,6 +723,13 @@ export default function Home() {
         teamAPlaceholder: matchDraft.teamAPlaceholder || null,
         teamBPlaceholder: matchDraft.teamBPlaceholder || null,
         bestOf: Number(matchDraft.bestOf),
+        bracketSide: matchDraft.bracketSide || null,
+        bracketRound: matchDraft.bracketRound
+          ? Number(matchDraft.bracketRound)
+          : null,
+        bracketSlot: matchDraft.bracketSlot
+          ? Number(matchDraft.bracketSlot)
+          : null,
         sortOrder: data?.matches.length ?? 0,
       }),
     });
@@ -690,14 +747,25 @@ export default function Home() {
   ) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
+    const rawTeamAScore = String(form.get("teamAScore") ?? "").trim();
+    const rawTeamBScore = String(form.get("teamBScore") ?? "").trim();
+    const rawBracketRound = String(form.get("bracketRound") ?? "").trim();
+    const rawBracketSlot = String(form.get("bracketSlot") ?? "").trim();
     const response = await fetch("/api/admin/matches", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         id: match.id,
         status: String(form.get("status")),
-        teamAScore: Number(form.get("teamAScore")),
-        teamBScore: Number(form.get("teamBScore")),
+        teamAScore: rawTeamAScore ? Number(rawTeamAScore) : null,
+        teamBScore: rawTeamBScore ? Number(rawTeamBScore) : null,
+        resultType: String(form.get("resultType")),
+        teamAResultLabel: String(form.get("teamAResultLabel") ?? "").trim() || null,
+        teamBResultLabel: String(form.get("teamBResultLabel") ?? "").trim() || null,
+        decisionNote: String(form.get("decisionNote") ?? "").trim() || null,
+        bracketRound: rawBracketRound ? Number(rawBracketRound) : null,
+        bracketSide: String(form.get("bracketSide") ?? "").trim() || null,
+        bracketSlot: rawBracketSlot ? Number(rawBracketSlot) : null,
       }),
     });
     const result = (await response.json()) as { error?: string };
@@ -728,6 +796,34 @@ export default function Home() {
       response.ok
         ? "Итог команды сохранён"
         : result.error ?? "Не удалось сохранить итог команды",
+    );
+    if (response.ok) await loadData();
+  }
+
+  async function saveTournamentContent(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const response = await fetch("/api/admin/tournament-content", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        tournamentId: tournament.id,
+        rules: rulesText
+          .split("\n")
+          .map((rule) => rule.trim())
+          .filter(Boolean),
+        prizes: prizeDrafts.map((prize) => ({
+          placement: prize.placement,
+          applicationId: prize.applicationId,
+          teamName: prize.teamName,
+          prizeText: prize.prizeText,
+        })),
+      }),
+    });
+    const result = (await response.json()) as { error?: string };
+    setToast(
+      response.ok
+        ? "Регламент и призовые сохранены"
+        : result.error ?? "Не удалось сохранить данные турнира",
     );
     if (response.ok) await loadData();
   }
@@ -956,6 +1052,7 @@ export default function Home() {
             ["teams", `Команды ${approvedTeams.length}/${tournament.max_teams}`],
             ["matches", "Матчи"],
             ["standings", "Таблица"],
+            ...(data.rules.length ? [["rules", "Регламент"]] : []),
             ...(adminMode ? [["admin", `Управление${pendingTeams.length ? ` · ${pendingTeams.length}` : ""}`]] : []),
           ].map(([id, label]) => (
             <button
@@ -1011,6 +1108,21 @@ export default function Home() {
                 Задать вопрос в Discord <FiArrowUpRight />
               </a>
             </aside>
+            {data.prizes.length > 0 && (
+              <article className="content-card tournament-prizes">
+                <p className="card-kicker">Призовые места</p>
+                <h3>Итоги и награды</h3>
+                <div className="prize-list">
+                  {data.prizes.map((prize) => (
+                    <div key={prize.id}>
+                      <strong>{prize.placement}</strong>
+                      <span>{prize.team_name}</span>
+                      <b>{prize.prize_text || "—"}</b>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            )}
           </div>
         )}
 
@@ -1053,6 +1165,12 @@ export default function Home() {
                   </div>
                   <p className="team-tag">{team.tag}</p>
                   <h3>{team.team_name}</h3>
+                  <div className="team-archive-meta">
+                    <span>{team.selection_method}</span>
+                    {team.team_tier_total_snapshot !== null && (
+                      <span>Тир команды: {team.team_tier_total_snapshot}</span>
+                    )}
+                  </div>
                   {(team.result_label || team.placement) && (
                     <div className="team-result-badge">
                       {team.result_label || `${team.placement}-е место`}
@@ -1074,6 +1192,9 @@ export default function Home() {
                         )}
                         {player.isCaptain && (
                           <small className="captain-badge"><FaCrown aria-hidden="true" /> капитан</small>
+                        )}
+                        {player.tier !== null && (
+                          <small className="player-tier">тир {player.tier}</small>
                         )}
                       </li>
                     ))}
@@ -1107,12 +1228,27 @@ export default function Home() {
                     <strong>{formatTime(match.scheduled_at)}</strong>
                     <span>{formatDayMonth(match.scheduled_at)}</span>
                   </div>
-                  <div className="match-stage">{match.stage}</div>
+                  <div className="match-stage">
+                    {match.stage}
+                    {match.bracket_side && (
+                      <small>
+                        {{
+                          group: "Группы",
+                          upper: "Верхняя сетка",
+                          lower: "Нижняя сетка",
+                          grand_final: "Гранд-финал",
+                        }[match.bracket_side]}
+                        {match.bracket_round ? ` · раунд ${match.bracket_round}` : ""}
+                      </small>
+                    )}
+                  </div>
                   <div className="match-team first"><i>{initials(match.team_a)}</i><strong>{match.team_a}</strong></div>
                   <div className="match-score">
-                    {match.team_a_score === null ? "—" : match.team_a_score}
+                    {match.team_a_result_label ??
+                      (match.team_a_score === null ? "—" : match.team_a_score)}
                     <span>:</span>
-                    {match.team_b_score === null ? "—" : match.team_b_score}
+                    {match.team_b_result_label ??
+                      (match.team_b_score === null ? "—" : match.team_b_score)}
                   </div>
                   <div className="match-team second"><strong>{match.team_b}</strong><i>{initials(match.team_b)}</i></div>
                   <span className="best-of">BO{match.best_of}</span>
@@ -1136,6 +1272,9 @@ export default function Home() {
                     >
                       Check-in
                     </button>
+                  )}
+                  {match.decision_note && (
+                    <p className="match-decision-note">{match.decision_note}</p>
                   )}
                 </article>
               ))}
@@ -1174,6 +1313,23 @@ export default function Home() {
                 <div className="empty-standings">Группы ещё не сформированы</div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === "rules" && (
+          <div className="tab-panel rules-panel">
+            <div className="panel-heading">
+              <div>
+                <p className="card-kicker">Документы турнира</p>
+                <h3>Дополнительный регламент</h3>
+              </div>
+              <span className="timezone">{data.rules.length} пунктов</span>
+            </div>
+            <ol className="tournament-rules-list">
+              {data.rules.map((rule) => (
+                <li key={rule.id}>{rule.rule_text}</li>
+              ))}
+            </ol>
           </div>
         )}
 
@@ -1293,6 +1449,130 @@ export default function Home() {
               </div>
             </form>
 
+            <form
+              className="applications-panel tournament-content-editor"
+              onSubmit={saveTournamentContent}
+            >
+              <div className="editor-heading">
+                <div>
+                  <p className="card-kicker">Содержание турнира</p>
+                  <h3>Регламент и призовые</h3>
+                  <p>
+                    Каждый пункт регламента вводится с новой строки. Призовые
+                    можно оставить без суммы, если в архиве она не указана.
+                  </p>
+                </div>
+                <button type="submit">Сохранить</button>
+              </div>
+              <label className="content-rules-field">
+                <span>Дополнительные правила</span>
+                <textarea
+                  rows={12}
+                  value={rulesText}
+                  onChange={(event) => setRulesText(event.target.value)}
+                  placeholder={"Первый пункт регламента\nВторой пункт регламента"}
+                />
+              </label>
+              <div className="prize-admin-list">
+                {prizeDrafts.map((prize, index) => (
+                  <div className="prize-admin-row" key={`${prize.placement}-${index}`}>
+                    <label>
+                      <span>Место</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="64"
+                        value={prize.placement}
+                        onChange={(event) =>
+                          setPrizeDrafts((current) =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, placement: Number(event.target.value) }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
+                    </label>
+                    <label>
+                      <span>Команда</span>
+                      <select
+                        value={prize.applicationId ?? ""}
+                        onChange={(event) => {
+                          const applicationId = Number(event.target.value);
+                          const team = data.applications.find(
+                            (application) => application.id === applicationId,
+                          );
+                          setPrizeDrafts((current) =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? {
+                                    ...item,
+                                    applicationId: applicationId || null,
+                                    teamName: team?.team_name ?? "",
+                                  }
+                                : item,
+                            ),
+                          );
+                        }}
+                      >
+                        <option value="">Выберите команду</option>
+                        {data.applications.map((application) => (
+                          <option value={application.id} key={application.id}>
+                            {application.team_name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      <span>Награда</span>
+                      <input
+                        maxLength={160}
+                        value={prize.prizeText}
+                        onChange={(event) =>
+                          setPrizeDrafts((current) =>
+                            current.map((item, itemIndex) =>
+                              itemIndex === index
+                                ? { ...item, prizeText: event.target.value }
+                                : item,
+                            ),
+                          )
+                        }
+                        placeholder="Например: 4 000 ₽"
+                      />
+                    </label>
+                    <button
+                      className="danger"
+                      type="button"
+                      onClick={() =>
+                        setPrizeDrafts((current) =>
+                          current.filter((_, itemIndex) => itemIndex !== index),
+                        )
+                      }
+                    >
+                      Удалить
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPrizeDrafts((current) => [
+                      ...current,
+                      {
+                        placement: current.length + 1,
+                        applicationId: null,
+                        teamName: "",
+                        prizeText: "",
+                      },
+                    ])
+                  }
+                >
+                  + Добавить призовое место
+                </button>
+              </div>
+            </form>
+
             <section className="applications-panel">
               <div className="editor-heading">
                 <div>
@@ -1343,6 +1623,42 @@ export default function Home() {
                   </article>
                 ))}
               </div>
+            </section>
+
+            <section className="applications-panel archive-rosters-admin">
+              <div className="editor-heading">
+                <div>
+                  <p className="card-kicker">Архивные данные</p>
+                  <h3>Составы и исторические тиры</h3>
+                  <p>
+                    Никнейм связывается с профилем автоматически при точном
+                    совпадении. Если профиль не найден, имя останется обычным
+                    текстом. Указанные здесь тиры навсегда относятся именно к
+                    этому турниру.
+                  </p>
+                </div>
+              </div>
+              <details>
+                <summary>Добавить архивную команду</summary>
+                <ArchiveRosterEditor
+                  tournamentId={tournament.id}
+                  onSaved={loadData}
+                  onMessage={setToast}
+                />
+              </details>
+              {data.applications.map((application) => (
+                <details key={application.id}>
+                  <summary>
+                    {application.team_name} · {application.selection_method}
+                  </summary>
+                  <ArchiveRosterEditor
+                    tournamentId={tournament.id}
+                    team={application}
+                    onSaved={loadData}
+                    onMessage={setToast}
+                  />
+                </details>
+              ))}
             </section>
 
             <section className="applications-panel team-results-admin">
@@ -1469,6 +1785,52 @@ export default function Home() {
                   </select>
                 </label>
                 <label>
+                  <span>Секция сетки</span>
+                  <select
+                    value={matchDraft.bracketSide}
+                    onChange={(event) =>
+                      setMatchDraft({
+                        ...matchDraft,
+                        bracketSide: event.target.value,
+                      })
+                    }
+                  >
+                    <option value="">Без секции</option>
+                    <option value="group">Групповой этап</option>
+                    <option value="upper">Верхняя сетка</option>
+                    <option value="lower">Нижняя сетка</option>
+                    <option value="grand_final">Гранд-финал</option>
+                  </select>
+                </label>
+                <label>
+                  <span>Раунд сетки</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={matchDraft.bracketRound}
+                    onChange={(event) =>
+                      setMatchDraft({
+                        ...matchDraft,
+                        bracketRound: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
+                  <span>Позиция в раунде</span>
+                  <input
+                    type="number"
+                    min="1"
+                    value={matchDraft.bracketSlot}
+                    onChange={(event) =>
+                      setMatchDraft({
+                        ...matchDraft,
+                        bracketSlot: event.target.value,
+                      })
+                    }
+                  />
+                </label>
+                <label>
                   <span>Команда A</span>
                   <select
                     value={matchDraft.teamAId}
@@ -1558,7 +1920,7 @@ export default function Home() {
                       name="teamAScore"
                       type="number"
                       min="0"
-                      defaultValue={match.team_a_score ?? 0}
+                      defaultValue={match.team_a_score ?? ""}
                     />
                     <span>:</span>
                     <input
@@ -1566,7 +1928,7 @@ export default function Home() {
                       name="teamBScore"
                       type="number"
                       min="0"
-                      defaultValue={match.team_b_score ?? 0}
+                      defaultValue={match.team_b_score ?? ""}
                     />
                     <select name="status" defaultValue={match.status}>
                       <option value="scheduled">Запланирован</option>
@@ -1575,6 +1937,53 @@ export default function Home() {
                       <option value="finished">Завершён</option>
                       <option value="cancelled">Отменён</option>
                     </select>
+                    <select name="resultType" defaultValue={match.result_type}>
+                      <option value="normal">Обычный результат</option>
+                      <option value="technical">Технический результат</option>
+                      <option value="forfeit">Отказ от игры</option>
+                      <option value="cancelled">Матч отменён</option>
+                    </select>
+                    <input
+                      name="teamAResultLabel"
+                      maxLength={20}
+                      defaultValue={match.team_a_result_label ?? ""}
+                      placeholder="A: tw / tl"
+                    />
+                    <input
+                      name="teamBResultLabel"
+                      maxLength={20}
+                      defaultValue={match.team_b_result_label ?? ""}
+                      placeholder="B: tw / tl"
+                    />
+                    <select
+                      name="bracketSide"
+                      defaultValue={match.bracket_side ?? ""}
+                    >
+                      <option value="">Без секции сетки</option>
+                      <option value="group">Групповой этап</option>
+                      <option value="upper">Верхняя сетка</option>
+                      <option value="lower">Нижняя сетка</option>
+                      <option value="grand_final">Гранд-финал</option>
+                    </select>
+                    <input
+                      name="bracketRound"
+                      type="number"
+                      min="1"
+                      defaultValue={match.bracket_round ?? ""}
+                      placeholder="Раунд"
+                    />
+                    <input
+                      name="bracketSlot"
+                      type="number"
+                      min="1"
+                      defaultValue={match.bracket_slot ?? ""}
+                      placeholder="Позиция"
+                    />
+                    <textarea
+                      name="decisionNote"
+                      defaultValue={match.decision_note ?? ""}
+                      placeholder="Комментарий организатора к техническому результату"
+                    />
                     <button type="submit">Сохранить</button>
                   </form>
                 ))}
@@ -1790,12 +2199,13 @@ export default function Home() {
                           .filter(
                             (member) =>
                               !member.is_captain &&
+                              member.discord_id !== null &&
                               member.invitation_status === "accepted",
                           )
                           .map((member) => (
                             <option
-                              value={member.discord_id}
-                              key={member.discord_id}
+                              value={member.discord_id!}
+                              key={member.discord_id!}
                             >
                               {member.name}
                             </option>

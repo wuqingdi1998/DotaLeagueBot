@@ -4092,3 +4092,228 @@ footer button {
     grid-template-columns: 1fr;
   }
 }
+.tournament-prizes {
+  grid-column: 1 / -1;
+}
+
+.prize-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.prize-list > div {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 58px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--panel) 88%, var(--accent));
+}
+
+.prize-list strong {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  color: #061b29;
+  background: var(--accent);
+  font-size: 1.2rem;
+}
+
+.prize-list span,
+.prize-list b {
+  font-size: 1.05rem;
+}
+
+.team-archive-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 6px;
+}
+
+.team-archive-meta span,
+.player-tier {
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.team-card .player-tier {
+  margin-left: auto;
+}
+
+.match-stage small {
+  display: block;
+  margin-top: 4px;
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.match-decision-note {
+  grid-column: 2 / -1;
+  margin: 8px 0 0;
+  padding: 10px 14px;
+  border-left: 3px solid #ffb547;
+  border-radius: 8px;
+  color: var(--text);
+  background: color-mix(in srgb, #ffb547 10%, transparent);
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+
+.rules-panel {
+  max-width: 1100px;
+}
+
+.tournament-rules-list {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: tournament-rules;
+}
+
+.tournament-rules-list li {
+  position: relative;
+  min-height: 62px;
+  padding: 18px 20px 18px 72px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.55;
+  counter-increment: tournament-rules;
+}
+
+.tournament-rules-list li::before {
+  content: counter(tournament-rules);
+  position: absolute;
+  top: 14px;
+  left: 16px;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  color: #061b29;
+  background: var(--accent);
+  font-weight: 800;
+}
+
+.tournament-content-editor,
+.archive-rosters-admin {
+  display: grid;
+  gap: 20px;
+}
+
+.content-rules-field {
+  display: grid;
+  gap: 8px;
+}
+
+.content-rules-field > span,
+.archive-roster-editor label > span,
+.prize-admin-row label > span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.content-rules-field textarea {
+  min-height: 260px;
+}
+
+.prize-admin-list,
+.archive-roster-players {
+  display: grid;
+  gap: 10px;
+}
+
+.prize-admin-row {
+  display: grid;
+  grid-template-columns: 100px minmax(180px, 1fr) minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.prize-admin-row label,
+.archive-roster-team-fields label {
+  display: grid;
+  gap: 7px;
+}
+
+.archive-rosters-admin details {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--panel);
+}
+
+.archive-rosters-admin summary {
+  padding: 16px 18px;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.archive-roster-editor {
+  display: grid;
+  gap: 16px;
+  padding: 0 18px 18px;
+}
+
+.archive-roster-team-fields {
+  display: grid;
+  grid-template-columns: 1.4fr 0.6fr 1fr 0.8fr;
+  gap: 10px;
+}
+
+.archive-player-row {
+  display: grid;
+  grid-template-columns: 150px minmax(180px, 1fr) 90px 110px;
+  align-items: center;
+  gap: 10px;
+}
+
+.archive-captain-choice {
+  display: flex !important;
+  align-items: center;
+  gap: 7px !important;
+  color: var(--text);
+}
+
+.match-result-row textarea {
+  min-height: 46px;
+  grid-column: 1 / -2;
+}
+
+@media (max-width: 820px) {
+  .prize-admin-row,
+  .archive-roster-team-fields,
+  .archive-player-row {
+    grid-template-columns: 1fr;
+  }
+
+  .match-decision-note {
+    grid-column: 1 / -1;
+  }
+
+  .prize-list > div {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .prize-list b {
+    grid-column: 2;
+  }
+}

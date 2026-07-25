@@ -131,7 +131,17 @@ export async function loadPublicPlayerProfile(
 
   const [historyRows, matchStatistics, medalCounts] = await Promise.all([
     query<TournamentHistoryRow>(
-      `SELECT
+      `WITH participations AS (
+         SELECT member.application_id
+         FROM tournament_team_members member
+         WHERE member.player_id = $1
+           AND member.invitation_status = 'accepted'
+         UNION
+         SELECT snapshot.application_id
+         FROM tournament_roster_snapshots snapshot
+         WHERE snapshot.player_id = $1
+       )
+       SELECT
          t.id::int,
          t.slug,
          t.name,
@@ -141,28 +151,33 @@ export async function loadPublicPlayerProfile(
          a.team_name,
          result.placement::int,
          result.result_label
-       FROM tournament_team_members member
+       FROM participations participation
        JOIN tournament_team_applications a
-         ON a.id = member.application_id
+         ON a.id = participation.application_id
        JOIN tournaments t
          ON t.id = a.tournament_id
        LEFT JOIN tournament_team_results result
          ON result.application_id = a.id
-       WHERE member.player_id = $1
-         AND member.invitation_status = 'accepted'
-         AND a.status = 'approved'
+       WHERE a.status = 'approved'
          AND t.status IN ('active', 'finished', 'archived')
        ORDER BY t.end_at DESC, t.start_at DESC, t.id DESC`,
       [player.discord_id],
     ),
     one<{ matches: number; wins: number }>(
       `WITH player_applications AS (
-         SELECT DISTINCT member.application_id
+         SELECT member.application_id
          FROM tournament_team_members member
          JOIN tournament_team_applications application
            ON application.id = member.application_id
          WHERE member.player_id = $1
            AND member.invitation_status = 'accepted'
+           AND application.status = 'approved'
+         UNION
+         SELECT snapshot.application_id
+         FROM tournament_roster_snapshots snapshot
+         JOIN tournament_team_applications application
+           ON application.id = snapshot.application_id
+         WHERE snapshot.player_id = $1
            AND application.status = 'approved'
        )
        SELECT
@@ -171,12 +186,18 @@ export async function loadPublicPlayerProfile(
            WHERE
              (
                played_match.team_a_application_id = application.application_id
-               AND played_match.team_a_score > played_match.team_b_score
+               AND (
+                 played_match.team_a_score > played_match.team_b_score
+                 OR LOWER(played_match.team_a_result_label) = 'tw'
+               )
              )
              OR
              (
                played_match.team_b_application_id = application.application_id
-               AND played_match.team_b_score > played_match.team_a_score
+               AND (
+                 played_match.team_b_score > played_match.team_a_score
+                 OR LOWER(played_match.team_b_result_label) = 'tw'
+               )
              )
          )::int AS wins
        FROM tournament_matches played_match
