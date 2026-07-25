@@ -97,7 +97,7 @@ export default function SetupPage() {
 
   if (!loaded) {
     return (
-      <main className="loading-screen">
+      <main className="loading-screen" data-theme="dark">
         <Image
           src="/linkens-sphere-logo.png"
           alt=""
@@ -113,7 +113,7 @@ export default function SetupPage() {
 
   if (!user) {
     return (
-      <main className="setup-screen">
+      <main className="setup-screen" data-theme="dark">
         <Image
           src="/linkens-sphere-logo.png"
           alt="Linken's Sphere"
@@ -136,7 +136,7 @@ export default function SetupPage() {
 
   if (!user.isAdmin) {
     return (
-      <main className="setup-screen">
+      <main className="setup-screen" data-theme="dark">
         <h1>Нет прав организатора</h1>
         <p>
           Discord-аккаунт найден, но его ID не добавлен в список
@@ -147,7 +147,7 @@ export default function SetupPage() {
   }
 
   return (
-    <main className="setup-screen setup-form-screen">
+    <main className="setup-screen setup-form-screen" data-theme="dark">
       <div className="setup-heading">
         <Image
           src="/linkens-sphere-logo.png"

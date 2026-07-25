@@ -45,8 +45,8 @@ html {
 
 body {
   margin: 0;
-  background: #fff;
-  color: #102638;
+  background: #071827;
+  color: #f6fbff;
   font-family: "Montserrat", Arial, sans-serif;
   font-size: 16px;
 }
@@ -96,7 +96,8 @@ a {
 
 .site-shell[data-theme="dark"],
 .loading-screen[data-theme="dark"],
-.error-screen[data-theme="dark"] {
+.error-screen[data-theme="dark"],
+.setup-screen[data-theme="dark"] {
   --bg: #071827;
   --surface: #0d2434;
   --surface-soft: #122f42;

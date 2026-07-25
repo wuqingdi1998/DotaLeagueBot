@@ -334,7 +334,7 @@ export default function Home() {
   const [data, setData] = useState<SiteData | null>(null);
   const [loadingError, setLoadingError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [registrationOpen, setRegistrationOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [adminMode, setAdminMode] = useState(false);

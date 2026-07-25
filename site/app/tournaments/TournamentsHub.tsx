@@ -142,10 +142,10 @@ function toIso(value: string) {
 }
 
 function loadSavedTheme() {
-  if (typeof window === "undefined") return "light" as const;
-  return window.localStorage.getItem("ls-theme") === "dark"
-    ? ("dark" as const)
-    : ("light" as const);
+  if (typeof window === "undefined") return "dark" as const;
+  return window.localStorage.getItem("ls-theme") === "light"
+    ? ("light" as const)
+    : ("dark" as const);
 }
 
 function SiteHeader({
@@ -612,7 +612,7 @@ function PlatformShell({
   children: React.ReactNode;
   user: SessionUser | null;
 }) {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   useEffect(() => {
     const timer = window.setTimeout(() => setTheme(loadSavedTheme()), 0);
     return () => window.clearTimeout(timer);
