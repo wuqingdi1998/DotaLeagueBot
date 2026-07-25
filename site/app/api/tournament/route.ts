@@ -52,8 +52,14 @@ function publicApplication(
   };
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const user = await getSession();
+  const slug = new URL(request.url).searchParams.get("slug")?.trim();
+  const tournamentFilter = slug
+    ? user?.isAdmin
+      ? "WHERE slug = $1"
+      : "WHERE slug = $1 AND status <> 'draft'"
+    : "WHERE status NOT IN ('draft', 'archived')";
   const tournament = await one<TournamentRow>(
     `SELECT id::int, slug, name, eyebrow, headline, headline_accent,
        description, about, start_at, end_at, registration_deadline,
@@ -61,14 +67,19 @@ export async function GET() {
        check_in_minutes, group_format, playoff_format, final_format,
        discord_url, status, updated_at
      FROM tournaments
-     WHERE status <> 'archived'
+     ${tournamentFilter}
      ORDER BY start_at ASC
      LIMIT 1`,
+    slug ? [slug] : [],
   );
 
   if (!tournament) {
     return Response.json(
-      { error: "Турнир ещё не создан", setupRequired: true, user },
+      {
+        error: slug ? "Турнир не найден" : "Активный турнир ещё не создан",
+        setupRequired: !slug,
+        user,
+      },
       { status: 404 },
     );
   }

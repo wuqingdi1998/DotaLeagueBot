@@ -1,0 +1,47 @@
+import { describe, expect, it } from "vitest";
+import {
+  canAcceptTournamentRegistration,
+  isPastTournament,
+  isPublicTournament,
+  isUpcomingTournament,
+} from "./tournaments";
+
+describe("tournament lifecycle", () => {
+  it("separates current and future events from the archive", () => {
+    expect(isUpcomingTournament("registration")).toBe(true);
+    expect(isUpcomingTournament("active")).toBe(true);
+    expect(isUpcomingTournament("archived")).toBe(false);
+    expect(isPastTournament("finished")).toBe(true);
+    expect(isPastTournament("archived")).toBe(true);
+  });
+
+  it("keeps drafts private while archived tournaments remain public", () => {
+    expect(isPublicTournament("draft")).toBe(false);
+    expect(isPublicTournament("archived")).toBe(true);
+  });
+
+  it("accepts registrations only before the configured deadline", () => {
+    const deadline = "2026-08-05T20:59:00.000Z";
+    expect(
+      canAcceptTournamentRegistration(
+        "registration",
+        deadline,
+        Date.parse("2026-08-05T20:58:59.000Z"),
+      ),
+    ).toBe(true);
+    expect(
+      canAcceptTournamentRegistration(
+        "registration",
+        deadline,
+        Date.parse("2026-08-05T20:59:00.000Z"),
+      ),
+    ).toBe(false);
+    expect(
+      canAcceptTournamentRegistration(
+        "archived",
+        deadline,
+        Date.parse("2025-08-05T20:59:00.000Z"),
+      ),
+    ).toBe(false);
+  });
+});
