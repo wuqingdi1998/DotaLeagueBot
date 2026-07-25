@@ -1,4 +1,5 @@
 import os
+import re
 import asyncio
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
@@ -128,12 +129,78 @@ class Close(commands.Cog):
         # --- 6. Подтверждение ---
         await interaction.followup.send("✅ Анонс клоза успешно опубликован.", ephemeral=True)
 
-    @say_close.error
-    async def say_close_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+    @app_commands.command(name="close_remove", description="[Close Host] Убрать участника из списка клоза")
+    @app_commands.describe(
+        message="Ссылка на сообщение анонса или его ID",
+        member="Участник, которого нужно убрать из списка",
+    )
+    @app_commands.checks.has_role(CLOSE_HOST_ROLE_ID)
+    async def close_remove(self, interaction: discord.Interaction, message: str, member: discord.Member):
+        # --- Разбор ссылки/ID сообщения ---
+        link_match = re.match(
+            r'https?://(?:ptb\.|canary\.)?discord(?:app)?\.com/channels/(\d+)/(\d+)/(\d+)', message
+        )
+        if link_match:
+            message_id = int(link_match.group(3))
+        elif message.strip().isdigit():
+            message_id = int(message.strip())
+        else:
+            return await interaction.response.send_message(
+                "❌ Укажите ссылку на сообщение анонса или его ID.", ephemeral=True
+            )
+
+        await interaction.response.defer(ephemeral=True)
+
+        async with self._locks[message_id]:
+            async with async_session() as session:
+                result = await session.execute(
+                    select(CloseEvent).where(CloseEvent.message_id == message_id)
+                )
+                ev = result.scalar_one_or_none()
+                if ev is None:
+                    return await interaction.followup.send(
+                        "❌ Анонс клоза с таким сообщением не найден.", ephemeral=True
+                    )
+                ids = [i for i in ev.participant_ids.split(",") if i]
+                if str(member.id) not in ids:
+                    return await interaction.followup.send(
+                        f"ℹ️ {member.mention} не числится в списке участников.", ephemeral=True
+                    )
+                ids.remove(str(member.id))
+                ev.participant_ids = ",".join(ids)
+                await session.commit()
+                channel_id = ev.channel_id
+                content = _build_content(ev, ids)
+
+        # --- Обновляем сообщение и снимаем реакцию участника ---
+        channel = self.bot.get_channel(channel_id)
+        if channel is None:
+            try:
+                channel = await self.bot.fetch_channel(channel_id)
+            except Exception:
+                channel = None
+        if channel is not None:
+            try:
+                msg = await channel.fetch_message(message_id)
+                await msg.edit(content=content, allowed_mentions=discord.AllowedMentions.none())
+                # Снимаем ✅ участника, чтобы список и реакции совпадали
+                # (иначе оставшаяся реакция не даст перерегистрироваться).
+                try:
+                    await msg.remove_reaction(CHECK_EMOJI, member)
+                except Exception:
+                    pass
+            except Exception as e:
+                print(f"[CLOSE] Не удалось обновить сообщение при удалении участника: {e}")
+
+        await interaction.followup.send(
+            f"✅ {member.mention} убран из списка участников клоза.", ephemeral=True
+        )
+
+    async def cog_app_command_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         if isinstance(error, (app_commands.MissingRole, app_commands.MissingAnyRole, app_commands.CheckFailure)):
             msg = "⛔ Нужна роль Close Host."
         else:
-            print(f"[CLOSE] Ошибка say_close: {error}")
+            print(f"[CLOSE] Ошибка команды: {error}")
             msg = f"❌ Ошибка: {error}"
         if interaction.response.is_done():
             await interaction.followup.send(msg, ephemeral=True)
