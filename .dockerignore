@@ -1,5 +1,10 @@
-# .dockerignore
-postgres_data
-.venv
 .git
-__pycache__
+.github
+.env
+**/.venv
+**/__pycache__
+**/*.pyc
+**/node_modules
+**/.next
+postgres_data
+uploads_data

@@ -1,0 +1,344 @@
+import { getSession, requireAdmin, responseFromAuthError } from "@/lib/auth";
+import { one, query, transaction } from "@/lib/db";
+
+export const dynamic = "force-dynamic";
+
+type TournamentRow = Record<string, unknown> & { id: number };
+type MemberRow = {
+  application_id: number;
+  player_id: string;
+  ingame_name: string;
+  role: string;
+  is_captain: boolean;
+  invitation_status: string;
+};
+
+type ApplicationRow = Record<string, unknown> & {
+  id: number;
+  captain_name: string;
+};
+
+function publicApplication(
+  application: ApplicationRow,
+  members: MemberRow[],
+) {
+  const captain = members.find((member) => member.is_captain);
+  const others = members
+    .filter((member) => !member.is_captain)
+    .sort((left, right) => left.role.localeCompare(right.role));
+  const fallback = {
+    ingame_name: "Не указан",
+    role: "safe_lane",
+  };
+  return {
+    ...application,
+    captain: captain?.ingame_name ?? application.captain_name,
+    captain_role: captain?.role ?? "safe_lane",
+    player_2: (others[0] ?? fallback).ingame_name,
+    player_2_role: (others[0] ?? fallback).role,
+    player_3: (others[1] ?? fallback).ingame_name,
+    player_3_role: (others[1] ?? fallback).role,
+    player_4: (others[2] ?? fallback).ingame_name,
+    player_4_role: (others[2] ?? fallback).role,
+    player_5: (others[3] ?? fallback).ingame_name,
+    player_5_role: (others[3] ?? fallback).role,
+    members: members.map((member) => ({
+      discord_id: member.player_id,
+      name: member.ingame_name,
+      role: member.role,
+      is_captain: member.is_captain,
+      invitation_status: member.invitation_status,
+    })),
+  };
+}
+
+export async function GET() {
+  const user = await getSession();
+  const tournament = await one<TournamentRow>(
+    `SELECT id::int, slug, name, eyebrow, headline, headline_accent,
+       description, about, start_at, end_at, registration_deadline,
+       status_label, format, team_size, max_teams, region, server,
+       check_in_minutes, group_format, playoff_format, final_format,
+       discord_url, status, updated_at
+     FROM tournaments
+     WHERE status <> 'archived'
+     ORDER BY start_at ASC
+     LIMIT 1`,
+  );
+
+  if (!tournament) {
+    return Response.json(
+      { error: "Турнир ещё не создан", setupRequired: true, user },
+      { status: 404 },
+    );
+  }
+
+  const visibility = user?.isAdmin
+    ? ""
+    : user
+      ? `AND (
+          a.status = 'approved'
+          OR a.captain_discord_id = $2
+          OR EXISTS (
+            SELECT 1 FROM tournament_team_members own_member
+            WHERE own_member.application_id = a.id
+              AND own_member.player_id = $2
+          )
+        )`
+      : "AND a.status = 'approved'";
+  const visibilityValues = user?.isAdmin
+    ? [tournament.id]
+    : user
+      ? [tournament.id, user.discordId]
+      : [tournament.id];
+  const [applications, members, matches, standings, groups, invitations] =
+    await Promise.all([
+      query<ApplicationRow>(
+        `SELECT a.id::int, a.tournament_id::int, a.team_name, a.tag,
+           a.contact, a.logo_key, a.status, a.created_at,
+           captain.ingame_name AS captain_name
+         FROM tournament_team_applications a
+         JOIN players captain ON captain.discord_id = a.captain_discord_id
+         WHERE a.tournament_id = $1 ${visibility}
+         ORDER BY a.created_at ASC`,
+        visibilityValues,
+      ),
+      query<MemberRow>(
+        `SELECT m.application_id::int, m.player_id::text, p.ingame_name,
+           m.role, m.is_captain, m.invitation_status
+         FROM tournament_team_members m
+         JOIN players p ON p.discord_id = m.player_id
+         JOIN tournament_team_applications a ON a.id = m.application_id
+         WHERE a.tournament_id = $1
+           ${visibility}
+         ORDER BY m.application_id, m.is_captain DESC, m.role`,
+        visibilityValues,
+      ),
+      query<Record<string, unknown>>(
+         `SELECT m.id::int, m.tournament_id::int, m.scheduled_at, m.stage,
+           m.team_a_application_id::int, m.team_b_application_id::int,
+           COALESCE(a.team_name, m.team_a_placeholder) AS team_a,
+           COALESCE(b.team_name, m.team_b_placeholder) AS team_b,
+           m.team_a_score, m.team_b_score, m.best_of, m.sort_order, m.status,
+           EXISTS (
+             SELECT 1 FROM tournament_match_checkins c
+             WHERE c.match_id = m.id AND c.application_id = m.team_a_application_id
+           ) AS team_a_checked_in,
+           EXISTS (
+             SELECT 1 FROM tournament_match_checkins c
+             WHERE c.match_id = m.id AND c.application_id = m.team_b_application_id
+           ) AS team_b_checked_in
+         FROM tournament_matches m
+         LEFT JOIN tournament_team_applications a
+           ON a.id = m.team_a_application_id
+         LEFT JOIN tournament_team_applications b
+           ON b.id = m.team_b_application_id
+         WHERE m.tournament_id = $1
+         ORDER BY m.sort_order, m.scheduled_at`,
+        [tournament.id],
+      ),
+      query<Record<string, unknown>>(
+        `WITH team_results AS (
+           SELECT gt.group_id, gt.application_id,
+             COUNT(m.id) FILTER (WHERE m.status = 'finished')::int AS games,
+             COUNT(m.id) FILTER (
+               WHERE m.status = 'finished' AND (
+                 (m.team_a_application_id = gt.application_id AND m.team_a_score > m.team_b_score)
+                 OR
+                 (m.team_b_application_id = gt.application_id AND m.team_b_score > m.team_a_score)
+               )
+             )::int AS wins
+           FROM tournament_group_teams gt
+           LEFT JOIN tournament_matches m
+             ON m.group_id = gt.group_id
+             AND gt.application_id IN (
+               m.team_a_application_id, m.team_b_application_id
+             )
+           GROUP BY gt.group_id, gt.application_id
+         )
+         SELECT
+           ROW_NUMBER() OVER (
+             PARTITION BY g.id
+             ORDER BY COALESCE(r.wins, 0) DESC, gt.sort_order, a.team_name
+           )::int AS id,
+           g.tournament_id::int,
+           g.name AS group_name,
+           ROW_NUMBER() OVER (
+             PARTITION BY g.id
+             ORDER BY COALESCE(r.wins, 0) DESC, gt.sort_order, a.team_name
+           )::int AS place,
+           a.team_name,
+           COALESCE(r.games, 0)::int AS games,
+           COALESCE(r.wins, 0)::int AS wins,
+           (COALESCE(r.games, 0) - COALESCE(r.wins, 0))::int AS losses,
+           (COALESCE(r.wins, 0) * 3)::int AS points
+         FROM tournament_groups g
+         JOIN tournament_group_teams gt ON gt.group_id = g.id
+         JOIN tournament_team_applications a ON a.id = gt.application_id
+         LEFT JOIN team_results r
+           ON r.group_id = gt.group_id AND r.application_id = gt.application_id
+         WHERE g.tournament_id = $1
+         ORDER BY g.sort_order, place`,
+        [tournament.id],
+      ),
+      query<Record<string, unknown>>(
+        `SELECT id::int, tournament_id::int, name, sort_order
+         FROM tournament_groups
+         WHERE tournament_id = $1
+         ORDER BY sort_order, name`,
+        [tournament.id],
+      ),
+      user
+        ? query<Record<string, unknown>>(
+            `SELECT a.id::int AS application_id, a.team_name, a.tag,
+               m.role, m.invitation_status, a.created_at
+             FROM tournament_team_members m
+             JOIN tournament_team_applications a ON a.id = m.application_id
+             WHERE m.player_id = $1 AND NOT m.is_captain
+               AND m.invitation_status = 'invited'
+             ORDER BY a.created_at DESC`,
+            [user.discordId],
+          )
+        : Promise.resolve([]),
+    ]);
+
+  const membersByApplication = new Map<number, MemberRow[]>();
+  for (const member of members) {
+    const applicationMembers =
+      membersByApplication.get(member.application_id) ?? [];
+    applicationMembers.push(member);
+    membersByApplication.set(member.application_id, applicationMembers);
+  }
+
+  return Response.json({
+    tournament,
+    applications: applications.map((application) =>
+      publicApplication(
+        application,
+        membersByApplication.get(application.id) ?? [],
+      ),
+    ),
+    matches,
+    standings,
+    groups,
+    user,
+    invitations,
+  });
+}
+
+const editableFields = [
+  "name",
+  "eyebrow",
+  "headline",
+  "headline_accent",
+  "description",
+  "about",
+  "start_at",
+  "end_at",
+  "registration_deadline",
+  "status_label",
+  "format",
+  "team_size",
+  "max_teams",
+  "region",
+  "server",
+  "check_in_minutes",
+  "group_format",
+  "playoff_format",
+  "final_format",
+  "discord_url",
+  "status",
+] as const;
+
+export async function PATCH(request: Request) {
+  try {
+    const admin = await requireAdmin();
+    const body = (await request.json()) as Record<string, unknown>;
+    const id = Number(body.id);
+    if (!id) {
+      return Response.json({ error: "Не указан турнир" }, { status: 400 });
+    }
+    const values = editableFields.map((field) => body[field]);
+    if (
+      values.some(
+        (value) => value === undefined || value === null || value === "",
+      )
+    ) {
+      return Response.json(
+        { error: "Заполните все поля турнира" },
+        { status: 400 },
+      );
+    }
+
+    await transaction(async (client) => {
+      await client.query(
+        `UPDATE tournaments SET
+          name = $1, eyebrow = $2, headline = $3, headline_accent = $4,
+          description = $5, about = $6, start_at = $7, end_at = $8,
+          registration_deadline = $9, status_label = $10, format = $11,
+          team_size = $12, max_teams = $13, region = $14, server = $15,
+          check_in_minutes = $16, group_format = $17, playoff_format = $18,
+          final_format = $19, discord_url = $20, status = $21,
+          updated_at = NOW()
+        WHERE id = $22`,
+        [...values, id],
+      );
+      await client.query(
+        `INSERT INTO tournament_audit_log
+          (tournament_id, actor_discord_id, action, entity_type, entity_id)
+         VALUES ($1, $2, 'update', 'tournament', $1::text)`,
+        [id, admin.discordId],
+      );
+    });
+    return Response.json({ ok: true });
+  } catch (error) {
+    return responseFromAuthError(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const admin = await requireAdmin();
+    const body = (await request.json()) as Record<string, unknown>;
+    const slug = String(body.slug ?? "")
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      return Response.json(
+        { error: "Адрес турнира должен состоять из латинских букв, цифр и дефисов" },
+        { status: 400 },
+      );
+    }
+    const values = editableFields.map((field) => body[field]);
+    if (values.some((value) => value === undefined || value === "")) {
+      return Response.json(
+        { error: "Заполните все поля турнира" },
+        { status: 400 },
+      );
+    }
+    const created = await transaction(async (client) => {
+      const result = await client.query<{ id: number }>(
+        `INSERT INTO tournaments (
+          slug, name, eyebrow, headline, headline_accent, description, about,
+          start_at, end_at, registration_deadline, status_label, format,
+          team_size, max_teams, region, server, check_in_minutes,
+          group_format, playoff_format, final_format, discord_url, status
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+        ) RETURNING id::int`,
+        [slug, ...values],
+      );
+      const id = result.rows[0].id;
+      await client.query(
+        `INSERT INTO tournament_organizers(tournament_id, discord_id)
+         VALUES ($1, $2)`,
+        [id, admin.discordId],
+      );
+      return id;
+    });
+    return Response.json({ ok: true, id: created }, { status: 201 });
+  } catch (error) {
+    return responseFromAuthError(error);
+  }
+}

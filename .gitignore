@@ -5,14 +5,27 @@ __pycache__/
 
 # IDE / Editor Settings
 .idea/
-.vscode/
 .claude/
 
 # Environment Variables (SENSITIVE DATA)
 .env
+site/.env*
 credentials.json
 
 # Database Files
 league_test.db
 postgres_data/
-*.sql
+uploads_data/
+site/.data/
+site/.next/
+site/node_modules/
+site/coverage/
+*.tsbuildinfo
+bot/.mypy_cache/
+bot/.pytest_cache/
+bot/.ruff_cache/
+**/.coverage
+**/__pycache__/
+*.pyc
+*.dump
+*.backup

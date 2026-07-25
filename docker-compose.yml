@@ -1,10 +1,10 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
+    # Keep the old container name so the first monorepo deploy adopts the
+    # existing PostgreSQL service without a port conflict or data move.
     container_name: dota_postgres
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -12,21 +12,95 @@ services:
     volumes:
       - ./postgres_data:/var/lib/postgresql/data
     ports:
-      - "127.0.0.1:5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 10s
 
-  bot:
-    build: .
-    container_name: my_bot_container
-    restart: always
-    environment:
-      - PYTHONUNBUFFERED=1
+  migrate:
+    build:
+      context: ./bot
     env_file:
       - .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+    command: ["python", "-m", "database.migrate"]
     depends_on:
       db:
         condition: service_healthy
+    restart: "no"
+
+  bot:
+    build:
+      context: ./bot
+    container_name: linkens_sphere_bot
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PYTHONUNBUFFERED: "1"
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      GOOGLE_CREDENTIALS_PATH: /run/secrets/google-credentials.json
+    volumes:
+      - ./credentials.json:/run/secrets/google-credentials.json:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  site:
+    build:
+      context: ./site
+    container_name: linkens_sphere_site
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      UPLOADS_DIR: /data/uploads
+    volumes:
+      - ./uploads_data:/data/uploads
+    ports:
+      - "${SITE_BIND_ADDRESS:-127.0.0.1}:${SITE_PORT:-3000}:3000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  proxy:
+    image: caddy:2.11.4-alpine
+    container_name: linkens_sphere_proxy
+    restart: unless-stopped
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:-lsesports.ru}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      site:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

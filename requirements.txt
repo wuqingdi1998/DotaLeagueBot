@@ -1,8 +1,0 @@
-aiohttp
-discord.py>=2.4
-python-dotenv
-sqlalchemy
-aiosqlite
-asyncpg
-gspread
-google-auth
