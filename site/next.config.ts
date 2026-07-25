@@ -7,6 +7,12 @@ const nextConfig: NextConfig = {
     // Local previews do not have Cloudflare's image/asset bindings.
     // Serve these small project-owned images directly.
     unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.discordapp.com",
+      },
+    ],
   },
 };
 

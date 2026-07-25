@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { consumeOauthState, createSession } from "@/lib/auth";
-import { one, query } from "@/lib/db";
+import { one } from "@/lib/db";
 import { cleanDiscordRedirect } from "@/lib/validation";
 
 type DiscordToken = {
@@ -63,20 +63,6 @@ export async function GET(request: Request) {
   );
   if (!player) {
     return NextResponse.redirect(`${baseUrl}/?authError=not_registered`);
-  }
-
-  const bootstrapAdmins = new Set(
-    (process.env.BOOTSTRAP_ADMIN_DISCORD_IDS ?? "")
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean),
-  );
-  if (bootstrapAdmins.has(discordUser.id)) {
-    await query(
-      `INSERT INTO site_admins(discord_id)
-       VALUES ($1) ON CONFLICT (discord_id) DO NOTHING`,
-      [discordUser.id],
-    );
   }
 
   const avatarUrl = discordUser.avatar

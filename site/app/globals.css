@@ -296,6 +296,106 @@ a {
   background: var(--blue-deep);
 }
 
+.player-profile-control {
+  position: relative;
+}
+
+.player-profile-button {
+  display: inline-flex;
+  min-height: 50px;
+  max-width: 330px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 5px 13px 5px 6px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 12px 30px rgba(0, 116, 175, 0.12);
+  cursor: pointer;
+  text-align: left;
+}
+
+.player-profile-button:hover {
+  background: var(--surface-blue);
+}
+
+.player-profile-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border: 2px solid rgba(0, 195, 255, 0.55);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.player-profile-avatar.fallback {
+  display: grid;
+  place-items: center;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-weight: 800;
+}
+
+.player-profile-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.player-profile-copy strong {
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-profile-copy small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.player-profile-popover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 10px);
+  right: 0;
+  display: grid;
+  width: min(310px, calc(100vw - 32px));
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 15px;
+  padding: 17px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.player-profile-popover > strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.player-profile-popover > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.player-profile-popover > button {
+  min-height: 40px;
+  margin-top: 7px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .hero {
   position: relative;
   display: grid;
@@ -1634,6 +1734,22 @@ footer button {
   font-size: 15px;
 }
 
+.organizer-entry {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line) !important;
+  border-radius: 11px;
+  padding: 0 14px;
+}
+
+.organizer-entry:hover {
+  border-color: var(--line-strong) !important;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
 .mobile-cta {
   display: none;
 }
@@ -1896,6 +2012,81 @@ footer button {
   font-size: 36px;
 }
 
+.profile-modal-avatar {
+  display: block;
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 24px;
+  border: 3px solid rgba(0, 195, 255, 0.55);
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 14px 34px rgba(0, 195, 255, 0.2);
+}
+
+.organizer-modal {
+  width: min(100%, 560px);
+  text-align: center;
+}
+
+.organizer-modal h2 {
+  margin: 0 0 12px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(32px, 5vw, 46px);
+  font-weight: 600;
+}
+
+.organizer-modal-icon {
+  display: grid;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 24px;
+  place-items: center;
+  border: 1px solid rgba(0, 195, 255, 0.42);
+  border-radius: 20px;
+  background: var(--surface-blue);
+  color: var(--blue);
+  font-size: 32px;
+}
+
+.organizer-password-form {
+  display: grid;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+.organizer-password-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.organizer-password-form label > span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.organizer-password-form input {
+  min-height: 50px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.organizer-password-form .primary-button,
+.organizer-modal-actions .primary-button,
+.organizer-modal-actions .secondary-button {
+  width: 100%;
+}
+
+.organizer-modal-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+}
+
 .modal-discord-button {
   width: 100%;
   margin-top: 20px;
@@ -2008,6 +2199,21 @@ footer button {
   }
 
   .discord-login span {
+    display: none;
+  }
+
+  .player-profile-button {
+    width: 46px;
+    min-height: 46px;
+    padding: 3px;
+  }
+
+  .player-profile-avatar {
+    width: 38px;
+    height: 38px;
+  }
+
+  .player-profile-copy {
     display: none;
   }
 

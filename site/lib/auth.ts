@@ -1,16 +1,24 @@
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { one, query } from "@/lib/db";
+import { playerServerName, secretMatches } from "@/lib/security";
 
 const sessionCookie = "ls_session";
+const organizerSessionCookie = "ls_organizer_session";
 const oauthStateCookie = "ls_oauth_state";
 const sessionLifetimeDays = 30;
+const organizerSessionLifetimeHours = 12;
+const organizerAttemptWindowMinutes = 15;
+const organizerAttemptLimit = 5;
 
 export type AuthUser = {
   discordId: string;
   username: string;
   avatarUrl: string | null;
   playerName: string;
+  realName: string | null;
+  positions: string | null;
+  serverName: string;
   isAdmin: boolean;
 };
 
@@ -19,6 +27,8 @@ type SessionRow = {
   discord_username: string;
   discord_avatar_url: string | null;
   ingame_name: string;
+  real_name: string | null;
+  positions: string | null;
   is_admin: boolean;
 };
 
@@ -64,6 +74,9 @@ export async function createSession(input: {
   username: string;
   avatarUrl: string | null;
 }): Promise<void> {
+  // Every Discord login starts in ordinary participant mode. Organizer access
+  // is always a separate, explicit password step.
+  await deleteOrganizerSession();
   await query("DELETE FROM web_sessions WHERE expires_at <= NOW()");
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(
@@ -92,21 +105,29 @@ export async function createSession(input: {
 }
 
 export async function getSession(): Promise<AuthUser | null> {
-  const token = (await cookies()).get(sessionCookie)?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(sessionCookie)?.value;
   if (!token) return null;
+  const organizerToken = cookieStore.get(organizerSessionCookie)?.value;
   const row = await one<SessionRow>(
     `SELECT
        s.discord_id::text,
        s.discord_username,
        s.discord_avatar_url,
        p.ingame_name,
+       p.real_name,
+       p.positions,
        EXISTS (
-         SELECT 1 FROM site_admins a WHERE a.discord_id = s.discord_id
+         SELECT 1
+         FROM web_organizer_sessions organizer
+         WHERE organizer.token_hash = $2
+           AND organizer.discord_id = s.discord_id
+           AND organizer.expires_at > NOW()
        ) AS is_admin
      FROM web_sessions s
      JOIN players p ON p.discord_id = s.discord_id
      WHERE s.token_hash = $1 AND s.expires_at > NOW()`,
-    [tokenHash(token)],
+    [tokenHash(token), organizerToken ? tokenHash(organizerToken) : ""],
   );
   if (!row) return null;
   return {
@@ -114,6 +135,13 @@ export async function getSession(): Promise<AuthUser | null> {
     username: row.discord_username,
     avatarUrl: row.discord_avatar_url,
     playerName: row.ingame_name,
+    realName: row.real_name,
+    positions: row.positions,
+    serverName: playerServerName(
+      row.real_name,
+      row.ingame_name,
+      row.positions,
+    ),
     isAdmin: row.is_admin,
   };
 }
@@ -134,7 +162,84 @@ export async function requireAdmin(): Promise<AuthUser> {
   return user;
 }
 
+export async function createOrganizerSession(
+  suppliedPassword: string,
+): Promise<AuthUser> {
+  const user = await requireSession();
+  const configuredPassword = process.env.ORGANIZER_PASSWORD ?? "";
+  if (configuredPassword.length < 12) {
+    throw new Response(
+      "Пароль организатора ещё не настроен на сервере",
+      { status: 503 },
+    );
+  }
+
+  await query(
+    `DELETE FROM web_organizer_login_attempts
+     WHERE attempted_at < NOW() - INTERVAL '24 hours'`,
+  );
+  const recentAttempts = await one<{ count: number }>(
+    `SELECT COUNT(*)::int AS count
+     FROM web_organizer_login_attempts
+     WHERE discord_id = $1
+       AND attempted_at > NOW() - ($2::int * INTERVAL '1 minute')`,
+    [user.discordId, organizerAttemptWindowMinutes],
+  );
+  if ((recentAttempts?.count ?? 0) >= organizerAttemptLimit) {
+    throw new Response(
+      "Слишком много попыток. Повторите вход через 15 минут",
+      { status: 429 },
+    );
+  }
+
+  if (!secretMatches(suppliedPassword, configuredPassword)) {
+    await query(
+      `INSERT INTO web_organizer_login_attempts(discord_id) VALUES ($1)`,
+      [user.discordId],
+    );
+    throw new Response("Неверный пароль организатора", { status: 401 });
+  }
+
+  await query(
+    `DELETE FROM web_organizer_login_attempts WHERE discord_id = $1`,
+    [user.discordId],
+  );
+  await query("DELETE FROM web_organizer_sessions WHERE expires_at <= NOW()");
+  const token = randomBytes(32).toString("base64url");
+  const expiresAt = new Date(
+    Date.now() + organizerSessionLifetimeHours * 60 * 60 * 1000,
+  );
+  await query(
+    `INSERT INTO web_organizer_sessions
+      (token_hash, discord_id, expires_at)
+     VALUES ($1, $2, $3)`,
+    [tokenHash(token), user.discordId, expiresAt],
+  );
+  const cookieStore = await cookies();
+  cookieStore.set(organizerSessionCookie, token, {
+    httpOnly: true,
+    sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
+    expires: expiresAt,
+    path: "/",
+  });
+  return { ...user, isAdmin: true };
+}
+
+export async function deleteOrganizerSession(): Promise<void> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(organizerSessionCookie)?.value;
+  if (token) {
+    await query(
+      "DELETE FROM web_organizer_sessions WHERE token_hash = $1",
+      [tokenHash(token)],
+    );
+  }
+  cookieStore.delete(organizerSessionCookie);
+}
+
 export async function deleteSession(): Promise<void> {
+  await deleteOrganizerSession();
   const cookieStore = await cookies();
   const token = cookieStore.get(sessionCookie)?.value;
   if (token) {

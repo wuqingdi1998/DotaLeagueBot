@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { FaDiscord } from "react-icons/fa";
+import { OrganizerAccess } from "../tournaments/OrganizerAccess";
 
 type SessionUser = {
   discordId: string;
@@ -124,8 +125,8 @@ export default function SetupPage() {
         />
         <h1>Первичная настройка сайта</h1>
         <p>
-          Войдите через Discord. Аккаунт должен быть зарегистрирован в боте и
-          указан как первый администратор в настройках сервера.
+          Сначала войдите как зарегистрированный участник через Discord. Затем
+          сайт отдельно попросит пароль организатора.
         </p>
         <a className="discord-login" href="/api/auth/discord?returnTo=%2Fsetup">
           <FaDiscord /> Вход через Discord
@@ -137,11 +138,12 @@ export default function SetupPage() {
   if (!user.isAdmin) {
     return (
       <main className="setup-screen" data-theme="dark">
-        <h1>Нет прав организатора</h1>
+        <h1>Включите режим организатора</h1>
         <p>
-          Discord-аккаунт найден, но его ID не добавлен в список
-          администраторов сайта.
+          Вы вошли как обычный участник. Для первоначальной настройки сайта
+          введите отдельный пароль организатора.
         </p>
+        <OrganizerAccess user={user} manageHref="/setup" />
       </main>
     );
   }

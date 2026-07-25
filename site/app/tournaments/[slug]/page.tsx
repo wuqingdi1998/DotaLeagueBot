@@ -8,6 +8,7 @@ import { FaCrown, FaDiscord, FaHandHoldingMedical } from "react-icons/fa";
 import { FiArrowRight, FiArrowUpRight, FiMoon, FiSun, FiUploadCloud } from "react-icons/fi";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { isPastTournament } from "@/lib/tournaments";
+import { OrganizerAccess } from "../OrganizerAccess";
 
 type PlayerRole =
   | "safe_lane"
@@ -119,6 +120,9 @@ type SiteData = {
     username: string;
     avatarUrl: string | null;
     playerName: string;
+    realName: string | null;
+    positions: string | null;
+    serverName: string;
     isAdmin: boolean;
   } | null;
   invitations: Array<{
@@ -757,23 +761,36 @@ export default function Home() {
           <button className="theme-button" onClick={switchTheme} aria-label={theme === "light" ? "Включить тёмную тему" : "Включить светлую тему"}>
             {theme === "light" ? <FiMoon /> : <FiSun />}
           </button>
-          <button
-            className={`discord-login ${adminMode ? "is-admin" : ""}`}
-            onClick={() =>
-              adminMode
-                ? setActiveTab("admin")
-                : data.user
-                  ? setLoginOpen(true)
-                  : startDiscordLogin()
-            }
-          >
-            <FaDiscord aria-hidden="true" />
-            <span>
-              {adminMode
-                ? "Организатор"
-                : data.user?.username ?? "Вход через Discord"}
-            </span>
-          </button>
+          {data.user ? (
+            <button
+              className="player-profile-button"
+              onClick={() => setLoginOpen(true)}
+            >
+              {data.user.avatarUrl ? (
+                <Image
+                  className="player-profile-avatar"
+                  src={data.user.avatarUrl}
+                  alt=""
+                  width={38}
+                  height={38}
+                  unoptimized
+                />
+              ) : (
+                <span className="player-profile-avatar fallback">
+                  {data.user.playerName.slice(0, 1).toUpperCase()}
+                </span>
+              )}
+              <span className="player-profile-copy">
+                <strong>{data.user.serverName}</strong>
+                <small>Профиль участника</small>
+              </span>
+            </button>
+          ) : (
+            <button className="discord-login" onClick={() => startDiscordLogin()}>
+              <FaDiscord aria-hidden="true" />
+              <span>Вход через Discord</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -1481,13 +1498,10 @@ export default function Home() {
           <span><strong>Linken&apos;s Sphere</strong><small>Esports community</small></span>
         </a>
         <p>Создано сообществом для сообщества · 2026</p>
-        <button
-          onClick={() =>
-            adminMode ? setActiveTab("admin") : startDiscordLogin()
-          }
-        >
-          Режим организатора
-        </button>
+        <OrganizerAccess
+          user={data.user}
+          manageHref={`/tournaments/${tournament.slug}?manage=1`}
+        />
       </footer>
 
       <div className="mobile-cta">
@@ -1601,15 +1615,29 @@ export default function Home() {
         <div className="modal-backdrop" onMouseDown={() => setLoginOpen(false)}>
           <section className="modal login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title" onMouseDown={(event) => event.stopPropagation()}>
             <button className="modal-close" aria-label="Закрыть" onClick={() => setLoginOpen(false)}>×</button>
-            <div className="discord-modal-icon"><FaDiscord /></div>
-            <h2 id="login-title">Вход через Discord</h2>
+            {data.user?.avatarUrl ? (
+              <Image
+                className="profile-modal-avatar"
+                src={data.user.avatarUrl}
+                alt=""
+                width={76}
+                height={76}
+                unoptimized
+              />
+            ) : (
+              <div className="discord-modal-icon"><FaDiscord /></div>
+            )}
+            <h2 id="login-title">
+              {data.user ? "Профиль участника" : "Вход через Discord"}
+            </h2>
             <p className="modal-intro">
-              Сайт проверит ваш Discord-аккаунт и найдёт регистрацию в общей
-              базе бота.
+              {data.user
+                ? "Данные профиля синхронизированы с регистрацией в боте."
+                : "Сайт проверит ваш Discord-аккаунт и найдёт регистрацию в общей базе бота."}
             </p>
             {data.user ? (
               <div className="account-actions">
-                <strong>{data.user.playerName}</strong>
+                <strong>{data.user.serverName}</strong>
                 <span>Discord: {data.user.username}</span>
                 {data.user.isAdmin && (
                   <button

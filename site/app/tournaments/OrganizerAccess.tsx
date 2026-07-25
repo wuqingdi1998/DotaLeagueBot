@@ -1,0 +1,157 @@
+"use client";
+
+import { FormEvent, useState } from "react";
+import { usePathname } from "next/navigation";
+import { FaDiscord } from "react-icons/fa";
+import { FiLogOut, FiShield, FiX } from "react-icons/fi";
+
+type OrganizerUser = {
+  isAdmin: boolean;
+} | null;
+
+export function OrganizerAccess({
+  user,
+  manageHref = "/tournaments",
+}: {
+  user: OrganizerUser;
+  manageHref?: string;
+}) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  async function activate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+    const response = await fetch("/api/auth/organizer", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    const result = (await response.json()) as { error?: string };
+    setSaving(false);
+    if (!response.ok) {
+      setError(result.error ?? "Не удалось включить режим организатора");
+      return;
+    }
+    setPassword("");
+    window.location.assign(manageHref);
+  }
+
+  async function deactivate() {
+    setSaving(true);
+    const response = await fetch("/api/auth/organizer", {
+      method: "DELETE",
+    });
+    setSaving(false);
+    if (response.ok) {
+      window.location.reload();
+    } else {
+      setError("Не удалось выйти из режима организатора");
+    }
+  }
+
+  return (
+    <>
+      <button className="organizer-entry" onClick={() => setOpen(true)}>
+        <FiShield aria-hidden="true" />
+        {user?.isAdmin ? "Организатор · активен" : "Режим организатора"}
+      </button>
+
+      {open && (
+        <div className="modal-backdrop" onMouseDown={() => setOpen(false)}>
+          <section
+            className="modal organizer-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="organizer-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="modal-close"
+              aria-label="Закрыть"
+              onClick={() => setOpen(false)}
+            >
+              <FiX />
+            </button>
+            <div className="organizer-modal-icon">
+              <FiShield />
+            </div>
+
+            {!user ? (
+              <>
+                <h2 id="organizer-title">Сначала войдите через Discord</h2>
+                <p className="modal-intro">
+                  Режим организатора включается для зарегистрированного
+                  участника. Это позволяет сохранять автора каждого изменения.
+                </p>
+                <a
+                  className="discord-login modal-discord-button"
+                  href={`/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`}
+                >
+                  <FaDiscord /> Войти через Discord
+                </a>
+              </>
+            ) : user.isAdmin ? (
+              <>
+                <h2 id="organizer-title">Режим организатора активен</h2>
+                <p className="modal-intro">
+                  Управление турнирами открыто на 12 часов. Профиль участника
+                  при этом остаётся обычным Discord-профилем.
+                </p>
+                <div className="organizer-modal-actions">
+                  <button
+                    className="primary-button"
+                    onClick={() => window.location.assign(manageHref)}
+                  >
+                    Открыть управление
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => void deactivate()}
+                    disabled={saving}
+                  >
+                    <FiLogOut /> Выйти из режима
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 id="organizer-title">Режим организатора</h2>
+                <p className="modal-intro">
+                  Discord-вход даёт права обычного участника. Для управления
+                  турнирами введите отдельный пароль организатора.
+                </p>
+                <form className="organizer-password-form" onSubmit={activate}>
+                  <label>
+                    <span>Пароль организатора</span>
+                    <input
+                      required
+                      minLength={12}
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                    />
+                  </label>
+                  {error && <p className="field-error">{error}</p>}
+                  <button
+                    className="primary-button"
+                    type="submit"
+                    disabled={saving}
+                  >
+                    {saving ? "Проверяем…" : "Открыть управление"}
+                  </button>
+                </form>
+              </>
+            )}
+            {user?.isAdmin && error && <p className="field-error">{error}</p>}
+          </section>
+        </div>
+      )}
+    </>
+  );
+}

@@ -24,6 +24,7 @@ import {
   isUpcomingTournament,
   type TournamentStatus,
 } from "@/lib/tournaments";
+import { OrganizerAccess } from "./OrganizerAccess";
 
 type TournamentSummary = {
   id: number;
@@ -50,6 +51,9 @@ type SessionUser = {
   username: string;
   avatarUrl: string | null;
   playerName: string;
+  realName: string | null;
+  positions: string | null;
+  serverName: string;
   isAdmin: boolean;
 };
 
@@ -158,6 +162,7 @@ function SiteHeader({
   user: SessionUser | null;
 }) {
   const pathname = usePathname();
+  const [profileOpen, setProfileOpen] = useState(false);
   function switchTheme() {
     const next = theme === "light" ? "dark" : "light";
     setTheme(next);
@@ -205,21 +210,56 @@ function SiteHeader({
         >
           {theme === "light" ? <FiMoon /> : <FiSun />}
         </button>
-        <a
-          className={`discord-login ${user?.isAdmin ? "is-admin" : ""}`}
-          href={
-            user
-              ? "/tournaments"
-              : `/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`
-          }
-        >
-          <FaDiscord aria-hidden="true" />
-          <span>
-            {user?.isAdmin
-              ? "Организатор"
-              : user?.username ?? "Вход через Discord"}
-          </span>
-        </a>
+        {user ? (
+          <div className="player-profile-control">
+            <button
+              className="player-profile-button"
+              onClick={() => setProfileOpen((current) => !current)}
+              aria-expanded={profileOpen}
+            >
+              {user.avatarUrl ? (
+                <Image
+                  className="player-profile-avatar"
+                  src={user.avatarUrl}
+                  alt=""
+                  width={38}
+                  height={38}
+                  unoptimized
+                />
+              ) : (
+                <span className="player-profile-avatar fallback">
+                  {user.playerName.slice(0, 1).toUpperCase()}
+                </span>
+              )}
+              <span className="player-profile-copy">
+                <strong>{user.serverName}</strong>
+                <small>Профиль участника</small>
+              </span>
+            </button>
+            {profileOpen && (
+              <div className="player-profile-popover">
+                <strong>{user.serverName}</strong>
+                <span>Discord: {user.username}</span>
+                <button
+                  onClick={async () => {
+                    await fetch("/api/auth/logout", { method: "POST" });
+                    window.location.reload();
+                  }}
+                >
+                  Выйти из профиля
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          <a
+            className="discord-login"
+            href={`/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`}
+          >
+            <FaDiscord aria-hidden="true" />
+            <span>Вход через Discord</span>
+          </a>
+        )}
       </div>
     </header>
   );
@@ -648,6 +688,7 @@ function PlatformShell({
         >
           Discord <FiArrowUpRight />
         </a>
+        <OrganizerAccess user={user} />
       </footer>
     </main>
   );

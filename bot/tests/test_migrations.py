@@ -8,6 +8,13 @@ MIGRATION = (
     / "0001_web_platform.sql"
 ).read_text(encoding="utf-8")
 
+ORGANIZER_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0002_organizer_sessions.sql"
+).read_text(encoding="utf-8")
+
 
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
@@ -33,3 +40,9 @@ def test_checkin_is_idempotent() -> None:
 def test_notification_outbox_supports_retries() -> None:
     assert "notification_outbox" in MIGRATION
     assert "attempts SMALLINT" in MIGRATION
+
+
+def test_organizer_sessions_are_separate_from_player_sessions() -> None:
+    assert "web_organizer_sessions" in ORGANIZER_MIGRATION
+    assert "REFERENCES players(discord_id)" in ORGANIZER_MIGRATION
+    assert "web_organizer_login_attempts" in ORGANIZER_MIGRATION
