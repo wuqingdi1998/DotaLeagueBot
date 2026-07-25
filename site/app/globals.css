@@ -3544,7 +3544,8 @@ footer button {
 .player-profile-hero {
   display: grid;
   gap: 42px;
-  padding: clamp(58px, 6vw, 94px) clamp(24px, 7vw, 110px);
+  padding: clamp(20px, 2vw, 32px) clamp(24px, 7vw, 110px)
+    clamp(50px, 5vw, 76px);
   background:
     radial-gradient(circle at 84% 20%, rgba(0, 195, 255, 0.2), transparent 28%),
     linear-gradient(145deg, var(--bg), var(--surface-soft));
@@ -3583,6 +3584,13 @@ footer button {
   gap: 18px 24px;
 }
 
+.public-profile-real-name {
+  margin: 0 0 7px;
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 700;
+}
+
 .public-profile-name-row h1 {
   margin: 8px 0;
   font-family: "5ka Sans Design", sans-serif;
@@ -3592,10 +3600,77 @@ footer button {
   line-height: 0.94;
 }
 
-.public-profile-subtitle {
-  margin: 12px 0 0;
+.public-profile-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+  margin-top: 12px;
+}
+
+.public-profile-positions {
+  position: relative;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 0 14px;
+  background: var(--surface-blue);
+  color: var(--blue-deep);
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 27px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: help;
+  outline: none;
+}
+
+[data-theme="dark"] .public-profile-positions {
+  color: var(--blue);
+}
+
+.public-profile-positions:focus-visible {
+  box-shadow: 0 0 0 3px rgba(0, 195, 255, 0.25);
+}
+
+.public-profile-positions.empty {
   color: var(--muted);
-  font-size: 18px;
+  cursor: default;
+}
+
+.profile-position-tooltip {
+  position: absolute;
+  z-index: 10;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  width: max-content;
+  max-width: 220px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 8px 10px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: Montserrat, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 5px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.public-profile-positions:hover .profile-position-tooltip,
+.public-profile-positions:focus .profile-position-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.public-profile-dota-id {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .player-service-links {
@@ -3913,7 +3988,7 @@ footer button {
 @media (max-width: 760px) {
   .player-profile-hero {
     gap: 30px;
-    padding: 58px 18px;
+    padding: 22px 18px 50px;
   }
 
   .player-profile-identity {

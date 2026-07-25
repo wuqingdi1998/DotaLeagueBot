@@ -92,7 +92,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           )}
           <div>
-            <p className="eyebrow">Профиль игрока · Dota ID {profile.dotaId}</p>
+            {profile.realName && (
+              <p className="public-profile-real-name">{profile.realName}</p>
+            )}
             <div className="public-profile-name-row">
               <h1>{profile.nickname}</h1>
               <div
@@ -128,11 +130,25 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 </a>
               </div>
             </div>
-            <p className="public-profile-subtitle">
-              {profile.positions
-                ? `Игровые позиции: ${profile.positions}`
-                : "Игровые позиции пока не указаны"}
-            </p>
+            <div className="public-profile-meta">
+              {profile.positions ? (
+                <span
+                  className="public-profile-positions"
+                  tabIndex={0}
+                  aria-label={`Игровые позиции: ${profile.positions}`}
+                >
+                  {profile.positions}
+                  <span className="profile-position-tooltip" role="tooltip">
+                    Игровые позиции
+                  </span>
+                </span>
+              ) : (
+                <span className="public-profile-positions empty">—</span>
+              )}
+              <span className="public-profile-dota-id">
+                Dota ID {profile.dotaId}
+              </span>
+            </div>
           </div>
         </div>
         <div className="profile-stat-grid">

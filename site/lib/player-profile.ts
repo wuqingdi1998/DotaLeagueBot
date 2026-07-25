@@ -24,6 +24,7 @@ export type PlayerTournamentHistory = {
 export type PublicPlayerProfile = {
   dotaId: string;
   nickname: string;
+  realName: string | null;
   positions: string | null;
   avatarUrl: string | null;
   links: {
@@ -47,6 +48,7 @@ type PlayerRow = {
   discord_id: string;
   dota_id: string;
   nickname: string;
+  real_name: string | null;
   positions: string | null;
   avatar_url: string | null;
 };
@@ -107,6 +109,7 @@ export async function loadPublicPlayerProfile(
        p.discord_id::text,
        p.steam_id32::text AS dota_id,
        p.ingame_name AS nickname,
+       p.real_name,
        p.positions,
        COALESCE(
          NULLIF(p.avatar_url, ''),
@@ -218,6 +221,7 @@ export async function loadPublicPlayerProfile(
   return {
     dotaId: player.dota_id,
     nickname: player.nickname,
+    realName: player.real_name,
     positions: player.positions,
     avatarUrl: player.avatar_url,
     links: buildPlayerLinks(player.dota_id),
