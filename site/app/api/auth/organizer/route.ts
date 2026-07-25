@@ -29,7 +29,15 @@ export async function POST(request: Request) {
     if (!sameOrigin(request)) {
       return Response.json({ error: "Запрос отклонён" }, { status: 403 });
     }
-    const body = (await request.json()) as { password?: string };
+    let body: { password?: string };
+    try {
+      body = (await request.json()) as { password?: string };
+    } catch {
+      return Response.json(
+        { error: "Некорректный запрос" },
+        { status: 400 },
+      );
+    }
     if (!body.password) {
       return Response.json({ error: "Введите пароль" }, { status: 400 });
     }
