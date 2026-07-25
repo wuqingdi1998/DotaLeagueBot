@@ -29,6 +29,13 @@ FASTCUP_SEED_MIGRATION = (
     / "0005_cd_fastcup_5.sql"
 ).read_text(encoding="utf-8")
 
+FASTCUP_DATE_FIX_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0006_fastcup_end_date.sql"
+).read_text(encoding="utf-8")
+
 
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
@@ -92,3 +99,8 @@ def test_fastcup_archive_has_all_teams_players_and_matches() -> None:
     assert FASTCUP_SEED_MIGRATION.count("'approved', 'Приглашение'") == 2
     assert FASTCUP_SEED_MIGRATION.count("::timestamptz, '") == 16
     assert FASTCUP_SEED_MIGRATION.count("tournament_id_value, ") >= 16
+
+
+def test_fastcup_archive_ends_on_source_second_day() -> None:
+    assert "'2026-05-24 23:59:00+03'" in FASTCUP_DATE_FIX_MIGRATION
+    assert "WHERE slug = 'cd-fastcup-5'" in FASTCUP_DATE_FIX_MIGRATION
