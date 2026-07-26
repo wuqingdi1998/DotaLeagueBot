@@ -19,6 +19,20 @@ export type BracketEliminationMatch = Pick<
   eliminated_team_application_id: number | null;
 };
 
+export type BracketRoutingMatch = {
+  group_id: number | null;
+  bracket_side: "group" | "upper" | "lower" | "grand_final" | null;
+};
+
+export function matchUsesBracketRouting(match: BracketRoutingMatch) {
+  return (
+    match.group_id === null &&
+    (match.bracket_side === "upper" ||
+      match.bracket_side === "lower" ||
+      match.bracket_side === "grand_final")
+  );
+}
+
 export function bracketTeamKey(id: number | null, name: string) {
   return id ? `id:${id}` : `name:${name.trim().toLowerCase()}`;
 }

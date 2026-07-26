@@ -8,6 +8,7 @@ import { FaCrown, FaDiscord, FaHandHoldingMedical } from "react-icons/fa";
 import { FiArrowRight, FiArrowUpRight, FiUploadCloud } from "react-icons/fi";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { SiteHeader } from "@/app/components/SiteHeader";
+import { matchUsesBracketRouting } from "@/lib/bracket";
 import { isPastTournament } from "@/lib/tournaments";
 import {
   groupOutcome,
@@ -2443,75 +2444,90 @@ export default function Home() {
                           </div>
                         </fieldset>
 
-                        <fieldset className="bracket-link-editor">
-                          <legend>Куда проходят команды</legend>
-                          <label>
-                            <span>Победитель проходит в матч</span>
-                            <select
-                              name="winnerToMatchId"
-                              defaultValue={match.winner_to_match_id ?? ""}
-                            >
-                              <option value="">Не задано</option>
-                              {data.matches
-                                .filter(
-                                  (target) =>
-                                    target.id !== match.id &&
-                                    target.bracket_side !== null &&
-                                    target.bracket_side !== "group",
-                                )
-                                .map((target) => (
-                                  <option value={target.id} key={target.id}>
-                                    {target.stage}: {target.team_a} —{" "}
-                                    {target.team_b}
-                                  </option>
-                                ))}
-                            </select>
-                          </label>
-                          <label>
-                            <span>Занимает сторону</span>
-                            <select
-                              name="winnerToSlot"
-                              defaultValue={match.winner_to_slot ?? ""}
-                            >
-                              <option value="">—</option>
-                              <option value="a">Команда A</option>
-                              <option value="b">Команда B</option>
-                            </select>
-                          </label>
-                          <label>
-                            <span>Проигравший проходит в матч</span>
-                            <select
-                              name="loserToMatchId"
-                              defaultValue={match.loser_to_match_id ?? ""}
-                            >
-                              <option value="">Покидает сетку</option>
-                              {data.matches
-                                .filter(
-                                  (target) =>
-                                    target.id !== match.id &&
-                                    target.bracket_side !== null &&
-                                    target.bracket_side !== "group",
-                                )
-                                .map((target) => (
-                                  <option value={target.id} key={target.id}>
-                                    {target.stage}: {target.team_a} —{" "}
-                                    {target.team_b}
-                                  </option>
-                                ))}
-                            </select>
-                          </label>
-                          <label>
-                            <span>Занимает сторону</span>
-                            <select
-                              name="loserToSlot"
-                              defaultValue={match.loser_to_slot ?? ""}
-                            >
-                              <option value="">—</option>
-                              <option value="a">Команда A</option>
-                              <option value="b">Команда B</option>
-                            </select>
-                          </label>
-                        </fieldset>
+                        {matchUsesBracketRouting(match) ? (
+                          <fieldset className="bracket-link-editor">
+                            <legend>Куда проходят команды</legend>
+                            <label>
+                              <span>Победитель проходит в матч</span>
+                              <select
+                                name="winnerToMatchId"
+                                defaultValue={match.winner_to_match_id ?? ""}
+                              >
+                                <option value="">Не задано</option>
+                                {data.matches
+                                  .filter(
+                                    (target) =>
+                                      target.id !== match.id &&
+                                      matchUsesBracketRouting(target),
+                                  )
+                                  .map((target) => (
+                                    <option value={target.id} key={target.id}>
+                                      {target.stage}: {target.team_a} —{" "}
+                                      {target.team_b}
+                                    </option>
+                                  ))}
+                              </select>
+                            </label>
+                            <label>
+                              <span>Занимает сторону</span>
+                              <select
+                                name="winnerToSlot"
+                                defaultValue={match.winner_to_slot ?? ""}
+                              >
+                                <option value="">—</option>
+                                <option value="a">Команда A</option>
+                                <option value="b">Команда B</option>
+                              </select>
+                            </label>
+                            <label>
+                              <span>Проигравший проходит в матч</span>
+                              <select
+                                name="loserToMatchId"
+                                defaultValue={match.loser_to_match_id ?? ""}
+                              >
+                                <option value="">Не задано</option>
+                                {data.matches
+                                  .filter(
+                                    (target) =>
+                                      target.id !== match.id &&
+                                      matchUsesBracketRouting(target),
+                                  )
+                                  .map((target) => (
+                                    <option value={target.id} key={target.id}>
+                                      {target.stage}: {target.team_a} —{" "}
+                                      {target.team_b}
+                                    </option>
+                                  ))}
+                              </select>
+                            </label>
+                            <label>
+                              <span>Занимает сторону</span>
+                              <select
+                                name="loserToSlot"
+                                defaultValue={match.loser_to_slot ?? ""}
+                              >
+                                <option value="">—</option>
+                                <option value="a">Команда A</option>
+                                <option value="b">Команда B</option>
+                              </select>
+                            </label>
+                          </fieldset>
+                        ) : (
+                          <div className="match-routing-note">
+                            <strong>
+                              {match.group_id !== null ||
+                              match.bracket_side === "group"
+                                ? "Выход определяется итогами группы"
+                                : "Переходы по сетке не заданы"}
+                            </strong>
+                            <span>
+                              {match.group_id !== null ||
+                              match.bracket_side === "group"
+                                ? "В отдельном групповом матче победитель и проигравший никуда не переходят. Слоты в плей-офф распределяются по итоговой таблице и настройкам группы."
+                                : "Сначала выберите для матча секцию плей-офф и сохраните изменения. После этого можно будет связать его со следующими матчами."}
+                            </span>
+                          </div>
+                        )}
 
                         <label className="match-decision-editor">
                           <span>Комментарий организатора</span>

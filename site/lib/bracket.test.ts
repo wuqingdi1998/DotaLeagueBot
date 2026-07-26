@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { bracketEliminatedTeamKey, bracketOutcomeKeys } from "./bracket";
+import {
+  bracketEliminatedTeamKey,
+  bracketOutcomeKeys,
+  matchUsesBracketRouting,
+} from "./bracket";
 
 const baseMatch = {
   team_a: "Radiant",
@@ -58,5 +62,34 @@ describe("playoff eliminations", () => {
         eliminated_team_application_id: 30,
       }),
     ).toBeNull();
+  });
+});
+
+describe("bracket routing availability", () => {
+  it("does not offer per-match routing for a group match", () => {
+    expect(
+      matchUsesBracketRouting({
+        group_id: 1,
+        bracket_side: "group",
+      }),
+    ).toBe(false);
+  });
+
+  it("offers routing for playoff matches", () => {
+    expect(
+      matchUsesBracketRouting({
+        group_id: null,
+        bracket_side: "upper",
+      }),
+    ).toBe(true);
+  });
+
+  it("does not offer routing before a bracket section is selected", () => {
+    expect(
+      matchUsesBracketRouting({
+        group_id: null,
+        bracket_side: null,
+      }),
+    ).toBe(false);
   });
 });

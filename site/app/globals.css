@@ -5246,6 +5246,26 @@ footer button {
   font-size: 14px;
 }
 
+.match-routing-note {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 14px 16px;
+  background: var(--surface-blue);
+}
+
+.match-routing-note strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+.match-routing-note span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .elimination-checkbox {
   display: flex !important;
   min-height: 48px;
