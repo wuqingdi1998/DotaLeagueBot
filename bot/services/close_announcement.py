@@ -53,7 +53,7 @@ def build_content(
         ", ".join(
             (
                 f"<@{participant_id}> "
-                f"({datetime.fromtimestamp(joined_at, tz=MSK):%H:%M} МСК)"
+                f"({datetime.fromtimestamp(joined_at, tz=MSK):%H:%M})"
                 if joined_at is not None
                 else f"<@{participant_id}>"
             )

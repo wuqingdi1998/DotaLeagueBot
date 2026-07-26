@@ -49,9 +49,10 @@ def test_close_participants_keep_click_order_and_moscow_time() -> None:
     content = build_content(event, restored)
 
     assert restored == [("111", first_click), ("222", second_click)]
-    assert content.index("<@111> (20:05 МСК)") < content.index(
-        "<@222> (20:07 МСК)"
+    assert content.index("<@111> (20:05)") < content.index(
+        "<@222> (20:07)"
     )
+    assert "МСК)" not in content
 
 
 def test_legacy_close_participants_remain_visible_without_join_time() -> None:
