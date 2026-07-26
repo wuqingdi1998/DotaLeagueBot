@@ -103,6 +103,8 @@ type Match = {
   bracket_round: number | null;
   bracket_side: "group" | "upper" | "lower" | "grand_final" | null;
   bracket_slot: number | null;
+  bracket_grid_column: number | null;
+  bracket_grid_row: number | null;
   winner_to_match_id: number | null;
   winner_to_slot: "a" | "b" | null;
   loser_to_match_id: number | null;
@@ -1325,11 +1327,24 @@ export default function Home() {
               </span>
             </div>
             <TournamentBracket
+              key={data.matches
+                .filter(
+                  (match) =>
+                    match.bracket_side !== null &&
+                    match.bracket_side !== "group",
+                )
+                .map(
+                  (match) =>
+                    `${match.id}:${match.bracket_round}:${match.bracket_slot}:${match.bracket_grid_column}:${match.bracket_grid_row}`,
+                )
+                .join("|")}
               matches={data.matches.filter(
                 (match) =>
                   match.bracket_side !== null &&
                   match.bracket_side !== "group",
               )}
+              editable={adminMode}
+              tournamentId={tournament.id}
             />
           </div>
         )}

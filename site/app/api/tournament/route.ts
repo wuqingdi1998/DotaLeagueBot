@@ -178,6 +178,7 @@ export async function GET(request: Request) {
            m.team_a_score, m.team_b_score, m.best_of, m.sort_order, m.status,
            m.result_type, m.team_a_result_label, m.team_b_result_label,
            m.decision_note, m.bracket_round, m.bracket_side, m.bracket_slot,
+           m.bracket_grid_column::int, m.bracket_grid_row::int,
            m.winner_to_match_id::int, m.winner_to_slot,
            m.loser_to_match_id::int, m.loser_to_slot,
            EXISTS (

@@ -4809,9 +4809,62 @@ footer button {
 }
 
 /* Connected playoff bracket */
+.bracket-layout-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 20px;
+  margin-bottom: 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  padding: 16px 18px;
+  background: var(--surface-blue);
+}
+
+.bracket-layout-toolbar > div {
+  display: grid;
+  gap: 5px;
+}
+
+.bracket-layout-toolbar strong {
+  font-size: 16px;
+}
+
+.bracket-layout-toolbar span,
+.bracket-layout-toolbar small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bracket-layout-toolbar > button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  padding: 0 14px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.bracket-layout-toolbar > small {
+  grid-column: 1 / -1;
+  color: var(--blue-strong);
+  font-weight: 800;
+}
+
+[data-theme="dark"] .bracket-layout-toolbar > small {
+  color: var(--blue);
+}
+
 .bracket-scroll {
   width: 100%;
-  overflow-x: auto;
+  overflow: auto;
   border: 1px solid var(--line);
   border-radius: 22px;
   background:
@@ -4821,12 +4874,16 @@ footer button {
 
 .playoff-bracket-board {
   position: relative;
-  display: flex;
-  width: max-content;
   min-width: 100%;
-  min-height: 510px;
-  gap: 150px;
-  padding: 28px 38px 34px;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(0, 195, 255, 0.04), transparent 50%);
+}
+
+.playoff-bracket-board.editable {
+  background-image:
+    linear-gradient(to right, rgba(0, 195, 255, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 195, 255, 0.075) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .bracket-connectors {
@@ -4861,38 +4918,34 @@ footer button {
   opacity: 1;
 }
 
-.bracket-column {
-  position: relative;
+.bracket-round-label {
+  position: absolute;
   z-index: 2;
-  display: grid;
+  top: 24px;
   width: 280px;
-  grid-template-rows: auto 1fr;
-}
-
-.bracket-column > h4 {
-  margin: 0 0 18px;
+  margin: 0;
   color: var(--muted);
   font-size: 15px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.bracket-column > div {
-  display: flex;
-  min-height: 420px;
-  flex-direction: column;
-  justify-content: space-around;
-  gap: 22px;
-}
-
 .bracket-match-card {
+  position: absolute;
+  z-index: 2;
+  width: 280px;
   overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow);
-  transition: border-color 160ms ease, opacity 160ms ease,
-    transform 160ms ease;
+  transition:
+    left 140ms ease,
+    top 140ms ease,
+    border-color 160ms ease,
+    opacity 160ms ease,
+    transform 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .playoff-bracket-board.has-hover .bracket-match-card {
@@ -4905,16 +4958,59 @@ footer button {
   transform: translateY(-2px);
 }
 
-.bracket-match-card > small {
-  display: block;
+.bracket-match-card.dragging {
+  z-index: 5;
+  border-color: var(--blue);
+  box-shadow: 0 22px 60px rgba(0, 195, 255, 0.25);
+  opacity: 0.92 !important;
+  transform: scale(1.025);
+  transition: none;
+}
+
+.bracket-match-card.saving {
+  border-color: var(--blue);
+}
+
+.bracket-card-header {
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   border-bottom: 1px solid var(--line);
   padding: 10px 13px;
+}
+
+.bracket-card-header > small {
   color: var(--blue-strong);
   font-size: 13px;
   font-weight: 800;
 }
 
-[data-theme="dark"] .bracket-match-card > small {
+[data-theme="dark"] .bracket-card-header > small {
+  color: var(--blue);
+}
+
+.bracket-drag-handle {
+  display: grid;
+  width: 32px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 0;
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+  cursor: grab;
+  touch-action: none;
+}
+
+.bracket-drag-handle:active {
+  cursor: grabbing;
+}
+
+[data-theme="dark"] .bracket-drag-handle {
   color: var(--blue);
 }
 
@@ -5254,13 +5350,19 @@ footer button {
   }
 
   .playoff-bracket-board {
-    gap: 115px;
-    min-height: 470px;
-    padding: 22px;
+    min-width: 920px;
   }
 
-  .bracket-column {
-    width: 245px;
+  .bracket-layout-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .bracket-layout-toolbar > button {
+    justify-self: stretch;
+  }
+
+  .bracket-layout-toolbar > small {
+    grid-column: auto;
   }
 
   .hall-hero {

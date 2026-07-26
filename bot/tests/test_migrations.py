@@ -43,6 +43,13 @@ PROFILE_AND_BRACKET_MIGRATION = (
     / "0007_profile_roles_and_bracket_links.sql"
 ).read_text(encoding="utf-8")
 
+BRACKET_LAYOUT_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0008_bracket_grid_layout.sql"
+).read_text(encoding="utf-8")
+
 
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
@@ -125,3 +132,10 @@ def test_bracket_matches_can_link_winners_and_losers() -> None:
     assert "winner_to_slot" in PROFILE_AND_BRACKET_MIGRATION
     assert "loser_to_match_id" in PROFILE_AND_BRACKET_MIGRATION
     assert "loser_to_slot" in PROFILE_AND_BRACKET_MIGRATION
+
+
+def test_bracket_layout_uses_persistent_bounded_grid_coordinates() -> None:
+    assert "bracket_grid_column SMALLINT" in BRACKET_LAYOUT_MIGRATION
+    assert "bracket_grid_row SMALLINT" in BRACKET_LAYOUT_MIGRATION
+    assert "BETWEEN 0 AND 100" in BRACKET_LAYOUT_MIGRATION
+    assert "tournament.slug = 'cd-fastcup-5'" in BRACKET_LAYOUT_MIGRATION
