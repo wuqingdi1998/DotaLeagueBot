@@ -147,6 +147,23 @@ type TournamentGroup = {
   advance_to_lower: number;
 };
 
+type TournamentScheduleDay = {
+  id: number;
+  tournament_id: number;
+  day_date: string;
+  title: string | null;
+  sort_order: number;
+  entries: Array<{
+    id: number;
+    day_id: number;
+    start_time: string;
+    stage_name: string;
+    match_count: number;
+    series_format: string;
+    sort_order: number;
+  }>;
+};
+
 type SiteData = {
   tournament: Tournament;
   applications: TeamApplication[];
@@ -167,6 +184,7 @@ type SiteData = {
     team_name: string;
     prize_text: string | null;
   }>;
+  scheduleDays: TournamentScheduleDay[];
   user: {
     discordId: string;
     dotaId: string;
@@ -416,6 +434,24 @@ function RoleSelect({
       </select>
     </label>
   );
+}
+
+function formatScheduleDate(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    timeZone: "Europe/Moscow",
+  }).format(new Date(`${value}T12:00:00+03:00`));
+}
+
+function formatMatchCount(value: number) {
+  const lastTwo = value % 100;
+  const last = value % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return `${value} матчей`;
+  if (last === 1) return `${value} матч`;
+  if (last >= 2 && last <= 4) return `${value} матча`;
+  return `${value} матчей`;
 }
 
 function GroupSettingsEditor({
@@ -1422,7 +1458,12 @@ export default function Home() {
           <div className="overview-grid tab-panel">
             <article className="content-card about-card">
               <p className="card-kicker">О турнире</p>
-              <h3>{tournament.headline} {tournament.headline_accent}</h3>
+              <h3>{tournament.headline}</h3>
+              {tournament.headline_accent && (
+                <p className="about-tournament-dates">
+                  {tournament.headline_accent}
+                </p>
+              )}
               <p>{tournament.about}</p>
               <div className="stage-flow">
                 <div>
@@ -1444,17 +1485,37 @@ export default function Home() {
                 </div>
               </div>
             </article>
-            <aside className="details-card">
-              <div><span>Сервер</span><strong>{tournament.server}</strong></div>
-              <div><span>Сбор участников</span><strong>Discord Linken&apos;s Sphere</strong></div>
-              {!isPast && (
-                <div>
-                  <span>Check-in</span>
-                  <strong>
-                    Капитан подтверждает готовность за{" "}
-                    {tournament.check_in_minutes} минут до матча
-                  </strong>
-                </div>
+            <aside className="details-card tournament-schedule-card">
+              <div className="tournament-schedule-heading">
+                <span>По московскому времени</span>
+                <strong>Расписание турнира</strong>
+              </div>
+              {data.scheduleDays.map((day, dayIndex) => (
+                <section className="tournament-schedule-day" key={day.id}>
+                  <header>
+                    <strong>{day.title || `День ${dayIndex + 1}`}</strong>
+                    <span>{formatScheduleDate(day.day_date)}</span>
+                  </header>
+                  <div className="tournament-schedule-entries">
+                    {day.entries.map((entry) => (
+                      <div key={entry.id}>
+                        <time>{entry.start_time}</time>
+                        <span>
+                          <strong>{entry.stage_name}</strong>
+                          <small>
+                            {formatMatchCount(entry.match_count)} ·{" "}
+                            {entry.series_format}
+                          </small>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              ))}
+              {!data.scheduleDays.length && (
+                <p className="tournament-schedule-empty">
+                  Расписание будет опубликовано организатором.
+                </p>
               )}
             </aside>
             {data.prizes.length > 0 && (
@@ -1839,6 +1900,7 @@ export default function Home() {
             <TournamentContentEditor
               key={`${tournament.id}-${tournament.updated_at}`}
               tournamentId={tournament.id}
+              initialScheduleDays={data.scheduleDays}
               initialRules={data.rules}
               initialPrizes={data.prizes}
               applications={data.applications}

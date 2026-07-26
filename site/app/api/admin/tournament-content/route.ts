@@ -8,11 +8,23 @@ type PrizeInput = {
   teamName?: string | null;
   prizeText?: string | null;
 };
+type ScheduleEntryInput = {
+  startTime?: string;
+  stageName?: string;
+  matchCount?: number;
+  seriesFormat?: string;
+};
+type ScheduleDayInput = {
+  dayDate?: string;
+  title?: string | null;
+  entries?: ScheduleEntryInput[];
+};
 
 type ContentBody = {
   tournamentId?: number;
   rules?: Array<string | RuleInput>;
   prizes?: PrizeInput[];
+  scheduleDays?: ScheduleDayInput[];
 };
 
 export async function PUT(request: Request) {
@@ -61,6 +73,49 @@ export async function PUT(request: Request) {
       );
     }
 
+    if ((body.scheduleDays?.length ?? 0) > 31) {
+      return Response.json(
+        { error: "В одном турнире может быть не более 31 дня расписания" },
+        { status: 400 },
+      );
+    }
+    const scheduleDays = (body.scheduleDays ?? []).map((day) => ({
+      dayDate: day.dayDate?.trim() ?? "",
+      title: day.title?.trim() || null,
+      entries: (day.entries ?? []).map((entry) => ({
+        startTime: entry.startTime?.trim() ?? "",
+        stageName: entry.stageName?.trim() ?? "",
+        matchCount: Number(entry.matchCount),
+        seriesFormat: entry.seriesFormat?.trim() ?? "",
+      })),
+    }));
+    const invalidDay = scheduleDays.some(
+      (day) =>
+        !/^\d{4}-\d{2}-\d{2}$/.test(day.dayDate) ||
+        (day.title?.length ?? 0) > 100 ||
+        day.entries.length > 32 ||
+        day.entries.some(
+          (entry) =>
+            !/^\d{2}:\d{2}$/.test(entry.startTime) ||
+            !entry.stageName ||
+            entry.stageName.length > 160 ||
+            !Number.isInteger(entry.matchCount) ||
+            entry.matchCount < 1 ||
+            entry.matchCount > 64 ||
+            !entry.seriesFormat ||
+            entry.seriesFormat.length > 40,
+        ),
+    );
+    if (invalidDay) {
+      return Response.json(
+        {
+          error:
+            "Проверьте расписание: укажите дату, время, этап, количество матчей и формат каждой строки",
+        },
+        { status: 400 },
+      );
+    }
+
     await transaction(async (client) => {
       const tournament = await client.query(
         "SELECT id FROM tournaments WHERE id = $1 FOR UPDATE",
@@ -100,13 +155,54 @@ export async function PUT(request: Request) {
       }
 
       await client.query(
+        "DELETE FROM tournament_schedule_days WHERE tournament_id = $1",
+        [tournamentId],
+      );
+      for (const [dayIndex, day] of scheduleDays.entries()) {
+        const insertedDay = await client.query<{ id: number }>(
+          `INSERT INTO tournament_schedule_days (
+             tournament_id, day_date, title, sort_order
+           )
+           VALUES ($1, $2, $3, $4)
+           RETURNING id::int`,
+          [tournamentId, day.dayDate, day.title, dayIndex + 1],
+        );
+        const dayId = insertedDay.rows[0].id;
+        for (const [entryIndex, entry] of day.entries.entries()) {
+          await client.query(
+            `INSERT INTO tournament_schedule_entries (
+               day_id, start_time, stage_name, match_count,
+               series_format, sort_order
+             )
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [
+              dayId,
+              entry.startTime,
+              entry.stageName,
+              entry.matchCount,
+              entry.seriesFormat,
+              entryIndex + 1,
+            ],
+          );
+        }
+      }
+
+      await client.query(
         `INSERT INTO tournament_audit_log
           (tournament_id, actor_discord_id, action, entity_type, details)
          VALUES ($1, $2, 'content_update', 'tournament', $3::jsonb)`,
         [
           tournamentId,
           admin.discordId,
-          JSON.stringify({ ruleCount: rules.length, prizeCount: prizes.length }),
+          JSON.stringify({
+            ruleCount: rules.length,
+            prizeCount: prizes.length,
+            scheduleDayCount: scheduleDays.length,
+            scheduleEntryCount: scheduleDays.reduce(
+              (count, day) => count + day.entries.length,
+              0,
+            ),
+          }),
         ],
       );
     });
@@ -119,4 +215,3 @@ export async function PUT(request: Request) {
     return responseFromAuthError(error);
   }
 }
-

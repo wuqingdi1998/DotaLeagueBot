@@ -85,6 +85,13 @@ CLOSE_REGISTRATION_TIMES_MIGRATION = (
     / "0014_close_registration_times.sql"
 ).read_text(encoding="utf-8")
 
+TOURNAMENT_SCHEDULE_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0015_tournament_schedule.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -96,6 +103,14 @@ PLAYOFF_ELIMINATIONS_BACKFILL = (
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
     assert "REFERENCES players(discord_id)" in MIGRATION
+
+
+def test_tournament_schedule_has_days_entries_and_fastcup_seed() -> None:
+    assert "tournament_schedule_days" in TOURNAMENT_SCHEDULE_MIGRATION
+    assert "tournament_schedule_entries" in TOURNAMENT_SCHEDULE_MIGRATION
+    assert "ON DELETE CASCADE" in TOURNAMENT_SCHEDULE_MIGRATION
+    assert "cd-fastcup-5" in TOURNAMENT_SCHEDULE_MIGRATION
+    assert "Гранд-финал" in TOURNAMENT_SCHEDULE_MIGRATION
 
 
 def test_team_members_have_one_role_per_application() -> None:

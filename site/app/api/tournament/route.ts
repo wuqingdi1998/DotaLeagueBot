@@ -115,6 +115,8 @@ export async function GET(request: Request) {
     invitations,
     rules,
     prizes,
+    scheduleDays,
+    scheduleEntries,
   ] =
     await Promise.all([
       query<ApplicationRow>(
@@ -294,6 +296,24 @@ export async function GET(request: Request) {
          ORDER BY prize.placement, prize.id`,
         [tournament.id],
       ),
+      query<Record<string, unknown>>(
+        `SELECT id::int, tournament_id::int, day_date::text, title, sort_order
+         FROM tournament_schedule_days
+         WHERE tournament_id = $1
+         ORDER BY sort_order, day_date, id`,
+        [tournament.id],
+      ),
+      query<Record<string, unknown>>(
+        `SELECT entry.id::int, entry.day_id::int,
+           TO_CHAR(entry.start_time, 'HH24:MI') AS start_time,
+           entry.stage_name, entry.match_count::int,
+           entry.series_format, entry.sort_order
+         FROM tournament_schedule_entries entry
+         JOIN tournament_schedule_days day ON day.id = entry.day_id
+         WHERE day.tournament_id = $1
+         ORDER BY day.sort_order, entry.sort_order, entry.start_time, entry.id`,
+        [tournament.id],
+      ),
     ]);
 
   const membersByApplication = new Map<number, MemberRow[]>();
@@ -317,6 +337,10 @@ export async function GET(request: Request) {
     groups,
     rules,
     prizes,
+    scheduleDays: scheduleDays.map((day) => ({
+      ...day,
+      entries: scheduleEntries.filter((entry) => entry.day_id === day.id),
+    })),
     user,
     invitations,
   });
