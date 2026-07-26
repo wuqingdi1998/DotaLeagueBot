@@ -61,12 +61,8 @@ export function HallOfFameTable({
             <FaMedal aria-hidden="true" />
             <b>Бронза</b>
           </span>
-          <span role="columnheader">Всего</span>
         </div>
-        {visiblePlayers.map(({ player, rank }) => {
-          const total =
-            player.medals.gold + player.medals.silver + player.medals.bronze;
-          return (
+        {visiblePlayers.map(({ player, rank }) => (
             <Link
               className="hall-row"
               href={`/players/${player.dotaId}`}
@@ -97,10 +93,8 @@ export function HallOfFameTable({
               <span className="hall-medal bronze" role="cell">
                 <FaMedal aria-hidden="true" /> {player.medals.bronze}
               </span>
-              <strong role="cell">{total}</strong>
             </Link>
-          );
-        })}
+        ))}
         {!visiblePlayers.length && (
           <div className="hall-empty">
             По запросу «{search.trim()}» игроки не найдены

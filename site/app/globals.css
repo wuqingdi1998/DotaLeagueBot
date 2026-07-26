@@ -6114,7 +6114,7 @@ footer button {
 .hall-row {
   display: grid;
   min-height: 72px;
-  grid-template-columns: 90px minmax(220px, 1fr) repeat(4, 120px);
+  grid-template-columns: 90px minmax(220px, 1fr) repeat(3, 120px);
   align-items: center;
   gap: 10px;
   border-bottom: 1px solid var(--line);
@@ -6211,9 +6211,9 @@ footer button {
   .hall-row {
     width: auto;
     min-height: 66px;
-    grid-template-columns: 42px minmax(0, 1fr) repeat(3, 46px) 42px;
+    grid-template-columns: 32px minmax(0, 1fr) repeat(3, 44px);
     gap: 4px;
-    padding: 0 12px;
+    padding: 0 18px;
   }
 
   .hall-head {
@@ -6228,16 +6228,6 @@ footer button {
   .hall-head > span:first-child::after {
     font-size: 11px;
     content: "#";
-  }
-
-  .hall-head > span:last-child {
-    font-size: 0;
-    text-align: center;
-  }
-
-  .hall-head > span:last-child::after {
-    font-size: 15px;
-    content: "Σ";
   }
 
   .hall-medal-heading {
