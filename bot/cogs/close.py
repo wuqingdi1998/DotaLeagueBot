@@ -2,7 +2,7 @@ import os
 import re
 import asyncio
 from collections import defaultdict
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 import discord
 from discord import app_commands
@@ -12,29 +12,19 @@ from dotenv import load_dotenv
 
 from database.core import async_session
 from database.models import CloseEvent
+from services.close_announcement import (
+    MSK,
+    build_content as _build_content,
+    participant_entries as _participant_entries,
+    set_participant_entries as _set_participant_entries,
+)
 
 load_dotenv()
 
 CLOSE_CHANNEL_ID = int(os.getenv("CLOSE_CHANNEL_ID") or 0)
 CLOSE_HOST_ROLE_ID = int(os.getenv("CLOSE_HOST_ROLE_ID") or 0)
 
-MSK = timezone(timedelta(hours=3))
 CHECK_EMOJI = "✅"
-
-
-def _build_content(ev: CloseEvent, ids: list[str]) -> str:
-    """Render the close announcement exactly per spec. Reused for the first post and every edit."""
-    people = ", ".join(f"<@{i}>" for i in ids) if ids else "Пока нет участников"
-    return (
-        "@everyone\n"
-        "📢 Открыта регистрация на клоз!\n"
-        f"В <t:{ev.start_ts}:t> <t:{ev.start_ts}:D> на сервере состоится клоз-матч\n"
-        f"Формат: {ev.game_format}, Best of {ev.series} (Хост — <@{ev.host_id}>)\n"
-        "Для регистрации на ивент нужно поставить реакцию ✅ на это сообщение\n"
-        "Для отказа от участия после регистрации нужно написать хосту\n\n"
-        "Участники:\n"
-        f"{people}"
-    )
 
 
 class Close(commands.Cog):
@@ -95,6 +85,7 @@ class Close(commands.Cog):
             series=series.value,
             start_ts=start_ts,
             participant_ids="",
+            participant_joined_at="",
         )
         try:
             sent = await channel.send(
@@ -161,16 +152,24 @@ class Close(commands.Cog):
                     return await interaction.followup.send(
                         "❌ Анонс клоза с таким сообщением не найден.", ephemeral=True
                     )
-                ids = [i for i in ev.participant_ids.split(",") if i]
-                if str(member.id) not in ids:
+                participants = _participant_entries(ev)
+                member_id = str(member.id)
+                if not any(
+                    participant_id == member_id
+                    for participant_id, _ in participants
+                ):
                     return await interaction.followup.send(
                         f"ℹ️ {member.mention} не числится в списке участников.", ephemeral=True
                     )
-                ids.remove(str(member.id))
-                ev.participant_ids = ",".join(ids)
+                participants = [
+                    entry
+                    for entry in participants
+                    if entry[0] != member_id
+                ]
+                _set_participant_entries(ev, participants)
                 await session.commit()
                 channel_id = ev.channel_id
-                content = _build_content(ev, ids)
+                content = _build_content(ev, participants)
 
         # --- Обновляем сообщение и снимаем реакцию участника ---
         channel = self.bot.get_channel(channel_id)
@@ -224,17 +223,22 @@ class Close(commands.Cog):
                 if ev is None:
                     return  # сообщение не является анонсом клоза
 
-                ids = [i for i in ev.participant_ids.split(",") if i]
-                if str(payload.user_id) in ids:
+                participants = _participant_entries(ev)
+                participant_id = str(payload.user_id)
+                if any(
+                    registered_id == participant_id
+                    for registered_id, _ in participants
+                ):
                     return  # уже зарегистрирован
-                ids.append(str(payload.user_id))
-                ev.participant_ids = ",".join(ids)
+                joined_at = int(datetime.now(timezone.utc).timestamp())
+                participants.append((participant_id, joined_at))
+                _set_participant_entries(ev, participants)
                 await session.commit()
 
                 # Снимок нужных полей, пока сессия открыта.
                 channel_id = ev.channel_id
                 message_id = ev.message_id
-                content = _build_content(ev, ids)
+                content = _build_content(ev, participants)
 
         # --- Обновляем список участников в сообщении ---
         channel = self.bot.get_channel(channel_id)

@@ -28,6 +28,7 @@ class CloseEvent(Base):
     series = Column(String, nullable=False)         # "1" | "2" | "3" (Best of N)
     start_ts = Column(BigInteger, nullable=False)   # Unix timestamp
     participant_ids = Column(String, nullable=False, default="")  # "id,id,id" in join order
+    participant_joined_at = Column(String, nullable=False, default="")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

@@ -78,6 +78,13 @@ MOBILE_PROFILE_BACKGROUNDS_MIGRATION = (
     / "0013_mobile_profile_backgrounds.sql"
 ).read_text(encoding="utf-8")
 
+CLOSE_REGISTRATION_TIMES_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0014_close_registration_times.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -171,6 +178,12 @@ def test_custom_profile_background_key_is_persistent() -> None:
 def test_mobile_profile_background_key_is_persistent() -> None:
     assert "custom_background_mobile_key VARCHAR(96)" in (
         MOBILE_PROFILE_BACKGROUNDS_MIGRATION
+    )
+
+
+def test_close_registration_times_are_persistent() -> None:
+    assert "participant_joined_at TEXT NOT NULL" in (
+        CLOSE_REGISTRATION_TIMES_MIGRATION
     )
 
 
