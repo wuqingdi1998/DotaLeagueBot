@@ -75,6 +75,15 @@ jobs:
               exit 1
             fi
 
+            # Bind mounts keep host ownership and override image-layer
+            # permissions. The site runs as uid/gid 1001 and must be able to
+            # create both team emblems and profile backgrounds.
+            install -d -m 0775 -o 1001 -g 1001 \
+              uploads_data \
+              uploads_data/team-emblems \
+              uploads_data/profile-backgrounds
+            chown -R 1001:1001 uploads_data
+
             mkdir -p backups
             if docker compose ps --status running db | grep -q db; then
               backup="backups/postgres-$(date -u +%Y%m%dT%H%M%SZ).sql.gz"

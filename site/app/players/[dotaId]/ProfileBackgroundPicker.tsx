@@ -111,8 +111,8 @@ export function ProfileBackgroundPicker({
     };
   }, [imageUrl, saving]);
 
-  function closeEditor() {
-    if (saving) return;
+  function closeEditor(force = false) {
+    if (saving && !force) return;
     setImageUrl("");
     setImageReady(false);
     setError("");
@@ -158,34 +158,48 @@ export function ProfileBackgroundPicker({
         type: "image/jpeg",
       }),
     );
-    const response = await fetch(`/api/players/${dotaId}/background`, {
-      method: "PUT",
-      body: formData,
-    });
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-    if (!response.ok) {
-      setError(result.error ?? "Не удалось сохранить фон");
-      return;
+    try {
+      const response = await fetch(`/api/players/${dotaId}/background`, {
+        method: "PUT",
+        body: formData,
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!response.ok) {
+        setError(result.error ?? "Не удалось сохранить фон");
+        return;
+      }
+      closeEditor(true);
+      router.refresh();
+    } catch {
+      setError("Сервер не ответил. Попробуйте сохранить фон ещё раз");
+    } finally {
+      setSaving(false);
     }
-    closeEditor();
-    router.refresh();
   }
 
   async function restoreStandardBackground() {
     if (saving) return;
     setSaving(true);
     setError("");
-    const response = await fetch(`/api/players/${dotaId}/background`, {
-      method: "DELETE",
-    });
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-    if (!response.ok) {
-      setError(result.error ?? "Не удалось вернуть стандартный фон");
-      return;
+    try {
+      const response = await fetch(`/api/players/${dotaId}/background`, {
+        method: "DELETE",
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!response.ok) {
+        setError(result.error ?? "Не удалось вернуть стандартный фон");
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Сервер не ответил. Попробуйте ещё раз");
+    } finally {
+      setSaving(false);
     }
-    router.refresh();
   }
 
   return (
@@ -233,7 +247,7 @@ export function ProfileBackgroundPicker({
               </div>
               <button
                 type="button"
-                onClick={closeEditor}
+                onClick={() => closeEditor()}
                 aria-label="Закрыть редактор"
                 disabled={saving}
               >
@@ -293,7 +307,7 @@ export function ProfileBackgroundPicker({
               <button
                 className="secondary-button compact"
                 type="button"
-                onClick={closeEditor}
+                onClick={() => closeEditor()}
                 disabled={saving}
               >
                 Отмена

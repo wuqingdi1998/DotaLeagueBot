@@ -145,7 +145,11 @@ export async function PUT(
       }
     }
     if (error instanceof Response) return error;
-    throw error;
+    console.error("Failed to save profile background", error);
+    return Response.json(
+      { error: "Не удалось сохранить фон. Попробуйте ещё раз" },
+      { status: 500 },
+    );
   }
 }
 
@@ -177,6 +181,10 @@ export async function DELETE(
     return Response.json({ ok: true });
   } catch (error) {
     if (error instanceof Response) return error;
-    throw error;
+    console.error("Failed to reset profile background", error);
+    return Response.json(
+      { error: "Не удалось вернуть стандартный фон" },
+      { status: 500 },
+    );
   }
 }
