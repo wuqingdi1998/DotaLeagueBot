@@ -3844,8 +3844,16 @@ footer button {
   gap: 18px 24px;
 }
 
-.public-profile-real-name {
+.public-profile-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
   margin: 0 0 9px;
+}
+
+.public-profile-real-name {
+  margin: 0;
   color: var(--text);
   font-family: "5ka Sans Design", sans-serif;
   font-size: 31px;

@@ -5,6 +5,10 @@ from dotenv import load_dotenv
 from sqlalchemy import text
 
 from database.core import async_session
+from utils.subscription_roles import (
+    canonical_subscription_role_name,
+    subscription_role_rows,
+)
 
 load_dotenv()
 
@@ -30,7 +34,7 @@ GUILD_ID_ENV = os.getenv("GUILD_ID")
 
 
 class Boosty(commands.Cog):
-    """Keeps the configured grant role in sync with any of the configured subscription roles."""
+    """Synchronizes subscription runes and the optional Boosty grant role."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -39,7 +43,7 @@ class Boosty(commands.Cog):
     def cog_unload(self):
         self.sync_task.cancel()
 
-    def _enabled(self) -> bool:
+    def _grant_sync_enabled(self) -> bool:
         return bool(GRANT_ROLE_ID and SUBSCRIPTION_ROLE_IDS)
 
     async def _store_member_subscription_roles(
@@ -61,16 +65,11 @@ class Boosty(commands.Cog):
                 ),
                 {"player_id": member.id},
             )
-            rows = [
-                {
-                    "player_id": member.id,
-                    "role_id": role.id,
-                    "role_name": role.name,
-                    "role_color": role.color.value,
-                }
-                for role in member.roles
-                if role.id in SUBSCRIPTION_ROLE_IDS
-            ]
+            rows = subscription_role_rows(
+                member.id,
+                member.roles,
+                SUBSCRIPTION_ROLE_IDS,
+            )
             if rows:
                 await session.execute(
                     text(
@@ -112,15 +111,13 @@ class Boosty(commands.Cog):
                 )
             )
             rows = [
-                {
-                    "player_id": member.id,
-                    "role_id": role.id,
-                    "role_name": role.name,
-                    "role_color": role.color.value,
-                }
+                row
                 for member in members
-                for role in member.roles
-                if role.id in SUBSCRIPTION_ROLE_IDS
+                for row in subscription_role_rows(
+                    member.id,
+                    member.roles,
+                    SUBSCRIPTION_ROLE_IDS,
+                )
             ]
             if rows:
                 await session.execute(
@@ -168,25 +165,26 @@ class Boosty(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def sync_task(self):
-        if not self._enabled():
-            return
         try:
             guilds = [self.bot.get_guild(int(GUILD_ID_ENV))] if GUILD_ID_ENV else self.bot.guilds
             for guild in guilds:
                 if not guild:
                     continue
-                grant_role = guild.get_role(GRANT_ROLE_ID)
-                if not grant_role:
-                    continue
                 added = removed = 0
-                for member in guild.members:
-                    if member.bot:
-                        continue
-                    result = await self._sync_member(member, grant_role)
-                    if result == "added":
-                        added += 1
-                    elif result == "removed":
-                        removed += 1
+                grant_role = (
+                    guild.get_role(GRANT_ROLE_ID)
+                    if self._grant_sync_enabled() and GRANT_ROLE_ID
+                    else None
+                )
+                if grant_role:
+                    for member in guild.members:
+                        if member.bot:
+                            continue
+                        result = await self._sync_member(member, grant_role)
+                        if result == "added":
+                            added += 1
+                        elif result == "removed":
+                            removed += 1
                 await self._store_guild_subscription_roles(guild)
                 if added or removed:
                     print(f"[BOOSTY] Guild {guild.id}: +{added} / -{removed} grant-role changes")
@@ -199,8 +197,6 @@ class Boosty(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before: discord.Member, after: discord.Member):
-        if not self._enabled():
-            return
         if after.bot:
             return
 
@@ -209,15 +205,37 @@ class Boosty(commands.Cog):
         if before_ids == after_ids:
             return
 
-        relevant = SUBSCRIPTION_ROLE_IDS | {GRANT_ROLE_ID}
-        if not (before_ids ^ after_ids) & relevant:
+        before_subscription_ids = {
+            role.id
+            for role in before.roles
+            if canonical_subscription_role_name(
+                role,
+                SUBSCRIPTION_ROLE_IDS,
+            )
+            is not None
+        }
+        after_subscription_ids = {
+            role.id
+            for role in after.roles
+            if canonical_subscription_role_name(
+                role,
+                SUBSCRIPTION_ROLE_IDS,
+            )
+            is not None
+        }
+        grant_changed = bool(
+            GRANT_ROLE_ID and GRANT_ROLE_ID in (before_ids ^ after_ids)
+        )
+        if before_subscription_ids == after_subscription_ids and not grant_changed:
             return
 
-        grant_role = after.guild.get_role(GRANT_ROLE_ID)
-        if not grant_role:
-            return
-
-        await self._sync_member(after, grant_role)
+        grant_role = (
+            after.guild.get_role(GRANT_ROLE_ID)
+            if self._grant_sync_enabled() and GRANT_ROLE_ID
+            else None
+        )
+        if grant_role:
+            await self._sync_member(after, grant_role)
         await self._store_member_subscription_roles(after)
 
 

@@ -95,8 +95,30 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           )}
           <div>
-            {profile.realName && (
-              <p className="public-profile-real-name">{profile.realName}</p>
+            {(profile.realName || profile.subscriptionRole) && (
+              <div className="public-profile-heading">
+                {profile.realName && (
+                  <p className="public-profile-real-name">
+                    {profile.realName}
+                  </p>
+                )}
+                {profile.subscriptionRole && (
+                  <span
+                    className="profile-subscription-role"
+                    style={
+                      profile.subscriptionRoleColor
+                        ? {
+                            "--role-color": `#${profile.subscriptionRoleColor
+                              .toString(16)
+                              .padStart(6, "0")}`,
+                          } as React.CSSProperties
+                        : undefined
+                    }
+                  >
+                    {profile.subscriptionRole}
+                  </span>
+                )}
+              </div>
             )}
             <div className="public-profile-name-row">
               <h1>{profile.nickname}</h1>
@@ -151,22 +173,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               <span className="public-profile-dota-id">
                 Dota ID {profile.dotaId}
               </span>
-              {profile.subscriptionRole && (
-                <span
-                  className="profile-subscription-role"
-                  style={
-                    profile.subscriptionRoleColor
-                      ? {
-                          "--role-color": `#${profile.subscriptionRoleColor
-                            .toString(16)
-                            .padStart(6, "0")}`,
-                        } as React.CSSProperties
-                      : undefined
-                  }
-                >
-                  {profile.subscriptionRole}
-                </span>
-              )}
             </div>
             {user?.dotaId === profile.dotaId &&
               profile.canCustomizeBackground && (
