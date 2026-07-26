@@ -6319,8 +6319,8 @@ footer button {
   }
 
   .hall-row {
-    grid-template-columns: 34px minmax(0, 1fr) repeat(3, 40px) 34px;
-    padding: 0 8px;
+    grid-template-columns: 30px minmax(0, 1fr) repeat(3, 40px);
+    padding: 0 14px 0 16px;
   }
 
   .hall-player img,
