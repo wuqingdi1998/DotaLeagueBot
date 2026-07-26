@@ -12,6 +12,7 @@ WEBHOOK_NAME = "LS Bot"
 DISCORD_CONTENT_LIMIT = 2000
 DISCORD_EMBED_DESC_LIMIT = 4096
 DISCORD_EMBED_TITLE_LIMIT = 256
+BRAND_EMBED_COLOR = 0x00C3FF
 
 
 # --- HELPER: Get or create persistent webhook ---
@@ -84,6 +85,15 @@ def build_messages(prefix: str, body: str, limit: int = DISCORD_CONTENT_LIMIT) -
     head = (prefix + sep + first_body).rstrip()
     rest = split_for_discord(remaining, limit) if remaining else []
     return ([head] if head else []) + rest
+
+
+def build_announcement_embed(title: str, description: str) -> discord.Embed:
+    """Create an announcement embed in the Linken's Sphere brand color."""
+    return discord.Embed(
+        title=title,
+        description=description,
+        color=BRAND_EMBED_COLOR,
+    )
 
 
 # --- 1. CONFIRMATION VIEW CLASS ---
@@ -288,7 +298,7 @@ class Admin(commands.Cog):
                         f"(будет разбит на несколько сообщений).",
                         ephemeral=True
                     )
-                final_embed = discord.Embed(title=proc_title, description=proc_text, color=discord.Color.gold())
+                final_embed = build_announcement_embed(proc_title, proc_text)
                 if files_to_save:
                     final_embed.set_image(url=f"attachment://{files_to_save[0][0]}")
 
@@ -364,6 +374,44 @@ class Admin(commands.Cog):
 
         except Exception as e:
             await interaction.followup.send(f"❌ System Error: {e}", ephemeral=True)
+
+    @app_commands.command(
+        name="say_embed",
+        description="[Admin] Создать объявление в голубой embed-плашке",
+    )
+    @app_commands.describe(
+        channel="Канал для публикации",
+        title="Заголовок плашки",
+        image="Изображение внизу плашки",
+        ping_role="Роль для упоминания",
+        ping_everyone="Упомянуть @everyone",
+        username="Имя отправителя",
+        avatar_url="Ссылка на аватар отправителя",
+    )
+    @app_commands.checks.has_permissions(administrator=True)
+    async def say_embed(
+        self,
+        interaction: discord.Interaction,
+        channel: discord.TextChannel,
+        title: str,
+        image: discord.Attachment = None,
+        ping_role: discord.Role = None,
+        ping_everyone: bool = False,
+        username: str = "Linken's Sphere Esports",
+        avatar_url: str = None,
+    ):
+        """Publish an announcement through the existing preview/confirm flow."""
+        await Admin.say.callback(
+            self,
+            interaction,
+            channel,
+            title,
+            image,
+            ping_role,
+            ping_everyone,
+            username,
+            avatar_url,
+        )
 
     @app_commands.command(name="poll", description="[Admin] Создать опрос (голосование) в канале")
     @app_commands.describe(
