@@ -6140,6 +6140,11 @@ footer button {
   gap: 12px;
 }
 
+.hall-row > :first-child {
+  justify-self: center;
+  text-align: center;
+}
+
 .hall-player img,
 .hall-player i {
   display: grid;
@@ -6157,6 +6162,7 @@ footer button {
 .hall-medal {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-weight: 800;
 }
@@ -6164,6 +6170,7 @@ footer button {
 .hall-medal-heading {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
 }
 
