@@ -3583,7 +3583,7 @@ footer button {
 .tournament-card {
   position: relative;
   display: flex;
-  min-height: 480px;
+  min-height: 420px;
   flex-direction: column;
   border: 1px solid var(--line);
   border-radius: 24px;
@@ -3602,21 +3602,21 @@ footer button {
 
 .tournament-card-top {
   display: flex;
-  min-height: 34px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 20px;
   color: var(--muted);
   font-size: 14px;
   font-weight: 700;
 }
 
-.tournament-card .card-kicker {
-  margin-top: 32px;
+.tournament-card-top .tournament-status {
+  flex: 0 0 auto;
 }
 
 .tournament-card h2 {
-  margin: 11px 0 12px;
+  min-width: 0;
+  margin: 0;
   font-family: "5ka Sans Design", sans-serif;
   font-size: clamp(32px, 3.5vw, 48px);
   font-weight: 600;
@@ -3625,7 +3625,7 @@ footer button {
 
 .tournament-card-description {
   min-height: 54px;
-  margin: 0;
+  margin: 16px 0 0;
   color: var(--muted);
   font-size: 16px;
   line-height: 1.65;
@@ -3908,8 +3908,16 @@ footer button {
   }
 
   .tournament-card {
-    min-height: 530px;
+    min-height: 470px;
     padding: 23px;
+  }
+
+  .tournament-card-top {
+    gap: 12px;
+  }
+
+  .tournament-card-top h2 {
+    font-size: clamp(28px, 9vw, 40px);
   }
 
   .tournament-card-stats {

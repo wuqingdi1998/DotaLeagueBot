@@ -156,13 +156,12 @@ function TournamentCard({
   return (
     <article className={`tournament-card status-${tournament.status}`}>
       <div className="tournament-card-top">
+        <h2>{tournament.name}</h2>
         <span className={`tournament-status ${tournament.status}`}>
           {tournament.status === "active" && <i />}
           {statusDetails[tournament.status].label}
         </span>
       </div>
-      <p className="card-kicker">{tournament.eyebrow || "Турнир сообщества"}</p>
-      <h2>{tournament.name}</h2>
       <p className="tournament-card-description">{tournament.description}</p>
       <div className="tournament-card-date">
         <FiCalendar aria-hidden="true" />
