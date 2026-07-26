@@ -3890,7 +3890,7 @@ footer button {
   line-height: 0.94;
 }
 
-.profile-subscription-role.mobile-profile-role,
+.public-profile-positions.mobile-profile-positions,
 .public-profile-dota-id.mobile-profile-dota-id {
   display: none;
 }
@@ -4344,24 +4344,25 @@ footer button {
     max-width: 100%;
     flex: 1;
     overflow: hidden;
-    margin: 3px 0;
+    margin: 3px 0 -0.14em;
+    padding-bottom: 0.14em;
     font-size: var(--mobile-nickname-size, 42px);
-    line-height: 0.98;
+    line-height: 1.04;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .profile-subscription-role.desktop-profile-role,
+  .public-profile-positions.desktop-profile-positions,
   .public-profile-dota-id.desktop-profile-dota-id {
     display: none;
   }
 
-  .profile-subscription-role.mobile-profile-role {
+  .public-profile-positions.mobile-profile-positions {
     display: inline-flex;
-    min-height: 31px;
+    min-height: 35px;
     flex: 0 0 auto;
-    padding: 0 9px;
-    font-size: 11px;
+    padding: 0 11px;
+    font-size: 21px;
   }
 
   .player-service-links {

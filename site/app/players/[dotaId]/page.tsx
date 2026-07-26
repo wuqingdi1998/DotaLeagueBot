@@ -68,6 +68,34 @@ function SubscriptionRoleBadge({
   );
 }
 
+function PlayerPositionsBadge({
+  positions,
+  className,
+}: {
+  positions: string | null;
+  className: string;
+}) {
+  return positions ? (
+    <span
+      className={`public-profile-positions ${className}`}
+      tabIndex={0}
+      aria-label={`Игровые позиции: ${positions}`}
+    >
+      {positions}
+      <span className="profile-position-tooltip" role="tooltip">
+        Игровые позиции
+      </span>
+    </span>
+  ) : (
+    <span
+      className={`public-profile-positions empty ${className}`}
+      aria-label="Игровые позиции не указаны"
+    >
+      —
+    </span>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: PlayerPageProps): Promise<Metadata> {
@@ -97,7 +125,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           (profile.statistics.matchWins / profile.statistics.matches) * 100,
         )
       : 0;
-  const mobileNicknameWidth = profile.subscriptionRole ? 190 : 300;
+  const mobileNicknameWidth = 270;
   const mobileNicknameSize = Math.max(
     15,
     Math.min(
@@ -155,7 +183,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   <SubscriptionRoleBadge
                     role={profile.subscriptionRole}
                     color={profile.subscriptionRoleColor}
-                    className="desktop-profile-role"
+                    className="profile-heading-role"
                   />
                 )}
               </div>
@@ -170,13 +198,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 }
               >
                 <h1 title={profile.nickname}>{profile.nickname}</h1>
-                {profile.subscriptionRole && (
-                  <SubscriptionRoleBadge
-                    role={profile.subscriptionRole}
-                    color={profile.subscriptionRoleColor}
-                    className="mobile-profile-role"
-                  />
-                )}
+                <PlayerPositionsBadge
+                  positions={profile.positions}
+                  className="mobile-profile-positions"
+                />
               </div>
               <div
                 className="player-service-links"
@@ -215,20 +240,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               </div>
             </div>
             <div className="public-profile-meta">
-              {profile.positions ? (
-                <span
-                  className="public-profile-positions"
-                  tabIndex={0}
-                  aria-label={`Игровые позиции: ${profile.positions}`}
-                >
-                  {profile.positions}
-                  <span className="profile-position-tooltip" role="tooltip">
-                    Игровые позиции
-                  </span>
-                </span>
-              ) : (
-                <span className="public-profile-positions empty">—</span>
-              )}
+              <PlayerPositionsBadge
+                positions={profile.positions}
+                className="desktop-profile-positions"
+              />
               <span className="public-profile-dota-id desktop-profile-dota-id">
                 Dota ID {profile.dotaId}
               </span>
