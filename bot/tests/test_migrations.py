@@ -92,6 +92,13 @@ TOURNAMENT_SCHEDULE_MIGRATION = (
     / "0015_tournament_schedule.sql"
 ).read_text(encoding="utf-8")
 
+FASTCUP_ARCHIVE_SERIES_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0016_cd_fastcup_archive_series.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -111,6 +118,20 @@ def test_tournament_schedule_has_days_entries_and_fastcup_seed() -> None:
     assert "ON DELETE CASCADE" in TOURNAMENT_SCHEDULE_MIGRATION
     assert "cd-fastcup-5" in TOURNAMENT_SCHEDULE_MIGRATION
     assert "Гранд-финал" in TOURNAMENT_SCHEDULE_MIGRATION
+
+
+def test_fastcup_archive_series_has_complete_tournament_sections() -> None:
+    for number in (1, 2, 3, 4, 6):
+        assert f"'cd-fastcup-{number}'" in FASTCUP_ARCHIVE_SERIES_MIGRATION
+    assert FASTCUP_ARCHIVE_SERIES_MIGRATION.count(
+        "INSERT INTO fastcup_matches VALUES"
+    ) == 1
+    assert FASTCUP_ARCHIVE_SERIES_MIGRATION.count(
+        "INSERT INTO fastcup_rosters VALUES"
+    ) == 1
+    assert "tournament_schedule_entries" in FASTCUP_ARCHIVE_SERIES_MIGRATION
+    assert "winner_to_match_id" in FASTCUP_ARCHIVE_SERIES_MIGRATION
+    assert "tier_snapshot" in FASTCUP_ARCHIVE_SERIES_MIGRATION
 
 
 def test_team_members_have_one_role_per_application() -> None:
