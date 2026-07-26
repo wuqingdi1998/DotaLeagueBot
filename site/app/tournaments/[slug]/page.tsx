@@ -274,6 +274,26 @@ const editableTournamentFields = [
   "discord_url",
 ] as const;
 
+const editableTournamentFieldLabels: Record<
+  (typeof editableTournamentFields)[number],
+  string
+> = {
+  name: "Название турнира",
+  eyebrow: "Строка над заголовком",
+  headline: "Главный заголовок",
+  headline_accent: "Голубая часть заголовка",
+  description: "Краткое описание",
+  about: "Полное описание",
+  status_label: "Статус",
+  format: "Формат",
+  region: "Регион",
+  server: "Игровой сервер",
+  group_format: "Групповой этап",
+  playoff_format: "Описание плей-офф",
+  final_format: "Гранд-финал",
+  discord_url: "Ссылка Discord",
+};
+
 function initials(name: string) {
   return name
     .split(/\s+/)
@@ -555,10 +575,197 @@ function GroupSettingsEditor({
   );
 }
 
+function TournamentDetailsEditor({
+  tournament,
+  onSaved,
+  onMessage,
+}: {
+  tournament: Tournament;
+  onSaved: () => Promise<void>;
+  onMessage: (message: string) => void;
+}) {
+  const [draft, setDraft] = useState(tournament);
+  const [saving, setSaving] = useState(false);
+
+  function setField(field: keyof Tournament, value: string | number) {
+    setDraft((current) => ({ ...current, [field]: value }));
+  }
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (saving) return;
+    setSaving(true);
+
+    try {
+      const response = await fetch("/api/tournament", {
+        method: "PATCH",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(draft),
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        onMessage(
+          result.error ?? "Не удалось сохранить данные турнира",
+        );
+        return;
+      }
+
+      onMessage("Изменения турнира сохранены в базе");
+      await onSaved();
+    } catch {
+      onMessage(
+        "Не удалось связаться с сервером. Попробуйте сохранить ещё раз.",
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <form className="tournament-editor" onSubmit={save}>
+      <div className="editor-heading">
+        <div>
+          <p className="card-kicker">Редактор турнира</p>
+          <h3>Основная информация</h3>
+        </div>
+        <button
+          className="primary-button compact"
+          type="submit"
+          disabled={saving}
+        >
+          {saving ? "Сохраняем…" : "Сохранить изменения"}
+        </button>
+      </div>
+
+      <div className="editor-grid">
+        {editableTournamentFields.map((field) => (
+          <label
+            className={
+              ["description", "about"].includes(field) ? "wide-field" : ""
+            }
+            key={field}
+          >
+            <span>{editableTournamentFieldLabels[field]}</span>
+            {["description", "about"].includes(field) ? (
+              <textarea
+                value={String(draft[field])}
+                onChange={(event) => setField(field, event.target.value)}
+              />
+            ) : (
+              <input
+                value={String(draft[field])}
+                onChange={(event) => setField(field, event.target.value)}
+              />
+            )}
+          </label>
+        ))}
+
+        <label>
+          <span>Начало турнира</span>
+          <input
+            type="datetime-local"
+            value={toDateTimeInput(draft.start_at)}
+            onChange={(event) =>
+              setField("start_at", fromDateTimeInput(event.target.value))
+            }
+          />
+        </label>
+        <label>
+          <span>Окончание турнира</span>
+          <input
+            type="datetime-local"
+            value={toDateTimeInput(draft.end_at)}
+            onChange={(event) =>
+              setField("end_at", fromDateTimeInput(event.target.value))
+            }
+          />
+        </label>
+        <label>
+          <span>Дедлайн регистрации</span>
+          <input
+            type="datetime-local"
+            value={toDateTimeInput(draft.registration_deadline)}
+            onChange={(event) =>
+              setField(
+                "registration_deadline",
+                fromDateTimeInput(event.target.value),
+              )
+            }
+          />
+        </label>
+        <label>
+          <span>Количество игроков</span>
+          <input
+            type="number"
+            min="1"
+            max="10"
+            value={draft.team_size}
+            onChange={(event) =>
+              setField("team_size", Number(event.target.value))
+            }
+          />
+        </label>
+        <label>
+          <span>Количество команд</span>
+          <input
+            type="number"
+            min="2"
+            max="64"
+            value={draft.max_teams}
+            onChange={(event) =>
+              setField("max_teams", Number(event.target.value))
+            }
+          />
+        </label>
+        <label>
+          <span>Check-in, минут</span>
+          <input
+            type="number"
+            min="5"
+            max="180"
+            value={draft.check_in_minutes}
+            onChange={(event) =>
+              setField("check_in_minutes", Number(event.target.value))
+            }
+          />
+        </label>
+        <label>
+          <span>Формат плей-офф</span>
+          <select
+            value={draft.playoff_type}
+            onChange={(event) =>
+              setField("playoff_type", event.target.value)
+            }
+          >
+            <option value="single_elimination">Single Elimination</option>
+            <option value="double_elimination">Double Elimination</option>
+          </select>
+        </label>
+        <label>
+          <span>Рабочий статус</span>
+          <select
+            value={draft.status}
+            onChange={(event) => setField("status", event.target.value)}
+          >
+            <option value="draft">Черновик</option>
+            <option value="registration">Регистрация открыта</option>
+            <option value="active">Турнир идёт</option>
+            <option value="finished">Завершён</option>
+            <option value="archived">В архиве</option>
+          </select>
+        </label>
+      </div>
+    </form>
+  );
+}
+
 export default function Home() {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
   const tournamentSlug = params.slug;
+  const manageRequested = searchParams.get("manage") === "1";
   const [data, setData] = useState<SiteData | null>(null);
   const [loadingError, setLoadingError] = useState("");
   const [activeTab, setActiveTab] = useState("overview");
@@ -566,7 +773,6 @@ export default function Home() {
   const [registrationOpen, setRegistrationOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [adminMode, setAdminMode] = useState(false);
-  const [tournamentDraft, setTournamentDraft] = useState<Tournament | null>(null);
   const [registration, setRegistration] = useState<RegistrationForm>(emptyRegistration);
   const [teamEmblem, setTeamEmblem] = useState<File | null>(null);
   const [toast, setToast] = useState("");
@@ -597,10 +803,9 @@ export default function Home() {
       const nextData = (await response.json()) as SiteData;
       setData(nextData);
       setAdminMode(Boolean(nextData.user?.isAdmin));
-      setTournamentDraft(nextData.tournament);
       setGroupCount(nextData.groups.length || 2);
       setTeamsPerGroup(nextData.groups[0]?.team_capacity ?? 4);
-      if (nextData.user?.isAdmin && searchParams.get("manage") === "1") {
+      if (nextData.user?.isAdmin && manageRequested) {
         setActiveTab("admin");
       }
       if (nextData.user) {
@@ -634,7 +839,7 @@ export default function Home() {
     } catch (error) {
       setLoadingError(error instanceof Error ? error.message : "Ошибка загрузки");
     }
-  }, [searchParams, tournamentSlug]);
+  }, [manageRequested, tournamentSlug]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -785,34 +990,6 @@ export default function Home() {
     }
     setToast(status === "approved" ? "Команда допущена к турниру" : "Заявка отклонена");
     await loadData();
-  }
-
-  async function saveTournament(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!tournamentDraft) return;
-    setSaving(true);
-
-    const response = await fetch("/api/tournament", {
-      method: "PATCH",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify(tournamentDraft),
-    });
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-
-    if (!response.ok) {
-      setToast(result.error ?? "Не удалось сохранить турнир");
-      return;
-    }
-
-    setToast("Изменения турнира сохранены в базе");
-    await loadData();
-  }
-
-  function setTournamentField(field: keyof Tournament, value: string | number) {
-    setTournamentDraft((current) => current ? { ...current, [field]: value } : current);
   }
 
   async function answerInvitation(
@@ -1602,7 +1779,7 @@ export default function Home() {
           </div>
         )}
 
-        {activeTab === "admin" && adminMode && tournamentDraft && (
+        {activeTab === "admin" && adminMode && (
           <div className="tab-panel admin-panel">
             <div className="admin-summary">
               <div><span>Заявок</span><strong>{data.applications.length}</strong></div>
@@ -1650,104 +1827,12 @@ export default function Home() {
               </button>
             </div>
 
-            <form className="tournament-editor" onSubmit={saveTournament}>
-              <div className="editor-heading">
-                <div>
-                  <p className="card-kicker">Редактор турнира</p>
-                  <h3>Основная информация</h3>
-                </div>
-                <button className="primary-button compact" type="submit" disabled={saving}>
-                  {saving ? "Сохраняем…" : "Сохранить изменения"}
-                </button>
-              </div>
-
-              <div className="editor-grid">
-                {editableTournamentFields.map((field) => (
-                  <label className={["description", "about"].includes(field) ? "wide-field" : ""} key={field}>
-                    <span>{({
-                      name: "Название турнира",
-                      eyebrow: "Строка над заголовком",
-                      headline: "Главный заголовок",
-                      headline_accent: "Голубая часть заголовка",
-                      description: "Краткое описание",
-                      about: "Полное описание",
-                      status_label: "Статус",
-                      format: "Формат",
-                      region: "Регион",
-                      server: "Игровой сервер",
-                      group_format: "Групповой этап",
-                      playoff_format: "Описание плей-офф",
-                      final_format: "Гранд-финал",
-                      discord_url: "Ссылка Discord",
-                    } as Record<string, string>)[field]}</span>
-                    {["description", "about"].includes(field) ? (
-                      <textarea value={String(tournamentDraft[field])} onChange={(event) => setTournamentField(field, event.target.value)} />
-                    ) : (
-                      <input value={String(tournamentDraft[field])} onChange={(event) => setTournamentField(field, event.target.value)} />
-                    )}
-                  </label>
-                ))}
-
-                <label>
-                  <span>Начало турнира</span>
-                  <input type="datetime-local" value={toDateTimeInput(tournamentDraft.start_at)} onChange={(event) => setTournamentField("start_at", fromDateTimeInput(event.target.value))} />
-                </label>
-                <label>
-                  <span>Окончание турнира</span>
-                  <input type="datetime-local" value={toDateTimeInput(tournamentDraft.end_at)} onChange={(event) => setTournamentField("end_at", fromDateTimeInput(event.target.value))} />
-                </label>
-                <label>
-                  <span>Дедлайн регистрации</span>
-                  <input type="datetime-local" value={toDateTimeInput(tournamentDraft.registration_deadline)} onChange={(event) => setTournamentField("registration_deadline", fromDateTimeInput(event.target.value))} />
-                </label>
-                <label>
-                  <span>Количество игроков</span>
-                  <input type="number" min="1" max="10" value={tournamentDraft.team_size} onChange={(event) => setTournamentField("team_size", Number(event.target.value))} />
-                </label>
-                <label>
-                  <span>Количество команд</span>
-                  <input type="number" min="2" max="64" value={tournamentDraft.max_teams} onChange={(event) => setTournamentField("max_teams", Number(event.target.value))} />
-                </label>
-                <label>
-                  <span>Check-in, минут</span>
-                  <input type="number" min="5" max="180" value={tournamentDraft.check_in_minutes} onChange={(event) => setTournamentField("check_in_minutes", Number(event.target.value))} />
-                </label>
-                <label>
-                  <span>Формат плей-офф</span>
-                  <select
-                    value={tournamentDraft.playoff_type}
-                    onChange={(event) =>
-                      setTournamentField(
-                        "playoff_type",
-                        event.target.value,
-                      )
-                    }
-                  >
-                    <option value="single_elimination">
-                      Single Elimination
-                    </option>
-                    <option value="double_elimination">
-                      Double Elimination
-                    </option>
-                  </select>
-                </label>
-                <label>
-                  <span>Рабочий статус</span>
-                  <select
-                    value={tournamentDraft.status}
-                    onChange={(event) =>
-                      setTournamentField("status", event.target.value)
-                    }
-                  >
-                    <option value="draft">Черновик</option>
-                    <option value="registration">Регистрация открыта</option>
-                    <option value="active">Турнир идёт</option>
-                    <option value="finished">Завершён</option>
-                    <option value="archived">В архиве</option>
-                  </select>
-                </label>
-              </div>
-            </form>
+            <TournamentDetailsEditor
+              key={`${tournament.id}-${tournament.updated_at}`}
+              tournament={tournament}
+              onSaved={loadData}
+              onMessage={setToast}
+            />
 
             <TournamentContentEditor
               key={`${tournament.id}-${tournament.updated_at}`}
