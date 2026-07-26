@@ -82,6 +82,7 @@ export type PublicPlayerProfile = {
   subscriptionRoleColor: number | null;
   backgroundKey: ProfileBackgroundKey;
   customBackgroundUrl: string | null;
+  customBackgroundMobileUrl: string | null;
   hasCustomBackground: boolean;
   canCustomizeBackground: boolean;
   links: {
@@ -111,6 +112,7 @@ type PlayerRow = {
   subscription_role: string | null;
   subscription_role_color: number | null;
   custom_background_key: string | null;
+  custom_background_mobile_key: string | null;
 };
 
 export type HallOfFamePlayer = {
@@ -184,7 +186,8 @@ export async function loadPublicPlayerProfile(
        ) AS avatar_url,
        subscription.role_name AS subscription_role,
        subscription.role_color::int AS subscription_role_color,
-       preference.custom_background_key
+       preference.custom_background_key,
+       preference.custom_background_mobile_key
      FROM players p
      LEFT JOIN LATERAL (
        SELECT s.discord_avatar_url
@@ -347,6 +350,11 @@ export async function loadPublicPlayerProfile(
   const customBackgroundUrl = hasCustomBackground
     ? `/api/profile-backgrounds/${player.custom_background_key}`
     : null;
+  const customBackgroundMobileUrl = hasCustomBackground
+    ? player.custom_background_mobile_key
+      ? `/api/profile-backgrounds/${player.custom_background_mobile_key}`
+      : customBackgroundUrl
+    : null;
 
   return {
     dotaId: player.dota_id,
@@ -358,6 +366,7 @@ export async function loadPublicPlayerProfile(
     subscriptionRoleColor: player.subscription_role_color,
     backgroundKey,
     customBackgroundUrl,
+    customBackgroundMobileUrl,
     hasCustomBackground,
     canCustomizeBackground,
     links: buildPlayerLinks(player.dota_id),

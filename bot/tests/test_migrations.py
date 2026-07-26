@@ -71,6 +71,13 @@ CUSTOM_PROFILE_BACKGROUNDS_MIGRATION = (
     / "0012_custom_profile_backgrounds.sql"
 ).read_text(encoding="utf-8")
 
+MOBILE_PROFILE_BACKGROUNDS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0013_mobile_profile_backgrounds.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -158,6 +165,12 @@ def test_profile_roles_and_backgrounds_are_persistent() -> None:
 def test_custom_profile_background_key_is_persistent() -> None:
     assert "custom_background_key VARCHAR(96)" in (
         CUSTOM_PROFILE_BACKGROUNDS_MIGRATION
+    )
+
+
+def test_mobile_profile_background_key_is_persistent() -> None:
+    assert "custom_background_mobile_key VARCHAR(96)" in (
+        MOBILE_PROFILE_BACKGROUNDS_MIGRATION
     )
 
 

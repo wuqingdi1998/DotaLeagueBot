@@ -3823,6 +3823,12 @@ footer button {
   display: flex;
   align-items: center;
   gap: clamp(24px, 4vw, 46px);
+  min-width: 0;
+}
+
+.player-profile-identity > div:last-child {
+  min-width: 0;
+  flex: 1;
 }
 
 .public-profile-avatar {
@@ -3850,6 +3856,11 @@ footer button {
   align-items: center;
   flex-wrap: wrap;
   gap: 18px 24px;
+  min-width: 0;
+}
+
+.public-profile-nickname-line {
+  display: contents;
 }
 
 .public-profile-heading {
@@ -3870,12 +3881,18 @@ footer button {
 }
 
 .public-profile-name-row h1 {
+  max-width: 100%;
   margin: 8px 0;
   font-family: "5ka Sans Design", sans-serif;
   font-size: clamp(54px, 7vw, 104px);
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 0.94;
+}
+
+.profile-subscription-role.mobile-profile-role,
+.public-profile-dota-id.mobile-profile-dota-id {
+  display: none;
 }
 
 .public-profile-meta {
@@ -4280,22 +4297,77 @@ footer button {
 
 @media (max-width: 760px) {
   .player-profile-hero {
-    gap: 30px;
-    padding: 38px 18px 50px;
+    gap: 20px;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 24px 14px 32px;
   }
 
   .player-profile-identity {
+    width: 100%;
     align-items: flex-start;
     flex-direction: column;
+    gap: 16px;
+  }
+
+  .public-profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
   }
 
   .public-profile-name-row {
+    width: 100%;
     align-items: flex-start;
     flex-direction: column;
+    gap: 11px;
+  }
+
+  .public-profile-heading {
+    margin-bottom: 5px;
+  }
+
+  .public-profile-real-name {
+    font-size: 21px;
+  }
+
+  .public-profile-nickname-line {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
   }
 
   .public-profile-name-row h1 {
-    font-size: clamp(50px, 16vw, 72px);
+    min-width: 0;
+    max-width: 100%;
+    flex: 1;
+    overflow: hidden;
+    margin: 3px 0;
+    font-size: var(--mobile-nickname-size, 42px);
+    line-height: 0.98;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .profile-subscription-role.desktop-profile-role,
+  .public-profile-dota-id.desktop-profile-dota-id {
+    display: none;
+  }
+
+  .profile-subscription-role.mobile-profile-role {
+    display: inline-flex;
+    min-height: 31px;
+    flex: 0 0 auto;
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .player-service-links {
+    max-width: 100%;
+    flex-wrap: nowrap;
+    gap: 6px;
   }
 
   .player-service-links a span {
@@ -4303,9 +4375,33 @@ footer button {
   }
 
   .player-service-links a {
-    width: 46px;
+    width: 40px;
+    min-height: 40px;
     justify-content: center;
     padding: 0;
+  }
+
+  .public-profile-dota-id.mobile-profile-dota-id {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    padding-left: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .public-profile-meta {
+    margin-top: 7px;
+  }
+
+  .public-profile-positions {
+    min-height: 36px;
+    padding: 0 11px;
+    font-size: 22px;
+  }
+
+  .profile-background-control {
+    margin-top: 11px;
   }
 
   .profile-stat-grid {
@@ -4314,8 +4410,20 @@ footer button {
 
   .profile-stat-grid article,
   .profile-stat-grid article:nth-child(3) {
+    min-height: 82px;
     border-right: 1px solid var(--line);
     border-bottom: 1px solid var(--line);
+    gap: 5px;
+    padding: 12px;
+  }
+
+  .profile-stat-grid span {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .profile-stat-grid strong {
+    font-size: 29px;
   }
 
   .profile-stat-grid article:nth-child(even) {
@@ -4327,7 +4435,7 @@ footer button {
   }
 
   .player-profile-content {
-    padding: 58px 18px 84px;
+    padding: 38px 14px 64px;
   }
 
   .profile-section-heading {
@@ -5711,14 +5819,8 @@ footer button {
 }
 
 .player-profile-hero.profile-background-custom {
-  background:
-    linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--surface) 88%, transparent) 0%,
-      color-mix(in srgb, var(--surface) 62%, transparent) 56%,
-      color-mix(in srgb, var(--surface) 40%, transparent) 100%
-    ),
-    var(--profile-custom-background) center / cover no-repeat;
+  background: var(--profile-custom-background-desktop) center / cover
+    no-repeat !important;
 }
 
 .profile-background-control {
@@ -5764,7 +5866,7 @@ footer button {
 }
 
 .profile-background-crop-modal {
-  width: min(920px, 100%);
+  width: min(1180px, 100%);
   max-height: calc(100vh - 48px);
   overflow-y: auto;
   border: 1px solid var(--line-strong);
@@ -5818,21 +5920,78 @@ footer button {
   line-height: 1.55;
 }
 
+.profile-background-crop-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 2.25fr) minmax(220px, 0.75fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.profile-background-crop-panel {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.profile-background-crop-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-background-crop-panel-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.profile-background-crop-panel-heading strong {
+  font-size: 16px;
+}
+
+.profile-background-crop-panel-heading span,
+.profile-background-crop-panel > small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-background-crop-panel-heading svg {
+  color: var(--blue-strong);
+  font-size: 20px;
+}
+
 .profile-background-crop-frame {
   position: relative;
   overflow: hidden;
   width: 100%;
-  aspect-ratio: 3.5 / 1;
   border: 2px solid var(--blue);
   border-radius: 16px;
   background: var(--surface-soft);
   box-shadow: 0 0 0 5px rgba(0, 195, 255, 0.1);
 }
 
+.profile-background-crop-frame.desktop {
+  aspect-ratio: 3.5 / 1;
+}
+
+.profile-background-crop-frame.mobile {
+  width: min(100%, 260px);
+  aspect-ratio: 9 / 16;
+  justify-self: center;
+}
+
 .profile-background-crop-frame canvas {
   display: block;
   width: 100%;
   height: 100%;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.profile-background-crop-frame canvas.is-dragging {
+  cursor: grabbing;
 }
 
 .profile-background-crop-frame > span {
@@ -5844,14 +6003,7 @@ footer button {
   font-weight: 700;
 }
 
-.profile-background-crop-controls {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 20px;
-}
-
-.profile-background-crop-controls label {
+.profile-background-zoom {
   display: grid;
   gap: 8px;
   color: var(--muted);
@@ -5859,7 +6011,7 @@ footer button {
   font-weight: 800;
 }
 
-.profile-background-crop-controls input {
+.profile-background-zoom input {
   width: 100%;
   accent-color: var(--blue);
 }
@@ -6201,8 +6353,20 @@ footer button {
     padding: 22px 16px;
   }
 
-  .profile-background-crop-controls {
+  .player-profile-hero.profile-background-custom {
+    background: var(
+        --profile-custom-background-mobile,
+        var(--profile-custom-background-desktop)
+      )
+      center / cover no-repeat !important;
+  }
+
+  .profile-background-crop-workspace {
     grid-template-columns: 1fr;
+  }
+
+  .profile-background-crop-frame.mobile {
+    width: min(100%, 240px);
   }
 
   .profile-background-crop-actions {

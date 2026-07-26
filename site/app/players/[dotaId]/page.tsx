@@ -43,6 +43,31 @@ function formatDateRange(startAt: string, endAt: string) {
   )}`;
 }
 
+function SubscriptionRoleBadge({
+  role,
+  color,
+  className,
+}: {
+  role: string;
+  color: number | null;
+  className: string;
+}) {
+  return (
+    <span
+      className={`profile-subscription-role ${className}`}
+      style={
+        color
+          ? {
+              "--role-color": `#${color.toString(16).padStart(6, "0")}`,
+            } as React.CSSProperties
+          : undefined
+      }
+    >
+      {role}
+    </span>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: PlayerPageProps): Promise<Metadata> {
@@ -72,6 +97,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
           (profile.statistics.matchWins / profile.statistics.matches) * 100,
         )
       : 0;
+  const mobileNicknameWidth = profile.subscriptionRole ? 190 : 300;
+  const mobileNicknameSize = Math.max(
+    15,
+    Math.min(
+      52,
+      Math.floor(
+        mobileNicknameWidth /
+          Math.max(profile.nickname.length * 0.58, 1),
+      ),
+    ),
+  );
 
   return (
     <PlatformShell user={user}>
@@ -82,7 +118,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         style={
           profile.customBackgroundUrl
             ? {
-                "--profile-custom-background": `url("${profile.customBackgroundUrl}")`,
+                "--profile-custom-background-desktop": `url("${profile.customBackgroundUrl}")`,
+                "--profile-custom-background-mobile": `url("${
+                  profile.customBackgroundMobileUrl ??
+                  profile.customBackgroundUrl
+                }")`,
               } as React.CSSProperties
             : undefined
         }
@@ -112,25 +152,32 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   </p>
                 )}
                 {profile.subscriptionRole && (
-                  <span
-                    className="profile-subscription-role"
-                    style={
-                      profile.subscriptionRoleColor
-                        ? {
-                            "--role-color": `#${profile.subscriptionRoleColor
-                              .toString(16)
-                              .padStart(6, "0")}`,
-                          } as React.CSSProperties
-                        : undefined
-                    }
-                  >
-                    {profile.subscriptionRole}
-                  </span>
+                  <SubscriptionRoleBadge
+                    role={profile.subscriptionRole}
+                    color={profile.subscriptionRoleColor}
+                    className="desktop-profile-role"
+                  />
                 )}
               </div>
             )}
             <div className="public-profile-name-row">
-              <h1>{profile.nickname}</h1>
+              <div
+                className="public-profile-nickname-line"
+                style={
+                  {
+                    "--mobile-nickname-size": `${mobileNicknameSize}px`,
+                  } as React.CSSProperties
+                }
+              >
+                <h1 title={profile.nickname}>{profile.nickname}</h1>
+                {profile.subscriptionRole && (
+                  <SubscriptionRoleBadge
+                    role={profile.subscriptionRole}
+                    color={profile.subscriptionRoleColor}
+                    className="mobile-profile-role"
+                  />
+                )}
+              </div>
               <div
                 className="player-service-links"
                 aria-label="Профили игрока на игровых сервисах"
@@ -162,6 +209,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   <FaSteam aria-hidden="true" />
                   <span>Steam</span>
                 </a>
+                <span className="public-profile-dota-id mobile-profile-dota-id">
+                  Dota ID {profile.dotaId}
+                </span>
               </div>
             </div>
             <div className="public-profile-meta">
@@ -179,7 +229,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               ) : (
                 <span className="public-profile-positions empty">—</span>
               )}
-              <span className="public-profile-dota-id">
+              <span className="public-profile-dota-id desktop-profile-dota-id">
                 Dota ID {profile.dotaId}
               </span>
             </div>

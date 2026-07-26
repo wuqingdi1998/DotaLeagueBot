@@ -70,7 +70,7 @@ export async function PUT(
   request: Request,
   context: { params: Promise<{ dotaId: string }> },
 ) {
-  let storedFile: string | null = null;
+  const storedFiles: string[] = [];
   try {
     const { dotaId } = await context.params;
     const user = await requireProfileOwner(dotaId);
@@ -82,62 +82,88 @@ export async function PUT(
     }
 
     const body = await request.formData();
-    const background = body.get("background");
-    if (!(background instanceof File) || background.size === 0) {
-      return Response.json(
-        { error: "Выберите изображение для фона" },
-        { status: 400 },
-      );
-    }
+    const desktopBackground = body.get("desktopBackground");
+    const mobileBackground = body.get("mobileBackground");
     if (
-      background.type !== "image/jpeg" ||
-      background.size > maximumBackgroundSize
+      !(desktopBackground instanceof File) ||
+      desktopBackground.size === 0 ||
+      !(mobileBackground instanceof File) ||
+      mobileBackground.size === 0
     ) {
       return Response.json(
-        { error: "Не удалось подготовить изображение. Попробуйте другой JPG или PNG" },
+        { error: "Подготовьте оба варианта фона: для компьютера и телефона" },
         { status: 400 },
       );
     }
 
-    const fileData = new Uint8Array(await background.arrayBuffer());
-    if (!isJpeg(fileData)) {
-      return Response.json(
-        { error: "Файл фона повреждён или имеет неверный формат" },
-        { status: 400 },
-      );
+    const files = [desktopBackground, mobileBackground];
+    const fileData: Uint8Array[] = [];
+    for (const background of files) {
+      if (
+        background.type !== "image/jpeg" ||
+        background.size > maximumBackgroundSize
+      ) {
+        return Response.json(
+          {
+            error:
+              "Не удалось подготовить изображение. Попробуйте другой JPG или PNG",
+          },
+          { status: 400 },
+        );
+      }
+      const data = new Uint8Array(await background.arrayBuffer());
+      if (!isJpeg(data)) {
+        return Response.json(
+          { error: "Файл фона повреждён или имеет неверный формат" },
+          { status: 400 },
+        );
+      }
+      fileData.push(data);
     }
 
     const currentPreference = await one<{
       custom_background_key: string | null;
+      custom_background_mobile_key: string | null;
     }>(
-      `SELECT custom_background_key
+      `SELECT custom_background_key, custom_background_mobile_key
        FROM player_profile_preferences
        WHERE player_id = $1`,
       [user.discordId],
     );
-    const backgroundKey = `${crypto.randomUUID()}.jpg`;
+    const desktopBackgroundKey = `${crypto.randomUUID()}.jpg`;
+    const mobileBackgroundKey = `${crypto.randomUUID()}.jpg`;
     const directory = uploadsDirectory();
     await mkdir(directory, { recursive: true });
-    storedFile = path.join(directory, backgroundKey);
-    await writeFile(storedFile, fileData, { flag: "wx" });
+    const desktopPath = path.join(directory, desktopBackgroundKey);
+    const mobilePath = path.join(directory, mobileBackgroundKey);
+    await writeFile(desktopPath, fileData[0], { flag: "wx" });
+    storedFiles.push(desktopPath);
+    await writeFile(mobilePath, fileData[1], { flag: "wx" });
+    storedFiles.push(mobilePath);
 
     await query(
       `INSERT INTO player_profile_preferences (
-         player_id, background_key, custom_background_key, updated_at
+         player_id, background_key, custom_background_key,
+         custom_background_mobile_key, updated_at
        )
-       VALUES ($1, 'default', $2, NOW())
+       VALUES ($1, 'default', $2, $3, NOW())
        ON CONFLICT (player_id) DO UPDATE
        SET custom_background_key = EXCLUDED.custom_background_key,
+           custom_background_mobile_key =
+             EXCLUDED.custom_background_mobile_key,
            updated_at = NOW()`,
-      [user.discordId, backgroundKey],
+      [user.discordId, desktopBackgroundKey, mobileBackgroundKey],
     );
     await removeBackgroundFile(
       currentPreference?.custom_background_key ?? null,
     );
-    storedFile = null;
+    await removeBackgroundFile(
+      currentPreference?.custom_background_mobile_key ?? null,
+    );
+    storedFiles.length = 0;
     return Response.json({ ok: true });
   } catch (error) {
-    if (storedFile) {
+    for (const storedFile of storedFiles) {
       try {
         await unlink(storedFile);
       } catch {
@@ -162,8 +188,9 @@ export async function DELETE(
     const user = await requireProfileOwner(dotaId);
     const currentPreference = await one<{
       custom_background_key: string | null;
+      custom_background_mobile_key: string | null;
     }>(
-      `SELECT custom_background_key
+      `SELECT custom_background_key, custom_background_mobile_key
        FROM player_profile_preferences
        WHERE player_id = $1`,
       [user.discordId],
@@ -171,12 +198,16 @@ export async function DELETE(
     await query(
       `UPDATE player_profile_preferences
        SET custom_background_key = NULL,
+           custom_background_mobile_key = NULL,
            updated_at = NOW()
        WHERE player_id = $1`,
       [user.discordId],
     );
     await removeBackgroundFile(
       currentPreference?.custom_background_key ?? null,
+    );
+    await removeBackgroundFile(
+      currentPreference?.custom_background_mobile_key ?? null,
     );
     return Response.json({ ok: true });
   } catch (error) {
