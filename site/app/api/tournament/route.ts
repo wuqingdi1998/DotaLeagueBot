@@ -394,8 +394,8 @@ export async function PATCH(request: Request) {
       await client.query(
         `INSERT INTO tournament_audit_log
           (tournament_id, actor_discord_id, action, entity_type, entity_id)
-         VALUES ($1, $2, 'update', 'tournament', $1::text)`,
-        [id, admin.discordId],
+         VALUES ($1, $2, 'update', 'tournament', $3)`,
+        [id, admin.discordId, String(id)],
       );
     });
     return Response.json({ ok: true });

@@ -80,8 +80,13 @@ export async function PATCH(request: Request) {
       await client.query(
         `INSERT INTO tournament_audit_log
           (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
-         VALUES ($1, $2, 'status_change', 'tournament', $1::text, $3::jsonb)`,
-        [id, admin.discordId, JSON.stringify({ status: body.status })],
+         VALUES ($1, $2, 'status_change', 'tournament', $3, $4::jsonb)`,
+        [
+          id,
+          admin.discordId,
+          String(id),
+          JSON.stringify({ status: body.status }),
+        ],
       );
       return true;
     });

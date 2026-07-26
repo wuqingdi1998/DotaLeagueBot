@@ -604,7 +604,9 @@ function TournamentDetailsEditor({
         },
         body: JSON.stringify(draft),
       });
-      const result = (await response.json()) as { error?: string };
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
       if (!response.ok) {
         onMessage(
           result.error ?? "Не удалось сохранить данные турнира",
