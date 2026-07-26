@@ -87,7 +87,7 @@ def build_messages(prefix: str, body: str, limit: int = DISCORD_CONTENT_LIMIT) -
     return ([head] if head else []) + rest
 
 
-def build_announcement_embed(title: str, description: str) -> discord.Embed:
+def build_announcement_embed(title: str | None, description: str) -> discord.Embed:
     """Create an announcement embed in the Linken's Sphere brand color."""
     return discord.Embed(
         title=title,
@@ -204,6 +204,29 @@ class Admin(commands.Cog):
                   ping_everyone: bool = False,
                   username: str = "Linken's Sphere Esports",
                   avatar_url: str = None):
+        await self._say_impl(
+            interaction=interaction,
+            channel=channel,
+            title=title,
+            image=image,
+            ping_role=ping_role,
+            ping_everyone=ping_everyone,
+            username=username,
+            avatar_url=avatar_url,
+        )
+
+    async def _say_impl(
+        self,
+        interaction: discord.Interaction,
+        channel: discord.TextChannel,
+        title: str = None,
+        image: discord.Attachment = None,
+        ping_role: discord.Role = None,
+        ping_everyone: bool = False,
+        username: str = "Linken's Sphere Esports",
+        avatar_url: str = None,
+        force_embed: bool = False,
+    ):
 
         # 1. Prompt the user to send the text message
         await interaction.response.send_message(
@@ -283,7 +306,7 @@ class Admin(commands.Cog):
                 preview_files.append(discord.File(io.BytesIO(f_bytes), filename=f_name))
 
             # Handle Embed vs Plain Text
-            if title:
+            if force_embed or title:
                 if len(proc_title) > DISCORD_EMBED_TITLE_LIMIT:
                     return await interaction.followup.send(
                         f"❌ Заголовок слишком длинный: {len(proc_title)} симв. "
@@ -298,7 +321,7 @@ class Admin(commands.Cog):
                         f"(будет разбит на несколько сообщений).",
                         ephemeral=True
                     )
-                final_embed = build_announcement_embed(proc_title, proc_text)
+                final_embed = build_announcement_embed(proc_title or None, proc_text)
                 if files_to_save:
                     final_embed.set_image(url=f"attachment://{files_to_save[0][0]}")
 
@@ -393,7 +416,7 @@ class Admin(commands.Cog):
         self,
         interaction: discord.Interaction,
         channel: discord.TextChannel,
-        title: str,
+        title: str = None,
         image: discord.Attachment = None,
         ping_role: discord.Role = None,
         ping_everyone: bool = False,
@@ -401,16 +424,16 @@ class Admin(commands.Cog):
         avatar_url: str = None,
     ):
         """Publish an announcement through the existing preview/confirm flow."""
-        await Admin.say.callback(
-            self,
-            interaction,
-            channel,
-            title,
-            image,
-            ping_role,
-            ping_everyone,
-            username,
-            avatar_url,
+        await self._say_impl(
+            interaction=interaction,
+            channel=channel,
+            title=title,
+            image=image,
+            ping_role=ping_role,
+            ping_everyone=ping_everyone,
+            username=username,
+            avatar_url=avatar_url,
+            force_embed=True,
         )
 
     @app_commands.command(name="poll", description="[Admin] Создать опрос (голосование) в канале")
