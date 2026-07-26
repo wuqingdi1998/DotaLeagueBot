@@ -69,7 +69,7 @@ export async function GET(request: Request) {
        description, about, start_at, end_at, registration_deadline,
        status_label, format, team_size, max_teams, region, server,
        check_in_minutes, group_format, playoff_format, final_format,
-       discord_url, status, updated_at
+       playoff_type, discord_url, status, updated_at
      FROM tournaments
      ${tournamentFilter}
      ORDER BY start_at ASC
@@ -179,6 +179,7 @@ export async function GET(request: Request) {
            m.result_type, m.team_a_result_label, m.team_b_result_label,
            m.decision_note, m.bracket_round, m.bracket_side, m.bracket_slot,
            m.bracket_grid_column::int, m.bracket_grid_row::int,
+           m.eliminated_team_application_id::int,
            m.winner_to_match_id::int, m.winner_to_slot,
            m.loser_to_match_id::int, m.loser_to_slot,
            EXISTS (
@@ -234,6 +235,8 @@ export async function GET(request: Request) {
              ORDER BY COALESCE(r.maps_won, 0) DESC, gt.sort_order, a.team_name
            )::int AS id,
            g.tournament_id::int,
+           g.id::int AS group_id,
+           a.id::int AS application_id,
            g.name AS group_name,
            ROW_NUMBER() OVER (
              PARTITION BY g.id
@@ -252,7 +255,9 @@ export async function GET(request: Request) {
         [tournament.id],
       ),
       query<Record<string, unknown>>(
-        `SELECT id::int, tournament_id::int, name, sort_order
+        `SELECT id::int, tournament_id::int, name, sort_order,
+           explanation, team_capacity::int, advance_to_playoff::int,
+           advance_to_upper::int, advance_to_lower::int
          FROM tournament_groups
          WHERE tournament_id = $1
          ORDER BY sort_order, name`,
@@ -350,6 +355,17 @@ export async function PATCH(request: Request) {
       return Response.json({ error: "Не указан турнир" }, { status: 400 });
     }
     const values = editableFields.map((field) => body[field]);
+    const playoffType = String(
+      body.playoff_type ?? "double_elimination",
+    );
+    if (
+      !["single_elimination", "double_elimination"].includes(playoffType)
+    ) {
+      return Response.json(
+        { error: "Выберите формат плей-офф Single или Double Elimination" },
+        { status: 400 },
+      );
+    }
     if (
       values.some(
         (value) => value === undefined || value === null || value === "",
@@ -370,9 +386,10 @@ export async function PATCH(request: Request) {
           team_size = $12, max_teams = $13, region = $14, server = $15,
           check_in_minutes = $16, group_format = $17, playoff_format = $18,
           final_format = $19, discord_url = $20, status = $21,
+          playoff_type = $22,
           updated_at = NOW()
-        WHERE id = $22`,
-        [...values, id],
+        WHERE id = $23`,
+        [...values, playoffType, id],
       );
       await client.query(
         `INSERT INTO tournament_audit_log
@@ -401,6 +418,17 @@ export async function POST(request: Request) {
       );
     }
     const values = editableFields.map((field) => body[field]);
+    const playoffType = String(
+      body.playoff_type ?? "double_elimination",
+    );
+    if (
+      !["single_elimination", "double_elimination"].includes(playoffType)
+    ) {
+      return Response.json(
+        { error: "Выберите формат плей-офф Single или Double Elimination" },
+        { status: 400 },
+      );
+    }
     if (values.some((value) => value === undefined || value === "")) {
       return Response.json(
         { error: "Заполните все поля турнира" },
@@ -413,12 +441,13 @@ export async function POST(request: Request) {
           slug, name, eyebrow, headline, headline_accent, description, about,
           start_at, end_at, registration_deadline, status_label, format,
           team_size, max_teams, region, server, check_in_minutes,
-          group_format, playoff_format, final_format, discord_url, status
+          group_format, playoff_format, final_format, discord_url, status,
+          playoff_type
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22
+          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
         ) RETURNING id::int`,
-        [slug, ...values],
+        [slug, ...values, playoffType],
       );
       const id = result.rows[0].id;
       await client.query(

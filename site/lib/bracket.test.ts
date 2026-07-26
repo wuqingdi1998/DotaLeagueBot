@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bracketOutcomeKeys } from "./bracket";
+import { bracketEliminatedTeamKey, bracketOutcomeKeys } from "./bracket";
 
 const baseMatch = {
   team_a: "Radiant",
@@ -38,5 +38,25 @@ describe("playoff bracket outcomes", () => {
       winner: null,
       loser: null,
     });
+  });
+});
+
+describe("playoff eliminations", () => {
+  it("marks the selected participant as eliminated", () => {
+    expect(
+      bracketEliminatedTeamKey({
+        ...baseMatch,
+        eliminated_team_application_id: 20,
+      }),
+    ).toBe("id:20");
+  });
+
+  it("ignores an application that is not in the match", () => {
+    expect(
+      bracketEliminatedTeamKey({
+        ...baseMatch,
+        eliminated_team_application_id: 30,
+      }),
+    ).toBeNull();
   });
 });

@@ -71,6 +71,7 @@ type NewTournament = {
   check_in_minutes: number;
   group_format: string;
   playoff_format: string;
+  playoff_type: "single_elimination" | "double_elimination";
   final_format: string;
   discord_url: string;
   status: TournamentStatus;
@@ -96,6 +97,7 @@ const emptyTournament: NewTournament = {
   check_in_minutes: 60,
   group_format: "",
   playoff_format: "",
+  playoff_type: "double_elimination",
   final_format: "",
   discord_url: "https://discord.gg/lsesports",
   status: "draft",
@@ -322,7 +324,7 @@ function TournamentForm({
     },
     {
       field: "playoff_format",
-      label: "Плей-офф",
+      label: "Описание плей-офф",
       placeholder: "Плей-офф · верхняя и нижняя сетка · BO3",
     },
     {
@@ -444,6 +446,25 @@ function TournamentForm({
                   setField("check_in_minutes", Number(event.target.value))
                 }
               />
+            </label>
+            <label>
+              <span>Формат плей-офф</span>
+              <select
+                value={form.playoff_type}
+                onChange={(event) =>
+                  setField(
+                    "playoff_type",
+                    event.target.value as NewTournament["playoff_type"],
+                  )
+                }
+              >
+                <option value="single_elimination">
+                  Single Elimination
+                </option>
+                <option value="double_elimination">
+                  Double Elimination
+                </option>
+              </select>
             </label>
             <label>
               <span>Статус</span>

@@ -1485,7 +1485,7 @@ a {
 }
 
 .standing-group .standing-row {
-  grid-template-columns: 50px minmax(0, 1fr) 90px 130px;
+  grid-template-columns: 44px minmax(0, 1fr) 72px 72px 124px;
   padding: 0 15px;
 }
 
@@ -1550,6 +1550,147 @@ a {
 .standing-team strong,
 .standing-row > strong {
   color: var(--text);
+}
+
+.standing-row.eliminated {
+  background: color-mix(in srgb, #df5164 9%, var(--surface));
+  box-shadow: inset 4px 0 color-mix(in srgb, #df5164 76%, transparent);
+}
+
+.standing-row.eliminated .standing-team strong {
+  color: color-mix(in srgb, #df5164 72%, var(--text));
+}
+
+.standing-outcome {
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--blue) 35%, var(--line));
+  border-radius: 999px;
+  padding: 4px 8px;
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.standing-outcome.eliminated {
+  border-color: color-mix(in srgb, #df5164 42%, var(--line));
+  background: color-mix(in srgb, #df5164 10%, var(--surface));
+  color: #c93f55;
+}
+
+.group-explanation {
+  margin: 12px 0 0;
+  border-left: 4px solid var(--blue);
+  border-radius: 0 12px 12px 0;
+  padding: 14px 16px;
+  background: var(--surface-blue);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.group-settings-editor {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 15px;
+  padding: 16px;
+  background: var(--surface-soft);
+}
+
+.group-settings-heading > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.group-settings-heading strong {
+  color: var(--text);
+  font-size: 16px;
+}
+
+.group-settings-heading span {
+  color: var(--blue-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.group-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+}
+
+.group-settings-grid label {
+  display: grid;
+  gap: 6px;
+}
+
+.group-settings-grid label > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.group-settings-grid input,
+.group-settings-grid textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 0 11px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.group-settings-grid input[readonly] {
+  color: var(--muted);
+  cursor: default;
+}
+
+.group-settings-grid .group-explanation-field {
+  grid-column: 1 / -1;
+}
+
+.group-settings-grid textarea {
+  min-height: 92px;
+  padding: 11px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.group-settings-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.group-settings-actions button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 13px;
+  background: var(--blue-gradient);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.group-settings-actions button.text-action {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
 }
 
 .admin-panel {
@@ -2449,8 +2590,27 @@ footer button {
   }
 
   .standing-group .standing-row {
-    grid-template-columns: 34px minmax(0, 1fr) 58px 86px;
+    grid-template-columns: 32px minmax(0, 1fr) 44px 44px 82px;
     padding: 0 9px;
+  }
+
+  .standing-outcome {
+    min-height: 28px;
+    padding: 3px 5px;
+    font-size: 10px;
+  }
+
+  .group-settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .group-settings-grid .group-explanation-field {
+    grid-column: auto;
+  }
+
+  .group-settings-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
   }
 
   .standing-team i {
@@ -4808,6 +4968,369 @@ footer button {
   width: 100%;
 }
 
+/* Clear tournament match management */
+.application-roster-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.application-roster-links li {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 5px 9px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.application-roster-links a,
+.application-roster-links b {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.application-roster-links a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--blue) 60%, transparent);
+  text-underline-offset: 3px;
+}
+
+.application-roster-links small {
+  border-radius: 999px;
+  padding: 2px 6px;
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+  font-weight: 800;
+}
+
+.match-create-panel,
+.match-result-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: var(--surface);
+}
+
+.match-create-panel {
+  margin-top: 20px;
+}
+
+.match-create-panel > summary,
+.match-result-card summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.match-create-panel > summary::-webkit-details-marker,
+.match-result-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.match-create-panel > summary {
+  min-height: 58px;
+  padding: 0 20px;
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.match-create-panel > summary::before {
+  content: "+";
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-size: 22px;
+}
+
+.match-create-panel[open] > summary::before {
+  content: "–";
+}
+
+.match-editor,
+.match-result-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 20px;
+}
+
+.match-editor-section {
+  min-width: 0;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  background: var(--surface-soft);
+}
+
+.match-editor-section > legend,
+.bracket-link-editor > legend {
+  padding: 0 8px;
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.match-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.match-form-grid.three-columns {
+  grid-template-columns: 1.4fr 0.6fr 0.8fr;
+}
+
+.match-editor label,
+.match-result-form label,
+.match-team-admin-card {
+  display: grid;
+  gap: 7px;
+}
+
+.match-editor label > span,
+.match-result-form label > span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.match-editor input,
+.match-editor select,
+.match-result-form input,
+.match-result-form select,
+.match-result-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  padding: 0 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+}
+
+.match-editor input:focus,
+.match-editor select:focus,
+.match-result-form input:focus,
+.match-result-form select:focus,
+.match-result-form textarea:focus {
+  border-color: var(--blue);
+  outline: 0;
+  box-shadow: 0 0 0 3px rgba(0, 195, 255, 0.1);
+}
+
+.match-team-editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.match-team-admin-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 16px;
+  background: var(--surface);
+}
+
+.match-team-admin-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--blue);
+}
+
+.match-team-admin-card.team-b::before {
+  background: #7b73ff;
+}
+
+.match-team-admin-card > strong,
+.match-team-admin-card header strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.match-team-admin-card header {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+
+.match-team-admin-card header span {
+  color: var(--blue-strong);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.match-team-result-grid {
+  display: grid;
+  grid-template-columns: minmax(90px, 0.45fr) minmax(140px, 1fr);
+  gap: 10px;
+}
+
+.match-result-list {
+  gap: 14px;
+}
+
+.match-result-card summary {
+  min-height: 76px;
+  padding: 14px 18px;
+}
+
+.match-result-card summary > span {
+  display: grid;
+  gap: 5px;
+}
+
+.match-result-card summary strong {
+  color: var(--text);
+  font-size: 17px;
+}
+
+.match-result-card summary small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.match-result-card summary > b {
+  flex: 0 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: var(--blue-strong);
+  font-size: 14px;
+}
+
+.match-result-card:has(details[open]) {
+  border-color: var(--line-strong);
+}
+
+.match-result-card details[open] > summary {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-blue);
+}
+
+.match-result-form .bracket-link-editor {
+  grid-column: auto;
+  margin: 0;
+  padding: 16px;
+  background: var(--surface-soft);
+}
+
+.match-result-form .bracket-link-editor label > span {
+  font-size: 14px;
+}
+
+.elimination-checkbox {
+  display: flex !important;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px !important;
+  border: 1px solid color-mix(in srgb, #df5164 40%, var(--line));
+  border-radius: 11px;
+  margin-top: 3px;
+  padding: 9px 11px;
+  background: color-mix(in srgb, #df5164 8%, var(--surface));
+  cursor: pointer;
+}
+
+.elimination-checkbox input {
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  padding: 0;
+  accent-color: #df5164;
+}
+
+.elimination-checkbox span {
+  color: var(--text) !important;
+  line-height: 1.35;
+}
+
+.match-decision-editor textarea {
+  min-height: 92px;
+  padding: 12px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.match-editor-actions,
+.match-result-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.match-result-actions button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 11px;
+  padding: 0 18px;
+  background: var(--blue-gradient);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.match-result-actions button.danger {
+  border: 1px solid color-mix(in srgb, #df5164 50%, transparent);
+  background: transparent;
+  color: #df5164;
+}
+
+@media (max-width: 820px) {
+  .match-form-grid,
+  .match-form-grid.three-columns,
+  .match-team-editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match-result-card summary > b {
+    display: none;
+  }
+
+  .match-editor,
+  .match-result-form {
+    padding: 14px;
+  }
+
+  .match-editor-section {
+    padding: 13px;
+  }
+
+  .match-result-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
 /* Connected playoff bracket */
 .bracket-layout-toolbar {
   display: grid;
@@ -5035,6 +5558,24 @@ footer button {
 .bracket-match-card > button.team-active {
   background: var(--surface-blue);
   outline: 0;
+}
+
+.playoff-bracket-board.has-hover
+  .bracket-match-card
+  > button.team-eliminated.team-active {
+  background: color-mix(in srgb, #df5164 16%, var(--surface));
+  box-shadow: inset 4px 0 #df5164;
+}
+
+.playoff-bracket-board.has-hover
+  .bracket-match-card
+  > button.team-eliminated.team-active
+  strong,
+.playoff-bracket-board.has-hover
+  .bracket-match-card
+  > button.team-eliminated.team-active
+  b {
+  color: color-mix(in srgb, #df5164 82%, var(--text));
 }
 
 .bracket-match-card > button strong {

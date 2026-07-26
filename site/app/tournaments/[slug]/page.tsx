@@ -9,6 +9,10 @@ import { FiArrowRight, FiArrowUpRight, FiUploadCloud } from "react-icons/fi";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { isPastTournament } from "@/lib/tournaments";
+import {
+  groupOutcome,
+  groupOutcomeLabel,
+} from "@/lib/group-advancement";
 import { OrganizerAccess } from "../OrganizerAccess";
 import { ArchiveRosterEditor } from "./ArchiveRosterEditor";
 import { TournamentBracket } from "./TournamentBracket";
@@ -43,6 +47,7 @@ type Tournament = {
   group_format: string;
   playoff_format: string;
   final_format: string;
+  playoff_type: "single_elimination" | "double_elimination";
   discord_url: string;
   status: "draft" | "registration" | "active" | "finished" | "archived";
   updated_at: string;
@@ -105,6 +110,7 @@ type Match = {
   bracket_slot: number | null;
   bracket_grid_column: number | null;
   bracket_grid_row: number | null;
+  eliminated_team_application_id: number | null;
   winner_to_match_id: number | null;
   winner_to_slot: "a" | "b" | null;
   loser_to_match_id: number | null;
@@ -119,6 +125,8 @@ type Match = {
 type Standing = {
   id: number;
   tournament_id: number;
+  group_id: number;
+  application_id: number;
   group_name: string;
   place: number;
   team_name: string;
@@ -131,6 +139,11 @@ type TournamentGroup = {
   tournament_id: number;
   name: string;
   sort_order: number;
+  explanation: string | null;
+  team_capacity: number;
+  advance_to_playoff: number;
+  advance_to_upper: number;
+  advance_to_lower: number;
 };
 
 type SiteData = {
@@ -384,6 +397,163 @@ function RoleSelect({
   );
 }
 
+function GroupSettingsEditor({
+  group,
+  playoffType,
+  onSaved,
+  onMessage,
+}: {
+  group: TournamentGroup;
+  playoffType: Tournament["playoff_type"];
+  onSaved: () => Promise<void>;
+  onMessage: (message: string) => void;
+}) {
+  const [teamCapacity, setTeamCapacity] = useState(group.team_capacity);
+  const [advanceToPlayoff, setAdvanceToPlayoff] = useState(
+    group.advance_to_playoff,
+  );
+  const [advanceToUpper, setAdvanceToUpper] = useState(
+    group.advance_to_upper,
+  );
+  const [advanceToLower, setAdvanceToLower] = useState(
+    group.advance_to_lower,
+  );
+  const [explanation, setExplanation] = useState(group.explanation ?? "");
+  const [saving, setSaving] = useState(false);
+  const advancing =
+    playoffType === "double_elimination"
+      ? advanceToUpper + advanceToLower
+      : advanceToPlayoff;
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaving(true);
+    const response = await fetch("/api/admin/groups", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        groupId: group.id,
+        teamCapacity,
+        advanceToPlayoff,
+        advanceToUpper,
+        advanceToLower,
+        explanation,
+      }),
+    });
+    const result = (await response.json()) as { error?: string };
+    setSaving(false);
+    if (!response.ok) {
+      onMessage(result.error ?? "Не удалось сохранить настройки группы");
+      return;
+    }
+    onMessage(`Настройки ${group.name} сохранены`);
+    await onSaved();
+  }
+
+  return (
+    <form className="group-settings-editor" onSubmit={save}>
+      <div className="group-settings-heading">
+        <div>
+          <strong>Настройки {group.name}</strong>
+          <span>
+            {playoffType === "double_elimination"
+              ? "Double Elimination"
+              : "Single Elimination"}
+          </span>
+        </div>
+      </div>
+      <div className="group-settings-grid">
+        <label>
+          <span>Команд в группе</span>
+          <input
+            type="number"
+            min="3"
+            max="8"
+            value={teamCapacity}
+            onChange={(event) => setTeamCapacity(Number(event.target.value))}
+          />
+        </label>
+        {playoffType === "double_elimination" ? (
+          <>
+            <label>
+              <span>Выходят в верхнюю сетку</span>
+              <input
+                type="number"
+                min="0"
+                max={teamCapacity}
+                value={advanceToUpper}
+                onChange={(event) =>
+                  setAdvanceToUpper(Number(event.target.value))
+                }
+              />
+            </label>
+            <label>
+              <span>Выходят в нижнюю сетку</span>
+              <input
+                type="number"
+                min="0"
+                max={teamCapacity}
+                value={advanceToLower}
+                onChange={(event) =>
+                  setAdvanceToLower(Number(event.target.value))
+                }
+              />
+            </label>
+          </>
+        ) : (
+          <label>
+            <span>Выходят в плей-офф</span>
+            <input
+              type="number"
+              min="1"
+              max={teamCapacity}
+              value={advanceToPlayoff}
+              onChange={(event) =>
+                setAdvanceToPlayoff(Number(event.target.value))
+              }
+            />
+          </label>
+        )}
+        {playoffType === "double_elimination" && (
+          <label>
+            <span>Всего выходят в плей-офф</span>
+            <input readOnly value={advancing} />
+          </label>
+        )}
+        <label>
+          <span>Вылетают при полной группе</span>
+          <input
+            readOnly
+            value={Math.max(0, teamCapacity - advancing)}
+          />
+        </label>
+        <label className="group-explanation-field">
+          <span>Пояснение под группой</span>
+          <textarea
+            value={explanation}
+            onChange={(event) => setExplanation(event.target.value)}
+            placeholder="Например: итоговое распределение установлено после переигровки согласно правилам"
+          />
+        </label>
+      </div>
+      <div className="group-settings-actions">
+        {explanation && (
+          <button
+            className="text-action"
+            type="button"
+            onClick={() => setExplanation("")}
+          >
+            Удалить пояснение
+          </button>
+        )}
+        <button type="submit" disabled={saving}>
+          {saving ? "Сохраняем…" : "Сохранить группу"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function Home() {
   const params = useParams<{ slug: string }>();
   const searchParams = useSearchParams();
@@ -405,6 +575,7 @@ export default function Home() {
   const [playerNames, setPlayerNames] = useState<string[]>([]);
   const [matchDraft, setMatchDraft] = useState<MatchDraft>(emptyMatchDraft);
   const [groupCount, setGroupCount] = useState(2);
+  const [teamsPerGroup, setTeamsPerGroup] = useState(4);
   const [captainChoices, setCaptainChoices] = useState<Record<number, string>>(
     {},
   );
@@ -426,6 +597,8 @@ export default function Home() {
       setData(nextData);
       setAdminMode(Boolean(nextData.user?.isAdmin));
       setTournamentDraft(nextData.tournament);
+      setGroupCount(nextData.groups.length || 2);
+      setTeamsPerGroup(nextData.groups[0]?.team_capacity ?? 4);
       if (nextData.user?.isAdmin && searchParams.get("manage") === "1") {
         setActiveTab("admin");
       }
@@ -493,13 +666,12 @@ export default function Home() {
   );
 
   const standingGroups = useMemo(() => {
-    const groups = new Map<string, Standing[]>();
-    for (const row of data?.standings ?? []) {
-      const rows = groups.get(row.group_name) ?? [];
-      rows.push(row);
-      groups.set(row.group_name, rows);
-    }
-    return Array.from(groups.entries());
+    return (data?.groups ?? []).map((group) => ({
+      group,
+      rows: (data?.standings ?? []).filter(
+        (row) => row.group_id === group.id,
+      ),
+    }));
   }, [data]);
 
   const captainApplicationIds = useMemo(
@@ -683,7 +855,11 @@ export default function Home() {
     const response = await fetch("/api/admin/groups", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ tournamentId: tournament.id, groupCount }),
+      body: JSON.stringify({
+        tournamentId: tournament.id,
+        groupCount,
+        teamsPerGroup,
+      }),
     });
     const result = (await response.json()) as { error?: string };
     setToast(
@@ -741,6 +917,19 @@ export default function Home() {
       form.get("winnerToMatchId") ?? "",
     ).trim();
     const rawLoserTarget = String(form.get("loserToMatchId") ?? "").trim();
+    const rawTeamAId = String(form.get("teamAId") ?? "").trim();
+    const rawTeamBId = String(form.get("teamBId") ?? "").trim();
+    const teamAEliminated = form.get("teamAEliminated") === "on";
+    const teamBEliminated = form.get("teamBEliminated") === "on";
+    if (teamAEliminated && teamBEliminated) {
+      setToast("В одном матче можно отметить только одну выбывшую команду");
+      return;
+    }
+    const eliminatedTeamId = teamAEliminated
+      ? Number(rawTeamAId) || null
+      : teamBEliminated
+        ? Number(rawTeamBId) || null
+        : null;
     const response = await fetch("/api/admin/matches", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
@@ -755,12 +944,8 @@ export default function Home() {
           String(form.get("scheduledAt")),
         ).toISOString(),
         stage: String(form.get("stage") ?? "").trim(),
-        teamAId: String(form.get("teamAId") ?? "").trim()
-          ? Number(form.get("teamAId"))
-          : null,
-        teamBId: String(form.get("teamBId") ?? "").trim()
-          ? Number(form.get("teamBId"))
-          : null,
+        teamAId: rawTeamAId ? Number(rawTeamAId) : null,
+        teamBId: rawTeamBId ? Number(rawTeamBId) : null,
         teamAPlaceholder:
           String(form.get("teamAPlaceholder") ?? "").trim() || null,
         teamBPlaceholder:
@@ -781,6 +966,7 @@ export default function Home() {
           String(form.get("winnerToSlot") ?? "").trim() || null,
         loserToMatchId: rawLoserTarget ? Number(rawLoserTarget) : null,
         loserToSlot: String(form.get("loserToSlot") ?? "").trim() || null,
+        eliminatedTeamId,
       }),
     });
     const result = (await response.json()) as { error?: string };
@@ -1287,27 +1473,68 @@ export default function Home() {
               </span>
             </div>
             <div className="standings-groups">
-              {standingGroups.map(([groupName, rows]) => (
-                <section className="standing-group" key={groupName}>
-                  <h4>{groupName}</h4>
-                  <div className="standings">
-                    <div className="standing-row standing-head">
-                      <span>#</span>
-                      <span>Команда</span>
-                      <span>Матчи</span>
-                      <span>Выиграно карт</span>
-                    </div>
-                    {rows.map((row) => (
-                      <div className="standing-row" key={row.id}>
-                        <span className="place">{row.place}</span>
-                        <span className="standing-team"><i>{initials(row.team_name)}</i><strong>{row.team_name}</strong></span>
-                        <span>{row.games}</span>
-                        <strong>{row.maps_won}</strong>
+              {standingGroups.map(({ group, rows }) => {
+                return (
+                  <section className="standing-group" key={group.id}>
+                    <h4>{group.name}</h4>
+                    <div className="standings">
+                      <div className="standing-row standing-head">
+                        <span>#</span>
+                        <span>Команда</span>
+                        <span>Матчи</span>
+                        <span>Карты</span>
+                        <span>Итог</span>
                       </div>
-                    ))}
-                  </div>
-                </section>
-              ))}
+                      {rows.map((row) => {
+                        const outcome = groupOutcome(
+                          row.place,
+                          group,
+                          tournament.playoff_type,
+                        );
+                        const eliminated = outcome === "eliminated";
+                        const destination = groupOutcomeLabel(outcome);
+                        return (
+                          <div
+                            className={`standing-row${
+                              eliminated ? " eliminated" : " advanced"
+                            }`}
+                            key={row.id}
+                          >
+                            <span className="place">{row.place}</span>
+                            <span className="standing-team">
+                              <i>{initials(row.team_name)}</i>
+                              <strong>{row.team_name}</strong>
+                            </span>
+                            <span>{row.games}</span>
+                            <strong>{row.maps_won}</strong>
+                            <span
+                              className={`standing-outcome${
+                                eliminated ? " eliminated" : ""
+                              }`}
+                            >
+                              {destination}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {group.explanation && (
+                      <p className="group-explanation">
+                        {group.explanation}
+                      </p>
+                    )}
+                    {adminMode && (
+                      <GroupSettingsEditor
+                        key={`${group.id}:${group.team_capacity}:${group.advance_to_playoff}:${group.advance_to_upper}:${group.advance_to_lower}:${group.explanation}`}
+                        group={group}
+                        playoffType={tournament.playoff_type}
+                        onSaved={loadData}
+                        onMessage={setToast}
+                      />
+                    )}
+                  </section>
+                );
+              })}
               {!standingGroups.length && (
                 <div className="empty-standings">Группы ещё не сформированы</div>
               )}
@@ -1335,7 +1562,7 @@ export default function Home() {
                 )
                 .map(
                   (match) =>
-                    `${match.id}:${match.bracket_round}:${match.bracket_slot}:${match.bracket_grid_column}:${match.bracket_grid_row}`,
+                    `${match.id}:${match.bracket_round}:${match.bracket_slot}:${match.bracket_grid_column}:${match.bracket_grid_row}:${match.eliminated_team_application_id}`,
                 )
                 .join("|")}
               matches={data.matches.filter(
@@ -1384,7 +1611,7 @@ export default function Home() {
                 <strong>Групповой этап</strong>
                 <span>
                   Распределит допущенные команды змейкой между указанным
-                  количеством групп.
+                  количеством групп и сохранит правила выхода в плей-офф.
                 </span>
               </div>
               <label>
@@ -1395,6 +1622,18 @@ export default function Home() {
                   max="8"
                   value={groupCount}
                   onChange={(event) => setGroupCount(Number(event.target.value))}
+                />
+              </label>
+              <label>
+                <span>Команд в группе</span>
+                <input
+                  type="number"
+                  min="3"
+                  max="8"
+                  value={teamsPerGroup}
+                  onChange={(event) =>
+                    setTeamsPerGroup(Number(event.target.value))
+                  }
                 />
               </label>
               <button
@@ -1433,7 +1672,7 @@ export default function Home() {
                       region: "Регион",
                       server: "Игровой сервер",
                       group_format: "Групповой этап",
-                      playoff_format: "Плей-офф",
+                      playoff_format: "Описание плей-офф",
                       final_format: "Гранд-финал",
                       discord_url: "Ссылка Discord",
                     } as Record<string, string>)[field]}</span>
@@ -1468,6 +1707,25 @@ export default function Home() {
                 <label>
                   <span>Check-in, минут</span>
                   <input type="number" min="5" max="180" value={tournamentDraft.check_in_minutes} onChange={(event) => setTournamentField("check_in_minutes", Number(event.target.value))} />
+                </label>
+                <label>
+                  <span>Формат плей-офф</span>
+                  <select
+                    value={tournamentDraft.playoff_type}
+                    onChange={(event) =>
+                      setTournamentField(
+                        "playoff_type",
+                        event.target.value,
+                      )
+                    }
+                  >
+                    <option value="single_elimination">
+                      Single Elimination
+                    </option>
+                    <option value="double_elimination">
+                      Double Elimination
+                    </option>
+                  </select>
                 </label>
                 <label>
                   <span>Рабочий статус</span>
@@ -1530,14 +1788,26 @@ export default function Home() {
                       </span>
                       <h4>{application.team_name} <small>[{application.tag}]</small></h4>
                       <p>Капитан: {application.captain} · {application.contact}</p>
-                      <p>
-                        {getTeamPlayers(application)
-                          .map((player) => {
-                            const role = roleOptions.find((option) => option.value === player.role);
-                            return `${role?.position ?? "—"}. ${player.name}${player.isCaptain ? " (капитан)" : ""}`;
-                          })
-                          .join(" · ")}
-                      </p>
+                      <ul className="application-roster-links">
+                        {getTeamPlayers(application).map((player) => {
+                          const role = roleOptions.find(
+                            (option) => option.value === player.role,
+                          );
+                          return (
+                            <li key={`${application.id}-${player.name}`}>
+                              <span>{role?.position ?? "—"}.</span>
+                              {player.dotaId ? (
+                                <Link href={`/players/${player.dotaId}`}>
+                                  {player.name}
+                                </Link>
+                              ) : (
+                                <b>{player.name}</b>
+                              )}
+                              {player.isCaptain && <small>капитан</small>}
+                            </li>
+                          );
+                        })}
+                      </ul>
                     </div>
                     <div className="application-actions">
                       <button disabled={application.status === "approved"} onClick={() => void updateApplicationStatus(application.id, "approved")}>Допустить</button>
@@ -1644,404 +1914,626 @@ export default function Home() {
                   <h3>Матчи и результаты</h3>
                 </div>
               </div>
-              <form className="match-editor" onSubmit={createMatch}>
-                <label>
-                  <span>Этап</span>
-                  <input
-                    required
-                    value={matchDraft.stage}
-                    onChange={(event) =>
-                      setMatchDraft({ ...matchDraft, stage: event.target.value })
-                    }
-                    placeholder="Групповой этап"
-                  />
-                </label>
-                <label>
-                  <span>Группа</span>
-                  <select
-                    value={matchDraft.groupId}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        groupId: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Без группы</option>
-                    {data.groups.map((group) => (
-                      <option value={group.id} key={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span>Дата и время</span>
-                  <input
-                    required
-                    type="datetime-local"
-                    value={matchDraft.scheduledAt}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        scheduledAt: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  <span>Формат</span>
-                  <select
-                    value={matchDraft.bestOf}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        bestOf: event.target.value,
-                      })
-                    }
-                  >
-                    {[1, 2, 3, 5].map((bestOf) => (
-                      <option value={bestOf} key={bestOf}>
-                        BO{bestOf}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>
-                  <span>Секция сетки</span>
-                  <select
-                    value={matchDraft.bracketSide}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        bracketSide: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Без секции</option>
-                    <option value="group">Групповой этап</option>
-                    <option value="upper">Верхняя сетка</option>
-                    <option value="lower">Нижняя сетка</option>
-                    <option value="grand_final">Гранд-финал</option>
-                  </select>
-                </label>
-                <label>
-                  <span>Раунд сетки</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={matchDraft.bracketRound}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        bracketRound: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  <span>Позиция в раунде</span>
-                  <input
-                    type="number"
-                    min="1"
-                    value={matchDraft.bracketSlot}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        bracketSlot: event.target.value,
-                      })
-                    }
-                  />
-                </label>
-                <label>
-                  <span>Команда A</span>
-                  <select
-                    value={matchDraft.teamAId}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        teamAId: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Выбрать позже</option>
-                    {approvedTeams.map((team) => (
-                      <option value={team.id} key={team.id}>
-                        {team.team_name}
-                      </option>
-                    ))}
-                  </select>
-                  {!matchDraft.teamAId && (
-                    <input
-                      required
-                      value={matchDraft.teamAPlaceholder}
-                      onChange={(event) =>
-                        setMatchDraft({
-                          ...matchDraft,
-                          teamAPlaceholder: event.target.value,
-                        })
-                      }
-                      placeholder="Например: 1 место группы А"
-                    />
-                  )}
-                </label>
-                <label>
-                  <span>Команда B</span>
-                  <select
-                    value={matchDraft.teamBId}
-                    onChange={(event) =>
-                      setMatchDraft({
-                        ...matchDraft,
-                        teamBId: event.target.value,
-                      })
-                    }
-                  >
-                    <option value="">Выбрать позже</option>
-                    {approvedTeams.map((team) => (
-                      <option value={team.id} key={team.id}>
-                        {team.team_name}
-                      </option>
-                    ))}
-                  </select>
-                  {!matchDraft.teamBId && (
-                    <input
-                      required
-                      value={matchDraft.teamBPlaceholder}
-                      onChange={(event) =>
-                        setMatchDraft({
-                          ...matchDraft,
-                          teamBPlaceholder: event.target.value,
-                        })
-                      }
-                      placeholder="Например: 2 место группы Б"
-                    />
-                  )}
-                </label>
-                <button className="primary-button compact" type="submit">
-                  Добавить матч
-                </button>
-              </form>
+              <details className="match-create-panel">
+                <summary>Добавить новый матч</summary>
+                <form className="match-editor" onSubmit={createMatch}>
+                  <fieldset className="match-editor-section">
+                    <legend>Основные данные</legend>
+                    <div className="match-form-grid">
+                      <label>
+                        <span>Название этапа</span>
+                        <input
+                          required
+                          value={matchDraft.stage}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              stage: event.target.value,
+                            })
+                          }
+                          placeholder="Например: Нижняя сетка"
+                        />
+                      </label>
+                      <label>
+                        <span>Дата и время</span>
+                        <input
+                          required
+                          type="datetime-local"
+                          value={matchDraft.scheduledAt}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              scheduledAt: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>Группа</span>
+                        <select
+                          value={matchDraft.groupId}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              groupId: event.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Без группы</option>
+                          {data.groups.map((group) => (
+                            <option value={group.id} key={group.id}>
+                              {group.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        <span>Формат серии</span>
+                        <select
+                          value={matchDraft.bestOf}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              bestOf: event.target.value,
+                            })
+                          }
+                        >
+                          {[1, 2, 3, 5].map((bestOf) => (
+                            <option value={bestOf} key={bestOf}>
+                              BO{bestOf}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="match-editor-section">
+                    <legend>Команды</legend>
+                    <div className="match-team-editor-grid">
+                      <div className="match-team-admin-card team-a">
+                        <strong>Команда A</strong>
+                        <label>
+                          <span>Зарегистрированная команда</span>
+                          <select
+                            value={matchDraft.teamAId}
+                            onChange={(event) =>
+                              setMatchDraft({
+                                ...matchDraft,
+                                teamAId: event.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Выбрать позже</option>
+                            {approvedTeams.map((team) => (
+                              <option value={team.id} key={team.id}>
+                                {team.team_name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        {!matchDraft.teamAId && (
+                          <label>
+                            <span>Подпись до определения команды</span>
+                            <input
+                              required
+                              value={matchDraft.teamAPlaceholder}
+                              onChange={(event) =>
+                                setMatchDraft({
+                                  ...matchDraft,
+                                  teamAPlaceholder: event.target.value,
+                                })
+                              }
+                              placeholder="Например: 1-е место группы A"
+                            />
+                          </label>
+                        )}
+                      </div>
+                      <div className="match-team-admin-card team-b">
+                        <strong>Команда B</strong>
+                        <label>
+                          <span>Зарегистрированная команда</span>
+                          <select
+                            value={matchDraft.teamBId}
+                            onChange={(event) =>
+                              setMatchDraft({
+                                ...matchDraft,
+                                teamBId: event.target.value,
+                              })
+                            }
+                          >
+                            <option value="">Выбрать позже</option>
+                            {approvedTeams.map((team) => (
+                              <option value={team.id} key={team.id}>
+                                {team.team_name}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                        {!matchDraft.teamBId && (
+                          <label>
+                            <span>Подпись до определения команды</span>
+                            <input
+                              required
+                              value={matchDraft.teamBPlaceholder}
+                              onChange={(event) =>
+                                setMatchDraft({
+                                  ...matchDraft,
+                                  teamBPlaceholder: event.target.value,
+                                })
+                              }
+                              placeholder="Например: 2-е место группы B"
+                            />
+                          </label>
+                        )}
+                      </div>
+                    </div>
+                  </fieldset>
+
+                  <fieldset className="match-editor-section">
+                    <legend>Положение в сетке</legend>
+                    <div className="match-form-grid three-columns">
+                      <label>
+                        <span>Секция</span>
+                        <select
+                          value={matchDraft.bracketSide}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              bracketSide: event.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Без секции</option>
+                          <option value="group">Групповой этап</option>
+                          <option value="upper">Верхняя сетка</option>
+                          <option value="lower">Нижняя сетка</option>
+                          <option value="grand_final">Гранд-финал</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Раунд</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={matchDraft.bracketRound}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              bracketRound: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                      <label>
+                        <span>Порядок в раунде</span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={matchDraft.bracketSlot}
+                          onChange={(event) =>
+                            setMatchDraft({
+                              ...matchDraft,
+                              bracketSlot: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                  </fieldset>
+                  <div className="match-editor-actions">
+                    <button className="primary-button compact" type="submit">
+                      Добавить матч
+                    </button>
+                  </div>
+                </form>
+              </details>
 
               <div className="match-result-list">
                 {data.matches.map((match) => (
-                  <form
-                    className="match-result-row"
-                    key={match.id}
-                    onSubmit={(event) => void saveMatchResult(event, match)}
-                  >
-                    <div>
-                      <strong>
-                        {match.team_a} — {match.team_b}
-                      </strong>
-                      <span>
-                        {match.stage} · {formatDayMonth(match.scheduled_at)}{" "}
-                        {formatTime(match.scheduled_at)} · BO{match.best_of}
-                      </span>
-                    </div>
-                    <input
-                      name="stage"
-                      required
-                      defaultValue={match.stage}
-                      placeholder="Этап"
-                    />
-                    <input
-                      name="scheduledAt"
-                      required
-                      type="datetime-local"
-                      defaultValue={toDateTimeInput(match.scheduled_at)}
-                    />
-                    <select name="groupId" defaultValue={match.group_id ?? ""}>
-                      <option value="">Без группы</option>
-                      {data.groups.map((group) => (
-                        <option value={group.id} key={group.id}>
-                          {group.name}
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      name="teamAId"
-                      defaultValue={match.team_a_application_id ?? ""}
-                    >
-                      <option value="">Команда A — текстом</option>
-                      {approvedTeams.map((team) => (
-                        <option value={team.id} key={team.id}>
-                          {team.team_name}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      name="teamAPlaceholder"
-                      defaultValue={match.team_a_placeholder ?? ""}
-                      placeholder="Команда A / место в группе"
-                    />
-                    <select
-                      name="teamBId"
-                      defaultValue={match.team_b_application_id ?? ""}
-                    >
-                      <option value="">Команда B — текстом</option>
-                      {approvedTeams.map((team) => (
-                        <option value={team.id} key={team.id}>
-                          {team.team_name}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      name="teamBPlaceholder"
-                      defaultValue={match.team_b_placeholder ?? ""}
-                      placeholder="Команда B / место в группе"
-                    />
-                    <select name="bestOf" defaultValue={match.best_of}>
-                      {[1, 2, 3, 5].map((bestOf) => (
-                        <option value={bestOf} key={bestOf}>
-                          BO{bestOf}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      aria-label={`Счёт ${match.team_a}`}
-                      name="teamAScore"
-                      type="number"
-                      min="0"
-                      defaultValue={match.team_a_score ?? ""}
-                    />
-                    <span>:</span>
-                    <input
-                      aria-label={`Счёт ${match.team_b}`}
-                      name="teamBScore"
-                      type="number"
-                      min="0"
-                      defaultValue={match.team_b_score ?? ""}
-                    />
-                    <select name="status" defaultValue={match.status}>
-                      <option value="scheduled">Запланирован</option>
-                      <option value="ready">Команды готовы</option>
-                      <option value="live">Идёт</option>
-                      <option value="finished">Завершён</option>
-                      <option value="cancelled">Отменён</option>
-                    </select>
-                    <select name="resultType" defaultValue={match.result_type}>
-                      <option value="normal">Обычный результат</option>
-                      <option value="technical">Технический результат</option>
-                      <option value="forfeit">Отказ от игры</option>
-                      <option value="cancelled">Матч отменён</option>
-                    </select>
-                    <input
-                      name="teamAResultLabel"
-                      maxLength={20}
-                      defaultValue={match.team_a_result_label ?? ""}
-                      placeholder="A: tw / tl"
-                    />
-                    <input
-                      name="teamBResultLabel"
-                      maxLength={20}
-                      defaultValue={match.team_b_result_label ?? ""}
-                      placeholder="B: tw / tl"
-                    />
-                    <select
-                      name="bracketSide"
-                      defaultValue={match.bracket_side ?? ""}
-                    >
-                      <option value="">Без секции сетки</option>
-                      <option value="group">Групповой этап</option>
-                      <option value="upper">Верхняя сетка</option>
-                      <option value="lower">Нижняя сетка</option>
-                      <option value="grand_final">Гранд-финал</option>
-                    </select>
-                    <input
-                      name="bracketRound"
-                      type="number"
-                      min="1"
-                      defaultValue={match.bracket_round ?? ""}
-                      placeholder="Раунд"
-                    />
-                    <input
-                      name="bracketSlot"
-                      type="number"
-                      min="1"
-                      defaultValue={match.bracket_slot ?? ""}
-                      placeholder="Позиция"
-                    />
-                    <fieldset className="bracket-link-editor">
-                      <legend>Связи в сетке</legend>
-                      <label>
-                        <span>Победитель проходит в</span>
-                        <select
-                          name="winnerToMatchId"
-                          defaultValue={match.winner_to_match_id ?? ""}
-                        >
-                          <option value="">Не задано</option>
-                          {data.matches
-                            .filter(
-                              (target) =>
-                                target.id !== match.id &&
-                                target.bracket_side !== null &&
-                                target.bracket_side !== "group",
-                            )
-                            .map((target) => (
-                              <option value={target.id} key={target.id}>
-                                {target.stage}: {target.team_a} — {target.team_b}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Сторона</span>
-                        <select
-                          name="winnerToSlot"
-                          defaultValue={match.winner_to_slot ?? ""}
-                        >
-                          <option value="">—</option>
-                          <option value="a">Команда A</option>
-                          <option value="b">Команда B</option>
-                        </select>
-                      </label>
-                      <label>
-                        <span>Проигравший проходит в</span>
-                        <select
-                          name="loserToMatchId"
-                          defaultValue={match.loser_to_match_id ?? ""}
-                        >
-                          <option value="">Не задано</option>
-                          {data.matches
-                            .filter(
-                              (target) =>
-                                target.id !== match.id &&
-                                target.bracket_side !== null &&
-                                target.bracket_side !== "group",
-                            )
-                            .map((target) => (
-                              <option value={target.id} key={target.id}>
-                                {target.stage}: {target.team_a} — {target.team_b}
-                              </option>
-                            ))}
-                        </select>
-                      </label>
-                      <label>
-                        <span>Сторона</span>
-                        <select
-                          name="loserToSlot"
-                          defaultValue={match.loser_to_slot ?? ""}
-                        >
-                          <option value="">—</option>
-                          <option value="a">Команда A</option>
-                          <option value="b">Команда B</option>
-                        </select>
-                      </label>
-                    </fieldset>
-                    <textarea
-                      name="decisionNote"
-                      defaultValue={match.decision_note ?? ""}
-                      placeholder="Комментарий организатора к техническому результату"
-                    />
-                    <button type="submit">Сохранить</button>
-                    <button
-                      className="danger"
-                      type="button"
-                      onClick={() => void deleteMatch(match)}
-                    >
-                      Удалить матч
-                    </button>
-                  </form>
+                  <article className="match-result-card" key={match.id}>
+                    <details>
+                      <summary>
+                        <span>
+                          <strong>
+                            {match.team_a} — {match.team_b}
+                          </strong>
+                          <small>
+                            {match.stage} · {formatDayMonth(match.scheduled_at)}{" "}
+                            {formatTime(match.scheduled_at)} · BO{match.best_of}
+                          </small>
+                        </span>
+                        <b>Редактировать</b>
+                      </summary>
+                      <form
+                        className="match-result-form"
+                        onSubmit={(event) => void saveMatchResult(event, match)}
+                      >
+                        <fieldset className="match-editor-section">
+                          <legend>Основные данные матча</legend>
+                          <div className="match-form-grid">
+                            <label>
+                              <span>Название этапа</span>
+                              <input
+                                name="stage"
+                                required
+                                defaultValue={match.stage}
+                                placeholder="Этап"
+                              />
+                            </label>
+                            <label>
+                              <span>Дата и время</span>
+                              <input
+                                name="scheduledAt"
+                                required
+                                type="datetime-local"
+                                defaultValue={toDateTimeInput(
+                                  match.scheduled_at,
+                                )}
+                              />
+                            </label>
+                            <label>
+                              <span>Группа</span>
+                              <select
+                                name="groupId"
+                                defaultValue={match.group_id ?? ""}
+                              >
+                                <option value="">Без группы</option>
+                                {data.groups.map((group) => (
+                                  <option value={group.id} key={group.id}>
+                                    {group.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label>
+                              <span>Формат серии</span>
+                              <select
+                                name="bestOf"
+                                defaultValue={match.best_of}
+                              >
+                                {[1, 2, 3, 5].map((bestOf) => (
+                                  <option value={bestOf} key={bestOf}>
+                                    BO{bestOf}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <label>
+                              <span>Статус матча</span>
+                              <select
+                                name="status"
+                                defaultValue={match.status}
+                              >
+                                <option value="scheduled">Запланирован</option>
+                                <option value="ready">Команды готовы</option>
+                                <option value="live">Идёт</option>
+                                <option value="finished">Завершён</option>
+                                <option value="cancelled">Отменён</option>
+                              </select>
+                            </label>
+                            <label>
+                              <span>Тип результата</span>
+                              <select
+                                name="resultType"
+                                defaultValue={match.result_type}
+                              >
+                                <option value="normal">
+                                  Обычный результат
+                                </option>
+                                <option value="technical">
+                                  Технический результат
+                                </option>
+                                <option value="forfeit">Отказ от игры</option>
+                                <option value="cancelled">Матч отменён</option>
+                              </select>
+                            </label>
+                          </div>
+                        </fieldset>
+
+                        <fieldset className="match-editor-section">
+                          <legend>Команды, счёт и вылет</legend>
+                          <div className="match-team-editor-grid">
+                            <div className="match-team-admin-card team-a">
+                              <header>
+                                <span>Команда A</span>
+                                <strong>{match.team_a}</strong>
+                              </header>
+                              <label>
+                                <span>Зарегистрированная команда</span>
+                                <select
+                                  name="teamAId"
+                                  defaultValue={
+                                    match.team_a_application_id ?? ""
+                                  }
+                                >
+                                  <option value="">
+                                    Использовать подпись ниже
+                                  </option>
+                                  {approvedTeams.map((team) => (
+                                    <option value={team.id} key={team.id}>
+                                      {team.team_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                <span>Подпись-заполнитель</span>
+                                <input
+                                  name="teamAPlaceholder"
+                                  defaultValue={
+                                    match.team_a_placeholder ?? ""
+                                  }
+                                  placeholder="Например: победитель группы A"
+                                />
+                              </label>
+                              <div className="match-team-result-grid">
+                                <label>
+                                  <span>Счёт</span>
+                                  <input
+                                    name="teamAScore"
+                                    type="number"
+                                    min="0"
+                                    defaultValue={match.team_a_score ?? ""}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Обозначение</span>
+                                  <input
+                                    name="teamAResultLabel"
+                                    maxLength={20}
+                                    defaultValue={
+                                      match.team_a_result_label ?? ""
+                                    }
+                                    placeholder="tw / tl"
+                                  />
+                                </label>
+                              </div>
+                              {match.bracket_side &&
+                                match.bracket_side !== "group" &&
+                                match.team_a_application_id && (
+                                <label className="elimination-checkbox">
+                                  <input
+                                    name="teamAEliminated"
+                                    type="checkbox"
+                                    defaultChecked={
+                                      match.eliminated_team_application_id ===
+                                      match.team_a_application_id
+                                    }
+                                    onChange={(event) => {
+                                      if (!event.currentTarget.checked) return;
+                                      const other =
+                                        event.currentTarget.form?.elements.namedItem(
+                                          "teamBEliminated",
+                                        );
+                                      if (other instanceof HTMLInputElement) {
+                                        other.checked = false;
+                                      }
+                                    }}
+                                  />
+                                  <span>
+                                    Вылетела из турнира после этого матча
+                                  </span>
+                                </label>
+                              )}
+                            </div>
+
+                            <div className="match-team-admin-card team-b">
+                              <header>
+                                <span>Команда B</span>
+                                <strong>{match.team_b}</strong>
+                              </header>
+                              <label>
+                                <span>Зарегистрированная команда</span>
+                                <select
+                                  name="teamBId"
+                                  defaultValue={
+                                    match.team_b_application_id ?? ""
+                                  }
+                                >
+                                  <option value="">
+                                    Использовать подпись ниже
+                                  </option>
+                                  {approvedTeams.map((team) => (
+                                    <option value={team.id} key={team.id}>
+                                      {team.team_name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </label>
+                              <label>
+                                <span>Подпись-заполнитель</span>
+                                <input
+                                  name="teamBPlaceholder"
+                                  defaultValue={
+                                    match.team_b_placeholder ?? ""
+                                  }
+                                  placeholder="Например: победитель группы B"
+                                />
+                              </label>
+                              <div className="match-team-result-grid">
+                                <label>
+                                  <span>Счёт</span>
+                                  <input
+                                    name="teamBScore"
+                                    type="number"
+                                    min="0"
+                                    defaultValue={match.team_b_score ?? ""}
+                                  />
+                                </label>
+                                <label>
+                                  <span>Обозначение</span>
+                                  <input
+                                    name="teamBResultLabel"
+                                    maxLength={20}
+                                    defaultValue={
+                                      match.team_b_result_label ?? ""
+                                    }
+                                    placeholder="tw / tl"
+                                  />
+                                </label>
+                              </div>
+                              {match.bracket_side &&
+                                match.bracket_side !== "group" &&
+                                match.team_b_application_id && (
+                                <label className="elimination-checkbox">
+                                  <input
+                                    name="teamBEliminated"
+                                    type="checkbox"
+                                    defaultChecked={
+                                      match.eliminated_team_application_id ===
+                                      match.team_b_application_id
+                                    }
+                                    onChange={(event) => {
+                                      if (!event.currentTarget.checked) return;
+                                      const other =
+                                        event.currentTarget.form?.elements.namedItem(
+                                          "teamAEliminated",
+                                        );
+                                      if (other instanceof HTMLInputElement) {
+                                        other.checked = false;
+                                      }
+                                    }}
+                                  />
+                                  <span>
+                                    Вылетела из турнира после этого матча
+                                  </span>
+                                </label>
+                              )}
+                            </div>
+                          </div>
+                        </fieldset>
+
+                        <fieldset className="match-editor-section">
+                          <legend>Положение в сетке</legend>
+                          <div className="match-form-grid three-columns">
+                            <label>
+                              <span>Секция</span>
+                              <select
+                                name="bracketSide"
+                                defaultValue={match.bracket_side ?? ""}
+                              >
+                                <option value="">Без секции сетки</option>
+                                <option value="group">Групповой этап</option>
+                                <option value="upper">Верхняя сетка</option>
+                                <option value="lower">Нижняя сетка</option>
+                                <option value="grand_final">
+                                  Гранд-финал
+                                </option>
+                              </select>
+                            </label>
+                            <label>
+                              <span>Раунд</span>
+                              <input
+                                name="bracketRound"
+                                type="number"
+                                min="1"
+                                defaultValue={match.bracket_round ?? ""}
+                              />
+                            </label>
+                            <label>
+                              <span>Порядок в раунде</span>
+                              <input
+                                name="bracketSlot"
+                                type="number"
+                                min="1"
+                                defaultValue={match.bracket_slot ?? ""}
+                              />
+                            </label>
+                          </div>
+                        </fieldset>
+
+                        <fieldset className="bracket-link-editor">
+                          <legend>Куда проходят команды</legend>
+                          <label>
+                            <span>Победитель проходит в матч</span>
+                            <select
+                              name="winnerToMatchId"
+                              defaultValue={match.winner_to_match_id ?? ""}
+                            >
+                              <option value="">Не задано</option>
+                              {data.matches
+                                .filter(
+                                  (target) =>
+                                    target.id !== match.id &&
+                                    target.bracket_side !== null &&
+                                    target.bracket_side !== "group",
+                                )
+                                .map((target) => (
+                                  <option value={target.id} key={target.id}>
+                                    {target.stage}: {target.team_a} —{" "}
+                                    {target.team_b}
+                                  </option>
+                                ))}
+                            </select>
+                          </label>
+                          <label>
+                            <span>Занимает сторону</span>
+                            <select
+                              name="winnerToSlot"
+                              defaultValue={match.winner_to_slot ?? ""}
+                            >
+                              <option value="">—</option>
+                              <option value="a">Команда A</option>
+                              <option value="b">Команда B</option>
+                            </select>
+                          </label>
+                          <label>
+                            <span>Проигравший проходит в матч</span>
+                            <select
+                              name="loserToMatchId"
+                              defaultValue={match.loser_to_match_id ?? ""}
+                            >
+                              <option value="">Покидает сетку</option>
+                              {data.matches
+                                .filter(
+                                  (target) =>
+                                    target.id !== match.id &&
+                                    target.bracket_side !== null &&
+                                    target.bracket_side !== "group",
+                                )
+                                .map((target) => (
+                                  <option value={target.id} key={target.id}>
+                                    {target.stage}: {target.team_a} —{" "}
+                                    {target.team_b}
+                                  </option>
+                                ))}
+                            </select>
+                          </label>
+                          <label>
+                            <span>Занимает сторону</span>
+                            <select
+                              name="loserToSlot"
+                              defaultValue={match.loser_to_slot ?? ""}
+                            >
+                              <option value="">—</option>
+                              <option value="a">Команда A</option>
+                              <option value="b">Команда B</option>
+                            </select>
+                          </label>
+                        </fieldset>
+
+                        <label className="match-decision-editor">
+                          <span>Комментарий организатора</span>
+                          <textarea
+                            name="decisionNote"
+                            defaultValue={match.decision_note ?? ""}
+                            placeholder="Например: техническое поражение из-за игры с чужого аккаунта"
+                          />
+                        </label>
+                        <div className="match-result-actions">
+                          <button type="submit">Сохранить изменения</button>
+                          <button
+                            className="danger"
+                            type="button"
+                            onClick={() => void deleteMatch(match)}
+                          >
+                            Удалить матч
+                          </button>
+                        </div>
+                      </form>
+                    </details>
+                  </article>
                 ))}
               </div>
             </section>

@@ -34,6 +34,7 @@ const initialTournament = {
   check_in_minutes: 60,
   group_format: "Групповой этап · 2 группы · BO1",
   playoff_format: "Плей-офф · верхняя и нижняя сетка · BO3",
+  playoff_type: "double_elimination",
   final_format: "Гранд-финал · BO5",
   discord_url: "https://discord.gg/lsesports",
   status: "registration",
@@ -52,7 +53,7 @@ const labels: Record<string, string> = {
   region: "Регион",
   server: "Игровой сервер",
   group_format: "Групповой этап",
-  playoff_format: "Плей-офф",
+  playoff_format: "Описание плей-офф",
   final_format: "Гранд-финал",
   discord_url: "Ссылка Discord",
 };
@@ -234,6 +235,21 @@ export default function SetupPage() {
               />
             </label>
           ))}
+          <label>
+            <span>Формат плей-офф</span>
+            <select
+              value={form.playoff_type}
+              onChange={(event) =>
+                setForm({
+                  ...form,
+                  playoff_type: event.target.value,
+                })
+              }
+            >
+              <option value="single_elimination">Single Elimination</option>
+              <option value="double_elimination">Double Elimination</option>
+            </select>
+          </label>
         </div>
         {error && <p className="field-error">{error}</p>}
         <button className="primary-button" type="submit" disabled={saving}>

@@ -50,6 +50,27 @@ BRACKET_LAYOUT_MIGRATION = (
     / "0008_bracket_grid_layout.sql"
 ).read_text(encoding="utf-8")
 
+BRACKET_ELIMINATIONS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0009_bracket_eliminations.sql"
+).read_text(encoding="utf-8")
+
+GROUP_SETTINGS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0010_group_advancement_settings.sql"
+).read_text(encoding="utf-8")
+
+PLAYOFF_ELIMINATIONS_BACKFILL = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0011_backfill_playoff_eliminations.sql"
+).read_text(encoding="utf-8")
+
 
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
@@ -139,3 +160,30 @@ def test_bracket_layout_uses_persistent_bounded_grid_coordinates() -> None:
     assert "bracket_grid_row SMALLINT" in BRACKET_LAYOUT_MIGRATION
     assert "BETWEEN 0 AND 100" in BRACKET_LAYOUT_MIGRATION
     assert "tournament.slug = 'cd-fastcup-5'" in BRACKET_LAYOUT_MIGRATION
+
+
+def test_bracket_elimination_references_a_registered_team() -> None:
+    assert "eliminated_team_application_id BIGINT" in BRACKET_ELIMINATIONS_MIGRATION
+    assert "REFERENCES tournament_team_applications(id)" in (
+        BRACKET_ELIMINATIONS_MIGRATION
+    )
+    assert "ON DELETE SET NULL" in BRACKET_ELIMINATIONS_MIGRATION
+
+
+def test_group_advancement_and_notes_are_persistent() -> None:
+    assert "playoff_type" in GROUP_SETTINGS_MIGRATION
+    assert "'single_elimination', 'double_elimination'" in GROUP_SETTINGS_MIGRATION
+    assert "explanation TEXT" in GROUP_SETTINGS_MIGRATION
+    assert "team_capacity BETWEEN 3 AND 8" in GROUP_SETTINGS_MIGRATION
+    assert "advance_to_playoff" in GROUP_SETTINGS_MIGRATION
+    assert "advance_to_upper" in GROUP_SETTINGS_MIGRATION
+    assert "advance_to_lower" in GROUP_SETTINGS_MIGRATION
+    assert "Итоговое распределение команд" in GROUP_SETTINGS_MIGRATION
+
+
+def test_finished_lower_bracket_losses_are_backfilled_as_eliminations() -> None:
+    assert "eliminated_team_application_id" in PLAYOFF_ELIMINATIONS_BACKFILL
+    assert "bracket_side IN ('lower', 'grand_final')" in (
+        PLAYOFF_ELIMINATIONS_BACKFILL
+    )
+    assert "loser_to_match_id IS NULL" in PLAYOFF_ELIMINATIONS_BACKFILL

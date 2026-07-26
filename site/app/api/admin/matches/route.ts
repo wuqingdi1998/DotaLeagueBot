@@ -27,6 +27,7 @@ type MatchBody = {
   winnerToSlot?: "a" | "b" | null;
   loserToMatchId?: number | null;
   loserToSlot?: "a" | "b" | null;
+  eliminatedTeamId?: number | null;
 };
 
 function validMatch(body: MatchBody): string {
@@ -199,6 +200,50 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
+    if (
+      body.eliminatedTeamId !== null &&
+      body.eliminatedTeamId !== undefined
+    ) {
+      if (!Number.isInteger(body.eliminatedTeamId)) {
+        return Response.json(
+          { error: "Некорректно выбрана выбывшая команда" },
+          { status: 400 },
+        );
+      }
+      const sourceMatch = await query<{
+        team_a_application_id: number | null;
+        team_b_application_id: number | null;
+        bracket_side: string | null;
+      }>(
+        `SELECT team_a_application_id::int, team_b_application_id::int,
+           bracket_side
+         FROM tournament_matches
+         WHERE id = $1`,
+        [body.id],
+      );
+      if (
+        !sourceMatch.length ||
+        !(fullMatchUpdate
+          ? body.bracketSide
+          : sourceMatch[0].bracket_side) ||
+        (fullMatchUpdate
+          ? body.bracketSide
+          : sourceMatch[0].bracket_side) === "group" ||
+        ![
+          fullMatchUpdate
+            ? body.teamAId
+            : sourceMatch[0].team_a_application_id,
+          fullMatchUpdate
+            ? body.teamBId
+            : sourceMatch[0].team_b_application_id,
+        ].includes(body.eliminatedTeamId)
+      ) {
+        return Response.json(
+          { error: "Выбывшая команда должна участвовать в этом матче" },
+          { status: 400 },
+        );
+      }
+    }
     const updated = await query<{ tournament_id: number }>(
       `UPDATE tournament_matches
        SET team_a_score = $1, team_b_score = $2, status = $3,
@@ -216,8 +261,9 @@ export async function PATCH(request: Request) {
          team_b_placeholder = CASE WHEN $15 THEN $22 ELSE team_b_placeholder END,
          best_of = CASE WHEN $15 THEN $23 ELSE best_of END,
          sort_order = CASE WHEN $15 THEN COALESCE($24, sort_order) ELSE sort_order END,
+         eliminated_team_application_id = $25,
          updated_at = NOW()
-       WHERE id = $25
+       WHERE id = $26
        RETURNING tournament_id::int`,
       [
         body.teamAScore ?? null,
@@ -244,6 +290,7 @@ export async function PATCH(request: Request) {
         body.teamBPlaceholder?.trim() || null,
         body.bestOf ?? null,
         body.sortOrder ?? null,
+        body.eliminatedTeamId ?? null,
         body.id,
       ],
     );
@@ -271,6 +318,7 @@ export async function PATCH(request: Request) {
           teamAId: body.teamAId,
           teamBId: body.teamBId,
           bestOf: body.bestOf,
+          eliminatedTeamId: body.eliminatedTeamId,
         }),
       ],
     );

@@ -17,6 +17,7 @@ import {
   type BracketGridPosition,
 } from "@/lib/bracket-layout";
 import {
+  bracketEliminatedTeamKey,
   bracketOutcomeKeys,
   bracketTeamKey,
 } from "@/lib/bracket";
@@ -39,6 +40,7 @@ export type BracketMatch = {
   bracket_slot: number | null;
   bracket_grid_column: number | null;
   bracket_grid_row: number | null;
+  eliminated_team_application_id: number | null;
   winner_to_match_id: number | null;
   winner_to_slot: "a" | "b" | null;
   loser_to_match_id: number | null;
@@ -234,6 +236,12 @@ export function TournamentBracket({
 
   useLayoutEffect(() => {
     updateEdges();
+    const animationFrame = window.requestAnimationFrame(updateEdges);
+    const transitionTimer = window.setTimeout(updateEdges, 180);
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.clearTimeout(transitionTimer);
+    };
   }, [positions, updateEdges]);
 
   const matchById = useMemo(
@@ -491,6 +499,7 @@ export function TournamentBracket({
           {rounds.flatMap(([, roundMatches]) =>
             roundMatches.map((match) => {
               const keys = matchTeamKeys(match);
+              const eliminatedTeamKey = bracketEliminatedTeamKey(match);
               const highlighted =
                 hoveredTeam !== null && keys.includes(hoveredTeam);
               const position = positions[match.id] ?? { column: 0, row: 0 };
@@ -507,6 +516,7 @@ export function TournamentBracket({
                     if (element) cardRefs.current.set(match.id, element);
                     else cardRefs.current.delete(match.id);
                   }}
+                  onTransitionEnd={updateEdges}
                   style={{
                     left: position.column * bracketGridSize,
                     top:
@@ -563,9 +573,11 @@ export function TournamentBracket({
                   ].map((team) => (
                     <button
                       type="button"
-                      className={
-                        hoveredTeam === team.key ? "team-active" : ""
-                      }
+                      className={`${hoveredTeam === team.key ? "team-active" : ""}${
+                        team.key === eliminatedTeamKey
+                          ? " team-eliminated"
+                          : ""
+                      }`}
                       key={team.key}
                       onMouseEnter={() => setHoveredTeam(team.key)}
                       onFocus={() => setHoveredTeam(team.key)}

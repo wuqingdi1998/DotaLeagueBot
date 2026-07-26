@@ -9,6 +9,16 @@ export type BracketOutcomeMatch = {
   team_b_result_label: string | null;
 };
 
+export type BracketEliminationMatch = Pick<
+  BracketOutcomeMatch,
+  | "team_a"
+  | "team_b"
+  | "team_a_application_id"
+  | "team_b_application_id"
+> & {
+  eliminated_team_application_id: number | null;
+};
+
 export function bracketTeamKey(id: number | null, name: string) {
   return id ? `id:${id}` : `name:${name.trim().toLowerCase()}`;
 }
@@ -41,4 +51,22 @@ export function bracketOutcomeKeys(match: BracketOutcomeMatch) {
       : { winner: bKey, loser: aKey };
   }
   return { winner: null, loser: null };
+}
+
+export function bracketEliminatedTeamKey(
+  match: BracketEliminationMatch,
+): string | null {
+  if (
+    match.eliminated_team_application_id !== null &&
+    match.eliminated_team_application_id === match.team_a_application_id
+  ) {
+    return bracketTeamKey(match.team_a_application_id, match.team_a);
+  }
+  if (
+    match.eliminated_team_application_id !== null &&
+    match.eliminated_team_application_id === match.team_b_application_id
+  ) {
+    return bracketTeamKey(match.team_b_application_id, match.team_b);
+  }
+  return null;
 }
