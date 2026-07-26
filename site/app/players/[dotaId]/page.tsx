@@ -76,7 +76,16 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
   return (
     <PlatformShell user={user}>
       <section
-        className={`player-profile-hero profile-background-${profile.backgroundKey}`}
+        className={`player-profile-hero profile-background-${profile.backgroundKey}${
+          profile.customBackgroundUrl ? " profile-background-custom" : ""
+        }`}
+        style={
+          profile.customBackgroundUrl
+            ? {
+                "--profile-custom-background": `url("${profile.customBackgroundUrl}")`,
+              } as React.CSSProperties
+            : undefined
+        }
       >
         <div className="player-profile-identity">
           {profile.avatarUrl ? (
@@ -178,7 +187,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               profile.canCustomizeBackground && (
                 <ProfileBackgroundPicker
                   dotaId={profile.dotaId}
-                  currentKey={profile.backgroundKey}
+                  hasCustomBackground={profile.hasCustomBackground}
                 />
               )}
           </div>
@@ -215,7 +224,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         <div className="profile-primary-column">
           <div className="profile-section-heading">
             <div>
-              <p className="section-kicker">Турнирная история</p>
               <h2>Участие и результаты</h2>
             </div>
             <span>{profile.tournamentHistory.length} турниров</span>
@@ -229,17 +237,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   href={`/tournaments/${tournament.slug}`}
                   key={tournament.id}
                 >
-                  <div className="profile-tournament-date">
-                    <FiCalendar aria-hidden="true" />
-                    <span>
-                      {formatDateRange(tournament.startAt, tournament.endAt)}
-                    </span>
-                  </div>
                   <div>
                     <small>
                       {tournamentStatus[tournament.status] ?? "Турнир"}
                     </small>
                     <h3>{tournament.name}</h3>
+                    <div className="profile-tournament-date">
+                      <FiCalendar aria-hidden="true" />
+                      <span>
+                        {formatDateRange(tournament.startAt, tournament.endAt)}
+                      </span>
+                    </div>
                     <p>Команда: {tournament.teamName}</p>
                   </div>
                   <strong>

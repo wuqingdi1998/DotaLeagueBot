@@ -1161,11 +1161,15 @@ export default function Home() {
           </div>
         )}
         <div className="section-heading">
-          <div>
-            <p className="section-kicker">
-              {isPast ? "История турниров" : "Турнир сообщества"}
-            </p>
+          <div className="tournament-heading-copy">
+            {!isPast && (
+              <p className="section-kicker">Турнир сообщества</p>
+            )}
             <h2>{tournament.name}</h2>
+            <p className="tournament-heading-dates">
+              {formatShortDate(tournament.start_at)} —{" "}
+              {formatShortDate(tournament.end_at)}
+            </p>
           </div>
           <div className={isPast ? "tournament-status archived" : "countdown"}>
             {isPast ? (
@@ -1273,7 +1277,6 @@ export default function Home() {
                   </strong>
                 </div>
               )}
-              <div><span>Даты</span><strong>{formatShortDate(tournament.start_at)} — {formatShortDate(tournament.end_at)}</strong></div>
             </aside>
             {data.prizes.length > 0 && (
               <article className="content-card tournament-prizes">

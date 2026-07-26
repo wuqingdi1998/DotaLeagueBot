@@ -1,0 +1,182 @@
+import { mkdir, unlink, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { getSession } from "@/lib/auth";
+import { one, query } from "@/lib/db";
+import {
+  customizableSubscriptionRoleNames,
+  normalizeDotaAccountId,
+} from "@/lib/player-profile";
+import { isSafeUploadKey } from "@/lib/validation";
+
+export const dynamic = "force-dynamic";
+
+const maximumBackgroundSize = 3 * 1024 * 1024;
+
+function uploadsDirectory() {
+  return path.resolve(
+    process.env.UPLOADS_DIR ?? path.join(process.cwd(), ".data", "uploads"),
+    "profile-backgrounds",
+  );
+}
+
+async function removeBackgroundFile(key: string | null) {
+  if (!key || !isSafeUploadKey(key)) return;
+  try {
+    await unlink(path.join(uploadsDirectory(), key));
+  } catch {
+    // The database remains the source of truth if an old file is already gone.
+  }
+}
+
+async function requireProfileOwner(requestedDotaId: string) {
+  const user = await getSession();
+  if (!user) {
+    throw Response.json(
+      { error: "Требуется вход через Discord" },
+      { status: 401 },
+    );
+  }
+  const dotaId = normalizeDotaAccountId(requestedDotaId);
+  if (!dotaId || user.dotaId !== dotaId) {
+    throw Response.json(
+      { error: "Можно менять оформление только своего профиля" },
+      { status: 403 },
+    );
+  }
+  return user;
+}
+
+async function hasCustomBackgroundAccess(discordId: string) {
+  return one<{ role_name: string }>(
+    `SELECT role_name
+     FROM player_discord_roles
+     WHERE player_id = $1
+       AND role_name = ANY($2::text[])
+     LIMIT 1`,
+    [discordId, customizableSubscriptionRoleNames],
+  );
+}
+
+function isJpeg(data: Uint8Array) {
+  return (
+    data.length >= 3 &&
+    data[0] === 255 &&
+    data[1] === 216 &&
+    data[2] === 255
+  );
+}
+
+export async function PUT(
+  request: Request,
+  context: { params: Promise<{ dotaId: string }> },
+) {
+  let storedFile: string | null = null;
+  try {
+    const { dotaId } = await context.params;
+    const user = await requireProfileOwner(dotaId);
+    if (!(await hasCustomBackgroundAccess(user.discordId))) {
+      return Response.json(
+        { error: "Свой фон доступен владельцам цветных рун" },
+        { status: 403 },
+      );
+    }
+
+    const body = await request.formData();
+    const background = body.get("background");
+    if (!(background instanceof File) || background.size === 0) {
+      return Response.json(
+        { error: "Выберите изображение для фона" },
+        { status: 400 },
+      );
+    }
+    if (
+      background.type !== "image/jpeg" ||
+      background.size > maximumBackgroundSize
+    ) {
+      return Response.json(
+        { error: "Не удалось подготовить изображение. Попробуйте другой JPG или PNG" },
+        { status: 400 },
+      );
+    }
+
+    const fileData = new Uint8Array(await background.arrayBuffer());
+    if (!isJpeg(fileData)) {
+      return Response.json(
+        { error: "Файл фона повреждён или имеет неверный формат" },
+        { status: 400 },
+      );
+    }
+
+    const currentPreference = await one<{
+      custom_background_key: string | null;
+    }>(
+      `SELECT custom_background_key
+       FROM player_profile_preferences
+       WHERE player_id = $1`,
+      [user.discordId],
+    );
+    const backgroundKey = `${crypto.randomUUID()}.jpg`;
+    const directory = uploadsDirectory();
+    await mkdir(directory, { recursive: true });
+    storedFile = path.join(directory, backgroundKey);
+    await writeFile(storedFile, fileData, { flag: "wx" });
+
+    await query(
+      `INSERT INTO player_profile_preferences (
+         player_id, background_key, custom_background_key, updated_at
+       )
+       VALUES ($1, 'default', $2, NOW())
+       ON CONFLICT (player_id) DO UPDATE
+       SET custom_background_key = EXCLUDED.custom_background_key,
+           updated_at = NOW()`,
+      [user.discordId, backgroundKey],
+    );
+    await removeBackgroundFile(
+      currentPreference?.custom_background_key ?? null,
+    );
+    storedFile = null;
+    return Response.json({ ok: true });
+  } catch (error) {
+    if (storedFile) {
+      try {
+        await unlink(storedFile);
+      } catch {
+        // Nothing else to clean up.
+      }
+    }
+    if (error instanceof Response) return error;
+    throw error;
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ dotaId: string }> },
+) {
+  try {
+    const { dotaId } = await context.params;
+    const user = await requireProfileOwner(dotaId);
+    const currentPreference = await one<{
+      custom_background_key: string | null;
+    }>(
+      `SELECT custom_background_key
+       FROM player_profile_preferences
+       WHERE player_id = $1`,
+      [user.discordId],
+    );
+    await query(
+      `UPDATE player_profile_preferences
+       SET custom_background_key = NULL,
+           updated_at = NOW()
+       WHERE player_id = $1`,
+      [user.discordId],
+    );
+    await removeBackgroundFile(
+      currentPreference?.custom_background_key ?? null,
+    );
+    return Response.json({ ok: true });
+  } catch (error) {
+    if (error instanceof Response) return error;
+    throw error;
+  }
+}

@@ -3,6 +3,7 @@ import {
   buildPlayerLinks,
   customizableSubscriptionRoleNames,
   normalizeDotaAccountId,
+  profileBackgroundForSubscriptionRole,
   profileBackgroundKeys,
   subscriptionRoleNames,
   tournamentResultLabel,
@@ -46,5 +47,16 @@ describe("public player profile", () => {
       "illusion",
       "damage",
     ]);
+  });
+
+  it("selects the standard profile background from the current rune", () => {
+    expect(profileBackgroundForSubscriptionRole("Руна Иллюзий")).toBe(
+      "illusion",
+    );
+    expect(profileBackgroundForSubscriptionRole("Руна Ускорения")).toBe(
+      "haste",
+    );
+    expect(profileBackgroundForSubscriptionRole("Руна Воды")).toBe("default");
+    expect(profileBackgroundForSubscriptionRole(null)).toBe("default");
   });
 });

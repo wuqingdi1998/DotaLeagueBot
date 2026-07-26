@@ -28,6 +28,32 @@ export const profileBackgroundKeys = [
 
 export type ProfileBackgroundKey = (typeof profileBackgroundKeys)[number];
 
+export const subscriptionRoleBackgrounds: Record<
+  (typeof subscriptionRoleNames)[number],
+  ProfileBackgroundKey
+> = {
+  "Руна Регенерации": "regeneration",
+  "Руна Ускорения": "haste",
+  "Руна Невидимости": "invisibility",
+  "Руна Волшебства": "arcane",
+  "Руна Иллюзий": "illusion",
+  "Руна Усиления урона": "damage",
+  "Руна Воды": "default",
+};
+
+export function profileBackgroundForSubscriptionRole(
+  roleName: string | null,
+): ProfileBackgroundKey {
+  if (!roleName || !subscriptionRoleNames.includes(
+    roleName as (typeof subscriptionRoleNames)[number],
+  )) {
+    return "default";
+  }
+  return subscriptionRoleBackgrounds[
+    roleName as (typeof subscriptionRoleNames)[number]
+  ];
+}
+
 export type PlayerMedals = {
   gold: number;
   silver: number;
@@ -55,6 +81,8 @@ export type PublicPlayerProfile = {
   subscriptionRole: string | null;
   subscriptionRoleColor: number | null;
   backgroundKey: ProfileBackgroundKey;
+  customBackgroundUrl: string | null;
+  hasCustomBackground: boolean;
   canCustomizeBackground: boolean;
   links: {
     dotabuff: string;
@@ -82,7 +110,7 @@ type PlayerRow = {
   avatar_url: string | null;
   subscription_role: string | null;
   subscription_role_color: number | null;
-  background_key: ProfileBackgroundKey | null;
+  custom_background_key: string | null;
 };
 
 export type HallOfFamePlayer = {
@@ -156,7 +184,7 @@ export async function loadPublicPlayerProfile(
        ) AS avatar_url,
        subscription.role_name AS subscription_role,
        subscription.role_color::int AS subscription_role_color,
-       preference.background_key
+       preference.custom_background_key
      FROM players p
      LEFT JOIN LATERAL (
        SELECT s.discord_avatar_url
@@ -311,10 +339,14 @@ export async function loadPublicPlayerProfile(
     customizableSubscriptionRoleNames.includes(
       player.subscription_role as (typeof customizableSubscriptionRoleNames)[number],
     );
-  const backgroundKey =
-    canCustomizeBackground && player.background_key
-      ? player.background_key
-      : "default";
+  const backgroundKey = profileBackgroundForSubscriptionRole(
+    player.subscription_role,
+  );
+  const hasCustomBackground =
+    canCustomizeBackground && player.custom_background_key !== null;
+  const customBackgroundUrl = hasCustomBackground
+    ? `/api/profile-backgrounds/${player.custom_background_key}`
+    : null;
 
   return {
     dotaId: player.dota_id,
@@ -325,6 +357,8 @@ export async function loadPublicPlayerProfile(
     subscriptionRole: player.subscription_role,
     subscriptionRoleColor: player.subscription_role_color,
     backgroundKey,
+    customBackgroundUrl,
+    hasCustomBackground,
     canCustomizeBackground,
     links: buildPlayerLinks(player.dota_id),
     statistics: {

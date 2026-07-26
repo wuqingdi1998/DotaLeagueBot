@@ -64,6 +64,13 @@ GROUP_SETTINGS_MIGRATION = (
     / "0010_group_advancement_settings.sql"
 ).read_text(encoding="utf-8")
 
+CUSTOM_PROFILE_BACKGROUNDS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0012_custom_profile_backgrounds.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -146,6 +153,12 @@ def test_profile_roles_and_backgrounds_are_persistent() -> None:
     assert "player_profile_preferences" in PROFILE_AND_BRACKET_MIGRATION
     assert "'damage'" in PROFILE_AND_BRACKET_MIGRATION
     assert "'water'" not in PROFILE_AND_BRACKET_MIGRATION
+
+
+def test_custom_profile_background_key_is_persistent() -> None:
+    assert "custom_background_key VARCHAR(96)" in (
+        CUSTOM_PROFILE_BACKGROUNDS_MIGRATION
+    )
 
 
 def test_bracket_matches_can_link_winners_and_losers() -> None:
