@@ -16,6 +16,7 @@ from database.models import Player, Team
 from utils.logger import send_log
 from utils.steam_tools import resolve_steam_id
 from utils.nickname_validator import validate_nickname
+from services.discord_avatar_sync import collect_discord_avatar_updates
 
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
 NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
@@ -34,13 +35,13 @@ RANK_BRACKETS_RU = [
 ]
 
 
-async def fetch_opendota_rank(steam_id32: int) -> tuple[int, str | None]:
-    """Returns (rank_tier, avatar_url). rank_tier is 0 if OpenDota has no data."""
+async def fetch_opendota_rank(steam_id32: int) -> int:
+    """Return rank_tier, or 0 when OpenDota has no rank data."""
     url = f"https://api.opendota.com/api/players/{steam_id32}"
     async with aiohttp.ClientSession() as hs:
         async with hs.get(url, timeout=10) as res:
             data = await res.json() if res.status == 200 else {}
-    return data.get('rank_tier') or 0, data.get('profile', {}).get('avatarfull')
+    return data.get('rank_tier') or 0
 
 class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     real_name = ui.TextInput(label='Ваше настоящее имя', placeholder=' Например: Даня', min_length=2, max_length=15)
@@ -82,7 +83,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             return await interaction.followup.send("❌ **Ошибка:** Неверный формат Steam ID.", ephemeral=True)
 
         # --- 4. ЗАПРОС К OPENDOTA ---
-        rank, avatar = await fetch_opendota_rank(sid32)
+        rank = await fetch_opendota_rank(sid32)
 
         # --- 5. ЗАПИСЬ В БД ---
         async with async_session() as session:
@@ -98,7 +99,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
                 ingame_name=self.nickname.value,
                 positions=self.pos.value,
                 rank_tier=rank,
-                avatar_url=avatar
+                avatar_url=str(interaction.user.display_avatar.url)
             )
             session.add(new_p)
             await session.commit()
@@ -148,10 +149,12 @@ class Profile(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.update_ranks_task.start()
+        self.sync_discord_avatars_task.start()
         self.bot.add_view(RegistrationView())
 
     def cog_unload(self):
         self.update_ranks_task.cancel()
+        self.sync_discord_avatars_task.cancel()
 
     # --- HELPER: Sync Nickname & Roles ---
     async def update_discord_profile(self, member: discord.Member, player_data: Player):
@@ -350,7 +353,6 @@ class Profile(commands.Cog):
                             if res.status == 200:
                                 data = await res.json()
                                 player.rank_tier = data.get('rank_tier', 0)
-                                player.avatar_url = data.get('profile', {}).get('avatarfull', player.avatar_url)
 
             await session.commit()
 
@@ -374,10 +376,8 @@ class Profile(commands.Cog):
             if not player:
                 return await interaction.followup.send("❌ Игрок не зарегистрирован.")
             old = player.rank_tier or 0
-            new_rank, new_avatar = await fetch_opendota_rank(player.steam_id32)
+            new_rank = await fetch_opendota_rank(player.steam_id32)
             player.rank_tier = new_rank
-            if new_avatar:
-                player.avatar_url = new_avatar
             await session.commit()
             await self.update_discord_profile(member, player)
 
@@ -433,6 +433,58 @@ class Profile(commands.Cog):
             view = PlayerInfoView(self.bot, player.discord_id, player.ingame_name, interaction)
 
             await interaction.followup.send(embed=embed, view=view)
+
+    @tasks.loop(minutes=5)
+    async def sync_discord_avatars_task(self):
+        """Keep registered player avatars aligned with their Discord profiles."""
+        try:
+            guilds = (
+                [self.bot.get_guild(GUILD_ID)]
+                if GUILD_ID
+                else list(self.bot.guilds)
+            )
+            members_by_id: dict[int, discord.Member] = {}
+            for guild in guilds:
+                if guild is None:
+                    continue
+                if not guild.chunked:
+                    try:
+                        await guild.chunk(cache=True)
+                    except Exception as error:
+                        print(
+                            f"[AVATARS] Could not refresh member cache "
+                            f"for guild {guild.id}: {error}"
+                        )
+                for member in guild.members:
+                    members_by_id.setdefault(member.id, member)
+
+            if not members_by_id:
+                print("[AVATARS] No Discord members available for synchronization.")
+                return
+
+            async with async_session() as session:
+                players = (await session.execute(select(Player))).scalars().all()
+                updates = collect_discord_avatar_updates(
+                    players,
+                    members_by_id.values(),
+                )
+                if not updates:
+                    return
+                for player in players:
+                    avatar_url = updates.get(int(player.discord_id))
+                    if avatar_url:
+                        player.avatar_url = avatar_url
+                await session.commit()
+                print(
+                    f"[AVATARS] Updated Discord avatars: "
+                    f"{len(updates)}/{len(players)}"
+                )
+        except Exception as error:
+            print(f"[AVATARS] Synchronization failed: {error}")
+
+    @sync_discord_avatars_task.before_loop
+    async def before_avatar_sync(self):
+        await self.bot.wait_until_ready()
 
     @tasks.loop(hours=24)
     async def update_ranks_task(self):
