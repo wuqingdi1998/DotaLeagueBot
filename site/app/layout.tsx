@@ -4,9 +4,18 @@ import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
-  const host = requestHeaders.get("host") ?? "localhost:3000";
-  const protocol = host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https";
-  const metadataBase = new URL(`${protocol}://${host}`);
+  const configuredBase = process.env.PUBLIC_BASE_URL?.replace(/\/+$/, "");
+  const forwardedHost = requestHeaders.get("x-forwarded-host");
+  const requestHost = forwardedHost ?? requestHeaders.get("host");
+  const safeHost =
+    requestHost && /^[a-z0-9.-]+(?::\d{1,5})?$/i.test(requestHost)
+      ? requestHost
+      : "localhost:3000";
+  const protocol =
+    safeHost.startsWith("localhost") || safeHost.startsWith("127.0.0.1")
+      ? "http"
+      : "https";
+  const metadataBase = new URL(configuredBase ?? `${protocol}://${safeHost}`);
   const title = "Linken's Sphere Esports";
   const description = "Турниры и события Dota-сообщества Linken's Sphere Esports.";
 

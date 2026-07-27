@@ -17,7 +17,7 @@ import {
 
 const desktopOutput = { width: 1400, height: 400 };
 const mobileOutput = { width: 720, height: 1280 };
-const maximumSourceSize = 10 * 1024 * 1024;
+const maximumSourceSize = 25 * 1024 * 1024;
 
 type CropTarget = "desktop" | "mobile";
 type CropState = {
@@ -261,7 +261,7 @@ export function ProfileBackgroundPicker({
       return;
     }
     if (file.size > maximumSourceSize) {
-      setError("Исходное изображение не должно превышать 10 МБ");
+      setError("Исходное изображение не должно превышать 25 МБ");
       return;
     }
     setDesktopCrop(initialCrop);

@@ -64,7 +64,7 @@ export async function consumeOauthState(
   if (!raw || !receivedState) return null;
   try {
     const parsed = JSON.parse(raw) as { state?: string; returnTo?: string };
-    if (parsed.state !== receivedState) return null;
+    if (!parsed.state || !secretMatches(parsed.state, receivedState)) return null;
     return parsed.returnTo ?? "/";
   } catch {
     return null;

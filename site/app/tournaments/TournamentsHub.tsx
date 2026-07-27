@@ -24,6 +24,7 @@ import {
   isUpcomingTournament,
   type TournamentStatus,
 } from "@/lib/tournaments";
+import { tournamentTextFields } from "@/lib/tournament-form";
 import { OrganizerAccess } from "./OrganizerAccess";
 
 type TournamentSummary = {
@@ -253,86 +254,29 @@ function TournamentForm({
     }
     setSaving(true);
     setError("");
-    const response = await fetch("/api/tournament", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        start_at: toIso(form.start_at),
-        end_at: toIso(form.end_at),
-        registration_deadline: toIso(form.registration_deadline),
-      }),
-    });
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-    if (!response.ok) {
-      setError(result.error ?? "Не удалось создать турнир");
-      return;
+    try {
+      const response = await fetch("/api/tournament", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ...form,
+          start_at: toIso(form.start_at),
+          end_at: toIso(form.end_at),
+          registration_deadline: toIso(form.registration_deadline),
+        }),
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setError(result.error ?? "Не удалось создать турнир");
+        return;
+      }
+      onCreated(form.slug);
+    } catch {
+      setError("Сервер недоступен. Проверьте соединение и попробуйте ещё раз");
+    } finally {
+      setSaving(false);
     }
-    onCreated(form.slug);
   }
-
-  const textFields: Array<{
-    field: keyof NewTournament;
-    label: string;
-    placeholder?: string;
-    wide?: boolean;
-    multiline?: boolean;
-  }> = [
-    { field: "slug", label: "Адрес латиницей", placeholder: "summer-cup-2026" },
-    { field: "name", label: "Название", placeholder: "Summer Community Cup" },
-    {
-      field: "eyebrow",
-      label: "Короткая строка над заголовком",
-      placeholder: "Летний турнир · Pre-made",
-    },
-    {
-      field: "status_label",
-      label: "Видимый статус",
-      placeholder: "Регистрация открыта",
-    },
-    {
-      field: "headline",
-      label: "Главный заголовок",
-      placeholder: "Соберите команду.",
-    },
-    {
-      field: "headline_accent",
-      label: "Выделенная часть заголовка",
-      placeholder: "Войдите в историю.",
-    },
-    {
-      field: "description",
-      label: "Краткое описание",
-      wide: true,
-      multiline: true,
-    },
-    {
-      field: "about",
-      label: "Полное описание",
-      wide: true,
-      multiline: true,
-    },
-    { field: "format", label: "Формат", placeholder: "Pre-made · 5 × 5" },
-    { field: "region", label: "Регион" },
-    { field: "server", label: "Игровой сервер" },
-    {
-      field: "group_format",
-      label: "Групповой этап",
-      placeholder: "Групповой этап · 2 группы · BO1",
-    },
-    {
-      field: "playoff_format",
-      label: "Описание плей-офф",
-      placeholder: "Плей-офф · верхняя и нижняя сетка · BO3",
-    },
-    {
-      field: "final_format",
-      label: "Финал",
-      placeholder: "Гранд-финал · BO5",
-    },
-    { field: "discord_url", label: "Ссылка Discord" },
-  ];
 
   return (
     <div className="modal-backdrop" onMouseDown={onClose}>
@@ -354,7 +298,8 @@ function TournamentForm({
         </p>
         <form className="tournament-editor" onSubmit={submit}>
           <div className="editor-grid">
-            {textFields.map(({ field, label, placeholder, wide, multiline }) => (
+            {tournamentTextFields.map(
+              ({ field, label, placeholder, wide, multiline }) => (
               <label className={wide ? "wide-field" : ""} key={field}>
                 <span>{label}</span>
                 {multiline ? (
@@ -377,7 +322,8 @@ function TournamentForm({
                   />
                 )}
               </label>
-            ))}
+              ),
+            )}
             <label>
               <span>Начало</span>
               <input

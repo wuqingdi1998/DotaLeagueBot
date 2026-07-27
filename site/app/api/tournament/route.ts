@@ -23,6 +23,7 @@ type ApplicationRow = Record<string, unknown> & {
 function publicApplication(
   application: ApplicationRow,
   members: MemberRow[],
+  includeContact: boolean,
 ) {
   const captain = members.find((member) => member.is_captain);
   const others = members
@@ -34,6 +35,7 @@ function publicApplication(
   };
   return {
     ...application,
+    contact: includeContact ? application.contact : "",
     captain: captain?.ingame_name ?? application.captain_name,
     captain_role: captain?.role ?? "safe_lane",
     player_2: (others[0] ?? fallback).ingame_name,
@@ -330,6 +332,7 @@ export async function GET(request: Request) {
       publicApplication(
         application,
         membersByApplication.get(application.id) ?? [],
+        user?.isAdmin === true,
       ),
     ),
     matches,
@@ -387,7 +390,7 @@ const editableFieldLabels: Partial<
   start_at: "Начало турнира",
   end_at: "Окончание турнира",
   registration_deadline: "Дедлайн регистрации",
-  status_label: "Статус",
+  status_label: "Видимый статус",
   format: "Формат",
   team_size: "Размер команды",
   max_teams: "Количество команд",
@@ -427,6 +430,18 @@ export async function PATCH(request: Request) {
     if (!id) {
       return Response.json({ error: "Не указан турнир" }, { status: 400 });
     }
+    const slug = String(body.slug ?? "")
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      return Response.json(
+        {
+          error:
+            "Адрес турнира должен состоять из латинских букв, цифр и дефисов",
+        },
+        { status: 400 },
+      );
+    }
     const values = editableFields.map((field) => body[field]);
     const playoffType = String(
       body.playoff_type ?? "double_elimination",
@@ -456,10 +471,9 @@ export async function PATCH(request: Request) {
           team_size = $12, max_teams = $13, region = $14, server = $15,
           check_in_minutes = $16, group_format = $17, playoff_format = $18,
           final_format = $19, discord_url = $20, status = $21,
-          playoff_type = $22,
-          updated_at = NOW()
-        WHERE id = $23`,
-        [...values, playoffType, id],
+          slug = $22, playoff_type = $23, updated_at = NOW()
+        WHERE id = $24`,
+        [...values, slug, playoffType, id],
       );
       await client.query(
         `INSERT INTO tournament_audit_log
@@ -468,8 +482,18 @@ export async function PATCH(request: Request) {
         [id, admin.discordId, String(id)],
       );
     });
-    return Response.json({ ok: true });
+    return Response.json({ ok: true, slug });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as { code?: string }).code === "23505"
+    ) {
+      return Response.json(
+        { error: "Турнир с таким адресом уже существует" },
+        { status: 409 },
+      );
+    }
     return responseFromAuthError(error);
   }
 }

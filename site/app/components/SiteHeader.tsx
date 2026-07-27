@@ -161,8 +161,11 @@ export function SiteHeader({
                 <button
                   type="button"
                   onClick={async () => {
-                    await fetch("/api/auth/logout", { method: "POST" });
-                    window.location.reload();
+                    try {
+                      await fetch("/api/auth/logout", { method: "POST" });
+                    } finally {
+                      window.location.reload();
+                    }
                   }}
                 >
                   Выйти из профиля

@@ -905,6 +905,7 @@ a {
   gap: 34px;
   margin-top: 50px;
   overflow-x: auto;
+  overflow-y: hidden;
   border-bottom: 1px solid var(--line);
   scrollbar-width: none;
 }
@@ -4800,6 +4801,10 @@ footer button {
   gap: 12px;
 }
 
+.prize-list-four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .prize-list > div {
   display: grid;
   grid-template-columns: 46px minmax(0, 1fr);
@@ -6518,6 +6523,8 @@ footer button {
     margin-left: 0;
     gap: 22px;
     overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-y: none;
   }
 
   .bracket-link-editor {

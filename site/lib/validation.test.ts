@@ -61,7 +61,12 @@ describe("security helpers", () => {
 
   it("keeps OAuth redirects inside the site", () => {
     expect(cleanDiscordRedirect("/setup")).toBe("/setup");
+    expect(cleanDiscordRedirect("/tournaments/cup?manage=1")).toBe(
+      "/tournaments/cup?manage=1",
+    );
     expect(cleanDiscordRedirect("//evil.example")).toBe("/");
+    expect(cleanDiscordRedirect("/\\evil.example")).toBe("/");
+    expect(cleanDiscordRedirect("/\r\nLocation: https://evil.example")).toBe("/");
     expect(cleanDiscordRedirect("https://evil.example")).toBe("/");
   });
 });

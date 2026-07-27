@@ -10,7 +10,7 @@ import { isSafeUploadKey } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
-const maximumBackgroundSize = 3 * 1024 * 1024;
+const maximumBackgroundSize = 25 * 1024 * 1024;
 
 function uploadsDirectory() {
   return path.resolve(
@@ -105,8 +105,7 @@ export async function PUT(
       ) {
         return Response.json(
           {
-            error:
-              "Не удалось подготовить изображение. Попробуйте другой JPG или PNG",
+            error: "Каждый подготовленный фон не должен превышать 25 МБ",
           },
           { status: 400 },
         );

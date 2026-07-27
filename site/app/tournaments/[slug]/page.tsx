@@ -3,13 +3,14 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { FaCrown, FaDiscord, FaHandHoldingMedical } from "react-icons/fa";
 import { FiArrowRight, FiArrowUpRight, FiUploadCloud } from "react-icons/fi";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { matchUsesBracketRouting } from "@/lib/bracket";
 import { isPastTournament } from "@/lib/tournaments";
+import { tournamentTextFields } from "@/lib/tournament-form";
 import {
   groupOutcome,
   groupOutcomeLabel,
@@ -273,43 +274,6 @@ const emptyMatchDraft: MatchDraft = {
   bracketSide: "",
   bracketRound: "",
   bracketSlot: "",
-};
-
-const editableTournamentFields = [
-  "name",
-  "eyebrow",
-  "headline",
-  "headline_accent",
-  "description",
-  "about",
-  "status_label",
-  "format",
-  "region",
-  "server",
-  "group_format",
-  "playoff_format",
-  "final_format",
-  "discord_url",
-] as const;
-
-const editableTournamentFieldLabels: Record<
-  (typeof editableTournamentFields)[number],
-  string
-> = {
-  name: "Название турнира",
-  eyebrow: "Строка над заголовком",
-  headline: "Главный заголовок",
-  headline_accent: "Голубая часть заголовка",
-  description: "Краткое описание",
-  about: "Полное описание",
-  status_label: "Статус",
-  format: "Формат",
-  region: "Регион",
-  server: "Игровой сервер",
-  group_format: "Групповой этап",
-  playoff_format: "Описание плей-офф",
-  final_format: "Гранд-финал",
-  discord_url: "Ссылка Discord",
 };
 
 function initials(name: string) {
@@ -620,6 +584,7 @@ function TournamentDetailsEditor({
   onSaved: () => Promise<void>;
   onMessage: (message: string) => void;
 }) {
+  const router = useRouter();
   const [draft, setDraft] = useState(tournament);
   const [saving, setSaving] = useState(false);
 
@@ -642,6 +607,7 @@ function TournamentDetailsEditor({
       });
       const result = (await response.json().catch(() => ({}))) as {
         error?: string;
+        slug?: string;
       };
       if (!response.ok) {
         onMessage(
@@ -651,12 +617,11 @@ function TournamentDetailsEditor({
       }
 
       onMessage("Изменения турнира сохранены в базе");
-      setSaving(false);
-      void onSaved().catch(() => {
-        onMessage(
-          "Изменения сохранены, но данные на странице не обновились. Обновите страницу.",
-        );
-      });
+      if (result.slug && result.slug !== tournament.slug) {
+        router.replace(`/tournaments/${result.slug}?manage=1`);
+        return;
+      }
+      await onSaved();
     } catch {
       onMessage(
         "Не удалось связаться с сервером. Попробуйте сохранить ещё раз.",
@@ -683,27 +648,29 @@ function TournamentDetailsEditor({
       </div>
 
       <div className="editor-grid">
-        {editableTournamentFields.map((field) => (
+        {tournamentTextFields.map(
+          ({ field, label, placeholder, wide, multiline }) => (
           <label
-            className={
-              ["description", "about"].includes(field) ? "wide-field" : ""
-            }
+            className={wide ? "wide-field" : ""}
             key={field}
           >
-            <span>{editableTournamentFieldLabels[field]}</span>
-            {["description", "about"].includes(field) ? (
+            <span>{label}</span>
+            {multiline ? (
               <textarea
                 value={String(draft[field])}
+                placeholder={placeholder}
                 onChange={(event) => setField(field, event.target.value)}
               />
             ) : (
               <input
                 value={String(draft[field])}
+                placeholder={placeholder}
                 onChange={(event) => setField(field, event.target.value)}
               />
             )}
           </label>
-        ))}
+          ),
+        )}
 
         <label>
           <span>Начало турнира</span>
@@ -1001,24 +968,29 @@ export default function Home() {
     }
     formData.set("emblem", teamEmblem);
 
-    const response = await fetch("/api/applications", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const response = await fetch("/api/applications", {
+        method: "POST",
+        body: formData,
+      });
 
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-    if (!response.ok) {
-      setToast(result.error ?? "Не удалось отправить заявку");
-      return;
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setToast(result.error ?? "Не удалось отправить заявку");
+        return;
+      }
+
+      setRegistration(emptyRegistration);
+      setTeamEmblem(null);
+      setRegistrationOpen(false);
+      setActiveTab("teams");
+      setToast("Заявка сохранена в базе и отправлена организатору");
+      await loadData();
+    } catch {
+      setToast("Сервер недоступен. Проверьте соединение и попробуйте ещё раз");
+    } finally {
+      setSaving(false);
     }
-
-    setRegistration(emptyRegistration);
-    setTeamEmblem(null);
-    setRegistrationOpen(false);
-    setActiveTab("teams");
-    setToast("Заявка сохранена в базе и отправлена организатору");
-    await loadData();
   }
 
   async function updateApplicationStatus(id: number, status: TeamApplication["status"]) {
@@ -1571,7 +1543,13 @@ export default function Home() {
                   <p className="card-kicker">Призовые места</p>
                   <h3>Итоги и награды</h3>
                 </div>
-                <div className="prize-list">
+                <div
+                  className={
+                    data.prizes.length === 4
+                      ? "prize-list prize-list-four"
+                      : "prize-list"
+                  }
+                >
                   {data.prizes.map((prize) => (
                     <div key={prize.id}>
                       <strong>{prize.placement}</strong>
@@ -1938,7 +1916,7 @@ export default function Home() {
             </div>
 
             <TournamentDetailsEditor
-              key={`${tournament.id}-${tournament.updated_at}`}
+              key={tournament.id}
               tournament={tournament}
               onSaved={loadData}
               onMessage={setToast}

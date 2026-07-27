@@ -26,37 +26,52 @@ export function OrganizerAccess({
     event.preventDefault();
     setSaving(true);
     setError("");
-    const response = await fetch("/api/auth/organizer", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ password }),
-    });
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-    if (!response.ok) {
-      setError(result.error ?? "Не удалось включить режим организатора");
-      return;
+    try {
+      const response = await fetch("/api/auth/organizer", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        setError(result.error ?? "Не удалось включить режим организатора");
+        return;
+      }
+      setPassword("");
+      window.location.assign(manageHref);
+    } catch {
+      setError("Сервер недоступен. Проверьте соединение и попробуйте ещё раз");
+    } finally {
+      setSaving(false);
     }
-    setPassword("");
-    window.location.assign(manageHref);
   }
 
   async function deactivate() {
     setSaving(true);
-    const response = await fetch("/api/auth/organizer", {
-      method: "DELETE",
-    });
-    setSaving(false);
-    if (response.ok) {
-      window.location.reload();
-    } else {
-      setError("Не удалось выйти из режима организатора");
+    setError("");
+    try {
+      const response = await fetch("/api/auth/organizer", {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        window.location.reload();
+      } else {
+        setError("Не удалось выйти из режима организатора");
+      }
+    } catch {
+      setError("Сервер недоступен. Проверьте соединение и попробуйте ещё раз");
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
     <>
-      <button className="organizer-entry" onClick={() => setOpen(true)}>
+      <button
+        className="organizer-entry"
+        type="button"
+        onClick={() => setOpen(true)}
+      >
         <FiShield aria-hidden="true" />
         {user?.isAdmin ? "Организатор · активен" : "Режим организатора"}
       </button>
@@ -72,6 +87,7 @@ export function OrganizerAccess({
           >
             <button
               className="modal-close"
+              type="button"
               aria-label="Закрыть"
               onClick={() => setOpen(false)}
             >
@@ -105,12 +121,14 @@ export function OrganizerAccess({
                 <div className="organizer-modal-actions">
                   <button
                     className="primary-button"
+                    type="button"
                     onClick={() => window.location.assign(manageHref)}
                   >
                     Открыть управление
                   </button>
                   <button
                     className="secondary-button"
+                    type="button"
                     onClick={() => void deactivate()}
                     disabled={saving}
                   >
