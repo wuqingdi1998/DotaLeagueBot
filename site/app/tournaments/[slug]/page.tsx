@@ -651,7 +651,12 @@ function TournamentDetailsEditor({
       }
 
       onMessage("Изменения турнира сохранены в базе");
-      await onSaved();
+      setSaving(false);
+      void onSaved().catch(() => {
+        onMessage(
+          "Изменения сохранены, но данные на странице не обновились. Обновите страницу.",
+        );
+      });
     } catch {
       onMessage(
         "Не удалось связаться с сервером. Попробуйте сохранить ещё раз.",
