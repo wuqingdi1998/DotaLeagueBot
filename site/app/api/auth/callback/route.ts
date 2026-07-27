@@ -2,17 +2,17 @@ import { NextResponse } from "next/server";
 import { consumeOauthState, createSession } from "@/lib/auth";
 import { one } from "@/lib/db";
 import { cleanDiscordRedirect } from "@/lib/validation";
+import { fetchDiscordIdentity } from "@/lib/discord-oauth";
 
-type DiscordToken = {
-  access_token?: string;
-};
-
-type DiscordUser = {
-  id: string;
-  username: string;
-  global_name?: string | null;
-  avatar?: string | null;
-};
+function authErrorRedirect(
+  baseUrl: string,
+  returnTo: string,
+  error: string,
+) {
+  const target = new URL(cleanDiscordRedirect(returnTo), `${baseUrl}/`);
+  target.searchParams.set("authError", error);
+  return NextResponse.redirect(target);
+}
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
@@ -28,33 +28,17 @@ export async function GET(request: Request) {
   const clientId = process.env.DISCORD_CLIENT_ID;
   const clientSecret = process.env.DISCORD_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    return NextResponse.redirect(`${baseUrl}/?authError=config`);
+    return authErrorRedirect(baseUrl, returnTo, "config");
   }
 
-  const tokenResponse = await fetch("https://discord.com/api/oauth2/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: clientId,
-      client_secret: clientSecret,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: `${baseUrl}/api/auth/callback`,
-    }),
-    cache: "no-store",
+  const discordUser = await fetchDiscordIdentity({
+    clientId,
+    clientSecret,
+    code,
+    redirectUri: `${baseUrl}/api/auth/callback`,
   });
-  const token = (await tokenResponse.json()) as DiscordToken;
-  if (!tokenResponse.ok || !token.access_token) {
-    return NextResponse.redirect(`${baseUrl}/?authError=discord`);
-  }
-
-  const userResponse = await fetch("https://discord.com/api/users/@me", {
-    headers: { authorization: `Bearer ${token.access_token}` },
-    cache: "no-store",
-  });
-  const discordUser = (await userResponse.json()) as DiscordUser;
-  if (!userResponse.ok || !discordUser.id) {
-    return NextResponse.redirect(`${baseUrl}/?authError=discord`);
+  if (!discordUser) {
+    return authErrorRedirect(baseUrl, returnTo, "discord");
   }
 
   const player = await one<{ discord_id: string }>(
@@ -62,7 +46,7 @@ export async function GET(request: Request) {
     [discordUser.id],
   );
   if (!player) {
-    return NextResponse.redirect(`${baseUrl}/?authError=not_registered`);
+    return authErrorRedirect(baseUrl, returnTo, "not_registered");
   }
 
   const avatarUrl = discordUser.avatar
@@ -70,7 +54,7 @@ export async function GET(request: Request) {
     : null;
   await createSession({
     discordId: discordUser.id,
-    username: discordUser.global_name || discordUser.username,
+    username: discordUser.globalName || discordUser.username,
     avatarUrl,
   });
 

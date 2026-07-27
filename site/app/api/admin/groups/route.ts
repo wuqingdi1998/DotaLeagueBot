@@ -1,5 +1,6 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
+import { parseGroupCount } from "@/lib/group-generation";
 
 export async function POST(request: Request) {
   try {
@@ -10,9 +11,13 @@ export async function POST(request: Request) {
       teamsPerGroup?: number;
     };
     const tournamentId = Number(body.tournamentId);
-    const groupCount = Number(body.groupCount ?? 2);
+    const groupCount = parseGroupCount(body.groupCount);
     const teamsPerGroup = Number(body.teamsPerGroup ?? 4);
-    if (!tournamentId || groupCount < 1 || groupCount > 8) {
+    if (
+      !Number.isInteger(tournamentId) ||
+      tournamentId < 1 ||
+      groupCount === null
+    ) {
       return Response.json(
         { error: "Укажите турнир и количество групп от 1 до 8" },
         { status: 400 },

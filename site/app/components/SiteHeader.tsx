@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
+import { getAuthErrorMessage } from "@/lib/auth-error";
 import {
   FiArrowRight,
   FiArrowUpRight,
@@ -32,6 +33,36 @@ type SiteHeaderProps = {
   user: SessionUser | null;
   discordUrl?: string;
 };
+
+function AuthErrorBanner() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const authError = getAuthErrorMessage(searchParams.get("authError"));
+  if (!authError) return null;
+
+  function dismissAuthError() {
+    const nextParams = new URLSearchParams(searchParams.toString());
+    nextParams.delete("authError");
+    const query = nextParams.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }
+
+  return (
+    <div className="auth-error-banner" role="alert">
+      <span>{authError}</span>
+      <button
+        type="button"
+        aria-label="Закрыть сообщение об ошибке входа"
+        onClick={dismissAuthError}
+      >
+        <FiX aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
 
 export function SiteHeader({
   theme,
@@ -224,6 +255,9 @@ export function SiteHeader({
           </a>
         </nav>
       )}
+      <Suspense fallback={null}>
+        <AuthErrorBanner />
+      </Suspense>
     </header>
   );
 }

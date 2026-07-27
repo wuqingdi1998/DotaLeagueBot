@@ -17,6 +17,12 @@ www.{$SITE_DOMAIN:lsesports.ru} {
 
 	log {
 		output stdout
-		format console
+		format filter {
+			request>uri query {
+				replace code REDACTED
+				replace state REDACTED
+			}
+			wrap console
+		}
 	}
 }

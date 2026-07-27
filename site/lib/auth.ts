@@ -2,6 +2,12 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { one, query } from "@/lib/db";
 import { playerServerName, secretMatches } from "@/lib/security";
+import {
+  addPendingOauthState,
+  oauthStateLifetimeMs,
+  parsePendingOauthStates,
+  takePendingOauthState,
+} from "@/lib/oauth-state";
 
 const sessionCookie = "ls_session";
 const organizerSessionCookie = "ls_organizer_session";
@@ -41,14 +47,24 @@ function tokenHash(token: string): string {
 export async function createOauthState(returnTo: string): Promise<string> {
   const state = randomBytes(32).toString("base64url");
   const cookieStore = await cookies();
+  const now = Date.now();
+  const pending = parsePendingOauthStates(
+    cookieStore.get(oauthStateCookie)?.value,
+    now,
+  );
+  const nextPending = addPendingOauthState(pending, {
+    state,
+    returnTo,
+    createdAt: now,
+  });
   cookieStore.set(
     oauthStateCookie,
-    JSON.stringify({ state, returnTo }),
+    JSON.stringify(nextPending),
     {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 10 * 60,
+      maxAge: oauthStateLifetimeMs / 1000,
       path: "/",
     },
   );
@@ -60,15 +76,25 @@ export async function consumeOauthState(
 ): Promise<string | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(oauthStateCookie)?.value;
-  cookieStore.delete(oauthStateCookie);
   if (!raw || !receivedState) return null;
-  try {
-    const parsed = JSON.parse(raw) as { state?: string; returnTo?: string };
-    if (!parsed.state || !secretMatches(parsed.state, receivedState)) return null;
-    return parsed.returnTo ?? "/";
-  } catch {
+  const pending = parsePendingOauthStates(raw);
+  const consumed = takePendingOauthState(pending, receivedState);
+  if (!consumed.returnTo) {
+    if (!pending.length) cookieStore.delete(oauthStateCookie);
     return null;
   }
+  if (consumed.remaining.length) {
+    cookieStore.set(oauthStateCookie, JSON.stringify(consumed.remaining), {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: oauthStateLifetimeMs / 1000,
+      path: "/",
+    });
+  } else {
+    cookieStore.delete(oauthStateCookie);
+  }
+  return consumed.returnTo;
 }
 
 export async function createSession(input: {

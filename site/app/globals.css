@@ -3274,6 +3274,45 @@ footer button {
   position: relative;
 }
 
+.auth-error-banner {
+  position: fixed;
+  z-index: 120;
+  top: 118px;
+  left: 50%;
+  display: flex;
+  width: min(680px, calc(100vw - 32px));
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(194, 65, 65, 0.35);
+  border-radius: 14px;
+  padding: 14px 14px 14px 18px;
+  background: #fff2f2;
+  color: #8e2424;
+  box-shadow: 0 16px 42px rgba(83, 24, 24, 0.2);
+  font-weight: 700;
+}
+
+.auth-error-banner button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  background: rgba(142, 36, 36, 0.1);
+  color: inherit;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .auth-error-banner {
+  border-color: rgba(255, 130, 130, 0.38);
+  background: #3a2026;
+  color: #ffb5b5;
+}
+
 .platform-navigation {
   display: flex;
   align-items: center;
