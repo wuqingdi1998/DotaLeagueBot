@@ -1,10 +1,7 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { loadSiteStyles } from "./test-utils/load-styles";
 
-const css = readFileSync(
-  new URL("../app/globals.css", import.meta.url),
-  "utf8",
-);
+const css = loadSiteStyles();
 
 describe("mobile tournament navigation", () => {
   it("allows horizontal scrolling without a vertical scrollbar", () => {

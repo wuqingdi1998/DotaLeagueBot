@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { readFileSync } from "node:fs";
 import { tournamentCompetitionStages } from "./tournament-stages";
+import { loadSiteStyles } from "./test-utils/load-styles";
 
-const css = readFileSync(
-  new URL("../app/globals.css", import.meta.url),
-  "utf8",
-);
+const css = loadSiteStyles();
 
 describe("tournament competition stages", () => {
   it("shows groups and grand final when playoff description is empty", () => {

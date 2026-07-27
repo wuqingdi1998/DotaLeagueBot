@@ -1,0 +1,307 @@
+@media (max-width: 1120px) {
+  .profile-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .profile-stat-grid article:nth-child(3) {
+    border-right: 0;
+  }
+
+  .profile-stat-grid article:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .player-profile-content {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-side-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .player-profile-hero {
+    gap: 20px;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 24px 14px 32px;
+  }
+
+  .player-profile-identity {
+    width: 100%;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .public-profile-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 22px;
+  }
+
+  .public-profile-name-row {
+    width: 100%;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 11px;
+  }
+
+  .public-profile-heading {
+    margin-bottom: 5px;
+  }
+
+  .public-profile-real-name {
+    font-size: 21px;
+  }
+
+  .public-profile-nickname-line {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .public-profile-name-row h1 {
+    min-width: 0;
+    max-width: 100%;
+    flex: 1;
+    overflow: hidden;
+    margin: 3px 0 -0.14em;
+    padding-bottom: 0.14em;
+    font-size: var(--mobile-nickname-size, 42px);
+    line-height: 1.04;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .public-profile-positions.desktop-profile-positions,
+  .public-profile-dota-id.desktop-profile-dota-id {
+    display: none;
+  }
+
+  .public-profile-positions.mobile-profile-positions {
+    display: inline-flex;
+    min-height: 35px;
+    flex: 0 0 auto;
+    padding: 0 11px;
+    font-size: 21px;
+  }
+
+  .player-service-links {
+    max-width: 100%;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .player-service-links a span {
+    display: none;
+  }
+
+  .player-service-links a {
+    width: 40px;
+    min-height: 40px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .public-profile-dota-id.mobile-profile-dota-id {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    padding-left: 3px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .public-profile-meta {
+    margin-top: 7px;
+  }
+
+  .public-profile-positions {
+    min-height: 36px;
+    padding: 0 11px;
+    font-size: 22px;
+  }
+
+  .profile-background-control {
+    margin-top: 11px;
+  }
+
+  .profile-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-stat-grid article,
+  .profile-stat-grid article:nth-child(3) {
+    min-height: 82px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    gap: 5px;
+    padding: 12px;
+  }
+
+  .profile-stat-grid span {
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .profile-stat-grid strong {
+    font-size: 29px;
+  }
+
+  .profile-stat-grid article:nth-child(even) {
+    border-right: 0;
+  }
+
+  .profile-stat-grid article:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .player-profile-content {
+    padding: 38px 14px 64px;
+  }
+
+  .profile-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-tournament-row {
+    grid-template-columns: 1fr 22px;
+    gap: 12px 16px;
+  }
+
+  .profile-tournament-date,
+  .profile-tournament-row > div:nth-child(2),
+  .profile-tournament-row > strong {
+    grid-column: 1;
+  }
+
+  .profile-tournament-row > svg {
+    grid-column: 2;
+    grid-row: 1 / 4;
+  }
+
+  .profile-tournament-row > strong {
+    text-align: left;
+  }
+
+  .profile-side-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+.playoff-bracket {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  align-items: stretch;
+  gap: 18px;
+  margin: 0 0 26px;
+  padding: 20px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--blue) 8%, transparent), transparent 45%),
+    var(--surface);
+}
+
+.bracket-round {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  min-width: 220px;
+}
+
+.bracket-round > h4 {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bracket-round > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 14px;
+}
+
+.bracket-match {
+  position: relative;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--surface) 92%, var(--blue));
+}
+
+.bracket-match > small {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--blue);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.bracket-match > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 5px 8px;
+  border-radius: 8px;
+}
+
+.bracket-match > div + div {
+  border-top: 1px solid var(--line);
+}
+
+.bracket-match > div strong {
+  overflow: hidden;
+  font-size: 1rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bracket-match > div b {
+  color: var(--blue);
+  font-size: 1.05rem;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.bracket-match > span {
+  display: block;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.bracket-match > p {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, #ffb547 45%, transparent);
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.archive-roster-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.match-result-row {
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+}
+
+.match-result-row > div,
+.match-result-row textarea {
+  grid-column: 1 / -1;
+}

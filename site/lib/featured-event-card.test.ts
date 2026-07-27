@@ -1,14 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { loadSiteStyles } from "./test-utils/load-styles";
 
 const component = readFileSync(
   new URL("../app/tournaments/TournamentsHub.tsx", import.meta.url),
   "utf8",
 );
-const css = readFileSync(
-  new URL("../app/globals.css", import.meta.url),
-  "utf8",
-);
+const css = loadSiteStyles();
 
 describe("featured event card", () => {
   it("shows the nearest-event label above the registration status", () => {

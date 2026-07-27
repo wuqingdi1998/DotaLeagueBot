@@ -1,11 +1,8 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { dayCountLabel } from "./countdown";
+import { loadSiteStyles } from "./test-utils/load-styles";
 
-const css = readFileSync(
-  new URL("../app/globals.css", import.meta.url),
-  "utf8",
-);
+const css = loadSiteStyles();
 
 describe("tournament countdown", () => {
   it("uses the correct Russian day label for every value from 1 to 99", () => {

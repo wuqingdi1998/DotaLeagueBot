@@ -1,0 +1,380 @@
+/* Hall of fame */
+
+.hall-hero {
+  padding: 30px clamp(24px, 7vw, 110px) 34px;
+  background:
+    radial-gradient(circle at 82% 15%, rgba(255, 202, 57, 0.16), transparent 32%),
+    var(--surface-soft);
+}
+
+.hall-hero h1 {
+  margin: 0 0 10px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(54px, 7vw, 94px);
+  font-weight: 600;
+  line-height: 0.95;
+}
+
+.hall-hero > p:last-child {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.hall-content {
+  padding: 24px clamp(24px, 7vw, 110px) 100px;
+}
+
+.hall-search {
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  gap: 11px;
+  max-width: 620px;
+  border: 1px solid var(--line-strong);
+  border-radius: 15px;
+  margin-bottom: 16px;
+  padding: 0 15px;
+  background: var(--surface);
+  color: var(--muted);
+  box-shadow: 0 10px 30px rgba(24, 98, 141, 0.07);
+}
+
+.hall-search > svg {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+}
+
+.hall-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+}
+
+.hall-search button {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 0;
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.hall-table {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.hall-row {
+  display: grid;
+  min-height: 72px;
+  grid-template-columns: 90px minmax(220px, 1fr) repeat(3, 120px);
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 0 22px;
+}
+
+.hall-row:last-child {
+  border-bottom: 0;
+}
+
+.hall-head {
+  min-height: 54px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.hall-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hall-row > :first-child {
+  justify-self: center;
+  text-align: center;
+}
+
+.hall-player img,
+.hall-player i {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-style: normal;
+  object-fit: cover;
+}
+
+.hall-medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.hall-medal-heading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.hall-medal-heading svg {
+  display: none;
+}
+
+.hall-medal-heading.gold svg { color: #f0bd29; }
+
+.hall-medal-heading.silver svg { color: #aebdca; }
+
+.hall-medal-heading.bronze svg { color: #c77a43; }
+
+.hall-medal.gold svg { color: #f0bd29; }
+
+.hall-medal.silver svg { color: #aebdca; }
+
+.hall-medal.bronze svg { color: #c77a43; }
+
+.hall-empty {
+  padding: 34px 18px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .tournament-tabs {
+    align-items: stretch;
+    flex-direction: column;
+    overflow: visible;
+  }
+
+  .tournament-tabs-main,
+  .tournament-tabs-stages {
+    width: 100%;
+    margin-left: 0;
+    gap: 22px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-y: none;
+  }
+
+  .bracket-link-editor {
+    grid-template-columns: minmax(0, 1fr) 110px;
+  }
+
+  .hall-table {
+    overflow: hidden;
+  }
+
+  .hall-row {
+    width: auto;
+    min-height: 66px;
+    grid-template-columns: 32px minmax(0, 1fr) repeat(3, 44px);
+    gap: 4px;
+    padding: 0 18px;
+  }
+
+  .hall-head {
+    min-height: 50px;
+    font-size: 11px;
+  }
+
+  .hall-head > span:first-child {
+    font-size: 0;
+  }
+
+  .hall-head > span:first-child::after {
+    font-size: 11px;
+    content: "#";
+  }
+
+  .hall-medal-heading {
+    justify-content: center;
+  }
+
+  .hall-medal-heading svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+  }
+
+  .hall-medal-heading b {
+    display: none;
+  }
+
+  .hall-medal {
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .hall-medal svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hall-player {
+    min-width: 0;
+    gap: 8px;
+  }
+
+  .hall-player b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .schedule-admin-day-head,
+  .schedule-admin-entry {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-admin-day-head .schedule-admin-actions,
+  .schedule-admin-entry .schedule-admin-actions {
+    grid-column: auto;
+  }
+
+  .schedule-admin-actions {
+    justify-content: flex-end;
+  }
+
+  .tournament-schedule-day {
+    padding: 18px;
+  }
+
+  .tournament-schedule-day header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .tournament-schedule-day header span {
+    text-align: left;
+  }
+
+  .rule-admin-row {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .rule-admin-row > div {
+    grid-column: 2;
+  }
+
+  .content-editor-subheading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .content-editor-subheading button {
+    align-self: flex-start;
+  }
+
+  .bracket-link-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .playoff-bracket-board {
+    min-width: 920px;
+  }
+
+  .bracket-layout-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .bracket-layout-toolbar > button {
+    justify-self: stretch;
+  }
+
+  .bracket-layout-toolbar > small {
+    grid-column: auto;
+  }
+
+  .hall-hero {
+    padding: 24px 18px 27px;
+  }
+
+  .hall-content {
+    padding: 18px 12px 80px;
+  }
+
+  .hall-search {
+    width: calc(100% - 12px);
+    min-height: 50px;
+    margin: 0 6px 12px;
+  }
+
+  .hall-row {
+    grid-template-columns: 30px minmax(0, 1fr) repeat(3, 40px);
+    padding: 0 14px 0 16px;
+  }
+
+  .hall-player img,
+  .hall-player i {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .profile-background-crop-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .profile-background-crop-modal {
+    max-height: 94vh;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 22px 22px 0 0;
+    padding: 22px 16px;
+  }
+
+  .player-profile-hero.profile-background-custom {
+    background: var(
+        --profile-custom-background-mobile,
+        var(--profile-custom-background-desktop)
+      )
+      center / cover no-repeat !important;
+  }
+
+  .profile-background-crop-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-background-crop-frame.mobile {
+    width: min(100%, 240px);
+  }
+
+  .profile-background-crop-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .profile-background-crop-actions button {
+    width: 100%;
+  }
+}

@@ -1,0 +1,287 @@
+/* Tournament navigation and editable content */
+
+.content-editor-subheading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.content-editor-subheading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.content-editor-subheading span {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.content-editor-subheading small {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.content-editor-subheading button,
+.tournament-content-editor .editor-heading > button,
+.rule-admin-row button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  padding: 0 14px;
+  background: var(--surface-blue);
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+[data-theme="dark"] .content-editor-subheading button,
+[data-theme="dark"] .tournament-content-editor .editor-heading > button,
+[data-theme="dark"] .rule-admin-row button {
+  color: var(--blue-soft);
+}
+
+.tournament-content-editor .editor-heading > button {
+  border: 0;
+  background: var(--blue-gradient);
+  color: #fff;
+}
+
+.tournament-content-editor button:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.schedule-admin-section,
+.rule-admin-section,
+.prize-admin-section {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+
+.schedule-admin-days,
+.rule-admin-list {
+  display: grid;
+  gap: 12px;
+}
+
+.schedule-admin-day {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface-soft);
+}
+
+.schedule-admin-day-head {
+  display: grid;
+  grid-template-columns: 120px 170px minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 14px;
+  background: rgba(0, 195, 255, 0.055);
+}
+
+.schedule-day-number {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 9px;
+  color: var(--blue-deep);
+}
+
+[data-theme="dark"] .schedule-day-number {
+  color: var(--blue);
+}
+
+.schedule-day-number svg {
+  width: 20px;
+  height: 20px;
+}
+
+.schedule-admin-day label,
+.schedule-admin-entry label {
+  display: grid;
+  gap: 7px;
+}
+
+.schedule-admin-day label > span,
+.schedule-admin-entry label > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.schedule-admin-day input,
+.schedule-admin-entry input {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.schedule-admin-entry-list {
+  display: grid;
+}
+
+.schedule-admin-entry {
+  display: grid;
+  grid-template-columns: 110px minmax(220px, 1fr) 90px 100px auto;
+  align-items: end;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding: 14px;
+}
+
+.schedule-admin-entry:first-child {
+  border-top: 0;
+}
+
+.schedule-admin-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.schedule-admin-actions button,
+.schedule-add-entry {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: var(--surface);
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+[data-theme="dark"] .schedule-admin-actions button,
+[data-theme="dark"] .schedule-add-entry {
+  color: var(--blue-soft);
+}
+
+.schedule-admin-actions button {
+  width: 42px;
+  padding: 0;
+}
+
+.schedule-admin-actions button.danger {
+  border-color: rgba(217, 79, 101, 0.34);
+  background: rgba(217, 79, 101, 0.08);
+  color: #d94f65;
+}
+
+.schedule-add-entry {
+  margin: 0 14px 14px;
+}
+
+.rule-admin-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: var(--surface-soft);
+}
+
+.rule-admin-row > strong {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--blue-gradient);
+  color: #fff;
+}
+
+.rule-admin-row > div {
+  display: flex;
+  gap: 7px;
+}
+
+.rule-admin-row button {
+  width: 40px;
+  padding: 0;
+}
+
+.rule-admin-row button.danger,
+.prize-delete-button {
+  border-color: rgba(217, 79, 101, 0.34);
+  background: rgba(217, 79, 101, 0.08);
+  color: #d94f65;
+}
+
+.empty-admin-list {
+  margin: 0;
+  border: 1px dashed var(--line-strong);
+  border-radius: 14px;
+  padding: 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.form-success {
+  margin: 0;
+  color: #18a875;
+  font-weight: 700;
+}
+
+.prize-list > div {
+  height: auto;
+  align-items: start;
+}
+
+.prize-list span small {
+  overflow-wrap: anywhere;
+  white-space: normal;
+  line-height: 1.45;
+}
+
+.bracket-link-editor {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(220px, 1fr) 130px minmax(220px, 1fr) 130px;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface-soft);
+}
+
+.bracket-link-editor legend {
+  padding: 0 7px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.bracket-link-editor label {
+  display: grid;
+  gap: 7px;
+}
+
+.bracket-link-editor label > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.match-result-row .bracket-link-editor select {
+  width: 100%;
+}

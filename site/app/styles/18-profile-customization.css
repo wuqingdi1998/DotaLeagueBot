@@ -1,0 +1,286 @@
+/* Subscription role and profile backgrounds */
+
+.profile-subscription-role {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--role-color, var(--blue)) 60%, transparent);
+  border-radius: 999px;
+  padding: 0 13px;
+  background: color-mix(in srgb, var(--role-color, var(--blue)) 14%, var(--surface));
+  color: var(--role-color, var(--blue));
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.player-profile-hero.profile-background-regeneration {
+  background:
+    radial-gradient(circle at 76% 10%, rgba(94, 218, 90, 0.35), transparent 35%),
+    linear-gradient(
+      135deg,
+      var(--bg),
+      color-mix(in srgb, var(--surface-soft) 76%, #2c9264)
+    );
+}
+
+.player-profile-hero.profile-background-haste {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(255, 79, 62, 0.32), transparent 36%),
+    linear-gradient(
+      135deg,
+      var(--bg),
+      color-mix(in srgb, var(--surface-soft) 76%, #d34545)
+    );
+}
+
+.player-profile-hero.profile-background-invisibility {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(151, 78, 226, 0.38), transparent 36%),
+    linear-gradient(
+      135deg,
+      var(--bg),
+      color-mix(in srgb, var(--surface-soft) 76%, #7945b5)
+    );
+}
+
+.player-profile-hero.profile-background-arcane {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(233, 82, 215, 0.34), transparent 36%),
+    linear-gradient(
+      135deg,
+      var(--bg),
+      color-mix(in srgb, var(--surface-soft) 76%, #c34bae)
+    );
+}
+
+.player-profile-hero.profile-background-illusion {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(255, 210, 65, 0.34), transparent 36%),
+    linear-gradient(
+      135deg,
+      var(--bg),
+      color-mix(in srgb, var(--surface-soft) 76%, #d6ad35)
+    );
+}
+
+.player-profile-hero.profile-background-damage {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(0, 195, 255, 0.42), transparent 36%),
+    linear-gradient(
+      135deg,
+      var(--bg),
+      color-mix(in srgb, var(--surface-soft) 76%, #008fc5)
+    );
+}
+
+.player-profile-hero.profile-background-custom {
+  background: var(--profile-custom-background-desktop) center / cover
+    no-repeat !important;
+}
+
+.profile-background-control {
+  position: relative;
+  width: fit-content;
+  margin-top: 16px;
+}
+
+.profile-background-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  padding: 0 14px;
+  background: rgba(7, 24, 39, 0.32);
+  color: #f6fbff;
+  cursor: pointer;
+  font-weight: 800;
+  backdrop-filter: blur(10px);
+}
+
+.profile-background-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.profile-background-file {
+  display: none;
+}
+
+.profile-background-crop-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(2, 15, 28, 0.76);
+  backdrop-filter: blur(12px);
+}
+
+.profile-background-crop-modal {
+  width: min(1180px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 24px;
+  padding: 26px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.38);
+}
+
+.profile-background-crop-modal > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.profile-background-crop-modal > header span {
+  color: var(--blue-strong);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-background-crop-modal h2 {
+  margin: 5px 0 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.profile-background-crop-modal > header > button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.profile-background-crop-modal > p {
+  margin: 16px 0 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.profile-background-crop-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 2.25fr) minmax(220px, 0.75fr);
+  align-items: start;
+  gap: 24px;
+}
+
+.profile-background-crop-panel {
+  display: grid;
+  min-width: 0;
+  gap: 12px;
+}
+
+.profile-background-crop-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-background-crop-panel-heading > div {
+  display: grid;
+  gap: 3px;
+}
+
+.profile-background-crop-panel-heading strong {
+  font-size: 16px;
+}
+
+.profile-background-crop-panel-heading span,
+.profile-background-crop-panel > small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-background-crop-panel-heading svg {
+  color: var(--blue-strong);
+  font-size: 20px;
+}
+
+.profile-background-crop-frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border: 2px solid var(--blue);
+  border-radius: 16px;
+  background: var(--surface-soft);
+  box-shadow: 0 0 0 5px rgba(0, 195, 255, 0.1);
+}
+
+.profile-background-crop-frame.desktop {
+  aspect-ratio: 3.5 / 1;
+}
+
+.profile-background-crop-frame.mobile {
+  width: min(100%, 260px);
+  aspect-ratio: 9 / 16;
+  justify-self: center;
+}
+
+.profile-background-crop-frame canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.profile-background-crop-frame canvas.is-dragging {
+  cursor: grabbing;
+}
+
+.profile-background-crop-frame > span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.profile-background-zoom {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-background-zoom input {
+  width: 100%;
+  accent-color: var(--blue);
+}
+
+.profile-background-crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.profile-background-error {
+  margin: 10px 0 0;
+  color: #d94f65;
+  font-size: 14px;
+  font-weight: 700;
+}

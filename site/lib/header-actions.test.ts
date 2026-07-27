@@ -1,14 +1,12 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { loadSiteStyles } from "./test-utils/load-styles";
 
 const component = readFileSync(
   new URL("../app/components/SiteHeader.tsx", import.meta.url),
   "utf8",
 );
-const css = readFileSync(
-  new URL("../app/globals.css", import.meta.url),
-  "utf8",
-);
+const css = loadSiteStyles();
 
 describe("site header actions", () => {
   it("places Boosty between the mobile menu and theme controls", () => {

@@ -4,163 +4,27 @@ import { useEffect, useRef, useState } from "react";
 import type {
   ChangeEvent,
   PointerEvent as ReactPointerEvent,
-  RefObject,
 } from "react";
 import { useRouter } from "next/navigation";
 import {
   FiImage,
-  FiMove,
   FiRotateCcw,
   FiUploadCloud,
   FiX,
 } from "react-icons/fi";
-
-const desktopOutput = { width: 1400, height: 400 };
-const mobileOutput = { width: 720, height: 1280 };
-const maximumSourceSize = 25 * 1024 * 1024;
-
-type CropTarget = "desktop" | "mobile";
-type CropState = {
-  zoom: number;
-  horizontal: number;
-  vertical: number;
-};
-type DragState = {
-  target: CropTarget;
-  pointerId: number;
-  startX: number;
-  startY: number;
-  horizontal: number;
-  vertical: number;
-};
-
-const initialCrop: CropState = {
-  zoom: 1,
-  horizontal: 50,
-  vertical: 50,
-};
-
-function clamp(value: number) {
-  return Math.min(100, Math.max(0, value));
-}
-
-function drawCrop(
-  canvas: HTMLCanvasElement | null,
-  image: HTMLImageElement | null,
-  crop: CropState,
-  output: typeof desktopOutput,
-) {
-  if (!canvas || !image) return;
-  const context = canvas.getContext("2d");
-  if (!context) return;
-
-  const targetRatio = output.width / output.height;
-  const sourceRatio = image.naturalWidth / image.naturalHeight;
-  const baseCropWidth =
-    sourceRatio > targetRatio
-      ? image.naturalHeight * targetRatio
-      : image.naturalWidth;
-  const baseCropHeight =
-    sourceRatio > targetRatio
-      ? image.naturalHeight
-      : image.naturalWidth / targetRatio;
-  const cropWidth = baseCropWidth / crop.zoom;
-  const cropHeight = baseCropHeight / crop.zoom;
-  const sourceX =
-    (image.naturalWidth - cropWidth) * (crop.horizontal / 100);
-  const sourceY =
-    (image.naturalHeight - cropHeight) * (crop.vertical / 100);
-
-  context.clearRect(0, 0, output.width, output.height);
-  context.drawImage(
-    image,
-    sourceX,
-    sourceY,
-    cropWidth,
-    cropHeight,
-    0,
-    0,
-    output.width,
-    output.height,
-  );
-}
-
-function canvasBlob(canvas: HTMLCanvasElement) {
-  return new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/jpeg", 0.9),
-  );
-}
-
-function CropPanel({
-  label,
-  description,
-  target,
-  canvasRef,
-  output,
-  crop,
-  imageReady,
-  dragging,
-  onZoom,
-  onPointerDown,
-  onPointerMove,
-  onPointerEnd,
-}: {
-  label: string;
-  description: string;
-  target: CropTarget;
-  canvasRef: RefObject<HTMLCanvasElement | null>;
-  output: typeof desktopOutput;
-  crop: CropState;
-  imageReady: boolean;
-  dragging: boolean;
-  onZoom: (value: number) => void;
-  onPointerDown: (
-    target: CropTarget,
-    event: ReactPointerEvent<HTMLCanvasElement>,
-  ) => void;
-  onPointerMove: (
-    target: CropTarget,
-    event: ReactPointerEvent<HTMLCanvasElement>,
-  ) => void;
-  onPointerEnd: (event: ReactPointerEvent<HTMLCanvasElement>) => void;
-}) {
-  return (
-    <section className={`profile-background-crop-panel ${target}`}>
-      <div className="profile-background-crop-panel-heading">
-        <div>
-          <strong>{label}</strong>
-          <span>{description}</span>
-        </div>
-        <FiMove aria-hidden="true" />
-      </div>
-      <div className={`profile-background-crop-frame ${target}`}>
-        <canvas
-          ref={canvasRef}
-          className={dragging ? "is-dragging" : undefined}
-          width={output.width}
-          height={output.height}
-          onPointerDown={(event) => onPointerDown(target, event)}
-          onPointerMove={(event) => onPointerMove(target, event)}
-          onPointerUp={onPointerEnd}
-          onPointerCancel={onPointerEnd}
-        />
-        {!imageReady && <span>Подготавливаем изображение…</span>}
-      </div>
-      <label className="profile-background-zoom">
-        <span>Масштаб</span>
-        <input
-          type="range"
-          min="1"
-          max="3"
-          step="0.01"
-          value={crop.zoom}
-          onChange={(event) => onZoom(Number(event.target.value))}
-        />
-      </label>
-      <small>Увеличьте и перетащите изображение внутри рамки.</small>
-    </section>
-  );
-}
+import { CropPanel } from "./profile-background/CropPanel";
+import {
+  canvasBlob,
+  clampCropPosition,
+  desktopOutput,
+  drawCrop,
+  initialCrop,
+  maximumSourceSize,
+  mobileOutput,
+  type CropDragState,
+  type CropState,
+  type CropTarget,
+} from "./profile-background/crop-model";
 
 export function ProfileBackgroundPicker({
   dotaId,
@@ -174,7 +38,7 @@ export function ProfileBackgroundPicker({
   const desktopCanvasRef = useRef<HTMLCanvasElement>(null);
   const mobileCanvasRef = useRef<HTMLCanvasElement>(null);
   const sourceImageRef = useRef<HTMLImageElement | null>(null);
-  const dragRef = useRef<DragState | null>(null);
+  const dragRef = useRef<CropDragState | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const [imageReady, setImageReady] = useState(false);
   const [desktopCrop, setDesktopCrop] = useState<CropState>(initialCrop);
@@ -272,11 +136,8 @@ export function ProfileBackgroundPicker({
   }
 
   function updateCrop(target: CropTarget, crop: CropState) {
-    if (target === "desktop") {
-      setDesktopCrop(crop);
-    } else {
-      setMobileCrop(crop);
-    }
+    if (target === "desktop") setDesktopCrop(crop);
+    else setMobileCrop(crop);
   }
 
   function startDragging(
@@ -313,11 +174,11 @@ export function ProfileBackgroundPicker({
     const crop = target === "desktop" ? desktopCrop : mobileCrop;
     updateCrop(target, {
       ...crop,
-      horizontal: clamp(
+      horizontal: clampCropPosition(
         drag.horizontal -
           ((event.clientX - drag.startX) / Math.max(bounds.width, 1)) * 100,
       ),
-      vertical: clamp(
+      vertical: clampCropPosition(
         drag.vertical -
           ((event.clientY - drag.startY) / Math.max(bounds.height, 1)) * 100,
       ),
@@ -336,14 +197,8 @@ export function ProfileBackgroundPicker({
   async function saveCustomBackground() {
     const desktopCanvas = desktopCanvasRef.current;
     const mobileCanvas = mobileCanvasRef.current;
-    if (
-      !desktopCanvas ||
-      !mobileCanvas ||
-      !imageReady ||
-      saving
-    ) {
-      return;
-    }
+    if (!desktopCanvas || !mobileCanvas || !imageReady || saving) return;
+
     setSaving(true);
     setError("");
     try {
@@ -382,9 +237,7 @@ export function ProfileBackgroundPicker({
       closeEditor(true);
       router.refresh();
     } catch {
-      setError(
-        "Сервер не ответил. Попробуйте сохранить фон ещё раз",
-      );
+      setError("Сервер не ответил. Попробуйте сохранить фон ещё раз");
     } finally {
       setSaving(false);
     }
@@ -437,9 +290,7 @@ export function ProfileBackgroundPicker({
         ) : (
           <FiImage aria-hidden="true" />
         )}
-        {hasCustomBackground
-          ? "Вернуть стандартный фон"
-          : "Изменить фон"}
+        {hasCustomBackground ? "Вернуть стандартный фон" : "Изменить фон"}
       </button>
       {!imageUrl && error && (
         <p className="profile-background-error">{error}</p>
@@ -507,9 +358,7 @@ export function ProfileBackgroundPicker({
                 onPointerEnd={stopDragging}
               />
             </div>
-            {error && (
-              <p className="profile-background-error">{error}</p>
-            )}
+            {error && <p className="profile-background-error">{error}</p>}
             <div className="profile-background-crop-actions">
               <button
                 className="secondary-button compact"

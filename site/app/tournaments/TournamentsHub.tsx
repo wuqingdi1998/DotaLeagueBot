@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaDiscord } from "react-icons/fa";
@@ -10,10 +10,8 @@ import {
   FiArrowUpRight,
   FiCalendar,
   FiClock,
-  FiEdit3,
   FiPlus,
   FiUsers,
-  FiX,
 } from "react-icons/fi";
 import {
   SiteHeader,
@@ -24,430 +22,15 @@ import {
   isUpcomingTournament,
   type TournamentStatus,
 } from "@/lib/tournaments";
-import { tournamentTextFields } from "@/lib/tournament-form";
 import { OrganizerAccess } from "./OrganizerAccess";
-
-type TournamentSummary = {
-  id: number;
-  slug: string;
-  name: string;
-  eyebrow: string;
-  description: string;
-  start_at: string;
-  end_at: string;
-  registration_deadline: string;
-  status_label: string;
-  format: string;
-  team_size: number;
-  max_teams: number;
-  region: string;
-  status: TournamentStatus;
-  team_count: number;
-  match_count: number;
-  finished_match_count: number;
-};
-
-type TournamentListResponse = {
-  tournaments: TournamentSummary[];
-  user: SessionUser | null;
-};
-
-type NewTournament = {
-  slug: string;
-  name: string;
-  eyebrow: string;
-  headline: string;
-  headline_accent: string;
-  description: string;
-  about: string;
-  start_at: string;
-  end_at: string;
-  registration_deadline: string;
-  status_label: string;
-  format: string;
-  team_size: number;
-  max_teams: number;
-  region: string;
-  server: string;
-  check_in_minutes: number;
-  group_format: string;
-  playoff_format: string;
-  playoff_type: "single_elimination" | "double_elimination";
-  final_format: string;
-  discord_url: string;
-  status: TournamentStatus;
-};
-
-const emptyTournament: NewTournament = {
-  slug: "",
-  name: "",
-  eyebrow: "",
-  headline: "",
-  headline_accent: "",
-  description: "",
-  about: "",
-  start_at: "",
-  end_at: "",
-  registration_deadline: "",
-  status_label: "",
-  format: "",
-  team_size: 5,
-  max_teams: 8,
-  region: "EU / RU",
-  server: "EU West",
-  check_in_minutes: 60,
-  group_format: "",
-  playoff_format: "",
-  playoff_type: "double_elimination",
-  final_format: "",
-  discord_url: "https://discord.gg/lsesports",
-  status: "draft",
-};
-
-const statusDetails: Record<
-  TournamentStatus,
-  { label: string; short: string }
-> = {
-  draft: { label: "Черновик", short: "Черновик организатора" },
-  registration: { label: "Регистрация", short: "Регистрация открыта" },
-  active: { label: "Идёт сейчас", short: "Турнир идёт" },
-  finished: { label: "Завершён", short: "Результаты опубликованы" },
-  archived: { label: "Архив", short: "Архивный турнир" },
-};
-
-function formatDateRange(start: string, end: string) {
-  const formatter = new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  if (startDate.getFullYear() === endDate.getFullYear()) {
-    const shortStart = new Intl.DateTimeFormat("ru-RU", {
-      day: "numeric",
-      month: "long",
-    }).format(startDate);
-    return `${shortStart} — ${formatter.format(endDate)}`;
-  }
-  return `${formatter.format(startDate)} — ${formatter.format(endDate)}`;
-}
-
-function toIso(value: string) {
-  return value ? `${value}:00+03:00` : value;
-}
-
-function loadSavedTheme() {
-  if (typeof window === "undefined") return "dark" as const;
-  return window.localStorage.getItem("ls-theme") === "light"
-    ? ("light" as const)
-    : ("dark" as const);
-}
-
-function TournamentCard({
-  tournament,
-  isAdmin,
-  onStatusChange,
-}: {
-  tournament: TournamentSummary;
-  isAdmin: boolean;
-  onStatusChange: (id: number, status: TournamentStatus) => Promise<void>;
-}) {
-  const isPast = isPastTournament(tournament.status);
-  return (
-    <article className={`tournament-card status-${tournament.status}`}>
-      <div className="tournament-card-top">
-        <h2>{tournament.name}</h2>
-        <span className={`tournament-status ${tournament.status}`}>
-          {tournament.status === "active" && <i />}
-          {statusDetails[tournament.status].label}
-        </span>
-      </div>
-      <p className="tournament-card-description">{tournament.description}</p>
-      <div className="tournament-card-date">
-        <FiCalendar aria-hidden="true" />
-        <strong>{formatDateRange(tournament.start_at, tournament.end_at)}</strong>
-      </div>
-      <dl className="tournament-card-stats">
-        <div>
-          <dt>Формат</dt>
-          <dd>{tournament.format}</dd>
-        </div>
-        <div>
-          <dt>Команды</dt>
-          <dd>
-            {tournament.team_count}
-            {!isPast && ` / ${tournament.max_teams}`}
-          </dd>
-        </div>
-        <div>
-          <dt>Результаты</dt>
-          <dd>
-            {tournament.finished_match_count} из {tournament.match_count} матчей
-          </dd>
-        </div>
-      </dl>
-      <div className="tournament-card-actions">
-        <Link
-          className="primary-button compact"
-          href={`/tournaments/${tournament.slug}`}
-        >
-          {isPast ? "Результаты" : "Открыть турнир"} <FiArrowRight />
-        </Link>
-        {isAdmin && (
-          <>
-            <Link
-              className="secondary-button compact"
-              href={`/tournaments/${tournament.slug}?manage=1`}
-            >
-              <FiEdit3 /> Управление
-            </Link>
-            {tournament.status === "finished" && (
-              <button
-                className="text-action"
-                onClick={() => void onStatusChange(tournament.id, "archived")}
-              >
-                <FiArchive /> В архив
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    </article>
-  );
-}
-
-function TournamentForm({
-  onClose,
-  onCreated,
-}: {
-  onClose: () => void;
-  onCreated: (slug: string) => void;
-}) {
-  const [form, setForm] = useState<NewTournament>(emptyTournament);
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  function setField<K extends keyof NewTournament>(
-    field: K,
-    value: NewTournament[K],
-  ) {
-    setForm((current) => ({ ...current, [field]: value }));
-  }
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const registrationDeadline = new Date(toIso(form.registration_deadline));
-    const start = new Date(toIso(form.start_at));
-    const end = new Date(toIso(form.end_at));
-    if (
-      !Number.isFinite(registrationDeadline.getTime()) ||
-      !Number.isFinite(start.getTime()) ||
-      !Number.isFinite(end.getTime()) ||
-      registrationDeadline > start ||
-      start >= end
-    ) {
-      setError(
-        "Дедлайн регистрации должен быть не позже начала, а окончание — позже начала турнира",
-      );
-      return;
-    }
-    setSaving(true);
-    setError("");
-    try {
-      const response = await fetch("/api/tournament", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          ...form,
-          start_at: toIso(form.start_at),
-          end_at: toIso(form.end_at),
-          registration_deadline: toIso(form.registration_deadline),
-        }),
-      });
-      const result = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        setError(result.error ?? "Не удалось создать турнир");
-        return;
-      }
-      onCreated(form.slug);
-    } catch {
-      setError("Сервер недоступен. Проверьте соединение и попробуйте ещё раз");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <div className="modal-backdrop" onMouseDown={onClose}>
-      <section
-        className="modal tournament-create-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="create-tournament-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <button className="modal-close" aria-label="Закрыть" onClick={onClose}>
-          <FiX />
-        </button>
-        <p className="card-kicker">Панель организатора</p>
-        <h2 id="create-tournament-title">Добавить турнир</h2>
-        <p className="modal-intro">
-          Создайте будущий, текущий или архивный турнир. После сохранения можно
-          добавить команды, матчи и результаты.
-        </p>
-        <form className="tournament-editor" onSubmit={submit}>
-          <div className="editor-grid">
-            {tournamentTextFields.map(
-              ({
-                field,
-                label,
-                placeholder,
-                wide,
-                multiline,
-                required = true,
-              }) => (
-              <label className={wide ? "wide-field" : ""} key={field}>
-                <span>{label}</span>
-                {multiline ? (
-                  <textarea
-                    required={required}
-                    value={String(form[field])}
-                    placeholder={placeholder}
-                    onChange={(event) =>
-                      setField(field, event.target.value as never)
-                    }
-                  />
-                ) : (
-                  <input
-                    required={required}
-                    value={String(form[field])}
-                    placeholder={placeholder}
-                    onChange={(event) =>
-                      setField(field, event.target.value as never)
-                    }
-                  />
-                )}
-              </label>
-              ),
-            )}
-            <label>
-              <span>Начало</span>
-              <input
-                required
-                type="datetime-local"
-                value={form.start_at}
-                onChange={(event) => setField("start_at", event.target.value)}
-              />
-            </label>
-            <label>
-              <span>Окончание</span>
-              <input
-                required
-                type="datetime-local"
-                value={form.end_at}
-                onChange={(event) => setField("end_at", event.target.value)}
-              />
-            </label>
-            <label>
-              <span>Дедлайн регистрации</span>
-              <input
-                required
-                type="datetime-local"
-                value={form.registration_deadline}
-                onChange={(event) =>
-                  setField("registration_deadline", event.target.value)
-                }
-              />
-            </label>
-            <label>
-              <span>Игроков в команде</span>
-              <input
-                required
-                type="number"
-                min="1"
-                max="10"
-                value={form.team_size}
-                onChange={(event) =>
-                  setField("team_size", Number(event.target.value))
-                }
-              />
-            </label>
-            <label>
-              <span>Максимум команд</span>
-              <input
-                required
-                type="number"
-                min="2"
-                max="64"
-                value={form.max_teams}
-                onChange={(event) =>
-                  setField("max_teams", Number(event.target.value))
-                }
-              />
-            </label>
-            <label>
-              <span>Check-in, минут</span>
-              <input
-                required
-                type="number"
-                min="5"
-                max="180"
-                value={form.check_in_minutes}
-                onChange={(event) =>
-                  setField("check_in_minutes", Number(event.target.value))
-                }
-              />
-            </label>
-            <label>
-              <span>Формат плей-офф</span>
-              <select
-                value={form.playoff_type}
-                onChange={(event) =>
-                  setField(
-                    "playoff_type",
-                    event.target.value as NewTournament["playoff_type"],
-                  )
-                }
-              >
-                <option value="single_elimination">
-                  Single Elimination
-                </option>
-                <option value="double_elimination">
-                  Double Elimination
-                </option>
-              </select>
-            </label>
-            <label>
-              <span>Статус</span>
-              <select
-                value={form.status}
-                onChange={(event) =>
-                  setField("status", event.target.value as TournamentStatus)
-                }
-              >
-                {Object.entries(statusDetails).map(([value, details]) => (
-                  <option value={value} key={value}>
-                    {details.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {error && <p className="field-error">{error}</p>}
-          <div className="create-form-actions">
-            <button type="button" className="secondary-button" onClick={onClose}>
-              Отмена
-            </button>
-            <button className="primary-button" type="submit" disabled={saving}>
-              {saving ? "Сохраняем…" : "Создать турнир"}
-            </button>
-          </div>
-        </form>
-      </section>
-    </div>
-  );
-}
+import { TournamentCard } from "./hub/TournamentCard";
+import { TournamentForm } from "./hub/TournamentForm";
+import {
+  formatDateRange,
+  loadSavedTheme,
+  statusDetails,
+  type TournamentListResponse,
+} from "./hub/tournament-hub-model";
 
 function useTournamentList() {
   const [data, setData] = useState<TournamentListResponse>({
@@ -470,7 +53,9 @@ function useTournamentList() {
       setError("");
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Не удалось загрузить турниры",
+        reason instanceof Error
+          ? reason.message
+          : "Не удалось загрузить турниры",
       );
     } finally {
       setLoading(false);
@@ -497,13 +82,10 @@ export function PlatformShell({
     const timer = window.setTimeout(() => setTheme(loadSavedTheme()), 0);
     return () => window.clearTimeout(timer);
   }, []);
+
   return (
     <main className="site-shell platform-shell" data-theme={theme}>
-      <SiteHeader
-        theme={theme}
-        setTheme={setTheme}
-        user={user}
-      />
+      <SiteHeader theme={theme} setTheme={setTheme} user={user} />
       {children}
       <footer className="platform-footer">
         <Link className="brand" href="/">

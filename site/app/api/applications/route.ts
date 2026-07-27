@@ -5,61 +5,25 @@ import {
   requireSession,
   responseFromAuthError,
 } from "@/lib/auth";
-import { one, query, transaction } from "@/lib/db";
+import { one, transaction } from "@/lib/db";
 import {
   getTeamNameError,
   rolesAreComplete,
 } from "@/lib/validation";
+import {
+  allowedTeamImageTypes as allowedImageTypes,
+  hasExpectedImageSignature as hasExpectedSignature,
+  resolveApplicationPlayer as resolvePlayer,
+  type ApplicationPlayerRow as PlayerRow,
+} from "./application-support";
 
 export const dynamic = "force-dynamic";
-
-const allowedImageTypes = new Map([
-  ["image/png", "png"],
-  ["image/jpeg", "jpg"],
-  ["image/webp", "webp"],
-]);
 
 function uploadsDirectory(): string {
   return path.resolve(
     process.env.UPLOADS_DIR ?? path.join(process.cwd(), ".data", "uploads"),
     "team-emblems",
   );
-}
-
-function hasExpectedSignature(data: Uint8Array, extension: string): boolean {
-  if (extension === "png") {
-    return (
-      data.length >= 8 &&
-      [137, 80, 78, 71, 13, 10, 26, 10].every(
-        (value, index) => data[index] === value,
-      )
-    );
-  }
-  if (extension === "jpg") {
-    return data.length >= 3 && data[0] === 255 && data[1] === 216 && data[2] === 255;
-  }
-  return (
-    data.length >= 12 &&
-    new TextDecoder().decode(data.slice(0, 4)) === "RIFF" &&
-    new TextDecoder().decode(data.slice(8, 12)) === "WEBP"
-  );
-}
-
-type PlayerRow = {
-  discord_id: string;
-  ingame_name: string;
-};
-
-async function resolvePlayer(name: string): Promise<PlayerRow | null> {
-  const players = await query<PlayerRow>(
-    `SELECT discord_id::text, ingame_name
-     FROM players
-     WHERE LOWER(ingame_name) = LOWER($1)
-     ORDER BY discord_id
-     LIMIT 2`,
-    [name.trim()],
-  );
-  return players.length === 1 ? players[0] : null;
 }
 
 export async function POST(request: Request) {

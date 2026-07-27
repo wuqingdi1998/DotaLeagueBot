@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { FiMove, FiRefreshCw } from "react-icons/fi";
+import { FiMove } from "react-icons/fi";
 import {
   automaticBracketLayout,
   bracketGridSize,
@@ -19,77 +19,22 @@ import {
 import {
   bracketEliminatedTeamKey,
   bracketOutcomeKeys,
-  bracketTeamKey,
 } from "@/lib/bracket";
-
-export type BracketMatch = {
-  id: number;
-  team_a: string;
-  team_b: string;
-  team_a_application_id: number | null;
-  team_b_application_id: number | null;
-  team_a_score: number | null;
-  team_b_score: number | null;
-  team_a_result_label: string | null;
-  team_b_result_label: string | null;
-  decision_note: string | null;
-  best_of: number;
-  status: string;
-  bracket_round: number | null;
-  bracket_side: "group" | "upper" | "lower" | "grand_final" | null;
-  bracket_slot: number | null;
-  bracket_grid_column: number | null;
-  bracket_grid_row: number | null;
-  eliminated_team_application_id: number | null;
-  winner_to_match_id: number | null;
-  winner_to_slot: "a" | "b" | null;
-  loser_to_match_id: number | null;
-  loser_to_slot: "a" | "b" | null;
-};
-
-type Edge = {
-  key: string;
-  sourceId: number;
-  targetId: number;
-  targetSlot: "a" | "b";
-  outcome: "winner" | "loser";
-};
-
-type DrawnEdge = Edge & {
-  path: string;
-};
-
-type DragState = {
-  matchId: number;
-  pointerId: number;
-  startClientX: number;
-  startClientY: number;
-  origin: BracketGridPosition;
-};
-
-const cardWidth = 280;
-const boardHeaderHeight = 62;
-const boardSafetyHeight = 260;
-const boardHorizontalPadding = 64;
-
-function clampCoordinate(value: number) {
-  return Math.max(0, Math.min(100, value));
-}
-
-function matchTeamKeys(match: BracketMatch) {
-  return [
-    bracketTeamKey(match.team_a_application_id, match.team_a),
-    bracketTeamKey(match.team_b_application_id, match.team_b),
-  ];
-}
-
-function roundTitle(round: number, matches: BracketMatch[]) {
-  if (matches.some((match) => match.bracket_side === "grand_final")) {
-    return "Гранд-финал";
-  }
-  return `Раунд ${round}`;
-}
-
+import { BracketToolbar } from "./components/bracket/BracketToolbar";
+import { BracketBoardDecorations } from "./components/bracket/BracketBoardDecorations";
+import {
+  bracketBoardHeaderHeight as boardHeaderHeight,
+  bracketBoardHorizontalPadding as boardHorizontalPadding,
+  bracketBoardSafetyHeight as boardSafetyHeight,
+  bracketCardWidth as cardWidth,
+  bracketRoundTitle as roundTitle,
+  clampBracketCoordinate as clampCoordinate,
+  matchTeamKeys,
+  type BracketDragState as DragState,
+  type BracketEdge as Edge,
+  type BracketMatch,
+  type DrawnBracketEdge as DrawnEdge,
+} from "./components/bracket/bracket-model";
 export function TournamentBracket({
   matches,
   editable = false,
@@ -112,7 +57,6 @@ export function TournamentBracket({
   const [draggingMatchId, setDraggingMatchId] = useState<number | null>(null);
   const [savingMatchId, setSavingMatchId] = useState<number | null>(null);
   const [layoutMessage, setLayoutMessage] = useState("");
-
   const rounds = useMemo(() => {
     const result = new Map<number, BracketMatch[]>();
     for (const match of matches) {
@@ -429,22 +373,10 @@ export function TournamentBracket({
   return (
     <>
       {editable && (
-        <div className="bracket-layout-toolbar">
-          <div>
-            <strong>Ручная расстановка</strong>
-            <span>
-              Тяните карточку за значок перемещения. Она прилипнет к ближайшей
-              клетке, а новая позиция сохранится автоматически.
-            </span>
-          </div>
-          <button type="button" onClick={() => void resetLayout()}>
-            <FiRefreshCw aria-hidden="true" />
-            Вернуть авторасстановку
-          </button>
-          {layoutMessage && (
-            <small aria-live="polite">{layoutMessage}</small>
-          )}
-        </div>
+        <BracketToolbar
+          message={layoutMessage}
+          onReset={() => void resetLayout()}
+        />
       )}
 
       <div className="bracket-scroll">
@@ -459,40 +391,11 @@ export function TournamentBracket({
             height: boardDimensions.height,
           }}
         >
-          <svg className="bracket-connectors" aria-hidden="true">
-            <defs>
-              <marker
-                id="bracket-arrow"
-                markerWidth="8"
-                markerHeight="8"
-                refX="7"
-                refY="4"
-                orient="auto"
-              >
-                <path d="M 0 0 L 8 4 L 0 8 z" />
-              </marker>
-            </defs>
-            {drawnEdges.map((edge) => (
-              <path
-                className={`${edge.outcome}${
-                  edgeIsActive(edge) ? " active" : ""
-                }`}
-                d={edge.path}
-                key={edge.key}
-                markerEnd="url(#bracket-arrow)"
-              />
-            ))}
-          </svg>
-
-          {roundLabels.map((round) => (
-            <h4
-              className="bracket-round-label"
-              key={round.round}
-              style={{ left: round.column * bracketGridSize }}
-            >
-              {round.title}
-            </h4>
-          ))}
+          <BracketBoardDecorations
+            edges={drawnEdges}
+            isActive={edgeIsActive}
+            roundLabels={roundLabels}
+          />
 
           {rounds.flatMap(([, roundMatches]) =>
             roundMatches.map((match) => {
