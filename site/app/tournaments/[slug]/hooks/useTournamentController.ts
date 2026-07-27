@@ -300,21 +300,24 @@ export function useTournamentController() {
     if (response.ok) await loadData();
   }
 
-  async function generateGroups() {
+  async function generateGroups(action: "form" | "shuffle" = "form") {
     if (!data) return;
     const response = await fetch("/api/admin/groups", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
+        action,
         tournamentId: data.tournament.id,
         groupCount,
         teamsPerGroup,
       }),
     });
-    const result = (await response.json()) as { error?: string };
+    const result = (await response.json()) as { error?: string; groupMatchCount?: number };
     setToast(
       response.ok
-        ? "Группы сформированы"
+        ? action === "shuffle"
+          ? `Шаффл завершён · создано матчей: ${result.groupMatchCount ?? 0}`
+          : "Группы сформированы"
         : result.error ?? "Не удалось сформировать группы",
     );
     if (response.ok) await loadData();

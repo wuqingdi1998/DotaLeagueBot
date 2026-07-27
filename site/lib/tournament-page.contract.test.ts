@@ -50,6 +50,7 @@ describe("tournament page public behavior", () => {
     expect(tournamentSource).toContain("/api/admin/matches");
     expect(tournamentSource).toContain("/api/admin/tournament-results");
     expect(tournamentSource).toContain("Сформировать группы");
+    expect(tournamentSource).toContain("Шаффл");
     expect(tournamentSource).toContain("Матчи и результаты");
   });
 

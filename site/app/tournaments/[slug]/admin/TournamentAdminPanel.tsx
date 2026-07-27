@@ -79,7 +79,6 @@ export function TournamentAdminPanel() {
 
 function GroupGenerationToolbar() {
   const {
-    approvedTeams,
     generateGroups,
     groupCount,
     setGroupCount,
@@ -92,8 +91,8 @@ function GroupGenerationToolbar() {
       <div>
         <strong>Групповой этап</strong>
         <span>
-          Распределит допущенные команды змейкой между указанным количеством
-          групп и сохранит правила выхода в плей-офф.
+          Создаст или переформирует структуру даже без команд. Доступные команды
+          распределятся змейкой, а существующие матчи плей-офф сохранятся.
         </span>
       </div>
       <label>
@@ -120,7 +119,6 @@ function GroupGenerationToolbar() {
         className="secondary-button"
         type="button"
         onClick={() => void generateGroups()}
-        disabled={approvedTeams.length < 2}
       >
         Сформировать группы
       </button>

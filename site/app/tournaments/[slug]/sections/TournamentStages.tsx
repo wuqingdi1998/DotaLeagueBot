@@ -2,6 +2,7 @@
 
 import { groupOutcome, groupOutcomeLabel } from "@/lib/group-advancement";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
+import { GroupShuffleToolbar } from "../admin/GroupShuffleToolbar";
 import { GroupSettingsEditor } from "../admin/GroupSettingsEditor";
 import { useTournament } from "../hooks/TournamentContext";
 import { initials } from "../model/formatters";
@@ -29,6 +30,7 @@ export function GroupsPanel() {
           Место определяется по выигранным картам
         </span>
       </div>
+      {adminMode && <GroupShuffleToolbar />}
       <div className="standings-groups">
         {standingGroups.map(({ group, rows }) => (
           <section className="standing-group" key={group.id}>
