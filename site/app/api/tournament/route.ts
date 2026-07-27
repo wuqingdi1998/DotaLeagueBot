@@ -370,6 +370,55 @@ const editableFields = [
   "status",
 ] as const;
 
+const optionalEditableFields = new Set<(typeof editableFields)[number]>([
+  "eyebrow",
+  "headline_accent",
+  "region",
+  "server",
+]);
+
+const editableFieldLabels: Partial<
+  Record<(typeof editableFields)[number], string>
+> = {
+  name: "Название турнира",
+  headline: "Главный заголовок",
+  description: "Краткое описание",
+  about: "Полное описание",
+  start_at: "Начало турнира",
+  end_at: "Окончание турнира",
+  registration_deadline: "Дедлайн регистрации",
+  status_label: "Статус",
+  format: "Формат",
+  team_size: "Размер команды",
+  max_teams: "Количество команд",
+  check_in_minutes: "Check-in",
+  group_format: "Групповой этап",
+  playoff_format: "Плей-офф",
+  final_format: "Гранд-финал",
+  discord_url: "Ссылка Discord",
+  status: "Рабочий статус",
+};
+
+function missingRequiredTournamentFields(body: Record<string, unknown>) {
+  return editableFields.filter((field) => {
+    if (optionalEditableFields.has(field)) return false;
+    const value = body[field];
+    return (
+      value === undefined ||
+      value === null ||
+      (typeof value === "string" && value.trim() === "")
+    );
+  });
+}
+
+function missingFieldsMessage(
+  fields: Array<(typeof editableFields)[number]>,
+) {
+  return `Заполните обязательные поля: ${fields
+    .map((field) => editableFieldLabels[field] ?? field)
+    .join(", ")}`;
+}
+
 export async function PATCH(request: Request) {
   try {
     const admin = await requireAdmin();
@@ -390,13 +439,10 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
-    if (
-      values.some(
-        (value) => value === undefined || value === null || value === "",
-      )
-    ) {
+    const missingFields = missingRequiredTournamentFields(body);
+    if (missingFields.length) {
       return Response.json(
-        { error: "Заполните все поля турнира" },
+        { error: missingFieldsMessage(missingFields) },
         { status: 400 },
       );
     }
@@ -453,9 +499,10 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    if (values.some((value) => value === undefined || value === "")) {
+    const missingFields = missingRequiredTournamentFields(body);
+    if (missingFields.length) {
       return Response.json(
-        { error: "Заполните все поля турнира" },
+        { error: missingFieldsMessage(missingFields) },
         { status: 400 },
       );
     }

@@ -974,10 +974,13 @@ export default function Home() {
     setRegistrationOpen(true);
   }
 
-  function openMatches() {
-    setActiveTab("matches");
+  function openTournamentTab(tab: "overview" | "matches" | "playoffs") {
+    setActiveTab(tab);
     window.requestAnimationFrame(() =>
-      document.getElementById("tournament")?.scrollIntoView(),
+      document.getElementById("tournament")?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      }),
     );
   }
 
@@ -1303,13 +1306,20 @@ export default function Home() {
             ) : (
               <button
                 className="primary-button"
-                onClick={openMatches}
+                onClick={() =>
+                  openTournamentTab(isPast ? "playoffs" : "matches")
+                }
               >
                 {isPast ? "Смотреть результаты" : "Смотреть матчи"}{" "}
                 <FiArrowRight />
               </button>
             )}
-            <a className="secondary-button" href="#tournament">Подробнее о турнире</a>
+            <button
+              className="secondary-button"
+              onClick={() => openTournamentTab("overview")}
+            >
+              Подробнее о турнире
+            </button>
           </div>
           <p className="hero-footnote">
             {canRegister
