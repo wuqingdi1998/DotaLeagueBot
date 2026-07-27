@@ -21,7 +21,7 @@ export function tournamentTimeline(input: {
     },
     {
       key: "check-in",
-      label: "Чек-ин в",
+      label: "Чек-ин",
       at: new Date(checkInTime).toISOString(),
     },
     {

@@ -11,7 +11,7 @@ describe("tournament overview timeline", () => {
 
     expect(timeline.map((item) => item.label)).toEqual([
       "Регистрация до",
-      "Чек-ин в",
+      "Чек-ин",
       "Старт турнира",
     ]);
   });
