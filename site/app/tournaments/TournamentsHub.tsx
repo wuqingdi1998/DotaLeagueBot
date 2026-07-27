@@ -598,10 +598,12 @@ export function CommunityHome() {
             <p>{error}</p>
           ) : featured ? (
             <>
-              <span className={`tournament-status ${featured.status}`}>
-                {statusDetails[featured.status].short}
-              </span>
-              <p className="card-kicker">Ближайшее событие</p>
+              <div className="featured-event-heading">
+                <p className="card-kicker">Ближайшее событие</p>
+                <span className={`tournament-status ${featured.status}`}>
+                  {statusDetails[featured.status].short}
+                </span>
+              </div>
               <h2>{featured.name}</h2>
               <p>{featured.description}</p>
               <div className="featured-date">
