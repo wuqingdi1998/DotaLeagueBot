@@ -9,6 +9,7 @@ import { FiArrowRight, FiArrowUpRight, FiUploadCloud } from "react-icons/fi";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { matchUsesBracketRouting } from "@/lib/bracket";
+import { dayCountLabel } from "@/lib/countdown";
 import { isPastTournament } from "@/lib/tournaments";
 import { tournamentTextFields } from "@/lib/tournament-form";
 import {
@@ -1412,7 +1413,7 @@ export default function Home() {
               <>
                 <span>До начала</span>
                 <strong>{daysLeft}</strong>
-                <span>дней</span>
+                <span>{dayCountLabel(daysLeft)}</span>
               </>
             )}
           </div>

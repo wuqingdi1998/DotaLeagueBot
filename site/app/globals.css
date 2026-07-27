@@ -885,19 +885,33 @@ a {
 }
 
 .countdown {
-  display: flex;
+  display: grid;
+  grid-template-columns: max-content max-content max-content;
   align-items: baseline;
   gap: 10px;
+  width: max-content;
+  flex: 0 0 auto;
   color: var(--muted);
   font-size: 15px;
   font-weight: 600;
 }
 
+.countdown span {
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .countdown strong {
+  display: block;
+  width: 2ch;
   color: var(--blue);
   font-family: "5ka Sans Design", sans-serif;
   font-size: 44px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
 }
 
 .tabs {
