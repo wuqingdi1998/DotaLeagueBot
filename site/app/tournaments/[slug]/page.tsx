@@ -1,6 +1,13 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -13,6 +20,7 @@ import { dayCountLabel } from "@/lib/countdown";
 import { isPastTournament } from "@/lib/tournaments";
 import { tournamentTextFields } from "@/lib/tournament-form";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
+import { tournamentTimeline } from "@/lib/tournament-timeline";
 import {
   groupOutcome,
   groupOutcomeLabel,
@@ -400,6 +408,10 @@ function RoleSelect({
       </select>
     </label>
   );
+}
+
+function formatTimelineMoment(value: string) {
+  return `${formatDayMonth(value)} · ${formatTime(value)} МСК`;
 }
 
 function formatScheduleDate(value: string) {
@@ -1257,6 +1269,11 @@ export default function Home() {
   const hasPlayoffStage = competitionStages.some(
     (stage) => stage.key === "playoffs",
   );
+  const overviewTimeline = tournamentTimeline({
+    registrationDeadline: tournament.registration_deadline,
+    startAt: tournament.start_at,
+    checkInMinutes: tournament.check_in_minutes,
+  });
   const canRegister =
     tournament.status === "registration" && registrationAvailable;
   const isPast = isPastTournament(tournament.status);
@@ -1499,33 +1516,16 @@ export default function Home() {
               )}
               <p>{tournament.about}</p>
               <div className="stage-flow">
-                <div>
-                  <span>1</span>
-                  <strong>Регистрация</strong>
-                  <small>до {formatDayMonth(tournament.registration_deadline)}</small>
-                </div>
-                <i />
-                <div>
-                  <span>2</span>
-                  <strong>Группы</strong>
-                  <small>{tournament.group_format}</small>
-                </div>
-                {hasPlayoffStage && (
-                  <>
-                    <i />
+                {overviewTimeline.map((stage, index) => (
+                  <Fragment key={stage.key}>
+                    {index > 0 && <i />}
                     <div>
-                      <span>3</span>
-                      <strong>Плей-офф</strong>
-                      <small>{tournament.playoff_format}</small>
+                      <span>{index + 1}</span>
+                      <strong>{stage.label}</strong>
+                      <small>{formatTimelineMoment(stage.at)}</small>
                     </div>
-                  </>
-                )}
-                <i />
-                <div>
-                  <span>{hasPlayoffStage ? 4 : 3}</span>
-                  <strong>Гранд-финал</strong>
-                  <small>{tournament.final_format}</small>
-                </div>
+                  </Fragment>
+                ))}
               </div>
             </article>
             <aside className="details-card tournament-schedule-card">
