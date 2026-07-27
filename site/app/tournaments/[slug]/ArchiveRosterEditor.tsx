@@ -19,6 +19,7 @@ type ExistingTeam = {
   selection_method?: string;
   team_tier_total_snapshot?: number | null;
   members: Array<{
+    dota_id?: string | null;
     name: string;
     role: Role;
     tier_snapshot?: number | null;
@@ -46,6 +47,7 @@ export function ArchiveRosterEditor({
         return {
           role,
           nickname: member?.name ?? "",
+          dotaId: member?.dota_id ?? "",
           tier: member?.tier_snapshot?.toString() ?? "",
           isCaptain: member?.is_captain ?? role === "safe_lane",
         };
@@ -78,6 +80,7 @@ export function ArchiveRosterEditor({
         teamTierTotal: teamTierTotal ? Number(teamTierTotal) : null,
         players: players.map((player) => ({
           ...player,
+          dotaId: player.dotaId.trim() || null,
           tier: player.tier ? Number(player.tier) : null,
         })),
       }),
@@ -184,6 +187,29 @@ export function ArchiveRosterEditor({
                 )
               }
             />
+            <label className="archive-player-profile-link">
+              <span>Dota ID профиля</span>
+              <input
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={12}
+                aria-label={`Dota ID профиля, ${roles[index][1]}`}
+                placeholder="Без ссылки"
+                value={player.dotaId}
+                onChange={(event) =>
+                  setPlayers((current) =>
+                    current.map((item, itemIndex) =>
+                      itemIndex === index
+                        ? {
+                            ...item,
+                            dotaId: event.target.value.replace(/\D/g, ""),
+                          }
+                        : item,
+                    ),
+                  )
+                }
+              />
+            </label>
             <label className="archive-captain-choice">
               <input
                 type="radio"

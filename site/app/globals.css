@@ -4975,9 +4975,14 @@ footer button {
 
 .archive-player-row {
   display: grid;
-  grid-template-columns: 150px minmax(180px, 1fr) 90px 110px;
+  grid-template-columns: 150px minmax(180px, 1fr) 90px minmax(150px, 0.75fr) 110px;
   align-items: center;
   gap: 10px;
+}
+
+.archive-player-profile-link {
+  display: grid;
+  gap: 7px;
 }
 
 .archive-captain-choice {

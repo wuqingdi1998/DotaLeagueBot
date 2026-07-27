@@ -99,6 +99,13 @@ FASTCUP_ARCHIVE_SERIES_MIGRATION = (
     / "0016_cd_fastcup_archive_series.sql"
 ).read_text(encoding="utf-8")
 
+FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0017_fastcup_historical_player_links.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -132,6 +139,28 @@ def test_fastcup_archive_series_has_complete_tournament_sections() -> None:
     assert "tournament_schedule_entries" in FASTCUP_ARCHIVE_SERIES_MIGRATION
     assert "winner_to_match_id" in FASTCUP_ARCHIVE_SERIES_MIGRATION
     assert "tier_snapshot" in FASTCUP_ARCHIVE_SERIES_MIGRATION
+
+
+def test_fastcup_historical_nicknames_link_without_being_rewritten() -> None:
+    aliases = {
+        "4ubrik": "zhelezo",
+        "bananza": "zhelezo",
+        "Raven": "Ame''s Bastard",
+        "Wasd": "Yozhik",
+        "iFlopz!": "Sanraizu",
+        "serenity": "slither.io",
+        "zvёzдочка": "slither.io",
+        "GOLDEN POPI": "GOLDEN PAPI",
+        "cusdvaqe": "confuse",
+        ".flowers": ".flowerZ",
+    }
+    for historical_nickname, current_nickname in aliases.items():
+        assert (
+            f"('{historical_nickname}', '{current_nickname}')"
+            in FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION
+        )
+    assert "SET player_id =" in FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION
+    assert "SET nickname_snapshot" not in FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION
 
 
 def test_team_members_have_one_role_per_application() -> None:

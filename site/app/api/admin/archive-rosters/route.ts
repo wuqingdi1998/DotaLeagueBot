@@ -12,6 +12,7 @@ const roles = [
 type Role = (typeof roles)[number];
 type RosterPlayer = {
   nickname?: string;
+  dotaId?: string | null;
   role?: Role;
   tier?: number | null;
   isCaptain?: boolean;
@@ -47,6 +48,10 @@ function validate(body: RosterBody) {
         !player.nickname?.trim() ||
         !player.role ||
         !roles.includes(player.role) ||
+        (player.dotaId !== null &&
+          player.dotaId !== undefined &&
+          player.dotaId.trim() !== "" &&
+          !/^\d{1,12}$/.test(player.dotaId.trim())) ||
         (player.tier !== null &&
           player.tier !== undefined &&
           (!Number.isInteger(Number(player.tier)) ||
@@ -142,14 +147,21 @@ export async function PUT(request: Request) {
         [id],
       );
       for (const [index, player] of players.entries()) {
+        const dotaId = player.dotaId?.trim() ?? "";
         const matched = await client.query<{ discord_id: string }>(
           `SELECT discord_id::text
            FROM players
-           WHERE LOWER(BTRIM(ingame_name)) = LOWER(BTRIM($1))
+           WHERE CASE
+             WHEN $2::text <> '' THEN steam_id32::text = $2
+             ELSE LOWER(BTRIM(ingame_name)) = LOWER(BTRIM($1))
+           END
            ORDER BY discord_id
            LIMIT 1`,
-          [player.nickname.trim()],
+          [player.nickname.trim(), dotaId],
         );
+        if (dotaId && !matched.rowCount) {
+          throw new Error(`PLAYER_NOT_FOUND:${dotaId}`);
+        }
         await client.query(
           `INSERT INTO tournament_roster_snapshots (
              application_id, player_id, nickname_snapshot, role,
@@ -180,16 +192,19 @@ export async function PUT(request: Request) {
   } catch (error) {
     if (
       error instanceof Error &&
-      ["TOURNAMENT_NOT_FOUND", "APPLICATION_NOT_FOUND", "ARCHIVE_TEAM_SIZE"].includes(
+      (["TOURNAMENT_NOT_FOUND", "APPLICATION_NOT_FOUND", "ARCHIVE_TEAM_SIZE"].includes(
         error.message,
-      )
+      ) || error.message.startsWith("PLAYER_NOT_FOUND:"))
     ) {
       const messages: Record<string, string> = {
         TOURNAMENT_NOT_FOUND: "Турнир не найден",
         APPLICATION_NOT_FOUND: "Команда не найдена в этом турнире",
         ARCHIVE_TEAM_SIZE: "Редактор архивных составов сейчас поддерживает формат 5 × 5",
       };
-      return Response.json({ error: messages[error.message] }, { status: 404 });
+      const message = error.message.startsWith("PLAYER_NOT_FOUND:")
+        ? `Профиль с Dota ID ${error.message.split(":")[1]} не найден`
+        : messages[error.message];
+      return Response.json({ error: message }, { status: 404 });
     }
     return responseFromAuthError(error);
   }
