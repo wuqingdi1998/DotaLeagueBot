@@ -1282,6 +1282,26 @@ export default function Home() {
   const canRegister =
     tournament.status === "registration" && registrationAvailable;
   const isPast = isPastTournament(tournament.status);
+  const participationApplication = data.user
+    ? data.applications.find((application) =>
+        application.members.some(
+          (member) => member.discord_id === data.user?.discordId,
+        ),
+      )
+    : null;
+  const participationConfirmed =
+    participationApplication?.status === "approved";
+  const participationPending =
+    !isPast &&
+    participationApplication &&
+    ["pending", "awaiting_members"].includes(participationApplication.status);
+  const participationMessage = !data.user
+    ? "Войдите через Discord, чтобы увидеть свой статус участия"
+    : participationConfirmed
+      ? `Вы ${isPast ? "участвовали" : "участвуете"} в этом турнире в команде ${participationApplication.team_name}`
+      : participationPending
+        ? `Ваша команда ${participationApplication.team_name} ожидает допуска к турниру`
+        : `Вы ${isPast ? "не участвовали" : "не участвуете"} в этом турнире`;
 
   return (
     <main className="site-shell" data-theme={theme}>
@@ -1350,6 +1370,18 @@ export default function Home() {
           <div className="poster-meta">
             <div><small>Формат</small><strong>{tournament.format}</strong></div>
             <div><small>Слотов</small><strong>{tournament.max_teams} команд</strong></div>
+          </div>
+          <div
+            className={`poster-participation${
+              participationConfirmed
+                ? " confirmed"
+                : participationPending
+                  ? " pending"
+                  : ""
+            }`}
+          >
+            <span aria-hidden="true" />
+            <p>{participationMessage}</p>
           </div>
         </div>
       </section>

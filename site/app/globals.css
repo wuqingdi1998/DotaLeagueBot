@@ -765,6 +765,48 @@ a {
   line-height: 1.4;
 }
 
+.poster-participation {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  align-items: start;
+  gap: 11px;
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+  color: var(--muted);
+}
+
+.poster-participation > span {
+  width: 10px;
+  height: 10px;
+  margin-top: 6px;
+  border: 2px solid var(--quiet);
+  border-radius: 50%;
+}
+
+.poster-participation p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.55;
+}
+
+.poster-participation.confirmed {
+  color: var(--text);
+}
+
+.poster-participation.confirmed > span {
+  border-color: var(--blue);
+  background: var(--blue);
+  box-shadow: 0 0 0 4px rgba(0, 195, 255, 0.13);
+}
+
+.poster-participation.pending > span {
+  border-color: #f0b84b;
+  background: #f0b84b;
+  box-shadow: 0 0 0 4px rgba(240, 184, 75, 0.13);
+}
+
 .quick-facts {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
