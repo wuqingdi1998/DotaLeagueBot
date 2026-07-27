@@ -5,10 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
+import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
 import {
   FiArrowRight,
   FiArrowUpRight,
+  FiLogIn,
   FiMenu,
   FiMoon,
   FiSun,
@@ -139,6 +141,16 @@ export function SiteHeader({
         >
           {mobileMenuOpen ? <FiX /> : <FiMenu />}
         </button>
+        <a
+          className="boosty-button"
+          href="https://boosty.to/linkenssphere"
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Открыть Linken's Sphere на Boosty"
+        >
+          <SiBoosty aria-hidden="true" />
+          <span>Boosty</span>
+        </a>
         <button
           className="theme-button"
           type="button"
@@ -209,7 +221,14 @@ export function SiteHeader({
             className="discord-login"
             href={`/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`}
           >
-            <FaDiscord aria-hidden="true" />
+            <FaDiscord
+              className="login-icon-discord"
+              aria-hidden="true"
+            />
+            <FiLogIn
+              className="login-icon-mobile"
+              aria-hidden="true"
+            />
             <span>Вход через Discord</span>
           </a>
         )}

@@ -284,6 +284,43 @@ a {
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
+.boosty-button {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(241, 95, 44, 0.5);
+  border-radius: 15px;
+  padding: 0 17px;
+  background: rgba(241, 95, 44, 0.12);
+  color: #e65322;
+  font-size: 15px;
+  font-weight: 800;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease;
+}
+
+.boosty-button svg {
+  font-size: 21px;
+}
+
+.boosty-button:hover {
+  border-color: #f15f2c;
+  background: #f15f2c;
+  color: #fff;
+}
+
+[data-theme="dark"] .boosty-button {
+  color: #ff8157;
+}
+
+[data-theme="dark"] .boosty-button:hover {
+  color: #fff;
+}
+
 .mobile-menu-button {
   display: none;
   width: 52px;
@@ -324,6 +361,10 @@ a {
 
 .discord-login svg {
   font-size: 22px;
+}
+
+.login-icon-mobile {
+  display: none;
 }
 
 .discord-login.is-admin {
@@ -2786,6 +2827,25 @@ footer button {
     padding: 0 9px;
   }
 
+  .boosty-button {
+    width: 46px;
+    min-height: 46px;
+    padding: 0;
+    border-radius: 12px;
+  }
+
+  .boosty-button span {
+    display: none;
+  }
+
+  .login-icon-discord {
+    display: none;
+  }
+
+  .login-icon-mobile {
+    display: block;
+  }
+
   .standing-outcome {
     min-height: 28px;
     padding: 3px 5px;
@@ -5184,6 +5244,7 @@ footer button {
   }
 
   .mobile-menu-button,
+  .boosty-button,
   .theme-button,
   .discord-login,
   .player-profile-button {
