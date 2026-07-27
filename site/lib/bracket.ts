@@ -48,11 +48,19 @@ export function bracketOutcomeKeys(match: BracketOutcomeMatch) {
   );
   const aLabel = match.team_a_result_label?.trim().toLowerCase();
   const bLabel = match.team_b_result_label?.trim().toLowerCase();
+  const winnerLabels = new Set(["tw", "w", "win", "winner"]);
+  const loserLabels = new Set(["tl", "l", "loss", "lose", "ff", "forfeit"]);
 
-  if (aLabel === "tw" || bLabel === "tl") {
+  if (
+    (aLabel !== undefined && winnerLabels.has(aLabel)) ||
+    (bLabel !== undefined && loserLabels.has(bLabel))
+  ) {
     return { winner: aKey, loser: bKey };
   }
-  if (bLabel === "tw" || aLabel === "tl") {
+  if (
+    (bLabel !== undefined && winnerLabels.has(bLabel)) ||
+    (aLabel !== undefined && loserLabels.has(aLabel))
+  ) {
     return { winner: bKey, loser: aKey };
   }
   if (
@@ -65,6 +73,20 @@ export function bracketOutcomeKeys(match: BracketOutcomeMatch) {
       : { winner: bKey, loser: aKey };
   }
   return { winner: null, loser: null };
+}
+
+export function bracketOutcomeSlot(
+  match: BracketOutcomeMatch,
+  outcome: "winner" | "loser",
+): "a" | "b" | null {
+  const teamKey = bracketOutcomeKeys(match)[outcome];
+  if (teamKey === bracketTeamKey(match.team_a_application_id, match.team_a)) {
+    return "a";
+  }
+  if (teamKey === bracketTeamKey(match.team_b_application_id, match.team_b)) {
+    return "b";
+  }
+  return null;
 }
 
 export function bracketEliminatedTeamKey(

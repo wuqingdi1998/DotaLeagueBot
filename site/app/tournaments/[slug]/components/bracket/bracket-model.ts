@@ -1,5 +1,9 @@
-import { bracketTeamKey } from "@/lib/bracket";
-import type { BracketGridPosition } from "@/lib/bracket-layout";
+import {
+  bracketOutcomeKeys,
+  bracketOutcomeSlot,
+  bracketTeamKey,
+} from "../../../../../lib/bracket";
+import type { BracketGridPosition } from "../../../../../lib/bracket-layout";
 
 export type BracketMatch = {
   id: number;
@@ -32,6 +36,8 @@ export type BracketEdge = {
   targetId: number;
   targetSlot: "a" | "b";
   outcome: "winner" | "loser";
+  sourceSlot: "a" | "b" | null;
+  teamKey: string | null;
 };
 
 export type DrawnBracketEdge = BracketEdge & {
@@ -60,6 +66,49 @@ export function matchTeamKeys(match: BracketMatch) {
     bracketTeamKey(match.team_a_application_id, match.team_a),
     bracketTeamKey(match.team_b_application_id, match.team_b),
   ];
+}
+
+export function buildBracketEdges(matches: BracketMatch[]) {
+  const matchById = new Map(matches.map((match) => [match.id, match]));
+  const result: BracketEdge[] = [];
+
+  for (const match of matches) {
+    for (const outcome of ["winner", "loser"] as const) {
+      const targetId =
+        outcome === "winner"
+          ? match.winner_to_match_id
+          : match.loser_to_match_id;
+      const targetSlot =
+        outcome === "winner" ? match.winner_to_slot : match.loser_to_slot;
+      if (!targetId || !targetSlot) continue;
+
+      const sourceKeys = matchTeamKeys(match);
+      const target = matchById.get(targetId);
+      const routedKey = bracketOutcomeKeys(match)[outcome];
+      const targetKey = target
+        ? matchTeamKeys(target)[targetSlot === "a" ? 0 : 1]
+        : null;
+      const teamKey =
+        routedKey ?? (targetKey && sourceKeys.includes(targetKey) ? targetKey : null);
+
+      result.push({
+        key: `${match.id}-${outcome}-${targetId}`,
+        sourceId: match.id,
+        targetId,
+        targetSlot,
+        outcome,
+        sourceSlot:
+          teamKey === sourceKeys[0]
+            ? "a"
+            : teamKey === sourceKeys[1]
+              ? "b"
+              : bracketOutcomeSlot(match, outcome),
+        teamKey,
+      });
+    }
+  }
+
+  return result;
 }
 
 export function bracketRoundTitle(

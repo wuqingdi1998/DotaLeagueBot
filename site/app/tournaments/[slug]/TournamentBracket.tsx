@@ -18,7 +18,6 @@ import {
 } from "@/lib/bracket-layout";
 import {
   bracketEliminatedTeamKey,
-  bracketOutcomeKeys,
 } from "@/lib/bracket";
 import { BracketToolbar } from "./components/bracket/BracketToolbar";
 import { BracketBoardDecorations } from "./components/bracket/BracketBoardDecorations";
@@ -28,6 +27,7 @@ import {
   bracketBoardSafetyHeight as boardSafetyHeight,
   bracketCardWidth as cardWidth,
   bracketRoundTitle as roundTitle,
+  buildBracketEdges,
   clampBracketCoordinate as clampCoordinate,
   matchTeamKeys,
   type BracketDragState as DragState,
@@ -92,30 +92,7 @@ export function TournamentBracket({
     [automaticPositions, rounds],
   );
 
-  const edges = useMemo(() => {
-    const result: Edge[] = [];
-    for (const match of matches) {
-      if (match.winner_to_match_id && match.winner_to_slot) {
-        result.push({
-          key: `${match.id}-winner-${match.winner_to_match_id}`,
-          sourceId: match.id,
-          targetId: match.winner_to_match_id,
-          targetSlot: match.winner_to_slot,
-          outcome: "winner",
-        });
-      }
-      if (match.loser_to_match_id && match.loser_to_slot) {
-        result.push({
-          key: `${match.id}-loser-${match.loser_to_match_id}`,
-          sourceId: match.id,
-          targetId: match.loser_to_match_id,
-          targetSlot: match.loser_to_slot,
-          outcome: "loser",
-        });
-      }
-    }
-    return result;
-  }, [matches]);
+  const edges = useMemo(() => buildBracketEdges(matches), [matches]);
 
   const boardDimensions = useMemo(() => {
     const placed = Object.values(positions);
@@ -147,16 +124,28 @@ export function TournamentBracket({
       if (!source || !target) continue;
       const sourceRect = source.getBoundingClientRect();
       const targetRect = target.getBoundingClientRect();
+      const sourceTeam = edge.sourceSlot
+        ? source.querySelector<HTMLElement>(
+            `[data-bracket-slot="${edge.sourceSlot}"]`,
+          )
+        : null;
+      const targetTeam = target.querySelector<HTMLElement>(
+        `[data-bracket-slot="${edge.targetSlot}"]`,
+      );
+      const sourceTeamRect = sourceTeam?.getBoundingClientRect();
+      const targetTeamRect = targetTeam?.getBoundingClientRect();
       const startX = sourceRect.right - boardRect.left;
-      const startY =
-        sourceRect.top -
-        boardRect.top +
-        sourceRect.height * (edge.outcome === "winner" ? 0.42 : 0.7);
+      const startY = sourceTeamRect
+        ? sourceTeamRect.top - boardRect.top + sourceTeamRect.height / 2
+        : sourceRect.top -
+          boardRect.top +
+          sourceRect.height * (edge.outcome === "winner" ? 0.42 : 0.7);
       const endX = targetRect.left - boardRect.left;
-      const endY =
-        targetRect.top -
-        boardRect.top +
-        targetRect.height * (edge.targetSlot === "a" ? 0.42 : 0.7);
+      const endY = targetTeamRect
+        ? targetTeamRect.top - boardRect.top + targetTeamRect.height / 2
+        : targetRect.top -
+          boardRect.top +
+          targetRect.height * (edge.targetSlot === "a" ? 0.42 : 0.7);
       const bend = Math.max(42, Math.abs(endX - startX) * 0.48);
       next.push({
         ...edge,
@@ -190,16 +179,8 @@ export function TournamentBracket({
     };
   }, [positions, updateEdges]);
 
-  const matchById = useMemo(
-    () => new Map(matches.map((match) => [match.id, match])),
-    [matches],
-  );
-
   function edgeIsActive(edge: Edge) {
-    if (!hoveredTeam) return false;
-    const source = matchById.get(edge.sourceId);
-    if (!source) return false;
-    return bracketOutcomeKeys(source)[edge.outcome] === hoveredTeam;
+    return hoveredTeam !== null && edge.teamKey === hoveredTeam;
   }
 
   function positionFromPointer(
@@ -456,6 +437,7 @@ export function TournamentBracket({
                   </div>
                   {[
                     {
+                      slot: "a" as const,
                       name: match.team_a,
                       key: keys[0],
                       result:
@@ -464,6 +446,7 @@ export function TournamentBracket({
                         "—",
                     },
                     {
+                      slot: "b" as const,
                       name: match.team_b,
                       key: keys[1],
                       result:
@@ -474,6 +457,7 @@ export function TournamentBracket({
                   ].map((team) => (
                     <button
                       type="button"
+                      data-bracket-slot={team.slot}
                       className={`${hoveredTeam === team.key ? "team-active" : ""}${
                         team.key === eliminatedTeamKey
                           ? " team-eliminated"

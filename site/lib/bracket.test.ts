@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   bracketEliminatedTeamKey,
   bracketOutcomeKeys,
+  bracketOutcomeSlot,
   matchUsesBracketRouting,
 } from "./bracket";
 
@@ -35,6 +36,21 @@ describe("playoff bracket outcomes", () => {
         team_b_result_label: "tw",
       }),
     ).toEqual({ winner: "id:20", loser: "id:10" });
+  });
+
+  it("understands the visible W and FF labels and their team rows", () => {
+    const match = {
+      ...baseMatch,
+      team_a_result_label: "FF",
+      team_b_result_label: "W",
+    };
+
+    expect(bracketOutcomeKeys(match)).toEqual({
+      winner: "id:20",
+      loser: "id:10",
+    });
+    expect(bracketOutcomeSlot(match, "winner")).toBe("b");
+    expect(bracketOutcomeSlot(match, "loser")).toBe("a");
   });
 
   it("does not highlight an unresolved route", () => {

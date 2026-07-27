@@ -5,6 +5,8 @@
   left: 0;
   display: grid;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 106px;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -18,20 +20,25 @@
 .brand {
   display: inline-flex;
   min-width: 235px;
+  max-width: 100%;
   align-items: center;
   gap: 14px;
+  overflow: hidden;
 }
 
 .brand img {
   width: 56px;
   height: 56px;
+  flex: 0 0 auto;
   border-radius: 15px;
   box-shadow: 0 8px 25px rgba(0, 195, 255, 0.22);
 }
 
 .brand > span {
   display: flex;
+  min-width: 0;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .brand strong {
@@ -94,6 +101,8 @@
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
+  min-width: 0;
+  flex: 0 0 auto;
 }
 
 .theme-button {

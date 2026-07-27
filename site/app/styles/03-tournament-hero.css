@@ -63,11 +63,15 @@
 .hero-poster {
   position: relative;
   z-index: 2;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .status-pill {
   display: inline-flex;
+  max-width: 100%;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
@@ -76,6 +80,7 @@
   color: var(--blue-deep);
   font-size: 15px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 [data-theme="dark"] .status-pill {
@@ -205,11 +210,18 @@
 
 .poster-heading {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-content: space-between;
   color: var(--muted);
   font-size: 15px;
   font-weight: 600;
+}
+
+.poster-heading > span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .poster-heading strong {
@@ -258,6 +270,8 @@
 
 .poster-dates {
   display: flex;
+  min-width: 0;
+  max-width: 100%;
   align-items: center;
   justify-content: center;
   gap: 12px;
@@ -267,8 +281,10 @@
 }
 
 .poster-dates strong {
+  min-width: 0;
   font-size: 20px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .poster-dates span {
@@ -316,6 +332,7 @@
 .poster-meta strong {
   font-size: 15px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
 .poster-participation {
@@ -403,6 +420,7 @@
   font-size: 16px;
   line-height: 1.45;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .tournament-section {
