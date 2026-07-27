@@ -14,6 +14,17 @@ describe("mobile tournament navigation", () => {
   });
 });
 
+describe("mobile tournament directory", () => {
+  it("keeps tournament cards inside the available screen width", () => {
+    expect(css).toMatch(
+      /@media \(max-width:\s*1050px\)[\s\S]*\.tournament-directory-grid\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
+    );
+    expect(css).toMatch(
+      /\.tournament-card\s*\{[^}]*min-width:\s*0;[^}]*width:\s*100%;[^}]*max-width:\s*100%;/,
+    );
+  });
+});
+
 describe("tournament prizes", () => {
   it("provides a fixed two-column layout for four prize places", () => {
     expect(css).toMatch(

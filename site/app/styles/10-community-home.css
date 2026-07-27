@@ -417,6 +417,9 @@
   position: relative;
   display: flex;
   min-height: 420px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   flex-direction: column;
   border: 1px solid var(--line);
   border-radius: 24px;
