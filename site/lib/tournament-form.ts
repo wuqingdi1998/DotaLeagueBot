@@ -21,6 +21,7 @@ type TournamentTextFieldDefinition = {
   placeholder?: string;
   wide?: boolean;
   multiline?: boolean;
+  required?: boolean;
 };
 
 export const tournamentTextFields: readonly TournamentTextFieldDefinition[] = [
@@ -82,6 +83,7 @@ export const tournamentTextFields: readonly TournamentTextFieldDefinition[] = [
     field: "playoff_format",
     label: "Описание плей-офф",
     placeholder: "Плей-офф · верхняя и нижняя сетка · BO3",
+    required: false,
   },
   {
     field: "final_format",

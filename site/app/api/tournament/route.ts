@@ -378,6 +378,7 @@ const optionalEditableFields = new Set<(typeof editableFields)[number]>([
   "headline_accent",
   "region",
   "server",
+  "playoff_format",
 ]);
 
 const editableFieldLabels: Partial<

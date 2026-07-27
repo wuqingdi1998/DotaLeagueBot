@@ -178,7 +178,7 @@ export default function SetupPage() {
               <span>{labels[key]}</span>
               {["description", "about"].includes(key) ? (
                 <textarea
-                  required
+                  required={key !== "playoff_format"}
                   value={String(form[key as keyof typeof form])}
                   onChange={(event) =>
                     setForm({ ...form, [key]: event.target.value })
@@ -186,7 +186,7 @@ export default function SetupPage() {
                 />
               ) : (
                 <input
-                  required
+                  required={key !== "playoff_format"}
                   value={String(form[key as keyof typeof form])}
                   onChange={(event) =>
                     setForm({ ...form, [key]: event.target.value })

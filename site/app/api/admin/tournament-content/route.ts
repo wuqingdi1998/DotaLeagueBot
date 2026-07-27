@@ -1,13 +1,12 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
+import {
+  normalizePrizes,
+  prizeValidationError,
+  type PrizeInput,
+} from "@/lib/tournament-content";
 
 type RuleInput = { text?: string };
-type PrizeInput = {
-  placement?: number;
-  applicationId?: number | null;
-  teamName?: string | null;
-  prizeText?: string | null;
-};
 type ScheduleEntryInput = {
   startTime?: string;
   stageName?: string;
@@ -46,31 +45,10 @@ export async function PUT(request: Request) {
       );
     }
 
-    const prizes = (body.prizes ?? []).map((prize) => ({
-      placement: Number(prize.placement),
-      applicationId: prize.applicationId ? Number(prize.applicationId) : null,
-      teamName: prize.teamName?.trim() || null,
-      prizeText: prize.prizeText?.trim() || null,
-    }));
-    if (
-      prizes.some(
-        (prize) =>
-          !Number.isInteger(prize.placement) ||
-          prize.placement < 1 ||
-          prize.placement > 64 ||
-          (!prize.applicationId && !prize.teamName),
-      )
-    ) {
-      return Response.json(
-        { error: "Для каждого приза укажите место и команду" },
-        { status: 400 },
-      );
-    }
-    if (new Set(prizes.map((prize) => prize.placement)).size !== prizes.length) {
-      return Response.json(
-        { error: "Одно место нельзя указать дважды" },
-        { status: 400 },
-      );
+    const prizes = normalizePrizes(body.prizes ?? []);
+    const prizeError = prizeValidationError(prizes);
+    if (prizeError) {
+      return Response.json({ error: prizeError }, { status: 400 });
     }
 
     if ((body.scheduleDays?.length ?? 0) > 31) {

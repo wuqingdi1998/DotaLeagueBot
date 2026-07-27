@@ -94,10 +94,12 @@ export function TournamentBracket({
   matches,
   editable = false,
   tournamentId,
+  emptyMessage = "Матчи плей-офф ещё не добавлены в сетку",
 }: {
   matches: BracketMatch[];
   editable?: boolean;
   tournamentId: number;
+  emptyMessage?: string;
 }) {
   const boardRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef(new Map<number, HTMLElement>());
@@ -421,11 +423,7 @@ export function TournamentBracket({
   }
 
   if (!rounds.length) {
-    return (
-      <div className="empty-standings">
-        Матчи плей-офф ещё не добавлены в сетку
-      </div>
-    );
+    return <div className="empty-standings">{emptyMessage}</div>;
   }
 
   return (

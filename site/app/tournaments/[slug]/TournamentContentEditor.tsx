@@ -19,7 +19,7 @@ type Prize = {
   id: number;
   placement: number;
   application_id: number | null;
-  team_name: string;
+  team_name: string | null;
   prize_text: string | null;
 };
 
@@ -110,7 +110,7 @@ export function TournamentContentEditor({
       key: `prize-${prize.id}`,
       placement: prize.placement,
       applicationId: prize.application_id,
-      teamName: prize.team_name,
+      teamName: prize.team_name ?? "",
       prizeText: prize.prize_text ?? "",
     })),
   );
@@ -674,7 +674,7 @@ export function TournamentContentEditor({
                     );
                   }}
                 >
-                  <option value="">Выберите команду</option>
+                  <option value="">Команда пока не определена</option>
                   {applications.map((application) => (
                     <option value={application.id} key={application.id}>
                       {application.team_name}

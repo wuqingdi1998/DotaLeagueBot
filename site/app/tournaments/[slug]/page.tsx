@@ -12,6 +12,7 @@ import { matchUsesBracketRouting } from "@/lib/bracket";
 import { dayCountLabel } from "@/lib/countdown";
 import { isPastTournament } from "@/lib/tournaments";
 import { tournamentTextFields } from "@/lib/tournament-form";
+import { tournamentCompetitionStages } from "@/lib/tournament-stages";
 import {
   groupOutcome,
   groupOutcomeLabel,
@@ -183,7 +184,7 @@ type SiteData = {
     tournament_id: number;
     placement: number;
     application_id: number | null;
-    team_name: string;
+    team_name: string | null;
     prize_text: string | null;
   }>;
   scheduleDays: TournamentScheduleDay[];
@@ -1252,6 +1253,10 @@ export default function Home() {
   }
 
   const tournament = data.tournament;
+  const competitionStages = tournamentCompetitionStages(tournament);
+  const hasPlayoffStage = competitionStages.some(
+    (stage) => stage.key === "playoffs",
+  );
   const canRegister =
     tournament.status === "registration" && registrationAvailable;
   const isPast = isPastTournament(tournament.status);
@@ -1359,10 +1364,18 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="quick-facts" aria-label="Этапы турнира">
-        <div><span>1</span><strong>{tournament.group_format}</strong></div>
-        <div><span>2</span><strong>{tournament.playoff_format}</strong></div>
-        <div><span>3</span><strong>{tournament.final_format}</strong></div>
+      <section
+        className={`quick-facts${
+          competitionStages.length === 2 ? " quick-facts-two" : ""
+        }`}
+        aria-label="Этапы турнира"
+      >
+        {competitionStages.map((stage, index) => (
+          <div key={stage.key}>
+            <span>{index + 1}</span>
+            <strong>{stage.description}</strong>
+          </div>
+        ))}
       </section>
 
       <section className="tournament-section" id="tournament">
@@ -1448,7 +1461,7 @@ export default function Home() {
           <div className="tournament-tabs-stages">
             {[
               ["groups", "Групповой этап"],
-              ["playoffs", "Плей-офф"],
+              ["playoffs", hasPlayoffStage ? "Плей-офф" : "Финал"],
             ].map(([id, label]) => (
               <button
                 key={id}
@@ -1497,11 +1510,21 @@ export default function Home() {
                   <strong>Группы</strong>
                   <small>{tournament.group_format}</small>
                 </div>
+                {hasPlayoffStage && (
+                  <>
+                    <i />
+                    <div>
+                      <span>3</span>
+                      <strong>Плей-офф</strong>
+                      <small>{tournament.playoff_format}</small>
+                    </div>
+                  </>
+                )}
                 <i />
                 <div>
-                  <span>3</span>
-                  <strong>Плей-офф</strong>
-                  <small>{tournament.playoff_format}</small>
+                  <span>{hasPlayoffStage ? 4 : 3}</span>
+                  <strong>Гранд-финал</strong>
+                  <small>{tournament.final_format}</small>
                 </div>
               </div>
             </article>
@@ -1555,7 +1578,7 @@ export default function Home() {
                     <div key={prize.id}>
                       <strong>{prize.placement}</strong>
                       <span>
-                        <b>{prize.team_name}</b>
+                        {prize.team_name && <b>{prize.team_name}</b>}
                         {prize.prize_text && <small>{prize.prize_text}</small>}
                       </span>
                     </div>
@@ -1816,8 +1839,12 @@ export default function Home() {
           <div className="tab-panel">
             <div className="panel-heading">
               <div>
-                <p className="card-kicker">Плей-офф</p>
-                <h3>Турнирная сетка</h3>
+                <p className="card-kicker">
+                  {hasPlayoffStage ? "Плей-офф" : "Гранд-финал"}
+                </p>
+                <h3>
+                  {hasPlayoffStage ? "Турнирная сетка" : "Финальный матч"}
+                </h3>
               </div>
               <span className="timezone">
                 Наведите на команду, чтобы увидеть её путь
@@ -1842,6 +1869,11 @@ export default function Home() {
               )}
               editable={adminMode}
               tournamentId={tournament.id}
+              emptyMessage={
+                hasPlayoffStage
+                  ? "Матчи плей-офф ещё не добавлены в сетку"
+                  : "Матч гранд-финала ещё не добавлен"
+              }
             />
           </div>
         )}

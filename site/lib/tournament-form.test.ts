@@ -31,4 +31,12 @@ describe("tournament form fields", () => {
     expect(labels.status_label).toBe("Видимый статус");
     expect(labels.headline_accent).toBe("Выделенная часть заголовка");
   });
+
+  it("allows a tournament to skip the playoff stage", () => {
+    const playoffField = tournamentTextFields.find(
+      (field) => field.field === "playoff_format",
+    );
+
+    expect(playoffField?.required).toBe(false);
+  });
 });

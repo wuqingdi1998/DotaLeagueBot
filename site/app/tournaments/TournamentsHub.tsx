@@ -299,12 +299,19 @@ function TournamentForm({
         <form className="tournament-editor" onSubmit={submit}>
           <div className="editor-grid">
             {tournamentTextFields.map(
-              ({ field, label, placeholder, wide, multiline }) => (
+              ({
+                field,
+                label,
+                placeholder,
+                wide,
+                multiline,
+                required = true,
+              }) => (
               <label className={wide ? "wide-field" : ""} key={field}>
                 <span>{label}</span>
                 {multiline ? (
                   <textarea
-                    required
+                    required={required}
                     value={String(form[field])}
                     placeholder={placeholder}
                     onChange={(event) =>
@@ -313,7 +320,7 @@ function TournamentForm({
                   />
                 ) : (
                   <input
-                    required
+                    required={required}
                     value={String(form[field])}
                     placeholder={placeholder}
                     onChange={(event) =>
