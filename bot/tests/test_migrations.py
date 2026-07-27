@@ -106,6 +106,13 @@ FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION = (
     / "0017_fastcup_historical_player_links.sql"
 ).read_text(encoding="utf-8")
 
+FASTCUP_4_TITLE_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0018_fastcup_4_title.sql"
+).read_text(encoding="utf-8")
+
 PLAYOFF_ELIMINATIONS_BACKFILL = (
     Path(__file__).parents[1]
     / "database"
@@ -161,6 +168,12 @@ def test_fastcup_historical_nicknames_link_without_being_rewritten() -> None:
         )
     assert "SET player_id =" in FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION
     assert "SET nickname_snapshot" not in FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION
+
+
+def test_fastcup_4_title_drops_legacy_ls_prefix() -> None:
+    assert "SET name = 'CD Fastcup #4'" in FASTCUP_4_TITLE_MIGRATION
+    assert "headline = 'CD Fastcup #4'" in FASTCUP_4_TITLE_MIGRATION
+    assert "WHERE slug = 'cd-fastcup-4'" in FASTCUP_4_TITLE_MIGRATION
 
 
 def test_team_members_have_one_role_per_application() -> None:
