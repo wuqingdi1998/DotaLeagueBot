@@ -47,8 +47,8 @@ export function SeasonAdminPanel() {
           <p className="card-kicker">Сезонный формат</p>
           <h3>Туры, лобби, матчи и карты</h3>
           <p>
-            Скрытые туры видны только организаторам и не влияют на публичную
-            таблицу.
+            Скрытые туры видны только организаторам. Финалы вынесены в
+            отдельную последнюю вкладку и не влияют на общую таблицу.
           </p>
         </div>
       </div>
@@ -127,8 +127,17 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
   return (
     <details className="season-round-admin-card">
       <summary>
-        <span>Тур {round.round_number}</span>
-        <strong>{round.name || `Тур ${round.round_number}`}</strong>
+        <span>
+          {round.round_kind === "finals"
+            ? "Финальный этап"
+            : `Тур ${round.round_number}`}
+        </span>
+        <strong>
+          {round.name ||
+            (round.round_kind === "finals"
+              ? "Финалы"
+              : `Тур ${round.round_number}`)}
+        </strong>
         <em className={round.is_visible ? "visible" : "hidden"}>
           {round.is_visible ? <FiEye /> : <FiEyeOff />}
           {round.is_visible ? "Опубликован" : "Скрыт"}
@@ -168,7 +177,11 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
               checked={isVisible}
               onChange={(event) => setIsVisible(event.target.checked)}
             />
-            <span>Показывать тур пользователям</span>
+            <span>
+              {round.round_kind === "finals"
+                ? "Показывать финалы пользователям"
+                : "Показывать тур пользователям"}
+            </span>
           </label>
         </div>
         <div className="season-admin-actions">

@@ -85,9 +85,16 @@ export async function POST(request: Request) {
       );
       if (tournamentType === "seasonal") {
         await client.query(
-          `INSERT INTO season_rounds (tournament_id, round_number)
-           SELECT $1, number
+          `INSERT INTO season_rounds
+            (tournament_id, round_number, round_kind)
+           SELECT $1, number, 'regular'
            FROM generate_series(1, $2::int) AS number`,
+          [id, seasonRoundCount],
+        );
+        await client.query(
+          `INSERT INTO season_rounds
+            (tournament_id, round_number, name, round_kind)
+           VALUES ($1, $2::int + 1, 'Финалы', 'finals')`,
           [id, seasonRoundCount],
         );
       }

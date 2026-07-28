@@ -66,8 +66,20 @@ function RoundCard({
   const statusLabel = seasonRoundStatusLabel(round.status);
   return (
     <article className={`season-round-card${round.is_visible ? "" : " hidden"}`}>
-      <div><span>Тур {round.round_number}</span><b>{statusLabel}</b></div>
-      <h4>{round.name || `Тур ${round.round_number}`}</h4>
+      <div>
+        <span>
+          {round.round_kind === "finals"
+            ? "Финальный этап"
+            : `Тур ${round.round_number}`}
+        </span>
+        <b>{statusLabel}</b>
+      </div>
+      <h4>
+        {round.name ||
+          (round.round_kind === "finals"
+            ? "Финалы"
+            : `Тур ${round.round_number}`)}
+      </h4>
       <p>
         {round.scheduled_at
           ? `${formatDayMonth(round.scheduled_at)} · ${formatTime(round.scheduled_at)}`
@@ -107,8 +119,17 @@ export function SeasonRoundPanel() {
     <div className="tab-panel season-round-panel">
       <div className="panel-heading">
         <div>
-          <p className="card-kicker">Тур {round.round_number}</p>
-          <h3>{round.name || `Тур ${round.round_number}`}</h3>
+          <p className="card-kicker">
+            {round.round_kind === "finals"
+              ? "Финальный этап"
+              : `Тур ${round.round_number}`}
+          </p>
+          <h3>
+            {round.name ||
+              (round.round_kind === "finals"
+                ? "Финалы"
+                : `Тур ${round.round_number}`)}
+          </h3>
           <p className="season-round-meta">
             {round.scheduled_at
               ? `${formatDayMonth(round.scheduled_at)} · ${formatTime(round.scheduled_at)}`
@@ -116,6 +137,7 @@ export function SeasonRoundPanel() {
           </p>
         </div>
       </div>
+      {round.round_kind === "finals" && <SeasonFinalistsSummary />}
       {!round.lobbies.length ? (
         <div className="empty-standings">В этом туре пока нет лобби.</div>
       ) : (
@@ -183,6 +205,21 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
               }`}
         </p>
       )}
+      {match.substitutions.length > 0 && (
+        <section className="season-substitutions">
+          <h5>Замены по ходу матча</h5>
+          {match.substitutions.map((substitution) => (
+            <p key={substitution.id}>
+              {substitution.game_number
+                ? `Карта ${substitution.game_number}: `
+                : ""}
+              {substitution.outgoing_nickname} заменён на{" "}
+              {substitution.incoming_nickname}
+              {substitution.note ? ` · ${substitution.note}` : ""}
+            </p>
+          ))}
+        </section>
+      )}
       <div className="season-game-list">
         {match.games.map((game) => {
           const links = game.dota_match_id
@@ -215,6 +252,37 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
         )}
       </div>
     </article>
+  );
+}
+
+function SeasonFinalistsSummary() {
+  const { season } = useTournament();
+  const finalists = season.data?.finalists ?? [];
+  return (
+    <section className="season-finalists">
+      <h4>Участники финалов</h4>
+      {!finalists.length ? (
+        <p className="season-empty-copy">
+          Организатор пока не опубликовал состав финалов.
+        </p>
+      ) : (
+        <div className="season-finalist-list">
+          {finalists.map((finalist) => (
+            <article key={finalist.player_id}>
+              <span>{finalist.seed ? `#${finalist.seed}` : "—"}</span>
+              <strong>{finalist.nickname}</strong>
+              <b title={finalist.medal ?? "Медаль не определена"}>
+                {finalist.medal === "gold"
+                  ? "🥇"
+                  : finalist.medal === "silver"
+                    ? "🥈"
+                    : ""}
+              </b>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 

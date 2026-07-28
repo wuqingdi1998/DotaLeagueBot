@@ -1,0 +1,368 @@
+/* Seasonal standings legend, discipline and finals */
+
+.season-standings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 230px;
+  align-items: start;
+  gap: 18px;
+}
+
+.season-standings-layout .season-table-scroll {
+  min-width: 0;
+}
+
+.season-standings-legend {
+  position: sticky;
+  top: 100px;
+  display: grid;
+  gap: 10px;
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  background: var(--surface);
+}
+
+.season-standings-legend h4,
+.season-inactive-standings h4,
+.season-penalty-table-section h4,
+.season-finalists h4 {
+  margin: 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.season-standings-legend p {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.season-standings-legend i {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border-radius: 5px;
+}
+
+.season-standings-legend i.win { background: #2b9a68; }
+.season-standings-legend i.draw { background: #bc8b27; }
+.season-standings-legend i.loss { background: #bd4e5e; }
+.season-standings-legend i.substitute { background: #3978b8; }
+.season-standings-legend i.suspended { background: #586674; }
+.season-standings-legend i.pending { background: #627789; }
+
+.season-standings-legend hr {
+  width: 100%;
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 3px 0;
+}
+
+.season-adjustment-points {
+  color: var(--blue-strong);
+  font-weight: 800;
+}
+
+.season-result-cell.substitute {
+  background: #3978b8;
+}
+
+.season-result-cell.suspended {
+  border-color: #71808d;
+  background: #586674;
+  color: #fff;
+}
+
+.season-player-column > small {
+  display: block;
+  margin-top: 4px;
+  color: var(--quiet);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.season-inactive-standings,
+.season-penalty-table-section {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+}
+
+.season-inactive-standings h4 {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.season-inactive-standings h4 small,
+.season-penalty-table-section > p {
+  color: var(--muted);
+  font-family: Montserrat, sans-serif;
+  font-size: 12px;
+}
+
+.season-penalty-table-section > p {
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.season-penalty-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+}
+
+.season-penalty-table th,
+.season-penalty-table td {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 12px;
+  text-align: center;
+}
+
+.season-penalty-table th {
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.season-penalty-table td:first-child {
+  text-align: left;
+  font-weight: 800;
+}
+
+.season-penalty-table td.filled {
+  background: rgba(189, 78, 94, 0.12);
+  color: #d65b6e;
+  font-weight: 800;
+}
+
+.season-substitutions {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 13px;
+}
+
+.season-substitutions h5 {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.season-substitutions p {
+  margin: 0;
+  border-left: 2px solid var(--blue-strong);
+  padding-left: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.season-finalists {
+  margin: 20px 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  background: var(--surface);
+}
+
+.season-finalist-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.season-finalist-list article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px;
+  background: var(--surface-soft);
+}
+
+.season-finalist-list article > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.season-finalist-list article > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-finalist-list article > b {
+  font-size: 20px;
+}
+
+.season-discipline-admin {
+  display: grid;
+  gap: 22px;
+}
+
+.season-discipline-admin-block,
+.season-substitution-admin {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  background: var(--surface-soft);
+}
+
+.season-discipline-admin-block h4,
+.season-substitution-admin h4 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.season-substitution-admin > div:first-child > p {
+  max-width: 760px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.season-inline-admin-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr)) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.season-inline-admin-form label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.season-inline-admin-form label > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.season-inline-admin-form input,
+.season-inline-admin-form select {
+  width: 100%;
+  min-width: 0;
+}
+
+.season-inline-admin-form .season-technical-loss-field {
+  grid-column: 1 / -2;
+  display: flex;
+  align-items: center;
+}
+
+.season-inline-admin-form .season-technical-loss-field input {
+  width: auto;
+}
+
+.season-admin-record-list {
+  display: grid;
+  gap: 8px;
+}
+
+.season-admin-record-list article {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 11px 12px;
+  background: var(--surface);
+}
+
+.season-admin-record-list article > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.season-admin-record-list article strong,
+.season-admin-record-list article span,
+.season-admin-record-list article small {
+  overflow-wrap: anywhere;
+}
+
+.season-admin-record-list article span,
+.season-admin-record-list article small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.season-admin-record-list .secondary-button,
+.season-admin-record-list .danger-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 900px) {
+  .season-standings-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-standings-legend {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 0;
+  }
+
+  .season-standings-legend h4,
+  .season-standings-legend hr,
+  .season-standings-legend p:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .season-inline-admin-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .season-inline-admin-form .season-technical-loss-field {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 540px) {
+  .season-standings-legend {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-standings-legend h4,
+  .season-standings-legend hr,
+  .season-standings-legend p:last-child {
+    grid-column: auto;
+  }
+
+  .season-inline-admin-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-inline-admin-form .season-technical-loss-field {
+    grid-column: auto;
+  }
+
+  .season-inline-admin-form > button {
+    width: 100%;
+  }
+
+  .season-admin-record-list article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

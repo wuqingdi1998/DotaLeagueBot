@@ -197,7 +197,9 @@ function SeasonTournamentNavigation() {
                     : "Тур скрыт от обычных пользователей"
                 }
               >
-                Тур {round.round_number}
+                {round.round_kind === "finals"
+                  ? "Финалы"
+                  : `Тур ${round.round_number}`}
                 {!round.is_visible && adminMode && (
                   <FiEyeOff aria-label="Скрыт" />
                 )}

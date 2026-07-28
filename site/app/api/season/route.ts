@@ -5,6 +5,8 @@ import {
   type SeasonStandingIdentity,
   type SeasonStandingMatch,
 } from "@/lib/season";
+import { calculateSeasonPenalty } from "@/lib/season-discipline";
+import { loadSeasonExtras } from "./season-extra-query";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,7 @@ type RoundRow = {
   status: "planned" | "active" | "completed" | "cancelled";
   scheduled_at: string | null;
   is_visible: boolean;
+  round_kind: "regular" | "finals";
   lobby_count: number;
   played_match_count: number;
 };
@@ -69,6 +72,8 @@ type SeasonPlayerRow = {
   discord_id: string;
   nickname: string;
   avatar_url: string | null;
+  standings_section: "active" | "inactive";
+  inactive_reason: string | null;
 };
 
 export async function GET(request: Request) {
@@ -105,12 +110,20 @@ export async function GET(request: Request) {
     ? ""
     : "AND game.status IN ('published', 'completed')";
 
-  const [rounds, lobbies, matches, participants, games, seasonPlayers] =
+  const [
+    rounds,
+    lobbies,
+    matches,
+    participants,
+    games,
+    seasonPlayers,
+    [pointAdjustments, penaltyEvents, substitutions, finalists],
+  ] =
     await Promise.all([
       query<RoundRow>(
         `SELECT round.id::int, round.tournament_id::int,
            round.round_number::int, round.name, round.status,
-           round.scheduled_at, round.is_visible,
+           round.scheduled_at, round.is_visible, round.round_kind,
            COUNT(DISTINCT lobby.id)::int AS lobby_count,
            COUNT(DISTINCT match.id) FILTER (
              WHERE match.status = 'completed'
@@ -174,27 +187,59 @@ export async function GET(request: Request) {
       ),
       query<SeasonPlayerRow>(
         `SELECT player.discord_id::text, player.ingame_name AS nickname,
-           player.avatar_url
+           player.avatar_url, participant.standings_section,
+           participant.inactive_reason
          FROM season_participants participant
          JOIN players player ON player.discord_id = participant.player_id
          WHERE participant.tournament_id = $1
-           ${isOrganizer ? "" : `AND EXISTS (
-             SELECT 1
-             FROM season_match_participants public_participant
-             JOIN season_matches public_match
-               ON public_match.id = public_participant.match_id
-             JOIN season_lobbies public_lobby
-               ON public_lobby.id = public_match.lobby_id
-             JOIN season_rounds public_round
-               ON public_round.id = public_lobby.round_id
-             WHERE public_participant.player_id = participant.player_id
-               AND public_round.tournament_id = participant.tournament_id
-               AND public_round.is_visible = TRUE
-               AND public_match.status IN ('published', 'completed')
+           ${isOrganizer ? "" : `AND (
+             EXISTS (
+               SELECT 1
+               FROM season_match_participants public_participant
+               JOIN season_matches public_match
+                 ON public_match.id = public_participant.match_id
+               JOIN season_lobbies public_lobby
+                 ON public_lobby.id = public_match.lobby_id
+               JOIN season_rounds public_round
+                 ON public_round.id = public_lobby.round_id
+               WHERE public_participant.player_id = participant.player_id
+                 AND public_round.tournament_id = participant.tournament_id
+                 AND public_round.is_visible = TRUE
+                 AND public_match.status IN ('published', 'completed')
+             )
+             OR EXISTS (
+               SELECT 1 FROM season_point_adjustments adjustment
+               LEFT JOIN season_rounds adjustment_round
+                 ON adjustment_round.id = adjustment.round_id
+               WHERE adjustment.tournament_id = participant.tournament_id
+                 AND adjustment.player_id = participant.player_id
+                 AND (
+                   adjustment.round_id IS NULL
+                   OR adjustment_round.is_visible = TRUE
+                 )
+             )
+             OR EXISTS (
+               SELECT 1 FROM season_penalty_events penalty
+               JOIN season_rounds penalty_round
+                 ON penalty_round.id = penalty.round_id
+               WHERE penalty.tournament_id = participant.tournament_id
+                 AND penalty.player_id = participant.player_id
+                 AND penalty_round.is_visible = TRUE
+             )
+             OR EXISTS (
+               SELECT 1 FROM season_finalists finalist
+               JOIN season_rounds finals_round
+                 ON finals_round.tournament_id = finalist.tournament_id
+                AND finals_round.round_kind = 'finals'
+               WHERE finalist.tournament_id = participant.tournament_id
+                 AND finalist.player_id = participant.player_id
+                 AND finals_round.is_visible = TRUE
+             )
            )`}
          ORDER BY player.ingame_name`,
         [tournament.id],
       ),
+      loadSeasonExtras(tournament.id, isOrganizer),
     ]);
 
   if (
@@ -221,6 +266,9 @@ export async function GET(request: Request) {
     ...match,
     participants: participantByMatch.get(match.id) ?? [],
     games: gamesByMatch.get(match.id) ?? [],
+    substitutions: substitutions.filter(
+      (substitution) => substitution.match_id === match.id,
+    ),
   }));
   const nestedLobbies = lobbies.map((lobby) => ({
     ...lobby,
@@ -250,7 +298,43 @@ export async function GET(request: Request) {
       avatarUrl: player.avatar_url,
     }),
   );
-  const publicRounds = rounds.filter((round) => round.is_visible);
+  const regularRounds = rounds.filter((round) => round.round_kind === "regular");
+  const publicRounds = regularRounds.filter((round) => round.is_visible);
+  const penaltyStates = [
+    ...new Set(penaltyEvents.map((event) => event.player_id)),
+  ].map((playerId) => {
+    const state = calculateSeasonPenalty(
+      penaltyEvents
+        .filter((event) => event.player_id === playerId)
+        .map((event) => ({
+          roundNumber: event.round_number,
+          fires: event.fire_count,
+        })),
+      regularRounds.map((round) => round.round_number),
+    );
+    return { playerId, ...state };
+  });
+  const standingModifiers = {
+    adjustments: pointAdjustments.map((adjustment) => ({
+      playerId: adjustment.player_id,
+      amount: adjustment.amount,
+    })),
+    substitutions: substitutions.map((substitution) => ({
+      matchId: substitution.match_id,
+      outgoingPlayerId: substitution.outgoing_player_id,
+      incomingPlayerId: substitution.incoming_player_id,
+      incomingNickname: substitution.incoming_nickname,
+      incomingAvatarUrl: substitution.incoming_avatar_url,
+      teamSide: substitution.team_side,
+      technicalLoss: substitution.technical_loss,
+    })),
+    penalties: penaltyStates,
+    participantStates: seasonPlayers.map((player) => ({
+      playerId: player.discord_id,
+      section: player.standings_section,
+      inactiveReason: player.inactive_reason,
+    })),
+  };
   const standings = calculateSeasonStandings(
     publicRounds.map((round) => ({
       id: round.id,
@@ -259,16 +343,18 @@ export async function GET(request: Request) {
     })),
     standingMatches,
     standingPlayers,
+    standingModifiers,
   );
   const previewStandings = isOrganizer
     ? calculateSeasonStandings(
-        rounds.map((round) => ({
+        regularRounds.map((round) => ({
           id: round.id,
           roundNumber: round.round_number,
           isVisible: round.is_visible,
         })),
         standingMatches,
         standingPlayers,
+        standingModifiers,
       )
     : null;
 
@@ -278,6 +364,9 @@ export async function GET(request: Request) {
     standings,
     previewStandings,
     participants: seasonPlayers,
+    pointAdjustments: isOrganizer ? pointAdjustments : [],
+    penaltyEvents: isOrganizer ? penaltyEvents : [],
+    finalists,
     isOrganizer,
   });
 }

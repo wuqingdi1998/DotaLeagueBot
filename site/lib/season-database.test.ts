@@ -8,6 +8,13 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const disciplineMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0020_season_discipline_and_finals.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 describe("season database migration", () => {
   it("keeps existing tournaments ordinary by default", () => {
@@ -36,6 +43,32 @@ describe("season database migration", () => {
     );
     expect(migration).toMatch(
       /result = 'team_b' AND team_b_score > team_a_score/i,
+    );
+  });
+});
+
+describe("season discipline database migration", () => {
+  it("adds manual p adjustments, penalties and map substitutions", () => {
+    expect(disciplineMigration).toContain("season_point_adjustments");
+    expect(disciplineMigration).toContain("season_penalty_events");
+    expect(disciplineMigration).toContain("season_match_substitutions");
+    expect(disciplineMigration).toContain(
+      "season_match_substitutions_match_level_idx",
+    );
+  });
+
+  it("creates one hidden finals round per seasonal tournament", () => {
+    expect(disciplineMigration).toMatch(
+      /WHERE round_kind = 'finals'/,
+    );
+    expect(disciplineMigration).toMatch(
+      /'Финалы', 'finals', FALSE/,
+    );
+  });
+
+  it("stores active and inactive standings sections", () => {
+    expect(disciplineMigration).toMatch(
+      /standings_section[^;]+active[^;]+inactive/,
     );
   });
 });

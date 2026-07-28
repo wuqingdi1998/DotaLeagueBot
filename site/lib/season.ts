@@ -24,9 +24,54 @@ export type SeasonStandingMatch = {
   participants: SeasonStandingParticipant[];
 };
 
+export type SeasonStandingSubstitution = {
+  matchId: number;
+  outgoingPlayerId: string;
+  incomingPlayerId: string;
+  incomingNickname: string;
+  incomingAvatarUrl: string | null;
+  teamSide: "a" | "b";
+  technicalLoss: boolean;
+};
+
+export type SeasonStandingAdjustment = {
+  playerId: string;
+  amount: number;
+};
+
+export type SeasonStandingPenalty = {
+  playerId: string;
+  totalFires: number;
+  strikes: number;
+  stages: Array<number | null>;
+  suspendedRoundNumbers: number[];
+  pointAdjustment: number;
+  isExcluded: boolean;
+};
+
+export type SeasonStandingParticipantState = {
+  playerId: string;
+  section: "active" | "inactive";
+  inactiveReason: string | null;
+};
+
+export type SeasonStandingModifiers = {
+  adjustments?: SeasonStandingAdjustment[];
+  substitutions?: SeasonStandingSubstitution[];
+  penalties?: SeasonStandingPenalty[];
+  participantStates?: SeasonStandingParticipantState[];
+};
+
 export type SeasonRoundCell = {
   points: number;
-  outcome: "win" | "draw" | "loss" | "mixed" | "pending";
+  outcome:
+    | "win"
+    | "draw"
+    | "loss"
+    | "mixed"
+    | "pending"
+    | "substitute"
+    | "suspended";
   matchIds: number[];
 };
 
@@ -38,8 +83,16 @@ export type SeasonStanding = {
   wins: number;
   draws: number;
   losses: number;
+  adjustmentPoints: number;
+  hasAdjustments: boolean;
   points: number;
   rounds: Record<string, SeasonRoundCell>;
+  section: "active" | "inactive";
+  inactiveReason: string | null;
+  penaltyFires: number;
+  penaltyStrikes: number;
+  penaltyStages: Array<number | null>;
+  suspendedRoundNumbers: number[];
 };
 
 export const minimumSeasonRounds = 1;
@@ -127,15 +180,28 @@ export function calculateSeasonStandings(
   rounds: SeasonRoundVisibility[],
   matches: SeasonStandingMatch[],
   participants: SeasonStandingIdentity[] = [],
+  modifiers: SeasonStandingModifiers = {},
 ): SeasonStanding[] {
   const allowedRounds = new Map(
     rounds.map((round) => [round.id, round.roundNumber]),
   );
   const rows = new Map<string, SeasonStanding>();
   const playedRoundsByPlayer = new Map<string, Set<number>>();
+  const participantStates = new Map(
+    (modifiers.participantStates ?? []).map((state) => [state.playerId, state]),
+  );
+  const substitutions = modifiers.substitutions ?? [];
+  const rewardedSubstitutes = new Set<string>();
+  const outgoingByMatchAndPlayer = new Map(
+    substitutions.map((substitution) => [
+      `${substitution.matchId}:${substitution.outgoingPlayerId}`,
+      substitution,
+    ]),
+  );
 
-  for (const participant of participants) {
-    rows.set(participant.playerId, {
+  function emptyStanding(participant: SeasonStandingIdentity): SeasonStanding {
+    const state = participantStates.get(participant.playerId);
+    return {
       playerId: participant.playerId,
       nickname: participant.nickname,
       avatarUrl: participant.avatarUrl,
@@ -143,9 +209,21 @@ export function calculateSeasonStandings(
       wins: 0,
       draws: 0,
       losses: 0,
+      adjustmentPoints: 0,
+      hasAdjustments: false,
       points: 0,
       rounds: {},
-    });
+      section: state?.section ?? "active",
+      inactiveReason: state?.inactiveReason ?? null,
+      penaltyFires: 0,
+      penaltyStrikes: 0,
+      penaltyStages: [0, null, null, null],
+      suspendedRoundNumbers: [],
+    };
+  }
+
+  for (const participant of participants) {
+    rows.set(participant.playerId, emptyStanding(participant));
   }
 
   for (const match of matches) {
@@ -153,18 +231,16 @@ export function calculateSeasonStandings(
     if (roundNumber === undefined || match.status === "cancelled") continue;
 
     for (const participant of match.participants) {
-      const row = rows.get(participant.playerId) ?? {
-        playerId: participant.playerId,
-        nickname: participant.nickname,
-        avatarUrl: participant.avatarUrl,
-        playedRounds: 0,
-        wins: 0,
-        draws: 0,
-        losses: 0,
-        points: 0,
-        rounds: {},
-      };
-      const outcome = participantOutcome(match, participant.teamSide);
+      const row =
+        rows.get(participant.playerId) ?? emptyStanding(participant);
+      const substitution = outgoingByMatchAndPlayer.get(
+        `${match.id}:${participant.playerId}`,
+      );
+      const normalOutcome = participantOutcome(match, participant.teamSide);
+      const outcome =
+        substitution?.technicalLoss && normalOutcome !== "pending"
+          ? "loss"
+          : normalOutcome;
       const points = outcomePoints(outcome);
       const cell = row.rounds[String(roundNumber)] ?? {
         points: 0,
@@ -193,8 +269,81 @@ export function calculateSeasonStandings(
     }
   }
 
+  for (const substitution of substitutions) {
+    const match = matches.find((item) => item.id === substitution.matchId);
+    const roundNumber = match ? allowedRounds.get(match.roundId) : undefined;
+    if (!match || roundNumber === undefined || match.status === "cancelled") {
+      continue;
+    }
+    const identity = {
+      playerId: substitution.incomingPlayerId,
+      nickname: substitution.incomingNickname,
+      avatarUrl: substitution.incomingAvatarUrl,
+    };
+    const row =
+      rows.get(substitution.incomingPlayerId) ?? emptyStanding(identity);
+    const cell = row.rounds[String(roundNumber)] ?? {
+      points: 0,
+      outcome: "substitute" as const,
+      matchIds: [],
+    };
+    if (!cell.matchIds.includes(match.id)) cell.matchIds.push(match.id);
+    row.rounds[String(roundNumber)] = cell;
+    if (match.status === "completed" && match.result) {
+      const playedRounds =
+        playedRoundsByPlayer.get(substitution.incomingPlayerId) ??
+        new Set<number>();
+      playedRounds.add(roundNumber);
+      playedRoundsByPlayer.set(substitution.incomingPlayerId, playedRounds);
+      const didWin =
+        (match.result === "team_a" && substitution.teamSide === "a") ||
+        (match.result === "team_b" && substitution.teamSide === "b");
+      if (didWin) {
+        const rewardKey = `${match.id}:${substitution.incomingPlayerId}`;
+        if (!rewardedSubstitutes.has(rewardKey)) {
+          row.adjustmentPoints += 1;
+          row.hasAdjustments = true;
+          rewardedSubstitutes.add(rewardKey);
+        }
+      }
+    }
+    rows.set(substitution.incomingPlayerId, row);
+  }
+
+  for (const adjustment of modifiers.adjustments ?? []) {
+    const row = rows.get(adjustment.playerId);
+    if (!row) continue;
+    row.adjustmentPoints += adjustment.amount;
+    row.hasAdjustments = true;
+  }
+
+  for (const penalty of modifiers.penalties ?? []) {
+    const row = rows.get(penalty.playerId);
+    if (!row) continue;
+    row.penaltyFires = penalty.totalFires;
+    row.penaltyStrikes = penalty.strikes;
+    row.penaltyStages = penalty.stages;
+    row.suspendedRoundNumbers = penalty.suspendedRoundNumbers;
+    row.adjustmentPoints += penalty.pointAdjustment;
+    if (penalty.strikes > 0) row.hasAdjustments = true;
+    if (penalty.isExcluded) {
+      row.section = "inactive";
+      row.inactiveReason = "Отстранён за четыре штрафных лимита";
+    }
+    for (const roundNumber of penalty.suspendedRoundNumbers) {
+      if (!row.rounds[String(roundNumber)]) {
+        row.rounds[String(roundNumber)] = {
+          points: 0,
+          outcome: "suspended",
+          matchIds: [],
+        };
+      }
+    }
+  }
+
   for (const row of rows.values()) {
     row.playedRounds = playedRoundsByPlayer.get(row.playerId)?.size ?? 0;
+    row.points += row.adjustmentPoints;
   }
 
   return [...rows.values()].sort(

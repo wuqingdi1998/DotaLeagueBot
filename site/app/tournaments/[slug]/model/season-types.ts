@@ -22,6 +22,21 @@ export type SeasonGame = {
   status: SeasonMatchStatus;
 };
 
+export type SeasonSubstitution = {
+  id: number;
+  match_id: number;
+  game_id: number | null;
+  game_number: number | null;
+  outgoing_player_id: string;
+  outgoing_nickname: string;
+  incoming_player_id: string;
+  incoming_nickname: string;
+  incoming_avatar_url: string | null;
+  team_side: "a" | "b";
+  technical_loss: boolean;
+  note: string | null;
+};
+
 export type SeasonMatchParticipant = {
   player_id: string;
   nickname: string;
@@ -47,6 +62,7 @@ export type SeasonMatch = {
   sort_order: number;
   participants: SeasonMatchParticipant[];
   games: SeasonGame[];
+  substitutions: SeasonSubstitution[];
 };
 
 export type SeasonLobby = {
@@ -67,6 +83,7 @@ export type SeasonRound = {
   status: SeasonRoundStatus;
   scheduled_at: string | null;
   is_visible: boolean;
+  round_kind: "regular" | "finals";
   lobby_count: number;
   played_match_count: number;
   lobbies: SeasonLobby[];
@@ -76,6 +93,36 @@ export type SeasonPlayer = {
   discord_id: string;
   nickname: string;
   avatar_url: string | null;
+  standings_section: "active" | "inactive";
+  inactive_reason: string | null;
+};
+
+export type SeasonPointAdjustment = {
+  id: number;
+  player_id: string;
+  nickname: string;
+  round_id: number | null;
+  amount: number;
+  reason: string;
+};
+
+export type SeasonPenaltyEvent = {
+  id: number;
+  player_id: string;
+  nickname: string;
+  round_id: number;
+  round_number: number;
+  fire_count: number;
+  note: string | null;
+};
+
+export type SeasonFinalist = {
+  player_id: string;
+  nickname: string;
+  avatar_url: string | null;
+  seed: number | null;
+  medal: "gold" | "silver" | null;
+  note: string | null;
 };
 
 export type SeasonData = {
@@ -84,5 +131,8 @@ export type SeasonData = {
   standings: SeasonStanding[];
   previewStandings: SeasonStanding[] | null;
   participants: SeasonPlayer[];
+  pointAdjustments: SeasonPointAdjustment[];
+  penaltyEvents: SeasonPenaltyEvent[];
+  finalists: SeasonFinalist[];
   isOrganizer: boolean;
 };

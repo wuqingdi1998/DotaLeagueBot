@@ -17,7 +17,9 @@ export function SeasonOverviewPanel() {
   }
   if (!seasonData) return <SeasonLoadState />;
 
-  const publishedRounds = seasonData.rounds.filter((round) => round.is_visible);
+  const publishedRounds = seasonData.rounds.filter(
+    (round) => round.is_visible && round.round_kind === "regular",
+  );
   const orderedMatches = publishedRounds
     .flatMap((round) => round.lobbies.flatMap((lobby) => lobby.matches))
     .filter((match) => match.status === "completed")

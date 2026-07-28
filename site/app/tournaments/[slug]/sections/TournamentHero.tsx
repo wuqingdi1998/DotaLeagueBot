@@ -172,8 +172,10 @@ export function TournamentHero() {
           </div>
           <div>
             <span>
-              {season.data?.rounds.filter((round) => round.is_visible).length ??
-                0}
+              {season.data?.rounds.filter(
+                (round) =>
+                  round.is_visible && round.round_kind === "regular",
+              ).length ?? 0}
             </span>
             <strong>Опубликовано организатором</strong>
           </div>

@@ -44,7 +44,9 @@ export async function resizeSeason(
            LEFT JOIN season_lobbies lobby ON lobby.round_id = round.id
            LEFT JOIN season_matches match ON match.lobby_id = lobby.id
            LEFT JOIN season_match_games game ON game.match_id = match.id
-           WHERE round.tournament_id = $1 AND round.round_number > $2
+           WHERE round.tournament_id = $1
+             AND round.round_kind = 'regular'
+             AND round.round_number > $2
              AND (lobby.id IS NOT NULL OR match.id IS NOT NULL OR game.id IS NOT NULL)
          ) AS has_data`,
         [tournamentId, count],
@@ -52,20 +54,37 @@ export async function resizeSeason(
       if (populated.rows[0].has_data && !confirmDelete) {
         return { requiresConfirmation: true };
       }
+    }
+    await client.query(
+      `UPDATE season_rounds
+       SET round_number = 101
+       WHERE tournament_id = $1 AND round_kind = 'finals'`,
+      [tournamentId],
+    );
+    if (count < currentCount) {
       await client.query(
         `DELETE FROM season_rounds
-         WHERE tournament_id = $1 AND round_number > $2`,
+         WHERE tournament_id = $1
+           AND round_kind = 'regular'
+           AND round_number > $2`,
         [tournamentId, count],
       );
     } else if (count > currentCount) {
       await client.query(
-        `INSERT INTO season_rounds (tournament_id, round_number)
-         SELECT $1, number
+        `INSERT INTO season_rounds
+          (tournament_id, round_number, round_kind)
+         SELECT $1, number, 'regular'
          FROM generate_series($2::int + 1, $3::int) AS number
          ON CONFLICT (tournament_id, round_number) DO NOTHING`,
         [tournamentId, currentCount, count],
       );
     }
+    await client.query(
+      `UPDATE season_rounds
+       SET round_number = $2::int + 1
+       WHERE tournament_id = $1 AND round_kind = 'finals'`,
+      [tournamentId, count],
+    );
     await client.query(
       `UPDATE tournaments
        SET season_round_count = $2, updated_at = NOW()

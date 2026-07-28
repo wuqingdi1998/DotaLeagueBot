@@ -6,6 +6,7 @@ import { ApplicationsAdmin } from "./ApplicationsAdmin";
 import { MatchCreateForm } from "./MatchCreateForm";
 import { MatchResultsList } from "./MatchResultsList";
 import { SeasonAdminPanel } from "./SeasonAdminPanel";
+import { SeasonDisciplineAdmin } from "./SeasonDisciplineAdmin";
 import { TournamentDetailsEditor } from "./TournamentDetailsEditor";
 import {
   ArchiveRostersAdmin,
@@ -42,8 +43,10 @@ export function TournamentAdminPanel() {
             <div>
               <span>Опубликовано</span>
               <strong>
-                {season.data?.rounds.filter((round) => round.is_visible)
-                  .length ?? 0}
+                {season.data?.rounds.filter(
+                  (round) =>
+                    round.is_visible && round.round_kind === "regular",
+                ).length ?? 0}
               </strong>
             </div>
           </>
@@ -85,7 +88,10 @@ export function TournamentAdminPanel() {
       />
 
       {isSeasonal ? (
-        <SeasonAdminPanel />
+        <>
+          <SeasonAdminPanel />
+          <SeasonDisciplineAdmin />
+        </>
       ) : (
         <>
           <ApplicationsAdmin />

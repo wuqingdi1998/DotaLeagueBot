@@ -14,11 +14,38 @@ import {
   updateSeasonLobby,
   updateSeasonRound,
 } from "./season-round-actions";
+import {
+  createSeasonAdjustment,
+  deleteSeasonAdjustment,
+  deleteSeasonPenalty,
+  saveSeasonPenalty,
+  updateSeasonAdjustment,
+  updateSeasonParticipant,
+} from "./season-player-actions";
+import {
+  createSeasonSubstitution,
+  deleteSeasonSubstitution,
+  updateSeasonSubstitution,
+} from "./season-substitution-actions";
+import {
+  deleteSeasonFinalist,
+  saveSeasonFinalist,
+} from "./season-finalist-actions";
 
 export const dynamic = "force-dynamic";
 
 type SeasonRequest = Record<string, unknown> & {
-  entity?: "season" | "round" | "lobby" | "match" | "game";
+  entity?:
+    | "season"
+    | "round"
+    | "lobby"
+    | "match"
+    | "game"
+    | "participant"
+    | "adjustment"
+    | "penalty"
+    | "substitution"
+    | "finalist";
 };
 
 function seasonErrorResponse(error: unknown) {
@@ -49,6 +76,18 @@ export async function POST(request: Request) {
     if (body.entity === "lobby") return Response.json(await createSeasonLobby(body), { status: 201 });
     if (body.entity === "match") return Response.json(await createSeasonMatch(body), { status: 201 });
     if (body.entity === "game") return Response.json(await createSeasonGame(body), { status: 201 });
+    if (body.entity === "adjustment") {
+      return Response.json(await createSeasonAdjustment(body), { status: 201 });
+    }
+    if (body.entity === "penalty") {
+      return Response.json(await saveSeasonPenalty(body), { status: 201 });
+    }
+    if (body.entity === "substitution") {
+      return Response.json(await createSeasonSubstitution(body), { status: 201 });
+    }
+    if (body.entity === "finalist") {
+      return Response.json(await saveSeasonFinalist(body), { status: 201 });
+    }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {
     return seasonErrorResponse(error);
@@ -68,6 +107,21 @@ export async function PATCH(request: Request) {
     if (body.entity === "lobby") return Response.json(await updateSeasonLobby(body));
     if (body.entity === "match") return Response.json(await updateSeasonMatch(body));
     if (body.entity === "game") return Response.json(await updateSeasonGame(body));
+    if (body.entity === "participant") {
+      return Response.json(await updateSeasonParticipant(body));
+    }
+    if (body.entity === "adjustment") {
+      return Response.json(await updateSeasonAdjustment(body));
+    }
+    if (body.entity === "penalty") {
+      return Response.json(await saveSeasonPenalty(body));
+    }
+    if (body.entity === "substitution") {
+      return Response.json(await updateSeasonSubstitution(body));
+    }
+    if (body.entity === "finalist") {
+      return Response.json(await saveSeasonFinalist(body));
+    }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {
     return seasonErrorResponse(error);
@@ -81,6 +135,18 @@ export async function DELETE(request: Request) {
     if (body.entity === "lobby") return Response.json(await deleteSeasonLobby(body));
     if (body.entity === "match") return Response.json(await deleteSeasonMatch(body));
     if (body.entity === "game") return Response.json(await deleteSeasonGame(body));
+    if (body.entity === "adjustment") {
+      return Response.json(await deleteSeasonAdjustment(body));
+    }
+    if (body.entity === "penalty") {
+      return Response.json(await deleteSeasonPenalty(body));
+    }
+    if (body.entity === "substitution") {
+      return Response.json(await deleteSeasonSubstitution(body));
+    }
+    if (body.entity === "finalist") {
+      return Response.json(await deleteSeasonFinalist(body));
+    }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {
     return seasonErrorResponse(error);
