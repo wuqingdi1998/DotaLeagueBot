@@ -9,6 +9,9 @@ const tournamentListRoute = source("../app/api/tournaments/route.ts");
 const tournamentCard = source(
   "../app/tournaments/hub/TournamentCard.tsx",
 );
+const tournamentDirectoryStyles = source(
+  "../app/styles/11-tournament-directory.css",
+);
 
 describe("tournament directory contract", () => {
   it("loads season participant and round totals", () => {
@@ -32,5 +35,17 @@ describe("tournament directory contract", () => {
     );
     expect(tournamentCard).toContain("tournament.participant_count");
     expect(tournamentCard).toContain("tournament.season_round_count");
+  });
+
+  it("positions card details directly after descriptions of any length", () => {
+    const descriptionStyles = tournamentDirectoryStyles.match(
+      /\.tournament-card-description\s*\{[^}]*\}/,
+    )?.[0];
+
+    expect(descriptionStyles).toBeDefined();
+    expect(descriptionStyles).not.toContain("min-height");
+    expect(tournamentDirectoryStyles).toMatch(
+      /\.tournament-card-actions\s*\{[^}]*margin-top:\s*auto;/,
+    );
   });
 });

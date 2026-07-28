@@ -30,7 +30,6 @@
 }
 
 .tournament-card-description {
-  min-height: 54px;
   margin: 16px 0 0;
   color: var(--muted);
   font-size: 16px;
