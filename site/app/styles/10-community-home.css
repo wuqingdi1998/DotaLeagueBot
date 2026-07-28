@@ -94,6 +94,24 @@
   color: var(--blue-soft);
 }
 
+@media (min-width: 1051px) and (max-width: 1350px) {
+  .site-header.platform-header {
+    gap: 12px;
+    padding-right: 22px;
+    padding-left: 22px;
+  }
+
+  .platform-navigation {
+    gap: 2px;
+  }
+
+  .platform-navigation a {
+    min-height: 44px;
+    padding: 0 9px;
+    font-size: 14px;
+  }
+}
+
 .platform-hero {
   position: relative;
   display: grid;

@@ -456,7 +456,10 @@ export async function loadHallOfFame(): Promise<HallOfFamePlayer[]> {
        ORDER BY session.created_at DESC
        LIMIT 1
      ) latest_session ON TRUE
-     LEFT JOIN player_medals medal ON medal.player_id = player.discord_id
+     JOIN player_medals medal ON medal.player_id = player.discord_id
+     JOIN tournaments medal_tournament
+       ON medal_tournament.id = medal.tournament_id
+      AND medal_tournament.tournament_type = 'seasonal'
      GROUP BY
        player.discord_id,
        player.steam_id32,

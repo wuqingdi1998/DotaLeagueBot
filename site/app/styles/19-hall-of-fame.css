@@ -164,6 +164,73 @@
   text-align: center;
 }
 
+.participants-hero {
+  background:
+    radial-gradient(circle at 82% 15%, rgba(0, 195, 255, 0.16), transparent 32%),
+    var(--surface-soft);
+}
+
+.participants-row {
+  grid-template-columns: 90px minmax(240px, 1fr) 130px 190px;
+}
+
+.participants-player {
+  min-width: 0;
+  width: fit-content;
+}
+
+.participants-player:hover b {
+  color: var(--blue-strong);
+}
+
+.participant-tier {
+  justify-self: start;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: var(--surface-blue);
+  color: var(--blue-deep);
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.participant-links {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.participant-links a {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 900;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.participant-links a:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue-strong);
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+}
+
+.participant-links svg {
+  width: 21px;
+  height: 21px;
+}
+
 @media (max-width: 900px) {
   .tournament-tabs {
     align-items: stretch;
@@ -244,6 +311,11 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .participants-row {
+    grid-template-columns: 32px minmax(0, 1fr) 82px 142px;
+    gap: 8px;
   }
 }
 
@@ -337,6 +409,43 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
+  }
+
+  .participants-table {
+    overflow: hidden;
+  }
+
+  .participants-row {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 58px 108px;
+    gap: 5px;
+    padding: 0 10px;
+  }
+
+  .participants-row > :first-child {
+    display: none;
+  }
+
+  .participant-tier {
+    justify-self: center;
+    padding: 5px 7px;
+    font-size: 11px;
+  }
+
+  .participant-links {
+    gap: 5px;
+  }
+
+  .participant-links a {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    font-size: 10px;
+  }
+
+  .participant-links svg {
+    width: 18px;
+    height: 18px;
   }
 
   .profile-background-crop-backdrop {
