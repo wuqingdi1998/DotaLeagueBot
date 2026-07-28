@@ -27,4 +27,16 @@ describe("mobile width safety", () => {
       /@media \(max-width:\s*760px\)[\s\S]*?\.brand strong,\s*\.brand small\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;/,
     );
   });
+
+  it("keeps seasonal navigation and match cards inside narrow screens", () => {
+    expect(styles).toMatch(
+      /\.season-tournament-tabs\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*overflow:\s*hidden;/,
+    );
+    expect(styles).toMatch(
+      /\.season-match-card\s*\{[^}]*min-width:\s*0;[^}]*overflow:\s*hidden;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.season-match-scoreboard\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
+    );
+  });
 });

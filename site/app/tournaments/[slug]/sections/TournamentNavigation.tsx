@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { FiChevronLeft, FiChevronRight, FiEyeOff } from "react-icons/fi";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
-import { roleOptions } from "../model/constants";
+import { SeasonRoundTabStrip } from "../components/SeasonRoundTabStrip";
 import { useTournament } from "../hooks/TournamentContext";
+import { roleOptions } from "../model/constants";
 import type { TournamentTab } from "../model/types";
 
 export function TournamentInvitations() {
@@ -115,18 +114,7 @@ export function TournamentNavigation() {
 
 function SeasonTournamentNavigation() {
   const { activeTab, adminMode, data, season, setActiveTab } = useTournament();
-  const roundsRef = useRef<HTMLDivElement>(null);
-  const activeRoundRef = useRef<HTMLButtonElement>(null);
   const rounds = season.data?.rounds ?? [];
-
-  useEffect(() => {
-    activeRoundRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "center",
-    });
-  }, [activeTab, season.activeRoundNumber]);
-
   if (!data) return null;
 
   return (
@@ -155,84 +143,29 @@ function SeasonTournamentNavigation() {
         ))}
       </div>
 
-      <div className="season-round-navigation season-navigation-rounds">
-        {rounds.length > 0 && (
-          <button
-            className="season-round-scroll-button"
-            type="button"
-            aria-label="Прокрутить туры влево"
-            onClick={() =>
-              roundsRef.current?.scrollBy({ left: -260, behavior: "smooth" })
-            }
-          >
-            <FiChevronLeft aria-hidden="true" />
-          </button>
-        )}
-        <div
-          className="tournament-tabs-stages season-round-tabs"
-          ref={roundsRef}
-          onWheel={(event) => {
-            if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
-              event.currentTarget.scrollLeft += event.deltaY;
-            }
+      <SeasonRoundTabStrip
+        activeRoundNumber={season.activeRoundNumber}
+        activeTab={activeTab}
+        isOrganizer={adminMode}
+        rounds={rounds}
+        onOpenRound={season.openRound}
+      />
+
+      {adminMode && (
+        <button
+          className={`admin-tab season-navigation-admin${
+            activeTab === "admin" ? " active" : ""
+          }`}
+          onClick={() => {
+            setActiveTab("admin");
+            season.openTab("admin");
           }}
+          role="tab"
+          aria-selected={activeTab === "admin"}
         >
-          {rounds.map((round) => {
-            const isActive =
-              activeTab === "round" &&
-              season.activeRoundNumber === round.round_number;
-            return (
-              <button
-                className={`${isActive ? "active" : ""}${
-                  !round.is_visible ? " season-round-hidden" : ""
-                }`}
-                key={round.id}
-                ref={isActive ? activeRoundRef : undefined}
-                onClick={() => season.openRound(round.round_number)}
-                role="tab"
-                aria-selected={isActive}
-                title={
-                  round.is_visible
-                    ? round.name || `Тур ${round.round_number}`
-                    : "Тур скрыт от обычных пользователей"
-                }
-              >
-                {round.round_kind === "finals"
-                  ? "Финалы"
-                  : `Тур ${round.round_number}`}
-                {!round.is_visible && adminMode && (
-                  <FiEyeOff aria-label="Скрыт" />
-                )}
-              </button>
-            );
-          })}
-        </div>
-        {rounds.length > 0 && (
-          <button
-            className="season-round-scroll-button"
-            type="button"
-            aria-label="Прокрутить туры вправо"
-            onClick={() =>
-              roundsRef.current?.scrollBy({ left: 260, behavior: "smooth" })
-            }
-          >
-            <FiChevronRight aria-hidden="true" />
-          </button>
-        )}
-        {adminMode && (
-          <button
-            className={`admin-tab${activeTab === "admin" ? " active" : ""}`}
-            onClick={() => {
-              setActiveTab("admin");
-              season.openTab("admin");
-            }}
-            role="tab"
-            aria-selected={activeTab === "admin"}
-          >
-            Управление
-          </button>
-        )}
-      </div>
+          Управление
+        </button>
+      )}
     </div>
   );
 }

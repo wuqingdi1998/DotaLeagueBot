@@ -342,8 +342,8 @@ function SeasonTemporaryTeam({
               {player.avatar_url ? (
                 <Image
                   src={player.avatar_url}
-                  width={30}
-                  height={30}
+                  width={36}
+                  height={36}
                   alt=""
                 />
               ) : (

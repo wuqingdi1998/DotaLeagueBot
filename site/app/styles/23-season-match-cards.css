@@ -9,6 +9,7 @@
 
 .season-lobby-card {
   overflow: hidden;
+  border-color: var(--line-strong);
 }
 
 .season-lobby-header {
@@ -19,7 +20,7 @@
   gap: 18px;
   border-bottom: 1px solid var(--line);
   padding: 20px 22px;
-  background: linear-gradient(135deg, var(--surface-soft), var(--surface));
+  background: var(--surface);
 }
 
 .season-lobby-title {
@@ -35,11 +36,11 @@
   height: 42px;
   flex: 0 0 42px;
   place-items: center;
-  border: 1px solid rgba(0, 184, 255, 0.36);
+  border: 1px solid var(--line);
   border-radius: 13px;
-  background: rgba(0, 184, 255, 0.1);
-  color: var(--blue-strong);
-  font-size: 16px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 17px;
   font-weight: 800;
 }
 
@@ -51,15 +52,15 @@
 .season-lobby-title p {
   margin: 0 0 3px;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .season-lobby-title h4 {
   margin: 0;
-  font-size: clamp(20px, 3vw, 27px);
+  font-size: clamp(23px, 3vw, 30px);
 }
 
 .season-status-pill {
@@ -68,9 +69,9 @@
   align-items: center;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
-  padding: 7px 11px;
-  color: var(--muted);
-  font-size: 11px;
+  padding: 8px 12px;
+  color: var(--text);
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -81,9 +82,14 @@
 }
 
 .season-status-pill.completed {
-  border-color: rgba(0, 184, 255, 0.36);
-  background: rgba(0, 184, 255, 0.1);
-  color: var(--blue-strong);
+  border-color: rgba(43, 154, 104, 0.42);
+  background: rgba(43, 154, 104, 0.13);
+  color: #237a54;
+}
+
+[data-theme="dark"] .season-status-pill.completed,
+[data-theme="dark"] .season-match-outcome {
+  color: #72d3a5;
 }
 
 .season-status-pill.cancelled {
@@ -113,7 +119,7 @@
   justify-content: space-between;
   gap: 16px;
   border-bottom: 1px solid var(--line);
-  padding: 13px 16px;
+  padding: 16px 18px;
   background: var(--surface);
 }
 
@@ -129,7 +135,7 @@
   align-items: center;
   gap: 6px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -137,14 +143,14 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 128px minmax(0, 1fr);
   align-items: stretch;
-  gap: 14px;
-  padding: 18px;
+  gap: 18px;
+  padding: 22px;
 }
 
 .season-temporary-team {
   min-width: 0;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   border-radius: 15px;
   background: var(--surface);
 }
@@ -155,23 +161,23 @@
   align-items: center;
   gap: 9px;
   border-bottom: 1px solid var(--line);
-  padding: 13px 14px;
+  padding: 15px 16px;
 }
 
 .season-temporary-team h5 {
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
-  font-size: 16px;
+  font-size: 18px;
 }
 
-.season-temporary-team > header > svg,
-.season-temporary-team > header > span {
-  color: var(--blue-strong);
+.season-temporary-team > header > svg {
+  color: var(--muted);
 }
 
 .season-temporary-team > header > span {
-  font-size: 11px;
+  color: var(--text);
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -185,11 +191,11 @@
 .season-temporary-team li {
   display: grid;
   min-width: 0;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
   align-items: center;
   gap: 9px;
   border-bottom: 1px solid var(--line);
-  padding: 9px 12px;
+  padding: 11px 14px;
   list-style: none;
 }
 
@@ -200,13 +206,13 @@
 .season-temporary-team li img,
 .season-temporary-team li > i {
   display: grid;
-  width: 30px;
-  height: 30px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border-radius: 9px;
   background: var(--blue-gradient);
   color: #fff;
-  font-size: 12px;
+  font-size: 13px;
   font-style: normal;
   object-fit: cover;
 }
@@ -220,26 +226,27 @@
 .season-temporary-team li strong {
   overflow: hidden;
   text-overflow: ellipsis;
+  font-size: 16px;
   white-space: nowrap;
 }
 
 .season-temporary-team li small {
-  color: var(--blue-strong);
-  font-size: 9px;
+  color: var(--muted);
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
 }
 
 .season-temporary-team li > b {
-  color: var(--quiet);
-  font-size: 11px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .season-empty-lineup {
   margin: 0;
   padding: 22px 14px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 14px;
   text-align: center;
 }
 
@@ -257,7 +264,7 @@
 .season-match-score > span,
 .season-match-score > small {
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -268,7 +275,7 @@
   align-items: center;
   gap: 10px;
   font-family: "5ka Sans Design", sans-serif;
-  font-size: 32px;
+  font-size: 38px;
 }
 
 .season-match-score b.winner {
@@ -285,9 +292,9 @@
   margin: 0 18px 16px;
   border-radius: 999px;
   padding: 7px 11px;
-  background: rgba(0, 184, 255, 0.1);
-  color: var(--blue-strong);
-  font-size: 11px;
+  background: rgba(43, 154, 104, 0.13);
+  color: #237a54;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -296,6 +303,8 @@
   gap: 8px;
   border-top: 1px solid var(--line);
   padding: 14px 18px 16px;
+  color: var(--text);
+  font-size: 14px;
 }
 
 .season-game-list > div {
@@ -324,7 +333,7 @@
   border-radius: 8px;
   padding: 7px 9px;
   color: var(--blue-strong);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
 }
 
@@ -340,6 +349,7 @@
 
   .season-match-score {
     min-height: 96px;
+    order: -1;
   }
 
   .season-match-score > strong {
@@ -351,6 +361,7 @@
   .season-lobby-header {
     align-items: stretch;
     flex-direction: column;
+    padding: 17px;
   }
 
   .season-status-pill {
@@ -364,6 +375,10 @@
   .season-match-list,
   .season-match-scoreboard {
     padding: 12px;
+  }
+
+  .season-temporary-team > header {
+    padding: 13px 14px;
   }
 
   .season-game-list > div {

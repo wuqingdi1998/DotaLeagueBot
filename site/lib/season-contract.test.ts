@@ -12,6 +12,9 @@ const adminRoute = source("../app/api/admin/season/route.ts");
 const navigation = source(
   "../app/tournaments/[slug]/sections/TournamentNavigation.tsx",
 );
+const roundTabStrip = source(
+  "../app/tournaments/[slug]/components/SeasonRoundTabStrip.tsx",
+);
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
@@ -67,18 +70,28 @@ describe("season interface contract", () => {
   });
 
   it("supports long round navigation and scrolls to the active round", () => {
-    expect(navigation).toContain("scrollIntoView");
-    expect(navigation).toContain("scrollBy");
+    expect(navigation).toContain("SeasonRoundTabStrip");
     expect(navigation).toContain("season-navigation-primary");
-    expect(navigation).toContain("season-navigation-rounds");
+    expect(navigation).not.toContain("scrollBy");
+    expect(roundTabStrip).toContain('scrollToEdge("start")');
+    expect(roundTabStrip).toContain('scrollToEdge("end")');
+    expect(roundTabStrip).toContain("onPointerDown");
+    expect(roundTabStrip).toContain("canScrollBack");
+    expect(roundTabStrip).toContain("canScrollForward");
     expect(styles).toMatch(
-      /\.season-tournament-tabs\s*\{[^}]*display:\s*grid;/,
+      /\.season-tournament-tabs\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*row;/,
     );
     expect(styles).toMatch(
       /\.season-round-tabs\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/,
     );
     expect(styles).toMatch(
       /\.season-round-tabs button\s*\{[^}]*white-space:\s*nowrap;/,
+    );
+    expect(styles).toMatch(
+      /\.season-round-tabs\s*\{[^}]*scrollbar-width:\s*none;/,
+    );
+    expect(styles).toMatch(
+      /\.season-round-tabs::[-]webkit-scrollbar\s*\{[^}]*display:\s*none;/,
     );
   });
 
@@ -102,6 +115,12 @@ describe("season interface contract", () => {
     expect(rounds).toContain("season-status-pill");
     expect(styles).toMatch(
       /\.season-match-scoreboard\s*\{[^}]*grid-template-columns:/,
+    );
+    expect(styles).toMatch(
+      /\.season-match-heading span\s*\{[^}]*font-size:\s*14px;/,
+    );
+    expect(styles).toMatch(
+      /\.season-temporary-team li strong\s*\{[^}]*font-size:\s*16px;/,
     );
   });
 
