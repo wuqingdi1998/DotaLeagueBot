@@ -89,7 +89,7 @@ BEGIN
     WHERE player_map.discord_id IS NULL;
 
     IF missing_players IS NOT NULL THEN
-        RAISE NOTICE
+        RAISE EXCEPTION
             'Не найдены профили игроков сезона 8: %',
             missing_players;
     END IF;
@@ -106,7 +106,7 @@ BEGIN
     ) collision;
 
     IF duplicate_profiles IS NOT NULL THEN
-        RAISE NOTICE
+        RAISE EXCEPTION
             'Один профиль связан с несколькими игроками сезона 8: %',
             duplicate_profiles;
     END IF;
