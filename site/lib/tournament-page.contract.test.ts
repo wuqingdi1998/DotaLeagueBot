@@ -23,6 +23,10 @@ function sourceFiles(directory: URL): string[] {
 
 const tournamentSource = sourceFiles(tournamentPageDirectory).join("\n");
 const stylesSource = loadSiteStyles();
+const playerSearchRoute = readFileSync(
+  new URL("../app/api/players/route.ts", import.meta.url),
+  "utf8",
+);
 
 describe("tournament page public behavior", () => {
   it("keeps the main tournament navigation", () => {
@@ -52,6 +56,23 @@ describe("tournament page public behavior", () => {
     expect(tournamentSource).toContain("Сформировать группы");
     expect(tournamentSource).toContain("Шаффл");
     expect(tournamentSource).toContain("Матчи и результаты");
+  });
+
+  it("searches the full player list after two nickname characters", () => {
+    expect(tournamentSource).toContain("minimumPlayerSearchLength = 2");
+    expect(tournamentSource).toContain("searchPlayerNames(event.target.value)");
+    expect(playerSearchRoute).toContain("search.length < 2");
+    expect(playerSearchRoute).toContain("ingame_name ILIKE");
+    expect(playerSearchRoute).toContain("LIMIT 100");
+  });
+
+  it("gives every tournament settings field an opaque background", () => {
+    expect(stylesSource).toMatch(
+      /\.admin-panel input:not\(\[type="checkbox"\]\)[^}]+background-color:\s*var\(--surface\)/,
+    );
+    expect(stylesSource).toMatch(
+      /\.admin-panel textarea,[\s\S]*?\.admin-panel select\s*\{[^}]*background-color:\s*var\(--surface\)/,
+    );
   });
 
   it("keeps tournament navigation usable on narrow screens", () => {

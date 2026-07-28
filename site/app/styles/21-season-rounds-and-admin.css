@@ -1,57 +1,5 @@
 /* Seasonal rounds, matches and organizer controls */
 
-.season-round-card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 16px;
-  margin-top: 24px;
-}
-
-.season-round-card {
-  display: grid;
-  align-content: start;
-  gap: 13px;
-  padding: 22px;
-}
-
-.season-round-card.hidden {
-  border-style: dashed;
-}
-
-.season-round-card > div,
-.season-round-card dl {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 0;
-}
-
-.season-round-card h4 {
-  margin: 0;
-  font-size: 22px;
-}
-
-.season-round-card p,
-.season-round-card em {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  font-style: normal;
-}
-
-.season-round-card dl div {
-  display: grid;
-  gap: 4px;
-}
-
-.season-round-card dt { color: var(--muted); font-size: 12px; }
-.season-round-card dd { margin: 0; font-weight: 800; }
-
-.season-round-card .secondary-button {
-  margin-top: 4px;
-}
-
 .season-count-editor,
 .season-admin-actions {
   display: flex;

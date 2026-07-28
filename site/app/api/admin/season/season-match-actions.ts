@@ -1,5 +1,6 @@
 import { query, transaction } from "@/lib/db";
 import { validateSeasonResult } from "@/lib/season";
+import { syncSeasonFinalAwards } from "@/lib/season-final-awards";
 import { validateSeasonFinalMatch } from "@/lib/season-finals";
 import {
   enumValue,
@@ -184,7 +185,10 @@ async function replaceParticipants(
   }
 }
 
-export async function createSeasonMatch(body: Record<string, unknown>) {
+export async function createSeasonMatch(
+  body: Record<string, unknown>,
+  actorDiscordId: string,
+) {
   const lobbyId = requiredId(body.lobbyId, "лобби");
   const values = matchValues(body);
   const { teamA, teamB } = seasonTeams(body);
@@ -281,11 +285,19 @@ export async function createSeasonMatch(body: Record<string, unknown>) {
       teamBCaptainId,
       tierSnapshots,
     );
+    await syncSeasonFinalAwards(
+      client,
+      parent.rows[0].tournament_id,
+      actorDiscordId,
+    );
     return { ok: true, id: created.rows[0].id };
   });
 }
 
-export async function updateSeasonMatch(body: Record<string, unknown>) {
+export async function updateSeasonMatch(
+  body: Record<string, unknown>,
+  actorDiscordId: string,
+) {
   const id = requiredId(body.id, "матч");
   const values = matchValues(body);
   const { teamA, teamB } = seasonTeams(body);
@@ -359,18 +371,43 @@ export async function updateSeasonMatch(body: Record<string, unknown>) {
       teamBCaptainId,
       tierSnapshots,
     );
+    await syncSeasonFinalAwards(
+      client,
+      updated.rows[0].tournament_id,
+      actorDiscordId,
+    );
     return { ok: true };
   });
 }
 
-export async function deleteSeasonMatch(body: Record<string, unknown>) {
+export async function deleteSeasonMatch(
+  body: Record<string, unknown>,
+  actorDiscordId: string,
+) {
   const id = requiredId(body.id, "матч");
-  const removed = await query<{ id: number }>(
-    "DELETE FROM season_matches WHERE id = $1 RETURNING id::int",
-    [id],
-  );
-  if (!removed.length) throw new Response("Матч не найден", { status: 404 });
-  return { ok: true };
+  return transaction(async (client) => {
+    const removed = await client.query<{
+      id: number;
+      tournament_id: number;
+    }>(
+      `DELETE FROM season_matches match
+       USING season_lobbies lobby, season_rounds round
+       WHERE match.id = $1
+         AND lobby.id = match.lobby_id
+         AND round.id = lobby.round_id
+       RETURNING match.id::int, round.tournament_id::int`,
+      [id],
+    );
+    if (!removed.rowCount) {
+      throw new Response("Матч не найден", { status: 404 });
+    }
+    await syncSeasonFinalAwards(
+      client,
+      removed.rows[0].tournament_id,
+      actorDiscordId,
+    );
+    return { ok: true };
+  });
 }
 
 function gameValues(body: Record<string, unknown>) {

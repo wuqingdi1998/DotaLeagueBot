@@ -220,7 +220,6 @@ export type RegistrationForm = {
 export type TournamentTab =
   | "overview"
   | "standings"
-  | "rounds"
   | "round"
   | "teams"
   | "matches"

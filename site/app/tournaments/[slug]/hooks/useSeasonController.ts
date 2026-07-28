@@ -90,7 +90,7 @@ export function useSeasonController({
   function openTab(
     tab: Extract<
       TournamentTab,
-      "overview" | "standings" | "rounds" | "admin"
+      "overview" | "standings" | "admin"
     >,
   ) {
     setActiveRoundNumber(null);

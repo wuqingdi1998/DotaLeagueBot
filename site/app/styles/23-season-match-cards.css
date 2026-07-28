@@ -175,10 +175,32 @@
   color: var(--muted);
 }
 
-.season-temporary-team > header > span {
+.season-team-tier-total {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 5px 10px;
+  background: var(--surface-blue);
   color: var(--text);
-  font-size: 13px;
-  font-weight: 800;
+  white-space: nowrap;
+}
+
+.season-team-tier-total small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.season-team-tier-total strong {
+  color: var(--blue-deep);
+  font-size: 14px;
+}
+
+[data-theme="dark"] .season-team-tier-total strong {
+  color: var(--blue);
 }
 
 .season-temporary-team ul {

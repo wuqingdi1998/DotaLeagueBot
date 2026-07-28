@@ -127,13 +127,12 @@ function SeasonTournamentNavigation() {
         {[
           ["overview", "Обзор"],
           ["standings", "Таблица"],
-          ["rounds", "Туры"],
         ].map(([id, label]) => (
           <button
             className={activeTab === id ? "active" : ""}
             key={id}
             onClick={() =>
-              season.openTab(id as "overview" | "standings" | "rounds")
+              season.openTab(id as "overview" | "standings")
             }
             role="tab"
             aria-selected={activeTab === id}

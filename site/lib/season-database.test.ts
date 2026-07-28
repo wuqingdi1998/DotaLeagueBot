@@ -43,6 +43,13 @@ const seasonTierMigration = readFileSync(
   ),
   "utf8",
 );
+const seasonTimeMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0025_season8_corrections.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 function migrationJson<T>(name: string): T {
   const match = season8Migration.match(
@@ -244,5 +251,22 @@ describe("season 8 import migration", () => {
     expect(tiersByRound.get(3)?.get("lavchik")).toBe(9);
     expect(tiersByRound.get(9)?.get("umbrella")).toBe(5);
     expect(tiersByRound.get(10)?.get("umbrella")).toBe(4);
+  });
+
+  it("moves every season 8 round, lobby and match to 21:00 Moscow time", () => {
+    expect(seasonTimeMigration).toContain("TIME '21:00'");
+    expect(seasonTimeMigration).toContain("Europe/Moscow");
+    expect(seasonTimeMigration).toContain("UPDATE season_rounds");
+    expect(seasonTimeMigration).toContain("UPDATE season_lobbies");
+    expect(seasonTimeMigration).toContain("UPDATE season_matches");
+    expect(seasonTimeMigration.match(/league-season-8/g)).toHaveLength(4);
+  });
+
+  it("records eosom instead of the absent Yasama in round four", () => {
+    expect(seasonTimeMigration).toContain("nickname_snapshot = 'eosom'");
+    expect(seasonTimeMigration).toContain("round.round_number = 4");
+    expect(seasonTimeMigration).toContain(
+      "LOWER(BTRIM(participant.nickname_snapshot)) = 'yasama'",
+    );
   });
 });

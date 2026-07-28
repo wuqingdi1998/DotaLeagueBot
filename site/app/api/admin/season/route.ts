@@ -71,10 +71,15 @@ function seasonErrorResponse(error: unknown) {
 
 export async function POST(request: Request) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const body = (await request.json()) as SeasonRequest;
     if (body.entity === "lobby") return Response.json(await createSeasonLobby(body), { status: 201 });
-    if (body.entity === "match") return Response.json(await createSeasonMatch(body), { status: 201 });
+    if (body.entity === "match") {
+      return Response.json(
+        await createSeasonMatch(body, admin.discordId),
+        { status: 201 },
+      );
+    }
     if (body.entity === "game") return Response.json(await createSeasonGame(body), { status: 201 });
     if (body.entity === "adjustment") {
       return Response.json(await createSeasonAdjustment(body), { status: 201 });
@@ -105,7 +110,9 @@ export async function PATCH(request: Request) {
       return Response.json(await updateSeasonRound(body, admin.discordId));
     }
     if (body.entity === "lobby") return Response.json(await updateSeasonLobby(body));
-    if (body.entity === "match") return Response.json(await updateSeasonMatch(body));
+    if (body.entity === "match") {
+      return Response.json(await updateSeasonMatch(body, admin.discordId));
+    }
     if (body.entity === "game") return Response.json(await updateSeasonGame(body));
     if (body.entity === "participant") {
       return Response.json(await updateSeasonParticipant(body));
@@ -130,10 +137,12 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    await requireAdmin();
+    const admin = await requireAdmin();
     const body = (await request.json()) as SeasonRequest;
     if (body.entity === "lobby") return Response.json(await deleteSeasonLobby(body));
-    if (body.entity === "match") return Response.json(await deleteSeasonMatch(body));
+    if (body.entity === "match") {
+      return Response.json(await deleteSeasonMatch(body, admin.discordId));
+    }
     if (body.entity === "game") return Response.json(await deleteSeasonGame(body));
     if (body.entity === "adjustment") {
       return Response.json(await deleteSeasonAdjustment(body));

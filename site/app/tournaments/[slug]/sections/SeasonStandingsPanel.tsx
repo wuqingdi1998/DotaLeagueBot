@@ -120,7 +120,6 @@ function StandingsTable({
                   nickname={row.nickname}
                   avatarUrl={row.avatarUrl}
                 />
-                {row.inactiveReason && <small>{row.inactiveReason}</small>}
               </td>
               <td>{row.playedRounds}</td>
               <td>{row.wins}</td>

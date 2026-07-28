@@ -239,27 +239,72 @@ export async function loadPublicPlayerProfile(
          SELECT snapshot.application_id
          FROM tournament_roster_snapshots snapshot
          WHERE snapshot.player_id = $1
+       ),
+       ordinary_history AS (
+         SELECT
+           t.id::int,
+           t.slug,
+           t.name,
+           t.start_at,
+           t.end_at,
+           t.status,
+           a.team_name,
+           result.placement::int,
+           result.result_label
+         FROM participations participation
+         JOIN tournament_team_applications a
+           ON a.id = participation.application_id
+         JOIN tournaments t
+           ON t.id = a.tournament_id
+         LEFT JOIN tournament_team_results result
+           ON result.application_id = a.id
+         WHERE a.status = 'approved'
+           AND t.status IN ('active', 'finished', 'archived')
+       ),
+       seasonal_history AS (
+         SELECT
+           t.id::int,
+           t.slug,
+           t.name,
+           t.start_at,
+           t.end_at,
+           t.status,
+           COALESCE(final_match.team_name, 'Финалы') AS team_name,
+           CASE medal.medal_type
+             WHEN 'gold' THEN 1
+             WHEN 'silver' THEN 2
+           END::int AS placement,
+           CASE medal.medal_type
+             WHEN 'gold' THEN 'Победитель'
+             WHEN 'silver' THEN 'Финалист'
+           END AS result_label
+         FROM player_medals medal
+         JOIN tournaments t ON t.id = medal.tournament_id
+         LEFT JOIN LATERAL (
+           SELECT CASE participant.team_side
+             WHEN 'a' THEN match.team_a_name
+             ELSE match.team_b_name
+           END AS team_name
+           FROM season_match_participants participant
+           JOIN season_matches match ON match.id = participant.match_id
+           JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+           JOIN season_rounds round ON round.id = lobby.round_id
+           WHERE participant.player_id = medal.player_id
+             AND round.tournament_id = t.id
+             AND round.round_kind = 'finals'
+             AND match.status = 'completed'
+           ORDER BY match.id
+           LIMIT 1
+         ) final_match ON TRUE
+         WHERE medal.player_id = $1
+           AND medal.medal_type IN ('gold', 'silver')
+           AND t.tournament_type = 'seasonal'
+           AND t.status IN ('active', 'finished', 'archived')
        )
-       SELECT
-         t.id::int,
-         t.slug,
-         t.name,
-         t.start_at,
-         t.end_at,
-         t.status,
-         a.team_name,
-         result.placement::int,
-         result.result_label
-       FROM participations participation
-       JOIN tournament_team_applications a
-         ON a.id = participation.application_id
-       JOIN tournaments t
-         ON t.id = a.tournament_id
-       LEFT JOIN tournament_team_results result
-         ON result.application_id = a.id
-       WHERE a.status = 'approved'
-         AND t.status IN ('active', 'finished', 'archived')
-       ORDER BY t.end_at DESC, t.start_at DESC, t.id DESC`,
+       SELECT * FROM ordinary_history
+       UNION ALL
+       SELECT * FROM seasonal_history
+       ORDER BY end_at DESC, start_at DESC, id DESC`,
       [player.discord_id],
     ),
     one<{ matches: number; wins: number }>(

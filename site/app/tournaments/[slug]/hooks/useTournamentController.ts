@@ -6,6 +6,7 @@ import { emptyMatchDraft, emptyRegistration, roleOptions } from "../model/consta
 import { getTeamNameError } from "../model/formatters";
 import { buildMatchResultPayload } from "../model/match-result-payload";
 import { startDiscordLogin } from "../services/discord-login";
+import { usePlayerNameSearch } from "./usePlayerNameSearch";
 import { useSeasonController } from "./useSeasonController";
 import type { MatchDraft, RegistrationForm, TeamApplication } from "../model/types";
 import type { TournamentMatch, TournamentSiteData, TournamentTab } from "../model/types";
@@ -29,7 +30,6 @@ export function useTournamentController() {
   const [saving, setSaving] = useState(false);
   const [daysLeft, setDaysLeft] = useState(0);
   const [registrationAvailable, setRegistrationAvailable] = useState(false);
-  const [playerNames, setPlayerNames] = useState<string[]>([]);
   const [matchDraft, setMatchDraft] = useState<MatchDraft>(emptyMatchDraft);
   const [groupCount, setGroupCount] = useState(2);
   const [teamsPerGroup, setTeamsPerGroup] = useState(4);
@@ -42,6 +42,9 @@ export function useTournamentController() {
     setMessage: setToast,
     slug: tournamentSlug,
   });
+  const { playerNames, searchPlayerNames } = usePlayerNameSearch(
+    data?.user !== null && data?.user !== undefined,
+  );
 
   const loadData = useCallback(async () => {
     try {
@@ -70,17 +73,6 @@ export function useTournamentController() {
           captain: nextData.user?.playerName ?? "",
           contact: current.contact || `@${nextData.user?.username ?? ""}`,
         }));
-        const playersResponse = await fetch("/api/players", {
-          cache: "no-store",
-        });
-        if (playersResponse.ok) {
-          const playersResult = (await playersResponse.json()) as {
-            players: Array<{ ingame_name: string }>;
-          };
-          setPlayerNames(
-            playersResult.players.map((player) => player.ingame_name),
-          );
-        }
       }
       setDaysLeft(
         Math.max(
@@ -468,6 +460,7 @@ export function useTournamentController() {
     saveMatchResult,
     saveTeamResult,
     saving,
+    searchPlayerNames,
     season,
     setActiveTab,
     setCaptainChoices,

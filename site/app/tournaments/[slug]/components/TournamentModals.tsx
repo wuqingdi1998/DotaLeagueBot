@@ -17,6 +17,7 @@ export function TournamentModals() {
     registrationOpen,
     registrationReady,
     saving,
+    searchPlayerNames,
     setActiveTab,
     setCaptainChoices,
     setLoginOpen,
@@ -227,12 +228,13 @@ export function TournamentModals() {
                           list="registered-players"
                           required
                           value={registration[playerField]}
-                          onChange={(event) =>
+                          onChange={(event) => {
                             setRegistration({
                               ...registration,
                               [playerField]: event.target.value,
-                            })
-                          }
+                            });
+                            searchPlayerNames(event.target.value);
+                          }}
                           placeholder="Игровой ник из базы бота"
                         />
                       </label>

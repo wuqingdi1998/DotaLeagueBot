@@ -22,6 +22,14 @@ const roundActions = readFileSync(
   ),
   "utf8",
 );
+const finalAwards = readFileSync(
+  new URL("../lib/season-final-awards.ts", import.meta.url),
+  "utf8",
+);
+const playerProfile = readFileSync(
+  new URL("../lib/player-profile.ts", import.meta.url),
+  "utf8",
+);
 
 describe("two-finals contract", () => {
   it("limits the finals round to two matches", () => {
@@ -36,5 +44,15 @@ describe("two-finals contract", () => {
 
   it("completes the finals stage only after both matches", () => {
     expect(roundActions).toContain("roundState[0].count !== 2");
+  });
+
+  it("writes final medals to the hall of fame and player profiles", () => {
+    expect(matchActions).toContain("syncSeasonFinalAwards");
+    expect(finalAwards).toContain("INSERT INTO player_medals");
+    expect(finalAwards).toContain("UPDATE season_finalists");
+    expect(finalAwards).toContain("DELETE FROM player_medals");
+    expect(playerProfile).toContain("seasonal_history");
+    expect(playerProfile).toContain("THEN 'Победитель'");
+    expect(playerProfile).toContain("THEN 'Финалист'");
   });
 });

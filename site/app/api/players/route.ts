@@ -7,6 +7,9 @@ export async function GET(request: Request) {
   try {
     await requireSession();
     const search = new URL(request.url).searchParams.get("q")?.trim() ?? "";
+    if (search.length < 2) {
+      return Response.json({ players: [] });
+    }
     const players = await query<{
       discord_id: string;
       ingame_name: string;
@@ -15,9 +18,9 @@ export async function GET(request: Request) {
     }>(
       `SELECT discord_id::text, ingame_name, positions, avatar_url
        FROM players
-       WHERE $1 = '' OR ingame_name ILIKE '%' || $1 || '%'
+       WHERE ingame_name ILIKE '%' || $1 || '%'
        ORDER BY ingame_name
-       LIMIT 50`,
+       LIMIT 100`,
       [search],
     );
     return Response.json({ players });

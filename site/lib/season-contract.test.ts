@@ -66,9 +66,10 @@ describe("season interface contract", () => {
     expect(navigation).toContain(
       'className="tabs tournament-tabs season-tournament-tabs"',
     );
-    for (const label of ["Обзор", "Таблица", "Туры", "Управление"]) {
+    for (const label of ["Обзор", "Таблица", "Управление"]) {
       expect(navigation).toContain(label);
     }
+    expect(navigation).not.toContain('["rounds", "Туры"]');
     expect(navigation).toContain("season.data?.rounds");
   });
 
@@ -139,6 +140,9 @@ describe("season interface contract", () => {
     expect(publicRoute).toContain("participant.tier_snapshot::int");
     expect(rounds).toContain("player.tier_snapshot");
     expect(rounds).toContain('className="player-tier"');
+    expect(rounds).toContain("Сумма тиров");
+    expect(rounds).toContain("tierTotal");
+    expect(rounds).not.toContain("{players.length}/5");
     expect(rounds).not.toContain("<b>Тир {player.tier_snapshot}</b>");
     expect(matchAdmin).toContain("playerTierSnapshots");
     expect(teamSelection).toContain("SeasonTierEditor");
@@ -153,5 +157,11 @@ describe("season interface contract", () => {
     expect(teamSelection).toContain("Поиск по никнейму");
     expect(teamSelection).toContain("Уже в другой команде");
     expect(seasonController).not.toContain("/api/players");
+  });
+
+  it("does not repeat inactive reasons below every player nickname", () => {
+    expect(standings).not.toContain(
+      "row.inactiveReason && <small>{row.inactiveReason}</small>",
+    );
   });
 });

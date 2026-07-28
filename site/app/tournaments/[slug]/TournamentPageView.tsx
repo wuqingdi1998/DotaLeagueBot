@@ -12,10 +12,7 @@ import { TeamsPanel } from "./sections/TeamsPanel";
 import {
   SeasonOverviewPanel,
 } from "./sections/SeasonOverviewPanel";
-import {
-  SeasonRoundPanel,
-  SeasonRoundsPanel,
-} from "./sections/SeasonRoundsPanel";
+import { SeasonRoundPanel } from "./sections/SeasonRoundsPanel";
 import { SeasonStandingsPanel } from "./sections/SeasonStandingsPanel";
 import {
   TournamentHeading,
@@ -86,7 +83,6 @@ export function TournamentPageView() {
         <OverviewPanel />
         <SeasonOverviewPanel />
         <SeasonStandingsPanel />
-        <SeasonRoundsPanel />
         <SeasonRoundPanel />
         <TeamsPanel />
         <MatchesPanel />

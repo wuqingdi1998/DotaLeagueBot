@@ -74,7 +74,11 @@ export function TournamentHero() {
             ) : isSeasonal ? (
               <button
                 className="primary-button"
-                onClick={() => season.openTab("rounds")}
+                onClick={() => {
+                  const firstRound = season.data?.rounds[0];
+                  if (firstRound) season.openRound(firstRound.round_number);
+                  else season.openTab("overview");
+                }}
               >
                 Смотреть туры <FiArrowRight />
               </button>

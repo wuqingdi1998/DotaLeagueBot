@@ -69,6 +69,23 @@
   font: inherit;
 }
 
+.admin-panel input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.admin-panel textarea,
+.admin-panel select {
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  outline: 0;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.admin-panel input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+.admin-panel textarea:focus,
+.admin-panel select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(0, 195, 255, 0.1);
+}
+
 .match-checkin {
   min-height: 38px;
   border: 1px solid rgba(255, 255, 255, 0.48);

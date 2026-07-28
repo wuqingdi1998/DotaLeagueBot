@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import {
-  FiArrowRight,
   FiCalendar,
   FiExternalLink,
   FiLayers,
@@ -15,94 +14,8 @@ import { formatDayMonth, formatTime } from "../model/formatters";
 import {
   seasonLobbyStatusLabel,
   seasonMatchStatusLabel,
-  seasonRoundStatusLabel,
 } from "../model/season-labels";
-import type { SeasonMatch, SeasonRound } from "../model/season-types";
-
-export function SeasonRoundsPanel() {
-  const { activeTab, data, season } = useTournament();
-  if (
-    !data ||
-    data.tournament.tournament_type !== "seasonal" ||
-    activeTab !== "rounds"
-  ) {
-    return null;
-  }
-  if (!season.data) return <SeasonLoadState />;
-  if (!season.data.rounds.length) {
-    return (
-      <div className="tab-panel empty-standings">
-        Организатор пока не опубликовал ни одного тура.
-      </div>
-    );
-  }
-  return (
-    <div className="tab-panel season-round-list-panel">
-      <div className="panel-heading">
-        <div>
-          <p className="card-kicker">Календарь сезона</p>
-          <h3>Туры</h3>
-        </div>
-      </div>
-      <div className="season-round-card-grid">
-        {season.data.rounds.map((round) => (
-          <RoundCard
-            key={round.id}
-            round={round}
-            isOrganizer={season.data?.isOrganizer === true}
-            onOpen={() => season.openRound(round.round_number)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function RoundCard({
-  round,
-  isOrganizer,
-  onOpen,
-}: {
-  round: SeasonRound;
-  isOrganizer: boolean;
-  onOpen: () => void;
-}) {
-  const completed = round.lobbies
-    .flatMap((lobby) => lobby.matches)
-    .filter((match) => match.status === "completed");
-  const statusLabel = seasonRoundStatusLabel(round.status);
-  return (
-    <article className={`season-round-card${round.is_visible ? "" : " hidden"}`}>
-      <div>
-        <span>
-          {round.round_kind === "finals"
-            ? "Финальный этап"
-            : `Тур ${round.round_number}`}
-        </span>
-        <b>{statusLabel}</b>
-      </div>
-      <h4>
-        {round.name ||
-          (round.round_kind === "finals"
-            ? "Финалы"
-            : `Тур ${round.round_number}`)}
-      </h4>
-      <p>
-        {round.scheduled_at
-          ? `${formatDayMonth(round.scheduled_at)} · ${formatTime(round.scheduled_at)}`
-          : "Дата пока не назначена"}
-      </p>
-      <dl>
-        <div><dt>Лобби</dt><dd>{round.lobby_count}</dd></div>
-        <div><dt>Сыграно</dt><dd>{completed.length}</dd></div>
-      </dl>
-      {!round.is_visible && isOrganizer && <em>Виден только организаторам</em>}
-      <button className="secondary-button" onClick={onOpen}>
-        Открыть тур <FiArrowRight aria-hidden="true" />
-      </button>
-    </article>
-  );
-}
+import type { SeasonMatch } from "../model/season-types";
 
 export function SeasonRoundPanel() {
   const { activeTab, data, season } = useTournament();
@@ -328,12 +241,20 @@ function SeasonTemporaryTeam({
   name: string;
   players: SeasonMatch["participants"];
 }) {
+  const recordedTiers = players
+    .map((player) => player.tier_snapshot)
+    .filter((tier): tier is number => tier !== null);
+  const tierTotal = recordedTiers.reduce((total, tier) => total + tier, 0);
+
   return (
     <section className="season-temporary-team">
       <header>
         <FiUsers aria-hidden="true" />
         <h5>{name}</h5>
-        <span>{players.length}/5</span>
+        <span className="season-team-tier-total">
+          <small>Сумма тиров</small>
+          <strong>{recordedTiers.length ? tierTotal : "—"}</strong>
+        </span>
       </header>
       {players.length ? (
         <ul>
