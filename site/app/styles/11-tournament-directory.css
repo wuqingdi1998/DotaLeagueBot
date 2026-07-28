@@ -319,11 +319,20 @@
   }
 
   .tournament-card-top {
+    flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
   }
 
+  .tournament-card-top .tournament-status {
+    order: -1;
+  }
+
   .tournament-card-top h2 {
+    width: 100%;
+    max-width: 100%;
     font-size: clamp(28px, 9vw, 40px);
+    overflow-wrap: anywhere;
   }
 
   .tournament-card-stats {

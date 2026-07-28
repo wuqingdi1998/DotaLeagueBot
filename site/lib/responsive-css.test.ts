@@ -23,6 +23,15 @@ describe("mobile tournament directory", () => {
       /\.tournament-card\s*\{[^}]*min-width:\s*0;[^}]*width:\s*100%;[^}]*max-width:\s*100%;/,
     );
   });
+
+  it("keeps the status above long tournament names on phones", () => {
+    expect(css).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.tournament-card-top\s*\{[^}]*flex-direction:\s*column;[^}]*align-items:\s*flex-start;/,
+    );
+    expect(css).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.tournament-card-top \.tournament-status\s*\{[^}]*order:\s*-1;/,
+    );
+  });
 });
 
 describe("tournament prizes", () => {
