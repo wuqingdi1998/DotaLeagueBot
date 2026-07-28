@@ -1,5 +1,6 @@
 import { query, transaction } from "@/lib/db";
 import { validateSeasonResult } from "@/lib/season";
+import { validateSeasonFinalMatch } from "@/lib/season-finals";
 import {
   enumValue,
   optionalDate,
@@ -88,6 +89,28 @@ async function replaceParticipants(
     if (players.rowCount !== selected.length) {
       throw new Response("Один из выбранных игроков не найден", { status: 400 });
     }
+    const finalistSelection = await client.query<{ is_valid: boolean }>(
+      `SELECT (
+         round.round_kind <> 'finals'
+         OR (
+           SELECT COUNT(*)
+           FROM season_finalists finalist
+           WHERE finalist.tournament_id = round.tournament_id
+             AND finalist.player_id = ANY($2::bigint[])
+         ) = $3
+       ) AS is_valid
+       FROM season_matches match
+       JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+       JOIN season_rounds round ON round.id = lobby.round_id
+       WHERE match.id = $1`,
+      [matchId, selected, selected.length],
+    );
+    if (!finalistSelection.rows[0]?.is_valid) {
+      throw new Response(
+        "Сначала добавьте всех выбранных игроков в список участников финалов",
+        { status: 400 },
+      );
+    }
     const repeatedInRound = await client.query<{ player_id: string }>(
       `SELECT DISTINCT participant.player_id::text
        FROM season_match_participants participant
@@ -162,8 +185,19 @@ export async function createSeasonMatch(body: Record<string, unknown>) {
     );
   }
   return transaction(async (client) => {
-    const parent = await client.query<{ tournament_id: number }>(
-      `SELECT round.tournament_id::int
+    const parent = await client.query<{
+      tournament_id: number;
+      round_kind: "regular" | "finals";
+      match_count: number;
+    }>(
+      `SELECT round.tournament_id::int, round.round_kind,
+         (
+           SELECT COUNT(*)::int
+           FROM season_matches existing_match
+           JOIN season_lobbies existing_lobby
+             ON existing_lobby.id = existing_match.lobby_id
+           WHERE existing_lobby.round_id = round.id
+         ) AS match_count
        FROM season_lobbies lobby
        JOIN season_rounds round ON round.id = lobby.round_id
        WHERE lobby.id = $1`,
@@ -172,6 +206,22 @@ export async function createSeasonMatch(body: Record<string, unknown>) {
     if (!parent.rowCount) {
       throw new Response("Лобби не найдено", { status: 404 });
     }
+    if (
+      parent.rows[0].round_kind === "finals" &&
+      parent.rows[0].match_count >= 2
+    ) {
+      throw new Response("В финальной вкладке должно быть ровно два матча", {
+        status: 400,
+      });
+    }
+    const finalError = validateSeasonFinalMatch({
+      roundKind: parent.rows[0].round_kind,
+      status: values.status,
+      result: values.result,
+      teamAPlayerIds: teamA,
+      teamBPlayerIds: teamB,
+    });
+    if (finalError) throw new Response(finalError, { status: 400 });
     const created = await client.query<{ id: number }>(
       `INSERT INTO season_matches (
         lobby_id, scheduled_at, team_a_name, team_b_name, best_of,
@@ -231,7 +281,10 @@ export async function updateSeasonMatch(body: Record<string, unknown>) {
     );
   }
   return transaction(async (client) => {
-    const updated = await client.query<{ tournament_id: number }>(
+    const updated = await client.query<{
+      tournament_id: number;
+      round_kind: "regular" | "finals";
+    }>(
       `UPDATE season_matches match
        SET scheduled_at = $2, team_a_name = $3, team_b_name = $4,
          best_of = $5, team_a_score = $6, team_b_score = $7,
@@ -239,7 +292,7 @@ export async function updateSeasonMatch(body: Record<string, unknown>) {
        FROM season_lobbies lobby, season_rounds round
        WHERE match.id = $1 AND lobby.id = match.lobby_id
          AND round.id = lobby.round_id
-       RETURNING round.tournament_id::int`,
+       RETURNING round.tournament_id::int, round.round_kind`,
       [
         id,
         values.scheduledAt,
@@ -255,6 +308,14 @@ export async function updateSeasonMatch(body: Record<string, unknown>) {
     if (!updated.rowCount) {
       throw new Response("Матч не найден", { status: 404 });
     }
+    const finalError = validateSeasonFinalMatch({
+      roundKind: updated.rows[0].round_kind,
+      status: values.status,
+      result: values.result,
+      teamAPlayerIds: teamA,
+      teamBPlayerIds: teamB,
+    });
+    if (finalError) throw new Response(finalError, { status: 400 });
     await replaceParticipants(
       client,
       id,

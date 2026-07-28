@@ -144,6 +144,13 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
         </em>
       </summary>
       <div className="season-round-admin-content">
+        {round.round_kind === "finals" && (
+          <p className="season-empty-copy">
+            Создайте два матча по 5 игроков в каждой команде. После внесения
+            победителей сайт автоматически выдаст 10 золотых и 10 серебряных
+            медалей.
+          </p>
+        )}
         <div className="season-admin-fields">
           <label>
             <span>Название</span>

@@ -6,6 +6,7 @@ import {
   type SeasonStandingMatch,
 } from "@/lib/season";
 import { calculateSeasonPenalty } from "@/lib/season-discipline";
+import { deriveSeasonFinalMedals } from "@/lib/season-finals";
 import { loadSeasonExtras } from "./season-extra-query";
 
 export const dynamic = "force-dynamic";
@@ -278,6 +279,30 @@ export async function GET(request: Request) {
     ...round,
     lobbies: nestedLobbies.filter((lobby) => lobby.round_id === round.id),
   }));
+  const finalsRoundIds = new Set(
+    rounds
+      .filter((round) => round.round_kind === "finals")
+      .map((round) => round.id),
+  );
+  const finalistsWithMedals = deriveSeasonFinalMedals(
+    finalists.map(({ player_id, ...finalist }) => ({
+      ...finalist,
+      playerId: player_id,
+    })),
+    nestedMatches
+      .filter((match) => finalsRoundIds.has(match.round_id))
+      .map((match) => ({
+        status: match.status,
+        result: match.result,
+        participants: match.participants.map((participant) => ({
+          playerId: participant.player_id,
+          teamSide: participant.team_side,
+        })),
+      })),
+  ).map(({ playerId, ...finalist }) => ({
+    ...finalist,
+    player_id: playerId,
+  }));
 
   const standingMatches: SeasonStandingMatch[] = nestedMatches.map((match) => ({
     id: match.id,
@@ -366,7 +391,7 @@ export async function GET(request: Request) {
     participants: seasonPlayers,
     pointAdjustments: isOrganizer ? pointAdjustments : [],
     penaltyEvents: isOrganizer ? penaltyEvents : [],
-    finalists,
+    finalists: finalistsWithMedals,
     isOrganizer,
   });
 }

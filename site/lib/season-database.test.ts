@@ -15,6 +15,13 @@ const disciplineMigration = readFileSync(
   ),
   "utf8",
 );
+const finalMedalsMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0021_final_medals_from_results.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 describe("season database migration", () => {
   it("keeps existing tournaments ordinary by default", () => {
@@ -69,6 +76,13 @@ describe("season discipline database migration", () => {
   it("stores active and inactive standings sections", () => {
     expect(disciplineMigration).toMatch(
       /standings_section[^;]+active[^;]+inactive/,
+    );
+  });
+
+  it("makes the final result the only medal source", () => {
+    expect(finalMedalsMigration).toMatch(/SET medal = NULL/);
+    expect(finalMedalsMigration).toContain(
+      "season_finalists_seed_unique_idx",
     );
   });
 });

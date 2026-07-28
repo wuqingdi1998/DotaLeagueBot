@@ -258,9 +258,18 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
 function SeasonFinalistsSummary() {
   const { season } = useTournament();
   const finalists = season.data?.finalists ?? [];
+  const goldCount = finalists.filter(
+    (finalist) => finalist.medal === "gold",
+  ).length;
+  const silverCount = finalists.filter(
+    (finalist) => finalist.medal === "silver",
+  ).length;
   return (
     <section className="season-finalists">
       <h4>Участники финалов</h4>
+      <p className="season-empty-copy">
+        Два финала 5×5 · золото {goldCount}/10 · серебро {silverCount}/10
+      </p>
       {!finalists.length ? (
         <p className="season-empty-copy">
           Организатор пока не опубликовал состав финалов.

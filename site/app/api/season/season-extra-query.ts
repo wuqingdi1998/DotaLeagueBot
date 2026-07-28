@@ -39,7 +39,6 @@ export type FinalistRow = {
   nickname: string;
   avatar_url: string | null;
   seed: number | null;
-  medal: "gold" | "silver" | null;
   note: string | null;
 };
 
@@ -112,7 +111,7 @@ export async function loadSeasonExtras(
     query<FinalistRow>(
       `SELECT finalist.player_id::text,
          player.ingame_name AS nickname, player.avatar_url,
-         finalist.seed::int, finalist.medal, finalist.note
+         finalist.seed::int, finalist.note
        FROM season_finalists finalist
        JOIN players player ON player.discord_id = finalist.player_id
        WHERE finalist.tournament_id = $1 ${finalsVisibility}

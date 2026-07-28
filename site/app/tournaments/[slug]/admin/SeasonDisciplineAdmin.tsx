@@ -15,7 +15,6 @@ export function SeasonDisciplineAdmin() {
   const [penaltyNote, setPenaltyNote] = useState("");
   const [finalistPlayerId, setFinalistPlayerId] = useState("");
   const [finalistSeed, setFinalistSeed] = useState("");
-  const [finalistMedal, setFinalistMedal] = useState("");
   const [finalistNote, setFinalistNote] = useState("");
 
   if (
@@ -66,13 +65,11 @@ export function SeasonDisciplineAdmin() {
       tournamentId,
       playerId: finalistPlayerId,
       seed: finalistSeed,
-      medal: finalistMedal || null,
       note: finalistNote,
     });
     if (result.ok) {
       setFinalistPlayerId("");
       setFinalistSeed("");
-      setFinalistMedal("");
       setFinalistNote("");
     }
   }
@@ -237,6 +234,10 @@ export function SeasonDisciplineAdmin() {
       </AdminBlock>
 
       <AdminBlock title="Участники финалов">
+        <p className="season-empty-copy">
+          Добавьте 20 игроков и распределите их по двум финальным матчам 5×5.
+          Победители автоматически получат золото, проигравшие — серебро.
+        </p>
         <div className="season-inline-admin-form">
           <label>
             <span>ID игрока</span>
@@ -251,21 +252,10 @@ export function SeasonDisciplineAdmin() {
             <input
               type="number"
               min="1"
-              max="100"
+              max="20"
               value={finalistSeed}
               onChange={(event) => setFinalistSeed(event.target.value)}
             />
-          </label>
-          <label>
-            <span>Медаль</span>
-            <select
-              value={finalistMedal}
-              onChange={(event) => setFinalistMedal(event.target.value)}
-            >
-              <option value="">Не назначена</option>
-              <option value="gold">Золото</option>
-              <option value="silver">Серебро</option>
-            </select>
           </label>
           <label>
             <span>Комментарий</span>
@@ -290,7 +280,7 @@ export function SeasonDisciplineAdmin() {
                 : finalist.medal === "silver"
                   ? "Серебро"
                   : "",
-            ].filter(Boolean).join(" · ") || "Без посева и медали",
+            ].filter(Boolean).join(" · ") || "Ожидает результата финала",
             onDelete: () =>
               season.mutate("DELETE", {
                 entity: "finalist",

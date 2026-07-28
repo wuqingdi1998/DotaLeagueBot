@@ -108,19 +108,35 @@ export async function updateSeasonRound(
   const id = requiredId(body.id, "тур");
   const status = enumValue(body.status, roundStatuses, "статус тура");
   const isVisible = body.isVisible === true;
-  if (isVisible && body.confirmEmpty !== true) {
-    const roundState = await query<{ is_visible: boolean; count: number }>(
-      `SELECT round.is_visible,
-         COUNT(match.id) FILTER (WHERE match.status = 'completed')::int AS count
-       FROM season_rounds round
-       LEFT JOIN season_lobbies lobby ON lobby.round_id = round.id
-       LEFT JOIN season_matches match ON match.lobby_id = lobby.id
-       WHERE round.id = $1
-       GROUP BY round.id`,
-      [id],
+  const roundState = await query<{
+    is_visible: boolean;
+    count: number;
+    round_kind: "regular" | "finals";
+  }>(
+    `SELECT round.is_visible, round.round_kind,
+       COUNT(match.id) FILTER (WHERE match.status = 'completed')::int AS count
+     FROM season_rounds round
+     LEFT JOIN season_lobbies lobby ON lobby.round_id = round.id
+     LEFT JOIN season_matches match ON match.lobby_id = lobby.id
+     WHERE round.id = $1
+     GROUP BY round.id`,
+    [id],
+  );
+  if (!roundState.length) {
+    throw new Response("Тур не найден", { status: 404 });
+  }
+  if (
+    status === "completed" &&
+    roundState[0].round_kind === "finals" &&
+    roundState[0].count !== 2
+  ) {
+    throw new Response(
+      "Финальный этап можно завершить после двух завершённых матчей",
+      { status: 400 },
     );
+  }
+  if (isVisible && body.confirmEmpty !== true) {
     if (
-      roundState.length &&
       !roundState[0].is_visible &&
       roundState[0].count === 0
     ) {
