@@ -84,6 +84,11 @@ jobs:
               uploads_data/profile-backgrounds
             chown -R 1001:1001 uploads_data
 
+            # Keep enough room for the next image build on the small server.
+            # Active images and running containers are never removed.
+            docker builder prune --all --force --filter "until=24h"
+            docker image prune --all --force
+
             mkdir -p backups
             if docker compose ps --status running db | grep -q db; then
               backup="backups/postgres-$(date -u +%Y%m%dT%H%M%SZ).sql.gz"

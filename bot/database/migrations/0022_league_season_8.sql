@@ -60,6 +60,35 @@ BEGIN
         reason TEXT
     );
 
+    INSERT INTO players (
+        discord_id, steam_id32, ingame_name, real_name
+    )
+    SELECT
+        archive_player.discord_id,
+        archive_player.discord_id,
+        archive_player.nickname,
+        'Архивная запись сезона 8 — требуется ID'
+    FROM (
+        VALUES
+            (-8000000000008001::BIGINT, 'Yasama'),
+            (-8000000000008002::BIGINT, 'gogogo'),
+            (-8000000000008003::BIGINT, 'iloveiran')
+    ) AS archive_player(discord_id, nickname)
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM players player
+        WHERE LOWER(BTRIM(player.ingame_name)) =
+              LOWER(BTRIM(archive_player.nickname))
+    )
+      AND NOT EXISTS (
+        SELECT 1
+        FROM tournament_roster_snapshots snapshot
+        WHERE snapshot.player_id IS NOT NULL
+          AND LOWER(BTRIM(snapshot.nickname_snapshot)) =
+              LOWER(BTRIM(archive_player.nickname))
+    )
+    ON CONFLICT (discord_id) DO NOTHING;
+
     CREATE TEMP TABLE season8_player_map ON COMMIT DROP AS
     WITH candidates AS (
         SELECT source.nickname, player.discord_id, 1 AS priority

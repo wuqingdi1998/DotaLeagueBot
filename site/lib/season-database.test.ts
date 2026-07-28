@@ -133,8 +133,11 @@ describe("season 8 import migration", () => {
     expect(migrationJson<unknown[]>("final_matches")).toHaveLength(2);
   });
 
-  it("stops safely when an Excel nickname cannot be linked", () => {
-    expect(season8Migration).toContain("IF missing_players IS NOT NULL");
+  it("keeps known archive players whose current profiles are missing", () => {
+    expect(season8Migration).toContain("Архивная запись сезона 8");
+    expect(season8Migration).toContain("-8000000000008001");
+    expect(season8Migration).toContain("-8000000000008002");
+    expect(season8Migration).toContain("-8000000000008003");
     expect(season8Migration).toMatch(/RAISE EXCEPTION[\s\S]+missing_players/);
   });
 
