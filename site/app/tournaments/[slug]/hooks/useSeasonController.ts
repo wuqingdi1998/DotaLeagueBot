@@ -5,22 +5,13 @@ import { useSearchParams } from "next/navigation";
 import type { TournamentTab } from "../model/types";
 import type { SeasonData } from "../model/season-types";
 
-export type SeasonPlayerOption = {
-  discord_id: string;
-  ingame_name: string;
-  positions: string | null;
-  avatar_url: string | null;
-};
-
 export function useSeasonController({
   enabled,
-  isOrganizer,
   setActiveTab,
   setMessage,
   slug,
 }: {
   enabled: boolean;
-  isOrganizer: boolean;
   setActiveTab: (tab: TournamentTab) => void;
   setMessage: (message: string) => void;
   slug: string;
@@ -35,8 +26,6 @@ export function useSeasonController({
       ? requestedRound
       : null,
   );
-  const [players, setPlayers] = useState<SeasonPlayerOption[]>([]);
-  const [playerSearch, setPlayerSearch] = useState("");
 
   const load = useCallback(async () => {
     if (!enabled) {
@@ -77,22 +66,6 @@ export function useSeasonController({
       setActiveTab("round");
     }
   }, [enabled, requestedRound, setActiveTab]);
-
-  useEffect(() => {
-    if (!enabled || !isOrganizer) return;
-    const timer = window.setTimeout(async () => {
-      const response = await fetch(
-        `/api/players?q=${encodeURIComponent(playerSearch)}`,
-        { cache: "no-store" },
-      );
-      if (!response.ok) return;
-      const result = (await response.json()) as {
-        players: SeasonPlayerOption[];
-      };
-      setPlayers(result.players);
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [enabled, isOrganizer, playerSearch]);
 
   function replaceRoundQuery(roundNumber: number | null) {
     const url = new URL(window.location.href);
@@ -159,9 +132,6 @@ export function useSeasonController({
     mutate,
     openRound,
     openTab,
-    playerSearch,
-    players: enabled && isOrganizer ? players : [],
-    setPlayerSearch,
     setActiveRoundNumber,
   };
 }

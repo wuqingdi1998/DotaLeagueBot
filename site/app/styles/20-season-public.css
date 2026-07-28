@@ -1,23 +1,39 @@
 /* Seasonal tournaments */
 
 .season-tournament-tabs {
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   overflow: visible;
+  border-bottom: 0;
+}
+
+.season-navigation-primary {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
 }
 
 .season-round-navigation {
   display: flex;
+  width: 100%;
   min-width: 0;
-  flex: 1;
   align-items: stretch;
-  justify-content: flex-end;
   gap: 10px;
-  margin-left: auto;
+  margin: 0;
+  border-bottom: 1px solid var(--line);
+  padding-top: 14px;
 }
 
 .season-round-tabs {
   min-width: 0;
-  max-width: min(62vw, 920px);
+  max-width: none;
+  flex: 1 1 auto;
+  margin: 0;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
@@ -48,6 +64,12 @@
   padding: 0;
   background: var(--surface-soft);
   color: var(--muted);
+}
+
+.season-navigation-rounds > .admin-tab {
+  min-width: max-content;
+  border-left: 1px solid var(--line);
+  padding-left: 20px;
 }
 
 .tabs .season-round-scroll-button::after {

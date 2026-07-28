@@ -52,121 +52,6 @@
   margin-top: 4px;
 }
 
-.season-lobby-list,
-.season-match-list {
-  display: grid;
-  gap: 18px;
-  margin-top: 24px;
-}
-
-.season-lobby-card {
-  padding: 22px;
-}
-
-.season-lobby-card > header,
-.season-match-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.season-lobby-card h4 {
-  margin: 5px 0 0;
-  font-size: 24px;
-}
-
-.season-lobby-card header span,
-.season-lobby-card header b,
-.season-match-heading {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.season-match-card {
-  scroll-margin-top: 110px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 18px;
-  background: var(--surface-soft);
-}
-
-.season-match-teams {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
-  align-items: start;
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.season-match-teams > strong {
-  padding-top: 14px;
-  text-align: center;
-}
-
-.season-match-teams section > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.season-match-teams h5 {
-  margin: 0;
-  font-size: 17px;
-}
-
-.season-match-teams ul {
-  display: grid;
-  gap: 5px;
-  margin: 12px 0 0;
-  padding-left: 18px;
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.season-match-teams section > p,
-.season-match-result {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.season-game-list {
-  display: grid;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-.season-game-list > div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 10px;
-  border-top: 1px solid var(--line);
-  padding-top: 10px;
-}
-
-.season-game-list code {
-  color: var(--muted);
-}
-
-.season-game-list nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.season-game-list a {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 7px 9px;
-  color: var(--blue-strong);
-  font-size: 12px;
-  font-weight: 800;
-}
-
 .season-count-editor,
 .season-admin-actions {
   display: flex;
@@ -274,14 +159,6 @@
   gap: 12px;
 }
 
-.season-player-search {
-  grid-column: 1 / -1;
-}
-
-.season-team-pickers select[multiple] {
-  min-height: 130px;
-}
-
 .season-game-admin-list {
   display: grid;
   gap: 10px;
@@ -380,15 +257,6 @@
     min-width: 160px;
   }
 
-  .season-match-teams {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .season-match-teams > strong {
-    display: none;
-  }
-
-  .season-game-list > div,
   .season-admin-fields,
   .season-match-main-fields,
   .season-team-pickers,

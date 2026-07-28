@@ -18,6 +18,15 @@ const standings = source(
 const rounds = source(
   "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
 );
+const matchAdmin = source(
+  "../app/tournaments/[slug]/admin/SeasonMatchAdmin.tsx",
+);
+const teamSelection = source(
+  "../app/tournaments/[slug]/admin/SeasonTeamSelection.tsx",
+);
+const seasonController = source(
+  "../app/tournaments/[slug]/hooks/useSeasonController.ts",
+);
 const styles = loadSiteStyles();
 
 describe("season creation and access contract", () => {
@@ -60,6 +69,11 @@ describe("season interface contract", () => {
   it("supports long round navigation and scrolls to the active round", () => {
     expect(navigation).toContain("scrollIntoView");
     expect(navigation).toContain("scrollBy");
+    expect(navigation).toContain("season-navigation-primary");
+    expect(navigation).toContain("season-navigation-rounds");
+    expect(styles).toMatch(
+      /\.season-tournament-tabs\s*\{[^}]*display:\s*grid;/,
+    );
     expect(styles).toMatch(
       /\.season-round-tabs\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/,
     );
@@ -80,5 +94,23 @@ describe("season interface contract", () => {
     expect(rounds).toContain('target="_blank"');
     expect(rounds).toContain('rel="noopener noreferrer"');
     expect(rounds).toContain("seasonMatchLinks");
+  });
+
+  it("renders lobbies as scoreboards with structured team lineups", () => {
+    expect(rounds).toContain("season-match-scoreboard");
+    expect(rounds).toContain("season-temporary-team");
+    expect(rounds).toContain("season-status-pill");
+    expect(styles).toMatch(
+      /\.season-match-scoreboard\s*\{[^}]*grid-template-columns:/,
+    );
+  });
+
+  it("selects match players from season participants with search and checkboxes", () => {
+    expect(matchAdmin).toContain("season.data?.participants");
+    expect(matchAdmin).not.toContain("<select multiple");
+    expect(teamSelection).toContain('type="checkbox"');
+    expect(teamSelection).toContain("Поиск по никнейму");
+    expect(teamSelection).toContain("Уже в другой команде");
+    expect(seasonController).not.toContain("/api/players");
   });
 });

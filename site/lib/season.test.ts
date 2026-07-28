@@ -171,6 +171,12 @@ describe("season standings", () => {
 });
 
 describe("season match safety", () => {
+  it("limits each temporary team to five players", () => {
+    expect(
+      validateSeasonTeams(["1", "2", "3", "4", "5", "6"], []),
+    ).toBe("В каждой команде может быть не более 5 игроков");
+  });
+
   it("rejects a player selected for both temporary teams", () => {
     expect(validateSeasonTeams(["100", "200"], ["200", "300"])).toBe(
       "Один игрок не может находиться в обеих командах",

@@ -38,7 +38,6 @@ export function useTournamentController() {
   );
   const season = useSeasonController({
     enabled: data?.tournament.tournament_type === "seasonal",
-    isOrganizer: adminMode,
     setActiveTab,
     setMessage: setToast,
     slug: tournamentSlug,

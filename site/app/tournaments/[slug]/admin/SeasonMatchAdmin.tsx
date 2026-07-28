@@ -6,6 +6,11 @@ import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonGame, SeasonMatch } from "../model/season-types";
 import { seasonMatchStatusLabel } from "../model/season-labels";
 import { SeasonSubstitutionAdmin } from "./SeasonSubstitutionAdmin";
+import {
+  SeasonCaptainPicker,
+  SeasonTeamPicker,
+  type SeasonTeamPlayerOption,
+} from "./SeasonTeamSelection";
 
 function localDateTime(value: string | null) {
   if (!value) return "";
@@ -15,28 +20,21 @@ function localDateTime(value: string | null) {
     .slice(0, 16);
 }
 
-function selectedValues(options: HTMLSelectElement) {
-  return Array.from(options.selectedOptions, (option) => option.value);
-}
-
 export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   const { season } = useTournament();
-  const availablePlayers = [
-    ...season.players,
+  const availablePlayers = uniquePlayers([
+    ...(season.data?.participants ?? []).map((player) => ({
+      discord_id: player.discord_id,
+      ingame_name: player.nickname,
+      avatar_url: player.avatar_url,
+    })),
     ...match.participants
-      .filter(
-        (participant) =>
-          !season.players.some(
-            (player) => player.discord_id === participant.player_id,
-          ),
-      )
       .map((participant) => ({
         discord_id: participant.player_id,
         ingame_name: participant.nickname,
-        positions: null,
         avatar_url: participant.avatar_url,
       })),
-  ];
+  ]);
   const initialTeamA = match.participants
     .filter((player) => player.team_side === "a")
     .map((player) => player.player_id);
@@ -69,6 +67,20 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   );
   const [result, setResult] = useState(match.result ?? "");
   const [status, setStatus] = useState(match.status);
+
+  function updateTeamA(players: string[]) {
+    setTeamAPlayers(players);
+    if (teamACaptain && !players.includes(teamACaptain)) {
+      setTeamACaptain("");
+    }
+  }
+
+  function updateTeamB(players: string[]) {
+    setTeamBPlayers(players);
+    if (teamBCaptain && !players.includes(teamBCaptain)) {
+      setTeamBCaptain("");
+    }
+  }
 
   async function save() {
     await season.mutate("PATCH", {
@@ -190,34 +202,28 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
           </label>
         </div>
         <div className="season-team-pickers">
-          <label className="season-player-search">
-            <span>Поиск игрока</span>
-            <input
-              value={season.playerSearch}
-              placeholder="Начните вводить никнейм"
-              onChange={(event) => season.setPlayerSearch(event.target.value)}
-            />
-          </label>
-          <TeamPicker
+          <SeasonTeamPicker
             label="Состав команды A"
             players={availablePlayers}
             selected={teamAPlayers}
-            onChange={setTeamAPlayers}
+            unavailablePlayerIds={teamBPlayers}
+            onChange={updateTeamA}
           />
-          <TeamPicker
+          <SeasonTeamPicker
             label="Состав команды B"
             players={availablePlayers}
             selected={teamBPlayers}
-            onChange={setTeamBPlayers}
+            unavailablePlayerIds={teamAPlayers}
+            onChange={updateTeamB}
           />
-          <CaptainPicker
+          <SeasonCaptainPicker
             label="Капитан A"
             selected={teamACaptain}
             players={teamAPlayers}
             playerOptions={availablePlayers}
             onChange={setTeamACaptain}
           />
-          <CaptainPicker
+          <SeasonCaptainPicker
             label="Капитан B"
             selected={teamBCaptain}
             players={teamBPlayers}
@@ -247,64 +253,12 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   );
 }
 
-function TeamPicker({
-  label,
-  onChange,
-  players,
-  selected,
-}: {
-  label: string;
-  onChange: (players: string[]) => void;
-  players: Array<{ discord_id: string; ingame_name: string }>;
-  selected: string[];
-}) {
-  return (
-    <label>
-      <span>{label}</span>
-      <select
-        multiple
-        size={Math.min(8, Math.max(4, players.length))}
-        value={selected}
-        onChange={(event) => onChange(selectedValues(event.currentTarget))}
-      >
-        {players.map((player) => (
-          <option value={player.discord_id} key={player.discord_id}>
-            {player.ingame_name}
-          </option>
-        ))}
-      </select>
-    </label>
-  );
-}
-
-function CaptainPicker({
-  label,
-  onChange,
-  playerOptions,
-  players,
-  selected,
-}: {
-  label: string;
-  onChange: (playerId: string) => void;
-  playerOptions: Array<{ discord_id: string; ingame_name: string }>;
-  players: string[];
-  selected: string;
-}) {
-  return (
-    <label>
-      <span>{label}</span>
-      <select value={selected} onChange={(event) => onChange(event.target.value)}>
-        <option value="">Не назначен</option>
-        {playerOptions
-          .filter((player) => players.includes(player.discord_id))
-          .map((player) => (
-            <option value={player.discord_id} key={player.discord_id}>
-              {player.ingame_name}
-            </option>
-          ))}
-      </select>
-    </label>
-  );
+function uniquePlayers(players: SeasonTeamPlayerOption[]) {
+  return [
+    ...new Map(
+      players.map((player) => [player.discord_id, player] as const),
+    ).values(),
+  ];
 }
 
 function SeasonGameAdmin({ game }: { game: SeasonGame }) {

@@ -119,6 +119,9 @@ export function visibleSeasonRounds<T extends SeasonRoundVisibility>(
 }
 
 export function validateSeasonTeams(teamA: string[], teamB: string[]) {
+  if (teamA.length > 5 || teamB.length > 5) {
+    return "В каждой команде может быть не более 5 игроков";
+  }
   const teamAPlayers = new Set(teamA);
   if (teamB.some((playerId) => teamAPlayers.has(playerId))) {
     return "Один игрок не может находиться в обеих командах";

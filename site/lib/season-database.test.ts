@@ -29,6 +29,13 @@ const season8Migration = readFileSync(
   ),
   "utf8",
 );
+const season8AliasesMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0023_season_8_player_aliases.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 function migrationJson<T>(name: string): T {
   const match = season8Migration.match(
@@ -147,6 +154,22 @@ describe("season 8 import migration", () => {
     );
     expect(season8Migration).toMatch(
       /ALTER TABLE season_match_participants[\s\S]+nickname_snapshot/,
+    );
+  });
+
+  it("links the three clarified archive aliases to current profiles", () => {
+    for (const nickname of [
+      "Yasama",
+      "Sanraizu",
+      "gogogo",
+      "LEGSDAY",
+      "iloveiran",
+      "zhelezo",
+    ]) {
+      expect(season8AliasesMigration).toContain(nickname);
+    }
+    expect(season8AliasesMigration).toContain(
+      "DELETE FROM players player",
     );
   });
 });

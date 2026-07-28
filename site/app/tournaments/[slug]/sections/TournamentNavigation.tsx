@@ -135,7 +135,7 @@ function SeasonTournamentNavigation() {
       role="tablist"
       aria-label="Разделы сезонного турнира"
     >
-      <div className="tournament-tabs-main">
+      <div className="tournament-tabs-main season-navigation-primary">
         {[
           ["overview", "Обзор"],
           ["standings", "Таблица"],
@@ -155,7 +155,7 @@ function SeasonTournamentNavigation() {
         ))}
       </div>
 
-      <div className="season-round-navigation">
+      <div className="season-round-navigation season-navigation-rounds">
         {rounds.length > 0 && (
           <button
             className="season-round-scroll-button"

@@ -1,7 +1,14 @@
 "use client";
 
 import { useMemo } from "react";
-import { FiArrowRight, FiExternalLink } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiCalendar,
+  FiExternalLink,
+  FiLayers,
+  FiUsers,
+} from "react-icons/fi";
+import Image from "next/image";
 import { seasonMatchLinks } from "@/lib/season";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
@@ -144,9 +151,17 @@ export function SeasonRoundPanel() {
         <div className="season-lobby-list">
           {round.lobbies.map((lobby) => (
             <section className="season-lobby-card" key={lobby.id}>
-              <header>
-                <div><span>Лобби {lobby.sort_order}</span><h4>{lobby.name}</h4></div>
-                <b>{seasonLobbyStatusLabel(lobby.status)}</b>
+              <header className="season-lobby-header">
+                <div className="season-lobby-title">
+                  <span>{lobby.sort_order}</span>
+                  <div>
+                    <p>Игровое лобби</p>
+                    <h4>{lobby.name}</h4>
+                  </div>
+                </div>
+                <b className={`season-status-pill ${lobby.status}`}>
+                  {seasonLobbyStatusLabel(lobby.status)}
+                </b>
               </header>
               {!lobby.matches.length ? (
                 <p className="season-empty-copy">
@@ -173,31 +188,42 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
   return (
     <article className="season-match-card" id={`season-match-${match.id}`}>
       <div className="season-match-heading">
-        <span>
-          {match.scheduled_at
-            ? `${formatDayMonth(match.scheduled_at)} · ${formatTime(match.scheduled_at)}`
-            : "Время не назначено"}{" "}
-          · BO{match.best_of}
-        </span>
-        <b>{seasonMatchStatusLabel(match.status)}</b>
+        <div>
+          <span>
+            <FiCalendar aria-hidden="true" />
+            {match.scheduled_at
+              ? `${formatDayMonth(match.scheduled_at)} · ${formatTime(match.scheduled_at)}`
+              : "Время не назначено"}
+          </span>
+          <span>
+            <FiLayers aria-hidden="true" /> BO{match.best_of}
+          </span>
+        </div>
+        <b className={`season-status-pill ${match.status}`}>
+          {seasonMatchStatusLabel(match.status)}
+        </b>
       </div>
-      <div className="season-match-teams">
-        <SeasonTemporaryTeam
-          name={match.team_a_name}
-          score={match.team_a_score}
-          players={teamA}
-        />
-        <strong>:</strong>
-        <SeasonTemporaryTeam
-          name={match.team_b_name}
-          score={match.team_b_score}
-          players={teamB}
-        />
+      <div className="season-match-scoreboard">
+        <SeasonTemporaryTeam name={match.team_a_name} players={teamA} />
+        <div className="season-match-score">
+          <span>Счёт матча</span>
+          <strong>
+            <b className={match.result === "team_a" ? "winner" : ""}>
+              {match.team_a_score ?? "—"}
+            </b>
+            <i>:</i>
+            <b className={match.result === "team_b" ? "winner" : ""}>
+              {match.team_b_score ?? "—"}
+            </b>
+          </strong>
+          <small>BO{match.best_of}</small>
+        </div>
+        <SeasonTemporaryTeam name={match.team_b_name} players={teamB} />
       </div>
       {match.result && (
-        <p className="season-match-result">
+        <p className={`season-match-outcome ${match.result}`}>
           {match.result === "draw"
-            ? "Ничья"
+            ? "Матч завершился вничью"
             : `Победитель: ${
                 match.result === "team_a"
                   ? match.team_a_name
@@ -298,25 +324,41 @@ function SeasonFinalistsSummary() {
 function SeasonTemporaryTeam({
   name,
   players,
-  score,
 }: {
   name: string;
   players: SeasonMatch["participants"];
-  score: number | null;
 }) {
   return (
-    <section>
-      <div><h5>{name}</h5><b>{score ?? "—"}</b></div>
+    <section className="season-temporary-team">
+      <header>
+        <FiUsers aria-hidden="true" />
+        <h5>{name}</h5>
+        <span>{players.length}/5</span>
+      </header>
       {players.length ? (
         <ul>
-          {players.map((player) => (
+          {players.map((player, index) => (
             <li key={player.player_id}>
-              {player.nickname}{player.is_captain ? " · капитан" : ""}
+              {player.avatar_url ? (
+                <Image
+                  src={player.avatar_url}
+                  width={30}
+                  height={30}
+                  alt=""
+                />
+              ) : (
+                <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
+              )}
+              <span>
+                <strong>{player.nickname}</strong>
+                {player.is_captain && <small>Капитан</small>}
+              </span>
+              <b>{index + 1}</b>
             </li>
           ))}
         </ul>
       ) : (
-        <p>Состав пока не заполнен</p>
+        <p className="season-empty-lineup">Состав пока не заполнен</p>
       )}
     </section>
   );
