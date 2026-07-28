@@ -161,8 +161,11 @@ export async function GET(request: Request) {
         [tournament.id],
       ),
       query<ParticipantRow>(
-        `SELECT participant.match_id::int, participant.player_id::text,
-           player.ingame_name AS nickname, player.avatar_url,
+      `SELECT participant.match_id::int, participant.player_id::text,
+           COALESCE(
+             participant.nickname_snapshot, player.ingame_name
+           ) AS nickname,
+           player.avatar_url,
            participant.team_side, participant.is_captain
          FROM season_match_participants participant
          JOIN players player ON player.discord_id = participant.player_id
@@ -187,7 +190,10 @@ export async function GET(request: Request) {
         [tournament.id],
       ),
       query<SeasonPlayerRow>(
-        `SELECT player.discord_id::text, player.ingame_name AS nickname,
+        `SELECT player.discord_id::text,
+           COALESCE(
+             participant.nickname_snapshot, player.ingame_name
+           ) AS nickname,
            player.avatar_url, participant.standings_section,
            participant.inactive_reason
          FROM season_participants participant
@@ -309,6 +315,8 @@ export async function GET(request: Request) {
     roundId: match.round_id,
     status: match.status,
     result: match.result,
+    teamAScore: match.team_a_score,
+    teamBScore: match.team_b_score,
     participants: match.participants.map((participant) => ({
       playerId: participant.player_id,
       nickname: participant.nickname,

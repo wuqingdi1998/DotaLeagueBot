@@ -20,6 +20,8 @@ const matches: SeasonStandingMatch[] = [
     roundId: 1,
     status: "completed",
     result: "team_a",
+    teamAScore: 2,
+    teamBScore: 0,
     participants: [
       { playerId: "100", nickname: "Alpha", avatarUrl: null, teamSide: "a" },
       { playerId: "200", nickname: "Bravo", avatarUrl: null, teamSide: "b" },
@@ -30,6 +32,8 @@ const matches: SeasonStandingMatch[] = [
     roundId: 2,
     status: "completed",
     result: "team_a",
+    teamAScore: 2,
+    teamBScore: 0,
     participants: [
       { playerId: "200", nickname: "Bravo", avatarUrl: null, teamSide: "a" },
       { playerId: "100", nickname: "Alpha", avatarUrl: null, teamSide: "b" },
@@ -40,6 +44,8 @@ const matches: SeasonStandingMatch[] = [
     roundId: 3,
     status: "published",
     result: "draw",
+    teamAScore: 1,
+    teamBScore: 1,
     participants: [
       { playerId: "100", nickname: "Alpha", avatarUrl: null, teamSide: "a" },
       { playerId: "200", nickname: "Bravo", avatarUrl: null, teamSide: "b" },
@@ -60,6 +66,9 @@ describe("season standings", () => {
       wins: 1,
       draws: 1,
       losses: 0,
+      mapWins: 3,
+      mapLosses: 1,
+      winRate: 0.75,
       points: 3,
     });
     expect(standings[1]).toMatchObject({
@@ -85,6 +94,67 @@ describe("season standings", () => {
       losses: 1,
       points: 3,
     });
+  });
+
+  it("sorts equal points by map win rate and then games played", () => {
+    const tiedMatches: SeasonStandingMatch[] = [
+      {
+        id: 21,
+        roundId: 1,
+        status: "completed",
+        result: "team_a",
+        teamAScore: 2,
+        teamBScore: 1,
+        participants: [
+          {
+            playerId: "100",
+            nickname: "Alpha",
+            avatarUrl: null,
+            teamSide: "a",
+          },
+          {
+            playerId: "200",
+            nickname: "Bravo",
+            avatarUrl: null,
+            teamSide: "b",
+          },
+        ],
+      },
+      {
+        id: 22,
+        roundId: 3,
+        status: "completed",
+        result: "team_a",
+        teamAScore: 2,
+        teamBScore: 0,
+        participants: [
+          {
+            playerId: "300",
+            nickname: "Charlie",
+            avatarUrl: null,
+            teamSide: "a",
+          },
+          {
+            playerId: "400",
+            nickname: "Delta",
+            avatarUrl: null,
+            teamSide: "b",
+          },
+        ],
+      },
+    ];
+
+    const standings = calculateSeasonStandings(rounds, tiedMatches, [], {
+      adjustments: [
+        { playerId: "100", amount: -1 },
+        { playerId: "300", amount: -1 },
+      ],
+    });
+
+    expect(standings.slice(0, 2).map((row) => row.nickname)).toEqual([
+      "Charlie",
+      "Alpha",
+    ]);
   });
 
   it("does not award points for an unresolved result", () => {

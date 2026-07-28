@@ -22,6 +22,21 @@ const finalMedalsMigration = readFileSync(
   ),
   "utf8",
 );
+const season8Migration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0022_league_season_8.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+function migrationJson<T>(name: string): T {
+  const match = season8Migration.match(
+    new RegExp(`\\$${name}\\$([\\s\\S]*?)\\$${name}\\$::jsonb`),
+  );
+  if (!match) throw new Error(`Missing ${name} data in season 8 migration`);
+  return JSON.parse(match[1]) as T;
+}
 
 describe("season database migration", () => {
   it("keeps existing tournaments ordinary by default", () => {
@@ -83,6 +98,52 @@ describe("season discipline database migration", () => {
     expect(finalMedalsMigration).toMatch(/SET medal = NULL/);
     expect(finalMedalsMigration).toContain(
       "season_finalists_seed_unique_idx",
+    );
+  });
+});
+
+describe("season 8 import migration", () => {
+  it("contains every standings player and regular match from Excel", () => {
+    const players = migrationJson<Array<{ nickname: string }>>("players");
+    const matches = migrationJson<
+      Array<{ ap: string[]; bp: string[] }>
+    >("matches");
+
+    expect(players).toHaveLength(65);
+    expect(new Set(players.map((player) => player.nickname)).size).toBe(65);
+    expect(matches).toHaveLength(34);
+    expect(matches.every((match) => match.ap.length === 5)).toBe(true);
+    expect(matches.every((match) => match.bp.length === 5)).toBe(true);
+    const playerNames = new Set(
+      players.map((player) => player.nickname.trim().toLocaleLowerCase("ru")),
+    );
+    expect(
+      matches
+        .flatMap((match) => [...match.ap, ...match.bp])
+        .filter(
+          (nickname) =>
+            !playerNames.has(nickname.trim().toLocaleLowerCase("ru")),
+        ),
+    ).toEqual([]);
+  });
+
+  it("contains all penalties, finalists and both final matches", () => {
+    expect(migrationJson<unknown[]>("penalties")).toHaveLength(32);
+    expect(migrationJson<unknown[]>("finalists")).toHaveLength(20);
+    expect(migrationJson<unknown[]>("final_matches")).toHaveLength(2);
+  });
+
+  it("stops safely when an Excel nickname cannot be linked", () => {
+    expect(season8Migration).toContain("IF missing_players IS NOT NULL");
+    expect(season8Migration).toMatch(/RAISE EXCEPTION[\s\S]+missing_players/);
+  });
+
+  it("keeps historical nicknames when a linked profile is renamed", () => {
+    expect(season8Migration).toMatch(
+      /ALTER TABLE season_participants[\s\S]+nickname_snapshot/,
+    );
+    expect(season8Migration).toMatch(
+      /ALTER TABLE season_match_participants[\s\S]+nickname_snapshot/,
     );
   });
 });

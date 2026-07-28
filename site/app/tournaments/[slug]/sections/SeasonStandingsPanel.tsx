@@ -105,6 +105,7 @@ function StandingsTable({
             <th>П</th>
             <th>p</th>
             <th>Очки</th>
+            <th>%WR</th>
             {rounds.map((round) => (
               <th key={round.id}>Тур {round.round_number}</th>
             ))}
@@ -131,6 +132,14 @@ function StandingsTable({
                   : ""}
               </td>
               <td><strong>{row.points}</strong></td>
+              <td>
+                {row.winRate === null
+                  ? "—"
+                  : `${(row.winRate * 100).toLocaleString("ru-RU", {
+                      maximumFractionDigits: 2,
+                      minimumFractionDigits: 2,
+                    })}%`}
+              </td>
               {rounds.map((round) => {
                 const cell = row.rounds[String(round.round_number)];
                 return (
@@ -187,6 +196,10 @@ function SeasonStandingsLegend() {
       <p>
         <b>p</b> — ручные поправки, бонусы за замену и снятия за штрафные
         огоньки.
+      </p>
+      <p>
+        <b>%WR</b> — процент выигранных карт. При равенстве очков выше
+        ставится игрок с большим %WR, затем с большим числом сыгранных туров.
       </p>
     </aside>
   );

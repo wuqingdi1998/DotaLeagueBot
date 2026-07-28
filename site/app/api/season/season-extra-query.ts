@@ -62,10 +62,16 @@ export async function loadSeasonExtras(
   return Promise.all([
     query<PointAdjustmentRow>(
       `SELECT adjustment.id::int, adjustment.player_id::text,
-         player.ingame_name AS nickname, adjustment.round_id::int,
+         COALESCE(
+           participant.nickname_snapshot, player.ingame_name
+         ) AS nickname,
+         adjustment.round_id::int,
          adjustment.amount::int, adjustment.reason
        FROM season_point_adjustments adjustment
        JOIN players player ON player.discord_id = adjustment.player_id
+       LEFT JOIN season_participants participant
+         ON participant.tournament_id = adjustment.tournament_id
+        AND participant.player_id = adjustment.player_id
        LEFT JOIN season_rounds round ON round.id = adjustment.round_id
        WHERE adjustment.tournament_id = $1
          ${isOrganizer ? "" : "AND (adjustment.round_id IS NULL OR round.is_visible = TRUE)"}
@@ -74,14 +80,22 @@ export async function loadSeasonExtras(
     ),
     query<PenaltyEventRow>(
       `SELECT event.id::int, event.player_id::text,
-         player.ingame_name AS nickname, event.round_id::int,
+         COALESCE(
+           participant.nickname_snapshot, player.ingame_name
+         ) AS nickname,
+         event.round_id::int,
          round.round_number::int, event.fire_count::int, event.note
        FROM season_penalty_events event
        JOIN players player ON player.discord_id = event.player_id
+       LEFT JOIN season_participants participant
+         ON participant.tournament_id = event.tournament_id
+        AND participant.player_id = event.player_id
        JOIN season_rounds round ON round.id = event.round_id
        WHERE event.tournament_id = $1 ${roundVisibility}
          AND round.round_kind = 'regular'
-       ORDER BY player.ingame_name, round.round_number`,
+       ORDER BY COALESCE(
+         participant.nickname_snapshot, player.ingame_name
+       ), round.round_number`,
       [tournamentId],
     ),
     query<SubstitutionRow>(
@@ -110,12 +124,19 @@ export async function loadSeasonExtras(
     ),
     query<FinalistRow>(
       `SELECT finalist.player_id::text,
-         player.ingame_name AS nickname, player.avatar_url,
+         COALESCE(
+           participant.nickname_snapshot, player.ingame_name
+         ) AS nickname,
+         player.avatar_url,
          finalist.seed::int, finalist.note
        FROM season_finalists finalist
        JOIN players player ON player.discord_id = finalist.player_id
+       LEFT JOIN season_participants participant
+         ON participant.tournament_id = finalist.tournament_id
+        AND participant.player_id = finalist.player_id
        WHERE finalist.tournament_id = $1 ${finalsVisibility}
-       ORDER BY finalist.seed NULLS LAST, player.ingame_name`,
+       ORDER BY finalist.seed NULLS LAST,
+         COALESCE(participant.nickname_snapshot, player.ingame_name)`,
       [tournamentId],
     ),
   ]);

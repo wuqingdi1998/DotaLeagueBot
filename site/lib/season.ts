@@ -21,6 +21,8 @@ export type SeasonStandingMatch = {
   roundId: number;
   status: "draft" | "published" | "completed" | "cancelled";
   result: "team_a" | "draw" | "team_b" | null;
+  teamAScore: number | null;
+  teamBScore: number | null;
   participants: SeasonStandingParticipant[];
 };
 
@@ -83,6 +85,9 @@ export type SeasonStanding = {
   wins: number;
   draws: number;
   losses: number;
+  mapWins: number;
+  mapLosses: number;
+  winRate: number | null;
   adjustmentPoints: number;
   hasAdjustments: boolean;
   points: number;
@@ -209,6 +214,9 @@ export function calculateSeasonStandings(
       wins: 0,
       draws: 0,
       losses: 0,
+      mapWins: 0,
+      mapLosses: 0,
+      winRate: null,
       adjustmentPoints: 0,
       hasAdjustments: false,
       points: 0,
@@ -264,6 +272,14 @@ export function calculateSeasonStandings(
         if (outcome === "win") row.wins += 1;
         if (outcome === "draw") row.draws += 1;
         if (outcome === "loss") row.losses += 1;
+        const ownScore =
+          participant.teamSide === "a" ? match.teamAScore : match.teamBScore;
+        const opponentScore =
+          participant.teamSide === "a" ? match.teamBScore : match.teamAScore;
+        if (ownScore !== null && opponentScore !== null) {
+          row.mapWins += ownScore;
+          row.mapLosses += opponentScore;
+        }
       }
       rows.set(participant.playerId, row);
     }
@@ -344,13 +360,15 @@ export function calculateSeasonStandings(
   for (const row of rows.values()) {
     row.playedRounds = playedRoundsByPlayer.get(row.playerId)?.size ?? 0;
     row.points += row.adjustmentPoints;
+    const playedMaps = row.mapWins + row.mapLosses;
+    row.winRate = playedMaps > 0 ? row.mapWins / playedMaps : null;
   }
 
   return [...rows.values()].sort(
     (left, right) =>
       right.points - left.points ||
-      right.wins - left.wins ||
-      left.losses - right.losses ||
+      (right.winRate ?? -1) - (left.winRate ?? -1) ||
+      right.playedRounds - left.playedRounds ||
       left.nickname.localeCompare(right.nickname, "ru"),
   );
 }

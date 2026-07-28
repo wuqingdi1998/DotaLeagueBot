@@ -58,6 +58,8 @@ describe("season substitutions and p adjustments", () => {
     roundId: 1,
     status: "completed",
     result: "team_a",
+    teamAScore: 2,
+    teamBScore: 0,
     participants: [
       { playerId: "1", nickname: "Основной", avatarUrl: null, teamSide: "a" },
       { playerId: "2", nickname: "Соперник", avatarUrl: null, teamSide: "b" },
