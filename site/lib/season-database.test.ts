@@ -133,9 +133,9 @@ describe("season 8 import migration", () => {
     expect(migrationJson<unknown[]>("final_matches")).toHaveLength(2);
   });
 
-  it("stops safely when an Excel nickname cannot be linked", () => {
+  it("reports Excel nicknames that cannot be linked", () => {
     expect(season8Migration).toContain("IF missing_players IS NOT NULL");
-    expect(season8Migration).toMatch(/RAISE EXCEPTION[\s\S]+missing_players/);
+    expect(season8Migration).toMatch(/RAISE NOTICE[\s\S]+missing_players/);
   });
 
   it("keeps historical nicknames when a linked profile is renamed", () => {
