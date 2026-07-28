@@ -48,7 +48,9 @@ describe("hall of fame and participant directory", () => {
 
   it("shows current tiers and the three external player services", () => {
     expect(participantsPage).toContain("<ParticipantsTable players={players}");
-    expect(participantsLoader).toContain("latest_tier.tier::int");
+    expect(participantsLoader).toContain("NULLIF(player.internal_rating, 0)");
+    expect(participantsLoader).toContain("player.rank_tier / 10");
+    expect(participantsLoader).toContain("latest_tier.tier");
     expect(participantsLoader).toContain("buildPlayerLinks(row.dota_id)");
     expect(participantsTable).toContain("`Тир ${player.tier}`");
     expect(participantsTable).toContain("player.links.dotabuff");

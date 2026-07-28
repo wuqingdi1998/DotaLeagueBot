@@ -29,7 +29,15 @@ export async function loadParticipantDirectory(): Promise<
          NULLIF(player.avatar_url, ''),
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
-       latest_tier.tier::int
+       COALESCE(
+         NULLIF(player.internal_rating, 0),
+         CASE
+           WHEN player.rank_tier >= 10 THEN player.rank_tier / 10
+           WHEN player.rank_tier > 0 THEN player.rank_tier
+           ELSE NULL
+         END,
+         latest_tier.tier
+       )::int AS tier
      FROM players player
      LEFT JOIN LATERAL (
        SELECT session.discord_avatar_url
