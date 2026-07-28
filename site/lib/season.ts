@@ -129,6 +129,11 @@ export function validateSeasonTeams(teamA: string[], teamB: string[]) {
   return "";
 }
 
+export function isValidSeasonTierSnapshot(value: unknown) {
+  const tier = Number(value);
+  return Number.isInteger(tier) && tier >= 0 && tier <= 20;
+}
+
 export function validateSeasonResult(
   result: SeasonStandingMatch["result"],
   teamAScore: number | null,

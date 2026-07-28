@@ -9,6 +9,9 @@ function source(path: string) {
 const createRoute = source("../app/api/tournament/tournament-create.ts");
 const publicRoute = source("../app/api/season/route.ts");
 const adminRoute = source("../app/api/admin/season/route.ts");
+const matchActions = source(
+  "../app/api/admin/season/season-match-actions.ts",
+);
 const navigation = source(
   "../app/tournaments/[slug]/sections/TournamentNavigation.tsx",
 );
@@ -78,6 +81,12 @@ describe("season interface contract", () => {
     expect(roundTabStrip).toContain("onPointerDown");
     expect(roundTabStrip).toContain("canScrollBack");
     expect(roundTabStrip).toContain("canScrollForward");
+    expect(roundTabStrip).toContain(
+      "if (Math.abs(movement) < dragThreshold) return;",
+    );
+    expect(roundTabStrip.indexOf("setPointerCapture")).toBeGreaterThan(
+      roundTabStrip.indexOf("Math.abs(movement) < dragThreshold"),
+    );
     expect(styles).toMatch(
       /\.season-tournament-tabs\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*row;/,
     );
@@ -122,6 +131,15 @@ describe("season interface contract", () => {
     expect(styles).toMatch(
       /\.season-temporary-team li strong\s*\{[^}]*font-size:\s*16px;/,
     );
+  });
+
+  it("keeps and displays the tier recorded for each round appearance", () => {
+    expect(publicRoute).toContain("participant.tier_snapshot::int");
+    expect(rounds).toContain("player.tier_snapshot");
+    expect(matchAdmin).toContain("playerTierSnapshots");
+    expect(teamSelection).toContain("SeasonTierEditor");
+    expect(matchActions).toContain("previousTiers");
+    expect(matchActions).toContain("submittedTiers");
   });
 
   it("selects match players from season participants with search and checkboxes", () => {

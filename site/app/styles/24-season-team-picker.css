@@ -149,8 +149,67 @@
   text-align: center;
 }
 
+.season-tier-editor {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 9px;
+  margin: 0;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  padding: 12px;
+  background: var(--surface-soft);
+}
+
+.season-tier-editor > legend {
+  padding: 0 5px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.season-tier-editor > label {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 76px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 9px;
+  background: var(--surface);
+}
+
+.season-tier-editor > label > span {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-admin-panel .season-tier-editor input {
+  min-height: 36px;
+  padding: 7px 8px;
+  text-align: center;
+}
+
+.season-tier-editor > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
 @media (max-width: 600px) {
   .season-team-player-list {
     max-height: 270px;
+  }
+
+  .season-tier-editor {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

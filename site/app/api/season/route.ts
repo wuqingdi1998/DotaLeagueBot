@@ -57,6 +57,7 @@ type ParticipantRow = {
   avatar_url: string | null;
   team_side: "a" | "b";
   is_captain: boolean;
+  tier_snapshot: number | null;
 };
 
 type GameRow = {
@@ -166,7 +167,8 @@ export async function GET(request: Request) {
              participant.nickname_snapshot, player.ingame_name
            ) AS nickname,
            player.avatar_url,
-           participant.team_side, participant.is_captain
+           participant.team_side, participant.is_captain,
+           participant.tier_snapshot::int
          FROM season_match_participants participant
          JOIN players player ON player.discord_id = participant.player_id
          JOIN season_matches match ON match.id = participant.match_id

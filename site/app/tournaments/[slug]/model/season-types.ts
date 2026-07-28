@@ -43,6 +43,7 @@ export type SeasonMatchParticipant = {
   avatar_url: string | null;
   team_side: "a" | "b";
   is_captain: boolean;
+  tier_snapshot: number | null;
 };
 
 export type SeasonMatch = {

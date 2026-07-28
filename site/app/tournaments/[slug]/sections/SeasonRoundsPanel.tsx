@@ -351,7 +351,12 @@ function SeasonTemporaryTeam({
               )}
               <span>
                 <strong>{player.nickname}</strong>
-                {player.is_captain && <small>Капитан</small>}
+                <small>
+                  {player.is_captain && <b>Капитан</b>}
+                  {player.tier_snapshot !== null && (
+                    <b>Тир {player.tier_snapshot}</b>
+                  )}
+                </small>
               </span>
               <b>{index + 1}</b>
             </li>

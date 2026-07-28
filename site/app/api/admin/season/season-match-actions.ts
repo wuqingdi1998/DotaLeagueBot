@@ -6,6 +6,7 @@ import {
   optionalDate,
   requiredId,
   seasonTeams,
+  seasonTierSnapshots,
   textValue,
 } from "./season-admin-model";
 
@@ -77,6 +78,7 @@ async function replaceParticipants(
   teamB: string[],
   teamACaptainId: string | null,
   teamBCaptainId: string | null,
+  submittedTiers: Map<string, number | null>,
 ) {
   const selected = [...teamA, ...teamB];
   if (selected.length) {
@@ -133,6 +135,21 @@ async function replaceParticipants(
       );
     }
   }
+  const previousTierRows = await client.query<{
+    player_id: string;
+    tier_snapshot: number | null;
+  }>(
+    `SELECT player_id::text, tier_snapshot::int
+     FROM season_match_participants
+     WHERE match_id = $1`,
+    [matchId],
+  );
+  const previousTiers = new Map(
+    previousTierRows.rows.map((row) => [
+      row.player_id,
+      row.tier_snapshot,
+    ]),
+  );
   await client.query(
     "DELETE FROM season_match_participants WHERE match_id = $1",
     [matchId],
@@ -140,13 +157,20 @@ async function replaceParticipants(
   for (const [side, ids] of [["a", teamA], ["b", teamB]] as const) {
     if (!ids.length) continue;
     const captainId = side === "a" ? teamACaptainId : teamBCaptainId;
+    const tiers = ids.map((playerId) =>
+      submittedTiers.has(playerId)
+        ? submittedTiers.get(playerId)
+        : previousTiers.get(playerId) ?? null,
+    );
     await client.query(
       `INSERT INTO season_match_participants
-        (match_id, player_id, team_side, is_captain)
+        (match_id, player_id, team_side, is_captain, tier_snapshot)
        SELECT $1, selected.player_id, $2,
-         selected.player_id::text = COALESCE($4::text, '')
-       FROM UNNEST($3::bigint[]) AS selected(player_id)`,
-      [matchId, side, ids, captainId],
+         selected.player_id::text = COALESCE($5::text, ''),
+         selected.tier_snapshot
+       FROM UNNEST($3::bigint[], $4::smallint[])
+         AS selected(player_id, tier_snapshot)`,
+      [matchId, side, ids, tiers, captainId],
     );
   }
   if (selected.length) {
@@ -170,6 +194,10 @@ export async function createSeasonMatch(body: Record<string, unknown>) {
   const teamBCaptainId = body.teamBCaptainId
     ? String(body.teamBCaptainId)
     : null;
+  const tierSnapshots = seasonTierSnapshots(
+    body.playerTierSnapshots,
+    [...teamA, ...teamB],
+  );
   if (
     (teamACaptainId && !teamA.includes(teamACaptainId)) ||
     (teamBCaptainId && !teamB.includes(teamBCaptainId))
@@ -251,6 +279,7 @@ export async function createSeasonMatch(body: Record<string, unknown>) {
       teamB,
       teamACaptainId,
       teamBCaptainId,
+      tierSnapshots,
     );
     return { ok: true, id: created.rows[0].id };
   });
@@ -266,6 +295,10 @@ export async function updateSeasonMatch(body: Record<string, unknown>) {
   const teamBCaptainId = body.teamBCaptainId
     ? String(body.teamBCaptainId)
     : null;
+  const tierSnapshots = seasonTierSnapshots(
+    body.playerTierSnapshots,
+    [...teamA, ...teamB],
+  );
   if (
     (teamACaptainId && !teamA.includes(teamACaptainId)) ||
     (teamBCaptainId && !teamB.includes(teamBCaptainId))
@@ -324,6 +357,7 @@ export async function updateSeasonMatch(body: Record<string, unknown>) {
       teamB,
       teamACaptainId,
       teamBCaptainId,
+      tierSnapshots,
     );
     return { ok: true };
   });

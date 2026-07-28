@@ -36,12 +36,27 @@ const season8AliasesMigration = readFileSync(
   ),
   "utf8",
 );
+const seasonTierMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0024_season_match_tier_snapshots.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 function migrationJson<T>(name: string): T {
   const match = season8Migration.match(
     new RegExp(`\\$${name}\\$([\\s\\S]*?)\\$${name}\\$::jsonb`),
   );
   if (!match) throw new Error(`Missing ${name} data in season 8 migration`);
+  return JSON.parse(match[1]) as T;
+}
+
+function tierMigrationJson<T>(name: string): T {
+  const match = seasonTierMigration.match(
+    new RegExp(`\\$${name}\\$([\\s\\S]*?)\\$${name}\\$::jsonb`),
+  );
+  if (!match) throw new Error(`Missing ${name} data in tier migration`);
   return JSON.parse(match[1]) as T;
 }
 
@@ -171,5 +186,63 @@ describe("season 8 import migration", () => {
     expect(season8AliasesMigration).toContain(
       "DELETE FROM players player",
     );
+  });
+
+  it("stores a separate historical tier for every match appearance", () => {
+    expect(seasonTierMigration).toMatch(
+      /ALTER TABLE season_match_participants[\s\S]+tier_snapshot SMALLINT/,
+    );
+    expect(seasonTierMigration).toMatch(
+      /tier_snapshot BETWEEN 0 AND 20/,
+    );
+
+    const matches = migrationJson<
+      Array<{ r: number; ap: string[]; bp: string[] }>
+    >("matches");
+    const finalMatches = migrationJson<
+      Array<{ ap: string[]; bp: string[] }>
+    >("final_matches");
+    const tiers = tierMigrationJson<
+      Array<{ r: number; p: Array<[string, number]> }>
+    >("tiers");
+    const tiersByRound = new Map(
+      tiers.map(({ r, p }) => [
+        r,
+        new Map(
+          p.map(([nickname, tier]) => [
+            nickname.trim().toLocaleLowerCase("ru"),
+            tier,
+          ]),
+        ),
+      ]),
+    );
+    const appearances = [
+      ...matches.flatMap((match) =>
+        [...match.ap, ...match.bp].map((nickname) => ({
+          round: match.r,
+          nickname,
+        })),
+      ),
+      ...finalMatches.flatMap((match) =>
+        [...match.ap, ...match.bp].map((nickname) => ({
+          round: 15,
+          nickname,
+        })),
+      ),
+    ];
+
+    expect(appearances).toHaveLength(360);
+    expect(
+      appearances.filter(
+        ({ round, nickname }) =>
+          !tiersByRound
+            .get(round)
+            ?.has(nickname.trim().toLocaleLowerCase("ru")),
+      ),
+    ).toEqual([]);
+    expect(tiersByRound.get(2)?.get("lavchik")).toBe(8);
+    expect(tiersByRound.get(3)?.get("lavchik")).toBe(9);
+    expect(tiersByRound.get(9)?.get("umbrella")).toBe(5);
+    expect(tiersByRound.get(10)?.get("umbrella")).toBe(4);
   });
 });

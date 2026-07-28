@@ -151,3 +151,43 @@ export function SeasonCaptainPicker({
     </label>
   );
 }
+
+export function SeasonTierEditor({
+  label,
+  onChange,
+  playerOptions,
+  players,
+  tierSnapshots,
+}: {
+  label: string;
+  onChange: (playerId: string, tier: string) => void;
+  playerOptions: SeasonTeamPlayerOption[];
+  players: string[];
+  tierSnapshots: Record<string, string>;
+}) {
+  const optionsById = new Map(
+    playerOptions.map((player) => [player.discord_id, player] as const),
+  );
+  return (
+    <fieldset className="season-tier-editor">
+      <legend>{label}</legend>
+      {players.map((playerId) => (
+        <label key={playerId}>
+          <span>{optionsById.get(playerId)?.ingame_name ?? playerId}</span>
+          <input
+            type="number"
+            min="0"
+            max="20"
+            inputMode="numeric"
+            aria-label={`Тир игрока ${optionsById.get(playerId)?.ingame_name ?? playerId} на этот тур`}
+            value={tierSnapshots[playerId] ?? ""}
+            onChange={(event) => onChange(playerId, event.target.value)}
+          />
+        </label>
+      ))}
+      {!players.length && (
+        <p>Сначала выберите игроков команды, затем укажите их тиры.</p>
+      )}
+    </fieldset>
+  );
+}

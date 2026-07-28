@@ -91,15 +91,18 @@ export function SeasonRoundTabStrip({
       startScrollLeft: event.currentTarget.scrollLeft,
       hasMoved: false,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
-    setIsDragging(true);
   };
 
   const continueDragging = (event: ReactPointerEvent<HTMLDivElement>) => {
     const dragState = dragStateRef.current;
     if (!dragState || dragState.pointerId !== event.pointerId) return;
     const movement = event.clientX - dragState.startX;
-    if (Math.abs(movement) >= dragThreshold) dragState.hasMoved = true;
+    if (Math.abs(movement) < dragThreshold) return;
+    if (!dragState.hasMoved) {
+      dragState.hasMoved = true;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      setIsDragging(true);
+    }
     event.currentTarget.scrollLeft = dragState.startScrollLeft - movement;
     event.preventDefault();
   };

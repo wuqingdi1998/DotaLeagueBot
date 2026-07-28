@@ -1,4 +1,8 @@
-import { validSeasonRoundCount, validateSeasonTeams } from "@/lib/season";
+import {
+  isValidSeasonTierSnapshot,
+  validSeasonRoundCount,
+  validateSeasonTeams,
+} from "@/lib/season";
 
 export type SeasonEntity = "season" | "round" | "lobby" | "match" | "game";
 
@@ -68,4 +72,36 @@ export function seasonTeams(body: Record<string, unknown>) {
   const teamError = validateSeasonTeams(teamA, teamB);
   if (teamError) throw new Response(teamError, { status: 400 });
   return { teamA, teamB };
+}
+
+export function seasonTierSnapshots(
+  value: unknown,
+  selectedPlayerIds: string[],
+) {
+  if (
+    value !== undefined &&
+    (value === null || typeof value !== "object" || Array.isArray(value))
+  ) {
+    throw new Response("Тиры игроков переданы в неверном формате", {
+      status: 400,
+    });
+  }
+  const source = (value ?? {}) as Record<string, unknown>;
+  const snapshots = new Map<string, number | null>();
+  for (const playerId of selectedPlayerIds) {
+    if (!Object.hasOwn(source, playerId)) continue;
+    const rawTier = source[playerId];
+    if (rawTier === "" || rawTier === null) {
+      snapshots.set(playerId, null);
+      continue;
+    }
+    const tier = Number(rawTier);
+    if (!isValidSeasonTierSnapshot(tier)) {
+      throw new Response("Тир игрока должен быть целым числом от 0 до 20", {
+        status: 400,
+      });
+    }
+    snapshots.set(playerId, tier);
+  }
+  return snapshots;
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateSeasonStandings,
+  isValidSeasonTierSnapshot,
   seasonMatchLinks,
   validateSeasonResult,
   validateSeasonTeams,
@@ -171,6 +172,15 @@ describe("season standings", () => {
 });
 
 describe("season match safety", () => {
+  it("accepts only whole historical tiers from 0 to 20", () => {
+    expect(isValidSeasonTierSnapshot(0)).toBe(true);
+    expect(isValidSeasonTierSnapshot("10")).toBe(true);
+    expect(isValidSeasonTierSnapshot(20)).toBe(true);
+    expect(isValidSeasonTierSnapshot(-1)).toBe(false);
+    expect(isValidSeasonTierSnapshot(1.5)).toBe(false);
+    expect(isValidSeasonTierSnapshot(21)).toBe(false);
+  });
+
   it("limits each temporary team to five players", () => {
     expect(
       validateSeasonTeams(["1", "2", "3", "4", "5", "6"], []),

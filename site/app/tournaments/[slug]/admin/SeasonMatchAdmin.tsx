@@ -9,6 +9,7 @@ import { SeasonSubstitutionAdmin } from "./SeasonSubstitutionAdmin";
 import {
   SeasonCaptainPicker,
   SeasonTeamPicker,
+  SeasonTierEditor,
   type SeasonTeamPlayerOption,
 } from "./SeasonTeamSelection";
 
@@ -45,6 +46,16 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   const [teamBName, setTeamBName] = useState(match.team_b_name);
   const [teamAPlayers, setTeamAPlayers] = useState(initialTeamA);
   const [teamBPlayers, setTeamBPlayers] = useState(initialTeamB);
+  const [playerTierSnapshots, setPlayerTierSnapshots] = useState<
+    Record<string, string>
+  >(
+    Object.fromEntries(
+      match.participants.map((player) => [
+        player.player_id,
+        player.tier_snapshot?.toString() ?? "",
+      ]),
+    ),
+  );
   const [teamACaptain, setTeamACaptain] = useState(
     match.participants.find(
       (player) => player.team_side === "a" && player.is_captain,
@@ -82,6 +93,13 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
     }
   }
 
+  function updatePlayerTier(playerId: string, tier: string) {
+    setPlayerTierSnapshots((current) => ({
+      ...current,
+      [playerId]: tier,
+    }));
+  }
+
   async function save() {
     await season.mutate("PATCH", {
       entity: "match",
@@ -92,6 +110,12 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
       teamBPlayerIds: teamBPlayers,
       teamACaptainId: teamACaptain || null,
       teamBCaptainId: teamBCaptain || null,
+      playerTierSnapshots: Object.fromEntries(
+        [...teamAPlayers, ...teamBPlayers].map((playerId) => [
+          playerId,
+          playerTierSnapshots[playerId] ?? "",
+        ]),
+      ),
       scheduledAt,
       bestOf,
       teamAScore,
@@ -229,6 +253,20 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
             players={teamBPlayers}
             playerOptions={availablePlayers}
             onChange={setTeamBCaptain}
+          />
+          <SeasonTierEditor
+            label="Тиры команды A на этот тур"
+            players={teamAPlayers}
+            playerOptions={availablePlayers}
+            tierSnapshots={playerTierSnapshots}
+            onChange={updatePlayerTier}
+          />
+          <SeasonTierEditor
+            label="Тиры команды B на этот тур"
+            players={teamBPlayers}
+            playerOptions={availablePlayers}
+            tierSnapshots={playerTierSnapshots}
+            onChange={updatePlayerTier}
           />
         </div>
         <div className="season-admin-actions">
