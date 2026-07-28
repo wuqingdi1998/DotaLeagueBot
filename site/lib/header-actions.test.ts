@@ -6,6 +6,10 @@ const component = readFileSync(
   new URL("../app/components/SiteHeader.tsx", import.meta.url),
   "utf8",
 );
+const headerCss = readFileSync(
+  new URL("../app/styles/02-site-header.css", import.meta.url),
+  "utf8",
+);
 const css = loadSiteStyles();
 
 describe("site header actions", () => {
@@ -27,6 +31,7 @@ describe("site header actions", () => {
   it("uses a generic login icon on mobile and Discord icon on desktop", () => {
     expect(component).toContain('className="login-icon-discord"');
     expect(component).toContain('className="login-icon-mobile"');
+    expect(component).toContain('aria-label="Войти через Discord"');
     expect(css).toMatch(
       /\.login-icon-mobile\s*\{[^}]*display:\s*none;/,
     );
@@ -42,5 +47,18 @@ describe("site header actions", () => {
     expect(css).toMatch(
       /\.boosty-button span\s*\{[^}]*display:\s*none;/,
     );
+  });
+
+  it("compacts header actions before they can overlap on narrow desktops", () => {
+    expect(headerCss).toMatch(
+      /@media \(min-width:\s*761px\) and \(max-width:\s*1400px\)[\s\S]*\.boosty-button,[\s\S]*\.theme-button,[\s\S]*\.discord-login,[\s\S]*\.player-profile-button\s*\{[^}]*width:\s*46px;[^}]*min-width:\s*46px;[^}]*height:\s*46px;/,
+    );
+    expect(headerCss).toMatch(
+      /@media \(min-width:\s*761px\) and \(max-width:\s*1400px\)[\s\S]*\.login-icon-discord\s*\{[^}]*display:\s*none;[\s\S]*\.login-icon-mobile\s*\{[^}]*display:\s*block;/,
+    );
+    expect(headerCss).toMatch(
+      /\.header-actions > \*\s*\{[^}]*flex:\s*0 0 auto;/,
+    );
+    expect(component).toContain("Открыть меню профиля");
   });
 });

@@ -169,6 +169,7 @@ export function SiteHeader({
               className="player-profile-button"
               type="button"
               onClick={() => setProfileOpen((current) => !current)}
+              aria-label={`Открыть меню профиля ${user.serverName}`}
               aria-expanded={profileOpen}
             >
               {user.avatarUrl ? (
@@ -220,6 +221,7 @@ export function SiteHeader({
           <a
             className="discord-login"
             href={`/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`}
+            aria-label="Войти через Discord"
           >
             <FaDiscord
               className="login-icon-discord"

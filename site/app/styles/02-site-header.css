@@ -105,6 +105,10 @@
   flex: 0 0 auto;
 }
 
+.header-actions > * {
+  flex: 0 0 auto;
+}
+
 .theme-button {
   display: grid;
   width: 52px;
@@ -319,4 +323,43 @@
   color: #fff;
   font-size: 14px;
   font-weight: 700;
+}
+
+@media (min-width: 761px) and (max-width: 1400px) {
+  .header-actions {
+    gap: 10px;
+  }
+
+  .boosty-button,
+  .theme-button,
+  .discord-login,
+  .player-profile-button {
+    width: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    height: 46px;
+    border-radius: 12px;
+    padding: 0;
+  }
+
+  .boosty-button span,
+  .discord-login span,
+  .player-profile-copy,
+  .login-icon-discord {
+    display: none;
+  }
+
+  .login-icon-mobile {
+    display: block;
+  }
+
+  .player-profile-button {
+    padding: 3px;
+  }
+
+  .player-profile-avatar {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
 }
