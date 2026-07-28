@@ -16,6 +16,9 @@ export type TournamentSummary = {
   max_teams: number;
   region: string;
   status: TournamentStatus;
+  tournament_type: "ordinary" | "seasonal";
+  season_round_count: number;
+  participant_count: number;
   team_count: number;
   match_count: number;
   finished_match_count: number;

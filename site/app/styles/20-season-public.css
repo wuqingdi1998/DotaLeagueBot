@@ -76,6 +76,7 @@
   padding: 0;
   background: var(--surface-soft);
   color: var(--text);
+  transform: translateY(-8px);
   transition:
     border-color 160ms ease,
     background 160ms ease,

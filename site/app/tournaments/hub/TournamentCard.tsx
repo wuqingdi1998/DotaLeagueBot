@@ -27,6 +27,7 @@ export function TournamentCard({
   onStatusChange: (id: number, status: TournamentStatus) => Promise<void>;
 }) {
   const isPast = isPastTournament(tournament.status);
+  const isSeasonal = tournament.tournament_type === "seasonal";
 
   return (
     <article className={`tournament-card status-${tournament.status}`}>
@@ -50,16 +51,24 @@ export function TournamentCard({
           <dd>{tournament.format}</dd>
         </div>
         <div>
-          <dt>Команды</dt>
+          <dt>{isSeasonal ? "Участники" : "Команды"}</dt>
           <dd>
-            {tournament.team_count}
-            {!isPast && ` / ${tournament.max_teams}`}
+            {isSeasonal ? (
+              tournament.participant_count
+            ) : (
+              <>
+                {tournament.team_count}
+                {!isPast && ` / ${tournament.max_teams}`}
+              </>
+            )}
           </dd>
         </div>
         <div>
-          <dt>Результаты</dt>
+          <dt>{isSeasonal ? "Туры" : "Результаты"}</dt>
           <dd>
-            {tournament.finished_match_count} из {tournament.match_count} матчей
+            {isSeasonal
+              ? tournament.season_round_count
+              : `${tournament.finished_match_count} из ${tournament.match_count} матчей`}
           </dd>
         </div>
       </dl>

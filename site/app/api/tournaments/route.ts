@@ -26,6 +26,13 @@ export async function GET() {
        t.max_teams,
        t.region,
        t.status,
+       t.tournament_type,
+       t.season_round_count::int,
+       COALESCE((
+         SELECT COUNT(*)::int
+         FROM season_participants participant
+         WHERE participant.tournament_id = t.id
+       ), 0)::int AS participant_count,
        COUNT(DISTINCT a.id) FILTER (WHERE a.status = 'approved')::int AS team_count,
        COUNT(DISTINCT m.id)::int AS match_count,
        COUNT(DISTINCT m.id) FILTER (WHERE m.status = 'finished')::int AS finished_match_count

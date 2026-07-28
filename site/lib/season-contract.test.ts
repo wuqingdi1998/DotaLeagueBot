@@ -33,6 +33,9 @@ const teamSelection = source(
 const seasonController = source(
   "../app/tournaments/[slug]/hooks/useSeasonController.ts",
 );
+const tournamentAdmin = source(
+  "../app/tournaments/[slug]/admin/TournamentAdminPanel.tsx",
+);
 const styles = loadSiteStyles();
 
 describe("season creation and access contract", () => {
@@ -104,6 +107,20 @@ describe("season interface contract", () => {
     );
     expect(styles).toMatch(
       /\.season-round-tabs::[-]webkit-scrollbar\s*\{[^}]*display:\s*none;/,
+    );
+    expect(styles).toMatch(
+      /\.tabs \.season-round-edge-button\s*\{[^}]*transform:\s*translateY\(-8px\);/,
+    );
+  });
+
+  it("shows participant and round totals in the season editor", () => {
+    expect(tournamentAdmin).toContain("<span>Участников</span>");
+    expect(tournamentAdmin).toContain(
+      "season.data?.participants.length ?? 0",
+    );
+    expect(tournamentAdmin).toContain("<span>Туров</span>");
+    expect(tournamentAdmin).toContain(
+      "data.tournament.season_round_count",
     );
   });
 
