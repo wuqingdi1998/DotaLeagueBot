@@ -87,6 +87,8 @@ describe("season interface contract", () => {
     expect(roundTabStrip.indexOf("setPointerCapture")).toBeGreaterThan(
       roundTabStrip.indexOf("Math.abs(movement) < dragThreshold"),
     );
+    expect(roundTabStrip).toContain("keepScrollPositionRef.current = true");
+    expect(roundTabStrip).toContain("openRoundWithoutScrolling");
     expect(styles).toMatch(
       /\.season-tournament-tabs\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*row;/,
     );
@@ -136,6 +138,8 @@ describe("season interface contract", () => {
   it("keeps and displays the tier recorded for each round appearance", () => {
     expect(publicRoute).toContain("participant.tier_snapshot::int");
     expect(rounds).toContain("player.tier_snapshot");
+    expect(rounds).toContain('className="player-tier"');
+    expect(rounds).not.toContain("<b>Тир {player.tier_snapshot}</b>");
     expect(matchAdmin).toContain("playerTierSnapshots");
     expect(teamSelection).toContain("SeasonTierEditor");
     expect(matchActions).toContain("previousTiers");

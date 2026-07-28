@@ -40,6 +40,7 @@ export function SeasonRoundTabStrip({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const activeRoundRef = useRef<HTMLButtonElement>(null);
   const dragStateRef = useRef<DragState | null>(null);
+  const keepScrollPositionRef = useRef(false);
   const suppressClickRef = useRef(false);
   const [canScrollBack, setCanScrollBack] = useState(false);
   const [canScrollForward, setCanScrollForward] = useState(false);
@@ -68,11 +69,23 @@ export function SeasonRoundTabStrip({
     const scrollArea = scrollAreaRef.current;
     const activeRound = activeRoundRef.current;
     if (!scrollArea || !activeRound) return;
+    if (keepScrollPositionRef.current) {
+      keepScrollPositionRef.current = false;
+      updateScrollEdges();
+      return;
+    }
     const centeredPosition =
       activeRound.offsetLeft -
       (scrollArea.clientWidth - activeRound.offsetWidth) / 2;
     scrollArea.scrollTo({ left: centeredPosition, behavior: "smooth" });
-  }, [activeRoundNumber, activeTab]);
+  }, [activeRoundNumber, activeTab, updateScrollEdges]);
+
+  const openRoundWithoutScrolling = (roundNumber: number) => {
+    if (activeTab !== "round" || activeRoundNumber !== roundNumber) {
+      keepScrollPositionRef.current = true;
+    }
+    onOpenRound(roundNumber);
+  };
 
   const scrollToEdge = (edge: "start" | "end") => {
     const scrollArea = scrollAreaRef.current;
@@ -167,7 +180,7 @@ export function SeasonRoundTabStrip({
               }`}
               key={round.id}
               ref={isActive ? activeRoundRef : undefined}
-              onClick={() => onOpenRound(round.round_number)}
+              onClick={() => openRoundWithoutScrolling(round.round_number)}
               role="tab"
               aria-selected={isActive}
               title={

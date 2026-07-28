@@ -337,7 +337,7 @@ function SeasonTemporaryTeam({
       </header>
       {players.length ? (
         <ul>
-          {players.map((player, index) => (
+          {players.map((player) => (
             <li key={player.player_id}>
               {player.avatar_url ? (
                 <Image
@@ -351,14 +351,15 @@ function SeasonTemporaryTeam({
               )}
               <span>
                 <strong>{player.nickname}</strong>
-                <small>
-                  {player.is_captain && <b>Капитан</b>}
-                  {player.tier_snapshot !== null && (
-                    <b>Тир {player.tier_snapshot}</b>
-                  )}
-                </small>
+                {player.is_captain && (
+                  <small className="season-player-meta">Капитан</small>
+                )}
               </span>
-              <b>{index + 1}</b>
+              {player.tier_snapshot !== null && (
+                <small className="player-tier">
+                  тир {player.tier_snapshot}
+                </small>
+              )}
             </li>
           ))}
         </ul>

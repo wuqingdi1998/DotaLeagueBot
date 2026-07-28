@@ -230,7 +230,7 @@
   white-space: nowrap;
 }
 
-.season-temporary-team li small {
+.season-temporary-team .season-player-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 3px 8px;
@@ -240,13 +240,9 @@
   text-transform: uppercase;
 }
 
-.season-temporary-team li small b {
-  font: inherit;
-}
-
-.season-temporary-team li > b {
-  color: var(--muted);
-  font-size: 13px;
+.season-temporary-team li > .player-tier {
+  justify-self: end;
+  white-space: nowrap;
 }
 
 .season-empty-lineup {
