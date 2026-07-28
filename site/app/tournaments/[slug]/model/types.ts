@@ -145,6 +145,14 @@ export type TournamentScheduleDay = {
   }>;
 };
 
+export type TournamentSeasonFact = {
+  id: number;
+  tournament_id: number;
+  sort_order: number;
+  value: string;
+  label: string;
+};
+
 export type TournamentSiteData = {
   tournament: Tournament;
   applications: TeamApplication[];
@@ -166,6 +174,7 @@ export type TournamentSiteData = {
     prize_text: string | null;
   }>;
   scheduleDays: TournamentScheduleDay[];
+  seasonFacts: TournamentSeasonFact[];
   user: {
     discordId: string;
     dotaId: string;

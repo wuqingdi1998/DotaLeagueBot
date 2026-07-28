@@ -50,6 +50,13 @@ const seasonTimeMigration = readFileSync(
   ),
   "utf8",
 );
+const seasonFactsMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0026_season_quick_facts.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 function migrationJson<T>(name: string): T {
   const match = season8Migration.match(
@@ -95,6 +102,18 @@ describe("season database migration", () => {
     expect(migration).toMatch(
       /result = 'team_b' AND team_b_score > team_a_score/i,
     );
+  });
+
+  it("stores one to nine ordered quick facts per seasonal tournament", () => {
+    expect(seasonFactsMigration).toContain("tournament_season_facts");
+    expect(seasonFactsMigration).toMatch(
+      /sort_order BETWEEN 1 AND 9/,
+    );
+    expect(seasonFactsMigration).toContain(
+      "UNIQUE (tournament_id, sort_order)",
+    );
+    expect(seasonFactsMigration).toContain("Всего туров в сезоне");
+    expect(seasonFactsMigration).toContain("Опубликовано организатором");
   });
 });
 

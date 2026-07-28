@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { CSSProperties } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { dayCountLabel } from "@/lib/countdown";
 import { isPastTournament } from "@/lib/tournaments";
@@ -169,20 +170,21 @@ export function TournamentHero() {
       </section>
 
       {isSeasonal ? (
-        <section className="quick-facts quick-facts-two" aria-label="Сезон">
-          <div>
-            <span>{tournament.season_round_count}</span>
-            <strong>Всего туров в сезоне</strong>
-          </div>
-          <div>
-            <span>
-              {season.data?.rounds.filter(
-                (round) =>
-                  round.is_visible && round.round_kind === "regular",
-              ).length ?? 0}
-            </span>
-            <strong>Опубликовано организатором</strong>
-          </div>
+        <section
+          className="quick-facts season-quick-facts"
+          aria-label="Информация о сезоне"
+          style={
+            {
+              "--season-fact-count": data.seasonFacts.length,
+            } as CSSProperties
+          }
+        >
+          {data.seasonFacts.map((fact) => (
+            <div key={fact.id}>
+              <span>{fact.value}</span>
+              <strong>{fact.label}</strong>
+            </div>
+          ))}
         </section>
       ) : (
         <section

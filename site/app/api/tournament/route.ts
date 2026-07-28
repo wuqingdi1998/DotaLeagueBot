@@ -1,5 +1,6 @@
 import { getSession, requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { one, query, transaction } from "@/lib/db";
+import { defaultSeasonFacts } from "@/lib/season-facts";
 import {
   editableTournamentFields as editableFields,
   missingFieldsMessage,
@@ -24,6 +25,13 @@ type MemberRow = {
 type ApplicationRow = Record<string, unknown> & {
   id: number;
   captain_name: string | null;
+};
+type SeasonFactRow = {
+  id: number;
+  tournament_id: number;
+  sort_order: number;
+  value: string;
+  label: string;
 };
 
 function publicApplication(
@@ -125,6 +133,7 @@ export async function GET(request: Request) {
     prizes,
     scheduleDays,
     scheduleEntries,
+    seasonFacts,
   ] =
     await Promise.all([
       query<ApplicationRow>(
@@ -322,6 +331,14 @@ export async function GET(request: Request) {
          ORDER BY day.sort_order, entry.sort_order, entry.start_time, entry.id`,
         [tournament.id],
       ),
+      query<SeasonFactRow>(
+        `SELECT id::int, tournament_id::int, sort_order::int,
+           value_text AS value, label
+         FROM tournament_season_facts
+         WHERE tournament_id = $1
+         ORDER BY sort_order, id`,
+        [tournament.id],
+      ),
     ]);
 
   const membersByApplication = new Map<number, MemberRow[]>();
@@ -331,6 +348,17 @@ export async function GET(request: Request) {
     applicationMembers.push(member);
     membersByApplication.set(member.application_id, applicationMembers);
   }
+  const resolvedSeasonFacts =
+    tournament.tournament_type === "seasonal" && !seasonFacts.length
+      ? defaultSeasonFacts(Number(tournament.season_round_count), 0).map(
+          (fact, index) => ({
+            id: -(index + 1),
+            tournament_id: tournament.id,
+            sort_order: index + 1,
+            ...fact,
+          }),
+        )
+      : seasonFacts;
 
   return Response.json({
     tournament,
@@ -350,6 +378,7 @@ export async function GET(request: Request) {
       ...day,
       entries: scheduleEntries.filter((entry) => entry.day_id === day.id),
     })),
+    seasonFacts: resolvedSeasonFacts,
     user,
     invitations,
   });

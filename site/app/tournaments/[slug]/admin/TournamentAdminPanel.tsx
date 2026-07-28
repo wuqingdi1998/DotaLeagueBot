@@ -7,6 +7,7 @@ import { MatchCreateForm } from "./MatchCreateForm";
 import { MatchResultsList } from "./MatchResultsList";
 import { SeasonAdminPanel } from "./SeasonAdminPanel";
 import { SeasonDisciplineAdmin } from "./SeasonDisciplineAdmin";
+import { SeasonFactsEditor } from "./SeasonFactsEditor";
 import { TournamentDetailsEditor } from "./TournamentDetailsEditor";
 import {
   ArchiveRostersAdmin,
@@ -76,6 +77,14 @@ export function TournamentAdminPanel() {
         onSaved={loadData}
         onMessage={setToast}
       />
+
+      {isSeasonal && (
+        <SeasonFactsEditor
+          tournamentId={data.tournament.id}
+          initialFacts={data.seasonFacts}
+          onSaved={loadData}
+        />
+      )}
 
       <TournamentContentEditor
         key={`${data.tournament.id}-${data.tournament.updated_at}`}

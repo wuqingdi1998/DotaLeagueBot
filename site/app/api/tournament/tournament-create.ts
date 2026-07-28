@@ -1,6 +1,7 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
 import { validSeasonRoundCount } from "@/lib/season";
+import { defaultSeasonFacts } from "@/lib/season-facts";
 import {
   editableTournamentFields,
   missingFieldsMessage,
@@ -97,6 +98,18 @@ export async function POST(request: Request) {
            VALUES ($1, $2::int + 1, 'Финалы', 'finals')`,
           [id, seasonRoundCount],
         );
+        for (const [index, fact] of defaultSeasonFacts(
+          seasonRoundCount,
+          0,
+        ).entries()) {
+          await client.query(
+            `INSERT INTO tournament_season_facts (
+               tournament_id, sort_order, value_text, label
+             )
+             VALUES ($1, $2, $3, $4)`,
+            [id, index + 1, fact.value, fact.label],
+          );
+        }
       }
       await client.query(
         `INSERT INTO tournament_audit_log

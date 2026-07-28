@@ -30,7 +30,7 @@ describe("mobile width safety", () => {
 
   it("keeps seasonal navigation and match cards inside narrow screens", () => {
     expect(styles).toMatch(
-      /\.season-tournament-tabs\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*overflow:\s*hidden;/,
+      /\.season-tournament-tabs\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;[^}]*overflow-x:\s*clip;[^}]*overflow-y:\s*visible;/,
     );
     expect(styles).toMatch(
       /\.season-match-card\s*\{[^}]*min-width:\s*0;[^}]*overflow:\s*hidden;/,

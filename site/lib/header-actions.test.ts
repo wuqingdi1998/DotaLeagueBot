@@ -51,10 +51,10 @@ describe("site header actions", () => {
 
   it("compacts header actions before they can overlap on narrow desktops", () => {
     expect(headerCss).toMatch(
-      /@media \(min-width:\s*761px\) and \(max-width:\s*1400px\)[\s\S]*\.boosty-button,[\s\S]*\.theme-button,[\s\S]*\.discord-login,[\s\S]*\.player-profile-button\s*\{[^}]*width:\s*46px;[^}]*min-width:\s*46px;[^}]*height:\s*46px;/,
+      /@media \(min-width:\s*761px\) and \(max-width:\s*1800px\)[\s\S]*\.boosty-button,[\s\S]*\.theme-button,[\s\S]*\.discord-login,[\s\S]*\.player-profile-button\s*\{[^}]*width:\s*46px;[^}]*min-width:\s*46px;[^}]*height:\s*46px;/,
     );
     expect(headerCss).toMatch(
-      /@media \(min-width:\s*761px\) and \(max-width:\s*1400px\)[\s\S]*\.login-icon-discord\s*\{[^}]*display:\s*none;[\s\S]*\.login-icon-mobile\s*\{[^}]*display:\s*block;/,
+      /@media \(min-width:\s*761px\) and \(max-width:\s*1800px\)[\s\S]*\.login-icon-discord\s*\{[^}]*display:\s*none;[\s\S]*\.login-icon-mobile\s*\{[^}]*display:\s*block;/,
     );
     expect(headerCss).toMatch(
       /\.header-actions > \*\s*\{[^}]*flex:\s*0 0 auto;/,

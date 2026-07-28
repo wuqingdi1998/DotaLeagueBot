@@ -92,6 +92,13 @@ TOURNAMENT_SCHEDULE_MIGRATION = (
     / "0015_tournament_schedule.sql"
 ).read_text(encoding="utf-8")
 
+SEASON_QUICK_FACTS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0026_season_quick_facts.sql"
+).read_text(encoding="utf-8")
+
 FASTCUP_ARCHIVE_SERIES_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -132,6 +139,13 @@ def test_tournament_schedule_has_days_entries_and_fastcup_seed() -> None:
     assert "ON DELETE CASCADE" in TOURNAMENT_SCHEDULE_MIGRATION
     assert "cd-fastcup-5" in TOURNAMENT_SCHEDULE_MIGRATION
     assert "Гранд-финал" in TOURNAMENT_SCHEDULE_MIGRATION
+
+
+def test_season_quick_facts_are_ordered_and_bounded() -> None:
+    assert "tournament_season_facts" in SEASON_QUICK_FACTS_MIGRATION
+    assert "sort_order BETWEEN 1 AND 9" in SEASON_QUICK_FACTS_MIGRATION
+    assert "UNIQUE (tournament_id, sort_order)" in SEASON_QUICK_FACTS_MIGRATION
+    assert "Всего туров в сезоне" in SEASON_QUICK_FACTS_MIGRATION
 
 
 def test_fastcup_archive_series_has_complete_tournament_sections() -> None:

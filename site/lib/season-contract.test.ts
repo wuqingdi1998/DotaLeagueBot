@@ -7,6 +7,7 @@ function source(path: string) {
 }
 
 const createRoute = source("../app/api/tournament/tournament-create.ts");
+const tournamentRoute = source("../app/api/tournament/route.ts");
 const publicRoute = source("../app/api/season/route.ts");
 const adminRoute = source("../app/api/admin/season/route.ts");
 const matchActions = source(
@@ -35,6 +36,15 @@ const seasonController = source(
 );
 const tournamentAdmin = source(
   "../app/tournaments/[slug]/admin/TournamentAdminPanel.tsx",
+);
+const seasonFactsEditor = source(
+  "../app/tournaments/[slug]/admin/SeasonFactsEditor.tsx",
+);
+const seasonFactsRoute = source(
+  "../app/api/admin/season-facts/route.ts",
+);
+const tournamentHero = source(
+  "../app/tournaments/[slug]/sections/TournamentHero.tsx",
 );
 const styles = loadSiteStyles();
 
@@ -109,6 +119,12 @@ describe("season interface contract", () => {
       /\.season-round-tabs::[-]webkit-scrollbar\s*\{[^}]*display:\s*none;/,
     );
     expect(styles).toMatch(
+      /\.season-tournament-tabs\s*\{[^}]*overflow-x:\s*clip;[^}]*overflow-y:\s*visible;/,
+    );
+    expect(styles).toMatch(
+      /\.season-round-navigation\s*\{[^}]*overflow-x:\s*clip;[^}]*overflow-y:\s*visible;/,
+    );
+    expect(styles).toMatch(
       /\.tabs \.season-round-edge-button\s*\{[^}]*transform:\s*translateY\(-8px\);/,
     );
   });
@@ -121,6 +137,25 @@ describe("season interface contract", () => {
     expect(tournamentAdmin).toContain("<span>Туров</span>");
     expect(tournamentAdmin).toContain(
       "data.tournament.season_round_count",
+    );
+  });
+
+  it("edits one to nine independent season information segments", () => {
+    expect(tournamentAdmin).toContain("<SeasonFactsEditor");
+    expect(seasonFactsEditor).toContain("maximumSeasonFactCount");
+    expect(seasonFactsEditor).toContain("minimumSeasonFactCount");
+    expect(seasonFactsEditor).toContain("Добавить сегмент");
+    expect(seasonFactsEditor).toContain("Удалить сегмент");
+    expect(seasonFactsEditor).toContain("/api/admin/season-facts");
+    expect(seasonFactsRoute).toContain("await requireAdmin()");
+    expect(seasonFactsRoute).toContain('!== "seasonal"');
+    expect(createRoute).toContain("INSERT INTO tournament_season_facts");
+    expect(tournamentRoute).toContain("FROM tournament_season_facts");
+    expect(tournamentRoute).toContain("seasonFacts: resolvedSeasonFacts");
+    expect(tournamentHero).toContain("data.seasonFacts.map");
+    expect(tournamentHero).toContain("--season-fact-count");
+    expect(styles).toMatch(
+      /\.season-quick-facts\s*\{[^}]*grid-template-columns:[^}]*var\(--season-fact-count\)/,
     );
   });
 
