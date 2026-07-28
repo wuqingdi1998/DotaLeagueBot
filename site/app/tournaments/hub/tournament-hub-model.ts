@@ -27,6 +27,8 @@ export type TournamentListResponse = {
 };
 
 export type NewTournament = {
+  tournament_type: "ordinary" | "seasonal";
+  season_round_count: number;
   slug: string;
   name: string;
   eyebrow: string;
@@ -53,6 +55,8 @@ export type NewTournament = {
 };
 
 export const emptyTournament: NewTournament = {
+  tournament_type: "ordinary",
+  season_round_count: 14,
   slug: "",
   name: "",
   eyebrow: "",

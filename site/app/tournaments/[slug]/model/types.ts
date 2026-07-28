@@ -7,6 +7,8 @@ export type PlayerRole =
 
 export type Tournament = {
   id: number;
+  tournament_type: "ordinary" | "seasonal";
+  season_round_count: number;
   slug: string;
   name: string;
   eyebrow: string;
@@ -217,6 +219,9 @@ export type RegistrationForm = {
 
 export type TournamentTab =
   | "overview"
+  | "standings"
+  | "rounds"
+  | "round"
   | "teams"
   | "matches"
   | "groups"

@@ -5,6 +5,7 @@ import { useTournament } from "../hooks/TournamentContext";
 import { ApplicationsAdmin } from "./ApplicationsAdmin";
 import { MatchCreateForm } from "./MatchCreateForm";
 import { MatchResultsList } from "./MatchResultsList";
+import { SeasonAdminPanel } from "./SeasonAdminPanel";
 import { TournamentDetailsEditor } from "./TournamentDetailsEditor";
 import {
   ArchiveRostersAdmin,
@@ -19,28 +20,52 @@ export function TournamentAdminPanel() {
     data,
     loadData,
     pendingTeams,
+    season,
     setToast,
   } = useTournament();
   if (!data || activeTab !== "admin" || !adminMode) return null;
+  const isSeasonal = data.tournament.tournament_type === "seasonal";
 
   return (
     <div className="tab-panel admin-panel">
       <div className="admin-summary">
-        <div>
-          <span>Заявок</span>
-          <strong>{data.applications.length}</strong>
-        </div>
-        <div>
-          <span>Ждут решения</span>
-          <strong>{pendingTeams.length}</strong>
-        </div>
-        <div>
-          <span>Допущено</span>
-          <strong>{approvedTeams.length}</strong>
-        </div>
+        {isSeasonal ? (
+          <>
+            <div>
+              <span>Участников</span>
+              <strong>{season.data?.participants.length ?? 0}</strong>
+            </div>
+            <div>
+              <span>Туров</span>
+              <strong>{data.tournament.season_round_count}</strong>
+            </div>
+            <div>
+              <span>Опубликовано</span>
+              <strong>
+                {season.data?.rounds.filter((round) => round.is_visible)
+                  .length ?? 0}
+              </strong>
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <span>Заявок</span>
+              <strong>{data.applications.length}</strong>
+            </div>
+            <div>
+              <span>Ждут решения</span>
+              <strong>{pendingTeams.length}</strong>
+            </div>
+            <div>
+              <span>Допущено</span>
+              <strong>{approvedTeams.length}</strong>
+            </div>
+          </>
+        )}
       </div>
 
-      <GroupGenerationToolbar />
+      {!isSeasonal && <GroupGenerationToolbar />}
 
       <TournamentDetailsEditor
         key={data.tournament.id}
@@ -59,20 +84,26 @@ export function TournamentAdminPanel() {
         onSaved={loadData}
       />
 
-      <ApplicationsAdmin />
-      <ArchiveRostersAdmin />
-      <TeamResultsAdmin />
+      {isSeasonal ? (
+        <SeasonAdminPanel />
+      ) : (
+        <>
+          <ApplicationsAdmin />
+          <ArchiveRostersAdmin />
+          <TeamResultsAdmin />
 
-      <section className="applications-panel match-admin">
-        <div className="editor-heading">
-          <div>
-            <p className="card-kicker">Расписание</p>
-            <h3>Матчи и результаты</h3>
-          </div>
-        </div>
-        <MatchCreateForm />
-        <MatchResultsList />
-      </section>
+          <section className="applications-panel match-admin">
+            <div className="editor-heading">
+              <div>
+                <p className="card-kicker">Расписание</p>
+                <h3>Матчи и результаты</h3>
+              </div>
+            </div>
+            <MatchCreateForm />
+            <MatchResultsList />
+          </section>
+        </>
+      )}
     </div>
   );
 }

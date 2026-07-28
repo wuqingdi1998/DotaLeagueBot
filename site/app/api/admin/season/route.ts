@@ -1,0 +1,88 @@
+import { requireAdmin } from "@/lib/auth";
+import {
+  createSeasonGame,
+  createSeasonMatch,
+  deleteSeasonGame,
+  deleteSeasonMatch,
+  updateSeasonGame,
+  updateSeasonMatch,
+} from "./season-match-actions";
+import {
+  createSeasonLobby,
+  deleteSeasonLobby,
+  resizeSeason,
+  updateSeasonLobby,
+  updateSeasonRound,
+} from "./season-round-actions";
+
+export const dynamic = "force-dynamic";
+
+type SeasonRequest = Record<string, unknown> & {
+  entity?: "season" | "round" | "lobby" | "match" | "game";
+};
+
+function seasonErrorResponse(error: unknown) {
+  if (error instanceof Response) return error;
+  const code =
+    error instanceof Error && "code" in error
+      ? String((error as Error & { code?: string }).code)
+      : "";
+  if (code === "23505") {
+    return Response.json(
+      { error: "Такая запись уже существует" },
+      { status: 409 },
+    );
+  }
+  if (["22003", "23503", "23514"].includes(code)) {
+    return Response.json(
+      { error: "Проверьте связанные записи и введённые значения" },
+      { status: 400 },
+    );
+  }
+  throw error;
+}
+
+export async function POST(request: Request) {
+  try {
+    await requireAdmin();
+    const body = (await request.json()) as SeasonRequest;
+    if (body.entity === "lobby") return Response.json(await createSeasonLobby(body), { status: 201 });
+    if (body.entity === "match") return Response.json(await createSeasonMatch(body), { status: 201 });
+    if (body.entity === "game") return Response.json(await createSeasonGame(body), { status: 201 });
+    return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
+  } catch (error) {
+    return seasonErrorResponse(error);
+  }
+}
+
+export async function PATCH(request: Request) {
+  try {
+    const admin = await requireAdmin();
+    const body = (await request.json()) as SeasonRequest;
+    if (body.entity === "season") {
+      return Response.json(await resizeSeason(body, admin.discordId));
+    }
+    if (body.entity === "round") {
+      return Response.json(await updateSeasonRound(body, admin.discordId));
+    }
+    if (body.entity === "lobby") return Response.json(await updateSeasonLobby(body));
+    if (body.entity === "match") return Response.json(await updateSeasonMatch(body));
+    if (body.entity === "game") return Response.json(await updateSeasonGame(body));
+    return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
+  } catch (error) {
+    return seasonErrorResponse(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await requireAdmin();
+    const body = (await request.json()) as SeasonRequest;
+    if (body.entity === "lobby") return Response.json(await deleteSeasonLobby(body));
+    if (body.entity === "match") return Response.json(await deleteSeasonMatch(body));
+    if (body.entity === "game") return Response.json(await deleteSeasonGame(body));
+    return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
+  } catch (error) {
+    return seasonErrorResponse(error);
+  }
+}

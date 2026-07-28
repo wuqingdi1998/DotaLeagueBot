@@ -10,6 +10,14 @@ import { MatchesPanel } from "./sections/MatchesPanel";
 import { OverviewPanel } from "./sections/OverviewPanel";
 import { TeamsPanel } from "./sections/TeamsPanel";
 import {
+  SeasonOverviewPanel,
+} from "./sections/SeasonOverviewPanel";
+import {
+  SeasonRoundPanel,
+  SeasonRoundsPanel,
+} from "./sections/SeasonRoundsPanel";
+import { SeasonStandingsPanel } from "./sections/SeasonStandingsPanel";
+import {
   TournamentHeading,
   TournamentHero,
 } from "./sections/TournamentHero";
@@ -76,6 +84,10 @@ export function TournamentPageView() {
         <TournamentHeading />
         <TournamentNavigation />
         <OverviewPanel />
+        <SeasonOverviewPanel />
+        <SeasonStandingsPanel />
+        <SeasonRoundsPanel />
+        <SeasonRoundPanel />
         <TeamsPanel />
         <MatchesPanel />
         <GroupsPanel />

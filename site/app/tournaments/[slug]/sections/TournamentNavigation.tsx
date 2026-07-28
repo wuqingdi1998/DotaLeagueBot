@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import { FiChevronLeft, FiChevronRight, FiEyeOff } from "react-icons/fi";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
 import { roleOptions } from "../model/constants";
 import { useTournament } from "../hooks/TournamentContext";
@@ -53,6 +55,9 @@ export function TournamentNavigation() {
     setActiveTab,
   } = useTournament();
   if (!data) return null;
+  if (data.tournament.tournament_type === "seasonal") {
+    return <SeasonTournamentNavigation />;
+  }
 
   const hasPlayoffStage = tournamentCompetitionStages(
     data.tournament,
@@ -101,6 +106,128 @@ export function TournamentNavigation() {
           >
             Управление
             {pendingTeams.length ? ` · ${pendingTeams.length}` : ""}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SeasonTournamentNavigation() {
+  const { activeTab, adminMode, data, season, setActiveTab } = useTournament();
+  const roundsRef = useRef<HTMLDivElement>(null);
+  const activeRoundRef = useRef<HTMLButtonElement>(null);
+  const rounds = season.data?.rounds ?? [];
+
+  useEffect(() => {
+    activeRoundRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+  }, [activeTab, season.activeRoundNumber]);
+
+  if (!data) return null;
+
+  return (
+    <div
+      className="tabs tournament-tabs season-tournament-tabs"
+      role="tablist"
+      aria-label="Разделы сезонного турнира"
+    >
+      <div className="tournament-tabs-main">
+        {[
+          ["overview", "Обзор"],
+          ["standings", "Таблица"],
+          ["rounds", "Туры"],
+        ].map(([id, label]) => (
+          <button
+            className={activeTab === id ? "active" : ""}
+            key={id}
+            onClick={() =>
+              season.openTab(id as "overview" | "standings" | "rounds")
+            }
+            role="tab"
+            aria-selected={activeTab === id}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      <div className="season-round-navigation">
+        {rounds.length > 0 && (
+          <button
+            className="season-round-scroll-button"
+            type="button"
+            aria-label="Прокрутить туры влево"
+            onClick={() =>
+              roundsRef.current?.scrollBy({ left: -260, behavior: "smooth" })
+            }
+          >
+            <FiChevronLeft aria-hidden="true" />
+          </button>
+        )}
+        <div
+          className="tournament-tabs-stages season-round-tabs"
+          ref={roundsRef}
+          onWheel={(event) => {
+            if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+              event.currentTarget.scrollLeft += event.deltaY;
+            }
+          }}
+        >
+          {rounds.map((round) => {
+            const isActive =
+              activeTab === "round" &&
+              season.activeRoundNumber === round.round_number;
+            return (
+              <button
+                className={`${isActive ? "active" : ""}${
+                  !round.is_visible ? " season-round-hidden" : ""
+                }`}
+                key={round.id}
+                ref={isActive ? activeRoundRef : undefined}
+                onClick={() => season.openRound(round.round_number)}
+                role="tab"
+                aria-selected={isActive}
+                title={
+                  round.is_visible
+                    ? round.name || `Тур ${round.round_number}`
+                    : "Тур скрыт от обычных пользователей"
+                }
+              >
+                Тур {round.round_number}
+                {!round.is_visible && adminMode && (
+                  <FiEyeOff aria-label="Скрыт" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        {rounds.length > 0 && (
+          <button
+            className="season-round-scroll-button"
+            type="button"
+            aria-label="Прокрутить туры вправо"
+            onClick={() =>
+              roundsRef.current?.scrollBy({ left: 260, behavior: "smooth" })
+            }
+          >
+            <FiChevronRight aria-hidden="true" />
+          </button>
+        )}
+        {adminMode && (
+          <button
+            className={`admin-tab${activeTab === "admin" ? " active" : ""}`}
+            onClick={() => {
+              setActiveTab("admin");
+              season.openTab("admin");
+            }}
+            role="tab"
+            aria-selected={activeTab === "admin"}
+          >
+            Управление
           </button>
         )}
       </div>

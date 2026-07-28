@@ -1,25 +1,14 @@
 "use client";
 
-import {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { emptyMatchDraft, emptyRegistration, roleOptions } from "../model/constants";
 import { getTeamNameError } from "../model/formatters";
 import { buildMatchResultPayload } from "../model/match-result-payload";
 import { startDiscordLogin } from "../services/discord-login";
-import type {
-  MatchDraft,
-  RegistrationForm,
-  TeamApplication,
-  TournamentMatch,
-  TournamentSiteData,
-  TournamentTab,
-} from "../model/types";
+import { useSeasonController } from "./useSeasonController";
+import type { MatchDraft, RegistrationForm, TeamApplication } from "../model/types";
+import type { TournamentMatch, TournamentSiteData, TournamentTab } from "../model/types";
 
 export function useTournamentController() {
   const params = useParams<{ slug: string }>();
@@ -47,6 +36,13 @@ export function useTournamentController() {
   const [captainChoices, setCaptainChoices] = useState<Record<number, string>>(
     {},
   );
+  const season = useSeasonController({
+    enabled: data?.tournament.tournament_type === "seasonal",
+    isOrganizer: adminMode,
+    setActiveTab,
+    setMessage: setToast,
+    slug: tournamentSlug,
+  });
 
   const loadData = useCallback(async () => {
     try {
@@ -473,6 +469,7 @@ export function useTournamentController() {
     saveMatchResult,
     saveTeamResult,
     saving,
+    season,
     setActiveTab,
     setCaptainChoices,
     setGroupCount,

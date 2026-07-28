@@ -59,6 +59,12 @@ export function missingRequiredTournamentFields(
 ) {
   return editableTournamentFields.filter((field) => {
     if (optionalEditableFields.has(field)) return false;
+    if (
+      body.tournament_type === "seasonal" &&
+      ["group_format", "final_format"].includes(field)
+    ) {
+      return false;
+    }
     const value = body[field];
     return (
       value === undefined ||

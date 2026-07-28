@@ -17,13 +17,17 @@ export function TournamentHero() {
     openRegistration,
     openTournamentTab,
     registrationAvailable,
+    season,
   } = useTournament();
   if (!data) return null;
 
   const { tournament } = data;
+  const isSeasonal = tournament.tournament_type === "seasonal";
   const isPast = isPastTournament(tournament.status);
   const canRegister =
-    tournament.status === "registration" && registrationAvailable;
+    !isSeasonal &&
+    tournament.status === "registration" &&
+    registrationAvailable;
   const competitionStages = tournamentCompetitionStages(tournament);
   const participationApplication = data.user
     ? data.applications.find((application) =>
@@ -67,6 +71,13 @@ export function TournamentHero() {
               <button className="primary-button" onClick={openRegistration}>
                 Зарегистрировать команду <FiArrowRight />
               </button>
+            ) : isSeasonal ? (
+              <button
+                className="primary-button"
+                onClick={() => season.openTab("rounds")}
+              >
+                Смотреть туры <FiArrowRight />
+              </button>
             ) : (
               <button
                 className="primary-button"
@@ -86,7 +97,11 @@ export function TournamentHero() {
             </button>
           </div>
           <p className="hero-footnote">
-            {canRegister
+            {isSeasonal
+              ? `${tournament.season_round_count} туров · ${
+                  season.data?.participants.length ?? 0
+                } участников`
+              : canRegister
               ? `Состав из ${tournament.team_size} игроков · участие бесплатное · регистрация до ${formatDayMonth(tournament.registration_deadline)}`
               : isPast
                 ? "Турнир завершён · результаты и история матчей сохранены"
@@ -118,15 +133,23 @@ export function TournamentHero() {
           </div>
           <div className="poster-meta">
             <div>
-              <small>Формат</small>
-              <strong>{tournament.format}</strong>
+              <small>{isSeasonal ? "Участники" : "Формат"}</small>
+              <strong>
+                {isSeasonal
+                  ? season.data?.participants.length ?? 0
+                  : tournament.format}
+              </strong>
             </div>
             <div>
-              <small>Слотов</small>
-              <strong>{tournament.max_teams} команд</strong>
+              <small>{isSeasonal ? "Туры" : "Слотов"}</small>
+              <strong>
+                {isSeasonal
+                  ? tournament.season_round_count
+                  : `${tournament.max_teams} команд`}
+              </strong>
             </div>
           </div>
-          <div
+          {!isSeasonal && <div
             className={`poster-participation${
               participationConfirmed
                 ? " confirmed"
@@ -137,23 +160,39 @@ export function TournamentHero() {
           >
             <span aria-hidden="true" />
             <p>{participationMessage}</p>
-          </div>
+          </div>}
         </div>
       </section>
 
-      <section
-        className={`quick-facts${
-          competitionStages.length === 2 ? " quick-facts-two" : ""
-        }`}
-        aria-label="Этапы турнира"
-      >
-        {competitionStages.map((stage, index) => (
-          <div key={stage.key}>
-            <span>{index + 1}</span>
-            <strong>{stage.description}</strong>
+      {isSeasonal ? (
+        <section className="quick-facts quick-facts-two" aria-label="Сезон">
+          <div>
+            <span>{tournament.season_round_count}</span>
+            <strong>Всего туров в сезоне</strong>
           </div>
-        ))}
-      </section>
+          <div>
+            <span>
+              {season.data?.rounds.filter((round) => round.is_visible).length ??
+                0}
+            </span>
+            <strong>Опубликовано организатором</strong>
+          </div>
+        </section>
+      ) : (
+        <section
+          className={`quick-facts${
+            competitionStages.length === 2 ? " quick-facts-two" : ""
+          }`}
+          aria-label="Этапы турнира"
+        >
+          {competitionStages.map((stage, index) => (
+            <div key={stage.key}>
+              <span>{index + 1}</span>
+              <strong>{stage.description}</strong>
+            </div>
+          ))}
+        </section>
+      )}
 
     </>
   );

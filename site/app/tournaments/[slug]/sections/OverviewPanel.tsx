@@ -11,7 +11,13 @@ import {
 
 export function OverviewPanel() {
   const { activeTab, data } = useTournament();
-  if (!data || activeTab !== "overview") return null;
+  if (
+    !data ||
+    activeTab !== "overview" ||
+    data.tournament.tournament_type === "seasonal"
+  ) {
+    return null;
+  }
 
   const timeline = tournamentTimeline({
     registrationDeadline: data.tournament.registration_deadline,

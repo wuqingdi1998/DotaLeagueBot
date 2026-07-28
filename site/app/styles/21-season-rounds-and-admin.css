@@ -1,0 +1,403 @@
+/* Seasonal rounds, matches and organizer controls */
+
+.season-round-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.season-round-card {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+  padding: 22px;
+}
+
+.season-round-card.hidden {
+  border-style: dashed;
+}
+
+.season-round-card > div,
+.season-round-card dl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+}
+
+.season-round-card h4 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.season-round-card p,
+.season-round-card em {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-style: normal;
+}
+
+.season-round-card dl div {
+  display: grid;
+  gap: 4px;
+}
+
+.season-round-card dt { color: var(--muted); font-size: 12px; }
+.season-round-card dd { margin: 0; font-weight: 800; }
+
+.season-round-card .secondary-button {
+  margin-top: 4px;
+}
+
+.season-lobby-list,
+.season-match-list {
+  display: grid;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.season-lobby-card {
+  padding: 22px;
+}
+
+.season-lobby-card > header,
+.season-match-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.season-lobby-card h4 {
+  margin: 5px 0 0;
+  font-size: 24px;
+}
+
+.season-lobby-card header span,
+.season-lobby-card header b,
+.season-match-heading {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.season-match-card {
+  scroll-margin-top: 110px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 18px;
+  background: var(--surface-soft);
+}
+
+.season-match-teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.season-match-teams > strong {
+  padding-top: 14px;
+  text-align: center;
+}
+
+.season-match-teams section > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.season-match-teams h5 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.season-match-teams ul {
+  display: grid;
+  gap: 5px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-match-teams section > p,
+.season-match-result {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-game-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.season-game-list > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.season-game-list code {
+  color: var(--muted);
+}
+
+.season-game-list nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.season-game-list a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 7px 9px;
+  color: var(--blue-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.season-count-editor,
+.season-admin-actions {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.season-count-editor label,
+.season-admin-fields label,
+.season-team-pickers label,
+.season-game-admin-row label {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
+}
+
+.season-count-editor label > span,
+.season-admin-fields label > span,
+.season-team-pickers label > span,
+.season-game-admin-row label > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.season-admin-panel input,
+.season-admin-panel select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 11px;
+  background: var(--surface-soft);
+  color: var(--text);
+}
+
+.season-round-admin-list,
+.season-lobby-admin-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.season-round-admin-card,
+.season-lobby-admin-card,
+.season-match-admin-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.season-round-admin-card > summary,
+.season-match-admin-card > summary {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.season-round-admin-card summary em,
+.season-match-admin-card summary em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.season-round-admin-content,
+.season-match-admin-content {
+  display: grid;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding: 16px;
+}
+
+.season-admin-fields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.season-lobby-admin-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface-soft);
+}
+
+.season-match-admin-card {
+  background: var(--surface);
+}
+
+.season-match-main-fields {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.season-team-pickers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.season-player-search {
+  grid-column: 1 / -1;
+}
+
+.season-team-pickers select[multiple] {
+  min-height: 130px;
+}
+
+.season-game-admin-list {
+  display: grid;
+  gap: 10px;
+}
+
+.season-game-admin-row {
+  display: grid;
+  grid-template-columns: 70px minmax(160px, 1fr) 130px 130px 140px auto;
+  align-items: end;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+
+.season-game-admin-row > div {
+  display: flex;
+  gap: 6px;
+}
+
+.season-admin-panel .danger-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid rgba(189, 78, 94, 0.45);
+  border-radius: 10px;
+  padding: 0 12px;
+  background: rgba(189, 78, 94, 0.1);
+  color: #bd4e5e;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .season-round-navigation {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .season-round-tabs {
+    max-width: none;
+    flex: 1;
+  }
+
+  .season-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .season-summary-grid article {
+    border-bottom: 1px solid var(--line);
+  }
+
+  .season-overview-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-admin-fields,
+  .season-match-main-fields,
+  .season-game-admin-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .season-overview-intro {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+  }
+
+  .season-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-summary-grid article {
+    min-height: 76px;
+    border-right: 0;
+  }
+
+  .tabs .season-round-scroll-button {
+    display: none;
+  }
+
+  .season-round-navigation {
+    min-width: 100%;
+  }
+
+  .season-round-tabs {
+    scroll-snap-type: x proximity;
+  }
+
+  .season-round-tabs button {
+    scroll-snap-align: center;
+  }
+
+  .season-standings-table .season-player-column {
+    min-width: 160px;
+  }
+
+  .season-match-teams {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-match-teams > strong {
+    display: none;
+  }
+
+  .season-game-list > div,
+  .season-admin-fields,
+  .season-match-main-fields,
+  .season-team-pickers,
+  .season-game-admin-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-round-admin-card > summary,
+  .season-match-admin-card > summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

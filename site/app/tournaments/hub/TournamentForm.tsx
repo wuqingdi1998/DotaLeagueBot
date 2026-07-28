@@ -96,7 +96,39 @@ export function TournamentForm({
         </p>
         <form className="tournament-editor" onSubmit={submit}>
           <div className="editor-grid">
-            {tournamentTextFields.map(
+            <label>
+              <span>Тип турнира</span>
+              <select
+                value={form.tournament_type}
+                onChange={(event) =>
+                  setField(
+                    "tournament_type",
+                    event.target.value as NewTournament["tournament_type"],
+                  )
+                }
+              >
+                <option value="ordinary">Обычный турнир</option>
+                <option value="seasonal">Сезонный турнир</option>
+              </select>
+            </label>
+            {form.tournament_type === "seasonal" && (
+              <NumberField
+                label="Количество туров"
+                min={1}
+                max={100}
+                value={form.season_round_count}
+                onChange={(value) => setField("season_round_count", value)}
+              />
+            )}
+            {tournamentTextFields
+              .filter(
+                ({ field }) =>
+                  form.tournament_type === "ordinary" ||
+                  !["group_format", "playoff_format", "final_format"].includes(
+                    field,
+                  ),
+              )
+              .map(
               ({
                 field,
                 label,
@@ -144,42 +176,50 @@ export function TournamentForm({
               value={form.registration_deadline}
               onChange={(value) => setField("registration_deadline", value)}
             />
-            <NumberField
-              label="Игроков в команде"
-              min={1}
-              max={10}
-              value={form.team_size}
-              onChange={(value) => setField("team_size", value)}
-            />
-            <NumberField
-              label="Максимум команд"
-              min={2}
-              max={64}
-              value={form.max_teams}
-              onChange={(value) => setField("max_teams", value)}
-            />
-            <NumberField
-              label="Check-in, минут"
-              min={5}
-              max={180}
-              value={form.check_in_minutes}
-              onChange={(value) => setField("check_in_minutes", value)}
-            />
-            <label>
-              <span>Формат плей-офф</span>
-              <select
-                value={form.playoff_type}
-                onChange={(event) =>
-                  setField(
-                    "playoff_type",
-                    event.target.value as NewTournament["playoff_type"],
-                  )
-                }
-              >
-                <option value="single_elimination">Single Elimination</option>
-                <option value="double_elimination">Double Elimination</option>
-              </select>
-            </label>
+            {form.tournament_type === "ordinary" && (
+              <>
+                <NumberField
+                  label="Игроков в команде"
+                  min={1}
+                  max={10}
+                  value={form.team_size}
+                  onChange={(value) => setField("team_size", value)}
+                />
+                <NumberField
+                  label="Максимум команд"
+                  min={2}
+                  max={64}
+                  value={form.max_teams}
+                  onChange={(value) => setField("max_teams", value)}
+                />
+                <NumberField
+                  label="Check-in, минут"
+                  min={5}
+                  max={180}
+                  value={form.check_in_minutes}
+                  onChange={(value) => setField("check_in_minutes", value)}
+                />
+                <label>
+                  <span>Формат плей-офф</span>
+                  <select
+                    value={form.playoff_type}
+                    onChange={(event) =>
+                      setField(
+                        "playoff_type",
+                        event.target.value as NewTournament["playoff_type"],
+                      )
+                    }
+                  >
+                    <option value="single_elimination">
+                      Single Elimination
+                    </option>
+                    <option value="double_elimination">
+                      Double Elimination
+                    </option>
+                  </select>
+                </label>
+              </>
+            )}
             <label>
               <span>Статус</span>
               <select

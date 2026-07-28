@@ -5,6 +5,7 @@ import {
   missingFieldsMessage,
   missingRequiredTournamentFields,
 } from "./tournament-validation";
+export { POST } from "./tournament-create";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +63,6 @@ function publicApplication(
     })),
   };
 }
-
 export async function GET(request: Request) {
   const user = await getSession();
   const slug = new URL(request.url).searchParams.get("slug")?.trim();
@@ -76,7 +76,8 @@ export async function GET(request: Request) {
        description, about, start_at, end_at, registration_deadline,
        status_label, format, team_size, max_teams, region, server,
        check_in_minutes, group_format, playoff_format, final_format,
-       playoff_type, discord_url, status, updated_at
+       playoff_type, tournament_type, season_round_count::int,
+       discord_url, status, updated_at
      FROM tournaments
      ${tournamentFilter}
      ORDER BY start_at ASC
@@ -426,66 +427,6 @@ export async function PATCH(request: Request) {
         { status: 409 },
       );
     }
-    return responseFromAuthError(error);
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const admin = await requireAdmin();
-    const body = (await request.json()) as Record<string, unknown>;
-    const slug = String(body.slug ?? "")
-      .trim()
-      .toLowerCase();
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      return Response.json(
-        { error: "Адрес турнира должен состоять из латинских букв, цифр и дефисов" },
-        { status: 400 },
-      );
-    }
-    const values = editableFields.map((field) => body[field]);
-    const playoffType = String(
-      body.playoff_type ?? "double_elimination",
-    );
-    if (
-      !["single_elimination", "double_elimination"].includes(playoffType)
-    ) {
-      return Response.json(
-        { error: "Выберите формат плей-офф Single или Double Elimination" },
-        { status: 400 },
-      );
-    }
-    const missingFields = missingRequiredTournamentFields(body);
-    if (missingFields.length) {
-      return Response.json(
-        { error: missingFieldsMessage(missingFields) },
-        { status: 400 },
-      );
-    }
-    const created = await transaction(async (client) => {
-      const result = await client.query<{ id: number }>(
-        `INSERT INTO tournaments (
-          slug, name, eyebrow, headline, headline_accent, description, about,
-          start_at, end_at, registration_deadline, status_label, format,
-          team_size, max_teams, region, server, check_in_minutes,
-          group_format, playoff_format, final_format, discord_url, status,
-          playoff_type
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
-          $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
-        ) RETURNING id::int`,
-        [slug, ...values, playoffType],
-      );
-      const id = result.rows[0].id;
-      await client.query(
-        `INSERT INTO tournament_organizers(tournament_id, discord_id)
-         VALUES ($1, $2)`,
-        [id, admin.discordId],
-      );
-      return id;
-    });
-    return Response.json({ ok: true, id: created }, { status: 201 });
-  } catch (error) {
     return responseFromAuthError(error);
   }
 }
