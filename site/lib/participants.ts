@@ -1,4 +1,4 @@
-import { buildPlayerLinks } from "./player-profile";
+import { buildPlayerLinks, normalizeDotaAccountId } from "./player-profile";
 import { query } from "./db";
 
 export type ParticipantDirectoryPlayer = {
@@ -88,15 +88,21 @@ export async function loadParticipantDirectory(): Promise<
        ORDER BY known_tier.recorded_at DESC, known_tier.source_id DESC
        LIMIT 1
      ) latest_tier ON TRUE
-     WHERE player.steam_id32 IS NOT NULL
+     WHERE player.steam_id32 BETWEEN 1 AND 4294967295
      ORDER BY LOWER(player.ingame_name), player.discord_id`,
   );
 
-  return rows.map((row) => ({
-    dotaId: row.dota_id,
-    nickname: row.nickname,
-    avatarUrl: row.avatar_url,
-    tier: row.tier,
-    links: buildPlayerLinks(row.dota_id),
-  }));
+  return rows.flatMap((row) => {
+    const dotaId = normalizeDotaAccountId(row.dota_id);
+    if (!dotaId) return [];
+    return [
+      {
+        dotaId,
+        nickname: row.nickname,
+        avatarUrl: row.avatar_url,
+        tier: row.tier,
+        links: buildPlayerLinks(dotaId),
+      },
+    ];
+  });
 }

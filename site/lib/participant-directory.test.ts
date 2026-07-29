@@ -55,13 +55,23 @@ describe("hall of fame and participant directory", () => {
     expect(participantsLoader).toContain("NULLIF(player.internal_rating, 0)");
     expect(participantsLoader).toContain("player.rank_tier / 10");
     expect(participantsLoader).toContain("latest_tier.tier");
-    expect(participantsLoader).toContain("buildPlayerLinks(row.dota_id)");
+    expect(participantsLoader).toContain("buildPlayerLinks(dotaId)");
     expect(participantsTable).toContain(': player.tier}');
     expect(participantsTable).not.toContain("`Тир ${player.tier}`");
     expect(participantsTable).toContain("player.links.dotabuff");
     expect(participantsTable).toContain("player.links.stratz");
     expect(participantsTable).toContain("player.links.steam");
     expect(participantsTable).toContain("participant-links");
+  });
+
+  it("does not let archive identities break the participant page", () => {
+    expect(participantsLoader).toContain(
+      "player.steam_id32 BETWEEN 1 AND 4294967295",
+    );
+    expect(participantsLoader).toContain(
+      "normalizeDotaAccountId(row.dota_id)",
+    );
+    expect(participantsLoader).toContain("if (!dotaId) return []");
   });
 
   it("matches tier badges to profile buttons and keeps medals compact", () => {
