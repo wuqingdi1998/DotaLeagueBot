@@ -40,15 +40,18 @@ describe("mobile width safety", () => {
     );
   });
 
-  it("keeps the ordinary match list breakpoints during style modularization", () => {
+  it("keeps ordinary match cards readable on desktop and mobile", () => {
     expect(styles).toMatch(
-      /\.match-row\s*\{[^}]*grid-template-columns:\s*100px 125px 1fr 70px 1fr 48px 82px auto;/,
+      /\.match-row\s*\{[^}]*grid-template-columns:[^;]*minmax\(150px,\s*190px\);[^}]*grid-template-areas:\s*"date stage team-a score team-b format actions";/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*1050px\)[\s\S]*?\.match-row\s*\{[^}]*grid-template-columns:\s*90px 110px 1fr 55px 1fr auto;/,
+      /\.checkin-state\s*\{[^}]*line-height:\s*1\.35;[^}]*overflow-wrap:\s*anywhere;[^}]*text-align:\s*right;/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.match-row\s*\{[^}]*grid-template-columns:\s*65px 1fr 45px 1fr;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.match-row\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\) 56px minmax\(0,\s*1fr\);[^}]*grid-template-areas:[^;]*"team-a score team-b";/,
+    );
+    expect(styles).toMatch(
+      /\.match-score\s*\{[^}]*white-space:\s*nowrap;/,
     );
   });
 });
