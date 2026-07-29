@@ -52,6 +52,7 @@ const participantsTable = source(
   "../app/participants/ParticipantsTable.tsx",
 );
 const playerProfile = source("../app/players/[dotaId]/page.tsx");
+const globalStyles = source("../app/globals.css");
 const styles = loadSiteStyles();
 
 describe("season creation and access contract", () => {
@@ -81,6 +82,12 @@ describe("season creation and access contract", () => {
 });
 
 describe("season interface contract", () => {
+  it("keeps seasonal standings styles in their own module", () => {
+    expect(globalStyles).toContain(
+      '@import "./styles/25-season-standings-table.css";',
+    );
+  });
+
   it("reuses the tournament navigation and replaces ordinary tabs", () => {
     expect(navigation).toContain(
       'className="tabs tournament-tabs season-tournament-tabs"',
