@@ -28,8 +28,10 @@ export type SeasonSubstitution = {
   game_id: number | null;
   game_number: number | null;
   outgoing_player_id: string;
+  outgoing_dota_id: string;
   outgoing_nickname: string;
   incoming_player_id: string;
+  incoming_dota_id: string;
   incoming_nickname: string;
   incoming_avatar_url: string | null;
   team_side: "a" | "b";
@@ -39,6 +41,7 @@ export type SeasonSubstitution = {
 
 export type SeasonMatchParticipant = {
   player_id: string;
+  dota_id: string;
   nickname: string;
   avatar_url: string | null;
   team_side: "a" | "b";
@@ -92,6 +95,7 @@ export type SeasonRound = {
 
 export type SeasonPlayer = {
   discord_id: string;
+  dota_id: string;
   nickname: string;
   avatar_url: string | null;
   standings_section: "active" | "inactive";
@@ -119,6 +123,7 @@ export type SeasonPenaltyEvent = {
 
 export type SeasonFinalist = {
   player_id: string;
+  dota_id: string;
   nickname: string;
   avatar_url: string | null;
   seed: number | null;

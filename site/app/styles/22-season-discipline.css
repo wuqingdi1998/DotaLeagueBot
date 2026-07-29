@@ -198,7 +198,12 @@
   font-weight: 800;
 }
 
-.season-finalist-list article > strong {
+.season-finalist-player-link {
+  min-width: 0;
+}
+
+.season-finalist-player-link > strong {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -61,8 +61,20 @@ describe("season substitutions and p adjustments", () => {
     teamAScore: 2,
     teamBScore: 0,
     participants: [
-      { playerId: "1", nickname: "Основной", avatarUrl: null, teamSide: "a" },
-      { playerId: "2", nickname: "Соперник", avatarUrl: null, teamSide: "b" },
+      {
+        playerId: "1",
+        dotaId: "101",
+        nickname: "Основной",
+        avatarUrl: null,
+        teamSide: "a",
+      },
+      {
+        playerId: "2",
+        dotaId: "102",
+        nickname: "Соперник",
+        avatarUrl: null,
+        teamSide: "b",
+      },
     ],
   };
 
@@ -77,6 +89,7 @@ describe("season substitutions and p adjustments", () => {
             matchId: 10,
             outgoingPlayerId: "1",
             incomingPlayerId: "3",
+            incomingDotaId: "103",
             incomingNickname: "Замена",
             incomingAvatarUrl: null,
             teamSide: "a",
@@ -118,6 +131,7 @@ describe("season substitutions and p adjustments", () => {
       matchId: 10,
       outgoingPlayerId: "1",
       incomingPlayerId: "3",
+      incomingDotaId: "103",
       incomingNickname: "Замена",
       incomingAvatarUrl: null,
       teamSide: "a" as const,

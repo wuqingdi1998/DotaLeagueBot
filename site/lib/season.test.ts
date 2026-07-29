@@ -24,8 +24,8 @@ const matches: SeasonStandingMatch[] = [
     teamAScore: 2,
     teamBScore: 0,
     participants: [
-      { playerId: "100", nickname: "Alpha", avatarUrl: null, teamSide: "a" },
-      { playerId: "200", nickname: "Bravo", avatarUrl: null, teamSide: "b" },
+      { playerId: "100", dotaId: "1000", nickname: "Alpha", avatarUrl: null, teamSide: "a" },
+      { playerId: "200", dotaId: "2000", nickname: "Bravo", avatarUrl: null, teamSide: "b" },
     ],
   },
   {
@@ -36,8 +36,8 @@ const matches: SeasonStandingMatch[] = [
     teamAScore: 2,
     teamBScore: 0,
     participants: [
-      { playerId: "200", nickname: "Bravo", avatarUrl: null, teamSide: "a" },
-      { playerId: "100", nickname: "Alpha", avatarUrl: null, teamSide: "b" },
+      { playerId: "200", dotaId: "2000", nickname: "Bravo", avatarUrl: null, teamSide: "a" },
+      { playerId: "100", dotaId: "1000", nickname: "Alpha", avatarUrl: null, teamSide: "b" },
     ],
   },
   {
@@ -48,8 +48,8 @@ const matches: SeasonStandingMatch[] = [
     teamAScore: 1,
     teamBScore: 1,
     participants: [
-      { playerId: "100", nickname: "Alpha", avatarUrl: null, teamSide: "a" },
-      { playerId: "200", nickname: "Bravo", avatarUrl: null, teamSide: "b" },
+      { playerId: "100", dotaId: "1000", nickname: "Alpha", avatarUrl: null, teamSide: "a" },
+      { playerId: "200", dotaId: "2000", nickname: "Bravo", avatarUrl: null, teamSide: "b" },
     ],
   },
 ];
@@ -63,6 +63,7 @@ describe("season standings", () => {
 
     expect(standings[0]).toMatchObject({
       playerId: "100",
+      dotaId: "1000",
       playedRounds: 2,
       wins: 1,
       draws: 1,
@@ -74,6 +75,7 @@ describe("season standings", () => {
     });
     expect(standings[1]).toMatchObject({
       playerId: "200",
+      dotaId: "2000",
       playedRounds: 2,
       wins: 0,
       draws: 1,
@@ -109,12 +111,14 @@ describe("season standings", () => {
         participants: [
           {
             playerId: "100",
+            dotaId: "1000",
             nickname: "Alpha",
             avatarUrl: null,
             teamSide: "a",
           },
           {
             playerId: "200",
+            dotaId: "2000",
             nickname: "Bravo",
             avatarUrl: null,
             teamSide: "b",
@@ -131,12 +135,14 @@ describe("season standings", () => {
         participants: [
           {
             playerId: "300",
+            dotaId: "3000",
             nickname: "Charlie",
             avatarUrl: null,
             teamSide: "a",
           },
           {
             playerId: "400",
+            dotaId: "4000",
             nickname: "Delta",
             avatarUrl: null,
             teamSide: "b",

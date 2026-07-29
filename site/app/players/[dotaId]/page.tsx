@@ -2,21 +2,20 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FaMedal, FaSteam } from "react-icons/fa";
+import { FaMedal } from "react-icons/fa";
 import {
-  FiActivity,
   FiArrowRight,
   FiArrowUpRight,
   FiCalendar,
   FiTarget,
 } from "react-icons/fi";
-import { SiDota2 } from "react-icons/si";
 import { getSession } from "@/lib/auth";
 import {
   loadPublicPlayerProfile,
   tournamentResultLabel,
 } from "@/lib/player-profile";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
+import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
 
 export const dynamic = "force-dynamic";
@@ -213,7 +212,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   rel="noreferrer"
                   title="Открыть Dotabuff"
                 >
-                  <SiDota2 aria-hidden="true" />
+                  <PlayerServiceIcon service="dotabuff" />
                   <span>Dotabuff</span>
                 </a>
                 <a
@@ -222,7 +221,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   rel="noreferrer"
                   title="Открыть Stratz"
                 >
-                  <FiActivity aria-hidden="true" />
+                  <PlayerServiceIcon service="stratz" />
                   <span>Stratz</span>
                 </a>
                 <a
@@ -231,7 +230,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   rel="noreferrer"
                   title="Открыть Steam"
                 >
-                  <FaSteam aria-hidden="true" />
+                  <PlayerServiceIcon service="steam" />
                   <span>Steam</span>
                 </a>
                 <span className="public-profile-dota-id mobile-profile-dota-id">

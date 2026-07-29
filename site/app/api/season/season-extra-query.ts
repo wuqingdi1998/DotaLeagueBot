@@ -25,8 +25,10 @@ export type SubstitutionRow = {
   game_id: number | null;
   game_number: number | null;
   outgoing_player_id: string;
+  outgoing_dota_id: string;
   outgoing_nickname: string;
   incoming_player_id: string;
+  incoming_dota_id: string;
   incoming_nickname: string;
   incoming_avatar_url: string | null;
   team_side: "a" | "b";
@@ -36,6 +38,7 @@ export type SubstitutionRow = {
 
 export type FinalistRow = {
   player_id: string;
+  dota_id: string;
   nickname: string;
   avatar_url: string | null;
   seed: number | null;
@@ -62,16 +65,11 @@ export async function loadSeasonExtras(
   return Promise.all([
     query<PointAdjustmentRow>(
       `SELECT adjustment.id::int, adjustment.player_id::text,
-         COALESCE(
-           participant.nickname_snapshot, player.ingame_name
-         ) AS nickname,
+         player.ingame_name AS nickname,
          adjustment.round_id::int,
          adjustment.amount::int, adjustment.reason
        FROM season_point_adjustments adjustment
        JOIN players player ON player.discord_id = adjustment.player_id
-       LEFT JOIN season_participants participant
-         ON participant.tournament_id = adjustment.tournament_id
-        AND participant.player_id = adjustment.player_id
        LEFT JOIN season_rounds round ON round.id = adjustment.round_id
        WHERE adjustment.tournament_id = $1
          ${isOrganizer ? "" : "AND (adjustment.round_id IS NULL OR round.is_visible = TRUE)"}
@@ -80,30 +78,25 @@ export async function loadSeasonExtras(
     ),
     query<PenaltyEventRow>(
       `SELECT event.id::int, event.player_id::text,
-         COALESCE(
-           participant.nickname_snapshot, player.ingame_name
-         ) AS nickname,
+         player.ingame_name AS nickname,
          event.round_id::int,
          round.round_number::int, event.fire_count::int, event.note
        FROM season_penalty_events event
        JOIN players player ON player.discord_id = event.player_id
-       LEFT JOIN season_participants participant
-         ON participant.tournament_id = event.tournament_id
-        AND participant.player_id = event.player_id
        JOIN season_rounds round ON round.id = event.round_id
        WHERE event.tournament_id = $1 ${roundVisibility}
          AND round.round_kind = 'regular'
-       ORDER BY COALESCE(
-         participant.nickname_snapshot, player.ingame_name
-       ), round.round_number`,
+       ORDER BY player.ingame_name, round.round_number`,
       [tournamentId],
     ),
     query<SubstitutionRow>(
       `SELECT substitution.id::int, substitution.match_id::int,
          substitution.game_id::int, game.game_number::int,
          substitution.outgoing_player_id::text,
+         outgoing.steam_id32::text AS outgoing_dota_id,
          outgoing.ingame_name AS outgoing_nickname,
          substitution.incoming_player_id::text,
+         incoming.steam_id32::text AS incoming_dota_id,
          incoming.ingame_name AS incoming_nickname,
          incoming.avatar_url AS incoming_avatar_url,
          substitution.team_side, substitution.technical_loss,
@@ -124,19 +117,14 @@ export async function loadSeasonExtras(
     ),
     query<FinalistRow>(
       `SELECT finalist.player_id::text,
-         COALESCE(
-           participant.nickname_snapshot, player.ingame_name
-         ) AS nickname,
+         player.steam_id32::text AS dota_id,
+         player.ingame_name AS nickname,
          player.avatar_url,
          finalist.seed::int, finalist.note
        FROM season_finalists finalist
        JOIN players player ON player.discord_id = finalist.player_id
-       LEFT JOIN season_participants participant
-         ON participant.tournament_id = finalist.tournament_id
-        AND participant.player_id = finalist.player_id
        WHERE finalist.tournament_id = $1 ${finalsVisibility}
-       ORDER BY finalist.seed NULLS LAST,
-         COALESCE(participant.nickname_snapshot, player.ingame_name)`,
+       ORDER BY finalist.seed NULLS LAST, player.ingame_name`,
       [tournamentId],
     ),
   ]);

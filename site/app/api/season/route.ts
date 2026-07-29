@@ -53,6 +53,7 @@ type MatchRow = {
 type ParticipantRow = {
   match_id: number;
   player_id: string;
+  dota_id: string;
   nickname: string;
   avatar_url: string | null;
   team_side: "a" | "b";
@@ -72,6 +73,7 @@ type GameRow = {
 
 type SeasonPlayerRow = {
   discord_id: string;
+  dota_id: string;
   nickname: string;
   avatar_url: string | null;
   standings_section: "active" | "inactive";
@@ -163,9 +165,8 @@ export async function GET(request: Request) {
       ),
       query<ParticipantRow>(
       `SELECT participant.match_id::int, participant.player_id::text,
-           COALESCE(
-             participant.nickname_snapshot, player.ingame_name
-           ) AS nickname,
+           player.steam_id32::text AS dota_id,
+           player.ingame_name AS nickname,
            player.avatar_url,
            participant.team_side, participant.is_captain,
            participant.tier_snapshot::int
@@ -193,9 +194,8 @@ export async function GET(request: Request) {
       ),
       query<SeasonPlayerRow>(
         `SELECT player.discord_id::text,
-           COALESCE(
-             participant.nickname_snapshot, player.ingame_name
-           ) AS nickname,
+           player.steam_id32::text AS dota_id,
+           player.ingame_name AS nickname,
            player.avatar_url, participant.standings_section,
            participant.inactive_reason
          FROM season_participants participant
@@ -321,6 +321,7 @@ export async function GET(request: Request) {
     teamBScore: match.team_b_score,
     participants: match.participants.map((participant) => ({
       playerId: participant.player_id,
+      dotaId: participant.dota_id,
       nickname: participant.nickname,
       avatarUrl: participant.avatar_url,
       teamSide: participant.team_side,
@@ -329,6 +330,7 @@ export async function GET(request: Request) {
   const standingPlayers: SeasonStandingIdentity[] = seasonPlayers.map(
     (player) => ({
       playerId: player.discord_id,
+      dotaId: player.dota_id,
       nickname: player.nickname,
       avatarUrl: player.avatar_url,
     }),
@@ -358,6 +360,7 @@ export async function GET(request: Request) {
       matchId: substitution.match_id,
       outgoingPlayerId: substitution.outgoing_player_id,
       incomingPlayerId: substitution.incoming_player_id,
+      incomingDotaId: substitution.incoming_dota_id,
       incomingNickname: substitution.incoming_nickname,
       incomingAvatarUrl: substitution.incoming_avatar_url,
       teamSide: substitution.team_side,

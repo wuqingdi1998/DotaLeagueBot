@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
+import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { SeasonStanding } from "@/lib/season";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonRound } from "../model/season-types";
@@ -117,6 +118,7 @@ function StandingsTable({
               <td>{isRanked ? index + 1 : "—"}</td>
               <td className="season-player-column">
                 <PlayerIdentity
+                  dotaId={row.dotaId}
                   nickname={row.nickname}
                   avatarUrl={row.avatarUrl}
                 />
@@ -230,7 +232,13 @@ function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
           <tbody>
             {penalized.map((row) => (
               <tr key={row.playerId}>
-                <td>{row.nickname}</td>
+                <td>
+                  <PlayerProfileLink
+                    className="season-player-profile-link"
+                    dotaId={row.dotaId}
+                    nickname={row.nickname}
+                  />
+                </td>
                 {row.penaltyStages.map((value, index) => (
                   <td className={value === 5 ? "filled" : ""} key={index}>
                     {value === null ? "—" : `🔥 ${value}`}
@@ -255,20 +263,26 @@ function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
 }
 
 function PlayerIdentity({
+  dotaId,
   nickname,
   avatarUrl,
 }: {
+  dotaId: string;
   nickname: string;
   avatarUrl: string | null;
 }) {
   return (
-    <span className="season-player-identity">
+    <PlayerProfileLink
+      className="season-player-identity"
+      dotaId={dotaId}
+      nickname={nickname}
+    >
       {avatarUrl ? (
         <Image src={avatarUrl} alt="" width={34} height={34} unoptimized />
       ) : (
         <i>{nickname.slice(0, 1).toUpperCase()}</i>
       )}
       <strong>{nickname}</strong>
-    </span>
+    </PlayerProfileLink>
   );
 }

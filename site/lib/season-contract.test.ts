@@ -9,6 +9,7 @@ function source(path: string) {
 const createRoute = source("../app/api/tournament/tournament-create.ts");
 const tournamentRoute = source("../app/api/tournament/route.ts");
 const publicRoute = source("../app/api/season/route.ts");
+const extraQuery = source("../app/api/season/season-extra-query.ts");
 const adminRoute = source("../app/api/admin/season/route.ts");
 const matchActions = source(
   "../app/api/admin/season/season-match-actions.ts",
@@ -46,6 +47,11 @@ const seasonFactsRoute = source(
 const tournamentHero = source(
   "../app/tournaments/[slug]/sections/TournamentHero.tsx",
 );
+const seasonModel = source("./season.ts");
+const participantsTable = source(
+  "../app/participants/ParticipantsTable.tsx",
+);
+const playerProfile = source("../app/players/[dotaId]/page.tsx");
 const styles = loadSiteStyles();
 
 describe("season creation and access contract", () => {
@@ -165,6 +171,33 @@ describe("season interface contract", () => {
     );
     expect(standings).toContain("cell.matchIds[0]");
     expect(standings).toContain("season.openRound");
+  });
+
+  it("uses live seasonal nicknames and links every public player name", () => {
+    expect(publicRoute).toContain("player.ingame_name AS nickname");
+    expect(publicRoute).toContain("player.steam_id32::text AS dota_id");
+    expect(publicRoute).not.toContain(
+      "participant.nickname_snapshot, player.ingame_name",
+    );
+    expect(extraQuery).not.toContain(
+      "participant.nickname_snapshot, player.ingame_name",
+    );
+    expect(seasonModel).toContain("dotaId: string");
+    expect(rounds.match(/PlayerProfileLink/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(standings.match(/PlayerProfileLink/g)?.length).toBeGreaterThanOrEqual(
+      3,
+    );
+    expect(rounds).toContain("player.dota_id");
+    expect(standings).toContain("row.dotaId");
+    expect(seasonController).toContain("window.setInterval");
+    expect(seasonController).toContain("visibilitychange");
+    expect(seasonController).toContain('window.addEventListener("focus"');
+  });
+
+  it("reuses the profile service icons in the participant directory", () => {
+    expect(playerProfile).toContain("PlayerServiceIcon");
+    expect(participantsTable).toContain("PlayerServiceIcon");
+    expect(participantsTable).not.toContain(">DB<");
   });
 
   it("creates safe external links only when a map has a match id", () => {

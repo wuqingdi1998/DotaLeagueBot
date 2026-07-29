@@ -3,8 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { SiSteam } from "react-icons/si";
 import { FiSearch, FiX } from "react-icons/fi";
+import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 
 export function ParticipantsTable({
@@ -88,7 +88,7 @@ export function ParticipantsTable({
                 aria-label={`Открыть Dotabuff игрока ${player.nickname}`}
                 title="Dotabuff"
               >
-                DB
+                <PlayerServiceIcon service="dotabuff" />
               </a>
               <a
                 href={player.links.stratz}
@@ -97,7 +97,7 @@ export function ParticipantsTable({
                 aria-label={`Открыть Stratz игрока ${player.nickname}`}
                 title="Stratz"
               >
-                S
+                <PlayerServiceIcon service="stratz" />
               </a>
               <a
                 href={player.links.steam}
@@ -106,7 +106,7 @@ export function ParticipantsTable({
                 aria-label={`Открыть Steam игрока ${player.nickname}`}
                 title="Steam"
               >
-                <SiSteam aria-hidden="true" />
+                <PlayerServiceIcon service="steam" />
               </a>
             </span>
           </div>

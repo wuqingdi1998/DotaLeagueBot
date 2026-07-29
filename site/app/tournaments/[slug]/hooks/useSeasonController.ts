@@ -62,6 +62,23 @@ export function useSeasonController({
   }, [load]);
 
   useEffect(() => {
+    if (!enabled) return;
+
+    const refreshVisibleSeason = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    const interval = window.setInterval(refreshVisibleSeason, 60_000);
+    window.addEventListener("focus", refreshVisibleSeason);
+    document.addEventListener("visibilitychange", refreshVisibleSeason);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshVisibleSeason);
+      document.removeEventListener("visibilitychange", refreshVisibleSeason);
+    };
+  }, [enabled, load]);
+
+  useEffect(() => {
     if (enabled && requestedRound > 0 && Number.isInteger(requestedRound)) {
       setActiveTab("round");
     }

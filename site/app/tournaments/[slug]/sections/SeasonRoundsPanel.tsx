@@ -8,6 +8,7 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import Image from "next/image";
+import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { seasonMatchLinks } from "@/lib/season";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
@@ -152,8 +153,17 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
               {substitution.game_number
                 ? `Карта ${substitution.game_number}: `
                 : ""}
-              {substitution.outgoing_nickname} заменён на{" "}
-              {substitution.incoming_nickname}
+              <PlayerProfileLink
+                className="season-player-profile-link"
+                dotaId={substitution.outgoing_dota_id}
+                nickname={substitution.outgoing_nickname}
+              />
+              {" заменён на "}
+              <PlayerProfileLink
+                className="season-player-profile-link"
+                dotaId={substitution.incoming_dota_id}
+                nickname={substitution.incoming_nickname}
+              />
               {substitution.note ? ` · ${substitution.note}` : ""}
             </p>
           ))}
@@ -218,7 +228,13 @@ function SeasonFinalistsSummary() {
           {finalists.map((finalist) => (
             <article key={finalist.player_id}>
               <span>{finalist.seed ? `#${finalist.seed}` : "—"}</span>
-              <strong>{finalist.nickname}</strong>
+              <PlayerProfileLink
+                className="season-finalist-player-link"
+                dotaId={finalist.dota_id}
+                nickname={finalist.nickname}
+              >
+                <strong>{finalist.nickname}</strong>
+              </PlayerProfileLink>
               <b title={finalist.medal ?? "Медаль не определена"}>
                 {finalist.medal === "gold"
                   ? "🥇"
@@ -271,7 +287,13 @@ function SeasonTemporaryTeam({
                 <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
               )}
               <span>
-                <strong>{player.nickname}</strong>
+                <PlayerProfileLink
+                  className="season-player-profile-link"
+                  dotaId={player.dota_id}
+                  nickname={player.nickname}
+                >
+                  <strong>{player.nickname}</strong>
+                </PlayerProfileLink>
                 {player.is_captain && (
                   <small className="season-player-meta">Капитан</small>
                 )}

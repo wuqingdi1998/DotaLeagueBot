@@ -6,6 +6,7 @@ export type SeasonRoundVisibility = {
 
 export type SeasonStandingParticipant = {
   playerId: string;
+  dotaId: string;
   nickname: string;
   avatarUrl: string | null;
   teamSide: "a" | "b";
@@ -30,6 +31,7 @@ export type SeasonStandingSubstitution = {
   matchId: number;
   outgoingPlayerId: string;
   incomingPlayerId: string;
+  incomingDotaId: string;
   incomingNickname: string;
   incomingAvatarUrl: string | null;
   teamSide: "a" | "b";
@@ -79,6 +81,7 @@ export type SeasonRoundCell = {
 
 export type SeasonStanding = {
   playerId: string;
+  dotaId: string;
   nickname: string;
   avatarUrl: string | null;
   playedRounds: number;
@@ -216,6 +219,7 @@ export function calculateSeasonStandings(
     const state = participantStates.get(participant.playerId);
     return {
       playerId: participant.playerId,
+      dotaId: participant.dotaId,
       nickname: participant.nickname,
       avatarUrl: participant.avatarUrl,
       playedRounds: 0,
@@ -301,6 +305,7 @@ export function calculateSeasonStandings(
     }
     const identity = {
       playerId: substitution.incomingPlayerId,
+      dotaId: substitution.incomingDotaId,
       nickname: substitution.incomingNickname,
       avatarUrl: substitution.incomingAvatarUrl,
     };
