@@ -9,10 +9,15 @@
   background: var(--surface);
 }
 
+.season-table-drag-scroll.is-dragging {
+  user-select: none;
+}
+
 .season-standings-table {
   width: max-content;
   min-width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: 14px;
 }
 
@@ -23,6 +28,13 @@
   border-bottom: 1px solid var(--line);
   padding: 12px;
   text-align: center;
+}
+
+.season-standings-table .season-compact-column {
+  width: 48px;
+  min-width: 48px;
+  padding-right: 7px;
+  padding-left: 7px;
 }
 
 .season-standings-table th {
@@ -40,7 +52,9 @@
 .season-standings-table .season-player-name-column {
   position: sticky;
   z-index: 2;
+  background-clip: padding-box;
   background: var(--surface);
+  border-bottom-color: color-mix(in srgb, var(--text) 16%, var(--surface));
   text-align: left;
 }
 
@@ -50,12 +64,34 @@
   min-width: 58px;
 }
 
+.season-standings-table .season-player-avatar-column::before {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: -1px;
+  left: -2px;
+  width: 3px;
+  background: inherit;
+  content: "";
+  pointer-events: none;
+}
+
 .season-standings-table .season-player-name-column {
   left: 58px;
   min-width: 152px;
-  box-shadow:
-    inset -1px 0 var(--line-strong),
-    8px 0 14px -12px rgba(0, 42, 66, 0.7);
+}
+
+.season-standings-table .season-player-name-column::after {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: -1px;
+  bottom: -1px;
+  width: 2px;
+  background: color-mix(in srgb, var(--text) 24%, var(--surface));
+  box-shadow: 8px 0 14px -10px rgba(0, 42, 66, 0.78);
+  content: "";
+  pointer-events: none;
 }
 
 .season-standings-table th.season-player-avatar-column,
@@ -79,12 +115,17 @@
   display: grid;
   width: 34px;
   height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  aspect-ratio: 1;
   flex: 0 0 34px;
   place-items: center;
   border-radius: 50%;
   background: var(--blue-gradient);
   color: #fff;
   font-style: normal;
+  object-fit: cover;
+  overflow: hidden;
 }
 
 .season-player-name-link strong {
@@ -133,13 +174,34 @@ button.season-result-cell {
   color: var(--muted);
 }
 
+@media (hover: hover) and (pointer: fine) {
+  .season-table-drag-scroll {
+    cursor: grab;
+  }
+
+  .season-table-drag-scroll.is-dragging,
+  .season-table-drag-scroll.is-dragging * {
+    cursor: grabbing;
+  }
+}
+
 @media (max-width: 600px) {
   .season-standings-table .season-player-avatar-column {
     width: 52px;
     min-width: 52px;
-    box-shadow:
-      inset -1px 0 var(--line-strong),
-      8px 0 14px -12px rgba(0, 42, 66, 0.7);
+  }
+
+  .season-standings-table .season-player-avatar-column::after {
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    right: -1px;
+    bottom: -1px;
+    width: 2px;
+    background: color-mix(in srgb, var(--text) 24%, var(--surface));
+    box-shadow: 8px 0 14px -10px rgba(0, 42, 66, 0.78);
+    content: "";
+    pointer-events: none;
   }
 
   .season-standings-table .season-player-name-column {
@@ -147,5 +209,9 @@ button.season-result-cell {
     z-index: auto;
     min-width: 128px;
     box-shadow: none;
+  }
+
+  .season-standings-table .season-player-name-column::after {
+    display: none;
   }
 }

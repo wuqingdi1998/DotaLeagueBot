@@ -43,6 +43,14 @@
   line-height: 1.45;
 }
 
+.season-standings-legend p.season-legend-explanation {
+  display: block;
+}
+
+.season-legend-explanation b {
+  margin-right: 3px;
+}
+
 .season-standings-legend i {
   width: 16px;
   height: 16px;
@@ -330,7 +338,7 @@
 
   .season-standings-legend h4,
   .season-standings-legend hr,
-  .season-standings-legend p:last-child {
+  .season-standings-legend .season-legend-explanation {
     grid-column: 1 / -1;
   }
 
@@ -350,7 +358,7 @@
 
   .season-standings-legend h4,
   .season-standings-legend hr,
-  .season-standings-legend p:last-child {
+  .season-standings-legend .season-legend-explanation {
     grid-column: auto;
   }
 

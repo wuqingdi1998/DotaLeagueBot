@@ -20,6 +20,9 @@ const navigation = source(
 const roundTabStrip = source(
   "../app/tournaments/[slug]/components/SeasonRoundTabStrip.tsx",
 );
+const horizontalDragScroll = source(
+  "../app/tournaments/[slug]/components/HorizontalDragScroll.tsx",
+);
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
@@ -182,12 +185,53 @@ describe("season interface contract", () => {
       /@media \(max-width:\s*600px\)[\s\S]*?\.season-standings-table \.season-player-name-column\s*\{[^}]*position:\s*static;/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*600px\)[\s\S]*?\.season-standings-table \.season-player-avatar-column\s*\{[^}]*box-shadow:/,
+      /@media \(max-width:\s*600px\)[\s\S]*?\.season-standings-table \.season-player-avatar-column::after\s*\{[^}]*background:/,
     );
     expect(standings).toContain('className="season-player-avatar-column"');
     expect(standings).toContain('className="season-player-name-column"');
     expect(standings).toContain("cell.matchIds[0]");
     expect(standings).toContain("season.openRound");
+  });
+
+  it("drags seasonal tables without turning a drag into a click", () => {
+    expect(standings.match(/<HorizontalDragScroll/g)?.length).toBeGreaterThanOrEqual(
+      2,
+    );
+    expect(horizontalDragScroll).toContain("onPointerDown");
+    expect(horizontalDragScroll).toContain(
+      "if (Math.abs(movement) < dragThreshold) return;",
+    );
+    expect(horizontalDragScroll.indexOf("setPointerCapture")).toBeGreaterThan(
+      horizontalDragScroll.indexOf("Math.abs(movement) < dragThreshold"),
+    );
+    expect(horizontalDragScroll).toContain("suppressClickRef.current");
+    expect(horizontalDragScroll).toContain("onClickCapture");
+    expect(horizontalDragScroll).toContain('event.pointerType === "touch"');
+  });
+
+  it("uses compact score columns and solid circular sticky identities", () => {
+    expect(standings.match(/season-compact-column/g)?.length).toBeGreaterThanOrEqual(
+      10,
+    );
+    expect(styles).toMatch(
+      /\.season-standings-table \.season-compact-column\s*\{[^}]*width:\s*48px;[^}]*min-width:\s*48px;/,
+    );
+    expect(styles).toMatch(
+      /\.season-player-avatar-link (?:img|img,\s*\.season-player-avatar-link i)[\s\S]*?aspect-ratio:\s*1;[^}]*object-fit:\s*cover;/,
+    );
+    expect(styles).toMatch(
+      /\.season-standings-table\s*\{[^}]*border-collapse:\s*separate;[^}]*border-spacing:\s*0;/,
+    );
+    expect(styles).toContain(".season-player-name-column::after");
+    expect(styles).toContain(".season-player-avatar-column::before");
+  });
+
+  it("keeps legend explanations inline and removes the unused pending item", () => {
+    expect(standings).not.toContain("Результат ещё не внесён");
+    expect(standings.match(/season-legend-explanation/g)).toHaveLength(2);
+    expect(styles).toMatch(
+      /\.season-standings-legend p\.season-legend-explanation\s*\{[^}]*display:\s*block;/,
+    );
   });
 
   it("uses live seasonal nicknames and links every public player name", () => {

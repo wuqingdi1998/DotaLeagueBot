@@ -6,6 +6,7 @@ import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { SeasonStanding } from "@/lib/season";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonRound } from "../model/season-types";
+import { HorizontalDragScroll } from "../components/HorizontalDragScroll";
 
 export function SeasonStandingsPanel() {
   const { activeTab, data, season } = useTournament();
@@ -94,7 +95,7 @@ function StandingsTable({
 }) {
   const { season } = useTournament();
   return (
-    <div className="season-table-scroll">
+    <HorizontalDragScroll>
       <table className="season-standings-table">
         <thead>
           <tr>
@@ -104,11 +105,11 @@ function StandingsTable({
               aria-label="Аватар игрока"
             />
             <th className="season-player-name-column">Игрок</th>
-            <th>Туры</th>
-            <th>В</th>
-            <th>Н</th>
-            <th>П</th>
-            <th>p</th>
+            <th className="season-compact-column">Туры</th>
+            <th className="season-compact-column">В</th>
+            <th className="season-compact-column">Н</th>
+            <th className="season-compact-column">П</th>
+            <th className="season-compact-column">p</th>
             <th>Очки</th>
             <th>%WR</th>
             {rounds.map((round) => (
@@ -125,11 +126,11 @@ function StandingsTable({
                 nickname={row.nickname}
                 avatarUrl={row.avatarUrl}
               />
-              <td>{row.playedRounds}</td>
-              <td>{row.wins}</td>
-              <td>{row.draws}</td>
-              <td>{row.losses}</td>
-              <td className="season-adjustment-points">
+              <td className="season-compact-column">{row.playedRounds}</td>
+              <td className="season-compact-column">{row.wins}</td>
+              <td className="season-compact-column">{row.draws}</td>
+              <td className="season-compact-column">{row.losses}</td>
+              <td className="season-compact-column season-adjustment-points">
                 {row.hasAdjustments
                   ? `${row.adjustmentPoints > 0 ? "+" : ""}${row.adjustmentPoints}`
                   : ""}
@@ -181,7 +182,7 @@ function StandingsTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </HorizontalDragScroll>
   );
 }
 
@@ -194,13 +195,12 @@ function SeasonStandingsLegend() {
       <p><i className="loss" /> Поражение <strong>0</strong></p>
       <p><i className="substitute" /> Игрок замены</p>
       <p><i className="suspended" /> Пропуск из-за штрафа</p>
-      <p><i className="pending" /> Результат ещё не внесён</p>
       <hr />
-      <p>
+      <p className="season-legend-explanation">
         <b>p</b> — ручные поправки, бонусы за замену и снятия за штрафные
         огоньки.
       </p>
-      <p>
+      <p className="season-legend-explanation">
         <b>%WR</b> — процент выигранных карт. При равенстве очков выше
         ставится игрок с большим %WR, затем с большим числом сыгранных туров.
       </p>
@@ -219,7 +219,7 @@ function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
       {!penalized.length ? (
         <p className="season-empty-copy">Штрафных огоньков пока нет.</p>
       ) : (
-      <div className="season-table-scroll">
+      <HorizontalDragScroll>
         <table className="season-penalty-table">
           <thead>
             <tr>
@@ -258,7 +258,7 @@ function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
             ))}
           </tbody>
         </table>
-      </div>
+      </HorizontalDragScroll>
       )}
     </section>
   );
