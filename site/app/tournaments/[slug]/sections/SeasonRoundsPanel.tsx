@@ -223,7 +223,9 @@ function SeasonFinalistsSummary() {
         <div className="season-finalist-list">
           {finalists.map((finalist) => (
             <article key={finalist.player_id}>
-              <span>{finalist.seed ? `#${finalist.seed}` : "—"}</span>
+              <span className="season-finalist-seed">
+                {finalist.seed ? `#${finalist.seed}` : "—"}
+              </span>
               <PlayerProfileLink
                 className="season-finalist-player-link"
                 dotaId={finalist.dota_id}

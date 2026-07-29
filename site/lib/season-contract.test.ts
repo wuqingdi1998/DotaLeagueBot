@@ -255,6 +255,12 @@ describe("season interface contract", () => {
     expect(seasonController).toContain('window.addEventListener("focus"');
   });
 
+  it("keeps unlinked archive finalists styled like linked finalists", () => {
+    expect(rounds).toContain('className="season-finalist-seed"');
+    expect(styles).toContain(".season-finalist-seed");
+    expect(styles).not.toContain(".season-finalist-list article > span");
+  });
+
   it("reuses the profile service icons in the participant directory", () => {
     expect(playerProfile).toContain("PlayerServiceIcon");
     expect(participantsTable).toContain("PlayerServiceIcon");

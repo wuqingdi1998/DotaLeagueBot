@@ -200,7 +200,7 @@
   background: var(--surface-soft);
 }
 
-.season-finalist-list article > span {
+.season-finalist-seed {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
