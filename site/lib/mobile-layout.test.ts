@@ -39,4 +39,16 @@ describe("mobile width safety", () => {
       /@media \(max-width:\s*760px\)[\s\S]*?\.season-match-scoreboard\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
     );
   });
+
+  it("keeps the ordinary match list breakpoints during style modularization", () => {
+    expect(styles).toMatch(
+      /\.match-row\s*\{[^}]*grid-template-columns:\s*100px 125px 1fr 70px 1fr 48px 82px auto;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*1050px\)[\s\S]*?\.match-row\s*\{[^}]*grid-template-columns:\s*90px 110px 1fr 55px 1fr auto;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.match-row\s*\{[^}]*grid-template-columns:\s*65px 1fr 45px 1fr;/,
+    );
+  });
 });

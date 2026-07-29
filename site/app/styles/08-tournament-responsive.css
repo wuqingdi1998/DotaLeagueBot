@@ -25,15 +25,6 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .match-row {
-    grid-template-columns: 90px 110px 1fr 55px 1fr auto;
-  }
-
-  .best-of,
-  .checkin-state {
-    display: none;
-  }
-
   .community-section {
     grid-template-columns: 1fr;
     gap: 40px;
@@ -242,34 +233,6 @@
 
   .teams-grid {
     grid-template-columns: 1fr;
-  }
-
-  .match-row {
-    min-height: 140px;
-    grid-template-columns: 65px 1fr 45px 1fr;
-    gap: 9px;
-    padding: 15px 10px;
-  }
-
-  .match-stage {
-    display: none;
-  }
-
-  .match-checkin {
-    grid-column: 2 / 4;
-  }
-
-  .match-team {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .match-team.second {
-    align-items: flex-end;
-  }
-
-  .match-team strong {
-    font-size: 15px;
   }
 
   .standing-row {
