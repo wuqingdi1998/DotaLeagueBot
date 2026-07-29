@@ -86,6 +86,7 @@ export type PublicPlayerProfile = {
   hasCustomBackground: boolean;
   canCustomizeBackground: boolean;
   links: {
+    discord: string | null;
     dotabuff: string;
     stratz: string;
     steam: string;
@@ -150,6 +151,12 @@ export function buildPlayerLinks(dotaId: string) {
     stratz: `https://stratz.com/players/${normalized}`,
     steam: `https://steamcommunity.com/profiles/${steamId64}`,
   };
+}
+
+export function buildDiscordDirectMessageLink(discordId: string) {
+  const normalized = discordId.trim();
+  if (!/^\d{17,20}$/.test(normalized)) return null;
+  return `https://discord.com/channels/@me/${normalized}`;
 }
 
 export function tournamentResultLabel(
@@ -414,7 +421,10 @@ export async function loadPublicPlayerProfile(
     customBackgroundMobileUrl,
     hasCustomBackground,
     canCustomizeBackground,
-    links: buildPlayerLinks(player.dota_id),
+    links: {
+      ...buildPlayerLinks(player.dota_id),
+      discord: buildDiscordDirectMessageLink(player.discord_id),
+    },
     statistics: {
       tournaments: tournamentHistory.length,
       tournamentWins,

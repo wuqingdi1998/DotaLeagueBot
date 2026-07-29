@@ -233,6 +233,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   <PlayerServiceIcon service="steam" />
                   <span>Steam</span>
                 </a>
+                {profile.links.discord && (
+                  <a
+                    href={profile.links.discord}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Написать в Discord"
+                  >
+                    <PlayerServiceIcon service="discord" />
+                    <span>Discord</span>
+                  </a>
+                )}
                 <span className="public-profile-dota-id mobile-profile-dota-id">
                   Dota ID {profile.dotaId}
                 </span>

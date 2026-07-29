@@ -337,29 +337,44 @@
   border-bottom: 0;
 }
 
-.season-standings-table .season-player-column {
+.season-standings-table .season-player-avatar-column,
+.season-standings-table .season-player-name-column {
   position: sticky;
   z-index: 2;
-  left: 0;
-  min-width: 210px;
   background: var(--surface);
   text-align: left;
 }
 
-.season-standings-table th.season-player-column {
+.season-standings-table .season-player-avatar-column {
+  left: 0;
+  width: 58px;
+  min-width: 58px;
+}
+
+.season-standings-table .season-player-name-column {
+  left: 58px;
+  min-width: 152px;
+  box-shadow: inset -1px 0 var(--line-strong), 8px 0 14px -12px rgba(0, 42, 66, 0.7);
+}
+
+.season-standings-table th.season-player-avatar-column,
+.season-standings-table th.season-player-name-column {
   z-index: 3;
   background: var(--surface-soft);
 }
 
-.season-player-identity {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  gap: 10px;
+.season-player-avatar-link {
+  display: grid;
+  place-items: center;
 }
 
-.season-player-identity img,
-.season-player-identity i {
+.season-player-name-link {
+  display: block;
+  min-width: 0;
+}
+
+.season-player-avatar-link img,
+.season-player-avatar-link i {
   display: grid;
   width: 34px;
   height: 34px;
@@ -371,7 +386,8 @@
   font-style: normal;
 }
 
-.season-player-identity strong {
+.season-player-name-link strong {
+  display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -383,7 +399,7 @@
   text-decoration: none;
 }
 
-.season-player-identity:hover strong,
+.season-player-name-link:hover strong,
 .season-player-profile-link:hover,
 .season-finalist-player-link:hover strong {
   color: var(--blue-strong);

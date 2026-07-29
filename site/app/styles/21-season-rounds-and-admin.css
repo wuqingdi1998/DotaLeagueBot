@@ -313,8 +313,17 @@
     scroll-snap-align: center;
   }
 
-  .season-standings-table .season-player-column {
-    min-width: 160px;
+  .season-standings-table .season-player-avatar-column {
+    width: 52px;
+    min-width: 52px;
+    box-shadow: inset -1px 0 var(--line-strong), 8px 0 14px -12px rgba(0, 42, 66, 0.7);
+  }
+
+  .season-standings-table .season-player-name-column {
+    position: static;
+    z-index: auto;
+    min-width: 128px;
+    box-shadow: none;
   }
 
   .season-admin-fields,

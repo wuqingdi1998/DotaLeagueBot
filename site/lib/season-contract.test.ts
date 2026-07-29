@@ -109,6 +109,8 @@ describe("season interface contract", () => {
     );
     expect(roundTabStrip).toContain("keepScrollPositionRef.current = true");
     expect(roundTabStrip).toContain("openRoundWithoutScrolling");
+    expect(roundTabStrip).not.toContain("onWheel");
+    expect(roundTabStrip).not.toContain("scrollWithWheel");
     expect(styles).toMatch(
       /\.season-tournament-tabs\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*row;/,
     );
@@ -165,10 +167,18 @@ describe("season interface contract", () => {
     );
   });
 
-  it("keeps the player column visible and opens a result's match", () => {
+  it("keeps player identity visible without consuming mobile table width", () => {
     expect(styles).toMatch(
-      /\.season-standings-table \.season-player-column\s*\{[^}]*position:\s*sticky;/,
+      /\.season-standings-table \.season-player-avatar-column,\s*\.season-standings-table \.season-player-name-column\s*\{[^}]*position:\s*sticky;/,
     );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*600px\)[\s\S]*?\.season-standings-table \.season-player-name-column\s*\{[^}]*position:\s*static;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*600px\)[\s\S]*?\.season-standings-table \.season-player-avatar-column\s*\{[^}]*box-shadow:/,
+    );
+    expect(standings).toContain('className="season-player-avatar-column"');
+    expect(standings).toContain('className="season-player-name-column"');
     expect(standings).toContain("cell.matchIds[0]");
     expect(standings).toContain("season.openRound");
   });
@@ -198,6 +208,14 @@ describe("season interface contract", () => {
     expect(playerProfile).toContain("PlayerServiceIcon");
     expect(participantsTable).toContain("PlayerServiceIcon");
     expect(participantsTable).not.toContain(">DB<");
+  });
+
+  it("opens a participant's Discord conversation from their profile", () => {
+    expect(playerProfile).toContain("profile.links.discord");
+    expect(playerProfile).toContain('service="discord"');
+    expect(playerProfile.indexOf('service="discord"')).toBeGreaterThan(
+      playerProfile.indexOf('service="steam"'),
+    );
   });
 
   it("creates safe external links only when a map has a match id", () => {

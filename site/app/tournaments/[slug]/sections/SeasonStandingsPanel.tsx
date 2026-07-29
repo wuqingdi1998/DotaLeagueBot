@@ -99,7 +99,11 @@ function StandingsTable({
         <thead>
           <tr>
             <th>Место</th>
-            <th className="season-player-column">Игрок</th>
+            <th
+              className="season-player-avatar-column"
+              aria-label="Аватар игрока"
+            />
+            <th className="season-player-name-column">Игрок</th>
             <th>Туры</th>
             <th>В</th>
             <th>Н</th>
@@ -116,13 +120,11 @@ function StandingsTable({
           {rows.map((row, index) => (
             <tr key={row.playerId}>
               <td>{isRanked ? index + 1 : "—"}</td>
-              <td className="season-player-column">
-                <PlayerIdentity
-                  dotaId={row.dotaId}
-                  nickname={row.nickname}
-                  avatarUrl={row.avatarUrl}
-                />
-              </td>
+              <PlayerIdentityCells
+                dotaId={row.dotaId}
+                nickname={row.nickname}
+                avatarUrl={row.avatarUrl}
+              />
               <td>{row.playedRounds}</td>
               <td>{row.wins}</td>
               <td>{row.draws}</td>
@@ -262,7 +264,7 @@ function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
   );
 }
 
-function PlayerIdentity({
+function PlayerIdentityCells({
   dotaId,
   nickname,
   avatarUrl,
@@ -272,17 +274,29 @@ function PlayerIdentity({
   avatarUrl: string | null;
 }) {
   return (
-    <PlayerProfileLink
-      className="season-player-identity"
-      dotaId={dotaId}
-      nickname={nickname}
-    >
-      {avatarUrl ? (
-        <Image src={avatarUrl} alt="" width={34} height={34} unoptimized />
-      ) : (
-        <i>{nickname.slice(0, 1).toUpperCase()}</i>
-      )}
-      <strong>{nickname}</strong>
-    </PlayerProfileLink>
+    <>
+      <td className="season-player-avatar-column">
+        <PlayerProfileLink
+          className="season-player-avatar-link"
+          dotaId={dotaId}
+          nickname={nickname}
+        >
+          {avatarUrl ? (
+            <Image src={avatarUrl} alt="" width={34} height={34} unoptimized />
+          ) : (
+            <i>{nickname.slice(0, 1).toUpperCase()}</i>
+          )}
+        </PlayerProfileLink>
+      </td>
+      <td className="season-player-name-column">
+        <PlayerProfileLink
+          className="season-player-name-link"
+          dotaId={dotaId}
+          nickname={nickname}
+        >
+          <strong>{nickname}</strong>
+        </PlayerProfileLink>
+      </td>
+    </>
   );
 }

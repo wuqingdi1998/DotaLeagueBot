@@ -6,7 +6,6 @@ import {
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
-  type WheelEvent as ReactWheelEvent,
 } from "react";
 import { FiChevronLeft, FiChevronRight, FiEyeOff } from "react-icons/fi";
 import type { SeasonRound } from "../model/season-types";
@@ -134,11 +133,6 @@ export function SeasonRoundTabStrip({
     }, 0);
   };
 
-  const scrollWithWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
-    event.currentTarget.scrollLeft += event.deltaY;
-  };
-
   return (
     <div className="season-round-navigation">
       <button
@@ -157,7 +151,6 @@ export function SeasonRoundTabStrip({
         role="group"
         aria-label="Туры сезона"
         onScroll={updateScrollEdges}
-        onWheel={scrollWithWheel}
         onPointerDown={startDragging}
         onPointerMove={continueDragging}
         onPointerUp={stopDragging}

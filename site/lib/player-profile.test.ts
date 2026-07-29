@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildDiscordDirectMessageLink,
   buildPlayerLinks,
   customizableSubscriptionRoleNames,
   normalizeDotaAccountId,
@@ -47,6 +48,14 @@ describe("public player profile", () => {
       "illusion",
       "damage",
     ]);
+  });
+
+  it("builds a direct Discord conversation only for a real Discord id", () => {
+    expect(buildDiscordDirectMessageLink("123456789012345678")).toBe(
+      "https://discord.com/channels/@me/123456789012345678",
+    );
+    expect(buildDiscordDirectMessageLink("-123456789012345678")).toBeNull();
+    expect(buildDiscordDirectMessageLink("archive-player")).toBeNull();
   });
 
   it("selects the standard profile background from the current rune", () => {
