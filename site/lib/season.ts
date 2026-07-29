@@ -150,7 +150,7 @@ export function validateSeasonTeams(teamA: string[], teamB: string[]) {
 
 export function isValidSeasonTierSnapshot(value: unknown) {
   const tier = Number(value);
-  return Number.isInteger(tier) && tier >= 0 && tier <= 20;
+  return Number.isInteger(tier) && tier >= 0 && tier <= 12;
 }
 
 export function validateSeasonResult(

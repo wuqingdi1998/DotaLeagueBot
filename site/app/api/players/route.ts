@@ -18,7 +18,8 @@ export async function GET(request: Request) {
     }>(
       `SELECT discord_id::text, ingame_name, positions, avatar_url
        FROM players
-       WHERE ingame_name ILIKE '%' || $1 || '%'
+       WHERE is_archived = FALSE
+         AND ingame_name ILIKE '%' || $1 || '%'
        ORDER BY ingame_name
        LIMIT 100`,
       [search],

@@ -14,7 +14,6 @@ import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
   seasonLobbyStatusLabel,
-  seasonMatchStatusLabel,
 } from "../model/season-labels";
 import type { SeasonMatch } from "../model/season-types";
 
@@ -113,9 +112,6 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
             <FiLayers aria-hidden="true" /> BO{match.best_of}
           </span>
         </div>
-        <b className={`season-status-pill ${match.status}`}>
-          {seasonMatchStatusLabel(match.status)}
-        </b>
       </div>
       <div className="season-match-scoreboard">
         <SeasonTemporaryTeam name={match.team_a_name} players={teamA} />

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getSession } from "@/lib/auth";
-import { loadHallOfFame } from "@/lib/player-profile";
+import { loadHallOfFame } from "@/lib/hall-of-fame";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { HallOfFameTable } from "./HallOfFameTable";
 

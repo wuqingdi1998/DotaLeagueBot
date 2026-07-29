@@ -154,7 +154,7 @@ class TierModalInternal(Modal):
 
         # Поле ввода
         self.rating_input = TextInput(
-            label="Новый тир (1-10)",
+            label="Новый тир (0-12)",
             placeholder="0 = сброс (авто)",
             min_length=1,
             max_length=2,
@@ -165,8 +165,8 @@ class TierModalInternal(Modal):
     async def on_submit(self, interaction: discord.Interaction):
         try:
             val = int(self.rating_input.value)
-            if not 0 <= val <= 10:
-                return await interaction.response.send_message("❌ Число от 0 до 10!", ephemeral=True)
+            if not 0 <= val <= 12:
+                return await interaction.response.send_message("❌ Число от 0 до 12!", ephemeral=True)
 
             # 1. Сохраняем в БД
             async with LeagueService(self.bot) as service:

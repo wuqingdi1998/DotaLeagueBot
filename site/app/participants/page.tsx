@@ -13,10 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ParticipantsPage() {
-  const [players, user] = await Promise.all([
-    loadParticipantDirectory(),
-    getSession(),
-  ]);
+  const user = await getSession();
+  const players = await loadParticipantDirectory(user?.isAdmin ?? false);
 
   return (
     <PlatformShell user={user}>
@@ -29,7 +27,11 @@ export default async function ParticipantsPage() {
       </section>
 
       <section className="hall-content">
-        <ParticipantsTable players={players} />
+        <ParticipantsTable
+          players={players}
+          isOrganizer={user?.isAdmin ?? false}
+          organizerDotaId={user?.dotaId ?? null}
+        />
       </section>
     </PlatformShell>
   );

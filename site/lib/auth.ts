@@ -155,7 +155,9 @@ export async function getSession(): Promise<AuthUser | null> {
        ) AS is_admin
      FROM web_sessions s
      JOIN players p ON p.discord_id = s.discord_id
-     WHERE s.token_hash = $1 AND s.expires_at > NOW()`,
+     WHERE s.token_hash = $1
+       AND s.expires_at > NOW()
+       AND p.is_archived = FALSE`,
     [tokenHash(token), organizerToken ? tokenHash(organizerToken) : ""],
   );
   if (!row) return null;
@@ -192,10 +194,10 @@ export async function requireAdmin(): Promise<AuthUser> {
   return user;
 }
 
-export async function createOrganizerSession(
+async function verifyOrganizerPassword(
+  user: AuthUser,
   suppliedPassword: string,
-): Promise<AuthUser> {
-  const user = await requireSession();
+): Promise<void> {
   const configuredPassword = process.env.ORGANIZER_PASSWORD ?? "";
   if (configuredPassword.length < 12) {
     throw new Response(
@@ -234,6 +236,21 @@ export async function createOrganizerSession(
     `DELETE FROM web_organizer_login_attempts WHERE discord_id = $1`,
     [user.discordId],
   );
+}
+
+export async function confirmOrganizerPassword(
+  suppliedPassword: string,
+): Promise<AuthUser> {
+  const user = await requireAdmin();
+  await verifyOrganizerPassword(user, suppliedPassword);
+  return user;
+}
+
+export async function createOrganizerSession(
+  suppliedPassword: string,
+): Promise<AuthUser> {
+  const user = await requireSession();
+  await verifyOrganizerPassword(user, suppliedPassword);
   await query("DELETE FROM web_organizer_sessions WHERE expires_at <= NOW()");
   const token = randomBytes(32).toString("base64url");
   const expiresAt = new Date(

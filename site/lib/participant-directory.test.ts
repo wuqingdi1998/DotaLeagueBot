@@ -6,7 +6,7 @@ const hallPage = readFileSync(
   "utf8",
 );
 const hallLoader = readFileSync(
-  new URL("./player-profile.ts", import.meta.url),
+  new URL("./hall-of-fame.ts", import.meta.url),
   "utf8",
 );
 const participantsPage = readFileSync(
@@ -26,6 +26,10 @@ const header = readFileSync(
   "utf8",
 );
 const directoryStyles = readFileSync(
+  new URL("../app/styles/28-participants.css", import.meta.url),
+  "utf8",
+);
+const hallStyles = readFileSync(
   new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
   "utf8",
 );
@@ -51,16 +55,14 @@ describe("hall of fame and participant directory", () => {
   });
 
   it("shows current tiers and the three external player services", () => {
-    expect(participantsPage).toContain("<ParticipantsTable players={players}");
+    expect(participantsPage).toContain("players={players}");
     expect(participantsLoader).toContain("NULLIF(player.internal_rating, 0)");
     expect(participantsLoader).toContain("player.rank_tier / 10");
     expect(participantsLoader).toContain("latest_tier.tier");
     expect(participantsLoader).toContain("buildPlayerLinks(dotaId)");
-    expect(participantsTable).toContain(': player.tier}');
+    expect(participantsTable).toContain('player.tier ?? "—"');
     expect(participantsTable).not.toContain("`Тир ${player.tier}`");
-    expect(participantsTable).toContain("player.links.dotabuff");
-    expect(participantsTable).toContain("player.links.stratz");
-    expect(participantsTable).toContain("player.links.steam");
+    expect(participantsTable).toContain('["dotabuff", "stratz", "steam"]');
     expect(participantsTable).toContain("participant-links");
   });
 
@@ -78,14 +80,14 @@ describe("hall of fame and participant directory", () => {
     expect(directoryStyles).toMatch(
       /\.participant-tier\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--text\);/,
     );
-    expect(directoryStyles).toMatch(
+    expect(hallStyles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*30px\)/,
     );
-    expect(directoryStyles).toMatch(
+    expect(hallStyles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal svg\s*\{[^}]*display:\s*none;/,
     );
     expect(directoryStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.participant-tier\s*\{[^}]*width:\s*32px;[^}]*height:\s*32px;[^}]*font-size:\s*14px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.participant-tier\s*\{[^}]*width:\s*34px;[^}]*height:\s*34px;[^}]*font-size:\s*14px;/,
     );
   });
 });

@@ -14,9 +14,10 @@ export async function resolveSeasonPlayer(
     discord_id: string;
     nickname: string;
   }>(
-    `SELECT discord_id::text, ingame_name AS nickname
+     `SELECT discord_id::text, ingame_name AS nickname
      FROM players
-     WHERE discord_id::text = $1 OR steam_id32::text = $1
+     WHERE is_archived = FALSE
+       AND (discord_id::text = $1 OR steam_id32::text = $1)
      ORDER BY (discord_id::text = $1) DESC
      LIMIT 1`,
     [playerId],

@@ -56,7 +56,7 @@ function validate(body: RosterBody) {
           player.tier !== undefined &&
           (!Number.isInteger(Number(player.tier)) ||
             Number(player.tier) < 0 ||
-            Number(player.tier) > 20)),
+            Number(player.tier) > 12)),
     )
   ) {
     return "Проверьте никнеймы, роли и исторические тиры игроков";

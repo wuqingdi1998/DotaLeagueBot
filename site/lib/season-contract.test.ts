@@ -261,12 +261,9 @@ describe("season interface contract", () => {
     expect(participantsTable).not.toContain(">DB<");
   });
 
-  it("opens a participant's Discord conversation from their profile", () => {
-    expect(playerProfile).toContain("profile.links.discord");
-    expect(playerProfile).toContain('service="discord"');
-    expect(playerProfile.indexOf('service="discord"')).toBeGreaterThan(
-      playerProfile.indexOf('service="steam"'),
-    );
+  it("keeps Discord direct messages out of participant profiles", () => {
+    expect(playerProfile).not.toContain("profile.links.discord");
+    expect(playerProfile).not.toContain('service="discord"');
   });
 
   it("creates safe external links only when a map has a match id", () => {

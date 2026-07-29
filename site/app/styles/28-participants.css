@@ -1,0 +1,451 @@
+/* Participant directory and archive identities */
+
+.participants-hero {
+  background:
+    radial-gradient(circle at 82% 15%, rgba(0, 195, 255, 0.16), transparent 32%),
+    var(--surface-soft);
+}
+
+.participant-toolbar {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.participant-toolbar .participant-search {
+  width: min(100%, 520px);
+  margin: 0;
+}
+
+.participant-toolbar > label:not(.hall-search, .participant-archive-toggle) {
+  display: grid;
+  min-width: 138px;
+  gap: 6px;
+}
+
+.participant-toolbar label > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.participant-toolbar select,
+.archive-player-admin select,
+.archive-player-admin input,
+.participant-admin-dialog input {
+  min-height: 46px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 0 12px;
+  outline: 0;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.participant-archive-toggle {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 0 13px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.participants-row {
+  grid-template-columns: 58px minmax(210px, 1fr) 70px 60px 160px;
+}
+
+.participants-player {
+  min-width: 0;
+  width: fit-content;
+}
+
+.participants-player > span {
+  display: grid;
+  min-width: 0;
+}
+
+.participants-player small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.participants-player:hover b {
+  color: var(--blue-strong);
+}
+
+.participants-row.archive {
+  background: color-mix(in srgb, var(--surface-soft) 68%, transparent);
+}
+
+.participant-roles {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.participant-tier {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  justify-self: start;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  padding: 0;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.participant-tier.editable {
+  cursor: pointer;
+  transition: border-color 160ms ease, transform 160ms ease;
+}
+
+.participant-tier.editable:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue-strong);
+}
+
+.participant-links {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.participant-links.empty {
+  color: var(--muted);
+}
+
+.participant-links a {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: var(--surface-soft);
+  color: var(--text);
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.participant-links a:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue-strong);
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+}
+
+.participant-links svg {
+  width: 21px;
+  height: 21px;
+}
+
+.participant-admin-backdrop {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(1, 17, 28, 0.76);
+  backdrop-filter: blur(8px);
+}
+
+.participant-admin-dialog {
+  width: min(100%, 480px);
+  border: 1px solid var(--line-strong);
+  border-radius: 22px;
+  padding: 24px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.participant-admin-dialog header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.participant-admin-dialog header span {
+  color: var(--blue-strong);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.participant-admin-dialog h2,
+.participant-admin-dialog h3 {
+  margin: 4px 0 0;
+}
+
+.participant-admin-dialog header > button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.participant-tier-form,
+.participant-delete-confirm {
+  display: grid;
+  gap: 18px;
+}
+
+.participant-tier-form label,
+.participant-delete-confirm label {
+  display: grid;
+  gap: 7px;
+}
+
+.participant-tier-form small,
+.participant-delete-confirm p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.participant-tier-form > div,
+.participant-delete-confirm > div {
+  display: flex;
+  gap: 10px;
+}
+
+.participant-tier-form button,
+.participant-delete-confirm button,
+.archive-player-admin button {
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 0 18px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.participant-tier-form button[type="submit"],
+.archive-player-admin form > button {
+  background: var(--blue-gradient);
+  color: #fff;
+}
+
+.participant-tier-form .participant-delete-button {
+  width: 46px;
+  padding: 0;
+  border-color: #e65c6a;
+  background: rgba(230, 92, 106, 0.13);
+  color: #ff7180;
+}
+
+.participant-delete-confirm .danger {
+  border-color: #e65c6a;
+  background: #c84352;
+  color: #fff;
+}
+
+.participant-admin-error,
+.archive-admin-message.error {
+  color: #ff7180;
+}
+
+.archive-player-hero > span {
+  color: var(--blue-strong);
+  font-weight: 900;
+}
+
+.archive-player-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.72fr);
+  gap: 20px;
+  padding: 24px clamp(24px, 7vw, 110px) 100px;
+}
+
+.archive-player-card {
+  align-self: start;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px;
+  background: var(--surface);
+}
+
+.archive-player-card h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+}
+
+.archive-player-admin,
+.archive-player-admin form,
+.archive-link-section {
+  display: grid;
+  gap: 14px;
+}
+
+.archive-player-admin > * + * {
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+}
+
+.archive-player-admin form label {
+  display: grid;
+  gap: 7px;
+}
+
+.archive-player-admin form > button {
+  justify-self: start;
+}
+
+.archive-alias-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.archive-alias-list span {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--surface-soft);
+}
+
+.archive-link-section p {
+  margin: -7px 0 0;
+  color: var(--muted);
+}
+
+.archive-candidate-list,
+.archive-player-tournaments {
+  display: grid;
+  gap: 8px;
+}
+
+.archive-candidate-list button,
+.archive-player-tournaments a {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  padding: 10px 13px;
+  background: var(--surface-soft);
+  color: var(--text);
+  text-align: left;
+}
+
+.archive-candidate-list span,
+.archive-player-tournaments span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.archive-admin-message.success {
+  color: #47c98b;
+}
+
+@media (max-width: 1050px) {
+  .participant-toolbar {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .participant-toolbar .participant-search {
+    width: 100%;
+    max-width: none;
+  }
+
+  .participant-toolbar > label:not(.hall-search) {
+    flex: 1 1 160px;
+  }
+}
+
+@media (max-width: 900px) {
+  .participants-row {
+    grid-template-columns: 34px minmax(170px, 1fr) 52px 52px 142px;
+    gap: 7px;
+  }
+
+  .archive-player-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .participant-toolbar {
+    margin: 0 6px 12px;
+  }
+
+  .participant-toolbar > label:not(.hall-search) {
+    flex-basis: calc(50% - 6px);
+  }
+
+  .participants-table {
+    overflow-x: auto;
+  }
+
+  .participants-row {
+    min-width: 550px;
+    grid-template-columns: minmax(190px, 1fr) 48px 48px 112px;
+    gap: 6px;
+    padding: 0 10px;
+  }
+
+  .participants-row > :first-child {
+    display: none;
+  }
+
+  .participant-tier {
+    width: 34px;
+    height: 34px;
+    justify-self: center;
+    font-size: 14px;
+  }
+
+  .participant-links {
+    gap: 5px;
+  }
+
+  .participant-links a {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+
+  .participant-links svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .archive-player-content {
+    padding: 18px 12px 80px;
+  }
+
+  .archive-candidate-list button,
+  .archive-player-tournaments a {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}

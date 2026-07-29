@@ -59,7 +59,8 @@ class LeagueService:
 
         stmt = select(LeagueRegistration).join(Player).where(
             LeagueRegistration.session_id == active_week.id,
-            Player.discord_id == user_id
+            Player.discord_id == user_id,
+            Player.is_archived.is_(False),
         )
         result = await self.session.execute(stmt)
         registration = result.scalar_one_or_none()
@@ -132,7 +133,10 @@ class LeagueService:
         if session_obj.status != SessionStatus.OPEN.value:
             return False, "Регистрация уже закрыта!", False
 
-        query_player = select(Player).where(Player.discord_id == user_id)
+        query_player = select(Player).where(
+            Player.discord_id == user_id,
+            Player.is_archived.is_(False),
+        )
         result_player = await self.session.execute(query_player)
         player = result_player.scalar_one_or_none()
 
@@ -191,7 +195,10 @@ class LeagueService:
         stmt_regs = (
             select(LeagueRegistration, Player)
             .join(Player, LeagueRegistration.player_id == Player.discord_id)
-            .where(LeagueRegistration.session_id == current_week.id)
+            .where(
+                LeagueRegistration.session_id == current_week.id,
+                Player.is_archived.is_(False),
+            )
             .order_by(LeagueRegistration.chosen_role, LeagueRegistration.mmr_snapshot.desc())
         )
         result_regs = await self.session.execute(stmt_regs)
@@ -261,7 +268,10 @@ class LeagueService:
     # --- ИСПРАВЛЕНО: ТЕПЕРЬ ИСПОЛЬЗУЕТ self.session ---
     async def change_nickname(self, user_id: int, new_nickname: str):
         # Используем self.session, которая уже открыта контекстным менеджером
-        stmt = select(Player).where(Player.discord_id == user_id)
+        stmt = select(Player).where(
+            Player.discord_id == user_id,
+            Player.is_archived.is_(False),
+        )
         result = await self.session.execute(stmt)
         player = result.scalar_one_or_none()
 
@@ -292,7 +302,10 @@ class LeagueService:
     async def change_roles(self, user_id: int, new_roles: list):
         try:
             # Используем self.session
-            stmt = select(Player).where(Player.discord_id == user_id)
+            stmt = select(Player).where(
+                Player.discord_id == user_id,
+                Player.is_archived.is_(False),
+            )
             result = await self.session.execute(stmt)
             player = result.scalar_one_or_none()
 
@@ -325,7 +338,12 @@ class LeagueService:
             return False, f"❌ Ошибка базы данных: {e}"
 
     async def get_player_by_id(self, user_id: int):
-        result = await self.session.execute(select(Player).where(Player.discord_id == user_id))
+        result = await self.session.execute(
+            select(Player).where(
+                Player.discord_id == user_id,
+                Player.is_archived.is_(False),
+            )
+        )
         return result.scalars().first()
 
     async def reset_uses(self, discord_id: int | None):

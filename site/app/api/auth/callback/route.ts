@@ -42,7 +42,10 @@ export async function GET(request: Request) {
   }
 
   const player = await one<{ discord_id: string }>(
-    "SELECT discord_id::text FROM players WHERE discord_id = $1",
+    `SELECT discord_id::text
+     FROM players
+     WHERE discord_id = $1
+       AND is_archived = FALSE`,
     [discordUser.id],
   );
   if (!player) {

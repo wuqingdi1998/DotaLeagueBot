@@ -254,13 +254,13 @@ describe("season standings", () => {
 });
 
 describe("season match safety", () => {
-  it("accepts only whole historical tiers from 0 to 20", () => {
+  it("accepts only whole tiers from 0 to 12", () => {
     expect(isValidSeasonTierSnapshot(0)).toBe(true);
     expect(isValidSeasonTierSnapshot("10")).toBe(true);
-    expect(isValidSeasonTierSnapshot(20)).toBe(true);
+    expect(isValidSeasonTierSnapshot(12)).toBe(true);
     expect(isValidSeasonTierSnapshot(-1)).toBe(false);
     expect(isValidSeasonTierSnapshot(1.5)).toBe(false);
-    expect(isValidSeasonTierSnapshot(21)).toBe(false);
+    expect(isValidSeasonTierSnapshot(13)).toBe(false);
   });
 
   it("limits each temporary team to five players", () => {

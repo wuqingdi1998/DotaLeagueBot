@@ -57,7 +57,8 @@ class SeasonalLeagueService:
 
         stmt = select(SeasonalLeagueRegistration).join(Player).where(
             SeasonalLeagueRegistration.session_id == active_week.id,
-            Player.discord_id == user_id
+            Player.discord_id == user_id,
+            Player.is_archived.is_(False),
         )
         result = await self.session.execute(stmt)
         registration = result.scalar_one_or_none()
@@ -161,7 +162,10 @@ class SeasonalLeagueService:
         if session_obj.status != SessionStatus.OPEN.value:
             return False, "Регистрация уже закрыта!", False, False
 
-        query_player = select(Player).where(Player.discord_id == user_id)
+        query_player = select(Player).where(
+            Player.discord_id == user_id,
+            Player.is_archived.is_(False),
+        )
         result_player = await self.session.execute(query_player)
         player = result_player.scalar_one_or_none()
 
@@ -235,7 +239,10 @@ class SeasonalLeagueService:
         stmt_regs = (
             select(SeasonalLeagueRegistration, Player)
             .join(Player, SeasonalLeagueRegistration.player_id == Player.discord_id)
-            .where(SeasonalLeagueRegistration.session_id == current_week.id)
+            .where(
+                SeasonalLeagueRegistration.session_id == current_week.id,
+                Player.is_archived.is_(False),
+            )
             .order_by(SeasonalLeagueRegistration.chosen_role, SeasonalLeagueRegistration.mmr_snapshot.desc())
         )
         result_regs = await self.session.execute(stmt_regs)
@@ -283,5 +290,10 @@ class SeasonalLeagueService:
         return result.rowcount or 0
 
     async def get_player_by_id(self, user_id: int):
-        result = await self.session.execute(select(Player).where(Player.discord_id == user_id))
+        result = await self.session.execute(
+            select(Player).where(
+                Player.discord_id == user_id,
+                Player.is_archived.is_(False),
+            )
+        )
         return result.scalars().first()

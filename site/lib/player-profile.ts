@@ -86,7 +86,6 @@ export type PublicPlayerProfile = {
   hasCustomBackground: boolean;
   canCustomizeBackground: boolean;
   links: {
-    discord: string | null;
     dotabuff: string;
     stratz: string;
     steam: string;
@@ -114,13 +113,6 @@ type PlayerRow = {
   subscription_role_color: number | null;
   custom_background_key: string | null;
   custom_background_mobile_key: string | null;
-};
-
-export type HallOfFamePlayer = {
-  dotaId: string;
-  nickname: string;
-  avatarUrl: string | null;
-  medals: PlayerMedals;
 };
 
 type TournamentHistoryRow = {
@@ -152,13 +144,6 @@ export function buildPlayerLinks(dotaId: string) {
     steam: `https://steamcommunity.com/profiles/${steamId64}`,
   };
 }
-
-export function buildDiscordDirectMessageLink(discordId: string) {
-  const normalized = discordId.trim();
-  if (!/^\d{17,20}$/.test(normalized)) return null;
-  return `https://discord.com/channels/@me/${normalized}`;
-}
-
 export function tournamentResultLabel(
   placement: number | null,
   resultLabel: string | null,
@@ -230,22 +215,35 @@ export async function loadPublicPlayerProfile(
      ) subscription ON TRUE
      LEFT JOIN player_profile_preferences preference
        ON preference.player_id = p.discord_id
-     WHERE p.steam_id32 = $1`,
+     WHERE p.steam_id32 = $1
+       AND p.is_archived = FALSE`,
     [dotaId],
   );
   if (!player) return null;
+  const identityMembers = await query<{ player_id: string }>(
+    `SELECT related.player_id::text
+     FROM player_identity_members own_member
+     JOIN player_identity_members related
+       ON related.identity_id = own_member.identity_id
+     WHERE own_member.player_id = $1
+     ORDER BY related.player_id`,
+    [player.discord_id],
+  );
+  const playerIds = identityMembers.length
+    ? identityMembers.map((member) => member.player_id)
+    : [player.discord_id];
 
   const [historyRows, matchStatistics, medalCounts] = await Promise.all([
     query<TournamentHistoryRow>(
       `WITH participations AS (
          SELECT member.application_id
          FROM tournament_team_members member
-         WHERE member.player_id = $1
+         WHERE member.player_id = ANY($1::bigint[])
            AND member.invitation_status = 'accepted'
          UNION
          SELECT snapshot.application_id
          FROM tournament_roster_snapshots snapshot
-         WHERE snapshot.player_id = $1
+         WHERE snapshot.player_id = ANY($1::bigint[])
        ),
        ordinary_history AS (
          SELECT
@@ -268,6 +266,18 @@ export async function loadPublicPlayerProfile(
          WHERE a.status = 'approved'
            AND t.status IN ('active', 'finished', 'archived')
        ),
+       season_tournaments AS (
+         SELECT participant.tournament_id
+         FROM season_participants participant
+         WHERE participant.player_id = ANY($1::bigint[])
+         UNION
+         SELECT round.tournament_id
+         FROM season_match_participants participant
+         JOIN season_matches match ON match.id = participant.match_id
+         JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+         JOIN season_rounds round ON round.id = lobby.round_id
+         WHERE participant.player_id = ANY($1::bigint[])
+       ),
        seasonal_history AS (
          SELECT
            t.id::int,
@@ -285,8 +295,20 @@ export async function loadPublicPlayerProfile(
              WHEN 'gold' THEN 'Победитель'
              WHEN 'silver' THEN 'Финалист'
            END AS result_label
-         FROM player_medals medal
-         JOIN tournaments t ON t.id = medal.tournament_id
+         FROM season_tournaments participation
+         JOIN tournaments t ON t.id = participation.tournament_id
+         LEFT JOIN LATERAL (
+           SELECT awarded.medal_type
+           FROM player_medals awarded
+           WHERE awarded.tournament_id = t.id
+             AND awarded.player_id = ANY($1::bigint[])
+             AND awarded.medal_type IN ('gold', 'silver')
+           ORDER BY CASE awarded.medal_type
+             WHEN 'gold' THEN 1
+             ELSE 2
+           END
+           LIMIT 1
+         ) medal ON TRUE
          LEFT JOIN LATERAL (
            SELECT CASE participant.team_side
              WHEN 'a' THEN match.team_a_name
@@ -296,23 +318,28 @@ export async function loadPublicPlayerProfile(
            JOIN season_matches match ON match.id = participant.match_id
            JOIN season_lobbies lobby ON lobby.id = match.lobby_id
            JOIN season_rounds round ON round.id = lobby.round_id
-           WHERE participant.player_id = medal.player_id
+           WHERE participant.player_id = ANY($1::bigint[])
              AND round.tournament_id = t.id
              AND round.round_kind = 'finals'
              AND match.status = 'completed'
            ORDER BY match.id
            LIMIT 1
          ) final_match ON TRUE
-         WHERE medal.player_id = $1
-           AND medal.medal_type IN ('gold', 'silver')
-           AND t.tournament_type = 'seasonal'
+         WHERE t.tournament_type = 'seasonal'
            AND t.status IN ('active', 'finished', 'archived')
        )
-       SELECT * FROM ordinary_history
-       UNION ALL
-       SELECT * FROM seasonal_history
+       SELECT *
+       FROM (
+         SELECT DISTINCT ON (history.id) history.*
+         FROM (
+           SELECT * FROM ordinary_history
+           UNION ALL
+           SELECT * FROM seasonal_history
+         ) history
+         ORDER BY history.id, history.placement NULLS LAST
+       ) deduplicated
        ORDER BY end_at DESC, start_at DESC, id DESC`,
-      [player.discord_id],
+      [playerIds],
     ),
     one<{ matches: number; wins: number }>(
       `WITH player_applications AS (
@@ -320,7 +347,7 @@ export async function loadPublicPlayerProfile(
          FROM tournament_team_members member
          JOIN tournament_team_applications application
            ON application.id = member.application_id
-         WHERE member.player_id = $1
+         WHERE member.player_id = ANY($1::bigint[])
            AND member.invitation_status = 'accepted'
            AND application.status = 'approved'
          UNION
@@ -328,7 +355,7 @@ export async function loadPublicPlayerProfile(
          FROM tournament_roster_snapshots snapshot
          JOIN tournament_team_applications application
            ON application.id = snapshot.application_id
-         WHERE snapshot.player_id = $1
+         WHERE snapshot.player_id = ANY($1::bigint[])
            AND application.status = 'approved'
        )
        SELECT
@@ -358,7 +385,7 @@ export async function loadPublicPlayerProfile(
            played_match.team_b_application_id
          )
        WHERE played_match.status = 'finished'`,
-      [player.discord_id],
+      [playerIds],
     ),
     one<PlayerMedals>(
       `SELECT
@@ -366,8 +393,8 @@ export async function loadPublicPlayerProfile(
          COUNT(*) FILTER (WHERE medal_type = 'silver')::int AS silver,
          COUNT(*) FILTER (WHERE medal_type = 'bronze')::int AS bronze
        FROM player_medals
-       WHERE player_id = $1`,
-      [player.discord_id],
+       WHERE player_id = ANY($1::bigint[])`,
+      [playerIds],
     ),
   ]);
 
@@ -421,10 +448,7 @@ export async function loadPublicPlayerProfile(
     customBackgroundMobileUrl,
     hasCustomBackground,
     canCustomizeBackground,
-    links: {
-      ...buildPlayerLinks(player.dota_id),
-      discord: buildDiscordDirectMessageLink(player.discord_id),
-    },
+    links: buildPlayerLinks(player.dota_id),
     statistics: {
       tournaments: tournamentHistory.length,
       tournamentWins,
@@ -436,62 +460,4 @@ export async function loadPublicPlayerProfile(
     lastTournament: tournamentHistory[0] ?? null,
     tournamentHistory,
   };
-}
-
-export async function loadHallOfFame(): Promise<HallOfFamePlayer[]> {
-  const rows = await query<{
-    dota_id: string;
-    nickname: string;
-    avatar_url: string | null;
-    gold: number;
-    silver: number;
-    bronze: number;
-  }>(
-    `SELECT
-       player.steam_id32::text AS dota_id,
-       player.ingame_name AS nickname,
-       COALESCE(
-         NULLIF(player.avatar_url, ''),
-         NULLIF(latest_session.discord_avatar_url, '')
-       ) AS avatar_url,
-       COUNT(medal.id) FILTER (WHERE medal.medal_type = 'gold')::int AS gold,
-       COUNT(medal.id) FILTER (WHERE medal.medal_type = 'silver')::int AS silver,
-       COUNT(medal.id) FILTER (WHERE medal.medal_type = 'bronze')::int AS bronze
-     FROM players player
-     LEFT JOIN LATERAL (
-       SELECT session.discord_avatar_url
-       FROM web_sessions session
-       WHERE session.discord_id = player.discord_id
-         AND session.discord_avatar_url IS NOT NULL
-       ORDER BY session.created_at DESC
-       LIMIT 1
-     ) latest_session ON TRUE
-     JOIN player_medals medal ON medal.player_id = player.discord_id
-     JOIN tournaments medal_tournament
-       ON medal_tournament.id = medal.tournament_id
-      AND medal_tournament.tournament_type = 'seasonal'
-     GROUP BY
-       player.discord_id,
-       player.steam_id32,
-       player.ingame_name,
-       player.avatar_url,
-       latest_session.discord_avatar_url
-     ORDER BY
-       gold DESC,
-       silver DESC,
-       bronze DESC,
-       LOWER(player.ingame_name),
-       player.discord_id`,
-  );
-
-  return rows.map((row) => ({
-    dotaId: row.dota_id,
-    nickname: row.nickname,
-    avatarUrl: row.avatar_url,
-    medals: {
-      gold: row.gold,
-      silver: row.silver,
-      bronze: row.bronze,
-    },
-  }));
 }

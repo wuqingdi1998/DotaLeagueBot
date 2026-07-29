@@ -42,9 +42,10 @@ export async function resolveApplicationPlayer(
   name: string,
 ): Promise<ApplicationPlayerRow | null> {
   const players = await query<ApplicationPlayerRow>(
-    `SELECT discord_id::text, ingame_name
+     `SELECT discord_id::text, ingame_name
      FROM players
-     WHERE LOWER(ingame_name) = LOWER($1)
+     WHERE is_archived = FALSE
+       AND LOWER(ingame_name) = LOWER($1)
      ORDER BY discord_id
      LIMIT 2`,
     [name.trim()],

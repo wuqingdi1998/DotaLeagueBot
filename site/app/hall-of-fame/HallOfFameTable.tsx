@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FaMedal } from "react-icons/fa";
 import { FiSearch, FiX } from "react-icons/fi";
-import type { HallOfFamePlayer } from "@/lib/player-profile";
+import type { HallOfFamePlayer } from "@/lib/hall-of-fame";
 
 export function HallOfFameTable({
   players,
@@ -62,13 +62,9 @@ export function HallOfFameTable({
             <b>Бронза</b>
           </span>
         </div>
-        {visiblePlayers.map(({ player, rank }) => (
-            <Link
-              className="hall-row"
-              href={`/players/${player.dotaId}`}
-              role="row"
-              key={player.dotaId}
-            >
+        {visiblePlayers.map(({ player, rank }) => {
+          const content = (
+            <>
               <strong role="cell">{rank}</strong>
               <span className="hall-player" role="cell">
                 {player.avatarUrl ? (
@@ -93,8 +89,27 @@ export function HallOfFameTable({
               <span className="hall-medal bronze" role="cell">
                 <FaMedal aria-hidden="true" /> {player.medals.bronze}
               </span>
+            </>
+          );
+          return player.isArchive || !player.dotaId ? (
+            <div
+              className="hall-row hall-archive-row"
+              role="row"
+              key={player.identityId}
+            >
+              {content}
+            </div>
+          ) : (
+            <Link
+              className="hall-row"
+              href={`/players/${player.dotaId}`}
+              role="row"
+              key={player.identityId}
+            >
+              {content}
             </Link>
-        ))}
+          );
+        })}
         {!visiblePlayers.length && (
           <div className="hall-empty">
             По запросу «{search.trim()}» игроки не найдены

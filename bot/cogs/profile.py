@@ -413,7 +413,12 @@ class Profile(commands.Cog):
         target = member or interaction.user
 
         async with self.bot.session_maker() as session:  # Используй self.bot.session_maker или async_session() как у тебя настроено
-            player = (await session.execute(select(Player).where(Player.discord_id == target.id))).scalar_one_or_none()
+            player = (await session.execute(
+                select(Player).where(
+                    Player.discord_id == target.id,
+                    Player.is_archived.is_(False),
+                )
+            )).scalar_one_or_none()
 
             if not player:
                 return await interaction.followup.send("❌ Профиль не найден. Игрок не зарегистрирован.")
@@ -463,7 +468,9 @@ class Profile(commands.Cog):
                 return
 
             async with async_session() as session:
-                players = (await session.execute(select(Player))).scalars().all()
+                players = (await session.execute(
+                    select(Player).where(Player.is_archived.is_(False))
+                )).scalars().all()
                 updates = collect_discord_avatar_updates(
                     players,
                     members_by_id.values(),
@@ -494,7 +501,9 @@ class Profile(commands.Cog):
         print("[TASKS] Starting mass rank update...")
 
         async with async_session() as session:
-            players = (await session.execute(select(Player))).scalars().all()
+            players = (await session.execute(
+                select(Player).where(Player.is_archived.is_(False))
+            )).scalars().all()
             total_players = len(players)
             print(f"[TASKS] 1. Fetching data from OpenDota for {total_players} players...")
 
@@ -560,8 +569,8 @@ class TierModalInternal(discord.ui.Modal):
         self.player_id = player_id
 
         self.tier_input = discord.ui.TextInput(
-            label="Новый Тир (1-10)",
-            placeholder="Введите число (например: 8)",
+            label="Новый тир (0-12)",
+            placeholder="0 = сброс ручного тира",
             min_length=1,
             max_length=2,
             required=True
@@ -571,14 +580,17 @@ class TierModalInternal(discord.ui.Modal):
     async def on_submit(self, interaction: discord.Interaction):
         try:
             val = int(self.tier_input.value)
-            if not 1 <= val <= 10:
+            if not 0 <= val <= 12:
                 raise ValueError
         except ValueError:
-            return await interaction.response.send_message("❌ Ошибка: Введите число от 1 до 10.", ephemeral=True)
+            return await interaction.response.send_message("❌ Ошибка: введите число от 0 до 12.", ephemeral=True)
 
         # Сохранение в БД
         async with self.bot.session_maker() as session:
-            stmt = select(Player).where(Player.discord_id == self.player_id)
+            stmt = select(Player).where(
+                Player.discord_id == self.player_id,
+                Player.is_archived.is_(False),
+            )
             result = await session.execute(stmt)
             player = result.scalar_one_or_none()
 
