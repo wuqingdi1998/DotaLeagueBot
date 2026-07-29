@@ -11,6 +11,9 @@ const activityMigration = source(
 const historicalMigration = source(
   "../../bot/database/migrations/0028_historical_league_seasons.sql",
 );
+const winRateCleanup = source(
+  "../../bot/database/migrations/0029_historical_win_rate_cleanup.sql",
+);
 const profileLink = source("../app/components/PlayerProfileLink.tsx");
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
@@ -50,6 +53,14 @@ describe("historical seasonal leagues", () => {
     expect(overview).toContain(
       '.filter((row) => row.section === "active")',
     );
+  });
+
+  it("removes Excel error codes from historical win rates", () => {
+    expect(winRateCleanup).toContain(
+      "participant.standings_snapshot->>'winRate'",
+    );
+    expect(winRateCleanup).toContain("::numeric < 0");
+    expect(winRateCleanup).toContain("::numeric > 1");
   });
 
   it("renders unresolved archive identities without false profile links", () => {

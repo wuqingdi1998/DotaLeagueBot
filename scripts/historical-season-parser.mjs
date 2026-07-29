@@ -15,6 +15,12 @@ function parseTable(workbook) {
     key(row[1]).includes("штраф очков"),
   );
   const firstRoundColumn = apIndex >= 0 ? apIndex + 1 : 8;
+  const normalizeWinRate = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1
+      ? parsed
+      : null;
+  };
   const makeRow = (row, section, order) => ({
     nickname: clean(row[1]),
     canonical: canonical(workbook.Season, row[1]),
@@ -31,7 +37,7 @@ function parseTable(workbook) {
     pointsP: numberOr(row[7]),
     activityPoints: apIndex >= 0 ? numberOr(row[apIndex]) : 0,
     rounds: row.slice(firstRoundColumn, wrIndex),
-    winRate: row[wrIndex] == null ? null : Number(row[wrIndex]),
+    winRate: normalizeWinRate(row[wrIndex]),
   });
   const active = rows
     .slice(1, inactiveTitle)
