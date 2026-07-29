@@ -266,6 +266,24 @@
   font-weight: 800;
 }
 
+[data-theme="dark"] .profile-subscription-role-damage {
+  border-color: #58c8ed;
+  background: #12394a;
+  color: #b9ecff;
+}
+
+[data-theme="dark"] .profile-subscription-role-invisibility {
+  border-color: #b785e9;
+  background: #34234b;
+  color: #ead5ff;
+}
+
+[data-theme="light"] .profile-subscription-role-illusion {
+  border-color: #bc8b18;
+  background: #fff3bd;
+  color: #654b08;
+}
+
 .profile-background-zoom input {
   width: 100%;
   accent-color: var(--blue);

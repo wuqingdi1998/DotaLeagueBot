@@ -26,8 +26,8 @@ const finalAwards = readFileSync(
   new URL("../lib/season-final-awards.ts", import.meta.url),
   "utf8",
 );
-const playerProfile = readFileSync(
-  new URL("../lib/player-profile.ts", import.meta.url),
+const playerTournamentHistory = readFileSync(
+  new URL("../lib/player-tournament-history.ts", import.meta.url),
   "utf8",
 );
 
@@ -51,8 +51,8 @@ describe("two-finals contract", () => {
     expect(finalAwards).toContain("INSERT INTO player_medals");
     expect(finalAwards).toContain("UPDATE season_finalists");
     expect(finalAwards).toContain("DELETE FROM player_medals");
-    expect(playerProfile).toContain("seasonal_history");
-    expect(playerProfile).toContain("THEN 'Победитель'");
-    expect(playerProfile).toContain("THEN 'Финалист'");
+    expect(playerTournamentHistory).toContain("seasonal_history");
+    expect(playerTournamentHistory).toContain("THEN 'Победитель'");
+    expect(playerTournamentHistory).toContain("THEN 'Финалист'");
   });
 });

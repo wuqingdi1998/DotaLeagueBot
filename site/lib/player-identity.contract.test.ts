@@ -8,6 +8,20 @@ const migration = readFileSync(
   ),
   "utf8",
 );
+const nicknameHistoryMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0031_player_nickname_history.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+const seasonTimesMigration = readFileSync(
+  new URL(
+    "../../bot/database/migrations/0032_historical_season_match_times.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
 const adminRoute = readFileSync(
   new URL("../app/api/admin/players/route.ts", import.meta.url),
   "utf8",
@@ -29,6 +43,14 @@ const seasonRound = readFileSync(
     "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
     import.meta.url,
   ),
+  "utf8",
+);
+const tournamentHistory = readFileSync(
+  new URL("./player-tournament-history.ts", import.meta.url),
+  "utf8",
+);
+const organizerProfile = readFileSync(
+  new URL("./player-profile-organizer.ts", import.meta.url),
   "utf8",
 );
 
@@ -73,5 +95,40 @@ describe("player identities and archive safety", () => {
   it("shows only the upper completed status for a season lobby", () => {
     expect(seasonRound).toContain("seasonLobbyStatusLabel(lobby.status)");
     expect(seasonRound).not.toContain("seasonMatchStatusLabel(match.status)");
+  });
+
+  it("preserves previous nicknames when a registered player renames", () => {
+    expect(nicknameHistoryMigration).toContain(
+      "CREATE TABLE IF NOT EXISTS player_nickname_history",
+    );
+    expect(nicknameHistoryMigration).toContain("OLD.ingame_name");
+    expect(nicknameHistoryMigration).toContain("NEW.ingame_name");
+    expect(nicknameHistoryMigration).toContain(
+      "tournament_roster_snapshots",
+    );
+    expect(nicknameHistoryMigration).toContain(
+      "ALTER TABLE tournament_team_members",
+    );
+    expect(nicknameHistoryMigration).toContain("season_participants");
+  });
+
+  it("sets historical seasonal matches to 22:00 but keeps season 8", () => {
+    expect(seasonTimesMigration).toContain("league-season-8");
+    expect(seasonTimesMigration).toContain("TIME '22:00'");
+    expect(seasonTimesMigration).toContain("season_matches");
+    expect(seasonTimesMigration).toContain("season_lobbies");
+    expect(seasonTimesMigration).toContain("season_rounds");
+  });
+
+  it("shows seasonal placement instead of a fake Finals team", () => {
+    expect(tournamentHistory).not.toContain("'Финалы'");
+    expect(tournamentHistory).toContain("Место в сезонной таблице");
+    expect(tournamentHistory).toContain("usedNickname");
+  });
+
+  it("loads linked archive profiles only for the organizer view", () => {
+    expect(organizerProfile).toContain("player_nickname_history");
+    expect(publicProfile).toContain("user?.isAdmin");
+    expect(publicProfile).toContain("loadLinkedArchiveProfiles");
   });
 });

@@ -252,11 +252,21 @@
 }
 
 .participant-tier-form .participant-delete-button {
+  display: grid;
   width: 46px;
+  flex: 0 0 46px;
+  place-items: center;
   padding: 0;
   border-color: #e65c6a;
   background: rgba(230, 92, 106, 0.13);
   color: #ff7180;
+  line-height: 0;
+}
+
+.participant-delete-button svg {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
 .participant-delete-confirm .danger {

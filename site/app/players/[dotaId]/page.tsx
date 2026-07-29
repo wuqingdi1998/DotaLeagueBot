@@ -12,10 +12,13 @@ import {
 import { getSession } from "@/lib/auth";
 import {
   loadPublicPlayerProfile,
+  profileBackgroundForSubscriptionRole,
   tournamentResultLabel,
 } from "@/lib/player-profile";
+import { loadLinkedArchiveProfiles } from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
+import { LinkedArchiveProfilesCard } from "./LinkedArchiveProfilesCard";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
 
 export const dynamic = "force-dynamic";
@@ -53,7 +56,9 @@ function SubscriptionRoleBadge({
 }) {
   return (
     <span
-      className={`profile-subscription-role ${className}`}
+      className={`profile-subscription-role profile-subscription-role-${profileBackgroundForSubscriptionRole(
+        role,
+      )} ${className}`}
       style={
         color
           ? {
@@ -117,6 +122,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     getSession(),
   ]);
   if (!profile) notFound();
+  const linkedArchiveProfiles = user?.isAdmin
+    ? await loadLinkedArchiveProfiles(dotaId)
+    : [];
 
   const winRate =
     profile.statistics.matches > 0
@@ -312,7 +320,14 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                         {formatDateRange(tournament.startAt, tournament.endAt)}
                       </span>
                     </div>
-                    <p>Команда: {tournament.teamName}</p>
+                    {tournament.teamName && (
+                      <p>Команда: {tournament.teamName}</p>
+                    )}
+                    {tournament.usedNickname && (
+                      <p className="profile-historical-nickname">
+                        Ник на турнире: {tournament.usedNickname}
+                      </p>
+                    )}
                   </div>
                   <strong>
                     {tournamentResultLabel(
@@ -340,6 +355,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         </div>
 
         <aside className="profile-side-column">
+          {user?.isAdmin && (
+            <LinkedArchiveProfilesCard profiles={linkedArchiveProfiles} />
+          )}
           <section className="profile-side-card medal-card">
             <p className="section-kicker">Зал славы</p>
             <h2>Медали</h2>
@@ -368,7 +386,14 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             {profile.lastTournament ? (
               <>
                 <h2>{profile.lastTournament.name}</h2>
-                <p>{profile.lastTournament.teamName}</p>
+                {profile.lastTournament.teamName && (
+                  <p>Команда: {profile.lastTournament.teamName}</p>
+                )}
+                {profile.lastTournament.usedNickname && (
+                  <p>
+                    Ник на турнире: {profile.lastTournament.usedNickname}
+                  </p>
+                )}
                 <strong>
                   {tournamentResultLabel(
                     profile.lastTournament.placement,

@@ -114,7 +114,7 @@ export function ParticipantsTable({
               onChange={(event) => setShowArchived(event.target.checked)}
             />
             <FiArchive aria-hidden="true" />
-            Показать архивных
+            Показать только архивных
           </label>
         )}
       </div>

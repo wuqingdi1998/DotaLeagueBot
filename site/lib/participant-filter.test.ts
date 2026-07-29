@@ -74,7 +74,7 @@ describe("participant directory filters", () => {
     ).toEqual([1, 6, 12]);
   });
 
-  it("keeps archive identities hidden until the organizer enables them", () => {
+  it("switches from registered players to archive identities", () => {
     const archive = {
       ...player("archive", 5, 1, 2),
       kind: "archive" as const,
@@ -82,9 +82,12 @@ describe("participant directory filters", () => {
       discordId: null,
       links: null,
     };
-    expect(filterParticipantDirectory([archive], defaultFilters)).toEqual([]);
+    const registered = player("registered", 6, 2, 3);
     expect(
-      filterParticipantDirectory([archive], {
+      filterParticipantDirectory([registered, archive], defaultFilters),
+    ).toEqual([registered]);
+    expect(
+      filterParticipantDirectory([registered, archive], {
         ...defaultFilters,
         showArchived: true,
       }),

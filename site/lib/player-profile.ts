@@ -1,4 +1,8 @@
 import { one, query } from "./db";
+import {
+  loadPlayerTournamentHistory,
+  type PlayerTournamentHistory,
+} from "./player-tournament-history";
 
 const steamId64Offset = BigInt("76561197960265728");
 const maximumDotaAccountId = BigInt("4294967295");
@@ -60,18 +64,6 @@ export type PlayerMedals = {
   bronze: number;
 };
 
-export type PlayerTournamentHistory = {
-  id: number;
-  slug: string;
-  name: string;
-  startAt: string;
-  endAt: string;
-  status: string;
-  teamName: string;
-  placement: number | null;
-  resultLabel: string | null;
-};
-
 export type PublicPlayerProfile = {
   dotaId: string;
   nickname: string;
@@ -115,18 +107,6 @@ type PlayerRow = {
   custom_background_mobile_key: string | null;
 };
 
-type TournamentHistoryRow = {
-  id: number;
-  slug: string;
-  name: string;
-  start_at: Date | string;
-  end_at: Date | string;
-  status: string;
-  team_name: string;
-  placement: number | null;
-  result_label: string | null;
-};
-
 export function normalizeDotaAccountId(value: string): string | null {
   if (!/^\d{1,10}$/.test(value)) return null;
   const parsed = BigInt(value);
@@ -153,10 +133,6 @@ export function tournamentResultLabel(
   if (placement) return `${placement}-е место`;
   if (status === "active" || status === "registration") return "Участвует";
   return "Результат пока не указан";
-}
-
-function iso(value: Date | string) {
-  return new Date(value).toISOString();
 }
 
 export async function loadPublicPlayerProfile(
@@ -233,114 +209,8 @@ export async function loadPublicPlayerProfile(
     ? identityMembers.map((member) => member.player_id)
     : [player.discord_id];
 
-  const [historyRows, matchStatistics, medalCounts] = await Promise.all([
-    query<TournamentHistoryRow>(
-      `WITH participations AS (
-         SELECT member.application_id
-         FROM tournament_team_members member
-         WHERE member.player_id = ANY($1::bigint[])
-           AND member.invitation_status = 'accepted'
-         UNION
-         SELECT snapshot.application_id
-         FROM tournament_roster_snapshots snapshot
-         WHERE snapshot.player_id = ANY($1::bigint[])
-       ),
-       ordinary_history AS (
-         SELECT
-           t.id::int,
-           t.slug,
-           t.name,
-           t.start_at,
-           t.end_at,
-           t.status,
-           a.team_name,
-           result.placement::int,
-           result.result_label
-         FROM participations participation
-         JOIN tournament_team_applications a
-           ON a.id = participation.application_id
-         JOIN tournaments t
-           ON t.id = a.tournament_id
-         LEFT JOIN tournament_team_results result
-           ON result.application_id = a.id
-         WHERE a.status = 'approved'
-           AND t.status IN ('active', 'finished', 'archived')
-       ),
-       season_tournaments AS (
-         SELECT participant.tournament_id
-         FROM season_participants participant
-         WHERE participant.player_id = ANY($1::bigint[])
-         UNION
-         SELECT round.tournament_id
-         FROM season_match_participants participant
-         JOIN season_matches match ON match.id = participant.match_id
-         JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-         JOIN season_rounds round ON round.id = lobby.round_id
-         WHERE participant.player_id = ANY($1::bigint[])
-       ),
-       seasonal_history AS (
-         SELECT
-           t.id::int,
-           t.slug,
-           t.name,
-           t.start_at,
-           t.end_at,
-           t.status,
-           COALESCE(final_match.team_name, 'Финалы') AS team_name,
-           CASE medal.medal_type
-             WHEN 'gold' THEN 1
-             WHEN 'silver' THEN 2
-           END::int AS placement,
-           CASE medal.medal_type
-             WHEN 'gold' THEN 'Победитель'
-             WHEN 'silver' THEN 'Финалист'
-           END AS result_label
-         FROM season_tournaments participation
-         JOIN tournaments t ON t.id = participation.tournament_id
-         LEFT JOIN LATERAL (
-           SELECT awarded.medal_type
-           FROM player_medals awarded
-           WHERE awarded.tournament_id = t.id
-             AND awarded.player_id = ANY($1::bigint[])
-             AND awarded.medal_type IN ('gold', 'silver')
-           ORDER BY CASE awarded.medal_type
-             WHEN 'gold' THEN 1
-             ELSE 2
-           END
-           LIMIT 1
-         ) medal ON TRUE
-         LEFT JOIN LATERAL (
-           SELECT CASE participant.team_side
-             WHEN 'a' THEN match.team_a_name
-             ELSE match.team_b_name
-           END AS team_name
-           FROM season_match_participants participant
-           JOIN season_matches match ON match.id = participant.match_id
-           JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-           JOIN season_rounds round ON round.id = lobby.round_id
-           WHERE participant.player_id = ANY($1::bigint[])
-             AND round.tournament_id = t.id
-             AND round.round_kind = 'finals'
-             AND match.status = 'completed'
-           ORDER BY match.id
-           LIMIT 1
-         ) final_match ON TRUE
-         WHERE t.tournament_type = 'seasonal'
-           AND t.status IN ('active', 'finished', 'archived')
-       )
-       SELECT *
-       FROM (
-         SELECT DISTINCT ON (history.id) history.*
-         FROM (
-           SELECT * FROM ordinary_history
-           UNION ALL
-           SELECT * FROM seasonal_history
-         ) history
-         ORDER BY history.id, history.placement NULLS LAST
-       ) deduplicated
-       ORDER BY end_at DESC, start_at DESC, id DESC`,
-      [playerIds],
-    ),
+  const [tournamentHistory, matchStatistics, medalCounts] = await Promise.all([
+    loadPlayerTournamentHistory(playerIds, player.nickname),
     one<{ matches: number; wins: number }>(
       `WITH player_applications AS (
          SELECT member.application_id
@@ -398,17 +268,6 @@ export async function loadPublicPlayerProfile(
     ),
   ]);
 
-  const tournamentHistory = historyRows.map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    name: row.name,
-    startAt: iso(row.start_at),
-    endAt: iso(row.end_at),
-    status: row.status,
-    teamName: row.team_name,
-    placement: row.placement,
-    resultLabel: row.result_label,
-  }));
   const tournamentWins = tournamentHistory.filter(
     (tournament) => tournament.placement === 1,
   ).length;

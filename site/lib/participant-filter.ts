@@ -35,7 +35,11 @@ export function filterParticipantDirectory(
     .trim()
     .toLocaleLowerCase("ru-RU");
   return players
-    .filter((player) => filters.showArchived || player.kind === "registered")
+    .filter((player) =>
+      filters.showArchived
+        ? player.kind === "archive"
+        : player.kind === "registered",
+    )
     .filter((player) => {
       if (!normalizedSearch) return true;
       return [player.nickname, ...player.aliases].some((nickname) =>
