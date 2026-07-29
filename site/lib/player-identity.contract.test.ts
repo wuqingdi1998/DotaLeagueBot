@@ -109,6 +109,9 @@ describe("player identities and archive safety", () => {
     expect(nicknameHistoryMigration).toContain(
       "ALTER TABLE tournament_team_members",
     );
+    expect(nicknameHistoryMigration).toContain(
+      "GROUP BY source.player_id, LOWER(BTRIM(source.nickname))",
+    );
     expect(nicknameHistoryMigration).toContain("season_participants");
   });
 

@@ -46,7 +46,7 @@ FOR EACH ROW
 EXECUTE FUNCTION snapshot_tournament_member_nickname();
 
 INSERT INTO player_nickname_history(player_id, nickname)
-SELECT source.player_id, BTRIM(source.nickname)
+SELECT source.player_id, MIN(BTRIM(source.nickname))
 FROM (
     SELECT discord_id AS player_id, ingame_name AS nickname
     FROM players
@@ -68,6 +68,7 @@ FROM (
     FROM season_match_participants
 ) source
 WHERE NULLIF(BTRIM(source.nickname), '') IS NOT NULL
+GROUP BY source.player_id, LOWER(BTRIM(source.nickname))
 ON CONFLICT (player_id, nickname_key) DO UPDATE
 SET last_seen_at = NOW();
 
