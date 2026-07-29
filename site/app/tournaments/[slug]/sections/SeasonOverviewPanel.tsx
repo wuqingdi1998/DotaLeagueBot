@@ -28,6 +28,9 @@ export function SeasonOverviewPanel() {
         new Date(right.scheduled_at ?? 0).getTime() -
         new Date(left.scheduled_at ?? 0).getTime(),
     );
+  const leaders = seasonData.standings
+    .filter((row) => row.section === "active")
+    .slice(0, 5);
   const currentRound =
     publishedRounds.find((round) => round.status === "active") ??
     publishedRounds.toReversed().find((round) => round.status === "completed");
@@ -115,9 +118,9 @@ export function SeasonOverviewPanel() {
         <section className="season-content-card">
           <p className="card-kicker">Лидеры</p>
           <h3>Краткая таблица</h3>
-          {seasonData.standings.length ? (
+          {leaders.length ? (
             <ol className="season-leaders">
-              {seasonData.standings.slice(0, 5).map((row, index) => (
+              {leaders.map((row, index) => (
                 <li key={row.playerId}>
                   <b>{index + 1}</b>
                   <span>{row.nickname}</span>

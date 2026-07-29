@@ -15,6 +15,10 @@ const profileLink = source("../app/components/PlayerProfileLink.tsx");
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
+const overview = source(
+  "../app/tournaments/[slug]/sections/SeasonOverviewPanel.tsx",
+);
+const seasonRoute = source("../app/api/season/route.ts");
 
 describe("historical seasonal leagues", () => {
   it("imports all four seasons as seasonal archives", () => {
@@ -39,6 +43,12 @@ describe("historical seasonal leagues", () => {
     expect(historicalMigration).toContain("tier_snapshot");
     expect(historicalMigration).toContain(
       "rank_snapshot = EXCLUDED.rank_snapshot",
+    );
+    expect(seasonRoute).toContain(
+      "participant.standings_snapshot IS NOT NULL",
+    );
+    expect(overview).toContain(
+      '.filter((row) => row.section === "active")',
     );
   });
 

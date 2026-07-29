@@ -215,6 +215,8 @@ export async function GET(request: Request) {
          JOIN players player ON player.discord_id = participant.player_id
          WHERE participant.tournament_id = $1
            ${isOrganizer ? "" : `AND (
+             participant.standings_snapshot IS NOT NULL
+             OR
              EXISTS (
                SELECT 1
                FROM season_match_participants public_participant
