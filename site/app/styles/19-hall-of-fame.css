@@ -185,13 +185,13 @@
 
 .participant-tier {
   justify-self: start;
-  border: 1px solid var(--line-strong);
+  border: 1px solid #15bff4;
   border-radius: 999px;
   padding: 7px 12px;
-  background: var(--surface-blue);
-  color: var(--blue-deep);
-  font-size: 14px;
-  font-weight: 800;
+  background: #073b55;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
   white-space: nowrap;
 }
 
@@ -400,8 +400,16 @@
   }
 
   .hall-row {
-    grid-template-columns: 30px minmax(0, 1fr) repeat(3, 40px);
-    padding: 0 14px 0 16px;
+    grid-template-columns: 30px minmax(0, 1fr) repeat(3, 30px);
+    padding: 0 10px 0 14px;
+  }
+
+  .hall-medal {
+    gap: 0;
+  }
+
+  .hall-medal svg {
+    display: none;
   }
 
   .hall-player img,
@@ -417,7 +425,7 @@
 
   .participants-row {
     min-width: 0;
-    grid-template-columns: minmax(0, 1fr) 58px 108px;
+    grid-template-columns: minmax(0, 1fr) 68px 108px;
     gap: 5px;
     padding: 0 10px;
   }
@@ -428,8 +436,8 @@
 
   .participant-tier {
     justify-self: center;
-    padding: 5px 7px;
-    font-size: 11px;
+    padding: 6px 8px;
+    font-size: 14px;
   }
 
   .participant-links {

@@ -25,6 +25,10 @@ const header = readFileSync(
   new URL("../app/components/SiteHeader.tsx", import.meta.url),
   "utf8",
 );
+const directoryStyles = readFileSync(
+  new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
+  "utf8",
+);
 
 describe("hall of fame and participant directory", () => {
   it("limits the hall of fame to medalists from seasonal tournaments", () => {
@@ -57,5 +61,20 @@ describe("hall of fame and participant directory", () => {
     expect(participantsTable).toContain("player.links.stratz");
     expect(participantsTable).toContain("player.links.steam");
     expect(participantsTable).toContain("participant-links");
+  });
+
+  it("keeps tiers legible and medal totals compact on mobile", () => {
+    expect(directoryStyles).toMatch(
+      /\.participant-tier\s*\{[\s\S]*?background:\s*#073b55;[^}]*color:\s*#fff;[^}]*font-size:\s*16px;/,
+    );
+    expect(directoryStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*30px\)/,
+    );
+    expect(directoryStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal svg\s*\{[^}]*display:\s*none;/,
+    );
+    expect(directoryStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.participant-tier\s*\{[^}]*font-size:\s*14px;/,
+    );
   });
 });
