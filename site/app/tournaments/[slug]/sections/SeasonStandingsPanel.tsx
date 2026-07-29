@@ -94,6 +94,7 @@ function StandingsTable({
   rows: SeasonStanding[];
 }) {
   const { season } = useTournament();
+  const showsActivityPoints = rows.some((row) => row.hasActivityPoints);
   return (
     <HorizontalDragScroll>
       <table className="season-standings-table">
@@ -110,6 +111,9 @@ function StandingsTable({
             <th className="season-compact-column">Н</th>
             <th className="season-compact-column">П</th>
             <th className="season-compact-column">p</th>
+            {showsActivityPoints && (
+              <th className="season-compact-column">+ap</th>
+            )}
             <th>Очки</th>
             <th>%WR</th>
             {rounds.map((round) => (
@@ -135,6 +139,13 @@ function StandingsTable({
                   ? `${row.adjustmentPoints > 0 ? "+" : ""}${row.adjustmentPoints}`
                   : ""}
               </td>
+              {showsActivityPoints && (
+                <td className="season-compact-column season-activity-points">
+                  {row.hasActivityPoints
+                    ? `${row.activityPoints > 0 ? "+" : ""}${row.activityPoints}`
+                    : ""}
+                </td>
+              )}
               <td><strong>{row.points}</strong></td>
               <td>
                 {row.winRate === null
@@ -187,6 +198,10 @@ function StandingsTable({
 }
 
 function SeasonStandingsLegend() {
+  const { season } = useTournament();
+  const showsActivityPoints = Boolean(
+    season.data?.standings.some((row) => row.hasActivityPoints),
+  );
   return (
     <aside className="season-standings-legend" aria-label="Легенда таблицы">
       <h4>Как начисляются очки</h4>
@@ -200,6 +215,12 @@ function SeasonStandingsLegend() {
         <b>p</b> — ручные поправки, бонусы за замену и снятия за штрафные
         огоньки.
       </p>
+      {showsActivityPoints && (
+        <p className="season-legend-explanation">
+          <b>+ap</b> — отдельные базовые очки за активность по правилам этого
+          сезона.
+        </p>
+      )}
       <p className="season-legend-explanation">
         <b>%WR</b> — процент выигранных карт. При равенстве очков выше
         ставится игрок с большим %WR, затем с большим числом сыгранных туров.

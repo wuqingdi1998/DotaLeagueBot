@@ -175,6 +175,82 @@ describe("season standings", () => {
     });
     expect(standings[0].rounds["1"].outcome).toBe("pending");
   });
+
+  it("keeps historical activity points separate from manual p", () => {
+    const standings = calculateSeasonStandings(
+      rounds.slice(0, 1),
+      [],
+      [
+        {
+          playerId: "100",
+          dotaId: "1000",
+          nickname: "Alpha",
+          avatarUrl: null,
+        },
+      ],
+      {
+        adjustments: [
+          { playerId: "100", amount: -1 },
+          { playerId: "100", amount: 2, kind: "activity" },
+        ],
+      },
+    );
+
+    expect(standings[0]).toMatchObject({
+      adjustmentPoints: -1,
+      activityPoints: 2,
+      hasActivityPoints: true,
+      points: 1,
+    });
+  });
+
+  it("uses frozen Excel totals for historical archive standings", () => {
+    const standings = calculateSeasonStandings(
+      rounds.slice(0, 1),
+      [],
+      [
+        {
+          playerId: "100",
+          dotaId: "1000",
+          nickname: "Alpha",
+          avatarUrl: null,
+        },
+      ],
+      {
+        participantStates: [
+          {
+            playerId: "100",
+            section: "active",
+            inactiveReason: null,
+            rankSnapshot: 1,
+            standingsSnapshot: {
+              playedRounds: 14,
+              wins: 6,
+              draws: 6,
+              losses: 2,
+              adjustmentPoints: -1,
+              activityPoints: 4,
+              points: 21,
+              winRate: 0.64,
+              supportsActivityPoints: true,
+            },
+          },
+        ],
+      },
+    );
+
+    expect(standings[0]).toMatchObject({
+      playedRounds: 14,
+      wins: 6,
+      draws: 6,
+      losses: 2,
+      adjustmentPoints: -1,
+      activityPoints: 4,
+      points: 21,
+      winRate: 0.64,
+      rankSnapshot: 1,
+    });
+  });
 });
 
 describe("season match safety", () => {

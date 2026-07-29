@@ -228,7 +228,7 @@ describe("season interface contract", () => {
 
   it("keeps legend explanations inline and removes the unused pending item", () => {
     expect(standings).not.toContain("Результат ещё не внесён");
-    expect(standings.match(/season-legend-explanation/g)).toHaveLength(2);
+    expect(standings.match(/season-legend-explanation/g)).toHaveLength(3);
     expect(styles).toMatch(
       /\.season-standings-legend p\.season-legend-explanation\s*\{[^}]*display:\s*block;/,
     );

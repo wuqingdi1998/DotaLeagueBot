@@ -1,0 +1,52 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+function source(path: string) {
+  return readFileSync(new URL(path, import.meta.url), "utf8");
+}
+
+const activityMigration = source(
+  "../../bot/database/migrations/0027_season_activity_points.sql",
+);
+const historicalMigration = source(
+  "../../bot/database/migrations/0028_historical_league_seasons.sql",
+);
+const profileLink = source("../app/components/PlayerProfileLink.tsx");
+const standings = source(
+  "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
+);
+
+describe("historical seasonal leagues", () => {
+  it("imports all four seasons as seasonal archives", () => {
+    for (const season of [4, 5, 6, 7]) {
+      expect(historicalMigration).toContain(`league-season-${season}`);
+    }
+    expect(historicalMigration).toContain("'archived', 'seasonal', 14");
+  });
+
+  it("stores activity points separately from manual p", () => {
+    expect(activityMigration).toContain("adjustment_kind");
+    expect(activityMigration).toContain("'manual', 'activity'");
+    expect(historicalMigration).toContain(
+      "Базовые очки активности +ap из Excel",
+    );
+    expect(standings).toContain("<th className=\"season-compact-column\">+ap");
+  });
+
+  it("preserves the Excel order and historical tier snapshots", () => {
+    expect(activityMigration).toContain("rank_snapshot");
+    expect(activityMigration).toContain("standings_snapshot");
+    expect(historicalMigration).toContain("tier_snapshot");
+    expect(historicalMigration).toContain(
+      "rank_snapshot = EXCLUDED.rank_snapshot",
+    );
+  });
+
+  it("renders unresolved archive identities without false profile links", () => {
+    expect(historicalMigration).toContain(
+      "Архивная запись сезонной лиги — профиль не привязан",
+    );
+    expect(profileLink).toContain('if (!/^[1-9]\\d*$/.test(dotaId))');
+    expect(profileLink).toContain("Профиль игрока пока не привязан");
+  });
+});

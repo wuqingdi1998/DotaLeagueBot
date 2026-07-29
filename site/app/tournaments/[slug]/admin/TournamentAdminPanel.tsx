@@ -9,6 +9,7 @@ import { SeasonAdminPanel } from "./SeasonAdminPanel";
 import { SeasonDisciplineAdmin } from "./SeasonDisciplineAdmin";
 import { SeasonFactsEditor } from "./SeasonFactsEditor";
 import { TournamentDetailsEditor } from "./TournamentDetailsEditor";
+import { TournamentClonePanel } from "./TournamentClonePanel";
 import {
   ArchiveRostersAdmin,
   TeamResultsAdmin,
@@ -119,6 +120,7 @@ export function TournamentAdminPanel() {
           </section>
         </>
       )}
+      <TournamentClonePanel />
     </div>
   );
 }

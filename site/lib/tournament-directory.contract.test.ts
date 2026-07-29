@@ -35,6 +35,8 @@ describe("tournament directory contract", () => {
     );
     expect(tournamentCard).toContain("tournament.participant_count");
     expect(tournamentCard).toContain("tournament.season_round_count");
+    expect(tournamentCard).toContain("tournament-seasonal-badge");
+    expect(tournamentCard).toContain("Сезонный");
   });
 
   it("positions card details directly after descriptions of any length", () => {

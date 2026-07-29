@@ -29,7 +29,7 @@ describe("mobile tournament directory", () => {
       /@media \(max-width:\s*760px\)[\s\S]*\.tournament-card-top\s*\{[^}]*flex-direction:\s*column;[^}]*align-items:\s*flex-start;/,
     );
     expect(css).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.tournament-card-top \.tournament-status\s*\{[^}]*order:\s*-1;/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.tournament-card-badges\s*\{[^}]*order:\s*-1;/,
     );
   });
 });

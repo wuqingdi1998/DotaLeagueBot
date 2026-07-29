@@ -1,0 +1,40 @@
+.tournament-clone-panel {
+  align-items: center;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cyan) 8%, transparent), transparent),
+    var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.tournament-clone-panel h3 {
+  font-size: 1.25rem;
+  margin: 4px 0 8px;
+}
+
+.tournament-clone-panel p:last-child {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 760px;
+}
+
+.tournament-clone-panel .secondary-button {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 700px) {
+  .tournament-clone-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tournament-clone-panel .secondary-button {
+    justify-content: center;
+    width: 100%;
+  }
+}

@@ -33,10 +33,15 @@ export function TournamentCard({
     <article className={`tournament-card status-${tournament.status}`}>
       <div className="tournament-card-top">
         <h2>{tournament.name}</h2>
-        <span className={`tournament-status ${tournament.status}`}>
-          {tournament.status === "active" && <i />}
-          {statusDetails[tournament.status].label}
-        </span>
+        <div className="tournament-card-badges">
+          {isSeasonal && (
+            <span className="tournament-seasonal-badge">Сезонный</span>
+          )}
+          <span className={`tournament-status ${tournament.status}`}>
+            {tournament.status === "active" && <i />}
+            {statusDetails[tournament.status].label}
+          </span>
+        </div>
       </div>
       <p className="tournament-card-description">{tournament.description}</p>
       <div className="tournament-card-date">

@@ -7,6 +7,7 @@ export type PointAdjustmentRow = {
   round_id: number | null;
   amount: number;
   reason: string;
+  adjustment_kind: "manual" | "activity";
 };
 
 export type PenaltyEventRow = {
@@ -67,7 +68,8 @@ export async function loadSeasonExtras(
       `SELECT adjustment.id::int, adjustment.player_id::text,
          player.ingame_name AS nickname,
          adjustment.round_id::int,
-         adjustment.amount::int, adjustment.reason
+         adjustment.amount::int, adjustment.reason,
+         adjustment.adjustment_kind
        FROM season_point_adjustments adjustment
        JOIN players player ON player.discord_id = adjustment.player_id
        LEFT JOIN season_rounds round ON round.id = adjustment.round_id

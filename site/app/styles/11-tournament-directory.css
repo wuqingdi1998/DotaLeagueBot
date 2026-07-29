@@ -16,6 +16,28 @@
   font-weight: 700;
 }
 
+.tournament-card-badges {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.tournament-seasonal-badge {
+  background: color-mix(in srgb, var(--cyan) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cyan) 55%, transparent);
+  border-radius: 999px;
+  color: var(--cyan);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .tournament-card-top .tournament-status {
   flex: 0 0 auto;
 }
@@ -323,7 +345,8 @@
     gap: 12px;
   }
 
-  .tournament-card-top .tournament-status {
+  .tournament-card-badges {
+    justify-content: flex-start;
     order: -1;
   }
 

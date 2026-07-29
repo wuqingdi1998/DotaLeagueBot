@@ -41,6 +41,7 @@ export type SeasonStandingSubstitution = {
 export type SeasonStandingAdjustment = {
   playerId: string;
   amount: number;
+  kind?: "manual" | "activity";
 };
 
 export type SeasonStandingPenalty = {
@@ -57,6 +58,18 @@ export type SeasonStandingParticipantState = {
   playerId: string;
   section: "active" | "inactive";
   inactiveReason: string | null;
+  rankSnapshot?: number | null;
+  standingsSnapshot?: {
+    playedRounds: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    adjustmentPoints: number;
+    activityPoints: number;
+    points: number;
+    winRate: number | null;
+    supportsActivityPoints: boolean;
+  } | null;
 };
 
 export type SeasonStandingModifiers = {
@@ -93,6 +106,8 @@ export type SeasonStanding = {
   winRate: number | null;
   adjustmentPoints: number;
   hasAdjustments: boolean;
+  activityPoints: number;
+  hasActivityPoints: boolean;
   points: number;
   rounds: Record<string, SeasonRoundCell>;
   section: "active" | "inactive";
@@ -101,6 +116,7 @@ export type SeasonStanding = {
   penaltyStrikes: number;
   penaltyStages: Array<number | null>;
   suspendedRoundNumbers: number[];
+  rankSnapshot: number | null;
 };
 
 export const minimumSeasonRounds = 1;
@@ -231,6 +247,8 @@ export function calculateSeasonStandings(
       winRate: null,
       adjustmentPoints: 0,
       hasAdjustments: false,
+      activityPoints: 0,
+      hasActivityPoints: false,
       points: 0,
       rounds: {},
       section: state?.section ?? "active",
@@ -239,6 +257,7 @@ export function calculateSeasonStandings(
       penaltyStrikes: 0,
       penaltyStages: [0, null, null, null],
       suspendedRoundNumbers: [],
+      rankSnapshot: state?.rankSnapshot ?? null,
     };
   }
 
@@ -342,8 +361,13 @@ export function calculateSeasonStandings(
   for (const adjustment of modifiers.adjustments ?? []) {
     const row = rows.get(adjustment.playerId);
     if (!row) continue;
-    row.adjustmentPoints += adjustment.amount;
-    row.hasAdjustments = true;
+    if (adjustment.kind === "activity") {
+      row.activityPoints += adjustment.amount;
+      row.hasActivityPoints = true;
+    } else {
+      row.adjustmentPoints += adjustment.amount;
+      row.hasAdjustments = true;
+    }
   }
 
   for (const penalty of modifiers.penalties ?? []) {
@@ -372,13 +396,28 @@ export function calculateSeasonStandings(
 
   for (const row of rows.values()) {
     row.playedRounds = playedRoundsByPlayer.get(row.playerId)?.size ?? 0;
-    row.points += row.adjustmentPoints;
+    row.points += row.adjustmentPoints + row.activityPoints;
     const playedMaps = row.mapWins + row.mapLosses;
     row.winRate = playedMaps > 0 ? row.mapWins / playedMaps : null;
+    const snapshot = participantStates.get(row.playerId)?.standingsSnapshot;
+    if (snapshot) {
+      row.playedRounds = snapshot.playedRounds;
+      row.wins = snapshot.wins;
+      row.draws = snapshot.draws;
+      row.losses = snapshot.losses;
+      row.adjustmentPoints = snapshot.adjustmentPoints;
+      row.hasAdjustments = snapshot.adjustmentPoints !== 0;
+      row.activityPoints = snapshot.activityPoints;
+      row.hasActivityPoints = snapshot.supportsActivityPoints;
+      row.points = snapshot.points;
+      row.winRate = snapshot.winRate;
+    }
   }
 
   return [...rows.values()].sort(
     (left, right) =>
+      (left.rankSnapshot ?? Number.MAX_SAFE_INTEGER) -
+        (right.rankSnapshot ?? Number.MAX_SAFE_INTEGER) ||
       right.points - left.points ||
       (right.winRate ?? -1) - (left.winRate ?? -1) ||
       right.playedRounds - left.playedRounds ||

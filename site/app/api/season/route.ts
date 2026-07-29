@@ -78,6 +78,18 @@ type SeasonPlayerRow = {
   avatar_url: string | null;
   standings_section: "active" | "inactive";
   inactive_reason: string | null;
+  rank_snapshot: number | null;
+  standings_snapshot: {
+    playedRounds: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    adjustmentPoints: number;
+    activityPoints: number;
+    points: number;
+    winRate: number | null;
+    supportsActivityPoints: boolean;
+  } | null;
 };
 
 export async function GET(request: Request) {
@@ -197,7 +209,8 @@ export async function GET(request: Request) {
            player.steam_id32::text AS dota_id,
            player.ingame_name AS nickname,
            player.avatar_url, participant.standings_section,
-           participant.inactive_reason
+           participant.inactive_reason, participant.rank_snapshot::int,
+           participant.standings_snapshot
          FROM season_participants participant
          JOIN players player ON player.discord_id = participant.player_id
          WHERE participant.tournament_id = $1
@@ -355,6 +368,7 @@ export async function GET(request: Request) {
     adjustments: pointAdjustments.map((adjustment) => ({
       playerId: adjustment.player_id,
       amount: adjustment.amount,
+      kind: adjustment.adjustment_kind,
     })),
     substitutions: substitutions.map((substitution) => ({
       matchId: substitution.match_id,
@@ -371,6 +385,8 @@ export async function GET(request: Request) {
       playerId: player.discord_id,
       section: player.standings_section,
       inactiveReason: player.inactive_reason,
+      rankSnapshot: player.rank_snapshot,
+      standingsSnapshot: player.standings_snapshot,
     })),
   };
   const standings = calculateSeasonStandings(

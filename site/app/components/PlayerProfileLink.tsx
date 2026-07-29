@@ -12,6 +12,14 @@ export function PlayerProfileLink({
   dotaId: string;
   nickname: string;
 }) {
+  if (!/^[1-9]\d*$/.test(dotaId)) {
+    return (
+      <span className={className} title="Профиль игрока пока не привязан">
+        {children ?? nickname}
+      </span>
+    );
+  }
+
   return (
     <Link
       className={className}
