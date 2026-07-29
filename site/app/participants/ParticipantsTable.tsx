@@ -78,7 +78,7 @@ export function ParticipantsTable({
               <b>{player.nickname}</b>
             </Link>
             <span className="participant-tier" role="cell">
-              {player.tier === null ? "—" : `Тир ${player.tier}`}
+              {player.tier === null ? "—" : player.tier}
             </span>
             <span className="participant-links" role="cell">
               <a

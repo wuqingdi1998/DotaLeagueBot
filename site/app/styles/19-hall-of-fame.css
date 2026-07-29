@@ -171,36 +171,36 @@
 }
 
 .participants-row {
-  grid-template-columns: 90px minmax(240px, 1fr) 130px 190px;
+  grid-template-columns: 90px minmax(240px, 1fr) 70px 190px;
 }
 
 .participants-player {
   min-width: 0;
   width: fit-content;
 }
-
 .participants-player:hover b {
   color: var(--blue-strong);
 }
-
 .participant-tier {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
   justify-self: start;
-  border: 1px solid #15bff4;
-  border-radius: 999px;
-  padding: 7px 12px;
-  background: #073b55;
-  color: #fff;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  padding: 0;
+  background: var(--surface-soft);
+  color: var(--text);
   font-size: 16px;
   font-weight: 900;
   white-space: nowrap;
 }
-
 .participant-links {
   display: flex;
   justify-content: flex-start;
   gap: 8px;
 }
-
 .participant-links a {
   display: grid;
   width: 42px;
@@ -314,7 +314,7 @@
   }
 
   .participants-row {
-    grid-template-columns: 32px minmax(0, 1fr) 82px 142px;
+    grid-template-columns: 32px minmax(0, 1fr) 54px 142px;
     gap: 8px;
   }
 }
@@ -425,7 +425,7 @@
 
   .participants-row {
     min-width: 0;
-    grid-template-columns: minmax(0, 1fr) 68px 108px;
+    grid-template-columns: minmax(0, 1fr) 42px 108px;
     gap: 5px;
     padding: 0 10px;
   }
@@ -435,8 +435,9 @@
   }
 
   .participant-tier {
+    width: 32px;
+    height: 32px;
     justify-self: center;
-    padding: 6px 8px;
     font-size: 14px;
   }
 

@@ -56,16 +56,17 @@ describe("hall of fame and participant directory", () => {
     expect(participantsLoader).toContain("player.rank_tier / 10");
     expect(participantsLoader).toContain("latest_tier.tier");
     expect(participantsLoader).toContain("buildPlayerLinks(row.dota_id)");
-    expect(participantsTable).toContain("`Тир ${player.tier}`");
+    expect(participantsTable).toContain(': player.tier}');
+    expect(participantsTable).not.toContain("`Тир ${player.tier}`");
     expect(participantsTable).toContain("player.links.dotabuff");
     expect(participantsTable).toContain("player.links.stratz");
     expect(participantsTable).toContain("player.links.steam");
     expect(participantsTable).toContain("participant-links");
   });
 
-  it("keeps tiers legible and medal totals compact on mobile", () => {
+  it("matches tier badges to profile buttons and keeps medals compact", () => {
     expect(directoryStyles).toMatch(
-      /\.participant-tier\s*\{[\s\S]*?background:\s*#073b55;[^}]*color:\s*#fff;[^}]*font-size:\s*16px;/,
+      /\.participant-tier\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--text\);/,
     );
     expect(directoryStyles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*30px\)/,
@@ -74,7 +75,7 @@ describe("hall of fame and participant directory", () => {
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal svg\s*\{[^}]*display:\s*none;/,
     );
     expect(directoryStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.participant-tier\s*\{[^}]*font-size:\s*14px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.participant-tier\s*\{[^}]*width:\s*32px;[^}]*height:\s*32px;[^}]*font-size:\s*14px;/,
     );
   });
 });
