@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildGroupMatchPlan,
   buildPostseasonMatches,
   buildRoundRobinMatches,
   buildSerpentineAssignments,
+  GROUP_TEAM_PLACEHOLDER,
   parseGroupCount,
   shuffleTeamIds,
 } from "./group-generation";
@@ -50,6 +52,74 @@ describe("group team distribution", () => {
 });
 
 describe("automatic tournament matches", () => {
+  it("plans every group match with TBA before teams register", () => {
+    const matches = buildGroupMatchPlan([], 4);
+
+    expect(matches).toHaveLength(6);
+    expect(matches).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          teamAId: null,
+          teamBId: null,
+          teamAPlaceholder: GROUP_TEAM_PLACEHOLDER,
+          teamBPlaceholder: GROUP_TEAM_PLACEHOLDER,
+        }),
+      ]),
+    );
+  });
+
+  it("replaces only occupied TBA slots when a group is partially filled", () => {
+    const matches = buildGroupMatchPlan([101, 202], 4);
+    const teamAppearances = (teamId: number) =>
+      matches.filter(
+        (match) => match.teamAId === teamId || match.teamBId === teamId,
+      ).length;
+
+    expect(matches).toHaveLength(6);
+    expect(teamAppearances(101)).toBe(3);
+    expect(teamAppearances(202)).toBe(3);
+    expect(
+      matches.some(
+        ({ teamAId, teamBId }) =>
+          new Set([teamAId, teamBId]).has(101) &&
+          new Set([teamAId, teamBId]).has(202),
+      ),
+    ).toBe(true);
+    expect(
+      matches.some(
+        ({ teamAPlaceholder, teamBPlaceholder }) =>
+          teamAPlaceholder === GROUP_TEAM_PLACEHOLDER &&
+          teamBPlaceholder === GROUP_TEAM_PLACEHOLDER,
+      ),
+    ).toBe(true);
+  });
+
+  it("removes every TBA label from a full group", () => {
+    const matches = buildGroupMatchPlan([1, 2, 3, 4], 4);
+
+    expect(matches).toHaveLength(6);
+    expect(
+      matches.every(
+        ({ teamAPlaceholder, teamBPlaceholder }) =>
+          teamAPlaceholder === null && teamBPlaceholder === null,
+      ),
+    ).toBe(true);
+  });
+
+  it.each([
+    [3, 3],
+    [4, 6],
+    [5, 10],
+    [8, 28],
+  ])(
+    "creates the complete schedule for %i group slots",
+    (capacity, expectedMatchCount) => {
+      expect(buildGroupMatchPlan([], capacity)).toHaveLength(
+        expectedMatchCount,
+      );
+    },
+  );
+
   it("creates every round-robin pairing once", () => {
     const matches = buildRoundRobinMatches([1, 2, 3, 4, 5, 6]);
     const pairs = new Set(

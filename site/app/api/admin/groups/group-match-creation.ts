@@ -1,7 +1,7 @@
 import type { PoolClient } from "pg";
 import {
+  buildGroupMatchPlan,
   buildPostseasonMatches,
-  buildRoundRobinMatches,
   parseBestOf,
 } from "@/lib/group-generation";
 import {
@@ -32,14 +32,16 @@ export async function createGroupMatches(
 ): Promise<number> {
   const schedule = await loadSchedule(client, tournament.id, true);
   const plannedMatches = groups
-    .flatMap((group) =>
-      buildRoundRobinMatches(
-        assignments
-          .filter(({ groupId }) => groupId === group.id)
-          .sort((left, right) => left.sortOrder - right.sortOrder)
-          .map(({ teamId }) => teamId),
-      ).map((match) => ({ ...match, group })),
-    )
+    .flatMap((group) => {
+      const teamIds = assignments
+        .filter(({ groupId }) => groupId === group.id)
+        .sort((left, right) => left.sortOrder - right.sortOrder)
+        .map(({ teamId }) => teamId);
+      return buildGroupMatchPlan(teamIds, group.capacity).map((match) => ({
+        ...match,
+        group,
+      }));
+    })
     .sort(
       (left, right) =>
         left.round - right.round ||
@@ -53,9 +55,12 @@ export async function createGroupMatches(
       `INSERT INTO tournament_matches(
          tournament_id, group_id, scheduled_at, stage,
          team_a_application_id, team_b_application_id,
+         team_a_placeholder, team_b_placeholder,
          best_of, sort_order, bracket_round, bracket_side, bracket_slot
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'group', $10)`,
+       VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'group', $12
+       )`,
       [
         tournament.id,
         match.group.id,
@@ -66,6 +71,8 @@ export async function createGroupMatches(
         ),
         match.teamAId,
         match.teamBId,
+        match.teamAPlaceholder,
+        match.teamBPlaceholder,
         parseBestOf(
           scheduleRow?.series_format ?? tournament.group_format,
           1,

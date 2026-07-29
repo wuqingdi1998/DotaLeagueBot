@@ -28,6 +28,24 @@ export type RoundRobinMatch = {
   teamBId: number;
 };
 
+export const GROUP_TEAM_PLACEHOLDER = "TBA";
+
+export type GroupMatchPlan = {
+  round: number;
+  slot: number;
+  teamAId: number | null;
+  teamBId: number | null;
+  teamAPlaceholder: string | null;
+  teamBPlaceholder: string | null;
+};
+
+type RoundRobinSlotMatch = {
+  round: number;
+  slot: number;
+  teamASlot: number;
+  teamBSlot: number;
+};
+
 export type PostseasonMatchPlan = {
   stage: string;
   bracketSide: "upper" | "lower" | "grand_final";
@@ -79,22 +97,60 @@ export function shuffleTeamIds(
 }
 
 export function buildRoundRobinMatches(teamIds: number[]): RoundRobinMatch[] {
-  if (teamIds.length < 2) return [];
+  return buildRoundRobinSlotMatches(teamIds.length).map((match) => ({
+    round: match.round,
+    slot: match.slot,
+    teamAId: teamIds[match.teamASlot],
+    teamBId: teamIds[match.teamBSlot],
+  }));
+}
 
-  const participants: Array<number | null> = [...teamIds];
+export function buildGroupMatchPlan(
+  teamIds: number[],
+  groupCapacity: number,
+): GroupMatchPlan[] {
+  if (!Number.isInteger(groupCapacity) || groupCapacity < 2) return [];
+
+  const participantIds = Array.from(
+    { length: groupCapacity },
+    (_, index) => teamIds[index] ?? null,
+  );
+  return buildRoundRobinSlotMatches(groupCapacity).map((match) => {
+    const teamAId = participantIds[match.teamASlot];
+    const teamBId = participantIds[match.teamBSlot];
+    return {
+      round: match.round,
+      slot: match.slot,
+      teamAId,
+      teamBId,
+      teamAPlaceholder: teamAId === null ? GROUP_TEAM_PLACEHOLDER : null,
+      teamBPlaceholder: teamBId === null ? GROUP_TEAM_PLACEHOLDER : null,
+    };
+  });
+}
+
+function buildRoundRobinSlotMatches(
+  participantCount: number,
+): RoundRobinSlotMatch[] {
+  if (participantCount < 2) return [];
+
+  const participants: Array<number | null> = Array.from(
+    { length: participantCount },
+    (_, index) => index,
+  );
   if (participants.length % 2 !== 0) participants.push(null);
 
-  const matches: RoundRobinMatch[] = [];
+  const matches: RoundRobinSlotMatch[] = [];
   for (let round = 1; round < participants.length; round += 1) {
     for (let slot = 0; slot < participants.length / 2; slot += 1) {
-      const teamAId = participants[slot];
-      const teamBId = participants[participants.length - 1 - slot];
-      if (teamAId !== null && teamBId !== null) {
+      const teamASlot = participants[slot];
+      const teamBSlot = participants[participants.length - 1 - slot];
+      if (teamASlot !== null && teamBSlot !== null) {
         matches.push({
           round,
           slot: slot + 1,
-          teamAId,
-          teamBId,
+          teamASlot,
+          teamBSlot,
         });
       }
     }

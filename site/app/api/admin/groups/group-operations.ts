@@ -65,6 +65,12 @@ export async function formTournamentGroups({
     );
     const assignments = buildSerpentineAssignments(teamIds, groups);
     await saveAssignments(client, assignments);
+    const groupMatchCount = await createGroupMatches(
+      client,
+      tournament,
+      groups,
+      assignments,
+    );
     const postseasonMatchCount = await createPostseasonIfMissing(
       client,
       tournament,
@@ -78,6 +84,7 @@ export async function formTournamentGroups({
         groupCount,
         teamsPerGroup,
         teamCount: teamIds.length,
+        groupMatchCount,
         postseasonMatchCount,
       },
     });
@@ -85,7 +92,7 @@ export async function formTournamentGroups({
     return {
       groupCount,
       teamCount: teamIds.length,
-      groupMatchCount: 0,
+      groupMatchCount,
       postseasonMatchCount,
     };
   });

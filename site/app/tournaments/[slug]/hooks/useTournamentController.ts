@@ -304,7 +304,7 @@ export function useTournamentController() {
       response.ok
         ? action === "shuffle"
           ? `Шаффл завершён · создано матчей: ${result.groupMatchCount ?? 0}`
-          : "Группы сформированы"
+          : `Группы и матчи сформированы · матчей: ${result.groupMatchCount ?? 0}`
         : result.error ?? "Не удалось сформировать группы",
     );
     if (response.ok) await loadData();
