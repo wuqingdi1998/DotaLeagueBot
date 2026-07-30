@@ -78,6 +78,7 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   );
   const [result, setResult] = useState(match.result ?? "");
   const [status, setStatus] = useState(match.status);
+  const [isSaving, setIsSaving] = useState(false);
 
   function updateTeamA(players: string[]) {
     setTeamAPlayers(players);
@@ -101,28 +102,38 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   }
 
   async function save() {
-    await season.mutate("PATCH", {
-      entity: "match",
-      id: match.id,
-      teamAName,
-      teamBName,
-      teamAPlayerIds: teamAPlayers,
-      teamBPlayerIds: teamBPlayers,
-      teamACaptainId: teamACaptain || null,
-      teamBCaptainId: teamBCaptain || null,
-      playerTierSnapshots: Object.fromEntries(
-        [...teamAPlayers, ...teamBPlayers].map((playerId) => [
-          playerId,
-          playerTierSnapshots[playerId] ?? "",
-        ]),
-      ),
-      scheduledAt,
-      bestOf,
-      teamAScore,
-      teamBScore,
-      result: result || null,
-      status,
-    });
+    if (isSaving) return;
+    setIsSaving(true);
+    try {
+      await season.mutate(
+        "PATCH",
+        {
+          entity: "match",
+          id: match.id,
+          teamAName,
+          teamBName,
+          teamAPlayerIds: teamAPlayers,
+          teamBPlayerIds: teamBPlayers,
+          teamACaptainId: teamACaptain || null,
+          teamBCaptainId: teamBCaptain || null,
+          playerTierSnapshots: Object.fromEntries(
+            [...teamAPlayers, ...teamBPlayers].map((playerId) => [
+              playerId,
+              playerTierSnapshots[playerId] ?? "",
+            ]),
+          ),
+          scheduledAt,
+          bestOf,
+          teamAScore,
+          teamBScore,
+          result: result || null,
+          status,
+        },
+        "Матч сохранён",
+      );
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   async function remove() {
@@ -270,8 +281,14 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
           />
         </div>
         <div className="season-admin-actions">
-          <button className="secondary-button" onClick={() => void save()}>
-            Сохранить матч
+          <button
+            className="secondary-button"
+            type="button"
+            disabled={isSaving}
+            aria-busy={isSaving}
+            onClick={() => void save()}
+          >
+            {isSaving ? "Сохраняю…" : "Сохранить матч"}
           </button>
           <button className="secondary-button" onClick={() => void addGame()}>
             <FiPlus /> Добавить карту

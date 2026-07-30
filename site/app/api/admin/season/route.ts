@@ -48,8 +48,14 @@ type SeasonRequest = Record<string, unknown> & {
     | "finalist";
 };
 
-function seasonErrorResponse(error: unknown) {
-  if (error instanceof Response) return error;
+async function seasonErrorResponse(error: unknown) {
+  if (error instanceof Response) {
+    const responseText = await error.text();
+    return Response.json(
+      { error: responseText || "Не удалось сохранить изменения" },
+      { status: error.status || 500 },
+    );
+  }
   const code =
     error instanceof Error && "code" in error
       ? String((error as Error & { code?: string }).code)
@@ -66,7 +72,20 @@ function seasonErrorResponse(error: unknown) {
       { status: 400 },
     );
   }
-  throw error;
+  if (["40P01", "40001", "55P03"].includes(code)) {
+    return Response.json(
+      {
+        error:
+          "Другое сохранение выполнялось одновременно. Повторите действие",
+      },
+      { status: 409 },
+    );
+  }
+  console.error("Season admin mutation failed", error);
+  return Response.json(
+    { error: "Сервер не смог сохранить изменения. Попробуйте ещё раз" },
+    { status: 500 },
+  );
 }
 
 export async function POST(request: Request) {

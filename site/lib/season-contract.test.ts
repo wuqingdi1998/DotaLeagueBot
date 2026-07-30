@@ -82,6 +82,16 @@ describe("season creation and access contract", () => {
     expect(adminRoute.match(/await requireAdmin\(\)/g)).toHaveLength(3);
     expect(adminRoute).toContain("const admin = await requireAdmin()");
   });
+
+  it("always reports whether a season match was saved", () => {
+    expect(seasonController).toContain("readSeasonMutationResponse");
+    expect(seasonController).toContain("Обновите страницу");
+    expect(seasonController).toContain("fetchSeasonRequest");
+    expect(matchAdmin).toContain("isSaving");
+    expect(matchAdmin).toContain("disabled={isSaving}");
+    expect(matchAdmin).toContain('"Матч сохранён"');
+    expect(adminRoute).toContain("Response.json({ error:");
+  });
 });
 
 describe("season interface contract", () => {

@@ -4,6 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import type { TournamentTab } from "../model/types";
 import type { SeasonData } from "../model/season-types";
+import {
+  fetchSeasonRequest,
+  readSeasonMutationResponse,
+} from "../services/season-request";
 
 export function useSeasonController({
   enabled,
@@ -37,9 +41,11 @@ export function useSeasonController({
     try {
       const roundQuery =
         activeRoundNumber !== null ? `&round=${activeRoundNumber}` : "";
-      const response = await fetch(
+      const response = await fetchSeasonRequest(
         `/api/season?slug=${encodeURIComponent(slug)}${roundQuery}`,
-        { cache: "no-store" },
+        {
+          cache: "no-store",
+        },
       );
       const result = (await response.json()) as SeasonData & { error?: string };
       if (!response.ok) {
@@ -118,26 +124,30 @@ export function useSeasonController({
   async function mutate(
     method: "POST" | "PATCH" | "DELETE",
     body: Record<string, unknown>,
+    successMessage = "Изменения сезонного турнира сохранены",
   ) {
-    const response = await fetch("/api/admin/season", {
-      method,
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const result = (await response.json()) as {
-      error?: string;
-      requiresConfirmation?: boolean;
-      id?: number;
-    };
-    if (!response.ok) {
-      setMessage(result.error ?? "Не удалось сохранить изменения");
-      return { ok: false, ...result };
+    try {
+      const response = await fetchSeasonRequest("/api/admin/season", {
+        method,
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const result = await readSeasonMutationResponse(response);
+      if (!response.ok) {
+        setMessage(result.error ?? "Не удалось сохранить изменения");
+        return { ...result, ok: false };
+      }
+      if (!result.requiresConfirmation) {
+        setMessage(successMessage);
+        await load();
+      }
+      return { ...result, ok: true };
+    } catch {
+      const errorMessage =
+        "Сервер недоступен или долго отвечает. Обновите страницу перед повторной попыткой";
+      setMessage(errorMessage);
+      return { error: errorMessage, ok: false };
     }
-    if (!result.requiresConfirmation) {
-      setMessage("Изменения сезонного турнира сохранены");
-      await load();
-    }
-    return { ok: true, ...result };
   }
 
   return {

@@ -55,4 +55,8 @@ describe("two-finals contract", () => {
     expect(playerTournamentHistory).toContain("THEN 'Победитель'");
     expect(playerTournamentHistory).toContain("THEN 'Финалист'");
   });
+
+  it("serializes simultaneous final result saves", () => {
+    expect(finalAwards).toContain("FOR UPDATE");
+  });
 });

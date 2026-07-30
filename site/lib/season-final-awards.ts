@@ -13,7 +13,8 @@ export async function syncSeasonFinalAwards(
   const tournament = await client.query<{ name: string }>(
     `SELECT name
      FROM tournaments
-     WHERE id = $1 AND tournament_type = 'seasonal'`,
+     WHERE id = $1 AND tournament_type = 'seasonal'
+     FOR UPDATE`,
     [tournamentId],
   );
   if (!tournament.rowCount) return;
