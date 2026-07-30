@@ -1,7 +1,11 @@
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { one, query } from "@/lib/db";
-import { playerServerName, secretMatches } from "@/lib/security";
+import {
+  playerServerName,
+  secretHashMatches,
+  secretMatches,
+} from "@/lib/security";
 import {
   addPendingOauthState,
   oauthStateLifetimeMs,
@@ -38,6 +42,11 @@ type SessionRow = {
   real_name: string | null;
   positions: string | null;
   is_admin: boolean;
+};
+
+type TemporaryOrganizerPasswordRow = {
+  password_hash: string;
+  expires_at: Date;
 };
 
 function tokenHash(token: string): string {
@@ -197,14 +206,8 @@ export async function requireAdmin(): Promise<AuthUser> {
 async function verifyOrganizerPassword(
   user: AuthUser,
   suppliedPassword: string,
-): Promise<void> {
+): Promise<Date | null> {
   const configuredPassword = process.env.ORGANIZER_PASSWORD ?? "";
-  if (configuredPassword.length < 12) {
-    throw new Response(
-      "Пароль организатора ещё не настроен на сервере",
-      { status: 503 },
-    );
-  }
 
   await query(
     `DELETE FROM web_organizer_login_attempts
@@ -224,7 +227,26 @@ async function verifyOrganizerPassword(
     );
   }
 
-  if (!secretMatches(suppliedPassword, configuredPassword)) {
+  const temporaryPasswords = await query<TemporaryOrganizerPasswordRow>(
+    `SELECT password_hash, expires_at
+     FROM temporary_organizer_passwords
+     WHERE expires_at > NOW()
+     ORDER BY expires_at`,
+  );
+  const temporaryPassword = temporaryPasswords.find((password) =>
+    secretHashMatches(suppliedPassword, password.password_hash),
+  );
+  const isPermanentPassword =
+    configuredPassword.length >= 12 &&
+    secretMatches(suppliedPassword, configuredPassword);
+
+  if (!isPermanentPassword && !temporaryPassword) {
+    if (configuredPassword.length < 12 && temporaryPasswords.length === 0) {
+      throw new Response(
+        "Пароль организатора ещё не настроен на сервере",
+        { status: 503 },
+      );
+    }
     await query(
       `INSERT INTO web_organizer_login_attempts(discord_id) VALUES ($1)`,
       [user.discordId],
@@ -236,6 +258,7 @@ async function verifyOrganizerPassword(
     `DELETE FROM web_organizer_login_attempts WHERE discord_id = $1`,
     [user.discordId],
   );
+  return temporaryPassword?.expires_at ?? null;
 }
 
 export async function confirmOrganizerPassword(
@@ -250,11 +273,18 @@ export async function createOrganizerSession(
   suppliedPassword: string,
 ): Promise<AuthUser> {
   const user = await requireSession();
-  await verifyOrganizerPassword(user, suppliedPassword);
+  const temporaryPasswordExpiresAt = await verifyOrganizerPassword(
+    user,
+    suppliedPassword,
+  );
   await query("DELETE FROM web_organizer_sessions WHERE expires_at <= NOW()");
   const token = randomBytes(32).toString("base64url");
+  const regularExpiresAt = Date.now() +
+    organizerSessionLifetimeHours * 60 * 60 * 1000;
   const expiresAt = new Date(
-    Date.now() + organizerSessionLifetimeHours * 60 * 60 * 1000,
+    temporaryPasswordExpiresAt
+      ? Math.min(regularExpiresAt, temporaryPasswordExpiresAt.getTime())
+      : regularExpiresAt,
   );
   await query(
     `INSERT INTO web_organizer_sessions

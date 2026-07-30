@@ -6,6 +6,15 @@ export function secretMatches(candidate: string, expected: string) {
   return timingSafeEqual(candidateHash, expectedHash);
 }
 
+export function secretHashMatches(
+  candidate: string,
+  expectedHash: string,
+) {
+  if (!/^[a-f\d]{64}$/i.test(expectedHash)) return false;
+  const candidateHash = createHash("sha256").update(candidate).digest();
+  return timingSafeEqual(candidateHash, Buffer.from(expectedHash, "hex"));
+}
+
 export function playerServerName(
   realName: string | null,
   playerName: string,
