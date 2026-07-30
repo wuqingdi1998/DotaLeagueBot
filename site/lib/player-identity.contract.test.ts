@@ -150,4 +150,16 @@ describe("player identities and archive safety", () => {
     expect(publicProfile).toContain("user?.isAdmin");
     expect(publicProfile).toContain("loadLinkedArchiveProfiles");
   });
+
+  it("shows tournament nicknames as linked historical profiles", () => {
+    expect(organizerProfile).toContain("target.registered_player_id");
+    expect(organizerProfile).toContain(
+      "'historical'::text AS profile_kind",
+    );
+    expect(organizerProfile).toContain("LOWER(BTRIM(history.nickname))");
+    expect(linkedArchiveCard).toContain(
+      'profile.kind === "historical"',
+    );
+    expect(linkedArchiveCard).toContain("Исторический профиль");
+  });
 });

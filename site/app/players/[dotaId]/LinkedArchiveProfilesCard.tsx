@@ -15,6 +15,7 @@ export function LinkedArchiveProfilesCard({
   const [error, setError] = useState("");
 
   async function unlink(profile: LinkedArchiveProfile) {
+    if (!profile.playerId) return;
     setPendingPlayerId(profile.playerId);
     setError("");
     try {
@@ -50,7 +51,9 @@ export function LinkedArchiveProfilesCard({
       {profiles.length ? (
         <div className="linked-archive-list">
           {profiles.map((profile) => (
-            <article key={profile.playerId}>
+            <article
+              key={`${profile.kind}:${profile.playerId ?? profile.primaryNickname}`}
+            >
               <div className="linked-archive-summary">
                 <strong>{profile.primaryNickname}</strong>
                 {profile.aliases.length > 1 && (
@@ -69,7 +72,9 @@ export function LinkedArchiveProfilesCard({
                   </span>
                 )}
               </div>
-              {confirmPlayerId === profile.playerId ? (
+              {profile.kind === "historical" ? (
+                <span>Исторический профиль из турниров</span>
+              ) : confirmPlayerId === profile.playerId ? (
                 <div className="linked-archive-confirm">
                   <span>
                     Отвязать профиль? Турнирная история не удалится.
