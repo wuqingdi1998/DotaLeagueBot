@@ -11,12 +11,11 @@ export async function GET(request: Request) {
       return Response.json({ players: [] });
     }
     const players = await query<{
-      discord_id: string;
       ingame_name: string;
       positions: string | null;
       avatar_url: string | null;
     }>(
-      `SELECT discord_id::text, ingame_name, positions, avatar_url
+      `SELECT ingame_name, positions, avatar_url
        FROM players
        WHERE is_archived = FALSE
          AND ingame_name ILIKE '%' || $1 || '%'

@@ -24,6 +24,7 @@ type MemberRow = {
 
 type ApplicationRow = Record<string, unknown> & {
   id: number;
+  captain_discord_id: string | null;
   captain_name: string | null;
 };
 type SeasonFactRow = {
@@ -38,6 +39,7 @@ function publicApplication(
   application: ApplicationRow,
   members: MemberRow[],
   includeContact: boolean,
+  viewer: Awaited<ReturnType<typeof getSession>>,
 ) {
   const captain = members.find((member) => member.is_captain);
   const others = members
@@ -47,8 +49,14 @@ function publicApplication(
     ingame_name: "Не указан",
     role: "safe_lane",
   };
+  const canSeeAllMemberIds =
+    viewer?.isAdmin === true ||
+    application.captain_discord_id === viewer?.discordId;
   return {
     ...application,
+    captain_discord_id: canSeeAllMemberIds
+      ? application.captain_discord_id
+      : null,
     contact: includeContact ? application.contact : "",
     captain: captain?.ingame_name ?? application.captain_name,
     captain_role: captain?.role ?? "safe_lane",
@@ -61,7 +69,10 @@ function publicApplication(
     player_5: (others[3] ?? fallback).ingame_name,
     player_5_role: (others[3] ?? fallback).role,
     members: members.map((member) => ({
-      discord_id: member.player_id,
+      discord_id:
+        canSeeAllMemberIds || member.player_id === viewer?.discordId
+          ? member.player_id
+          : null,
       dota_id: member.dota_id,
       name: member.ingame_name,
       role: member.role,
@@ -138,7 +149,7 @@ export async function GET(request: Request) {
     await Promise.all([
       query<ApplicationRow>(
         `SELECT a.id::int, a.tournament_id::int, a.team_name, a.tag,
-           a.contact, a.logo_key, a.status, a.created_at,
+           a.captain_discord_id::text, a.contact, a.logo_key, a.status, a.created_at,
            a.selection_method, a.team_tier_total_snapshot,
            result.placement::int, result.result_label,
            COALESCE(captain.ingame_name, a.captain_name_snapshot) AS captain_name
@@ -367,6 +378,7 @@ export async function GET(request: Request) {
         application,
         membersByApplication.get(application.id) ?? [],
         user?.isAdmin === true,
+        user,
       ),
     ),
     matches,

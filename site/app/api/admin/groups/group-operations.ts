@@ -41,6 +41,10 @@ export async function formTournamentGroups({
   actorDiscordId: string;
 }): Promise<GroupOperationResult> {
   return transaction(async (client) => {
+    await client.query(
+      "SELECT pg_advisory_xact_lock(71004, $1::int)",
+      [tournamentId],
+    );
     const tournament = await loadTournament(client, tournamentId);
     const teamIds = await loadApprovedTeamIds(client, tournamentId);
     if (teamIds.length > groupCount * teamsPerGroup) {
@@ -106,6 +110,10 @@ export async function shuffleTournamentGroups({
   actorDiscordId: string;
 }): Promise<GroupOperationResult> {
   return transaction(async (client) => {
+    await client.query(
+      "SELECT pg_advisory_xact_lock(71004, $1::int)",
+      [tournamentId],
+    );
     const tournament = await loadTournament(client, tournamentId);
     const teamIds = await loadApprovedTeamIds(client, tournamentId);
     const groups = await loadGroups(client, tournamentId);

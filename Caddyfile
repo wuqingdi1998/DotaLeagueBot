@@ -5,6 +5,10 @@ www.{$SITE_DOMAIN:lsesports.ru} {
 {$SITE_DOMAIN:lsesports.ru} {
 	encode zstd gzip
 
+	request_body {
+		max_size 55MB
+	}
+
 	header {
 		-Server
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"

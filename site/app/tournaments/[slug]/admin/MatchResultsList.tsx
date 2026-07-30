@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { matchUsesBracketRouting } from "@/lib/bracket";
 import { useTournament } from "../hooks/TournamentContext";
 import {
@@ -14,13 +15,22 @@ import type {
 
 export function MatchResultsList() {
   const { approvedTeams, data, deleteMatch, saveMatchResult } = useTournament();
+  const [openMatchId, setOpenMatchId] = useState<number | null>(null);
   if (!data) return null;
 
   return (
     <div className="match-result-list">
       {data.matches.map((match) => (
         <article className="match-result-card" key={match.id}>
-          <details>
+          <details
+            open={openMatchId === match.id}
+            onToggle={(event) => {
+              const isOpen = event.currentTarget.open;
+              setOpenMatchId((current) =>
+                isOpen ? match.id : current === match.id ? null : current,
+              );
+            }}
+          >
             <summary>
               <span>
                 <strong>
@@ -33,47 +43,49 @@ export function MatchResultsList() {
               </span>
               <b>Редактировать</b>
             </summary>
-            <form
-              className="match-result-form"
-              onSubmit={(event) => void saveMatchResult(event, match)}
-            >
-              <MatchBaseFields match={match} />
-              <fieldset className="match-editor-section">
-                <legend>Команды, счёт и вылет</legend>
-                <div className="match-team-editor-grid">
-                  <TeamResultEditor
-                    side="A"
-                    match={match}
-                    teams={approvedTeams}
+            {openMatchId === match.id && (
+              <form
+                className="match-result-form"
+                onSubmit={(event) => void saveMatchResult(event, match)}
+              >
+                <MatchBaseFields match={match} />
+                <fieldset className="match-editor-section">
+                  <legend>Команды, счёт и вылет</legend>
+                  <div className="match-team-editor-grid">
+                    <TeamResultEditor
+                      side="A"
+                      match={match}
+                      teams={approvedTeams}
+                    />
+                    <TeamResultEditor
+                      side="B"
+                      match={match}
+                      teams={approvedTeams}
+                    />
+                  </div>
+                </fieldset>
+                <BracketPositionFields match={match} />
+                <BracketRoutingFields match={match} />
+                <label className="match-decision-editor">
+                  <span>Комментарий организатора</span>
+                  <textarea
+                    name="decisionNote"
+                    defaultValue={match.decision_note ?? ""}
+                    placeholder="Например: техническое поражение из-за игры с чужого аккаунта"
                   />
-                  <TeamResultEditor
-                    side="B"
-                    match={match}
-                    teams={approvedTeams}
-                  />
+                </label>
+                <div className="match-result-actions">
+                  <button type="submit">Сохранить изменения</button>
+                  <button
+                    className="danger"
+                    type="button"
+                    onClick={() => void deleteMatch(match)}
+                  >
+                    Удалить матч
+                  </button>
                 </div>
-              </fieldset>
-              <BracketPositionFields match={match} />
-              <BracketRoutingFields match={match} />
-              <label className="match-decision-editor">
-                <span>Комментарий организатора</span>
-                <textarea
-                  name="decisionNote"
-                  defaultValue={match.decision_note ?? ""}
-                  placeholder="Например: техническое поражение из-за игры с чужого аккаунта"
-                />
-              </label>
-              <div className="match-result-actions">
-                <button type="submit">Сохранить изменения</button>
-                <button
-                  className="danger"
-                  type="button"
-                  onClick={() => void deleteMatch(match)}
-                >
-                  Удалить матч
-                </button>
-              </div>
-            </form>
+              </form>
+            )}
           </details>
         </article>
       ))}

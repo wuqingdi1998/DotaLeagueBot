@@ -16,6 +16,7 @@ import {
   resolveApplicationPlayer as resolvePlayer,
   type ApplicationPlayerRow as PlayerRow,
 } from "./application-support";
+import { updateApplicationStatus } from "./application-status";
 
 export const dynamic = "force-dynamic";
 
@@ -88,6 +89,13 @@ export async function POST(request: Request) {
     if (!/^[A-Za-zА-Яа-яЁё0-9]{1,5}$/.test(tag)) {
       return Response.json(
         { error: "Тег: от 1 до 5 букв или цифр" },
+        { status: 400 },
+      );
+    }
+    const contact = String(body.get("contact")).trim();
+    if (contact.length > 100) {
+      return Response.json(
+        { error: "Контакт не может быть длиннее 100 символов" },
         { status: 400 },
       );
     }
@@ -166,6 +174,25 @@ export async function POST(request: Request) {
     await writeFile(storedFile, fileData, { flag: "wx" });
 
     const applicationId = await transaction(async (client) => {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(71001, $1::int)",
+        [tournamentId],
+      );
+      const currentTournament = await client.query<{
+        registration_open: boolean;
+      }>(
+        `SELECT
+           (status = 'registration' AND registration_deadline > NOW())
+             AS registration_open
+         FROM tournaments
+         WHERE id = $1
+         FOR UPDATE`,
+        [tournamentId],
+      );
+      if (!currentTournament.rowCount) throw new Error("TOURNAMENT_NOT_FOUND");
+      if (!currentTournament.rows[0].registration_open) {
+        throw new Error("REGISTRATION_CLOSED");
+      }
       const existing = await client.query(
         `SELECT 1 FROM tournament_team_members m
          JOIN tournament_team_applications a ON a.id = m.application_id
@@ -189,7 +216,7 @@ export async function POST(request: Request) {
           teamName,
           tag,
           captain.discordId,
-          String(body.get("contact")).trim(),
+          contact,
           logoKey,
         ],
       );
@@ -244,6 +271,15 @@ export async function POST(request: Request) {
     if (error instanceof Error && error.message === "PLAYER_ALREADY_IN_TEAM") {
       return Response.json(
         { error: "Один из игроков уже заявлен за другую команду" },
+        { status: 409 },
+      );
+    }
+    if (error instanceof Error && error.message === "TOURNAMENT_NOT_FOUND") {
+      return Response.json({ error: "Турнир не найден" }, { status: 404 });
+    }
+    if (error instanceof Error && error.message === "REGISTRATION_CLOSED") {
+      return Response.json(
+        { error: "Регистрация на турнир закрыта" },
         { status: 409 },
       );
     }
@@ -404,77 +440,10 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
-    if (body.status === "approved") {
-      const notAccepted = await one<{ count: number }>(
-        `SELECT COUNT(*)::int AS count
-         FROM tournament_team_members
-         WHERE application_id = $1 AND invitation_status <> 'accepted'`,
-        [body.id],
-      );
-      if (notAccepted && notAccepted.count > 0) {
-        return Response.json(
-          { error: "Сначала все игроки должны принять приглашение" },
-          { status: 409 },
-        );
-      }
-      const capacity = await one<{ full: boolean }>(
-        `SELECT (
-           SELECT COUNT(*) FROM tournament_team_applications approved
-           WHERE approved.tournament_id = requested.tournament_id
-             AND approved.status = 'approved'
-             AND approved.id <> requested.id
-         ) >= tournament.max_teams AS full
-         FROM tournament_team_applications requested
-         JOIN tournaments tournament ON tournament.id = requested.tournament_id
-         WHERE requested.id = $1`,
-        [body.id],
-      );
-      if (capacity?.full) {
-        return Response.json(
-          { error: "Все командные слоты уже заняты" },
-          { status: 409 },
-        );
-      }
-    }
-    await transaction(async (client) => {
-      const updated = await client.query<{
-        tournament_id: number;
-        captain_discord_id: string;
-        team_name: string;
-      }>(
-        `UPDATE tournament_team_applications
-         SET status = $1, updated_at = NOW()
-         WHERE id = $2
-         RETURNING tournament_id::int, captain_discord_id::text, team_name`,
-        [body.status, body.id],
-      );
-      if (!updated.rowCount) throw new Error("APPLICATION_NOT_FOUND");
-      await client.query(
-        `INSERT INTO tournament_audit_log
-          (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
-         VALUES ($1, $2, 'status_change', 'team_application', $3, $4::jsonb)`,
-        [
-          updated.rows[0].tournament_id,
-          admin.discordId,
-          String(body.id),
-          JSON.stringify({ status: body.status }),
-        ],
-      );
-      await client.query(
-        `INSERT INTO notification_outbox
-          (discord_id, event_type, title, message, action_url)
-         VALUES ($1, 'team_application_status', $2, $3, $4)`,
-        [
-          updated.rows[0].captain_discord_id,
-          `Статус заявки: ${updated.rows[0].team_name}`,
-          body.status === "approved"
-            ? "Организатор допустил команду к турниру."
-            : body.status === "declined"
-              ? "Организатор отклонил заявку команды."
-              : "Заявка команды возвращена на проверку.",
-          process.env.PUBLIC_BASE_URL ?? null,
-        ],
-      );
+    await updateApplicationStatus({
+      applicationId: body.id,
+      status: body.status as "approved" | "declined" | "pending",
+      actorDiscordId: admin.discordId,
     });
     return Response.json({ ok: true });
   } catch (error) {
@@ -487,6 +456,18 @@ export async function PATCH(request: Request) {
     if (error instanceof Error && error.message === "CAPTAIN_NOT_ELIGIBLE") {
       return Response.json(
         { error: "Новым капитаном может стать принявший приглашение игрок" },
+        { status: 409 },
+      );
+    }
+    if (error instanceof Error && error.message === "MEMBERS_NOT_ACCEPTED") {
+      return Response.json(
+        { error: "Сначала все игроки должны принять приглашение" },
+        { status: 409 },
+      );
+    }
+    if (error instanceof Error && error.message === "TOURNAMENT_FULL") {
+      return Response.json(
+        { error: "Все командные слоты уже заняты" },
         { status: 409 },
       );
     }

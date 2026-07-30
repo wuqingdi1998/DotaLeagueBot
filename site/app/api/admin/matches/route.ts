@@ -1,5 +1,6 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
+import { validateFinishedMatchScore } from "@/lib/match-validation";
 
 type MatchBody = {
   id?: number;
@@ -43,7 +44,64 @@ function validMatch(body: MatchBody): string {
   if (![1, 2, 3, 5].includes(Number(body.bestOf))) {
     return "Формат серии должен быть BO1, BO2, BO3 или BO5";
   }
+  if (Number.isNaN(Date.parse(body.scheduledAt))) {
+    return "Укажите корректные дату и время матча";
+  }
+  if (body.stage.trim().length > 100) {
+    return "Название этапа не может быть длиннее 100 символов";
+  }
+  if (
+    (body.teamAPlaceholder?.trim().length ?? 0) > 100 ||
+    (body.teamBPlaceholder?.trim().length ?? 0) > 100
+  ) {
+    return "Название команды или заполнителя не может быть длиннее 100 символов";
+  }
+  for (const id of [
+    body.tournamentId,
+    body.groupId,
+    body.teamAId,
+    body.teamBId,
+  ]) {
+    if (id !== null && id !== undefined && !Number.isInteger(id)) {
+      return "Некорректно выбран турнир или команда";
+    }
+  }
+  if (body.teamAId && body.teamAId === body.teamBId) {
+    return "Команда не может играть сама с собой";
+  }
   return "";
+}
+
+async function referencesBelongToTournament(body: MatchBody) {
+  const rows = await query<{ valid: boolean }>(
+    `SELECT
+       EXISTS (SELECT 1 FROM tournaments WHERE id = $1)
+       AND (
+         $2::bigint IS NULL OR EXISTS (
+           SELECT 1 FROM tournament_groups
+           WHERE id = $2 AND tournament_id = $1
+         )
+       )
+       AND (
+         $3::bigint IS NULL OR EXISTS (
+           SELECT 1 FROM tournament_team_applications
+           WHERE id = $3 AND tournament_id = $1
+         )
+       )
+       AND (
+         $4::bigint IS NULL OR EXISTS (
+           SELECT 1 FROM tournament_team_applications
+           WHERE id = $4 AND tournament_id = $1
+         )
+       ) AS valid`,
+    [
+      body.tournamentId,
+      body.groupId ?? null,
+      body.teamAId ?? null,
+      body.teamBId ?? null,
+    ],
+  );
+  return rows[0]?.valid === true;
 }
 
 export async function POST(request: Request) {
@@ -54,7 +112,53 @@ export async function POST(request: Request) {
     if (validationError) {
       return Response.json({ error: validationError }, { status: 400 });
     }
+    if (!(await referencesBelongToTournament(body))) {
+      return Response.json(
+        { error: "Группа и команды должны относиться к выбранному турниру" },
+        { status: 400 },
+      );
+    }
     const created = await transaction(async (client) => {
+      await client.query(
+        "SELECT pg_advisory_xact_lock(71003, $1::int)",
+        [body.tournamentId],
+      );
+      const existing = await client.query<{ id: number }>(
+        `SELECT id::int
+         FROM tournament_matches
+         WHERE tournament_id = $1
+           AND group_id IS NOT DISTINCT FROM $2::bigint
+           AND scheduled_at = $3
+           AND stage = $4
+           AND team_a_application_id IS NOT DISTINCT FROM $5::bigint
+           AND team_b_application_id IS NOT DISTINCT FROM $6::bigint
+           AND team_a_placeholder IS NOT DISTINCT FROM $7
+           AND team_b_placeholder IS NOT DISTINCT FROM $8
+           AND best_of = $9
+           AND sort_order = $10
+           AND bracket_round IS NOT DISTINCT FROM $11::int
+           AND bracket_side IS NOT DISTINCT FROM $12
+           AND bracket_slot IS NOT DISTINCT FROM $13::int
+         LIMIT 1`,
+        [
+          body.tournamentId,
+          body.groupId ?? null,
+          body.scheduledAt,
+          body.stage?.trim(),
+          body.teamAId ?? null,
+          body.teamBId ?? null,
+          body.teamAPlaceholder?.trim() || null,
+          body.teamBPlaceholder?.trim() || null,
+          body.bestOf,
+          body.sortOrder ?? 0,
+          body.bracketRound ?? null,
+          body.bracketSide ?? null,
+          body.bracketSlot ?? null,
+        ],
+      );
+      if (existing.rowCount) {
+        return { id: existing.rows[0].id, isExisting: true };
+      }
       const result = await client.query<{ id: number }>(
         `INSERT INTO tournament_matches (
           tournament_id, group_id, scheduled_at, stage,
@@ -87,9 +191,12 @@ export async function POST(request: Request) {
          VALUES ($1, $2, 'create', 'match', $3)`,
         [body.tournamentId, admin.discordId, String(id)],
       );
-      return id;
+      return { id, isExisting: false };
     });
-    return Response.json({ ok: true, id: created }, { status: 201 });
+    return Response.json(
+      { ok: true, id: created.id },
+      { status: created.isExisting ? 200 : 201 },
+    );
   } catch (error) {
     return responseFromAuthError(error);
   }
@@ -127,6 +234,28 @@ export async function PATCH(request: Request) {
     const allowedResultTypes = ["normal", "technical", "forfeit", "cancelled"];
     if (!allowedResultTypes.includes(body.resultType ?? "normal")) {
       return Response.json({ error: "Некорректный тип результата" }, { status: 400 });
+    }
+    const currentMatchRows = await query<{
+      tournament_id: number;
+      best_of: number;
+    }>(
+      `SELECT tournament_id::int, best_of::int
+       FROM tournament_matches
+       WHERE id = $1`,
+      [body.id],
+    );
+    if (!currentMatchRows.length) {
+      return Response.json({ error: "Матч не найден" }, { status: 404 });
+    }
+    if (
+      fullMatchUpdate &&
+      (body.tournamentId !== currentMatchRows[0].tournament_id ||
+        !(await referencesBelongToTournament(body)))
+    ) {
+      return Response.json(
+        { error: "Группа и команды должны относиться к выбранному турниру" },
+        { status: 400 },
+      );
     }
     for (const [targetId, targetSlot] of [
       [body.winnerToMatchId, body.winnerToSlot],
@@ -180,13 +309,18 @@ export async function PATCH(request: Request) {
         );
       }
     }
-    if (
+    const scoreError =
       body.status === "finished" &&
-      (body.resultType ?? "normal") === "normal" &&
-      (!Number.isInteger(body.teamAScore) || !Number.isInteger(body.teamBScore))
-    ) {
+      (body.resultType ?? "normal") === "normal"
+        ? validateFinishedMatchScore(
+            body.teamAScore,
+            body.teamBScore,
+            fullMatchUpdate ? body.bestOf : currentMatchRows[0].best_of,
+          )
+        : "";
+    if (scoreError) {
       return Response.json(
-        { error: "Для завершённого матча укажите счёт обеих команд" },
+        { error: scoreError },
         { status: 400 },
       );
     }

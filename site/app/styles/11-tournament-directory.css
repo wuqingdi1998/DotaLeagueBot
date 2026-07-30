@@ -375,3 +375,21 @@
     flex-direction: column-reverse;
   }
 }
+
+@media (max-width: 420px) {
+  .directory-filters {
+    gap: 6px;
+    overflow-x: hidden;
+    scrollbar-width: none;
+  }
+
+  .directory-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .directory-filters button {
+    padding: 0 8px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+}
