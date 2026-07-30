@@ -55,8 +55,7 @@ $suspensions$::jsonb) AS source(
             '{suspendedRoundNumbers}',
             source.rounds,
             TRUE
-        ),
-        updated_at = NOW()
+        )
     FROM historical_season_suspension_source source
     JOIN tournaments tournament
       ON tournament.slug = 'league-season-' || source.season::TEXT

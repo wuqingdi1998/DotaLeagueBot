@@ -92,6 +92,7 @@ describe("historical seasonal leagues", () => {
       rounds: [8],
     });
     expect(historicalSuspensions).toContain("166568345");
+    expect(historicalSuspensions).not.toContain("updated_at");
   });
 
   it("renders unresolved archive identities without false profile links", () => {
