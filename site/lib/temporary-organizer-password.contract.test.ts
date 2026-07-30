@@ -7,7 +7,7 @@ const authSource = readFileSync(
 );
 const migration = readFileSync(
   new URL(
-    "../../bot/database/migrations/0033_temporary_organizer_password.sql",
+    "../../bot/database/migrations/0034_fix_temporary_organizer_password_hash.sql",
     import.meta.url,
   ),
   "utf8",
@@ -31,7 +31,7 @@ describe("temporary organizer password", () => {
   it("stores no readable temporary password", () => {
     expect(migration).not.toContain("ВРЕМЯ");
     expect(migration).toContain(
-      "e348d8d0564992652cc3e8e5ae7dbcbed9ecdea4db96c573d8b2087643ee2569",
+      "94ff9fcf7a1ffde2dbedc524fdc42944f86f882a8c284e8abbf1ba51bdc494fc",
     );
   });
 });
