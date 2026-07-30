@@ -121,6 +121,18 @@ export type SeasonStanding = {
 
 export const minimumSeasonRounds = 1;
 export const maximumSeasonRounds = 100;
+const minimumDatabaseBigInt = BigInt("-9223372036854775808");
+const maximumDatabaseBigInt = BigInt("9223372036854775807");
+
+export function isSeasonPlayerDatabaseId(value: unknown) {
+  const playerId = String(value ?? "").trim();
+  if (!/^-?[1-9]\d{0,18}$/.test(playerId)) return false;
+  const numericId = BigInt(playerId);
+  return (
+    numericId >= minimumDatabaseBigInt &&
+    numericId <= maximumDatabaseBigInt
+  );
+}
 
 export function validSeasonRoundCount(value: unknown): value is number {
   return (

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateSeasonStandings,
+  isSeasonPlayerDatabaseId,
   isValidSeasonTierSnapshot,
   seasonMatchLinks,
   validateSeasonResult,
@@ -8,6 +9,25 @@ import {
   visibleSeasonRounds,
   type SeasonStandingMatch,
 } from "./season";
+
+describe("season player database identifiers", () => {
+  it("accepts registered and archived player identifiers", () => {
+    expect(isSeasonPlayerDatabaseId("656899242593484823")).toBe(true);
+    expect(isSeasonPlayerDatabaseId("-8400000000000228")).toBe(true);
+  });
+
+  it.each([
+    "",
+    "0",
+    "-0",
+    "12.5",
+    "player",
+    "9223372036854775808",
+    "-9223372036854775809",
+  ])("rejects an invalid player identifier: %j", (playerId) => {
+    expect(isSeasonPlayerDatabaseId(playerId)).toBe(false);
+  });
+});
 
 const rounds = [
   { id: 1, roundNumber: 1, isVisible: true },

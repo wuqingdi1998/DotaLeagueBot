@@ -1,4 +1,5 @@
 import {
+  isSeasonPlayerDatabaseId,
   isValidSeasonTierSnapshot,
   validSeasonRoundCount,
   validateSeasonTeams,
@@ -60,7 +61,7 @@ export function seasonRoundCount(value: unknown) {
 export function playerIds(value: unknown) {
   if (!Array.isArray(value)) return [];
   const ids = [...new Set(value.map(String).map((id) => id.trim()))];
-  if (ids.some((id) => !/^\d{1,20}$/.test(id))) {
+  if (ids.some((id) => !isSeasonPlayerDatabaseId(id))) {
     throw new Response("Некорректно выбран игрок", { status: 400 });
   }
   return ids;
