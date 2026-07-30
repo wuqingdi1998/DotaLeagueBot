@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { FiCalendar } from "react-icons/fi";
+import { formatTournamentDayMonthRange } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
-import { formatDayMonth } from "../model/formatters";
 
 export function SeasonOverviewPanel() {
   const { activeTab, data, season } = useTournament();
@@ -64,8 +64,11 @@ export function SeasonOverviewPanel() {
           <p>{data.tournament.about || data.tournament.description}</p>
           <span>
             <FiCalendar aria-hidden="true" />
-            {formatDayMonth(data.tournament.start_at)} —{" "}
-            {formatDayMonth(data.tournament.end_at)} ·{" "}
+            {formatTournamentDayMonthRange(
+              data.tournament.start_at,
+              data.tournament.end_at,
+            )}{" "}
+            ·{" "}
             {data.tournament.status_label}
           </span>
         </div>

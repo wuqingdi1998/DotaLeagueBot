@@ -22,11 +22,11 @@ import {
   isUpcomingTournament,
   type TournamentStatus,
 } from "@/lib/tournaments";
+import { formatTournamentDateRange } from "@/lib/tournament-date";
 import { OrganizerAccess } from "./OrganizerAccess";
 import { TournamentCard } from "./hub/TournamentCard";
 import { TournamentForm } from "./hub/TournamentForm";
 import {
-  formatDateRange,
   loadSavedTheme,
   statusDetails,
   type TournamentListResponse,
@@ -190,7 +190,7 @@ export function CommunityHome() {
               <p>{featured.description}</p>
               <div className="featured-date">
                 <FiCalendar />
-                {formatDateRange(featured.start_at, featured.end_at)}
+                {formatTournamentDateRange(featured.start_at, featured.end_at)}
               </div>
               <a
                 className="primary-button"

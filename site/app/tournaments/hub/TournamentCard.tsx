@@ -11,8 +11,8 @@ import {
   isPastTournament,
   type TournamentStatus,
 } from "@/lib/tournaments";
+import { formatTournamentDateRange } from "@/lib/tournament-date";
 import {
-  formatDateRange,
   statusDetails,
   type TournamentSummary,
 } from "./tournament-hub-model";
@@ -47,7 +47,7 @@ export function TournamentCard({
       <div className="tournament-card-date">
         <FiCalendar aria-hidden="true" />
         <strong>
-          {formatDateRange(tournament.start_at, tournament.end_at)}
+          {formatTournamentDateRange(tournament.start_at, tournament.end_at)}
         </strong>
       </div>
       <dl className="tournament-card-stats">

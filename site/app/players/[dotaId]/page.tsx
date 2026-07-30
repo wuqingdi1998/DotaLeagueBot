@@ -10,6 +10,7 @@ import {
   FiTarget,
 } from "react-icons/fi";
 import { getSession } from "@/lib/auth";
+import { formatTournamentCompactDateRange } from "@/lib/tournament-date";
 import {
   loadPublicPlayerProfile,
   profileBackgroundForSubscriptionRole,
@@ -33,17 +34,6 @@ const tournamentStatus: Record<string, string> = {
   finished: "Завершён",
   archived: "Архив",
 };
-
-function formatDateRange(startAt: string, endAt: string) {
-  const formatter = new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-  return `${formatter.format(new Date(startAt))} — ${formatter.format(
-    new Date(endAt),
-  )}`;
-}
 
 function SubscriptionRoleBadge({
   role,
@@ -317,7 +307,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                     <div className="profile-tournament-date">
                       <FiCalendar aria-hidden="true" />
                       <span>
-                        {formatDateRange(tournament.startAt, tournament.endAt)}
+                        {formatTournamentCompactDateRange(
+                          tournament.startAt,
+                          tournament.endAt,
+                        )}
                       </span>
                     </div>
                     {tournament.teamName && (

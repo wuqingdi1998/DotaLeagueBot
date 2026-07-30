@@ -6,11 +6,12 @@ import { FiArrowRight } from "react-icons/fi";
 import { dayCountLabel } from "@/lib/countdown";
 import { isPastTournament } from "@/lib/tournaments";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
-import { useTournament } from "../hooks/TournamentContext";
 import {
-  formatDayMonth,
-  formatShortDate,
-} from "../model/formatters";
+  formatTournamentDayMonthRange,
+  formatTournamentShortDateRange,
+} from "@/lib/tournament-date";
+import { useTournament } from "../hooks/TournamentContext";
+import { formatDayMonth } from "../model/formatters";
 
 export function TournamentHero() {
   const {
@@ -131,8 +132,10 @@ export function TournamentHero() {
           </div>
           <div className="poster-dates">
             <strong>
-              {formatDayMonth(tournament.start_at)} —{" "}
-              {formatDayMonth(tournament.end_at)}
+              {formatTournamentDayMonthRange(
+                tournament.start_at,
+                tournament.end_at,
+              )}
             </strong>
             <span>{new Date(tournament.start_at).getFullYear()}</span>
           </div>
@@ -219,8 +222,10 @@ export function TournamentHeading() {
         {!isPast && <p className="section-kicker">Турнир сообщества</p>}
         <h2>{tournament.name}</h2>
         <p className="tournament-heading-dates">
-          {formatShortDate(tournament.start_at)} —{" "}
-          {formatShortDate(tournament.end_at)}
+          {formatTournamentShortDateRange(
+            tournament.start_at,
+            tournament.end_at,
+          )}
         </p>
       </div>
       <div className={isPast ? "tournament-status archived" : "countdown"}>

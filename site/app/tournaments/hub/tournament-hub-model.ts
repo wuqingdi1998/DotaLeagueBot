@@ -96,24 +96,6 @@ export const statusDetails: Record<
   archived: { label: "Архив", short: "Архивный турнир" },
 };
 
-export function formatDateRange(start: string, end: string) {
-  const formatter = new Intl.DateTimeFormat("ru-RU", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-  const startDate = new Date(start);
-  const endDate = new Date(end);
-  if (startDate.getFullYear() === endDate.getFullYear()) {
-    const shortStart = new Intl.DateTimeFormat("ru-RU", {
-      day: "numeric",
-      month: "long",
-    }).format(startDate);
-    return `${shortStart} — ${formatter.format(endDate)}`;
-  }
-  return `${formatter.format(startDate)} — ${formatter.format(endDate)}`;
-}
-
 export function toTournamentIso(value: string) {
   return value ? `${value}:00+03:00` : value;
 }
