@@ -3,7 +3,8 @@
 .season-table-scroll {
   width: 100%;
   margin-top: 24px;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);

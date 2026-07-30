@@ -219,6 +219,16 @@ describe("season interface contract", () => {
     expect(horizontalDragScroll).toContain('event.pointerType === "touch"');
   });
 
+  it("keeps only horizontal scrolling inside seasonal tables", () => {
+    expect(styles).toMatch(
+      /\.season-table-scroll\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/,
+    );
+    expect(styles).not.toMatch(
+      /\.season-table-scroll\s*\{[^}]*max-height:/,
+    );
+    expect(horizontalDragScroll).not.toContain("onWheel");
+  });
+
   it("uses compact score columns and solid circular sticky identities", () => {
     expect(standings.match(/season-compact-column/g)?.length).toBeGreaterThanOrEqual(
       10,
