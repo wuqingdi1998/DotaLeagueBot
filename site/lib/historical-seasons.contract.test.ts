@@ -91,6 +91,7 @@ describe("historical seasonal leagues", () => {
       nickname: "Ame's Bastard",
       rounds: [8],
     });
+    expect(historicalSuspensions).toContain("166568345");
   });
 
   it("renders unresolved archive identities without false profile links", () => {

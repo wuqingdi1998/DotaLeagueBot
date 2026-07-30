@@ -61,8 +61,19 @@ $suspensions$::jsonb) AS source(
     JOIN tournaments tournament
       ON tournament.slug = 'league-season-' || source.season::TEXT
     WHERE participant.tournament_id = tournament.id
-      AND LOWER(BTRIM(participant.nickname_snapshot)) =
-          LOWER(BTRIM(source.nickname));
+      AND (
+          LOWER(BTRIM(participant.nickname_snapshot)) =
+              LOWER(BTRIM(source.nickname))
+          OR (
+              source.season = 5
+              AND source.nickname = 'ПОДПИВАС'
+              AND participant.player_id = (
+                  SELECT player.discord_id
+                  FROM players player
+                  WHERE player.steam_id32 = '166568345'
+              )
+          )
+      );
 
     GET DIAGNOSTICS updated_participants = ROW_COUNT;
     IF updated_participants <> 30 THEN
