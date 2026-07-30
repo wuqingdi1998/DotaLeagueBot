@@ -282,6 +282,12 @@ describe("season interface contract", () => {
     expect(rounds).toContain("player.nickname");
     expect(styles).toContain(".season-medalist-group");
     expect(styles).toContain(".season-finalist-player-link");
+    expect(styles).toMatch(
+      /@media \(max-width:\s*540px\)[\s\S]*?\.season-medalist-group\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*540px\)[\s\S]*?\.season-medalist-group ul\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/,
+    );
   });
 
   it("reuses the profile service icons in the participant directory", () => {
