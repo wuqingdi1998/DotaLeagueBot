@@ -182,43 +182,82 @@
   background: var(--surface);
 }
 
-.season-finalist-list {
+.season-medalist-groups {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 10px;
   margin-top: 15px;
 }
 
-.season-finalist-list article {
+.season-medalist-group {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
+  gap: 18px;
   border: 1px solid var(--line);
+  border-left: 4px solid #aebdca;
   border-radius: 12px;
-  padding: 11px;
+  padding: 14px 16px;
   background: var(--surface-soft);
 }
 
-.season-finalist-seed {
+.season-medalist-group.gold {
+  border-left-color: #f0bd29;
+}
+
+.season-medalist-group header {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.season-medalist-group header > span {
+  flex: 0 0 auto;
+  font-size: 22px;
+}
+
+.season-medalist-group header > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.season-medalist-group header small {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
+}
+
+.season-medalist-group header strong {
+  overflow-wrap: anywhere;
+  font-size: 16px;
+}
+
+.season-medalist-group ul {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.season-medalist-group li {
+  min-width: 110px;
+  flex: 1 1 130px;
 }
 
 .season-finalist-player-link {
   min-width: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
-.season-finalist-player-link > strong {
-  display: block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.season-finalist-list article > b {
-  font-size: 20px;
+.season-finalist-player-link:hover {
+  color: var(--blue-strong);
 }
 
 .season-discipline-admin {
@@ -349,6 +388,10 @@
   .season-inline-admin-form .season-technical-loss-field {
     grid-column: 1 / -1;
   }
+
+  .season-medalist-group {
+    grid-template-columns: minmax(190px, 240px) minmax(0, 1fr);
+  }
 }
 
 @media (max-width: 540px) {
@@ -377,5 +420,25 @@
   .season-admin-record-list article {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .season-finalists {
+    padding: 16px;
+  }
+
+  .season-medalist-group {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+  }
+
+  .season-medalist-group ul {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .season-medalist-group li {
+    min-width: 0;
   }
 }

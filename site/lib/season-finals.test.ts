@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   deriveSeasonFinalMedals,
+  groupSeasonFinalMedalists,
   validateSeasonFinalMatch,
 } from "./season-finals";
 
@@ -52,6 +53,50 @@ describe("season final medals", () => {
     ]);
 
     expect(result.every((player) => player.medal === null)).toBe(true);
+  });
+
+  it("groups winners before finalists and keeps the lobby order", () => {
+    const result = groupSeasonFinalMedalists([
+      {
+        id: 20,
+        lobbyName: "Нижний финал",
+        lobbyOrder: 2,
+        status: "completed",
+        result: "team_b",
+        teamAName: "Команда 3",
+        teamBName: "Команда 4",
+        participants: [
+          { playerId: "3", nickname: "Third", teamSide: "a" },
+          { playerId: "4", nickname: "Fourth", teamSide: "b" },
+        ],
+      },
+      {
+        id: 10,
+        lobbyName: "Верхний финал",
+        lobbyOrder: 1,
+        status: "completed",
+        result: "team_a",
+        teamAName: "Команда 1",
+        teamBName: "Команда 2",
+        participants: [
+          { playerId: "1", nickname: "First", teamSide: "a" },
+          { playerId: "2", nickname: "Second", teamSide: "b" },
+        ],
+      },
+    ]);
+
+    expect(
+      result.map(({ medal, teamName, players }) => ({
+        medal,
+        teamName,
+        nicknames: players.map((player) => player.nickname),
+      })),
+    ).toEqual([
+      { medal: "gold", teamName: "Команда 1", nicknames: ["First"] },
+      { medal: "gold", teamName: "Команда 4", nicknames: ["Fourth"] },
+      { medal: "silver", teamName: "Команда 2", nicknames: ["Second"] },
+      { medal: "silver", teamName: "Команда 3", nicknames: ["Third"] },
+    ]);
   });
 });
 

@@ -34,6 +34,58 @@ export function deriveSeasonFinalMedals<T extends { playerId: string }>(
   }));
 }
 
+type SeasonFinalMedalist = {
+  playerId: string;
+  nickname: string;
+  teamSide: "a" | "b";
+};
+
+type SeasonFinalMatchGroup<T extends SeasonFinalMedalist> = Omit<
+  SeasonFinalMatch,
+  "participants"
+> & {
+  id: number;
+  lobbyName: string;
+  lobbyOrder: number;
+  teamAName: string;
+  teamBName: string;
+  participants: T[];
+};
+
+export function groupSeasonFinalMedalists<T extends SeasonFinalMedalist>(
+  matches: Array<SeasonFinalMatchGroup<T>>,
+) {
+  const completedMatches = matches
+    .filter(
+      (match) =>
+        match.status === "completed" &&
+        (match.result === "team_a" || match.result === "team_b"),
+    )
+    .sort((first, second) => first.lobbyOrder - second.lobbyOrder);
+
+  return (["gold", "silver"] as const).flatMap((medal) =>
+    completedMatches.map((match) => {
+      const winningSide = match.result === "team_a" ? "a" : "b";
+      const teamSide =
+        medal === "gold"
+          ? winningSide
+          : winningSide === "a"
+            ? "b"
+            : "a";
+      return {
+        matchId: match.id,
+        lobbyName: match.lobbyName,
+        teamName:
+          teamSide === "a" ? match.teamAName : match.teamBName,
+        medal,
+        players: match.participants.filter(
+          (player) => player.teamSide === teamSide,
+        ),
+      };
+    }),
+  );
+}
+
 export function validateSeasonFinalMatch({
   result,
   roundKind,

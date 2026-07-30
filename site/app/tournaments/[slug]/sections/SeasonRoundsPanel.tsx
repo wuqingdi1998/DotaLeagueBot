@@ -10,12 +10,13 @@ import {
 import Image from "next/image";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { seasonMatchLinks } from "@/lib/season";
+import { groupSeasonFinalMedalists } from "@/lib/season-finals";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
   seasonLobbyStatusLabel,
 } from "../model/season-labels";
-import type { SeasonMatch } from "../model/season-types";
+import type { SeasonMatch, SeasonRound } from "../model/season-types";
 
 export function SeasonRoundPanel() {
   const { activeTab, data, season } = useTournament();
@@ -57,7 +58,9 @@ export function SeasonRoundPanel() {
           </p>
         </div>
       </div>
-      {round.round_kind === "finals" && <SeasonFinalistsSummary />}
+      {round.round_kind === "finals" && (
+        <SeasonFinalistsSummary round={round} />
+      )}
       {!round.lobbies.length ? (
         <div className="empty-standings">В этом туре пока нет лобби.</div>
       ) : (
@@ -200,46 +203,76 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
   );
 }
 
-function SeasonFinalistsSummary() {
-  const { season } = useTournament();
-  const finalists = season.data?.finalists ?? [];
-  const goldCount = finalists.filter(
-    (finalist) => finalist.medal === "gold",
-  ).length;
-  const silverCount = finalists.filter(
-    (finalist) => finalist.medal === "silver",
-  ).length;
+function SeasonFinalistsSummary({ round }: { round: SeasonRound }) {
+  const medalGroups = groupSeasonFinalMedalists(
+    round.lobbies.flatMap((lobby) =>
+      lobby.matches.map((match) => ({
+        id: match.id,
+        lobbyName: lobby.name,
+        lobbyOrder: lobby.sort_order,
+        status: match.status,
+        result: match.result,
+        teamAName: match.team_a_name,
+        teamBName: match.team_b_name,
+        participants: match.participants.map((player) => ({
+          ...player,
+          playerId: player.player_id,
+          teamSide: player.team_side,
+        })),
+      })),
+    ),
+  );
+  const goldCount = medalGroups
+    .filter((group) => group.medal === "gold")
+    .reduce((total, group) => total + group.players.length, 0);
+  const silverCount = medalGroups
+    .filter((group) => group.medal === "silver")
+    .reduce((total, group) => total + group.players.length, 0);
+
   return (
     <section className="season-finalists">
-      <h4>Участники финалов</h4>
+      <h4>Медалисты финалов</h4>
       <p className="season-empty-copy">
         Два финала 5×5 · золото {goldCount}/10 · серебро {silverCount}/10
       </p>
-      {!finalists.length ? (
+      {!medalGroups.length ? (
         <p className="season-empty-copy">
-          Организатор пока не опубликовал состав финалов.
+          Медалисты появятся после завершения финальных матчей.
         </p>
       ) : (
-        <div className="season-finalist-list">
-          {finalists.map((finalist) => (
-            <article key={finalist.player_id}>
-              <span className="season-finalist-seed">
-                {finalist.seed ? `#${finalist.seed}` : "—"}
-              </span>
-              <PlayerProfileLink
-                className="season-finalist-player-link"
-                dotaId={finalist.dota_id}
-                nickname={finalist.nickname}
-              >
-                <strong>{finalist.nickname}</strong>
-              </PlayerProfileLink>
-              <b title={finalist.medal ?? "Медаль не определена"}>
-                {finalist.medal === "gold"
-                  ? "🥇"
-                  : finalist.medal === "silver"
-                    ? "🥈"
-                    : ""}
-              </b>
+        <div className="season-medalist-groups">
+          {medalGroups.map((group) => (
+            <article
+              className={`season-medalist-group ${group.medal}`}
+              key={`${group.matchId}-${group.medal}`}
+            >
+              <header>
+                <span aria-hidden="true">
+                  {group.medal === "gold" ? "🥇" : "🥈"}
+                </span>
+                <div>
+                  <small>
+                    {group.medal === "gold"
+                      ? "Победители"
+                      : "Финалисты"}{" "}
+                    · {group.lobbyName}
+                  </small>
+                  <strong>{group.teamName}</strong>
+                </div>
+              </header>
+              <ul>
+                {group.players.map((player) => (
+                  <li key={player.player_id}>
+                    <PlayerProfileLink
+                      className="season-finalist-player-link"
+                      dotaId={player.dota_id}
+                      nickname={player.nickname}
+                    >
+                      {player.nickname}
+                    </PlayerProfileLink>
+                  </li>
+                ))}
+              </ul>
             </article>
           ))}
         </div>

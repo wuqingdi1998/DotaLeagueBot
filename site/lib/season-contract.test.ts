@@ -272,10 +272,16 @@ describe("season interface contract", () => {
     expect(seasonController).toContain('window.addEventListener("focus"');
   });
 
-  it("keeps unlinked archive finalists styled like linked finalists", () => {
-    expect(rounds).toContain('className="season-finalist-seed"');
-    expect(styles).toContain(".season-finalist-seed");
-    expect(styles).not.toContain(".season-finalist-list article > span");
+  it("groups final medalists by result and keeps profile links", () => {
+    expect(rounds).toContain("groupSeasonFinalMedalists");
+    expect(rounds).toContain('className="season-medalist-groups"');
+    expect(rounds).toContain("Победители");
+    expect(rounds).toContain("Финалисты");
+    expect(rounds).toContain("group.teamName");
+    expect(rounds).toContain("group.lobbyName");
+    expect(rounds).toContain("player.nickname");
+    expect(styles).toContain(".season-medalist-group");
+    expect(styles).toContain(".season-finalist-player-link");
   });
 
   it("reuses the profile service icons in the participant directory", () => {
