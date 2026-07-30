@@ -271,6 +271,50 @@ describe("season standings", () => {
       rankSnapshot: 1,
     });
   });
+
+  it("uses explicit penalty suspensions from historical Excel standings", () => {
+    const standings = calculateSeasonStandings(
+      rounds,
+      [matches[1]],
+      [
+        {
+          playerId: "100",
+          dotaId: "1000",
+          nickname: "Alpha",
+          avatarUrl: null,
+        },
+      ],
+      {
+        participantStates: [
+          {
+            playerId: "100",
+            section: "active",
+            inactiveReason: null,
+            standingsSnapshot: {
+              playedRounds: 0,
+              wins: 0,
+              draws: 0,
+              losses: 0,
+              adjustmentPoints: 0,
+              activityPoints: 0,
+              points: 0,
+              winRate: null,
+              supportsActivityPoints: false,
+              suspendedRoundNumbers: [2],
+            },
+          },
+        ],
+      },
+    );
+
+    const alpha = standings.find((row) => row.playerId === "100");
+    expect(alpha?.suspendedRoundNumbers).toEqual([2]);
+    expect(alpha?.rounds["2"]).toEqual({
+      points: 0,
+      outcome: "suspended",
+      matchIds: [],
+    });
+  });
 });
 
 describe("season match safety", () => {

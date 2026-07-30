@@ -14,6 +14,9 @@ const historicalMigration = source(
 const winRateCleanup = source(
   "../../bot/database/migrations/0029_historical_win_rate_cleanup.sql",
 );
+const historicalSuspensions = source(
+  "../../bot/database/migrations/0035_historical_season_suspensions.sql",
+);
 const profileLink = source("../app/components/PlayerProfileLink.tsx");
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
@@ -61,6 +64,33 @@ describe("historical seasonal leagues", () => {
     );
     expect(winRateCleanup).toContain("::numeric < 0");
     expect(winRateCleanup).toContain("::numeric > 1");
+  });
+
+  it("preserves every gray penalty suspension from the Excel standings", () => {
+    const match = historicalSuspensions.match(
+      /\$suspensions\$([\s\S]*?)\$suspensions\$::jsonb/,
+    );
+    expect(match).not.toBeNull();
+    const suspensions = JSON.parse(match?.[1] ?? "[]") as Array<{
+      season: number;
+      nickname: string;
+      rounds: number[];
+    }>;
+
+    expect(suspensions).toHaveLength(30);
+    expect(
+      suspensions.reduce((total, entry) => total + entry.rounds.length, 0),
+    ).toBe(41);
+    expect(suspensions).toContainEqual({
+      season: 5,
+      nickname: "lotain",
+      rounds: [5, 7, 9, 13, 14],
+    });
+    expect(suspensions).toContainEqual({
+      season: 7,
+      nickname: "Ame's Bastard",
+      rounds: [8],
+    });
   });
 
   it("renders unresolved archive identities without false profile links", () => {

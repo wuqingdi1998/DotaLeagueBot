@@ -69,6 +69,7 @@ export type SeasonStandingParticipantState = {
     points: number;
     winRate: number | null;
     supportsActivityPoints: boolean;
+    suspendedRoundNumbers?: number[];
   } | null;
 };
 
@@ -229,6 +230,7 @@ export function calculateSeasonStandings(
   const allowedRounds = new Map(
     rounds.map((round) => [round.id, round.roundNumber]),
   );
+  const allowedRoundNumbers = new Set(allowedRounds.values());
   const rows = new Map<string, SeasonStanding>();
   const playedRoundsByPlayer = new Map<string, Set<number>>();
   const participantStates = new Map(
@@ -423,6 +425,18 @@ export function calculateSeasonStandings(
       row.hasActivityPoints = snapshot.supportsActivityPoints;
       row.points = snapshot.points;
       row.winRate = snapshot.winRate;
+      if (snapshot.suspendedRoundNumbers) {
+        row.suspendedRoundNumbers = snapshot.suspendedRoundNumbers.filter(
+          (roundNumber) => allowedRoundNumbers.has(roundNumber),
+        );
+        for (const roundNumber of row.suspendedRoundNumbers) {
+          row.rounds[String(roundNumber)] = {
+            points: 0,
+            outcome: "suspended",
+            matchIds: [],
+          };
+        }
+      }
     }
   }
 

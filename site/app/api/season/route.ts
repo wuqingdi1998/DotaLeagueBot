@@ -89,6 +89,7 @@ type SeasonPlayerRow = {
     points: number;
     winRate: number | null;
     supportsActivityPoints: boolean;
+    suspendedRoundNumbers?: number[];
   } | null;
 };
 
