@@ -53,6 +53,13 @@ const organizerProfile = readFileSync(
   new URL("./player-profile-organizer.ts", import.meta.url),
   "utf8",
 );
+const linkedArchiveCard = readFileSync(
+  new URL(
+    "../app/players/[dotaId]/LinkedArchiveProfilesCard.tsx",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 describe("player identities and archive safety", () => {
   it("archives players without deleting their historical database row", () => {
@@ -80,6 +87,15 @@ describe("player identities and archive safety", () => {
     expect(adminRoute).toContain('case "merge-archive"');
     expect(adminRoute).toContain('case "link-archive"');
     expect(adminService).toContain("UPDATE player_identity_members");
+  });
+
+  it("lets an organizer safely unlink an archive profile", () => {
+    expect(adminRoute).toContain('case "unlink-archive"');
+    expect(adminService).toContain("unlinkArchiveProfile");
+    expect(adminService).toContain('"archive_identity_unlink"');
+    expect(linkedArchiveCard).toContain("Отвязать");
+    expect(linkedArchiveCard).toContain('"unlink-archive"');
+    expect(linkedArchiveCard).toContain("router.refresh()");
   });
 
   it("removes Discord from the public profile", () => {

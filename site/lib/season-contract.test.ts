@@ -234,14 +234,21 @@ describe("season interface contract", () => {
     );
   });
 
-  it("uses live seasonal nicknames and links every public player name", () => {
-    expect(publicRoute).toContain("player.ingame_name AS nickname");
-    expect(publicRoute).toContain("player.steam_id32::text AS dota_id");
-    expect(publicRoute).not.toContain(
-      "participant.nickname_snapshot, player.ingame_name",
+  it("keeps historical seasonal nicknames but links to live profiles", () => {
+    expect(publicRoute).toContain(
+      "COALESCE(NULLIF(participant.nickname_snapshot, ''), player.ingame_name) AS nickname",
     );
-    expect(extraQuery).not.toContain(
-      "participant.nickname_snapshot, player.ingame_name",
+    expect(publicRoute).toContain(
+      "COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id",
+    );
+    expect(publicRoute).toContain(
+      "COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url) AS avatar_url",
+    );
+    expect(extraQuery).toContain(
+      "COALESCE(NULLIF(season_player.nickname_snapshot, ''), player.ingame_name) AS nickname",
+    );
+    expect(extraQuery).toContain(
+      "COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id",
     );
     expect(seasonModel).toContain("dotaId: string");
     expect(rounds.match(/PlayerProfileLink/g)?.length).toBeGreaterThanOrEqual(4);

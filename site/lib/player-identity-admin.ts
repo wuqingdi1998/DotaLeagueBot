@@ -293,6 +293,74 @@ export async function linkArchiveIdentity(
   });
 }
 
+export async function unlinkArchiveProfile(
+  archivePlayerId: string,
+  actorDiscordId: string,
+) {
+  if (!/^-?\d+$/.test(archivePlayerId.trim())) {
+    throw new Response("Архивный профиль не найден", { status: 404 });
+  }
+  return transaction(async (client) => {
+    const linked = await client.query<{
+      identity_id: string;
+      nickname: string;
+    }>(
+      `SELECT
+         member.identity_id::text,
+         archived.ingame_name AS nickname
+       FROM players archived
+       JOIN player_identity_members member
+         ON member.player_id = archived.discord_id
+       JOIN player_identities identity
+         ON identity.id = member.identity_id
+       WHERE archived.discord_id = $1
+         AND archived.is_archived = TRUE
+         AND identity.registered_player_id IS NOT NULL
+       FOR UPDATE OF archived, member, identity`,
+      [archivePlayerId],
+    );
+    if (!linked.rows[0]) {
+      throw new Response("Связанный архивный профиль не найден", {
+        status: 404,
+      });
+    }
+
+    const previousIdentityId = linked.rows[0].identity_id;
+    const created = await client.query<{ id: string }>(
+      `INSERT INTO player_identities(primary_nickname, registered_player_id)
+       VALUES ($1, NULL)
+       RETURNING id::text`,
+      [linked.rows[0].nickname],
+    );
+    const identityId = created.rows[0].id;
+    await client.query(
+      `UPDATE player_identity_members
+       SET identity_id = $1
+       WHERE player_id = $2
+         AND identity_id = $3`,
+      [identityId, archivePlayerId, previousIdentityId],
+    );
+    await client.query(
+      `UPDATE player_identities
+       SET updated_at = NOW()
+       WHERE id = $1`,
+      [previousIdentityId],
+    );
+    await audit(
+      client,
+      actorDiscordId,
+      "archive_identity_unlink",
+      identityId,
+      {
+        archivePlayerId,
+        previousIdentityId,
+        nickname: linked.rows[0].nickname,
+      },
+    );
+    return { identityId, nickname: linked.rows[0].nickname };
+  });
+}
+
 export async function loadArchiveIdentityProfile(
   identityId: string,
 ): Promise<ArchiveIdentityProfile | null> {

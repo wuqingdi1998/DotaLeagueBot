@@ -177,18 +177,25 @@ export async function GET(request: Request) {
       ),
       query<ParticipantRow>(
       `SELECT participant.match_id::int, participant.player_id::text,
-           player.steam_id32::text AS dota_id,
-           player.ingame_name AS nickname,
-           player.avatar_url,
+           COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
+           COALESCE(NULLIF(participant.nickname_snapshot, ''), player.ingame_name) AS nickname,
+           COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url) AS avatar_url,
            participant.team_side, participant.is_captain,
            participant.tier_snapshot::int
          FROM season_match_participants participant
          JOIN players player ON player.discord_id = participant.player_id
+         LEFT JOIN player_identity_members identity_member
+           ON identity_member.player_id = participant.player_id
+         LEFT JOIN player_identities identity
+           ON identity.id = identity_member.identity_id
+         LEFT JOIN players current_player
+           ON current_player.discord_id = identity.registered_player_id
+          AND current_player.is_archived = FALSE
          JOIN season_matches match ON match.id = participant.match_id
          JOIN season_lobbies lobby ON lobby.id = match.lobby_id
          JOIN season_rounds round ON round.id = lobby.round_id
          WHERE round.tournament_id = $1 ${visibility} ${matchVisibility}
-         ORDER BY participant.match_id, participant.team_side, player.ingame_name`,
+         ORDER BY participant.match_id, participant.team_side, nickname`,
         [tournament.id],
       ),
       query<GameRow>(
@@ -206,13 +213,21 @@ export async function GET(request: Request) {
       ),
       query<SeasonPlayerRow>(
         `SELECT player.discord_id::text,
-           player.steam_id32::text AS dota_id,
-           player.ingame_name AS nickname,
-           player.avatar_url, participant.standings_section,
+           COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
+           COALESCE(NULLIF(participant.nickname_snapshot, ''), player.ingame_name) AS nickname,
+           COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url) AS avatar_url,
+           participant.standings_section,
            participant.inactive_reason, participant.rank_snapshot::int,
            participant.standings_snapshot
          FROM season_participants participant
          JOIN players player ON player.discord_id = participant.player_id
+         LEFT JOIN player_identity_members identity_member
+           ON identity_member.player_id = participant.player_id
+         LEFT JOIN player_identities identity
+           ON identity.id = identity_member.identity_id
+         LEFT JOIN players current_player
+           ON current_player.discord_id = identity.registered_player_id
+          AND current_player.is_archived = FALSE
          WHERE participant.tournament_id = $1
            ${isOrganizer ? "" : `AND (
              participant.standings_snapshot IS NOT NULL
@@ -260,7 +275,7 @@ export async function GET(request: Request) {
                  AND finals_round.is_visible = TRUE
              )
            )`}
-         ORDER BY player.ingame_name`,
+         ORDER BY nickname`,
         [tournament.id],
       ),
       loadSeasonExtras(tournament.id, isOrganizer),

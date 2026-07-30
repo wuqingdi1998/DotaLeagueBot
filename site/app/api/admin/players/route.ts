@@ -3,6 +3,7 @@ import {
   linkArchiveIdentity,
   mergeArchiveIdentities,
   renameArchiveIdentity,
+  unlinkArchiveProfile,
   updateParticipantTier,
 } from "@/lib/player-identity-admin";
 import {
@@ -66,6 +67,10 @@ export async function POST(request: Request) {
             body.targetPlayerId ?? "",
             admin.discordId,
           ),
+        );
+      case "unlink-archive":
+        return Response.json(
+          await unlinkArchiveProfile(body.playerId ?? "", admin.discordId),
         );
       default:
         return Response.json({ error: "Неизвестное действие" }, { status: 400 });
