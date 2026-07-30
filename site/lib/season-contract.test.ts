@@ -334,6 +334,9 @@ describe("season interface contract", () => {
 
   it("keeps and displays the tier recorded for each round appearance", () => {
     expect(publicRoute).toContain("participant.tier_snapshot::int");
+    expect(publicRoute).toContain(
+      "participant.tier_snapshot DESC NULLS LAST, nickname",
+    );
     expect(rounds).toContain("player.tier_snapshot");
     expect(rounds).toContain('className="player-tier"');
     expect(rounds).toContain("Сумма тиров");

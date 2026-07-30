@@ -195,7 +195,8 @@ export async function GET(request: Request) {
          JOIN season_lobbies lobby ON lobby.id = match.lobby_id
          JOIN season_rounds round ON round.id = lobby.round_id
          WHERE round.tournament_id = $1 ${visibility} ${matchVisibility}
-         ORDER BY participant.match_id, participant.team_side, nickname`,
+         ORDER BY participant.match_id, participant.team_side,
+           participant.tier_snapshot DESC NULLS LAST, nickname`,
         [tournament.id],
       ),
       query<GameRow>(
