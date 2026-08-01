@@ -1,0 +1,140 @@
+.tournament-delete-panel {
+  align-items: center;
+  background:
+    linear-gradient(135deg, rgba(216, 75, 96, 0.08), transparent),
+    var(--surface-soft);
+  border: 1px solid rgba(216, 75, 96, 0.38);
+  border-radius: 22px;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+  padding: 24px;
+}
+
+.tournament-delete-panel h3 {
+  font-size: 1.25rem;
+  margin: 4px 0 8px;
+}
+
+.tournament-delete-panel p:last-child {
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0;
+  max-width: 760px;
+}
+
+.tournament-delete-button,
+.tournament-delete-confirm {
+  align-items: center;
+  background: #c53f56;
+  border: 0;
+  border-radius: 12px;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font: inherit;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+}
+
+.tournament-delete-button:hover,
+.tournament-delete-confirm:hover {
+  background: #a92f45;
+}
+
+.tournament-delete-dialog {
+  text-align: left;
+  width: min(100%, 560px);
+}
+
+.tournament-delete-dialog-icon {
+  color: #d84b60;
+  font-size: 42px;
+  margin-bottom: 18px;
+}
+
+.tournament-delete-dialog h2 {
+  font-size: clamp(28px, 5vw, 42px);
+  overflow-wrap: anywhere;
+  text-transform: none;
+}
+
+.tournament-delete-warning {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 18px 0 24px;
+}
+
+.tournament-delete-dialog form,
+.tournament-delete-dialog label {
+  display: grid;
+  gap: 9px;
+}
+
+.tournament-delete-dialog label > span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.tournament-delete-dialog input {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  color: var(--text);
+  font: inherit;
+  min-height: 50px;
+  padding: 0 14px;
+}
+
+.tournament-delete-dialog input:focus {
+  border-color: #d84b60;
+  box-shadow: 0 0 0 3px rgba(216, 75, 96, 0.14);
+  outline: 0;
+}
+
+.tournament-delete-error {
+  color: #d84b60;
+  font-size: 14px;
+  margin: 0;
+}
+
+.tournament-delete-dialog-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+}
+
+.tournament-delete-dialog-actions .secondary-button {
+  justify-content: center;
+}
+
+.tournament-delete-button:disabled,
+.tournament-delete-confirm:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+@media (max-width: 700px) {
+  .tournament-delete-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tournament-delete-button {
+    width: 100%;
+  }
+
+  .tournament-delete-dialog-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .tournament-delete-dialog-actions button {
+    width: 100%;
+  }
+}
