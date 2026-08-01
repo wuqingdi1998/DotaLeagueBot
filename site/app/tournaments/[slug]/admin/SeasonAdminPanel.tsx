@@ -192,7 +192,10 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
           </label>
         </div>
         <div className="season-admin-actions">
-          <button className="secondary-button" onClick={() => void save()}>
+          <button
+            className="secondary-button tournament-save-button"
+            onClick={() => void save()}
+          >
             Сохранить тур
           </button>
           <button
@@ -283,7 +286,10 @@ function SeasonLobbyAdmin({ lobby }: { lobby: SeasonLobby }) {
         </label>
       </div>
       <div className="season-admin-actions">
-        <button className="secondary-button" onClick={() => void save()}>
+        <button
+          className="secondary-button tournament-save-button"
+          onClick={() => void save()}
+        >
           Сохранить лобби
         </button>
         <button className="secondary-button" onClick={() => void addMatch()}>

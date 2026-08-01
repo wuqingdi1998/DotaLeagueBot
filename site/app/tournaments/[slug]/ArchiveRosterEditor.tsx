@@ -230,7 +230,11 @@ export function ArchiveRosterEditor({
         ))}
       </div>
       <div className="archive-roster-actions">
-        <button type="submit" disabled={saving}>
+        <button
+          className={team ? "tournament-save-button" : undefined}
+          type="submit"
+          disabled={saving}
+        >
           {saving
             ? "Сохраняем…"
             : team

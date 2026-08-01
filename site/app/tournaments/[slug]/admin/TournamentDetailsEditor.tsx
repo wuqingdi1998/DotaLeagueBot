@@ -68,7 +68,7 @@ export function TournamentDetailsEditor({
           <h3>Основная информация</h3>
         </div>
         <button
-          className="primary-button compact"
+          className="primary-button compact tournament-save-button"
           type="submit"
           disabled={saving}
         >

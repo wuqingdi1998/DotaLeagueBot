@@ -121,7 +121,7 @@ export function SeasonFactsEditor({
           </p>
         </div>
         <button
-          className="primary-button compact"
+          className="primary-button compact tournament-save-button"
           type="button"
           disabled={saving}
           onClick={() => void save()}

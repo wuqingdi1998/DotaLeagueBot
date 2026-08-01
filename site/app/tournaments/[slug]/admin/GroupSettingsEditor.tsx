@@ -147,7 +147,11 @@ export function GroupSettingsEditor({
             Удалить пояснение
           </button>
         )}
-        <button type="submit" disabled={saving}>
+        <button
+          className="tournament-save-button"
+          type="submit"
+          disabled={saving}
+        >
           {saving ? "Сохраняем…" : "Сохранить группу"}
         </button>
       </div>

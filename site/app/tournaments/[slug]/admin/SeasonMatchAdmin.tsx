@@ -282,7 +282,7 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
         </div>
         <div className="season-admin-actions">
           <button
-            className="secondary-button"
+            className="secondary-button tournament-save-button"
             type="button"
             disabled={isSaving}
             aria-busy={isSaving}
@@ -399,7 +399,10 @@ function SeasonGameAdmin({ game }: { game: SeasonGame }) {
         </select>
       </label>
       <div>
-        <button className="secondary-button" onClick={() => void save()}>
+        <button
+          className="secondary-button tournament-save-button"
+          onClick={() => void save()}
+        >
           Сохранить
         </button>
         <button className="danger-button" onClick={() => void remove()}>

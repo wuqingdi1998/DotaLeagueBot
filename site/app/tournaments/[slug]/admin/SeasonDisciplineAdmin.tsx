@@ -214,7 +214,11 @@ export function SeasonDisciplineAdmin() {
               onChange={(event) => setPenaltyNote(event.target.value)}
             />
           </label>
-          <button className="secondary-button" type="button" onClick={() => void savePenalty()}>
+          <button
+            className="secondary-button tournament-save-button"
+            type="button"
+            onClick={() => void savePenalty()}
+          >
             Сохранить штраф
           </button>
         </div>

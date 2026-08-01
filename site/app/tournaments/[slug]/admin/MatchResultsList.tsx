@@ -75,7 +75,9 @@ export function MatchResultsList() {
                   />
                 </label>
                 <div className="match-result-actions">
-                  <button type="submit">Сохранить изменения</button>
+                  <button className="tournament-save-button" type="submit">
+                    Сохранить изменения
+                  </button>
                   <button
                     className="danger"
                     type="button"

@@ -1,0 +1,31 @@
+/* Save actions inside tournament management */
+
+.admin-panel button.tournament-save-button {
+  border-color: #16b85f;
+  background: #16b85f;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(11, 126, 62, 0.24);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 80ms ease;
+}
+
+.admin-panel button.tournament-save-button:hover:not(:disabled) {
+  border-color: #109c50;
+  background: #109c50;
+  box-shadow: 0 9px 20px rgba(8, 111, 53, 0.3);
+}
+
+.admin-panel button.tournament-save-button:active:not(:disabled) {
+  border-color: #08743a;
+  background: #08743a;
+  box-shadow: inset 0 3px 7px rgba(0, 45, 21, 0.32);
+  transform: translateY(1px);
+}
+
+.admin-panel button.tournament-save-button:focus-visible {
+  outline: 3px solid rgba(22, 184, 95, 0.34);
+  outline-offset: 3px;
+}

@@ -92,7 +92,9 @@ export function TeamResultsAdmin() {
                 placeholder="Например: Чемпион"
               />
             </label>
-            <button type="submit">Сохранить</button>
+            <button className="tournament-save-button" type="submit">
+              Сохранить
+            </button>
           </form>
         ))}
         {!approvedTeams.length && (

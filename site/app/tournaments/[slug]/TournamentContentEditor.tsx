@@ -156,7 +156,11 @@ export function TournamentContentEditor({
             менять местами.
           </p>
         </div>
-        <button type="submit" disabled={saving}>
+        <button
+          className="tournament-save-button"
+          type="submit"
+          disabled={saving}
+        >
           <FiSave aria-hidden="true" />
           {saving ? "Сохраняем…" : "Сохранить"}
         </button>
