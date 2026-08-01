@@ -20,6 +20,10 @@ function compareTier(
   return order === "desc" ? rightTier - leftTier : leftTier - rightTier;
 }
 
+function tierStatusPriority(player: ParticipantDirectoryPlayer) {
+  return player.tierStatus === "current" ? 0 : 1;
+}
+
 function rolePriority(player: ParticipantDirectoryPlayer, role: number | null) {
   if (!role) return 0;
   if (player.primaryRole === role) return 0;
@@ -52,8 +56,15 @@ export function filterParticipantDirectory(
         player.primaryRole === filters.role ||
         player.secondaryRole === filters.role,
     )
-    .filter((player) => !filters.tier || player.tier === filters.tier)
+    .filter(
+      (player) =>
+        !filters.tier ||
+        (player.tierStatus === "current" && player.tier === filters.tier),
+    )
     .sort((left, right) => {
+      const tierStatusDifference =
+        tierStatusPriority(left) - tierStatusPriority(right);
+      if (tierStatusDifference) return tierStatusDifference;
       const roleDifference =
         rolePriority(left, filters.role) -
         rolePriority(right, filters.role);

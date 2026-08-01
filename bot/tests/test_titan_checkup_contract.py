@@ -45,3 +45,12 @@ def test_ready_flow_accepts_only_images_for_five_minutes() -> None:
     assert "attachment.content_type" in COG
     assert "content_type.startswith(\"image/\")" in COG
     assert "1533127829066092715" in COG
+
+
+def test_ignored_checkup_becomes_later_after_twenty_four_hours() -> None:
+    assert "CHECKUP_RESPONSE_TIMEOUT_SECONDS = 24 * 60 * 60" in COG
+    assert 'IGNORED_MESSAGE = "Актуализация не пройдена!"' in COG
+    assert "requests_awaiting_response" in SERVICE
+    assert "expire_ignored_request" in SERVICE
+    assert "request.status = 'sent'" in SERVICE
+    assert "SET status = 'later'" in SERVICE

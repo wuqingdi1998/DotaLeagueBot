@@ -10,6 +10,7 @@ function player(
   tier: number,
   primaryRole: number,
   secondaryRole: number,
+  tierStatus: ParticipantDirectoryPlayer["tierStatus"] = "current",
 ): ParticipantDirectoryPlayer {
   return {
     kind: "registered",
@@ -23,7 +24,7 @@ function player(
     primaryRole,
     secondaryRole,
     tier,
-    tierStatus: "current",
+    tierStatus,
     links: {
       dotabuff: "#",
       stratz: "#",
@@ -73,6 +74,32 @@ describe("participant directory filters", () => {
         tierOrder: "asc",
       }).map(({ tier }) => tier),
     ).toEqual([1, 6, 12]);
+  });
+
+  it("always places outdated tiers last and excludes them from tier filters", () => {
+    const players = [
+      player("outdated-12", 12, 1, 2, "outdated"),
+      player("current-6", 6, 2, 1),
+      player("current-1", 1, 1, 2),
+    ];
+    expect(
+      filterParticipantDirectory(players, defaultFilters).map(
+        ({ nickname }) => nickname,
+      ),
+    ).toEqual(["current-6", "current-1", "outdated-12"]);
+    expect(
+      filterParticipantDirectory(players, {
+        ...defaultFilters,
+        tierOrder: "asc",
+        role: 1,
+      }).map(({ nickname }) => nickname),
+    ).toEqual(["current-1", "current-6", "outdated-12"]);
+    expect(
+      filterParticipantDirectory(players, {
+        ...defaultFilters,
+        tier: 12,
+      }),
+    ).toEqual([]);
   });
 
   it("switches from registered players to archive identities", () => {
