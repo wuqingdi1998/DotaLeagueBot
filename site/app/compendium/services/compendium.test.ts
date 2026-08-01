@@ -10,6 +10,8 @@ const mocks = vi.hoisted(() => ({
   consumeCheckAllowance: vi.fn(),
   recordQuestCompletion: vi.fn(),
   fetchRecentPlayerMatches: vi.fn(),
+  dailyRerollsRemaining: vi.fn(),
+  recordDailyQuestReroll: vi.fn(),
 }));
 
 vi.mock("./repository", () => ({
@@ -26,12 +28,17 @@ vi.mock("./opendota", () => ({
   fetchRecentPlayerMatches: mocks.fetchRecentPlayerMatches,
 }));
 
+vi.mock("./reroll-repository", () => ({
+  dailyRerollsRemaining: mocks.dailyRerollsRemaining,
+  recordDailyQuestReroll: mocks.recordDailyQuestReroll,
+}));
+
 vi.mock("@/lib/player-profile", () => ({
   normalizeDotaAccountId: (value: string) =>
     /^\d+$/.test(value) ? value : null,
 }));
 
-import { checkDailyQuest } from "./compendium";
+import { checkDailyQuest, rerollDailyQuest } from "./compendium";
 
 const user = {
   discordId: "100",
@@ -57,6 +64,7 @@ beforeEach(() => {
   mocks.existingCompletion.mockResolvedValue(null);
   mocks.consumeCheckAllowance.mockResolvedValue(true);
   mocks.totalCompendiumStars.mockResolvedValue(1);
+  mocks.dailyRerollsRemaining.mockResolvedValue(1);
 });
 
 describe("protected quest checks", () => {
@@ -73,6 +81,18 @@ describe("protected quest checks", () => {
       code: "STALE_QUEST",
     });
     expect(mocks.existingCompletion).not.toHaveBeenCalled();
+  });
+
+  it("checks the user's replacement heroes instead of the shared card", async () => {
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([]);
+    await expect(checkDailyQuest(user, "1")).rejects.toMatchObject({
+      code: "NO_MATCH",
+    });
+    expect(mocks.questForCurrentDay).toHaveBeenCalledWith(
+      "1",
+      expect.any(String),
+      user.discordId,
+    );
   });
 
   it("returns an existing completion without another OpenDota request or reward", async () => {
@@ -102,5 +122,36 @@ describe("protected quest checks", () => {
       code: "RATE_LIMITED",
     });
     expect(mocks.fetchRecentPlayerMatches).not.toHaveBeenCalled();
+  });
+});
+
+describe("daily reroll", () => {
+  it("replaces only the selected quest and spends today's reroll", async () => {
+    const replacementQuest = {
+      id: "2",
+      position: 2,
+      heroes: [],
+      completion: null,
+    };
+    mocks.loadDailyQuests.mockResolvedValue([replacementQuest]);
+
+    await expect(rerollDailyQuest(user, "2")).resolves.toEqual({
+      quest: replacementQuest,
+      rerollsRemaining: 0,
+    });
+    expect(mocks.recordDailyQuestReroll).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      questId: "2",
+      dateKey: expect.any(String),
+    });
+  });
+
+  it("keeps a used reroll rejected by the persistent daily limit", async () => {
+    mocks.recordDailyQuestReroll.mockRejectedValue(
+      new CompendiumError("REROLL_USED", "used"),
+    );
+    await expect(rerollDailyQuest(user, "2")).rejects.toMatchObject({
+      code: "REROLL_USED",
+    });
   });
 });

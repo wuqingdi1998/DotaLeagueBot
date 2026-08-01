@@ -19,11 +19,31 @@ import {
   recordQuestCompletion,
   totalCompendiumStars,
 } from "./repository";
+import {
+  dailyRerollsRemaining,
+  recordDailyQuestReroll,
+} from "./reroll-repository";
 
 export type CheckQuestResult = {
   completion: QuestCompletion;
   totalStars: number;
 };
+
+export type RerollQuestResult = {
+  quest: CompendiumData["quests"][number];
+  rerollsRemaining: number;
+};
+
+function requireDotaId(user: AuthUser): string {
+  const dotaId = normalizeDotaAccountId(user.dotaId);
+  if (!dotaId) {
+    throw new CompendiumError(
+      "MISSING_DOTA_ID",
+      "Сначала привяжите Dota ID в профиле участника",
+    );
+  }
+  return dotaId;
+}
 
 export async function loadCompendium(
   user: AuthUser,
@@ -31,15 +51,17 @@ export async function loadCompendium(
 ): Promise<CompendiumData> {
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
-  const [quests, totalStars] = await Promise.all([
+  const [quests, totalStars, rerollsRemaining] = await Promise.all([
     loadDailyQuests(day.dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
+    dailyRerollsRemaining(day.dateKey, user.discordId),
   ]);
   return {
     moscowDate: day.dateKey,
     moscowDateLabel: moscowDateLabel(day.dateKey),
     nextResetAt: day.end.toISOString(),
     tournamentStartsAt: COMPENDIUM_TOURNAMENT_START_AT,
+    rerollsRemaining,
     totalStars,
     hasDotaId: normalizeDotaAccountId(user.dotaId) !== null,
     quests,
@@ -51,17 +73,15 @@ export async function checkDailyQuest(
   questId: string,
   now: Date = new Date(),
 ): Promise<CheckQuestResult> {
-  const dotaId = normalizeDotaAccountId(user.dotaId);
-  if (!dotaId) {
-    throw new CompendiumError(
-      "MISSING_DOTA_ID",
-      "Сначала привяжите Dota ID в профиле участника",
-    );
-  }
+  const dotaId = requireDotaId(user);
 
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
-  const quest = await questForCurrentDay(questId, day.dateKey);
+  const quest = await questForCurrentDay(
+    questId,
+    day.dateKey,
+    user.discordId,
+  );
   if (!quest) {
     throw new CompendiumError("STALE_QUEST", "Задание больше не действует");
   }
@@ -123,4 +143,25 @@ export async function checkDailyQuest(
     completion,
     totalStars: await totalCompendiumStars(user.discordId),
   };
+}
+
+export async function rerollDailyQuest(
+  user: AuthUser,
+  questId: string,
+  now: Date = new Date(),
+): Promise<RerollQuestResult> {
+  requireDotaId(user);
+  const day = currentMoscowDay(now);
+  await ensureDailyQuestSet(day.dateKey);
+  await recordDailyQuestReroll({
+    playerId: user.discordId,
+    questId,
+    dateKey: day.dateKey,
+  });
+  const quests = await loadDailyQuests(day.dateKey, user.discordId);
+  const quest = quests.find((item) => item.id === questId);
+  if (!quest) {
+    throw new CompendiumError("STALE_QUEST", "Задание больше не действует");
+  }
+  return { quest, rerollsRemaining: 0 };
 }

@@ -1,0 +1,23 @@
+import { CompendiumError } from "@/app/compendium/model/errors";
+import { responseFromAuthError } from "@/lib/auth";
+
+const compendiumErrorStatuses = {
+  MISSING_DOTA_ID: 409,
+  QUEST_NOT_FOUND: 404,
+  STALE_QUEST: 409,
+  NO_MATCH: 404,
+  OPEN_DOTA_UNAVAILABLE: 503,
+  RATE_LIMITED: 429,
+  REROLL_USED: 409,
+  QUEST_COMPLETED: 409,
+} as const;
+
+export function responseFromCompendiumError(error: unknown): Response {
+  if (error instanceof CompendiumError) {
+    return Response.json(
+      { error: error.message, code: error.code },
+      { status: compendiumErrorStatuses[error.code] },
+    );
+  }
+  return responseFromAuthError(error);
+}

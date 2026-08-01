@@ -4,6 +4,7 @@ export const DAILY_QUEST_COUNT = 3;
 export const HEROES_PER_QUEST = 4;
 export const DAILY_HERO_COUNT = DAILY_QUEST_COUNT * HEROES_PER_QUEST;
 export const QUEST_REWARD_STARS = 1;
+export const DAILY_REROLL_COUNT = 1;
 export const OPEN_DOTA_CACHE_TTL_MS = 45_000;
 export const CHECK_RATE_WINDOW_SECONDS = 60;
 export const CHECK_RATE_LIMIT = 8;

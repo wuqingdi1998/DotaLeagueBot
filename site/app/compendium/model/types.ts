@@ -23,6 +23,7 @@ export type CompendiumData = {
   moscowDateLabel: string;
   nextResetAt: string;
   tournamentStartsAt: string;
+  rerollsRemaining: number;
   totalStars: number;
   hasDotaId: boolean;
   quests: DailyQuest[];

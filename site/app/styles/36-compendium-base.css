@@ -25,6 +25,7 @@
 .compendium-base-link:focus-visible,
 .compendium-base-back:focus-visible,
 .compendium-base-match-link:focus-visible,
+.compendium-base-player-name small a:focus-visible,
 .compendium-base-participant summary:focus-visible {
   outline: 3px solid rgba(0, 195, 255, 0.4);
   outline-offset: 3px;
@@ -179,6 +180,7 @@
 }
 
 .compendium-base-avatar {
+  overflow: hidden;
   display: grid;
   width: 44px;
   height: 44px;
@@ -187,6 +189,12 @@
   background: linear-gradient(135deg, #0d9fc6, #2456a6);
   color: #fff;
   font-weight: 600;
+}
+
+.compendium-base-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .compendium-base-player-name {
@@ -205,6 +213,21 @@
 .compendium-base-history-count {
   color: var(--quiet);
   font-size: 12px;
+}
+
+.compendium-base-player-name small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compendium-base-player-name small a {
+  color: var(--blue-strong);
+  font-weight: 600;
+}
+
+.compendium-base-player-name small a:hover {
+  text-decoration: underline;
 }
 
 .compendium-base-stars {
@@ -384,10 +407,6 @@
 }
 
 @media (max-width: 430px) {
-  .compendium-base-player-name small {
-    display: none;
-  }
-
   .compendium-base-reward-heading {
     align-items: flex-start;
   }

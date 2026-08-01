@@ -4,7 +4,9 @@ export type CompendiumErrorCode =
   | "STALE_QUEST"
   | "NO_MATCH"
   | "OPEN_DOTA_UNAVAILABLE"
-  | "RATE_LIMITED";
+  | "RATE_LIMITED"
+  | "REROLL_USED"
+  | "QUEST_COMPLETED";
 
 export class CompendiumError extends Error {
   constructor(

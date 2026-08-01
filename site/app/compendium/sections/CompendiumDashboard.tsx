@@ -9,11 +9,12 @@ import { FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentCountdownLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
+import { DailyRerollNotice } from "../components/DailyRerollNotice";
 import { QuestCard } from "../components/QuestCard";
 
 function countdownLabel(nextResetAt: string): string {
   const remaining = Math.max(0, new Date(nextResetAt).getTime() - Date.now());
-  const totalSeconds = Math.floor(remaining / 1_000);
+  const totalSeconds = Math.ceil(remaining / 1_000);
   const hours = Math.floor(totalSeconds / 3_600);
   const minutes = Math.floor((totalSeconds % 3_600) / 60);
   const seconds = totalSeconds % 60;
@@ -30,6 +31,7 @@ export function CompendiumDashboard({
   const router = useRouter();
   const [data, setData] = useState(initialData);
   const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
+  const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [countdown, setCountdown] = useState(() => countdownLabel(data.nextResetAt));
   const [tournamentCountdown, setTournamentCountdown] = useState(() =>
@@ -58,7 +60,7 @@ export function CompendiumDashboard({
   }, [toast]);
 
   async function checkQuest(questId: string) {
-    if (checkingQuestId) return;
+    if (checkingQuestId || rerollingQuestId) return;
     setCheckingQuestId(questId);
     try {
       const response = await fetch(
@@ -93,6 +95,43 @@ export function CompendiumDashboard({
       setToast(error instanceof Error ? error.message : "Не удалось проверить задание");
     } finally {
       setCheckingQuestId(null);
+    }
+  }
+
+  async function rerollQuest(questId: string) {
+    if (checkingQuestId || rerollingQuestId || data.rerollsRemaining < 1) return;
+    setRerollingQuestId(questId);
+    try {
+      const response = await fetch(
+        `/api/compendium/daily-quests/${questId}/reroll`,
+        { method: "POST" },
+      );
+      const result = (await response.json()) as {
+        error?: string;
+        code?: string;
+        quest?: CompendiumData["quests"][number];
+        rerollsRemaining?: number;
+      };
+      if (!response.ok || !result.quest) {
+        if (result.code === "STALE_QUEST") {
+          setToast(STALE_QUEST_MESSAGE);
+          router.refresh();
+          return;
+        }
+        throw new Error(result.error ?? "Не удалось заменить задание");
+      }
+      setData((current) => ({
+        ...current,
+        rerollsRemaining: result.rerollsRemaining ?? 0,
+        quests: current.quests.map((quest) =>
+          quest.id === questId ? result.quest ?? quest : quest,
+        ),
+      }));
+      setToast("Задание заменено. Рероллов на сегодня не осталось.");
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Не удалось заменить задание");
+    } finally {
+      setRerollingQuestId(null);
     }
   }
 
@@ -165,14 +204,23 @@ export function CompendiumDashboard({
               <p><FiRefreshCw aria-hidden="true" /> Три задания · до трёх звёзд</p>
             </div>
           </div>
+          <DailyRerollNotice remaining={data.rerollsRemaining} />
           <div className="compendium-quest-grid">
             {data.quests.map((quest) => (
               <QuestCard
                 key={quest.id}
                 quest={quest}
                 isChecking={checkingQuestId === quest.id}
-                canCheck={checkingQuestId === null}
+                isRerolling={rerollingQuestId === quest.id}
+                canCheck={checkingQuestId === null && rerollingQuestId === null}
+                hasReroll={data.rerollsRemaining > 0}
+                canReroll={
+                  data.rerollsRemaining > 0 &&
+                  checkingQuestId === null &&
+                  rerollingQuestId === null
+                }
                 onCheck={checkQuest}
+                onReroll={rerollQuest}
               />
             ))}
           </div>

@@ -4,6 +4,7 @@ export type CompendiumAdminSourceRow = {
   player_id: string;
   player_name: string;
   dota_id: string;
+  avatar_url: string | null;
   total_stars: number;
   completion_id: string | null;
   moscow_date: string | null;
@@ -32,6 +33,7 @@ export type CompendiumAdminParticipant = {
   discordId: string;
   dotaId: string;
   playerName: string;
+  avatarUrl: string | null;
   totalStars: number;
   rewards: CompendiumRewardHistory[];
 };

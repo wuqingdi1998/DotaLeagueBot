@@ -5,7 +5,10 @@ import {
 } from "./constants";
 import { COMPENDIUM_HEROES } from "./heroes";
 import { findMatchingWin, matchEndedAt } from "./matches";
-import { generateDailyQuestHeroes } from "./quests";
+import {
+  generateDailyQuestHeroes,
+  generateRerollQuestHeroes,
+} from "./quests";
 import {
   currentMoscowDay,
   moscowDateKey,
@@ -65,6 +68,28 @@ describe("daily compendium quest generation", () => {
 
   it("rejects a catalog that is too small", () => {
     expect(() => generateDailyQuestHeroes(COMPENDIUM_HEROES.slice(0, 11))).toThrow();
+  });
+});
+
+describe("daily quest reroll", () => {
+  it("creates four different heroes outside the original daily set", () => {
+    const originalHeroIds = COMPENDIUM_HEROES.slice(0, 12).map((hero) => hero.id);
+    const replacement = generateRerollQuestHeroes(
+      originalHeroIds,
+      COMPENDIUM_HEROES,
+      () => 0.42,
+    );
+
+    expect(replacement).toHaveLength(4);
+    expect(new Set(replacement.map((hero) => hero.id))).toHaveLength(4);
+    expect(
+      replacement.every((hero) => !originalHeroIds.includes(hero.id)),
+    ).toBe(true);
+    expect(replacement.map((hero) => hero.name)).toEqual(
+      replacement.map((hero) => hero.name).sort((left, right) =>
+        left.localeCompare(right, "en"),
+      ),
+    );
   });
 });
 

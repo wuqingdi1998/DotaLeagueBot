@@ -1,6 +1,6 @@
-import { requireSession } from "@/lib/auth";
-import { checkDailyQuest } from "@/app/compendium/services/compendium";
 import { responseFromCompendiumError } from "@/app/api/compendium/compendium-error-response";
+import { rerollDailyQuest } from "@/app/compendium/services/compendium";
+import { requireSession } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export async function POST(
     }
     return Response.json({
       ok: true,
-      ...(await checkDailyQuest(user, questId)),
+      ...(await rerollDailyQuest(user, questId)),
     });
   } catch (error) {
     return responseFromCompendiumError(error);

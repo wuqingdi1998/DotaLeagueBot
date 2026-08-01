@@ -20,6 +20,7 @@ export function buildCompendiumAdminParticipants(
       discordId: row.player_id,
       dotaId: row.dota_id,
       playerName: row.player_name,
+      avatarUrl: row.avatar_url,
       totalStars: row.total_stars,
       rewards: [],
     };

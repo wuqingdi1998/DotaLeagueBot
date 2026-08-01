@@ -6,6 +6,9 @@ function source(path: string) {
 }
 
 const migration = source("../../bot/database/migrations/0039_compendium.sql");
+const rerollMigration = source(
+  "../../bot/database/migrations/0040_compendium_daily_rerolls.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
@@ -15,6 +18,13 @@ const headingCss = source("../app/styles/35-compendium-heading.css");
 const basePage = source("../app/compendium/base/page.tsx");
 const baseRepository = source("../app/compendium/admin/repository.ts");
 const baseView = source("../app/compendium/admin/CompendiumBase.tsx");
+const rerollRoute = source(
+  "../app/api/compendium/daily-quests/[questId]/reroll/route.ts",
+);
+const rerollRepository = source(
+  "../app/compendium/services/reroll-repository.ts",
+);
+const questCard = source("../app/compendium/components/QuestCard.tsx");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -32,7 +42,7 @@ describe("compendium persistence and security contract", () => {
 
   it("serializes parallel completion requests", () => {
     expect(repository).toContain("pg_advisory_xact_lock");
-    expect(repository).toContain("compendium-completion:");
+    expect(repository).toContain("compendium-quest-mutation:");
   });
 
   it("checks the active Moscow date inside the reward transaction", () => {
@@ -93,5 +103,41 @@ describe("compendium persistence and security contract", () => {
     expect(baseRepository).toContain("compendium_daily_quest_heroes");
     expect(baseView).toContain("reward.heroes.map");
     expect(baseView).toContain("hero.id === reward.matchedHeroId");
+  });
+
+  it("shows participant avatars and links Dota IDs to site profiles", () => {
+    expect(baseRepository).toContain("player.avatar_url");
+    expect(baseRepository).toContain("latest_session.discord_avatar_url");
+    expect(baseView).toContain("participant.avatarUrl");
+    expect(baseView).toContain("`/players/${participant.dotaId}`");
+  });
+
+  it("stores at most one reroll per player and Moscow daily set", () => {
+    expect(rerollMigration).toContain("UNIQUE (player_id, quest_set_id)");
+    expect(rerollMigration).toContain("position BETWEEN 1 AND 4");
+    expect(rerollRepository).toContain("pg_advisory_xact_lock");
+    expect(rerollRepository).toContain(
+      "CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow'",
+    );
+  });
+
+  it("identifies the reroll owner from the session and updates one card", () => {
+    expect(rerollRoute).toContain("const user = await requireSession()");
+    expect(rerollRoute).not.toContain("userId");
+    expect(dashboard).toContain("rerollsRemaining");
+    expect(dashboard).toContain("quest.id === questId");
+    expect(questCard).toContain("compendium-reroll-button");
+  });
+
+  it("checks and reports the player's rerolled four-hero card", () => {
+    expect(repository).toContain("compendium_user_quest_reroll_heroes");
+    expect(repository).toContain("reroll.player_id = $3");
+    expect(repository).toContain(
+      "`compendium-quest-mutation:${input.playerId}:${input.questId}`",
+    );
+    expect(rerollRepository).toContain(
+      "`compendium-quest-mutation:${input.playerId}:${input.questId}`",
+    );
+    expect(baseRepository).toContain("compendium_user_quest_reroll_heroes");
   });
 });

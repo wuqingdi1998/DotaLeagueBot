@@ -96,7 +96,21 @@ export async function loadDailyQuests(
        completion.completed_at
      FROM compendium_daily_quest_sets quest_set
      JOIN compendium_daily_quests quest ON quest.quest_set_id = quest_set.id
-     JOIN compendium_daily_quest_heroes hero ON hero.daily_quest_id = quest.id
+     JOIN LATERAL (
+       SELECT reroll_hero.hero_id, reroll_hero.position
+       FROM compendium_user_quest_rerolls reroll
+       JOIN compendium_user_quest_reroll_heroes reroll_hero
+         ON reroll_hero.reroll_id = reroll.id
+       WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $2
+       UNION ALL
+       SELECT original_hero.hero_id, original_hero.position
+       FROM compendium_daily_quest_heroes original_hero
+       WHERE original_hero.daily_quest_id = quest.id
+         AND NOT EXISTS (
+           SELECT 1 FROM compendium_user_quest_rerolls reroll
+           WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $2
+         )
+     ) hero ON TRUE
      LEFT JOIN compendium_user_quest_completions completion
        ON completion.daily_quest_id = quest.id AND completion.player_id = $2
      WHERE quest_set.moscow_date = $1::date
@@ -135,15 +149,30 @@ export async function totalCompendiumStars(playerId: string): Promise<number> {
 export async function questForCurrentDay(
   questId: string,
   dateKey: string,
+  playerId: string,
 ): Promise<QuestForCheck | null> {
   const rows = await query<{ id: string; hero_id: number }>(
     `SELECT quest.id::text, hero.hero_id
      FROM compendium_daily_quests quest
      JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
-     JOIN compendium_daily_quest_heroes hero ON hero.daily_quest_id = quest.id
+     JOIN LATERAL (
+       SELECT reroll_hero.hero_id, reroll_hero.position
+       FROM compendium_user_quest_rerolls reroll
+       JOIN compendium_user_quest_reroll_heroes reroll_hero
+         ON reroll_hero.reroll_id = reroll.id
+       WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+       UNION ALL
+       SELECT original_hero.hero_id, original_hero.position
+       FROM compendium_daily_quest_heroes original_hero
+       WHERE original_hero.daily_quest_id = quest.id
+         AND NOT EXISTS (
+           SELECT 1 FROM compendium_user_quest_rerolls reroll
+           WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+         )
+     ) hero ON TRUE
      WHERE quest.id = $1 AND quest_set.moscow_date = $2::date
      ORDER BY hero.position`,
-    [questId, dateKey],
+    [questId, dateKey, playerId],
   );
   return rows.length ? { id: rows[0].id, heroIds: rows.map((row) => row.hero_id) } : null;
 }
@@ -227,7 +256,7 @@ export async function recordQuestCompletion(input: {
   return transaction(async (client) => {
     await client.query(
       "SELECT pg_advisory_xact_lock(hashtext($1))",
-      [`compendium-completion:${input.playerId}:${input.questId}`],
+      [`compendium-quest-mutation:${input.playerId}:${input.questId}`],
     );
     const alreadyCompleted = await currentCompletion(
       client,
@@ -240,13 +269,27 @@ export async function recordQuestCompletion(input: {
       `SELECT 1
        FROM compendium_daily_quests quest
        JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
-       JOIN compendium_daily_quest_heroes hero ON hero.daily_quest_id = quest.id
+       JOIN LATERAL (
+         SELECT reroll_hero.hero_id
+         FROM compendium_user_quest_rerolls reroll
+         JOIN compendium_user_quest_reroll_heroes reroll_hero
+           ON reroll_hero.reroll_id = reroll.id
+         WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+         UNION ALL
+         SELECT original_hero.hero_id
+         FROM compendium_daily_quest_heroes original_hero
+         WHERE original_hero.daily_quest_id = quest.id
+           AND NOT EXISTS (
+             SELECT 1 FROM compendium_user_quest_rerolls reroll
+             WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+           )
+       ) hero ON TRUE
        WHERE quest.id = $1
          AND hero.hero_id = $2
          AND quest_set.moscow_date =
            (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
        FOR SHARE OF quest`,
-      [input.questId, input.heroId],
+      [input.questId, input.heroId, input.playerId],
     );
     if (!activeQuest.rowCount) {
       throw new CompendiumError("STALE_QUEST", "Задание больше не действует");

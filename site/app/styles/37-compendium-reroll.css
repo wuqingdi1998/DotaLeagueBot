@@ -1,0 +1,131 @@
+.compendium-reroll-notice {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 18px;
+  border: 1px solid rgba(220, 174, 54, 0.34);
+  border-radius: 18px;
+  background:
+    linear-gradient(100deg, rgba(220, 174, 54, 0.12), transparent 62%),
+    var(--surface);
+}
+
+.compendium-reroll-notice-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 15px;
+  background: rgba(220, 174, 54, 0.14);
+  color: #dcae36;
+  font-size: 23px;
+}
+
+.compendium-reroll-notice > div {
+  display: grid;
+  gap: 5px;
+}
+
+.compendium-reroll-notice > div strong {
+  font-size: 15px;
+}
+
+.compendium-reroll-notice > div span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.compendium-reroll-balance {
+  display: grid;
+  min-width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f1c95f, #c28a1f);
+  color: #382707;
+  font-size: 18px;
+  font-weight: 600;
+  box-shadow: 0 8px 22px rgba(155, 104, 15, 0.24);
+}
+
+.compendium-quest-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.compendium-reroll-button {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid rgba(220, 174, 54, 0.38);
+  border-radius: 999px;
+  background: rgba(220, 174, 54, 0.1);
+  color: #dcae36;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.compendium-reroll-button:hover:not(:disabled) {
+  border-color: #e8ba48;
+  background: rgba(220, 174, 54, 0.2);
+  transform: rotate(22deg);
+}
+
+.compendium-reroll-button:focus-visible {
+  outline: 3px solid rgba(220, 174, 54, 0.35);
+  outline-offset: 3px;
+}
+
+.compendium-reroll-button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.55);
+  opacity: 0.42;
+}
+
+.compendium-reroll-button .compendium-spinner {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .compendium-reroll-notice {
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 11px;
+    padding: 14px;
+  }
+
+  .compendium-reroll-notice-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .compendium-reroll-notice > div span {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  .compendium-reroll-notice {
+    grid-template-columns: 38px minmax(0, 1fr) 36px;
+    align-items: start;
+  }
+
+  .compendium-reroll-notice-icon,
+  .compendium-reroll-balance {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+  }
+
+  .compendium-reroll-notice > div strong {
+    font-size: 14px;
+  }
+}

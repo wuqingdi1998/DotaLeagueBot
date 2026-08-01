@@ -9,6 +9,7 @@ function row(
     player_id: "100",
     player_name: "Игрок",
     dota_id: "200",
+    avatar_url: "https://cdn.discordapp.com/avatars/100/avatar.png",
     total_stars: 1,
     completion_id: "300",
     moscow_date: "2026-08-01",
@@ -34,6 +35,7 @@ describe("compendium organizer base", () => {
 
     expect(participants).toHaveLength(1);
     expect(participants[0].totalStars).toBe(1);
+    expect(participants[0].avatarUrl).toContain("cdn.discordapp.com");
     expect(participants[0].rewards).toHaveLength(1);
     expect(participants[0].rewards[0].heroes).toHaveLength(4);
     expect(participants[0].rewards[0].matchedHeroId).toBe(2);

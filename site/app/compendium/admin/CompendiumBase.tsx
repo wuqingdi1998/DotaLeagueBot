@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import {
@@ -58,12 +59,29 @@ function ParticipantHistory({
   return (
     <details className="compendium-base-participant">
       <summary>
-        <span className="compendium-base-avatar" aria-hidden="true">
-          {participant.playerName.slice(0, 1).toUpperCase()}
+        <span className="compendium-base-avatar">
+          {participant.avatarUrl ? (
+            <Image
+              src={participant.avatarUrl}
+              alt={`Аватар ${participant.playerName}`}
+              width={44}
+              height={44}
+              unoptimized
+            />
+          ) : (
+            <span aria-hidden="true">
+              {participant.playerName.slice(0, 1).toUpperCase()}
+            </span>
+          )}
         </span>
         <span className="compendium-base-player-name">
           <strong>{participant.playerName}</strong>
-          <small>Dota ID: {participant.dotaId}</small>
+          <small>
+            Dota ID:{" "}
+            <Link href={`/players/${participant.dotaId}`}>
+              {participant.dotaId}
+            </Link>
+          </small>
         </span>
         <span className="compendium-base-stars">
           <FaStar aria-hidden="true" /> {participant.totalStars}
