@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
+import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import {
   FiArrowRight,
   FiArrowUpRight,
@@ -75,6 +76,8 @@ export function SiteHeader({
   const pathname = usePathname();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { actionsRef, headerRef, navigationRef } =
+    useHeaderActionCompaction();
 
   function switchTheme() {
     const next = theme === "light" ? "dark" : "light";
@@ -88,7 +91,7 @@ export function SiteHeader({
   const participantsActive = pathname.startsWith("/participants");
 
   return (
-    <header className="site-header platform-header">
+    <header ref={headerRef} className="site-header platform-header">
       <Link className="brand" href="/" aria-label="Linken's Sphere Esports">
         <Image
           src="/linkens-sphere-logo.png"
@@ -104,7 +107,11 @@ export function SiteHeader({
         </span>
       </Link>
 
-      <nav className="platform-navigation" aria-label="Основная навигация">
+      <nav
+        ref={navigationRef}
+        className="platform-navigation"
+        aria-label="Основная навигация"
+      >
         <Link
           className={homeActive ? "active" : undefined}
           href="/"
@@ -138,7 +145,7 @@ export function SiteHeader({
         </a>
       </nav>
 
-      <div className="header-actions">
+      <div className="header-actions" ref={actionsRef}>
         <button
           className="mobile-menu-button"
           type="button"

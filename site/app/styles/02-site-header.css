@@ -325,7 +325,55 @@
   font-weight: 700;
 }
 
-@media (min-width: 761px) and (max-width: 1800px) {
+@media (min-width: 1051px) {
+  .header-actions[data-compact-boosty="true"] .boosty-button {
+    width: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    height: 46px;
+    border-radius: 12px;
+    padding: 0;
+  }
+
+  .header-actions[data-compact-boosty="true"] .boosty-button span {
+    display: none;
+  }
+
+  .header-actions[data-compact-profile="true"] .discord-login,
+  .header-actions[data-compact-profile="true"] .player-profile-button {
+    width: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+
+  .header-actions[data-compact-profile="true"] .discord-login {
+    padding: 0;
+  }
+
+  .header-actions[data-compact-profile="true"] .discord-login span,
+  .header-actions[data-compact-profile="true"] .player-profile-copy,
+  .header-actions[data-compact-profile="true"] .login-icon-discord {
+    display: none;
+  }
+
+  .header-actions[data-compact-profile="true"] .login-icon-mobile {
+    display: block;
+  }
+
+  .header-actions[data-compact-profile="true"] .player-profile-button {
+    padding: 3px;
+  }
+
+  .header-actions[data-compact-profile="true"] .player-profile-avatar {
+    width: 38px;
+    height: 38px;
+    flex-basis: 38px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1050px) {
   .header-actions {
     gap: 10px;
   }

@@ -10,12 +10,19 @@ const headerCss = readFileSync(
   new URL("../app/styles/02-site-header.css", import.meta.url),
   "utf8",
 );
+const actionCompaction = readFileSync(
+  new URL(
+    "../app/components/header/useHeaderActionCompaction.ts",
+    import.meta.url,
+  ),
+  "utf8",
+);
 const css = loadSiteStyles();
 
 describe("site header actions", () => {
   it("places Boosty between the mobile menu and theme controls", () => {
     const actions = component.slice(
-      component.indexOf('<div className="header-actions">'),
+      component.indexOf('className="header-actions"'),
       component.indexOf("{user ? ("),
     );
 
@@ -49,12 +56,34 @@ describe("site header actions", () => {
     );
   });
 
-  it("compacts header actions before they can overlap on narrow desktops", () => {
-    expect(headerCss).toMatch(
-      /@media \(min-width:\s*761px\) and \(max-width:\s*1800px\)[\s\S]*\.boosty-button,[\s\S]*\.theme-button,[\s\S]*\.discord-login,[\s\S]*\.player-profile-button\s*\{[^}]*width:\s*46px;[^}]*min-width:\s*46px;[^}]*height:\s*46px;/,
+  it("compacts Boosty before the profile only when desktop actions overlap navigation", () => {
+    expect(actionCompaction).toContain(
+      'const desktopNavigationQuery = "(min-width: 1051px)"',
+    );
+    expect(actionCompaction).toContain(
+      "window.matchMedia(desktopNavigationQuery)",
+    );
+    expect(actionCompaction).toContain("navigationRect.right > boostyRect.left");
+    expect(actionCompaction.indexOf("compactBoosty")).toBeLessThan(
+      actionCompaction.indexOf("compactProfile"),
     );
     expect(headerCss).toMatch(
-      /@media \(min-width:\s*761px\) and \(max-width:\s*1800px\)[\s\S]*\.login-icon-discord\s*\{[^}]*display:\s*none;[\s\S]*\.login-icon-mobile\s*\{[^}]*display:\s*block;/,
+      /\[data-compact-boosty="true"\][\s\S]*\.boosty-button\s*\{[^}]*width:\s*46px;[^}]*padding:\s*0;/,
+    );
+    expect(headerCss).toMatch(
+      /\[data-compact-profile="true"\][\s\S]*\.player-profile-button\s*\{[^}]*width:\s*46px;/,
+    );
+    expect(headerCss).toMatch(
+      /\[data-compact-profile="true"\] \.player-profile-button\s*\{[^}]*padding:\s*3px;/,
+    );
+    expect(headerCss).not.toMatch(
+      /@media \(min-width:\s*761px\) and \(max-width:\s*1800px\)/,
+    );
+    expect(headerCss).not.toContain(
+      '.header-actions[data-compact-boosty="true"] .theme-button',
+    );
+    expect(headerCss).not.toContain(
+      '.header-actions[data-compact-profile="true"] .theme-button',
     );
     expect(headerCss).toMatch(
       /\.header-actions > \*\s*\{[^}]*flex:\s*0 0 auto;/,
