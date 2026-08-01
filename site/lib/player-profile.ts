@@ -3,6 +3,7 @@ import {
   loadPlayerTournamentHistory,
   type PlayerTournamentHistory,
 } from "./player-tournament-history";
+import { loadPlayerMapStatistics } from "./player-map-statistics";
 
 const steamId64Offset = BigInt("76561197960265728");
 const maximumDotaAccountId = BigInt("4294967295");
@@ -86,8 +87,8 @@ export type PublicPlayerProfile = {
     tournaments: number;
     tournamentWins: number;
     podiums: number;
-    matches: number;
-    matchWins: number;
+    maps: number;
+    mapWins: number;
   };
   medals: PlayerMedals;
   lastTournament: PlayerTournamentHistory | null;
@@ -209,54 +210,9 @@ export async function loadPublicPlayerProfile(
     ? identityMembers.map((member) => member.player_id)
     : [player.discord_id];
 
-  const [tournamentHistory, matchStatistics, medalCounts] = await Promise.all([
+  const [tournamentHistory, mapStatistics, medalCounts] = await Promise.all([
     loadPlayerTournamentHistory(playerIds, player.nickname),
-    one<{ matches: number; wins: number }>(
-      `WITH player_applications AS (
-         SELECT member.application_id
-         FROM tournament_team_members member
-         JOIN tournament_team_applications application
-           ON application.id = member.application_id
-         WHERE member.player_id = ANY($1::bigint[])
-           AND member.invitation_status = 'accepted'
-           AND application.status = 'approved'
-         UNION
-         SELECT snapshot.application_id
-         FROM tournament_roster_snapshots snapshot
-         JOIN tournament_team_applications application
-           ON application.id = snapshot.application_id
-         WHERE snapshot.player_id = ANY($1::bigint[])
-           AND application.status = 'approved'
-       )
-       SELECT
-         COUNT(played_match.id)::int AS matches,
-         COUNT(played_match.id) FILTER (
-           WHERE
-             (
-               played_match.team_a_application_id = application.application_id
-               AND (
-                 played_match.team_a_score > played_match.team_b_score
-                 OR LOWER(played_match.team_a_result_label) = 'tw'
-               )
-             )
-             OR
-             (
-               played_match.team_b_application_id = application.application_id
-               AND (
-                 played_match.team_b_score > played_match.team_a_score
-                 OR LOWER(played_match.team_b_result_label) = 'tw'
-               )
-             )
-         )::int AS wins
-       FROM tournament_matches played_match
-       JOIN player_applications application
-         ON application.application_id IN (
-           played_match.team_a_application_id,
-           played_match.team_b_application_id
-         )
-       WHERE played_match.status = 'finished'`,
-      [playerIds],
-    ),
+    loadPlayerMapStatistics(playerIds),
     one<PlayerMedals>(
       `SELECT
          COUNT(*) FILTER (WHERE medal_type = 'gold')::int AS gold,
@@ -312,8 +268,8 @@ export async function loadPublicPlayerProfile(
       tournaments: tournamentHistory.length,
       tournamentWins,
       podiums,
-      matches: matchStatistics?.matches ?? 0,
-      matchWins: matchStatistics?.wins ?? 0,
+      maps: mapStatistics.maps,
+      mapWins: mapStatistics.mapWins,
     },
     medals: medalCounts ?? { gold: 0, silver: 0, bronze: 0 },
     lastTournament: tournamentHistory[0] ?? null,

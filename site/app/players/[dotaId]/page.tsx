@@ -16,6 +16,7 @@ import {
   profileBackgroundForSubscriptionRole,
   tournamentResultLabel,
 } from "@/lib/player-profile";
+import { mapWinRatePercent } from "@/lib/player-map-statistics";
 import { loadLinkedArchiveProfiles } from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
@@ -116,12 +117,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     ? await loadLinkedArchiveProfiles(dotaId)
     : [];
 
-  const winRate =
-    profile.statistics.matches > 0
-      ? Math.round(
-          (profile.statistics.matchWins / profile.statistics.matches) * 100,
-        )
-      : 0;
+  const winRate = mapWinRatePercent(profile.statistics);
   const mobileNicknameWidth = 270;
   const mobileNicknameSize = Math.max(
     15,
@@ -268,12 +264,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <strong>{profile.statistics.podiums}</strong>
           </article>
           <article>
-            <span>Матчей</span>
-            <strong>{profile.statistics.matches}</strong>
+            <span>Карт</span>
+            <strong>{profile.statistics.maps}</strong>
           </article>
           <article>
-            <span>Побед в матчах</span>
-            <strong>{profile.statistics.matchWins}</strong>
+            <span>Побед на картах</span>
+            <strong>{profile.statistics.mapWins}</strong>
           </article>
           <article>
             <span>Победный процент</span>
