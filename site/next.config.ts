@@ -9,7 +9,7 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' data: https://cdn.discordapp.com",
+  "img-src 'self' data: https://cdn.discordapp.com https://cdn.cloudflare.steamstatic.com",
   "connect-src 'self'",
   "worker-src 'self' blob:",
 ].join("; ");
@@ -48,6 +48,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "cdn.discordapp.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.cloudflare.steamstatic.com",
       },
     ],
   },

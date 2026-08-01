@@ -89,6 +89,7 @@ export function SiteHeader({
   const tournamentsActive = pathname.startsWith("/tournaments");
   const hallActive = pathname.startsWith("/hall-of-fame");
   const participantsActive = pathname.startsWith("/participants");
+  const compendiumActive = pathname.startsWith("/compendium");
 
   return (
     <header ref={headerRef} className="site-header platform-header">
@@ -139,6 +140,13 @@ export function SiteHeader({
           aria-current={participantsActive ? "page" : undefined}
         >
           Участники
+        </Link>
+        <Link
+          className={compendiumActive ? "active" : undefined}
+          href="/compendium"
+          aria-current={compendiumActive ? "page" : undefined}
+        >
+          Компендиум
         </Link>
         <a href={discordUrl} target="_blank" rel="noreferrer">
           Наш Discord <FiArrowUpRight aria-hidden="true" />
@@ -288,6 +296,14 @@ export function SiteHeader({
             onClick={() => setMobileMenuOpen(false)}
           >
             Участники
+          </Link>
+          <Link
+            className={compendiumActive ? "active" : undefined}
+            href="/compendium"
+            aria-current={compendiumActive ? "page" : undefined}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Компендиум
           </Link>
           <a
             href={discordUrl}
