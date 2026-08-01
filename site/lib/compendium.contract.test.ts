@@ -10,6 +10,8 @@ const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/ro
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
 const navigationCss = source("../app/styles/34-compendium-navigation.css");
+const dashboard = source("../app/compendium/sections/CompendiumDashboard.tsx");
+const headingCss = source("../app/styles/35-compendium-heading.css");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -52,5 +54,21 @@ describe("compendium persistence and security contract", () => {
     expect(navigationCss).toContain("@keyframes compendium-gold-shimmer");
     expect(navigationCss).toContain("animation: compendium-gold-shimmer");
     expect(navigationCss).toContain("@media (prefers-reduced-motion: reduce)");
+  });
+
+  it("shows the 2026 event and links its official Liquipedia page", () => {
+    expect(dashboard).toContain("The International 2026");
+    expect(dashboard).toContain("https://liquipedia.net/dota2/The_International/2026");
+    expect(dashboard).toContain("/liquipedia-icon.svg");
+    expect(headingCss).toContain(".compendium-liquipedia-link");
+  });
+
+  it("places the reset countdown beside the daily quest heading", () => {
+    const headingStart = dashboard.indexOf('className="compendium-section-heading"');
+    const questGridStart = dashboard.indexOf('className="compendium-quest-grid"');
+    const heading = dashboard.slice(headingStart, questGridStart);
+    expect(heading).toContain("До новых заданий");
+    expect(heading).toContain("{countdown}");
+    expect(headingCss).toContain(".compendium-section-countdown");
   });
 });

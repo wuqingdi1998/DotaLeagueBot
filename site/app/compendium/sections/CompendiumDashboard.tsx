@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaDiscord, FaStar } from "react-icons/fa";
@@ -92,13 +93,30 @@ export function CompendiumDashboard({
         <div className="compendium-orb compendium-orb-one" />
         <div className="compendium-orb compendium-orb-two" />
         <div className="compendium-title-block">
-          <p className="compendium-kicker">The International</p>
-          <h1>Компендиум</h1>
+          <p className="compendium-kicker">The International 2026</p>
+          <div className="compendium-title-row">
+            <h1>Компендиум</h1>
+            <a
+              className="compendium-liquipedia-link"
+              href="https://liquipedia.net/dota2/The_International/2026"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Открыть The International 2026 на Liquipedia"
+              title="The International 2026 на Liquipedia"
+            >
+              <Image
+                src="/liquipedia-icon.svg"
+                alt=""
+                width={52}
+                height={38}
+                unoptimized
+              />
+            </a>
+          </div>
           <p>Побеждайте на героях дня и собирайте звёзды сообщества.</p>
         </div>
         <div className="compendium-summary">
           <div><FiCalendar aria-hidden="true" /><span>Сегодня по Москве</span><strong>{data.moscowDateLabel}</strong></div>
-          <div><FiClock aria-hidden="true" /><span>До новых заданий</span><strong>{countdown}</strong></div>
           <div className="stars"><FaStar aria-hidden="true" /><span>Ваши звёзды</span><strong>{data.totalStars}</strong></div>
         </div>
       </section>
@@ -118,7 +136,14 @@ export function CompendiumDashboard({
         <section className="compendium-daily-section">
           <div className="compendium-section-heading">
             <div><span>Обновление ежедневно в 00:00 МСК</span><h2>Задания дня</h2></div>
-            <p><FiRefreshCw aria-hidden="true" /> Три задания · до трёх звёзд</p>
+            <div className="compendium-section-status">
+              <div className="compendium-section-countdown">
+                <FiClock aria-hidden="true" />
+                <span>До новых заданий</span>
+                <strong>{countdown}</strong>
+              </div>
+              <p><FiRefreshCw aria-hidden="true" /> Три задания · до трёх звёзд</p>
+            </div>
           </div>
           <div className="compendium-quest-grid">
             {data.quests.map((quest) => (
