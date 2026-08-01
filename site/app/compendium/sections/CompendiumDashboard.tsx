@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FaDiscord, FaStar } from "react-icons/fa";
+import { FaDiscord } from "react-icons/fa";
 import { FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentCountdownLabel } from "../model/time";
@@ -144,35 +144,32 @@ export function CompendiumDashboard({
       <section className="compendium-hero-section">
         <div className="compendium-orb compendium-orb-one" />
         <div className="compendium-orb compendium-orb-two" />
+        {isOrganizer && (
+          <Link
+            className="compendium-base-link compendium-base-floating-link"
+            href="/compendium/base"
+          >
+            <FiDatabase aria-hidden="true" /> База
+          </Link>
+        )}
         <div className="compendium-title-block">
           <p className="compendium-kicker">The International 2026</p>
-          <div className="compendium-title-row">
-            <h1>Компендиум</h1>
-            <a
-              className="compendium-liquipedia-link"
-              href="https://liquipedia.net/dota2/The_International/2026"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Открыть The International 2026 на Liquipedia"
-              title="The International 2026 на Liquipedia"
-            >
-              <Image
-                src="/liquipedia-icon.svg"
-                alt=""
-                width={52}
-                height={38}
-                unoptimized
-              />
-            </a>
-          </div>
-          <p className="compendium-description">
-            Побеждайте на героях дня и собирайте звёзды сообщества.
-          </p>
-          {isOrganizer && (
-            <Link className="compendium-base-link" href="/compendium/base">
-              <FiDatabase aria-hidden="true" /> База
-            </Link>
-          )}
+          <h1>Компендиум</h1>
+          <a
+            className="compendium-liquipedia-link"
+            href="https://liquipedia.net/dota2/The_International/2026"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <span>Страница турнира на Liquipedia</span>
+            <Image
+              src="/liquipedia-icon.svg"
+              alt=""
+              width={38}
+              height={28}
+              unoptimized
+            />
+          </a>
         </div>
         <div className="compendium-summary">
           <div className="compendium-tournament-countdown">
@@ -180,7 +177,6 @@ export function CompendiumDashboard({
             <span>ДО ТУРНИРА</span>
             <strong>{tournamentCountdown}</strong>
           </div>
-          <div className="stars"><FaStar aria-hidden="true" /><span>Ваши звёзды</span><strong>{data.totalStars}</strong></div>
         </div>
       </section>
 

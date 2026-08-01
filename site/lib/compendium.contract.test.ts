@@ -14,6 +14,7 @@ const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
 const navigationCss = source("../app/styles/34-compendium-navigation.css");
 const dashboard = source("../app/compendium/sections/CompendiumDashboard.tsx");
+const compendiumCss = source("../app/styles/33-compendium.css");
 const headingCss = source("../app/styles/35-compendium-heading.css");
 const basePage = source("../app/compendium/base/page.tsx");
 const baseRepository = source("../app/compendium/admin/repository.ts");
@@ -72,8 +73,19 @@ describe("compendium persistence and security contract", () => {
   it("shows the 2026 event and links its official Liquipedia page", () => {
     expect(dashboard).toContain("The International 2026");
     expect(dashboard).toContain("https://liquipedia.net/dota2/The_International/2026");
+    expect(dashboard).toContain("Страница турнира на Liquipedia");
     expect(dashboard).toContain("/liquipedia-icon.svg");
     expect(headingCss).toContain(".compendium-liquipedia-link");
+  });
+
+  it("keeps the hero compact and removes the temporary star summary", () => {
+    expect(dashboard).not.toContain(
+      "Побеждайте на героях дня и собирайте звёзды сообщества.",
+    );
+    expect(dashboard).not.toContain("Ваши звёзды");
+    expect(compendiumCss).toContain("min-height: 300px");
+    expect(compendiumCss).toContain("padding: 40px 0 24px");
+    expect(headingCss).toContain(".compendium-tournament-countdown strong");
   });
 
   it("places the reset countdown beside the daily quest heading", () => {
@@ -94,6 +106,11 @@ describe("compendium persistence and security contract", () => {
   it("shows the hidden base link only in organizer mode", () => {
     expect(dashboard).toContain("isOrganizer &&");
     expect(dashboard).toContain('href="/compendium/base"');
+    expect(dashboard).toContain("compendium-base-floating-link");
+    expect(headingCss).toContain(".compendium-base-floating-link");
+    expect(headingCss).toMatch(
+      /\.compendium-base-floating-link\s*\{[^}]*position:\s*absolute;/,
+    );
     expect(basePage).toContain("if (!user?.isAdmin) notFound()");
   });
 

@@ -6,10 +6,10 @@
 .compendium-hero-section {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(520px, 0.9fr);
-  gap: 48px;
-  min-height: 410px;
-  padding: 82px max(5vw, 32px) 68px;
+  grid-template-columns: minmax(0, 1fr) minmax(390px, 0.6fr);
+  gap: 56px;
+  min-height: 300px;
+  padding: 44px max(5vw, 32px) 38px;
   overflow: hidden;
   background:
     linear-gradient(115deg, rgba(5, 25, 38, 0.98), rgba(9, 50, 65, 0.91)),
@@ -41,19 +41,10 @@
   letter-spacing: -0.045em;
 }
 
-.compendium-title-block > .compendium-description {
-  max-width: 620px;
-  margin: 28px 0 0;
-  color: rgba(230, 250, 248, 0.75);
-  font-size: 18px;
-  line-height: 1.7;
-}
-
 .compendium-summary {
   align-self: center;
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .compendium-summary > div {
@@ -91,7 +82,6 @@
   font-size: 19px;
 }
 
-.compendium-summary .stars svg,
 .compendium-reward svg {
   color: #f5c95b;
 }
@@ -126,7 +116,7 @@
 }
 
 .compendium-daily-section {
-  padding: 66px 0 24px;
+  padding: 40px 0 24px;
 }
 
 .compendium-section-heading {
@@ -402,21 +392,23 @@
 }
 
 @media (max-width: 1180px) {
-  .compendium-hero-section { grid-template-columns: 1fr; gap: 36px; }
-  .compendium-summary { max-width: 720px; }
   .compendium-quest-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .compendium-quest:last-child { grid-column: 1 / -1; width: calc(50% - 9px); justify-self: center; }
 }
 
+@media (max-width: 960px) {
+  .compendium-hero-section { grid-template-columns: 1fr; gap: 22px; }
+  .compendium-summary { max-width: 620px; }
+}
+
 @media (max-width: 720px) {
-  .compendium-hero-section { min-height: auto; padding: 54px 20px 42px; }
+  .compendium-hero-section { min-height: auto; padding: 62px 20px 28px; }
   .compendium-title-block h1 { font-size: clamp(52px, 17vw, 76px); }
-  .compendium-title-block > .compendium-description { margin-top: 20px; font-size: 15px; }
   .compendium-summary { grid-template-columns: 1fr; }
   .compendium-summary > div:first-child { grid-column: auto; }
   .compendium-daily-section,
   .compendium-link-profile { width: min(100% - 32px, 1460px); }
-  .compendium-daily-section { padding-top: 42px; }
+  .compendium-daily-section { padding-top: 28px; }
   .compendium-section-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
   .compendium-quest-grid { grid-template-columns: 1fr; }
   .compendium-quest:last-child { grid-column: auto; width: 100%; }
