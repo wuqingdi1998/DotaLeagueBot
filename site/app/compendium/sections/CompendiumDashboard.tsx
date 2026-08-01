@@ -9,6 +9,9 @@ import { FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentCountdownLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
+import {
+  CompendiumHeroImagePreloader,
+} from "../components/CompendiumHeroImagePreloader";
 import { DailyRerollNotice } from "../components/DailyRerollNotice";
 import { QuestCard } from "../components/QuestCard";
 
@@ -137,6 +140,7 @@ export function CompendiumDashboard({
 
   return (
     <div className="compendium-page">
+      <CompendiumHeroImagePreloader />
       <section className="compendium-hero-section">
         <div className="compendium-orb compendium-orb-one" />
         <div className="compendium-orb compendium-orb-two" />

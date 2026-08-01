@@ -16,6 +16,7 @@ export function HeroChoice({
           alt={`Герой ${hero.name}`}
           width={160}
           height={90}
+          loading="eager"
           unoptimized
         />
       </div>
