@@ -1,13 +1,20 @@
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
 import {
+  BONUS_QUEST_POSITION,
+  BONUS_QUEST_STAR_THRESHOLD,
   CHECK_RATE_LIMIT,
   CHECK_RATE_WINDOW_SECONDS,
+  DAILY_QUEST_COUNT,
+  HEROES_PER_QUEST,
   QUEST_REWARD_STARS,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import { compendiumHeroById } from "../model/heroes";
-import { generateDailyQuestHeroes } from "../model/quests";
+import {
+  generateBonusQuestHeroes,
+  generateRerollQuestHeroes,
+} from "../model/quests";
 import type { DailyQuest, QuestCompletion } from "../model/types";
 
 type QuestDataRow = {
@@ -30,6 +37,27 @@ export type QuestForCheck = {
   heroIds: number[];
 };
 
+async function insertDailyQuest(
+  client: PoolClient,
+  questSetId: string,
+  position: number,
+  heroes: ReturnType<typeof generateRerollQuestHeroes>,
+): Promise<void> {
+  const quest = await client.query<{ id: string }>(
+    `INSERT INTO compendium_daily_quests(quest_set_id, position)
+     VALUES ($1, $2) RETURNING id::text`,
+    [questSetId, position],
+  );
+  for (let heroIndex = 0; heroIndex < heroes.length; heroIndex += 1) {
+    await client.query(
+      `INSERT INTO compendium_daily_quest_heroes
+        (daily_quest_id, quest_set_id, hero_id, position)
+       VALUES ($1, $2, $3, $4)`,
+      [quest.rows[0].id, questSetId, heroes[heroIndex].id, heroIndex + 1],
+    );
+  }
+}
+
 function completionFromRow(row: CompletionRow): QuestCompletion {
   return {
     matchedHeroId: row.matched_hero_id,
@@ -49,36 +77,46 @@ export async function ensureDailyQuestSet(dateKey: string): Promise<string> {
        WHERE moscow_date = $1::date`,
       [dateKey],
     );
-    if (existing.rowCount) return existing.rows[0].id;
-
-    const created = await client.query<{ id: string }>(
-      `INSERT INTO compendium_daily_quest_sets(moscow_date)
-       VALUES ($1::date)
-       ON CONFLICT (moscow_date) DO UPDATE SET moscow_date = EXCLUDED.moscow_date
-       RETURNING id::text`,
-      [dateKey],
+    const questSetId = existing.rowCount
+      ? existing.rows[0].id
+      : (
+          await client.query<{ id: string }>(
+            `INSERT INTO compendium_daily_quest_sets(moscow_date)
+             VALUES ($1::date) RETURNING id::text`,
+            [dateKey],
+          )
+        ).rows[0].id;
+    const existingQuestData = await client.query<{
+      position: number;
+      hero_id: number;
+    }>(
+      `SELECT quest.position, hero.hero_id
+       FROM compendium_daily_quests quest
+       JOIN compendium_daily_quest_heroes hero
+         ON hero.daily_quest_id = quest.id
+       WHERE quest.quest_set_id = $1`,
+      [questSetId],
     );
-    const questSetId = created.rows[0].id;
-    const dailyHeroes = generateDailyQuestHeroes();
-    for (let questIndex = 0; questIndex < dailyHeroes.length; questIndex += 1) {
-      const quest = await client.query<{ id: string }>(
-        `INSERT INTO compendium_daily_quests(quest_set_id, position)
-         VALUES ($1, $2) RETURNING id::text`,
-        [questSetId, questIndex + 1],
+    const existingPositions = new Set(
+      existingQuestData.rows.map((row) => row.position),
+    );
+    const excludedHeroIds = new Set(
+      existingQuestData.rows.map((row) => row.hero_id),
+    );
+    for (let position = 1; position <= DAILY_QUEST_COUNT; position += 1) {
+      if (existingPositions.has(position)) continue;
+      const heroes = generateRerollQuestHeroes(
+        excludedHeroIds,
+        undefined,
+        undefined,
+        HEROES_PER_QUEST,
       );
-      for (let heroIndex = 0; heroIndex < dailyHeroes[questIndex].length; heroIndex += 1) {
-        await client.query(
-          `INSERT INTO compendium_daily_quest_heroes
-            (daily_quest_id, quest_set_id, hero_id, position)
-           VALUES ($1, $2, $3, $4)`,
-          [
-            quest.rows[0].id,
-            questSetId,
-            dailyHeroes[questIndex][heroIndex].id,
-            heroIndex + 1,
-          ],
-        );
-      }
+      await insertDailyQuest(client, questSetId, position, heroes);
+      heroes.forEach((hero) => excludedHeroIds.add(hero.id));
+    }
+    if (!existingPositions.has(BONUS_QUEST_POSITION)) {
+      const heroes = generateBonusQuestHeroes(excludedHeroIds);
+      await insertDailyQuest(client, questSetId, BONUS_QUEST_POSITION, heroes);
     }
     return questSetId;
   });
@@ -96,26 +134,36 @@ export async function loadDailyQuests(
        completion.completed_at
      FROM compendium_daily_quest_sets quest_set
      JOIN compendium_daily_quests quest ON quest.quest_set_id = quest_set.id
+     LEFT JOIN LATERAL (
+       SELECT reroll.id
+       FROM compendium_user_quest_rerolls reroll
+       WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $2
+       ORDER BY reroll.used_at DESC, reroll.id DESC
+       LIMIT 1
+     ) latest_reroll ON TRUE
      JOIN LATERAL (
        SELECT reroll_hero.hero_id, reroll_hero.position
-       FROM compendium_user_quest_rerolls reroll
-       JOIN compendium_user_quest_reroll_heroes reroll_hero
-         ON reroll_hero.reroll_id = reroll.id
-       WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $2
+       FROM compendium_user_quest_reroll_heroes reroll_hero
+       WHERE reroll_hero.reroll_id = latest_reroll.id
        UNION ALL
        SELECT original_hero.hero_id, original_hero.position
        FROM compendium_daily_quest_heroes original_hero
        WHERE original_hero.daily_quest_id = quest.id
-         AND NOT EXISTS (
-           SELECT 1 FROM compendium_user_quest_rerolls reroll
-           WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $2
-         )
+         AND latest_reroll.id IS NULL
      ) hero ON TRUE
      LEFT JOIN compendium_user_quest_completions completion
        ON completion.daily_quest_id = quest.id AND completion.player_id = $2
      WHERE quest_set.moscow_date = $1::date
+       AND (
+         quest.position <= 3
+         OR COALESCE((
+           SELECT SUM(reward_amount)
+           FROM compendium_user_quest_completions player_completion
+           WHERE player_completion.player_id = $2
+         ), 0) >= $3
+       )
      ORDER BY quest.position, hero.position`,
-    [dateKey, playerId],
+    [dateKey, playerId, BONUS_QUEST_STAR_THRESHOLD],
   );
   const quests = new Map<string, DailyQuest>();
   for (const row of rows) {
@@ -146,6 +194,14 @@ export async function totalCompendiumStars(playerId: string): Promise<number> {
   return row?.total ?? 0;
 }
 
+export async function totalCommunityCompendiumStars(): Promise<number> {
+  const row = await one<{ total: number }>(
+    `SELECT COALESCE(SUM(reward_amount), 0)::int AS total
+     FROM compendium_user_quest_completions`,
+  );
+  return row?.total ?? 0;
+}
+
 export async function questForCurrentDay(
   questId: string,
   dateKey: string,
@@ -155,24 +211,34 @@ export async function questForCurrentDay(
     `SELECT quest.id::text, hero.hero_id
      FROM compendium_daily_quests quest
      JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
+     LEFT JOIN LATERAL (
+       SELECT reroll.id
+       FROM compendium_user_quest_rerolls reroll
+       WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+       ORDER BY reroll.used_at DESC, reroll.id DESC
+       LIMIT 1
+     ) latest_reroll ON TRUE
      JOIN LATERAL (
        SELECT reroll_hero.hero_id, reroll_hero.position
-       FROM compendium_user_quest_rerolls reroll
-       JOIN compendium_user_quest_reroll_heroes reroll_hero
-         ON reroll_hero.reroll_id = reroll.id
-       WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+       FROM compendium_user_quest_reroll_heroes reroll_hero
+       WHERE reroll_hero.reroll_id = latest_reroll.id
        UNION ALL
        SELECT original_hero.hero_id, original_hero.position
        FROM compendium_daily_quest_heroes original_hero
        WHERE original_hero.daily_quest_id = quest.id
-         AND NOT EXISTS (
-           SELECT 1 FROM compendium_user_quest_rerolls reroll
-           WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
-         )
+         AND latest_reroll.id IS NULL
      ) hero ON TRUE
      WHERE quest.id = $1 AND quest_set.moscow_date = $2::date
+       AND (
+         quest.position <= 3
+         OR COALESCE((
+           SELECT SUM(reward_amount)
+           FROM compendium_user_quest_completions player_completion
+           WHERE player_completion.player_id = $3
+         ), 0) >= $4
+       )
      ORDER BY hero.position`,
-    [questId, dateKey, playerId],
+    [questId, dateKey, playerId, BONUS_QUEST_STAR_THRESHOLD],
   );
   return rows.length ? { id: rows[0].id, heroIds: rows.map((row) => row.hero_id) } : null;
 }
@@ -269,27 +335,42 @@ export async function recordQuestCompletion(input: {
       `SELECT 1
        FROM compendium_daily_quests quest
        JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
+       LEFT JOIN LATERAL (
+         SELECT reroll.id
+         FROM compendium_user_quest_rerolls reroll
+         WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+         ORDER BY reroll.used_at DESC, reroll.id DESC
+         LIMIT 1
+       ) latest_reroll ON TRUE
        JOIN LATERAL (
          SELECT reroll_hero.hero_id
-         FROM compendium_user_quest_rerolls reroll
-         JOIN compendium_user_quest_reroll_heroes reroll_hero
-           ON reroll_hero.reroll_id = reroll.id
-         WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
+         FROM compendium_user_quest_reroll_heroes reroll_hero
+         WHERE reroll_hero.reroll_id = latest_reroll.id
          UNION ALL
          SELECT original_hero.hero_id
          FROM compendium_daily_quest_heroes original_hero
          WHERE original_hero.daily_quest_id = quest.id
-           AND NOT EXISTS (
-             SELECT 1 FROM compendium_user_quest_rerolls reroll
-             WHERE reroll.daily_quest_id = quest.id AND reroll.player_id = $3
-           )
+           AND latest_reroll.id IS NULL
        ) hero ON TRUE
        WHERE quest.id = $1
          AND hero.hero_id = $2
+         AND (
+           quest.position <= 3
+           OR COALESCE((
+             SELECT SUM(reward_amount)
+             FROM compendium_user_quest_completions player_completion
+             WHERE player_completion.player_id = $3
+           ), 0) >= $4
+         )
          AND quest_set.moscow_date =
            (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
        FOR SHARE OF quest`,
-      [input.questId, input.heroId, input.playerId],
+      [
+        input.questId,
+        input.heroId,
+        input.playerId,
+        BONUS_QUEST_STAR_THRESHOLD,
+      ],
     );
     if (!activeQuest.rowCount) {
       throw new CompendiumError("STALE_QUEST", "Задание больше не действует");

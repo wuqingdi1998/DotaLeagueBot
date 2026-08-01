@@ -20,6 +20,7 @@ import { mapWinRatePercent } from "@/lib/player-map-statistics";
 import { loadLinkedArchiveProfiles } from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
+import { CompendiumBadge } from "@/app/compendium/components/CompendiumBadge";
 import { LinkedArchiveProfilesCard } from "./LinkedArchiveProfilesCard";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
 
@@ -165,7 +166,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           )}
           <div>
-            {(profile.realName || profile.subscriptionRole) && (
+            {(profile.realName || profile.subscriptionRole || profile.compendiumBadge) && (
               <div className="public-profile-heading">
                 {profile.realName && (
                   <p className="public-profile-real-name">
@@ -178,6 +179,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                     color={profile.subscriptionRoleColor}
                     className="profile-heading-role"
                   />
+                )}
+                {profile.compendiumBadge && (
+                  <CompendiumBadge tier={profile.compendiumBadge} />
                 )}
               </div>
             )}

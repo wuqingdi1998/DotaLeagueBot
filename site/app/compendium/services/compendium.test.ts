@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   ensureDailyQuestSet: vi.fn(),
   loadDailyQuests: vi.fn(),
   totalCompendiumStars: vi.fn(),
+  totalCommunityCompendiumStars: vi.fn(),
   questForCurrentDay: vi.fn(),
   existingCompletion: vi.fn(),
   consumeCheckAllowance: vi.fn(),
@@ -18,6 +19,7 @@ vi.mock("./repository", () => ({
   ensureDailyQuestSet: mocks.ensureDailyQuestSet,
   loadDailyQuests: mocks.loadDailyQuests,
   totalCompendiumStars: mocks.totalCompendiumStars,
+  totalCommunityCompendiumStars: mocks.totalCommunityCompendiumStars,
   questForCurrentDay: mocks.questForCurrentDay,
   existingCompletion: mocks.existingCompletion,
   consumeCheckAllowance: mocks.consumeCheckAllowance,
@@ -64,6 +66,7 @@ beforeEach(() => {
   mocks.existingCompletion.mockResolvedValue(null);
   mocks.consumeCheckAllowance.mockResolvedValue(true);
   mocks.totalCompendiumStars.mockResolvedValue(1);
+  mocks.totalCommunityCompendiumStars.mockResolvedValue(12);
   mocks.dailyRerollsRemaining.mockResolvedValue(1);
 });
 
@@ -101,6 +104,9 @@ describe("protected quest checks", () => {
     await expect(checkDailyQuest(user, "1")).resolves.toEqual({
       completion,
       totalStars: 7,
+      communityStars: 12,
+      rerollsRemaining: 1,
+      quests: undefined,
     });
     expect(mocks.fetchRecentPlayerMatches).not.toHaveBeenCalled();
     expect(mocks.recordQuestCompletion).not.toHaveBeenCalled();
@@ -134,6 +140,7 @@ describe("daily reroll", () => {
       completion: null,
     };
     mocks.loadDailyQuests.mockResolvedValue([replacementQuest]);
+    mocks.dailyRerollsRemaining.mockResolvedValue(0);
 
     await expect(rerollDailyQuest(user, "2")).resolves.toEqual({
       quest: replacementQuest,

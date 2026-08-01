@@ -25,6 +25,7 @@ export type CompendiumData = {
   tournamentStartsAt: string;
   rerollsRemaining: number;
   totalStars: number;
+  communityStars: number;
   hasDotaId: boolean;
   quests: DailyQuest[];
 };

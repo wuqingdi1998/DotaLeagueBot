@@ -47,21 +47,22 @@ export async function loadCompendiumAdminParticipants(): Promise<
      LEFT JOIN compendium_daily_quest_sets quest_set
        ON quest_set.id = quest.quest_set_id
      LEFT JOIN LATERAL (
-       SELECT reroll_hero.hero_id, reroll_hero.position
+       SELECT reroll.id
        FROM compendium_user_quest_rerolls reroll
-       JOIN compendium_user_quest_reroll_heroes reroll_hero
-         ON reroll_hero.reroll_id = reroll.id
        WHERE reroll.daily_quest_id = quest.id
          AND reroll.player_id = player.discord_id
+       ORDER BY reroll.used_at DESC, reroll.id DESC
+       LIMIT 1
+     ) latest_reroll ON TRUE
+     LEFT JOIN LATERAL (
+       SELECT reroll_hero.hero_id, reroll_hero.position
+       FROM compendium_user_quest_reroll_heroes reroll_hero
+       WHERE reroll_hero.reroll_id = latest_reroll.id
        UNION ALL
        SELECT original_hero.hero_id, original_hero.position
        FROM compendium_daily_quest_heroes original_hero
        WHERE original_hero.daily_quest_id = quest.id
-         AND NOT EXISTS (
-           SELECT 1 FROM compendium_user_quest_rerolls reroll
-           WHERE reroll.daily_quest_id = quest.id
-             AND reroll.player_id = player.discord_id
-         )
+         AND latest_reroll.id IS NULL
      ) quest_hero ON TRUE
      WHERE player.is_archived = FALSE
      ORDER BY LOWER(player.ingame_name), quest_set.moscow_date DESC,

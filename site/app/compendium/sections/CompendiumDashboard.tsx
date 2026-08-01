@@ -14,6 +14,7 @@ import {
 } from "../components/CompendiumHeroImagePreloader";
 import { DailyRerollNotice } from "../components/DailyRerollNotice";
 import { QuestCard } from "../components/QuestCard";
+import { CompendiumRewards } from "../components/CompendiumRewards";
 
 function countdownLabel(nextResetAt: string): string {
   const remaining = Math.max(0, new Date(nextResetAt).getTime() - Date.now());
@@ -75,6 +76,9 @@ export function CompendiumDashboard({
         code?: string;
         completion?: QuestCompletion;
         totalStars?: number;
+        communityStars?: number;
+        rerollsRemaining?: number;
+        quests?: CompendiumData["quests"];
       };
       if (!response.ok || !result.completion) {
         if (result.code === "STALE_QUEST") {
@@ -87,7 +91,9 @@ export function CompendiumDashboard({
       setData((current) => ({
         ...current,
         totalStars: result.totalStars ?? current.totalStars,
-        quests: current.quests.map((quest) =>
+        communityStars: result.communityStars ?? current.communityStars,
+        rerollsRemaining: result.rerollsRemaining ?? current.rerollsRemaining,
+        quests: result.quests ?? current.quests.map((quest) =>
           quest.id === questId
             ? { ...quest, completion: result.completion ?? null }
             : quest,
@@ -130,7 +136,12 @@ export function CompendiumDashboard({
           quest.id === questId ? result.quest ?? quest : quest,
         ),
       }));
-      setToast("Задание заменено. Рероллов на сегодня не осталось.");
+      const remaining = result.rerollsRemaining ?? 0;
+      setToast(
+        remaining > 0
+          ? `Задание заменено. Осталось рероллов: ${remaining}.`
+          : "Задание заменено. Рероллов на сегодня не осталось.",
+      );
     } catch (error) {
       setToast(error instanceof Error ? error.message : "Не удалось заменить задание");
     } finally {
@@ -201,11 +212,19 @@ export function CompendiumDashboard({
                 <span>До новых заданий</span>
                 <strong>{countdown}</strong>
               </div>
-              <p><FiRefreshCw aria-hidden="true" /> Три задания · до трёх звёзд</p>
+              <p>
+                <FiRefreshCw aria-hidden="true" />
+                {data.quests.length === 4
+                  ? "Четыре задания · до четырёх звёзд"
+                  : "Три задания · до трёх звёзд"}
+              </p>
             </div>
           </div>
-          <DailyRerollNotice remaining={data.rerollsRemaining} />
-          <div className="compendium-quest-grid">
+          <DailyRerollNotice
+            remaining={data.rerollsRemaining}
+            totalStars={data.totalStars}
+          />
+          <div className={`compendium-quest-grid quest-count-${data.quests.length}`}>
             {data.quests.map((quest) => (
               <QuestCard
                 key={quest.id}
@@ -224,15 +243,14 @@ export function CompendiumDashboard({
               />
             ))}
           </div>
-          <p className="compendium-note">
-            Учитываются только рейтинговые победы, завершённые сегодня по Москве.
-            Матч может появиться в OpenDota с небольшой задержкой.
-          </p>
+          <CompendiumRewards
+            personalStars={data.totalStars}
+            communityStars={data.communityStars}
+          />
         </section>
       )}
 
       {toast && <div className="compendium-toast" role="status">{toast}</div>}
-      <Link className="compendium-back-link" href="/tournaments">К турнирам сообщества</Link>
     </div>
   );
 }

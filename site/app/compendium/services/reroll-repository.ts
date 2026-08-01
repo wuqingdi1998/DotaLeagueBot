@@ -1,24 +1,78 @@
-import { one, transaction } from "@/lib/db";
-import { DAILY_REROLL_COUNT } from "../model/constants";
+import type { PoolClient } from "pg";
+import { query, transaction } from "@/lib/db";
+import {
+  BONUS_QUEST_STAR_THRESHOLD,
+  REROLL_REWARD_STAR_THRESHOLD,
+} from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import { generateRerollQuestHeroes } from "../model/quests";
+import { dailyRerollsRemainingForProgress } from "../model/rewards";
+
+type RerollAllowanceRow = {
+  total_stars: number;
+  used_count: number;
+  threshold_reached_today: boolean;
+  used_before_threshold: number;
+};
+
+async function rerollsRemainingWithClient(
+  client: PoolClient | null,
+  dateKey: string,
+  playerId: string,
+): Promise<number> {
+  const statement = `WITH threshold_reward AS (
+       SELECT completion.completed_at
+       FROM compendium_user_quest_completions completion
+       WHERE completion.player_id = $2
+       ORDER BY completion.completed_at, completion.id
+       OFFSET ($3::int - 1) LIMIT 1
+     )
+     SELECT
+       COALESCE((
+         SELECT SUM(completion.reward_amount)
+         FROM compendium_user_quest_completions completion
+         WHERE completion.player_id = $2
+       ), 0)::int AS total_stars,
+       COUNT(reroll.id)::int AS used_count,
+       COALESCE(
+         (threshold.completed_at AT TIME ZONE 'Europe/Moscow')::date = $1::date,
+         FALSE
+       ) AS threshold_reached_today,
+       COUNT(reroll.id) FILTER (
+         WHERE reroll.used_at < threshold.completed_at
+       )::int AS used_before_threshold
+     FROM compendium_daily_quest_sets quest_set
+     LEFT JOIN compendium_user_quest_rerolls reroll
+       ON reroll.quest_set_id = quest_set.id AND reroll.player_id = $2
+     LEFT JOIN threshold_reward threshold ON TRUE
+     WHERE quest_set.moscow_date = $1::date
+     GROUP BY threshold.completed_at`;
+  const values = [dateKey, playerId, REROLL_REWARD_STAR_THRESHOLD];
+  const rows = client
+    ? (await client.query<RerollAllowanceRow>(statement, values)).rows
+    : await query<RerollAllowanceRow>(statement, values);
+  const row = rows[0];
+  if (!row) {
+    return dailyRerollsRemainingForProgress({
+      totalStars: 0,
+      usedCount: 0,
+      thresholdReachedToday: false,
+      usedBeforeThreshold: 0,
+    });
+  }
+  return dailyRerollsRemainingForProgress({
+    totalStars: row.total_stars,
+    usedCount: row.used_count,
+    thresholdReachedToday: row.threshold_reached_today,
+    usedBeforeThreshold: row.used_before_threshold,
+  });
+}
 
 export async function dailyRerollsRemaining(
   dateKey: string,
   playerId: string,
 ): Promise<number> {
-  const row = await one<{ has_used_reroll: boolean }>(
-    `SELECT EXISTS (
-       SELECT 1
-       FROM compendium_user_quest_rerolls reroll
-       WHERE reroll.quest_set_id = quest_set.id
-         AND reroll.player_id = $2
-     ) AS has_used_reroll
-     FROM compendium_daily_quest_sets quest_set
-     WHERE quest_set.moscow_date = $1::date`,
-    [dateKey, playerId],
-  );
-  return row?.has_used_reroll ? 0 : DAILY_REROLL_COUNT;
+  return rerollsRemainingWithClient(null, dateKey, playerId);
 }
 
 export async function recordDailyQuestReroll(input: {
@@ -35,8 +89,16 @@ export async function recordDailyQuestReroll(input: {
       "SELECT pg_advisory_xact_lock(hashtext($1))",
       [`compendium-quest-mutation:${input.playerId}:${input.questId}`],
     );
-    const quest = await client.query<{ quest_set_id: string }>(
-      `SELECT quest.quest_set_id::text
+    const quest = await client.query<{
+      quest_set_id: string;
+      hero_count: number;
+    }>(
+      `SELECT quest.quest_set_id::text,
+         (
+           SELECT COUNT(*)::int
+           FROM compendium_daily_quest_heroes original_hero
+           WHERE original_hero.daily_quest_id = quest.id
+         ) AS hero_count
        FROM compendium_daily_quests quest
        JOIN compendium_daily_quest_sets quest_set
          ON quest_set.id = quest.quest_set_id
@@ -44,23 +106,31 @@ export async function recordDailyQuestReroll(input: {
          AND quest_set.moscow_date = $2::date
          AND quest_set.moscow_date =
            (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
+         AND (
+           quest.position <= 3
+           OR COALESCE((
+             SELECT SUM(reward_amount)
+             FROM compendium_user_quest_completions completion
+             WHERE completion.player_id = $3
+           ), 0) >= $4
+         )
        FOR SHARE OF quest`,
-      [input.questId, input.dateKey],
+      [
+        input.questId,
+        input.dateKey,
+        input.playerId,
+        BONUS_QUEST_STAR_THRESHOLD,
+      ],
     );
     if (!quest.rowCount) {
       throw new CompendiumError("STALE_QUEST", "Задание больше не действует");
     }
-    const questSetId = quest.rows[0].quest_set_id;
-
-    const usedReroll = await client.query(
-      `SELECT 1 FROM compendium_user_quest_rerolls
-       WHERE player_id = $1 AND quest_set_id = $2`,
-      [input.playerId, questSetId],
-    );
-    if (usedReroll.rowCount) {
+    if (
+      (await rerollsRemainingWithClient(client, input.dateKey, input.playerId)) < 1
+    ) {
       throw new CompendiumError(
         "REROLL_USED",
-        "Реролл на сегодня уже использован",
+        "Рероллов на сегодня не осталось",
       );
     }
 
@@ -76,21 +146,30 @@ export async function recordDailyQuestReroll(input: {
       );
     }
 
-    const dailyHeroes = await client.query<{ hero_id: number }>(
+    const excludedHeroes = await client.query<{ hero_id: number }>(
       `SELECT hero.hero_id
        FROM compendium_daily_quest_heroes hero
-       WHERE hero.quest_set_id = $1`,
-      [questSetId],
+       WHERE hero.quest_set_id = $1
+       UNION
+       SELECT reroll_hero.hero_id
+       FROM compendium_user_quest_rerolls reroll
+       JOIN compendium_user_quest_reroll_heroes reroll_hero
+         ON reroll_hero.reroll_id = reroll.id
+       WHERE reroll.quest_set_id = $1 AND reroll.player_id = $2`,
+      [quest.rows[0].quest_set_id, input.playerId],
     );
     const replacementHeroes = generateRerollQuestHeroes(
-      dailyHeroes.rows.map((hero) => hero.hero_id),
+      excludedHeroes.rows.map((hero) => hero.hero_id),
+      undefined,
+      undefined,
+      quest.rows[0].hero_count,
     );
     const reroll = await client.query<{ id: string }>(
       `INSERT INTO compendium_user_quest_rerolls
         (player_id, quest_set_id, daily_quest_id)
        VALUES ($1, $2, $3)
        RETURNING id::text`,
-      [input.playerId, questSetId, input.questId],
+      [input.playerId, quest.rows[0].quest_set_id, input.questId],
     );
     for (let index = 0; index < replacementHeroes.length; index += 1) {
       await client.query(

@@ -9,6 +9,9 @@ const migration = source("../../bot/database/migrations/0039_compendium.sql");
 const rerollMigration = source(
   "../../bot/database/migrations/0040_compendium_daily_rerolls.sql",
 );
+const rewardsMigration = source(
+  "../../bot/database/migrations/0042_compendium_rewards.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
@@ -26,6 +29,9 @@ const rerollRepository = source(
   "../app/compendium/services/reroll-repository.ts",
 );
 const questCard = source("../app/compendium/components/QuestCard.tsx");
+const rewards = source("../app/compendium/components/CompendiumRewards.tsx");
+const rerollNotice = source("../app/compendium/components/DailyRerollNotice.tsx");
+const profilePage = source("../app/players/[dotaId]/page.tsx");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -129,13 +135,42 @@ describe("compendium persistence and security contract", () => {
     expect(baseView).toContain("`/players/${participant.dotaId}`");
   });
 
-  it("stores at most one reroll per player and Moscow daily set", () => {
+  it("upgrades daily rerolls from one to a persistent three-reroll allowance", () => {
     expect(rerollMigration).toContain("UNIQUE (player_id, quest_set_id)");
+    expect(rewardsMigration).toContain(
+      "DROP CONSTRAINT IF EXISTS compendium_user_quest_rerolls_player_id_quest_set_id_key",
+    );
     expect(rerollMigration).toContain("position BETWEEN 1 AND 4");
+    expect(rerollRepository).toContain("REROLL_REWARD_STAR_THRESHOLD");
+    expect(repository).toContain("ORDER BY reroll.used_at DESC, reroll.id DESC");
     expect(rerollRepository).toContain("pg_advisory_xact_lock");
     expect(rerollRepository).toContain(
       "CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow'",
     );
+  });
+
+  it("shows the verification notice beside the half-width reroll strip", () => {
+    expect(rerollNotice).toContain(
+      "Учитываются только рейтинговые победы завершенные до 23:59 текущего",
+    );
+    expect(dashboard).not.toContain('className="compendium-note"');
+    expect(dashboard).not.toContain("К турнирам сообщества");
+  });
+
+  it("shows personal and community reward tracks after the quests", () => {
+    expect(rewards).toContain("Личный зачёт");
+    expect(rewards).toContain("Зачёт сообщества");
+    expect(dashboard.indexOf("<CompendiumRewards")).toBeGreaterThan(
+      dashboard.indexOf('className={`compendium-quest-grid'),
+    );
+  });
+
+  it("unlocks a fourth six-hero quest and TI profile badges", () => {
+    expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 4)");
+    expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 6)");
+    expect(repository).toContain("BONUS_QUEST_STAR_THRESHOLD");
+    expect(profilePage).toContain("profile.compendiumBadge");
+    expect(profilePage).toContain("CompendiumBadge");
   });
 
   it("identifies the reroll owner from the session and updates one card", () => {

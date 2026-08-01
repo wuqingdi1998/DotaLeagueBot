@@ -7,8 +7,13 @@ import { COMPENDIUM_HEROES } from "./heroes";
 import { findMatchingWin, matchEndedAt } from "./matches";
 import {
   generateDailyQuestHeroes,
+  generateBonusQuestHeroes,
   generateRerollQuestHeroes,
 } from "./quests";
+import {
+  compendiumBadgeForStars,
+  dailyRerollsRemainingForProgress,
+} from "./rewards";
 import {
   currentMoscowDay,
   moscowDateKey,
@@ -90,6 +95,42 @@ describe("daily quest reroll", () => {
         left.localeCompare(right, "en"),
       ),
     );
+  });
+});
+
+describe("compendium personal rewards", () => {
+  it("creates a six-hero bonus quest outside the regular daily set", () => {
+    const originalHeroIds = COMPENDIUM_HEROES.slice(0, 12).map((hero) => hero.id);
+    const bonus = generateBonusQuestHeroes(
+      originalHeroIds,
+      COMPENDIUM_HEROES,
+      () => 0.42,
+    );
+    expect(bonus).toHaveLength(6);
+    expect(new Set(bonus.map((hero) => hero.id))).toHaveLength(6);
+    expect(bonus.every((hero) => !originalHeroIds.includes(hero.id))).toBe(true);
+  });
+
+  it("selects the highest earned TI 2026 profile badge", () => {
+    expect(compendiumBadgeForStars(9)).toBeNull();
+    expect(compendiumBadgeForStars(10)).toBe("bronze");
+    expect(compendiumBadgeForStars(40)).toBe("silver");
+    expect(compendiumBadgeForStars(75)).toBe("gold");
+  });
+
+  it("grants three fresh rerolls when the 25th star is earned", () => {
+    expect(dailyRerollsRemainingForProgress({
+      totalStars: 24,
+      usedCount: 1,
+      thresholdReachedToday: false,
+      usedBeforeThreshold: 0,
+    })).toBe(0);
+    expect(dailyRerollsRemainingForProgress({
+      totalStars: 25,
+      usedCount: 1,
+      thresholdReachedToday: true,
+      usedBeforeThreshold: 1,
+    })).toBe(3);
   });
 });
 

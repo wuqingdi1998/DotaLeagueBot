@@ -4,6 +4,10 @@ import {
   type PlayerTournamentHistory,
 } from "./player-tournament-history";
 import { loadPlayerMapStatistics } from "./player-map-statistics";
+import {
+  compendiumBadgeForStars,
+  type CompendiumBadgeTier,
+} from "../app/compendium/model/rewards";
 
 const steamId64Offset = BigInt("76561197960265728");
 const maximumDotaAccountId = BigInt("4294967295");
@@ -91,6 +95,7 @@ export type PublicPlayerProfile = {
     mapWins: number;
   };
   medals: PlayerMedals;
+  compendiumBadge: CompendiumBadgeTier | null;
   lastTournament: PlayerTournamentHistory | null;
   tournamentHistory: PlayerTournamentHistory[];
 };
@@ -210,7 +215,7 @@ export async function loadPublicPlayerProfile(
     ? identityMembers.map((member) => member.player_id)
     : [player.discord_id];
 
-  const [tournamentHistory, mapStatistics, medalCounts] = await Promise.all([
+  const [tournamentHistory, mapStatistics, medalCounts, compendiumStars] = await Promise.all([
     loadPlayerTournamentHistory(playerIds, player.nickname),
     loadPlayerMapStatistics(playerIds),
     one<PlayerMedals>(
@@ -219,6 +224,12 @@ export async function loadPublicPlayerProfile(
          COUNT(*) FILTER (WHERE medal_type = 'silver')::int AS silver,
          COUNT(*) FILTER (WHERE medal_type = 'bronze')::int AS bronze
        FROM player_medals
+       WHERE player_id = ANY($1::bigint[])`,
+      [playerIds],
+    ),
+    one<{ total: number }>(
+      `SELECT COALESCE(SUM(reward_amount), 0)::int AS total
+       FROM compendium_user_quest_completions
        WHERE player_id = ANY($1::bigint[])`,
       [playerIds],
     ),
@@ -272,6 +283,7 @@ export async function loadPublicPlayerProfile(
       mapWins: mapStatistics.mapWins,
     },
     medals: medalCounts ?? { gold: 0, silver: 0, bronze: 0 },
+    compendiumBadge: compendiumBadgeForStars(compendiumStars?.total ?? 0),
     lastTournament: tournamentHistory[0] ?? null,
     tournamentHistory,
   };

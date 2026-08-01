@@ -18,6 +18,7 @@ import {
   questForCurrentDay,
   recordQuestCompletion,
   totalCompendiumStars,
+  totalCommunityCompendiumStars,
 } from "./repository";
 import {
   dailyRerollsRemaining,
@@ -27,6 +28,9 @@ import {
 export type CheckQuestResult = {
   completion: QuestCompletion;
   totalStars: number;
+  communityStars: number;
+  rerollsRemaining: number;
+  quests: CompendiumData["quests"];
 };
 
 export type RerollQuestResult = {
@@ -51,9 +55,10 @@ export async function loadCompendium(
 ): Promise<CompendiumData> {
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
-  const [quests, totalStars, rerollsRemaining] = await Promise.all([
+  const [quests, totalStars, communityStars, rerollsRemaining] = await Promise.all([
     loadDailyQuests(day.dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
+    totalCommunityCompendiumStars(),
     dailyRerollsRemaining(day.dateKey, user.discordId),
   ]);
   return {
@@ -63,6 +68,7 @@ export async function loadCompendium(
     tournamentStartsAt: COMPENDIUM_TOURNAMENT_START_AT,
     rerollsRemaining,
     totalStars,
+    communityStars,
     hasDotaId: normalizeDotaAccountId(user.dotaId) !== null,
     quests,
   };
@@ -87,9 +93,19 @@ export async function checkDailyQuest(
   }
   const completed = await existingCompletion(user.discordId, questId);
   if (completed) {
+    const [totalStars, communityStars, rerollsRemaining, quests] =
+      await Promise.all([
+        totalCompendiumStars(user.discordId),
+        totalCommunityCompendiumStars(),
+        dailyRerollsRemaining(day.dateKey, user.discordId),
+        loadDailyQuests(day.dateKey, user.discordId),
+      ]);
     return {
       completion: completed,
-      totalStars: await totalCompendiumStars(user.discordId),
+      totalStars,
+      communityStars,
+      rerollsRemaining,
+      quests,
     };
   }
 
@@ -139,9 +155,19 @@ export async function checkDailyQuest(
     heroId: matchingWin.heroId,
     matchId: matchingWin.matchId,
   });
+  const [totalStars, communityStars, rerollsRemaining, quests] =
+    await Promise.all([
+      totalCompendiumStars(user.discordId),
+      totalCommunityCompendiumStars(),
+      dailyRerollsRemaining(day.dateKey, user.discordId),
+      loadDailyQuests(day.dateKey, user.discordId),
+    ]);
   return {
     completion,
-    totalStars: await totalCompendiumStars(user.discordId),
+    totalStars,
+    communityStars,
+    rerollsRemaining,
+    quests,
   };
 }
 
@@ -163,5 +189,8 @@ export async function rerollDailyQuest(
   if (!quest) {
     throw new CompendiumError("STALE_QUEST", "Задание больше не действует");
   }
-  return { quest, rerollsRemaining: 0 };
+  return {
+    quest,
+    rerollsRemaining: await dailyRerollsRemaining(day.dateKey, user.discordId),
+  };
 }

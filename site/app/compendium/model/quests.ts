@@ -1,4 +1,5 @@
 import {
+  BONUS_QUEST_HERO_COUNT,
   DAILY_HERO_COUNT,
   DAILY_QUEST_COUNT,
   HEROES_PER_QUEST,
@@ -40,13 +41,27 @@ export function generateRerollQuestHeroes(
   excludedHeroIds: Iterable<number>,
   heroes: CompendiumHero[] = COMPENDIUM_HEROES,
   random: () => number = Math.random,
+  heroCount: number = HEROES_PER_QUEST,
 ): CompendiumHero[] {
   const excluded = new Set(excludedHeroIds);
   const availableHeroes = heroes.filter((hero) => !excluded.has(hero.id));
-  if (availableHeroes.length < HEROES_PER_QUEST) {
+  if (availableHeroes.length < heroCount) {
     throw new Error("Недостаточно новых героев для реролла задания");
   }
   return shuffledHeroes(availableHeroes, random)
-    .slice(0, HEROES_PER_QUEST)
+    .slice(0, heroCount)
     .sort((left, right) => left.name.localeCompare(right.name, "en"));
+}
+
+export function generateBonusQuestHeroes(
+  excludedHeroIds: Iterable<number>,
+  heroes: CompendiumHero[] = COMPENDIUM_HEROES,
+  random: () => number = Math.random,
+): CompendiumHero[] {
+  return generateRerollQuestHeroes(
+    excludedHeroIds,
+    heroes,
+    random,
+    BONUS_QUEST_HERO_COUNT,
+  );
 }
