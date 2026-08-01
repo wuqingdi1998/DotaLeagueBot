@@ -18,7 +18,11 @@ export default async function CompendiumPage() {
   const data = await loadCompendium(user);
   return (
     <PlatformShell user={user}>
-      <CompendiumDashboard key={data.moscowDate} initialData={data} />
+      <CompendiumDashboard
+        key={data.moscowDate}
+        initialData={data}
+        isOrganizer={user.isAdmin}
+      />
     </PlatformShell>
   );
 }

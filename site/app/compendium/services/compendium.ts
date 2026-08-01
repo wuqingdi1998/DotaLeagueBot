@@ -1,6 +1,7 @@
 import type { AuthUser } from "@/lib/auth";
 import { normalizeDotaAccountId } from "@/lib/player-profile";
 import {
+  COMPENDIUM_TOURNAMENT_START_AT,
   NO_MATCH_MESSAGE,
   OPEN_DOTA_ERROR_MESSAGE,
 } from "../model/constants";
@@ -38,6 +39,7 @@ export async function loadCompendium(
     moscowDate: day.dateKey,
     moscowDateLabel: moscowDateLabel(day.dateKey),
     nextResetAt: day.end.toISOString(),
+    tournamentStartsAt: COMPENDIUM_TOURNAMENT_START_AT,
     totalStars,
     hasDotaId: normalizeDotaAccountId(user.dotaId) !== null,
     quests,

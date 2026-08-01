@@ -5,8 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaDiscord, FaStar } from "react-icons/fa";
-import { FiCalendar, FiClock, FiRefreshCw } from "react-icons/fi";
+import { FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
+import { tournamentCountdownLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
 import { QuestCard } from "../components/QuestCard";
 
@@ -21,26 +22,34 @@ function countdownLabel(nextResetAt: string): string {
 
 export function CompendiumDashboard({
   initialData,
+  isOrganizer,
 }: {
   initialData: CompendiumData;
+  isOrganizer: boolean;
 }) {
   const router = useRouter();
   const [data, setData] = useState(initialData);
   const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [countdown, setCountdown] = useState(() => countdownLabel(data.nextResetAt));
+  const [tournamentCountdown, setTournamentCountdown] = useState(() =>
+    tournamentCountdownLabel(data.tournamentStartsAt),
+  );
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       const next = countdownLabel(data.nextResetAt);
       setCountdown(next);
+      setTournamentCountdown(
+        tournamentCountdownLabel(data.tournamentStartsAt),
+      );
       if (next === "00:00:00") {
         window.clearInterval(timer);
         router.refresh();
       }
     }, 1_000);
     return () => window.clearInterval(timer);
-  }, [data.nextResetAt, router]);
+  }, [data.nextResetAt, data.tournamentStartsAt, router]);
 
   useEffect(() => {
     if (!toast) return;
@@ -113,10 +122,21 @@ export function CompendiumDashboard({
               />
             </a>
           </div>
-          <p>Побеждайте на героях дня и собирайте звёзды сообщества.</p>
+          <p className="compendium-description">
+            Побеждайте на героях дня и собирайте звёзды сообщества.
+          </p>
+          {isOrganizer && (
+            <Link className="compendium-base-link" href="/compendium/base">
+              <FiDatabase aria-hidden="true" /> База
+            </Link>
+          )}
         </div>
         <div className="compendium-summary">
-          <div><FiCalendar aria-hidden="true" /><span>Сегодня по Москве</span><strong>{data.moscowDateLabel}</strong></div>
+          <div className="compendium-tournament-countdown">
+            <FiClock aria-hidden="true" />
+            <span>ДО ТУРНИРА</span>
+            <strong>{tournamentCountdown}</strong>
+          </div>
           <div className="stars"><FaStar aria-hidden="true" /><span>Ваши звёзды</span><strong>{data.totalStars}</strong></div>
         </div>
       </section>

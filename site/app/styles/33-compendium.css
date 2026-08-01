@@ -41,7 +41,7 @@
   letter-spacing: -0.045em;
 }
 
-.compendium-title-block > p:last-child {
+.compendium-title-block > .compendium-description {
   max-width: 620px;
   margin: 28px 0 0;
   color: rgba(230, 250, 248, 0.75);
@@ -411,7 +411,7 @@
 @media (max-width: 720px) {
   .compendium-hero-section { min-height: auto; padding: 54px 20px 42px; }
   .compendium-title-block h1 { font-size: clamp(52px, 17vw, 76px); }
-  .compendium-title-block > p:last-child { margin-top: 20px; font-size: 15px; }
+  .compendium-title-block > .compendium-description { margin-top: 20px; font-size: 15px; }
   .compendium-summary { grid-template-columns: 1fr; }
   .compendium-summary > div:first-child { grid-column: auto; }
   .compendium-daily-section,

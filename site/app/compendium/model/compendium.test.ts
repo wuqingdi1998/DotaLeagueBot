@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { DAILY_HERO_COUNT } from "./constants";
+import {
+  COMPENDIUM_TOURNAMENT_START_AT,
+  DAILY_HERO_COUNT,
+} from "./constants";
 import { COMPENDIUM_HEROES } from "./heroes";
 import { findMatchingWin, matchEndedAt } from "./matches";
 import { generateDailyQuestHeroes } from "./quests";
-import { currentMoscowDay, moscowDateKey } from "./time";
+import {
+  currentMoscowDay,
+  moscowDateKey,
+  tournamentCountdownLabel,
+} from "./time";
 import type { OpenDotaMatch } from "./types";
 
 function match(input: Partial<OpenDotaMatch> = {}): OpenDotaMatch {
@@ -73,6 +80,29 @@ describe("Moscow calendar boundaries", () => {
   it("uses Europe/Moscow midnight as the exact UTC day boundary", () => {
     expect(augustFirst.start.toISOString()).toBe("2026-07-31T21:00:00.000Z");
     expect(augustFirst.end.toISOString()).toBe("2026-08-01T21:00:00.000Z");
+  });
+});
+
+describe("The International countdown", () => {
+  it("counts down to 13 August 2026 at 07:00 Moscow time", () => {
+    expect(new Date(COMPENDIUM_TOURNAMENT_START_AT).toISOString()).toBe(
+      "2026-08-13T04:00:00.000Z",
+    );
+    expect(
+      tournamentCountdownLabel(
+        COMPENDIUM_TOURNAMENT_START_AT,
+        new Date("2026-08-12T04:00:00.000Z"),
+      ),
+    ).toBe("1 дн. 00:00:00");
+  });
+
+  it("shows a finished state after the tournament starts", () => {
+    expect(
+      tournamentCountdownLabel(
+        COMPENDIUM_TOURNAMENT_START_AT,
+        new Date("2026-08-13T04:00:00.000Z"),
+      ),
+    ).toBe("Турнир начался");
   });
 });
 

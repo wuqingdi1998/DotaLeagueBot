@@ -12,6 +12,9 @@ const header = source("../app/components/SiteHeader.tsx");
 const navigationCss = source("../app/styles/34-compendium-navigation.css");
 const dashboard = source("../app/compendium/sections/CompendiumDashboard.tsx");
 const headingCss = source("../app/styles/35-compendium-heading.css");
+const basePage = source("../app/compendium/base/page.tsx");
+const baseRepository = source("../app/compendium/admin/repository.ts");
+const baseView = source("../app/compendium/admin/CompendiumBase.tsx");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -70,5 +73,25 @@ describe("compendium persistence and security contract", () => {
     expect(heading).toContain("До новых заданий");
     expect(heading).toContain("{countdown}");
     expect(headingCss).toContain(".compendium-section-countdown");
+  });
+
+  it("shows the tournament countdown in place of today's Moscow date", () => {
+    expect(dashboard).toContain("ДО ТУРНИРА");
+    expect(dashboard).toContain("tournamentCountdown");
+    expect(dashboard).not.toContain("Сегодня по Москве");
+  });
+
+  it("shows the hidden base link only in organizer mode", () => {
+    expect(dashboard).toContain("isOrganizer &&");
+    expect(dashboard).toContain('href="/compendium/base"');
+    expect(basePage).toContain("if (!user?.isAdmin) notFound()");
+  });
+
+  it("loads every participant and the four heroes behind each rewarded star", () => {
+    expect(baseRepository).toContain("FROM players player");
+    expect(baseRepository).toContain("compendium_user_quest_completions");
+    expect(baseRepository).toContain("compendium_daily_quest_heroes");
+    expect(baseView).toContain("reward.heroes.map");
+    expect(baseView).toContain("hero.id === reward.matchedHeroId");
   });
 });

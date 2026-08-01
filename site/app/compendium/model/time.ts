@@ -80,3 +80,21 @@ export function currentMoscowDay(now: Date = new Date()) {
   const bounds = moscowDayBounds(dateKey);
   return { dateKey, ...bounds };
 }
+
+export function tournamentCountdownLabel(
+  targetAt: string,
+  now: Date = new Date(),
+): string {
+  const remaining = Math.max(0, new Date(targetAt).getTime() - now.getTime());
+  if (remaining === 0) return "Турнир начался";
+
+  const totalSeconds = Math.floor(remaining / 1_000);
+  const days = Math.floor(totalSeconds / 86_400);
+  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
+  const minutes = Math.floor((totalSeconds % 3_600) / 60);
+  const seconds = totalSeconds % 60;
+  const clock = [hours, minutes, seconds]
+    .map((part) => String(part).padStart(2, "0"))
+    .join(":");
+  return days > 0 ? `${days} дн. ${clock}` : clock;
+}

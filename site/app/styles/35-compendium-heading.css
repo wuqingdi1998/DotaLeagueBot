@@ -48,6 +48,12 @@
   grid-column: auto;
 }
 
+.compendium-tournament-countdown strong {
+  font-size: clamp(17px, 1.3vw, 21px);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .compendium-section-status {
   display: flex;
   align-items: flex-end;
