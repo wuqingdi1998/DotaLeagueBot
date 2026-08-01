@@ -363,4 +363,9 @@ describe("season interface contract", () => {
       "row.inactiveReason && <small>{row.inactiveReason}</small>",
     );
   });
+
+  it("applies dedicated ordering to inactive and penalized players", () => {
+    expect(standings).toContain("compareSeasonStandingPerformance");
+    expect(standings).toContain("compareSeasonPenaltyStages");
+  });
 });

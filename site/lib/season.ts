@@ -1,3 +1,5 @@
+import { compareSeasonStandingPerformance } from "./season-standings-order";
+
 export type SeasonRoundVisibility = {
   id: number;
   roundNumber: number;
@@ -444,9 +446,6 @@ export function calculateSeasonStandings(
     (left, right) =>
       (left.rankSnapshot ?? Number.MAX_SAFE_INTEGER) -
         (right.rankSnapshot ?? Number.MAX_SAFE_INTEGER) ||
-      right.points - left.points ||
-      (right.winRate ?? -1) - (left.winRate ?? -1) ||
-      right.playedRounds - left.playedRounds ||
-      left.nickname.localeCompare(right.nickname, "ru"),
+      compareSeasonStandingPerformance(left, right),
   );
 }

@@ -4,6 +4,10 @@ import Image from "next/image";
 import { useState } from "react";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { SeasonStanding } from "@/lib/season";
+import {
+  compareSeasonPenaltyStages,
+  compareSeasonStandingPerformance,
+} from "@/lib/season-standings-order";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonRound } from "../model/season-types";
 import { HorizontalDragScroll } from "../components/HorizontalDragScroll";
@@ -38,7 +42,9 @@ export function SeasonStandingsPanel() {
       ? season.data.previewStandings
       : season.data.standings;
   const activeRows = standings.filter((row) => row.section === "active");
-  const inactiveRows = standings.filter((row) => row.section === "inactive");
+  const inactiveRows = standings
+    .filter((row) => row.section === "inactive")
+    .sort(compareSeasonStandingPerformance);
 
   return (
     <div className="tab-panel season-standings-panel">
@@ -230,7 +236,9 @@ function SeasonStandingsLegend() {
 }
 
 function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
-  const penalized = rows.filter((row) => row.penaltyFires > 0);
+  const penalized = rows
+    .filter((row) => row.penaltyFires > 0)
+    .sort(compareSeasonPenaltyStages);
   return (
     <section className="season-penalty-table-section">
       <h4>Штраф очков</h4>
