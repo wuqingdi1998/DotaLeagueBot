@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "./db";
+import { normalizeParticipantTierInput } from "./player-tier-status";
 
 export type ArchiveIdentityProfile = {
   id: string;
@@ -43,29 +44,44 @@ async function audit(
 
 export async function updateParticipantTier(
   playerId: string,
-  tier: number,
+  tier: number | string,
   actorDiscordId: string,
 ) {
-  if (!Number.isInteger(tier) || tier < 0 || tier > 12) {
+  const normalizedTier = normalizeParticipantTierInput(tier);
+  if (!normalizedTier) {
     throw new Response("Тир должен быть от 0 до 12", { status: 400 });
   }
+  const { isOutdated, numericTier } = normalizedTier;
   return transaction(async (client) => {
-    const updated = await client.query<{ nickname: string }>(
+    const updated = await client.query<{
+      nickname: string;
+      tier_status: "current" | "outdated" | "inactive";
+    }>(
       `UPDATE players
-       SET internal_rating = $2,
+       SET internal_rating = CASE WHEN $2 THEN internal_rating ELSE $3 END,
+           tier_status = CASE
+             WHEN tier_status = 'inactive' THEN 'inactive'
+             WHEN $2 THEN 'outdated'
+             ELSE 'current'
+           END,
            last_updated = NOW()
        WHERE discord_id = $1
          AND is_archived = FALSE
-       RETURNING ingame_name AS nickname`,
-      [playerId, tier],
+       RETURNING ingame_name AS nickname, tier_status`,
+      [playerId, isOutdated, numericTier],
     );
     if (!updated.rows[0]) {
       throw new Response("Действующий участник не найден", { status: 404 });
     }
     await audit(client, actorDiscordId, "player_tier_update", playerId, {
-      tier,
+      tier: isOutdated ? "!" : numericTier,
+      tierStatus: updated.rows[0].tier_status,
     });
-    return { nickname: updated.rows[0].nickname, tier };
+    return {
+      nickname: updated.rows[0].nickname,
+      tier: isOutdated ? null : numericTier,
+      tierStatus: updated.rows[0].tier_status,
+    };
   });
 }
 

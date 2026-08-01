@@ -120,7 +120,7 @@ export function ParticipantsTable({
       </div>
 
       <div
-        className="hall-table participants-table"
+        className={`hall-table participants-table${isOrganizer ? " organizer" : ""}`}
         role="table"
         aria-label="Список участников"
       >
@@ -142,21 +142,11 @@ export function ParticipantsTable({
             <span className="participant-roles" role="cell">
               {player.positions ?? "—"}
             </span>
-            {isOrganizer && player.kind === "registered" ? (
-              <button
-                className="participant-tier editable"
-                type="button"
-                role="cell"
-                onClick={() => setEditedPlayer(player)}
-                title={`Изменить тир игрока ${player.nickname}`}
-              >
-                {player.tier ?? "—"}
-              </button>
-            ) : (
-              <span className="participant-tier" role="cell">
-                {player.tier ?? "—"}
-              </span>
-            )}
+            <ParticipantTierCell
+              player={player}
+              isOrganizer={isOrganizer}
+              onEdit={() => setEditedPlayer(player)}
+            />
             <ParticipantLinks player={player} />
           </div>
         ))}
@@ -174,6 +164,47 @@ export function ParticipantsTable({
         />
       )}
     </>
+  );
+}
+
+function ParticipantTierCell({
+  player,
+  isOrganizer,
+  onEdit,
+}: {
+  player: ParticipantDirectoryPlayer;
+  isOrganizer: boolean;
+  onEdit: () => void;
+}) {
+  const isOutdated = player.tierStatus !== "current";
+  const value = isOutdated ? "!" : (player.tier ?? "—");
+  const title = isOutdated
+    ? "Ранг неактуален"
+    : `Тир игрока ${player.nickname}`;
+  return (
+    <span className="participant-tier-cell" role="cell">
+      {isOrganizer && player.tierStatus === "inactive" && (
+        <span className="participant-inactive-badge">Инактив</span>
+      )}
+      {isOrganizer && player.kind === "registered" ? (
+        <button
+          className={`participant-tier editable${isOutdated ? " outdated" : ""}`}
+          type="button"
+          onClick={onEdit}
+          title={isOutdated ? "Ранг неактуален" : `Изменить ${title.toLowerCase()}`}
+          aria-label={isOutdated ? `Ранг игрока ${player.nickname} неактуален` : title}
+        >
+          {value}
+        </button>
+      ) : (
+        <span
+          className={`participant-tier${isOutdated ? " outdated" : ""}`}
+          title={isOutdated ? "Ранг неактуален" : undefined}
+        >
+          {value}
+        </span>
+      )}
+    </span>
   );
 }
 

@@ -1,0 +1,47 @@
+/* Current tier freshness in the participant directory */
+
+.participant-tier-cell {
+  display: flex;
+  align-items: center;
+  justify-self: start;
+  gap: 7px;
+}
+
+.participant-tier.outdated {
+  border-color: #d83d4f;
+  background: rgba(216, 61, 79, 0.14);
+  color: #d83d4f;
+}
+
+[data-theme="dark"] .participant-tier.outdated {
+  background: rgba(216, 61, 79, 0.2);
+  color: #ff7382;
+}
+
+.participant-inactive-badge {
+  border: 1px solid rgba(216, 61, 79, 0.42);
+  border-radius: 999px;
+  padding: 5px 8px;
+  background: rgba(216, 61, 79, 0.12);
+  color: #d83d4f;
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.participants-table.organizer .participants-row {
+  grid-template-columns: 58px minmax(210px, 1fr) 70px 132px 160px;
+}
+
+@media (max-width: 900px) {
+  .participants-table.organizer .participants-row {
+    grid-template-columns: 34px minmax(170px, 1fr) 52px 124px 142px;
+  }
+}
+
+@media (max-width: 760px) {
+  .participants-table.organizer .participants-row {
+    min-width: 630px;
+    grid-template-columns: minmax(190px, 1fr) 48px 124px 112px;
+  }
+}

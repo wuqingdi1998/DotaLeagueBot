@@ -1,4 +1,5 @@
 import { buildPlayerLinks, normalizeDotaAccountId } from "./player-profile";
+import type { PlayerTierStatus } from "./player-tier-status";
 import { query } from "./db";
 
 export const participantTierMinimum = 1;
@@ -16,6 +17,7 @@ export type ParticipantDirectoryPlayer = {
   primaryRole: number | null;
   secondaryRole: number | null;
   tier: number | null;
+  tierStatus: PlayerTierStatus;
   links: {
     dotabuff: string;
     stratz: string;
@@ -32,6 +34,7 @@ type RegisteredParticipantRow = {
   avatar_url: string | null;
   positions: string | null;
   tier: number | null;
+  tier_status: PlayerTierStatus;
 };
 
 type ArchiveParticipantRow = {
@@ -65,6 +68,7 @@ function registeredParticipant(
       primaryRole: roleAt(row.positions, 0),
       secondaryRole: roleAt(row.positions, 1),
       tier: row.tier,
+      tierStatus: row.tier_status,
       links: buildPlayerLinks(dotaId),
     },
   ];
@@ -85,6 +89,7 @@ export async function loadParticipantDirectory(
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
        player.positions,
+       player.tier_status,
        COALESCE(
          NULLIF(player.internal_rating, 0),
          CASE
@@ -205,6 +210,7 @@ export async function loadParticipantDirectory(
       primaryRole: null,
       secondaryRole: null,
       tier: row.tier,
+      tierStatus: "current",
       links: null,
     })),
   ];

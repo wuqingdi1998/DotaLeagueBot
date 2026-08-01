@@ -14,6 +14,7 @@ import {
   allowedTeamImageTypes as allowedImageTypes,
   hasExpectedImageSignature as hasExpectedSignature,
   resolveApplicationPlayer as resolvePlayer,
+  outdatedTierApplicationError,
   type ApplicationPlayerRow as PlayerRow,
 } from "./application-support";
 import { updateApplicationStatus } from "./application-status";
@@ -137,6 +138,10 @@ export async function POST(request: Request) {
         { error: "Каждый игрок может быть указан в составе только один раз" },
         { status: 400 },
       );
+    }
+    const outdatedTierError = outdatedTierApplicationError(members);
+    if (outdatedTierError) {
+      return Response.json({ error: outdatedTierError }, { status: 409 });
     }
 
     const emblem = body.get("emblem");

@@ -54,6 +54,7 @@ class Player(Base):
     avatar_url = Column(String, nullable=True)
     rank_tier = Column(Integer, default=0)
     internal_rating = Column(Integer, default=0)
+    tier_status = Column(String, nullable=False, default="current")
     is_archived = Column(Boolean, nullable=False, default=False)
     archived_at = Column(DateTime(timezone=True), nullable=True)
     archived_by = Column(BigInteger, nullable=True)

@@ -23,6 +23,7 @@ function player(
     primaryRole,
     secondaryRole,
     tier,
+    tierStatus: "current",
     links: {
       dotabuff: "#",
       stratz: "#",

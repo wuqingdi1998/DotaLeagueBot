@@ -1,4 +1,10 @@
 import { query } from "@/lib/db";
+import {
+  outdatedTierApplicationError,
+  type PlayerTierStatus,
+} from "@/lib/player-tier-status";
+
+export { outdatedTierApplicationError };
 
 export const allowedTeamImageTypes = new Map([
   ["image/png", "png"],
@@ -36,13 +42,14 @@ export function hasExpectedImageSignature(
 export type ApplicationPlayerRow = {
   discord_id: string;
   ingame_name: string;
+  tier_status: PlayerTierStatus;
 };
 
 export async function resolveApplicationPlayer(
   name: string,
 ): Promise<ApplicationPlayerRow | null> {
   const players = await query<ApplicationPlayerRow>(
-     `SELECT discord_id::text, ingame_name
+     `SELECT discord_id::text, ingame_name, tier_status
      FROM players
      WHERE is_archived = FALSE
        AND LOWER(ingame_name) = LOWER($1)

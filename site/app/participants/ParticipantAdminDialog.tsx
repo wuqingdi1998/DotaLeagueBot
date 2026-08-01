@@ -35,7 +35,9 @@ export function ParticipantAdminDialog({
   onClose: () => void;
 }) {
   const router = useRouter();
-  const [tier, setTier] = useState(String(player.tier ?? 0));
+  const [tier, setTier] = useState(
+    player.tierStatus === "current" ? String(player.tier ?? 0) : "!",
+  );
   const [deleteStep, setDeleteStep] = useState<"none" | "question" | "password">(
     "none",
   );
@@ -51,7 +53,7 @@ export function ParticipantAdminDialog({
       await playerAdminRequest({
         action: "update-tier",
         playerId: player.discordId,
-        tier: Number(tier),
+        tier: tier.trim(),
       });
       router.refresh();
       onClose();
@@ -112,14 +114,18 @@ export function ParticipantAdminDialog({
             <label>
               <span>Изменить тир</span>
               <input
-                type="number"
-                min={0}
-                max={12}
+                type="text"
+                inputMode="text"
+                pattern="!|[0-9]|1[0-2]"
+                maxLength={2}
                 value={tier}
                 onChange={(event) => setTier(event.target.value)}
                 required
               />
-              <small>Тиры от 1 до 12. Значение 0 возвращает автоматический тир.</small>
+              <small>
+                Тиры от 1 до 12. Значение 0 возвращает автоматический тир, а !
+                отмечает ранг как неактуальный.
+              </small>
             </label>
             <div>
               <button type="submit" disabled={isSaving}>

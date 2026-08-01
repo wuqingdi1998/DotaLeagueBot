@@ -20,7 +20,7 @@ type PlayerAdminRequest = {
   targetPlayerId?: string;
   nickname?: string;
   password?: string;
-  tier?: number;
+  tier?: number | string;
 };
 
 export async function POST(request: Request) {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
         return Response.json(
           await updateParticipantTier(
             body.playerId ?? "",
-            Number(body.tier),
+            body.tier ?? "",
             admin.discordId,
           ),
         );
