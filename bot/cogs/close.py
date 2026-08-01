@@ -1,6 +1,7 @@
 import os
 import re
 import asyncio
+import logging
 from collections import defaultdict
 from datetime import datetime, timezone
 
@@ -11,15 +12,17 @@ from sqlalchemy import select
 from dotenv import load_dotenv
 
 from database.core import async_session
-from database.models import CloseEvent
+from database.models import CloseEvent, Player
 from services.close_announcement import (
     MSK,
     build_content as _build_content,
     participant_entries as _participant_entries,
     set_participant_entries as _set_participant_entries,
 )
+from services.close_registration import UNSET_TIER_MESSAGE, can_register_for_close
 
 load_dotenv()
+log = logging.getLogger(__name__)
 
 CLOSE_CHANNEL_ID = int(os.getenv("CLOSE_CHANNEL_ID") or 0)
 CLOSE_HOST_ROLE_ID = int(os.getenv("CLOSE_HOST_ROLE_ID") or 0)
@@ -206,6 +209,48 @@ class Close(commands.Cog):
         else:
             await interaction.response.send_message(msg, ephemeral=True)
 
+    async def _reject_registration(
+        self,
+        payload: discord.RawReactionActionEvent,
+        channel_id: int,
+        message_id: int,
+    ) -> None:
+        """Снять реакцию и лично сообщить игроку, почему регистрация отклонена."""
+        user = payload.member or self.bot.get_user(payload.user_id)
+        if user is None:
+            try:
+                user = await self.bot.fetch_user(payload.user_id)
+            except (discord.NotFound, discord.HTTPException):
+                log.warning("Не удалось получить пользователя %s", payload.user_id)
+
+        channel = self.bot.get_channel(channel_id)
+        if channel is None:
+            try:
+                channel = await self.bot.fetch_channel(channel_id)
+            except (discord.NotFound, discord.HTTPException):
+                log.warning("Не удалось получить канал клоза %s", channel_id)
+
+        if channel is not None:
+            try:
+                message = await channel.fetch_message(message_id)
+                reaction_user = user or discord.Object(id=payload.user_id)
+                await message.remove_reaction(CHECK_EMOJI, reaction_user)
+            except (discord.NotFound, discord.Forbidden, discord.HTTPException):
+                log.warning(
+                    "Не удалось снять реакцию игрока %s с клоза %s",
+                    payload.user_id,
+                    message_id,
+                )
+
+        if user is not None:
+            try:
+                await user.send(UNSET_TIER_MESSAGE)
+            except (discord.Forbidden, discord.HTTPException):
+                log.warning(
+                    "Не удалось отправить личное сообщение игроку %s",
+                    payload.user_id,
+                )
+
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
         # Регистрация происходит только через реакцию ✅.
@@ -223,22 +268,38 @@ class Close(commands.Cog):
                 if ev is None:
                     return  # сообщение не является анонсом клоза
 
-                participants = _participant_entries(ev)
-                participant_id = str(payload.user_id)
-                if any(
-                    registered_id == participant_id
-                    for registered_id, _ in participants
-                ):
-                    return  # уже зарегистрирован
-                joined_at = int(datetime.now(timezone.utc).timestamp())
-                participants.append((participant_id, joined_at))
-                _set_participant_entries(ev, participants)
-                await session.commit()
-
-                # Снимок нужных полей, пока сессия открыта.
+                tier_result = await session.execute(
+                    select(Player.tier_status).where(
+                        Player.discord_id == payload.user_id,
+                        Player.is_archived.is_(False),
+                    )
+                )
+                tier_status = tier_result.scalar_one_or_none()
                 channel_id = ev.channel_id
                 message_id = ev.message_id
-                content = _build_content(ev, participants)
+
+                if not can_register_for_close(tier_status):
+                    registration_rejected = True
+                else:
+                    registration_rejected = False
+                    participants = _participant_entries(ev)
+                    participant_id = str(payload.user_id)
+                    if any(
+                        registered_id == participant_id
+                        for registered_id, _ in participants
+                    ):
+                        return  # уже зарегистрирован
+                    joined_at = int(datetime.now(timezone.utc).timestamp())
+                    participants.append((participant_id, joined_at))
+                    _set_participant_entries(ev, participants)
+                    await session.commit()
+
+                    # Снимок нужных полей, пока сессия открыта.
+                    content = _build_content(ev, participants)
+
+        if registration_rejected:
+            await self._reject_registration(payload, channel_id, message_id)
+            return
 
         # --- Обновляем список участников в сообщении ---
         channel = self.bot.get_channel(channel_id)
