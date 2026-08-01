@@ -9,6 +9,7 @@ const migration = source("../../bot/database/migrations/0039_compendium.sql");
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
+const navigationCss = source("../app/styles/34-compendium-navigation.css");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -44,5 +45,12 @@ describe("compendium persistence and security contract", () => {
 
   it("adds the compendium to desktop and mobile navigation", () => {
     expect(header.match(/href="\/compendium"/g)).toHaveLength(2);
+    expect(header.match(/compendium-navigation-link/g)).toHaveLength(2);
+  });
+
+  it("highlights the compendium navigation with an accessible gold shimmer", () => {
+    expect(navigationCss).toContain("@keyframes compendium-gold-shimmer");
+    expect(navigationCss).toContain("animation: compendium-gold-shimmer");
+    expect(navigationCss).toContain("@media (prefers-reduced-motion: reduce)");
   });
 });

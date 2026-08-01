@@ -142,7 +142,7 @@ export function SiteHeader({
           Участники
         </Link>
         <Link
-          className={compendiumActive ? "active" : undefined}
+          className={`compendium-navigation-link${compendiumActive ? " active" : ""}`}
           href="/compendium"
           aria-current={compendiumActive ? "page" : undefined}
         >
@@ -298,7 +298,7 @@ export function SiteHeader({
             Участники
           </Link>
           <Link
-            className={compendiumActive ? "active" : undefined}
+            className={`compendium-navigation-link${compendiumActive ? " active" : ""}`}
             href="/compendium"
             aria-current={compendiumActive ? "page" : undefined}
             onClick={() => setMobileMenuOpen(false)}
