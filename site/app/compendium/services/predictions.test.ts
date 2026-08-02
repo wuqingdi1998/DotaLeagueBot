@@ -1,18 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  deletePredictionDay: vi.fn(),
+  deletePredictionMatch: vi.fn(),
   recordPredictionPick: vi.fn(),
   recordPredictionResult: vi.fn(),
   replacePredictionMatches: vi.fn(),
 }));
 
 vi.mock("./prediction-repository", () => ({
+  deletePredictionDay: mocks.deletePredictionDay,
+  deletePredictionMatch: mocks.deletePredictionMatch,
   recordPredictionPick: mocks.recordPredictionPick,
   recordPredictionResult: mocks.recordPredictionResult,
   replacePredictionMatches: mocks.replacePredictionMatches,
 }));
 
-import { configurePredictionMatches, finishPredictionMatch } from "./predictions";
+import {
+  configurePredictionMatches,
+  finishPredictionMatch,
+  removePredictionSchedule,
+} from "./predictions";
 
 const administrator = {
   discordId: "100",
@@ -30,6 +38,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.replacePredictionMatches.mockResolvedValue(undefined);
   mocks.recordPredictionResult.mockResolvedValue(4);
+  mocks.deletePredictionDay.mockResolvedValue(3);
+  mocks.deletePredictionMatch.mockResolvedValue(undefined);
 });
 
 describe("prediction schedule configuration", () => {
@@ -80,5 +90,16 @@ describe("prediction schedule configuration", () => {
       score: "2:1",
     });
   });
-});
 
+  it("deletes either one match or a complete day", async () => {
+    await expect(removePredictionSchedule({ matchId: "77" })).resolves.toEqual({
+      deletedMatches: 1,
+    });
+    expect(mocks.deletePredictionMatch).toHaveBeenCalledWith("77");
+
+    await expect(removePredictionSchedule({ dateKey: "2026-08-10" })).resolves.toEqual({
+      deletedMatches: 3,
+    });
+    expect(mocks.deletePredictionDay).toHaveBeenCalledWith("2026-08-10");
+  });
+});

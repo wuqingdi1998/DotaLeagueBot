@@ -178,6 +178,25 @@ export async function loadPredictionAdminMatches(now: Date): Promise<PredictionA
   });
 }
 
+export async function deletePredictionMatch(matchId: string): Promise<void> {
+  const deletedMatches = await query<{ id: string }>(
+    "DELETE FROM compendium_prediction_matches WHERE id = $1 RETURNING id::text",
+    [matchId],
+  );
+  if (!deletedMatches[0]) throw new Error("PREDICTION_NOT_FOUND");
+}
+
+export async function deletePredictionDay(dateKey: string): Promise<number> {
+  return transaction(async (client) => {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`compendium-predictions:${dateKey}`]);
+    const result = await client.query(
+      "DELETE FROM compendium_prediction_matches WHERE moscow_date = $1::date",
+      [dateKey],
+    );
+    return result.rowCount ?? 0;
+  });
+}
+
 export async function recordPredictionResult(input: {
   matchId: string;
   score: PredictionScore;

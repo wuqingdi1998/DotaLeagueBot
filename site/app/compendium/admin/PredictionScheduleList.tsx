@@ -1,4 +1,4 @@
-import { FiEdit3, FiList, FiStar } from "react-icons/fi";
+import { FiEdit3, FiList, FiStar, FiTrash2 } from "react-icons/fi";
 import { predictionScores, type PredictionScore } from "../model/predictions";
 import type { PredictionAdminMatch } from "../services/prediction-repository";
 import { groupPredictionMatchesByDate, predictionTimeValue } from "./prediction-admin-model";
@@ -21,6 +21,8 @@ export function PredictionScheduleList({
   onOpenResult,
   onResultChange,
   onSaveResult,
+  onDeleteMatch,
+  onDeleteDay,
 }: {
   matches: PredictionAdminMatch[];
   results: Record<string, PredictionScore>;
@@ -30,6 +32,8 @@ export function PredictionScheduleList({
   onOpenResult: (matchId: string) => void;
   onResultChange: (matchId: string, score: PredictionScore) => void;
   onSaveResult: (matchId: string) => void;
+  onDeleteMatch: (match: PredictionAdminMatch) => void;
+  onDeleteDay: (dateKey: string) => void;
 }) {
   const groupedMatches = groupPredictionMatchesByDate(matches);
   return (
@@ -42,6 +46,9 @@ export function PredictionScheduleList({
         <section className="prediction-admin-day" key={group.dateKey}>
           <header>
             <div><strong>{predictionDateLabel(group.dateKey)}</strong><span>{group.matches.length} матча</span></div>
+            <button className="prediction-admin-delete" type="button" disabled={isSaving} onClick={() => onDeleteDay(group.dateKey)}>
+              <FiTrash2 aria-hidden="true" /> Удалить день
+            </button>
           </header>
           <div className="prediction-admin-results">
             {group.matches.map((match) => (
@@ -53,6 +60,9 @@ export function PredictionScheduleList({
                 <div className="prediction-admin-match-actions">
                   <button type="button" disabled={match.actualScore !== null} onClick={() => onEdit(match)}>
                     <FiEdit3 aria-hidden="true" /> Редактировать матч
+                  </button>
+                  <button className="prediction-admin-delete" type="button" disabled={isSaving} onClick={() => onDeleteMatch(match)}>
+                    <FiTrash2 aria-hidden="true" /> Удалить матч
                   </button>
                   {match.actualScore ? (
                     <b className="prediction-admin-finished">Итог: {match.actualScore}</b>

@@ -206,6 +206,33 @@
   color: var(--blue-strong);
 }
 
+.prediction-admin-results .prediction-admin-delete {
+  border-color: rgba(255, 104, 104, 0.42);
+  background: rgba(108, 28, 35, 0.3);
+  color: #ffb0b0;
+}
+
+.prediction-admin-results .prediction-admin-delete:hover:not(:disabled),
+.prediction-admin-day > header .prediction-admin-delete:hover:not(:disabled) {
+  border-color: rgba(255, 104, 104, 0.72);
+  background: rgba(143, 36, 45, 0.48);
+}
+
+.prediction-admin-day > header .prediction-admin-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 104, 104, 0.42);
+  border-radius: 10px;
+  background: rgba(108, 28, 35, 0.3);
+  color: #ffb0b0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .prediction-admin-match-actions > button:disabled {
   cursor: not-allowed;
   opacity: 0.48;

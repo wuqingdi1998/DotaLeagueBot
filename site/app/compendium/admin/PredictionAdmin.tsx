@@ -114,6 +114,35 @@ export function PredictionAdmin({
     }
   }
 
+  async function deleteSchedule(input: { matchId?: string; dateKey?: string }, confirmation: string) {
+    if (!window.confirm(confirmation)) return;
+    setIsSaving(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/compendium-predictions", {
+        method: "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        deletedMatches?: number;
+        matches?: PredictionAdminMatch[];
+      };
+      if (!response.ok) throw new Error(result.error ?? "Не удалось удалить расписание");
+      const refreshedMatches = result.matches ?? [];
+      setMatches(refreshedMatches);
+      setDrafts(predictionDraftsForDate(refreshedMatches, dateKey));
+      setMatchCount(predictionMatchCountForDate(refreshedMatches, dateKey));
+      setActiveResultMatchId(null);
+      setMessage(`Удалено матчей: ${result.deletedMatches ?? 0}. Можно заполнить расписание заново.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось удалить расписание");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <main className="prediction-admin-page">
       <Link href="/compendium" className="prediction-admin-back"><FiArrowLeft aria-hidden="true" /> Вернуться в Компендиум</Link>
@@ -142,6 +171,14 @@ export function PredictionAdmin({
         onOpenResult={setActiveResultMatchId}
         onResultChange={(matchId, score) => setResults((current) => ({ ...current, [matchId]: score }))}
         onSaveResult={saveResult}
+        onDeleteMatch={(match) => void deleteSchedule(
+          { matchId: match.id },
+          `Удалить матч ${match.teamA.name} — ${match.teamB.name}? Прогнозы и выданные за него звёзды тоже будут удалены.`,
+        )}
+        onDeleteDay={(day) => void deleteSchedule(
+          { dateKey: day },
+          `Удалить все матчи за ${day}? Прогнозы и выданные за них звёзды тоже будут удалены.`,
+        )}
       />
       {message && <div className="prediction-admin-message" role="status">{message}</div>}
     </main>

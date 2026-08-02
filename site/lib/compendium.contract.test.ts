@@ -21,6 +21,9 @@ const profileBadgesMigration = source(
 const predictionsMigration = source(
   "../../bot/database/migrations/0045_compendium_predictions.sql",
 );
+const starResetMigration = source(
+  "../../bot/database/migrations/0046_reset_compendium_stars.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
@@ -291,6 +294,17 @@ describe("compendium persistence and security contract", () => {
     expect(predictionScheduleList).toContain("Редактировать матч");
     expect(predictionScheduleList).toContain("Проставить результат");
     expect(predictionScheduleList).toContain("Сохранить и раздать звёзды");
+    expect(predictionScheduleList).toContain("Удалить матч");
+    expect(predictionScheduleList).toContain("Удалить день");
+    expect(predictionAdminRoute).toContain("export async function DELETE");
+    expect(predictionAdminRoute).toContain("await requireAdmin()");
+  });
+
+  it("resets every star source without deleting permanent profile badges", () => {
+    expect(starResetMigration).toContain("DELETE FROM compendium_user_quest_completions");
+    expect(starResetMigration).toContain("DELETE FROM compendium_admin_star_adjustments");
+    expect(starResetMigration).toContain("DELETE FROM compendium_prediction_rewards");
+    expect(starResetMigration).not.toContain("player_profile_badges");
   });
 
   it("hides empty match cards and explains prediction rewards", () => {

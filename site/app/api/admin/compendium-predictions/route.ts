@@ -2,6 +2,7 @@ import { responseFromCompendiumError } from "@/app/api/compendium/compendium-err
 import {
   configurePredictionMatches,
   finishPredictionMatch,
+  removePredictionSchedule,
 } from "@/app/compendium/services/predictions";
 import { requireAdmin } from "@/lib/auth";
 import { loadPredictionAdminMatches } from "@/app/compendium/services/prediction-repository";
@@ -42,6 +43,21 @@ export async function PATCH(request: Request) {
       score: body.score,
     });
     return Response.json({ ok: true, rewardedPlayers });
+  } catch (error) {
+    return responseFromCompendiumError(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await requireAdmin();
+    const body = (await request.json()) as { matchId?: unknown; dateKey?: unknown };
+    const result = await removePredictionSchedule(body);
+    return Response.json({
+      ok: true,
+      ...result,
+      matches: await loadPredictionAdminMatches(new Date()),
+    });
   } catch (error) {
     return responseFromCompendiumError(error);
   }

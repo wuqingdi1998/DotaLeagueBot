@@ -4,11 +4,17 @@ import { isPredictionScore, type PredictionScore } from "../model/predictions";
 import { compendiumTeamByKey } from "../model/teams";
 import { moscowDateKey } from "../model/time";
 import {
+  deletePredictionDay,
+  deletePredictionMatch,
   recordPredictionPick,
   recordPredictionResult,
   replacePredictionMatches,
   type PredictionMatchInput,
 } from "./prediction-repository";
+
+function isPredictionDateKey(value: unknown): value is string {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
 
 export async function submitPrediction(
   user: AuthUser,
@@ -37,7 +43,7 @@ export async function configurePredictionMatches(input: {
   dateKey: string;
   matches: Array<{ teamAKey?: unknown; teamBKey?: unknown; startsAt?: unknown }>;
 }): Promise<void> {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateKey)) {
+  if (!isPredictionDateKey(input.dateKey)) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите дату матчей");
   }
   if (![2, 3].includes(input.matches.length)) {
@@ -70,6 +76,27 @@ export async function configurePredictionMatches(input: {
         "PREDICTION_LOCKED",
         "Завершённый матч нельзя удалить или заменить",
       );
+    }
+    throw error;
+  }
+}
+
+export async function removePredictionSchedule(input: {
+  matchId?: unknown;
+  dateKey?: unknown;
+}): Promise<{ deletedMatches: number }> {
+  try {
+    if (typeof input.matchId === "string" && /^\d{1,19}$/.test(input.matchId)) {
+      await deletePredictionMatch(input.matchId);
+      return { deletedMatches: 1 };
+    }
+    if (isPredictionDateKey(input.dateKey)) {
+      return { deletedMatches: await deletePredictionDay(input.dateKey) };
+    }
+    throw new CompendiumError("PREDICTION_INVALID", "Выберите матч или день для удаления");
+  } catch (error) {
+    if (error instanceof Error && error.message === "PREDICTION_NOT_FOUND") {
+      throw new CompendiumError("PREDICTION_NOT_FOUND", "Матч уже удалён или не найден");
     }
     throw error;
   }

@@ -12,6 +12,9 @@ ADMIN_MIGRATION = (
 PROFILE_BADGES_MIGRATION = (
     ROOT / "database" / "migrations" / "0044_persistent_profile_badges.sql"
 ).read_text(encoding="utf-8")
+STAR_RESET_MIGRATION = (
+    ROOT / "database" / "migrations" / "0046_reset_compendium_stars.sql"
+).read_text(encoding="utf-8")
 ADMIN_COG = (ROOT / "cogs" / "compendium_admin.py").read_text(encoding="utf-8")
 ADMIN_SERVICE = (
     ROOT / "services" / "compendium_star_service.py"
@@ -55,3 +58,10 @@ def test_compendium_badges_are_permanent_profile_customizations() -> None:
     assert "compendium_adjustment_profile_badges_trigger" in PROFILE_BADGES_MIGRATION
     assert "ON CONFLICT (player_id, badge_key) DO NOTHING" in PROFILE_BADGES_MIGRATION
     assert "MAX(running_stars)" in PROFILE_BADGES_MIGRATION
+
+
+def test_star_reset_clears_all_sources_but_keeps_permanent_badges() -> None:
+    assert "DELETE FROM compendium_user_quest_completions" in STAR_RESET_MIGRATION
+    assert "DELETE FROM compendium_admin_star_adjustments" in STAR_RESET_MIGRATION
+    assert "DELETE FROM compendium_prediction_rewards" in STAR_RESET_MIGRATION
+    assert "player_profile_badges" not in STAR_RESET_MIGRATION
