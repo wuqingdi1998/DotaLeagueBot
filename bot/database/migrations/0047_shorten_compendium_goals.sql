@@ -46,5 +46,5 @@ BEGIN
 END
 $function$;
 
-SELECT grant_ti_2026_profile_badges(player_id)
+SELECT grant_ti_2026_profile_badges(discord_id)
 FROM players;

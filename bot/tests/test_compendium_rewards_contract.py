@@ -74,4 +74,4 @@ def test_shortened_badge_goals_are_persistent_and_backfilled() -> None:
     assert "('ti-2026-bronze'::varchar, 10)" in SHORTENED_GOALS_MIGRATION
     assert "('ti-2026-silver'::varchar, 30)" in SHORTENED_GOALS_MIGRATION
     assert "('ti-2026-gold'::varchar, 60)" in SHORTENED_GOALS_MIGRATION
-    assert "grant_ti_2026_profile_badges(player_id)" in SHORTENED_GOALS_MIGRATION
+    assert "grant_ti_2026_profile_badges(discord_id)" in SHORTENED_GOALS_MIGRATION
