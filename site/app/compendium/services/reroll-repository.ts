@@ -34,6 +34,13 @@ async function rerollsRemainingWithClient(
          1
        FROM compendium_admin_star_adjustments adjustment
        WHERE adjustment.player_id = $2
+       UNION ALL
+       SELECT reward.awarded_at,
+         reward.reward_amount::int,
+         reward.match_id,
+         2
+       FROM compendium_prediction_rewards reward
+       WHERE reward.player_id = $2
      ), running_totals AS (
        SELECT occurred_at, event_id, event_kind,
          SUM(amount) OVER (

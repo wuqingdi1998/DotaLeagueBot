@@ -6,7 +6,11 @@ export type CompendiumErrorCode =
   | "OPEN_DOTA_UNAVAILABLE"
   | "RATE_LIMITED"
   | "REROLL_USED"
-  | "QUEST_COMPLETED";
+  | "QUEST_COMPLETED"
+  | "PREDICTION_INVALID"
+  | "PREDICTION_NOT_FOUND"
+  | "PREDICTION_LOCKED"
+  | "PREDICTION_DEADLINE";
 
 export class CompendiumError extends Error {
   constructor(

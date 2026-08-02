@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   fetchRecentPlayerMatches: vi.fn(),
   dailyRerollsRemaining: vi.fn(),
   recordDailyQuestReroll: vi.fn(),
+  loadDailyPredictions: vi.fn(),
 }));
 
 vi.mock("./repository", () => ({
@@ -33,6 +34,10 @@ vi.mock("./opendota", () => ({
 vi.mock("./reroll-repository", () => ({
   dailyRerollsRemaining: mocks.dailyRerollsRemaining,
   recordDailyQuestReroll: mocks.recordDailyQuestReroll,
+}));
+
+vi.mock("./prediction-repository", () => ({
+  loadDailyPredictions: mocks.loadDailyPredictions,
 }));
 
 vi.mock("@/lib/player-profile", () => ({
@@ -68,6 +73,7 @@ beforeEach(() => {
   mocks.totalCompendiumStars.mockResolvedValue(1);
   mocks.totalCommunityCompendiumStars.mockResolvedValue(12);
   mocks.dailyRerollsRemaining.mockResolvedValue(1);
+  mocks.loadDailyPredictions.mockResolvedValue([]);
 });
 
 describe("protected quest checks", () => {

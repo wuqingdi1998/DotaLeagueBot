@@ -10,6 +10,10 @@ const compendiumErrorStatuses = {
   RATE_LIMITED: 429,
   REROLL_USED: 409,
   QUEST_COMPLETED: 409,
+  PREDICTION_INVALID: 400,
+  PREDICTION_NOT_FOUND: 404,
+  PREDICTION_LOCKED: 409,
+  PREDICTION_DEADLINE: 409,
 } as const;
 
 export function responseFromCompendiumError(error: unknown): Response {

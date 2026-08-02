@@ -18,6 +18,9 @@ const adminStarsMigration = source(
 const profileBadgesMigration = source(
   "../../bot/database/migrations/0044_persistent_profile_badges.sql",
 );
+const predictionsMigration = source(
+  "../../bot/database/migrations/0045_compendium_predictions.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
@@ -44,6 +47,22 @@ const profileCustomizationCss = source("../app/styles/18-profile-customization.c
 const playerProfileCss = source("../app/styles/12-player-profile.css");
 const rewardsCss = source("../app/styles/38-compendium-rewards.css");
 const baseViewTypes = source("../app/compendium/admin/types.ts");
+const predictionRoute = source(
+  "../app/api/compendium/predictions/[matchId]/route.ts",
+);
+const predictionAdminRoute = source(
+  "../app/api/admin/compendium-predictions/route.ts",
+);
+const predictionAdminPage = source(
+  "../app/compendium/predictions/page.tsx",
+);
+const predictionRepository = source(
+  "../app/compendium/services/prediction-repository.ts",
+);
+const predictionsView = source(
+  "../app/compendium/components/CompendiumPredictions.tsx",
+);
+const predictionsCss = source("../app/styles/39-compendium-predictions.css");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -169,10 +188,10 @@ describe("compendium persistence and security contract", () => {
     expect(dashboard).not.toContain("К турнирам сообщества");
   });
 
-  it("shows personal and community reward tracks after the quests", () => {
+  it("shows personal and community reward tracks before the quests", () => {
     expect(rewards).toContain("Личный зачёт");
     expect(rewards).toContain("Зачёт сообщества");
-    expect(dashboard.indexOf("<CompendiumRewards")).toBeGreaterThan(
+    expect(dashboard.indexOf("<CompendiumRewards")).toBeLessThan(
       dashboard.indexOf('className={`compendium-quest-grid'),
     );
   });
@@ -236,6 +255,45 @@ describe("compendium persistence and security contract", () => {
     expect(compendiumCss).toContain("scroll-snap-type: x mandatory");
     expect(compendiumCss).toContain("overflow-x: auto");
     expect(dashboard).toContain("compendium-mobile-swipe-hint");
+  });
+
+  it("stores one prediction and one reward per player and match", () => {
+    expect(predictionsMigration).toContain("PRIMARY KEY (match_id, player_id)");
+    expect(predictionsMigration).toContain("reward_amount BETWEEN 0 AND 2");
+    expect(predictionsMigration).toContain("compendium_prediction_rewards");
+    expect(predictionsMigration).toContain("compendium_player_star_totals");
+  });
+
+  it("locks participant and organizer prediction actions on the server", () => {
+    expect(predictionRoute).toContain("const user = await requireSession()");
+    expect(predictionAdminRoute).toContain("await requireAdmin()");
+    expect(predictionAdminPage).toContain("if (!user?.isAdmin) notFound()");
+    expect(predictionRepository).toContain("FOR UPDATE");
+    expect(predictionRepository).toContain("PREDICTION_DEADLINE");
+    expect(predictionRepository).toContain("ON CONFLICT (match_id, player_id) DO NOTHING");
+  });
+
+  it("hides empty match cards and explains prediction rewards", () => {
+    expect(predictionsView).toContain("Матчи скоро появятся");
+    expect(predictionsView).toContain("Точный счёт — 2 звезды");
+    expect(predictionsView).toContain("matches.length ?");
+  });
+
+  it("centers the mobile hero actions and adapts prediction cards", () => {
+    expect(headingCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-title-block\s*\{[\s\S]*text-align: center/,
+    );
+    expect(headingCss).toMatch(
+      /\.compendium-liquipedia-link\s*\{[\s\S]*margin-inline: auto/,
+    );
+    expect(predictionsCss).toContain("@media (max-width: 1050px)");
+    expect(predictionsCss).toContain("grid-template-columns: 1fr");
+  });
+
+  it("renders permanent profile badges as Aegis shields", () => {
+    expect(profileBadge).toContain("profile-event-badge-aegis");
+    expect(profileBadge).toContain("aegis-shield");
+    expect(profileCustomizationCss).toContain(".aegis-rune");
   });
 
   it("identifies the reroll owner from the session and updates one card", () => {

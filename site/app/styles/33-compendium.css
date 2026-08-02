@@ -110,9 +110,19 @@
 }
 
 .compendium-daily-section,
+.compendium-rewards-section,
+.compendium-predictions-section,
 .compendium-link-profile {
   width: min(1460px, calc(100% - 64px));
   margin: 0 auto;
+}
+
+.compendium-rewards-section {
+  padding-top: 40px;
+}
+
+.compendium-rewards-section .compendium-rewards {
+  margin-top: 0;
 }
 
 .compendium-daily-section {
@@ -405,7 +415,10 @@
   .compendium-summary { grid-template-columns: 1fr; }
   .compendium-summary > div:first-child { grid-column: auto; }
   .compendium-daily-section,
+  .compendium-rewards-section,
+  .compendium-predictions-section,
   .compendium-link-profile { width: min(100% - 32px, 1460px); }
+  .compendium-rewards-section { padding-top: 28px; }
   .compendium-daily-section { padding-top: 28px; }
   .compendium-section-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
   .compendium-mobile-swipe-hint {

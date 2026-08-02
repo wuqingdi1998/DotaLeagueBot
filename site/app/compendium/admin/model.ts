@@ -38,6 +38,31 @@ export function buildCompendiumAdminParticipants(
     const participantRewards = rewardsByParticipant.get(row.player_id) ?? new Map();
     rewardsByParticipant.set(row.player_id, participantRewards);
     const historyId = `${row.history_kind}:${row.completion_id}`;
+    if (
+      row.history_kind === "prediction" &&
+      row.team_a_name &&
+      row.team_b_name &&
+      row.predicted_score &&
+      row.actual_score
+    ) {
+      if (!participantRewards.has(historyId)) {
+        const reward: CompendiumRewardHistory = {
+          kind: "prediction",
+          id: historyId,
+          dateKey: row.moscow_date,
+          dateLabel: moscowDateLabel(row.moscow_date),
+          completedAt: row.completed_at.toISOString(),
+          rewardAmount: row.reward_amount,
+          teamAName: row.team_a_name,
+          teamBName: row.team_b_name,
+          predictedScore: row.predicted_score,
+          actualScore: row.actual_score,
+        };
+        participant.rewards.push(reward);
+        participantRewards.set(historyId, reward);
+      }
+      continue;
+    }
     if (row.history_kind === "admin") {
       if (!participantRewards.has(historyId)) {
         const reward: CompendiumRewardHistory = {

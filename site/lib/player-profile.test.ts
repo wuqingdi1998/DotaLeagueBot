@@ -69,7 +69,7 @@ describe("public player profile", () => {
     expect(ti2026ProfileBadgeForStars(40)).toBe("ti-2026-silver");
     expect(ti2026ProfileBadgeForStars(75)).toBe("ti-2026-gold");
     expect(profileBadgeDefinition("ti-2026-gold")).toMatchObject({
-      label: "Золотой бейдж TI 2026",
+      label: "Бейдж Компендиума TI 2026 (золотой)",
       tier: "gold",
     });
     expect(profileBadgeDefinition("unknown-badge")).toBeNull();

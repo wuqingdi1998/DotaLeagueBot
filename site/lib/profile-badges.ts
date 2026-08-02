@@ -19,19 +19,19 @@ const profileBadgeDefinitions: Record<
 > = {
   "ti-2026-bronze": {
     key: "ti-2026-bronze",
-    label: "Бронзовый бейдж TI 2026",
+    label: "Бейдж Компендиума TI 2026 (бронзовый)",
     tier: "bronze",
     shortLabel: "2026",
   },
   "ti-2026-silver": {
     key: "ti-2026-silver",
-    label: "Серебряный бейдж TI 2026",
+    label: "Бейдж Компендиума TI 2026 (серебрянный)",
     tier: "silver",
     shortLabel: "2026",
   },
   "ti-2026-gold": {
     key: "ti-2026-gold",
-    label: "Золотой бейдж TI 2026",
+    label: "Бейдж Компендиума TI 2026 (золотой)",
     tier: "gold",
     shortLabel: "2026",
   },

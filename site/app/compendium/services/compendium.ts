@@ -24,6 +24,7 @@ import {
   dailyRerollsRemaining,
   recordDailyQuestReroll,
 } from "./reroll-repository";
+import { loadDailyPredictions } from "./prediction-repository";
 
 export type CheckQuestResult = {
   completion: QuestCompletion;
@@ -55,11 +56,12 @@ export async function loadCompendium(
 ): Promise<CompendiumData> {
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
-  const [quests, totalStars, communityStars, rerollsRemaining] = await Promise.all([
+  const [quests, totalStars, communityStars, rerollsRemaining, predictions] = await Promise.all([
     loadDailyQuests(day.dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
     totalCommunityCompendiumStars(),
     dailyRerollsRemaining(day.dateKey, user.discordId),
+    loadDailyPredictions(day.dateKey, user.discordId, now),
   ]);
   return {
     moscowDate: day.dateKey,
@@ -71,6 +73,7 @@ export async function loadCompendium(
     communityStars,
     hasDotaId: normalizeDotaAccountId(user.dotaId) !== null,
     quests,
+    predictions,
   };
 }
 

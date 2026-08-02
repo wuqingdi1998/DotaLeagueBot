@@ -22,6 +22,10 @@ function row(
     quest_hero_id: 1,
     hero_position: 1,
     administrator_name: null,
+    team_a_name: null,
+    team_b_name: null,
+    predicted_score: null,
+    actual_score: null,
     ...input,
   };
 }
@@ -101,5 +105,30 @@ describe("compendium organizer base", () => {
       -2,
       5,
     ]);
+  });
+
+  it("shows prediction rewards with the selected and actual score", () => {
+    const participants = buildCompendiumAdminParticipants([
+      row({
+        history_kind: "prediction",
+        completion_id: "601",
+        quest_position: null,
+        matched_hero_id: null,
+        matched_match_id: null,
+        quest_hero_id: null,
+        hero_position: null,
+        reward_amount: 2,
+        team_a_name: "Team Spirit",
+        team_b_name: "Team Liquid",
+        predicted_score: "2:1",
+        actual_score: "2:1",
+      }),
+    ]);
+    expect(participants[0].rewards[0]).toMatchObject({
+      kind: "prediction",
+      rewardAmount: 2,
+      predictedScore: "2:1",
+      actualScore: "2:1",
+    });
   });
 });

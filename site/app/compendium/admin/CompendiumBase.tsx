@@ -11,8 +11,30 @@ import type {
   CompendiumAdminRewardHistory,
   CompendiumAdminParticipant,
   CompendiumQuestRewardHistory,
+  CompendiumPredictionRewardHistory,
   CompendiumRewardHistory,
 } from "./types";
+
+function PredictionRewardHistoryItem({
+  reward,
+}: {
+  reward: CompendiumPredictionRewardHistory;
+}) {
+  return (
+    <article className="compendium-base-reward compendium-base-prediction-reward">
+      <div className="compendium-base-reward-heading">
+        <div>
+          <span>{reward.dateLabel}</span>
+          <strong>Прогноз: {reward.teamAName} — {reward.teamBName}</strong>
+          <small>Выбор {reward.predictedScore} · итог {reward.actualScore}</small>
+        </div>
+        <span className="compendium-base-reward-value">
+          <FaStar aria-hidden="true" /> +{reward.rewardAmount}
+        </span>
+      </div>
+    </article>
+  );
+}
 
 function QuestRewardHistoryItem({
   reward,
@@ -86,6 +108,9 @@ function AdminRewardHistoryItem({
 }
 
 function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
+  if (reward.kind === "prediction") {
+    return <PredictionRewardHistoryItem reward={reward} />;
+  }
   return reward.kind === "admin" ? (
     <AdminRewardHistoryItem reward={reward} />
   ) : (

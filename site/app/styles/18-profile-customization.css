@@ -24,16 +24,39 @@
     color-mix(in srgb, var(--badge-main) 20%, transparent);
 }
 
-.profile-event-badge-mark {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  clip-path: polygon(50% 0, 100% 23%, 88% 82%, 50% 100%, 12% 82%, 0 23%);
-  background: linear-gradient(145deg, var(--badge-light), var(--badge-main));
-  color: #15202a;
-  font-size: 10px;
-  letter-spacing: -0.06em;
+.profile-event-badge-aegis {
+  width: 31px;
+  height: 35px;
+  flex: 0 0 auto;
+  overflow: visible;
+  filter: drop-shadow(0 3px 4px color-mix(in srgb, var(--badge-main) 55%, transparent));
+}
+
+.profile-event-badge-aegis .aegis-wings,
+.profile-event-badge-aegis .aegis-crown {
+  fill: var(--badge-main);
+  stroke: var(--badge-light);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.profile-event-badge-aegis .aegis-shield {
+  fill: var(--badge-main);
+  stroke: var(--badge-light);
+  stroke-width: 3;
+}
+
+.profile-event-badge-aegis .aegis-ring {
+  fill: color-mix(in srgb, var(--badge-main) 74%, #14202a);
+  stroke: var(--badge-light);
+  stroke-width: 2;
+}
+
+.profile-event-badge-aegis .aegis-rune {
+  fill: var(--badge-light);
+  stroke: color-mix(in srgb, var(--badge-main) 70%, #151c24);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
 }
 
 .profile-event-badge-silver {
@@ -357,9 +380,8 @@
     font-size: 10px;
   }
 
-  .public-profile-nickname-line .profile-event-badge-mark {
-    width: 26px;
-    height: 26px;
-    font-size: 9px;
+  .public-profile-nickname-line .profile-event-badge-aegis {
+    width: 27px;
+    height: 31px;
   }
 }

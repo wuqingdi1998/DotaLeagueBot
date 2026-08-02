@@ -18,6 +18,24 @@ export type DailyQuest = {
   completion: QuestCompletion | null;
 };
 
+export type PredictionTeam = {
+  key: string;
+  name: string;
+  logoUrl: string;
+};
+
+export type DailyPredictionMatch = {
+  id: string;
+  position: number;
+  startsAt: string;
+  teamA: PredictionTeam;
+  teamB: PredictionTeam;
+  predictedScore: import("./predictions").PredictionScore | null;
+  actualScore: import("./predictions").PredictionScore | null;
+  rewardStars: number | null;
+  isLocked: boolean;
+};
+
 export type CompendiumData = {
   moscowDate: string;
   moscowDateLabel: string;
@@ -28,6 +46,7 @@ export type CompendiumData = {
   communityStars: number;
   hasDotaId: boolean;
   quests: DailyQuest[];
+  predictions: DailyPredictionMatch[];
 };
 
 export type OpenDotaMatch = {

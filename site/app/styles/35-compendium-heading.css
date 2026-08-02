@@ -112,6 +112,10 @@
 }
 
 @media (max-width: 720px) {
+  .compendium-title-block {
+    text-align: center;
+  }
+
   .compendium-kicker {
     font-size: 15px;
     letter-spacing: 0.13em;
@@ -126,6 +130,12 @@
     margin-top: 14px;
     padding: 0 10px 0 13px;
     font-size: 12px;
+    margin-inline: auto;
+  }
+
+  .compendium-summary {
+    width: 100%;
+    margin-inline: auto;
   }
 
   .compendium-liquipedia-link img {

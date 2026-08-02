@@ -15,6 +15,8 @@ import {
 import { DailyRerollNotice } from "../components/DailyRerollNotice";
 import { QuestCard } from "../components/QuestCard";
 import { CompendiumRewards } from "../components/CompendiumRewards";
+import { CompendiumPredictions } from "../components/CompendiumPredictions";
+import type { PredictionScore } from "../model/predictions";
 
 function countdownLabel(nextResetAt: string): string {
   const remaining = Math.max(0, new Date(nextResetAt).getTime() - Date.now());
@@ -36,6 +38,7 @@ export function CompendiumDashboard({
   const [data, setData] = useState(initialData);
   const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
   const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
+  const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [countdown, setCountdown] = useState(() => countdownLabel(data.nextResetAt));
   const [tournamentCountdown, setTournamentCountdown] = useState(() =>
@@ -149,6 +152,36 @@ export function CompendiumDashboard({
     }
   }
 
+  async function selectPrediction(matchId: string, score: PredictionScore) {
+    if (submittingMatchId) return;
+    setSubmittingMatchId(matchId);
+    try {
+      const response = await fetch(`/api/compendium/predictions/${matchId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ score }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        prediction?: CompendiumData["predictions"][number];
+      };
+      if (!response.ok || !result.prediction) {
+        throw new Error(result.error ?? "Не удалось сохранить прогноз");
+      }
+      setData((current) => ({
+        ...current,
+        predictions: current.predictions.map((match) =>
+          match.id === matchId ? result.prediction ?? match : match,
+        ),
+      }));
+      setToast(`Прогноз ${score} сохранён`);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Не удалось сохранить прогноз");
+    } finally {
+      setSubmittingMatchId(null);
+    }
+  }
+
   return (
     <div className="compendium-page">
       <CompendiumHeroImagePreloader />
@@ -203,7 +236,14 @@ export function CompendiumDashboard({
           </a>
         </section>
       ) : (
-        <section className="compendium-daily-section">
+        <>
+          <section className="compendium-rewards-section" id="compendium-rewards">
+            <CompendiumRewards
+              personalStars={data.totalStars}
+              communityStars={data.communityStars}
+            />
+          </section>
+          <section className="compendium-daily-section" id="compendium-quests">
           <div className="compendium-section-heading">
             <div><span>Обновление ежедневно в 00:00 МСК</span><h2>Задания дня</h2></div>
             <div className="compendium-section-status">
@@ -247,11 +287,14 @@ export function CompendiumDashboard({
               />
             ))}
           </div>
-          <CompendiumRewards
-            personalStars={data.totalStars}
-            communityStars={data.communityStars}
+          </section>
+          <CompendiumPredictions
+            matches={data.predictions}
+            isOrganizer={isOrganizer}
+            submittingMatchId={submittingMatchId}
+            onSelect={selectPrediction}
           />
-        </section>
+        </>
       )}
 
       {toast && <div className="compendium-toast" role="status">{toast}</div>}

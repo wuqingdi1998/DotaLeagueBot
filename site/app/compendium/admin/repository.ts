@@ -49,7 +49,11 @@ export async function loadCompendiumAdminParticipants(): Promise<
          completion.reward_amount,
          quest_hero.hero_id AS quest_hero_id,
          quest_hero.position AS hero_position,
-         NULL::text AS administrator_name
+         NULL::text AS administrator_name,
+         NULL::text AS team_a_name,
+         NULL::text AS team_b_name,
+         NULL::text AS predicted_score,
+         NULL::text AS actual_score
        FROM participants participant
        LEFT JOIN compendium_user_quest_completions completion
          ON completion.player_id = participant.discord_id
@@ -92,10 +96,44 @@ export async function loadCompendiumAdminParticipants(): Promise<
          adjustment.amount,
          NULL::smallint,
          NULL::smallint,
-         adjustment.administrator_name
+         adjustment.administrator_name,
+         NULL::text,
+         NULL::text,
+         NULL::text,
+         NULL::text
        FROM participants participant
        JOIN compendium_admin_star_adjustments adjustment
          ON adjustment.player_id = participant.discord_id
+       UNION ALL
+       SELECT
+         participant.discord_id::text,
+         participant.player_name,
+         participant.dota_id,
+         participant.avatar_url,
+         participant.total_stars,
+         'prediction' AS history_kind,
+         prediction_reward.match_id::text,
+         prediction_match.moscow_date::text,
+         NULL::smallint,
+         NULL::smallint,
+         NULL::text,
+         prediction_reward.awarded_at,
+         prediction_reward.reward_amount,
+         NULL::smallint,
+         NULL::smallint,
+         NULL::text,
+         prediction_match.team_a_name,
+         prediction_match.team_b_name,
+         prediction_pick.predicted_score,
+         prediction_match.actual_score
+       FROM participants participant
+       JOIN compendium_prediction_rewards prediction_reward
+         ON prediction_reward.player_id = participant.discord_id
+       JOIN compendium_prediction_picks prediction_pick
+         ON prediction_pick.match_id = prediction_reward.match_id
+        AND prediction_pick.player_id = prediction_reward.player_id
+       JOIN compendium_prediction_matches prediction_match
+         ON prediction_match.id = prediction_reward.match_id
      ) history
      ORDER BY LOWER(player_name), completed_at DESC NULLS LAST,
        quest_position, hero_position`,
