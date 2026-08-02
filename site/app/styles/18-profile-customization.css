@@ -4,7 +4,7 @@
   --badge-main: #ad733f;
   --badge-light: #f0ba78;
   display: inline-flex;
-  min-height: 38px;
+  min-height: 42px;
   flex: 0 0 auto;
   align-items: center;
   gap: 7px;
@@ -25,38 +25,54 @@
 }
 
 .profile-event-badge-aegis {
-  width: 31px;
-  height: 35px;
+  width: 39px;
+  height: 36px;
   flex: 0 0 auto;
   overflow: visible;
   filter: drop-shadow(0 3px 4px color-mix(in srgb, var(--badge-main) 55%, transparent));
 }
 
-.profile-event-badge-aegis .aegis-wings,
-.profile-event-badge-aegis .aegis-crown {
+.profile-event-badge-aegis .aegis-frame {
   fill: var(--badge-main);
   stroke: var(--badge-light);
-  stroke-width: 2;
+  stroke-width: 1.8;
   stroke-linejoin: round;
 }
 
-.profile-event-badge-aegis .aegis-shield {
-  fill: var(--badge-main);
+.profile-event-badge-aegis .aegis-disc {
+  fill: color-mix(in srgb, var(--badge-main) 36%, #171a1d);
   stroke: var(--badge-light);
-  stroke-width: 3;
+  stroke-width: 2.2;
 }
 
 .profile-event-badge-aegis .aegis-ring {
-  fill: color-mix(in srgb, var(--badge-main) 74%, #14202a);
+  fill: none;
+  stroke: color-mix(in srgb, var(--badge-light) 76%, transparent);
+  stroke-width: 1.5;
+}
+
+.profile-event-badge-aegis .aegis-blades path {
+  fill: var(--badge-light);
+  stroke: color-mix(in srgb, var(--badge-main) 62%, #151719);
+  stroke-width: 1.1;
+  stroke-linejoin: round;
+}
+
+.profile-event-badge-aegis .aegis-medallion {
+  fill: color-mix(in srgb, var(--badge-main) 76%, #16191c);
   stroke: var(--badge-light);
-  stroke-width: 2;
+  stroke-width: 1.5;
 }
 
 .profile-event-badge-aegis .aegis-rune {
   fill: var(--badge-light);
-  stroke: color-mix(in srgb, var(--badge-main) 70%, #151c24);
-  stroke-width: 1.5;
-  stroke-linejoin: round;
+}
+
+.profile-event-badge-aegis .aegis-ornament {
+  fill: none;
+  stroke: var(--badge-light);
+  stroke-width: 1.4;
+  stroke-linecap: round;
 }
 
 .profile-event-badge-silver {
@@ -381,7 +397,7 @@
   }
 
   .public-profile-nickname-line .profile-event-badge-aegis {
-    width: 27px;
+    width: 34px;
     height: 31px;
   }
 }

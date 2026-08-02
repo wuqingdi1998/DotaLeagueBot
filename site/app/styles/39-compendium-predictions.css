@@ -49,6 +49,10 @@
   gap: 16px;
 }
 
+.compendium-predictions-grid.match-count-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .compendium-prediction-card {
   position: relative;
   overflow: hidden;
@@ -202,7 +206,8 @@
 }
 
 @media (max-width: 1050px) {
-  .compendium-predictions-grid { grid-template-columns: 1fr; }
+  .compendium-predictions-grid,
+  .compendium-predictions-grid.match-count-2 { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -212,4 +217,3 @@
   .compendium-prediction-card { padding: 17px; }
   .compendium-predictions-empty { min-height: 125px; }
 }
-

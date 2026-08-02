@@ -112,7 +112,16 @@
 }
 
 @media (max-width: 720px) {
+  .compendium-hero-section {
+    justify-items: center;
+  }
+
   .compendium-title-block {
+    display: flex;
+    width: min(100%, 520px);
+    flex-direction: column;
+    align-items: center;
+    justify-self: center;
     text-align: center;
   }
 
@@ -134,6 +143,12 @@
   }
 
   .compendium-summary {
+    width: min(100%, 520px);
+    margin-inline: auto;
+    justify-self: center;
+  }
+
+  .compendium-summary > .compendium-tournament-countdown {
     width: 100%;
     margin-inline: auto;
   }

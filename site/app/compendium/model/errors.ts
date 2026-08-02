@@ -9,8 +9,7 @@ export type CompendiumErrorCode =
   | "QUEST_COMPLETED"
   | "PREDICTION_INVALID"
   | "PREDICTION_NOT_FOUND"
-  | "PREDICTION_LOCKED"
-  | "PREDICTION_DEADLINE";
+  | "PREDICTION_LOCKED";
 
 export class CompendiumError extends Error {
   constructor(

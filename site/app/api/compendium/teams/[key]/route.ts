@@ -9,7 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ key: string }> },
 ) {
   const team = compendiumTeamByKey((await params).key);
-  if (!team) return new Response("Not found", { status: 404 });
+  if (!team?.liquipediaLogoPath) return new Response("Not found", { status: 404 });
 
   const upstream = await fetch(`https://liquipedia.net${team.liquipediaLogoPath}`, {
     cache: "force-cache",

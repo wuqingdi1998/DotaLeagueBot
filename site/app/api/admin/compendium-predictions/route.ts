@@ -16,7 +16,7 @@ export async function POST(request: Request) {
       matches?: unknown;
     };
     if (typeof body.dateKey !== "string" || !Array.isArray(body.matches)) {
-      return Response.json({ error: "Заполните дату и три матча" }, { status: 400 });
+      return Response.json({ error: "Заполните дату и матчи" }, { status: 400 });
     }
     await configurePredictionMatches({
       administrator,

@@ -118,11 +118,17 @@ export async function replacePredictionMatches(input: {
 }): Promise<void> {
   await transaction(async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`compendium-predictions:${input.dateKey}`]);
-    const dateCheck = await client.query<{ allowed: boolean }>(
-      `SELECT $1::date > (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date AS allowed`,
-      [input.dateKey],
+    const protectedTrailingMatch = await client.query(
+      `SELECT 1 FROM compendium_prediction_matches
+       WHERE moscow_date = $1::date AND position > $2 AND actual_score IS NOT NULL`,
+      [input.dateKey, input.matches.length],
     );
-    if (!dateCheck.rows[0].allowed) throw new Error("PREDICTION_DEADLINE");
+    if (protectedTrailingMatch.rowCount) throw new Error("PREDICTION_RESULT_LOCKED");
+    await client.query(
+      `DELETE FROM compendium_prediction_matches
+       WHERE moscow_date = $1::date AND position > $2 AND actual_score IS NULL`,
+      [input.dateKey, input.matches.length],
+    );
     for (const match of input.matches) {
       await client.query(
         `INSERT INTO compendium_prediction_matches(
@@ -139,7 +145,8 @@ export async function replacePredictionMatches(input: {
            team_b_name = EXCLUDED.team_b_name,
            team_b_logo_path = EXCLUDED.team_b_logo_path,
            configured_by = EXCLUDED.configured_by,
-           updated_at = NOW()`,
+           updated_at = NOW()
+         WHERE compendium_prediction_matches.actual_score IS NULL`,
         [input.dateKey, match.position, match.startsAt, match.teamA.key, match.teamA.name,
           match.teamA.logoPath, match.teamB.key, match.teamB.name, match.teamB.logoPath,
           input.administratorId],
@@ -155,8 +162,6 @@ export async function loadPredictionAdminMatches(now: Date): Promise<PredictionA
        match.team_b_key, match.team_b_name, NULL::varchar AS predicted_score,
        match.actual_score, NULL::smallint AS reward_amount
      FROM compendium_prediction_matches match
-     WHERE match.actual_score IS NULL
-        OR match.moscow_date >= (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
      ORDER BY match.moscow_date, match.position`,
   );
   return rows.map((row) => {
@@ -177,17 +182,16 @@ export async function recordPredictionResult(input: {
   matchId: string;
   score: PredictionScore;
   administratorId: string;
-  now: Date;
 }): Promise<number> {
   return transaction(async (client) => {
-    const match = await client.query<{ starts_at: Date; actual_score: PredictionScore | null }>(
-      `SELECT starts_at, actual_score FROM compendium_prediction_matches
+    const match = await client.query<{ actual_score: PredictionScore | null }>(
+      `SELECT actual_score FROM compendium_prediction_matches
        WHERE id = $1 FOR UPDATE`,
       [input.matchId],
     );
     const row = match.rows[0];
     if (!row) throw new Error("PREDICTION_NOT_FOUND");
-    if (row.actual_score || row.starts_at > input.now) throw new Error("PREDICTION_RESULT_LOCKED");
+    if (row.actual_score) throw new Error("PREDICTION_RESULT_LOCKED");
     await client.query(
       `UPDATE compendium_prediction_matches SET actual_score = $2,
          result_recorded_by = $3, updated_at = NOW() WHERE id = $1`,
@@ -208,4 +212,3 @@ export async function recordPredictionResult(input: {
     return picks.rowCount ?? 0;
   });
 }
-

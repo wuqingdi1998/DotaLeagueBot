@@ -95,7 +95,7 @@ export function CompendiumPredictions({
         )}
       </div>
       {matches.length ? (
-        <div className="compendium-predictions-grid">
+        <div className={`compendium-predictions-grid match-count-${matches.length}`}>
           {matches.map((match) => (
             <PredictionCard
               match={match}

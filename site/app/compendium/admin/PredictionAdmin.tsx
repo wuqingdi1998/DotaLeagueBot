@@ -1,78 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { FiArrowLeft, FiCalendar, FiCheck, FiClock } from "react-icons/fi";
-import { predictionScores, type PredictionScore } from "../model/predictions";
+import { useState } from "react";
+import { FiArrowLeft } from "react-icons/fi";
+import type { PredictionScore } from "../model/predictions";
 import type { PredictionAdminMatch } from "../services/prediction-repository";
-
-type MatchDraft = { teamAKey: string; teamBKey: string; time: string };
-
-const blankMatches: MatchDraft[] = [
-  { teamAKey: "", teamBKey: "", time: "12:00" },
-  { teamAKey: "", teamBKey: "", time: "15:00" },
-  { teamAKey: "", teamBKey: "", time: "18:00" },
-];
-
-function timeValue(startsAt: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Moscow",
-    hour: "2-digit",
-    minute: "2-digit",
-    hourCycle: "h23",
-  }).format(new Date(startsAt));
-}
+import { PredictionDayEditor } from "./PredictionDayEditor";
+import {
+  predictionDraftsForDate,
+  predictionMatchCountForDate,
+  type PredictionMatchDraft,
+} from "./prediction-admin-model";
+import { PredictionScheduleList } from "./PredictionScheduleList";
 
 export function PredictionAdmin({
   initialMatches,
   teams,
-  minimumDate,
-  nowIso,
+  initialDate,
 }: {
   initialMatches: PredictionAdminMatch[];
   teams: Array<{ key: string; name: string }>;
-  minimumDate: string;
-  nowIso: string;
+  initialDate: string;
 }) {
-  const [dateKey, setDateKey] = useState(minimumDate);
-  const [drafts, setDrafts] = useState<MatchDraft[]>(() => {
-    const existing = initialMatches.filter((match) => match.moscowDate === minimumDate);
-    return existing.length === 3 ? existing.map((match) => ({
-      teamAKey: match.teamA.key,
-      teamBKey: match.teamB.key,
-      time: timeValue(match.startsAt),
-    })) : blankMatches.map((match) => ({ ...match }));
-  });
   const [matches, setMatches] = useState(initialMatches);
-  const [results, setResults] = useState<Record<string, PredictionScore>>(Object.fromEntries(
+  const [dateKey, setDateKey] = useState(initialDate);
+  const [drafts, setDrafts] = useState(() => predictionDraftsForDate(initialMatches, initialDate));
+  const [matchCount, setMatchCount] = useState<2 | 3>(() => predictionMatchCountForDate(initialMatches, initialDate));
+  const [results, setResults] = useState<Record<string, PredictionScore>>(() => Object.fromEntries(
     initialMatches.map((match) => [match.id, match.actualScore ?? "2:0"]),
   ));
+  const [activeResultMatchId, setActiveResultMatchId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  const resultMatches = useMemo(
-    () => matches.filter((match) => new Date(match.startsAt) <= new Date(nowIso)),
-    [matches, nowIso],
-  );
-
-  function loadDate(nextDate: string) {
+  function loadDate(nextDate: string, shouldScroll = false) {
     setDateKey(nextDate);
-    const existing = matches.filter((match) => match.moscowDate === nextDate);
-    setDrafts(existing.length === 3 ? existing.map((match) => ({
-      teamAKey: match.teamA.key,
-      teamBKey: match.teamB.key,
-      time: timeValue(match.startsAt),
-    })) : blankMatches.map((match) => ({ ...match })));
+    setDrafts(predictionDraftsForDate(matches, nextDate));
+    setMatchCount(predictionMatchCountForDate(matches, nextDate));
+    if (shouldScroll) {
+      window.requestAnimationFrame(() => {
+        document.getElementById("prediction-day-editor")?.scrollIntoView({ behavior: "smooth" });
+      });
+    }
   }
 
-  function updateDraft(index: number, update: Partial<MatchDraft>) {
+  function updateDraft(index: number, update: Partial<PredictionMatchDraft>) {
     setDrafts((current) => current.map((draft, draftIndex) =>
       draftIndex === index ? { ...draft, ...update } : draft,
     ));
   }
 
   async function saveMatches() {
-    setSaving(true);
+    setIsSaving(true);
     setMessage("");
     try {
       const response = await fetch("/api/admin/compendium-predictions", {
@@ -80,7 +59,7 @@ export function PredictionAdmin({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           dateKey,
-          matches: drafts.map((draft) => ({
+          matches: drafts.slice(0, matchCount).map((draft) => ({
             teamAKey: draft.teamAKey,
             teamBKey: draft.teamBKey,
             startsAt: `${dateKey}T${draft.time}:00+03:00`,
@@ -89,17 +68,24 @@ export function PredictionAdmin({
       });
       const result = (await response.json()) as { error?: string; matches?: PredictionAdminMatch[] };
       if (!response.ok) throw new Error(result.error ?? "Не удалось сохранить матчи");
-      if (result.matches) setMatches(result.matches);
-      setMessage("Три матча сохранены. Они появятся у участников в выбранный день.");
+      if (result.matches) {
+        const refreshedMatches = result.matches;
+        setMatches(refreshedMatches);
+        setDrafts(predictionDraftsForDate(refreshedMatches, dateKey));
+        setResults((current) => ({
+          ...Object.fromEntries(refreshedMatches.map((match) => [match.id, current[match.id] ?? match.actualScore ?? "2:0"])),
+        }));
+      }
+      setMessage(`${matchCount} матча сохранены на ${dateKey}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось сохранить матчи");
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   }
 
   async function saveResult(matchId: string) {
-    setSaving(true);
+    setIsSaving(true);
     setMessage("");
     try {
       const score = results[matchId];
@@ -110,58 +96,53 @@ export function PredictionAdmin({
       });
       const result = (await response.json()) as { error?: string; rewardedPlayers?: number };
       if (!response.ok) throw new Error(result.error ?? "Не удалось записать результат");
+      const completedMatch = matches.find((match) => match.id === matchId);
       setMatches((current) => current.map((match) =>
         match.id === matchId ? { ...match, actualScore: score } : match,
       ));
-      setMessage(`Результат сохранён. Проверено прогнозов: ${result.rewardedPlayers ?? 0}.`);
+      if (completedMatch?.moscowDate === dateKey) {
+        setDrafts((current) => current.map((draft, index) =>
+          index + 1 === completedMatch.position ? { ...draft, isLocked: true } : draft,
+        ));
+      }
+      setActiveResultMatchId(null);
+      setMessage(`Результат сохранён. Проверено прогнозов: ${result.rewardedPlayers ?? 0}. Звёзды выданы автоматически.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось записать результат");
     } finally {
-      setSaving(false);
+      setIsSaving(false);
     }
   }
 
   return (
     <main className="prediction-admin-page">
-      <Link href="/compendium" className="prediction-admin-back"><FiArrowLeft /> Вернуться в Компендиум</Link>
+      <Link href="/compendium" className="prediction-admin-back"><FiArrowLeft aria-hidden="true" /> Вернуться в Компендиум</Link>
       <header>
         <span>Только для организатора</span>
         <h1>Матчи и прогнозы</h1>
-        <p>Назначьте ровно три матча до 23:59 предыдущего дня. Прогноз участника закроется в момент начала матча.</p>
+        <p>Создавайте расписание на любой день, редактируйте команды и время, а после матча сохраняйте итоговый счёт и автоматически раздавайте звёзды.</p>
       </header>
-
-      <section className="prediction-admin-panel">
-        <div className="prediction-admin-panel-heading">
-          <div><span>Шаг 1</span><h2>Матчи следующего дня</h2></div>
-          <label><FiCalendar /><span>Дата по Москве</span><input type="date" min={minimumDate} value={dateKey} onChange={(event) => loadDate(event.target.value)} /></label>
-        </div>
-        <div className="prediction-admin-drafts">
-          {drafts.map((draft, index) => (
-            <article key={index}>
-              <strong>Матч {index + 1}</strong>
-              <label>Первая команда<select value={draft.teamAKey} onChange={(event) => updateDraft(index, { teamAKey: event.target.value })}><option value="">Выберите команду</option>{teams.map((team) => <option value={team.key} key={team.key}>{team.name}</option>)}</select></label>
-              <span>против</span>
-              <label>Вторая команда<select value={draft.teamBKey} onChange={(event) => updateDraft(index, { teamBKey: event.target.value })}><option value="">Выберите команду</option>{teams.map((team) => <option value={team.key} key={team.key}>{team.name}</option>)}</select></label>
-              <label><FiClock /> Время МСК<input type="time" value={draft.time} onChange={(event) => updateDraft(index, { time: event.target.value })} /></label>
-            </article>
-          ))}
-        </div>
-        <button type="button" className="prediction-admin-save" disabled={saving} onClick={saveMatches}><FiCheck /> {saving ? "Сохраняем…" : "Сохранить три матча"}</button>
-      </section>
-
-      <section className="prediction-admin-panel">
-        <div className="prediction-admin-panel-heading"><div><span>Шаг 2</span><h2>Результаты завершённых матчей</h2></div></div>
-        {resultMatches.length ? (
-          <div className="prediction-admin-results">
-            {resultMatches.map((match) => (
-              <article key={match.id}>
-                <div><span>{match.moscowDate}</span><strong>{match.teamA.name} — {match.teamB.name}</strong></div>
-                {match.actualScore ? <b>Итог: {match.actualScore}</b> : <><select value={results[match.id]} onChange={(event) => setResults((current) => ({ ...current, [match.id]: event.target.value as PredictionScore }))}>{predictionScores.map((score) => <option key={score}>{score}</option>)}</select><button type="button" disabled={saving} onClick={() => saveResult(match.id)}>Записать итог</button></>}
-              </article>
-            ))}
-          </div>
-        ) : <p className="prediction-admin-empty">Завершённых матчей пока нет.</p>}
-      </section>
+      <PredictionDayEditor
+        dateKey={dateKey}
+        drafts={drafts}
+        matchCount={matchCount}
+        teams={teams}
+        isSaving={isSaving}
+        onDateChange={loadDate}
+        onMatchCountChange={setMatchCount}
+        onDraftChange={updateDraft}
+        onSave={saveMatches}
+      />
+      <PredictionScheduleList
+        matches={matches}
+        results={results}
+        activeResultMatchId={activeResultMatchId}
+        isSaving={isSaving}
+        onEdit={(match) => loadDate(match.moscowDate, true)}
+        onOpenResult={setActiveResultMatchId}
+        onResultChange={(matchId, score) => setResults((current) => ({ ...current, [matchId]: score }))}
+        onSaveResult={saveResult}
+      />
       {message && <div className="prediction-admin-message" role="status">{message}</div>}
     </main>
   );

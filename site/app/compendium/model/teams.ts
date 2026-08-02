@@ -1,10 +1,11 @@
 export type CompendiumTeam = {
   key: string;
   name: string;
-  liquipediaLogoPath: string;
+  liquipediaLogoPath: string | null;
 };
 
 export const compendiumTeams: CompendiumTeam[] = [
+  { key: "tbd", name: "TBD", liquipediaLogoPath: null },
   { key: "aurora-gaming", name: "Aurora Gaming", liquipediaLogoPath: "/commons/images/thumb/1/1c/Aurora_Gaming_2025_allmode.png/50px-Aurora_Gaming_2025_allmode.png" },
   { key: "boomboys", name: "BoomBoys", liquipediaLogoPath: "/commons/images/thumb/0/05/BoomBoys_allmode.png/78px-BoomBoys_allmode.png" },
   { key: "iron-wing", name: "Iron Wing", liquipediaLogoPath: "/commons/images/thumb/f/f4/Dota_2_default_allmode.png/50px-Dota_2_default_allmode.png" },
@@ -28,6 +29,6 @@ export function compendiumTeamByKey(key: string): CompendiumTeam | null {
 }
 
 export function compendiumTeamLogoUrl(key: string): string {
+  if (key === "tbd") return "/tbd-team.svg";
   return `/api/compendium/teams/${encodeURIComponent(key)}`;
 }
-

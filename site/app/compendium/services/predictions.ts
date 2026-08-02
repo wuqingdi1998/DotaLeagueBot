@@ -36,20 +36,20 @@ export async function configurePredictionMatches(input: {
   administrator: AuthUser;
   dateKey: string;
   matches: Array<{ teamAKey?: unknown; teamBKey?: unknown; startsAt?: unknown }>;
-  now?: Date;
 }): Promise<void> {
-  const now = input.now ?? new Date();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateKey) || input.dateKey <= moscowDateKey(now)) {
-    throw new CompendiumError("PREDICTION_DEADLINE", "Матчи нужно назначить не позднее 23:59 предыдущего дня");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dateKey)) {
+    throw new CompendiumError("PREDICTION_INVALID", "Выберите дату матчей");
   }
-  if (input.matches.length !== 3) {
-    throw new CompendiumError("PREDICTION_INVALID", "Нужно заполнить ровно три матча");
+  if (![2, 3].includes(input.matches.length)) {
+    throw new CompendiumError("PREDICTION_INVALID", "На день можно сохранить два или три матча");
   }
   const matches: PredictionMatchInput[] = input.matches.map((match, index) => {
     const teamA = typeof match.teamAKey === "string" ? compendiumTeamByKey(match.teamAKey) : null;
     const teamB = typeof match.teamBKey === "string" ? compendiumTeamByKey(match.teamBKey) : null;
     const startsAt = typeof match.startsAt === "string" ? new Date(match.startsAt) : new Date(NaN);
-    if (!teamA || !teamB || teamA.key === teamB.key || Number.isNaN(startsAt.getTime())) {
+    const hasInvalidPair = !teamA || !teamB || teamA.key === teamB.key ||
+      (teamA.key === "tbd" && teamB.key === "tbd");
+    if (hasInvalidPair || Number.isNaN(startsAt.getTime())) {
       throw new CompendiumError("PREDICTION_INVALID", `Проверьте команды и время в матче ${index + 1}`);
     }
     if (moscowDateKey(startsAt) !== input.dateKey) {
@@ -58,15 +58,18 @@ export async function configurePredictionMatches(input: {
     return {
       position: index + 1,
       startsAt,
-      teamA: { key: teamA.key, name: teamA.name, logoPath: teamA.liquipediaLogoPath },
-      teamB: { key: teamB.key, name: teamB.name, logoPath: teamB.liquipediaLogoPath },
+      teamA: { key: teamA.key, name: teamA.name, logoPath: teamA.liquipediaLogoPath ?? "/tbd-team.svg" },
+      teamB: { key: teamB.key, name: teamB.name, logoPath: teamB.liquipediaLogoPath ?? "/tbd-team.svg" },
     };
   });
   try {
     await replacePredictionMatches({ dateKey: input.dateKey, administratorId: input.administrator.discordId, matches });
   } catch (error) {
-    if (error instanceof Error && error.message === "PREDICTION_DEADLINE") {
-      throw new CompendiumError("PREDICTION_DEADLINE", "Срок назначения матчей на этот день уже прошёл");
+    if (error instanceof Error && error.message === "PREDICTION_RESULT_LOCKED") {
+      throw new CompendiumError(
+        "PREDICTION_LOCKED",
+        "Завершённый матч нельзя удалить или заменить",
+      );
     }
     throw error;
   }
@@ -76,7 +79,6 @@ export async function finishPredictionMatch(input: {
   administrator: AuthUser;
   matchId: string;
   score: unknown;
-  now?: Date;
 }): Promise<number> {
   if (!/^\d{1,19}$/.test(input.matchId) || !isPredictionScore(input.score)) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите итоговый счёт матча");
@@ -86,11 +88,10 @@ export async function finishPredictionMatch(input: {
       matchId: input.matchId,
       score: input.score as PredictionScore,
       administratorId: input.administrator.discordId,
-      now: input.now ?? new Date(),
     });
   } catch (error) {
     if (error instanceof Error && error.message === "PREDICTION_RESULT_LOCKED") {
-      throw new CompendiumError("PREDICTION_LOCKED", "Результат можно внести один раз после начала матча");
+      throw new CompendiumError("PREDICTION_LOCKED", "Результат этого матча уже был сохранён");
     }
     if (error instanceof Error && error.message === "PREDICTION_NOT_FOUND") {
       throw new CompendiumError("PREDICTION_NOT_FOUND", "Матч не найден");
@@ -98,4 +99,3 @@ export async function finishPredictionMatch(input: {
     throw error;
   }
 }
-

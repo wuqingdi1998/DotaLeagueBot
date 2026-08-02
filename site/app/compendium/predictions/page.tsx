@@ -13,11 +13,6 @@ export const metadata: Metadata = {
   title: "Прогнозы Компендиума — Linken's Sphere Esports",
 };
 
-function tomorrowDateKey(): string {
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1_000);
-  return moscowDateKey(tomorrow);
-}
-
 export default async function PredictionAdminPage() {
   const user = await getSession();
   if (!user?.isAdmin) notFound();
@@ -29,10 +24,8 @@ export default async function PredictionAdminPage() {
       <PredictionAdmin
         initialMatches={matches}
         teams={teams}
-        minimumDate={tomorrowDateKey()}
-        nowIso={now.toISOString()}
+        initialDate={moscowDateKey(now)}
       />
     </PlatformShell>
   );
 }
-

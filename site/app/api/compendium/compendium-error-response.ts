@@ -13,7 +13,6 @@ const compendiumErrorStatuses = {
   PREDICTION_INVALID: 400,
   PREDICTION_NOT_FOUND: 404,
   PREDICTION_LOCKED: 409,
-  PREDICTION_DEADLINE: 409,
 } as const;
 
 export function responseFromCompendiumError(error: unknown): Response {

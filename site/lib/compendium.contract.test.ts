@@ -63,6 +63,11 @@ const predictionsView = source(
   "../app/compendium/components/CompendiumPredictions.tsx",
 );
 const predictionsCss = source("../app/styles/39-compendium-predictions.css");
+const predictionService = source("../app/compendium/services/predictions.ts");
+const predictionAdmin = source("../app/compendium/admin/PredictionAdmin.tsx");
+const predictionDayEditor = source("../app/compendium/admin/PredictionDayEditor.tsx");
+const predictionScheduleList = source("../app/compendium/admin/PredictionScheduleList.tsx");
+const teams = source("../app/compendium/model/teams.ts");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -269,8 +274,23 @@ describe("compendium persistence and security contract", () => {
     expect(predictionAdminRoute).toContain("await requireAdmin()");
     expect(predictionAdminPage).toContain("if (!user?.isAdmin) notFound()");
     expect(predictionRepository).toContain("FOR UPDATE");
-    expect(predictionRepository).toContain("PREDICTION_DEADLINE");
+    expect(predictionRepository).toContain("DELETE FROM compendium_prediction_matches");
     expect(predictionRepository).toContain("ON CONFLICT (match_id, player_id) DO NOTHING");
+  });
+
+  it("allows two or three matches on any day and supports TBD", () => {
+    expect(predictionService).toContain("[2, 3].includes");
+    expect(predictionService).not.toContain("PREDICTION_DEADLINE");
+    expect(teams).toContain('key: "tbd"');
+    expect(predictionDayEditor).toContain("2 матча");
+    expect(predictionAdminPage).not.toContain("minimumDate");
+  });
+
+  it("keeps a stored day list with editing and per-match results", () => {
+    expect(predictionAdmin).toContain("PredictionScheduleList");
+    expect(predictionScheduleList).toContain("Редактировать матч");
+    expect(predictionScheduleList).toContain("Проставить результат");
+    expect(predictionScheduleList).toContain("Сохранить и раздать звёзды");
   });
 
   it("hides empty match cards and explains prediction rewards", () => {
@@ -283,6 +303,7 @@ describe("compendium persistence and security contract", () => {
     expect(headingCss).toMatch(
       /@media \(max-width: 720px\)[\s\S]*\.compendium-title-block\s*\{[\s\S]*text-align: center/,
     );
+    expect(headingCss).toContain("justify-items: center");
     expect(headingCss).toMatch(
       /\.compendium-liquipedia-link\s*\{[\s\S]*margin-inline: auto/,
     );
@@ -292,7 +313,8 @@ describe("compendium persistence and security contract", () => {
 
   it("renders permanent profile badges as Aegis shields", () => {
     expect(profileBadge).toContain("profile-event-badge-aegis");
-    expect(profileBadge).toContain("aegis-shield");
+    expect(profileBadge).toContain("aegis-frame");
+    expect(profileBadge).toContain("aegis-blades");
     expect(profileCustomizationCss).toContain(".aegis-rune");
   });
 
