@@ -12,6 +12,9 @@ const rerollMigration = source(
 const rewardsMigration = source(
   "../../bot/database/migrations/0042_compendium_rewards.sql",
 );
+const adminStarsMigration = source(
+  "../../bot/database/migrations/0043_compendium_admin_stars.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
@@ -32,6 +35,8 @@ const questCard = source("../app/compendium/components/QuestCard.tsx");
 const rewards = source("../app/compendium/components/CompendiumRewards.tsx");
 const rerollNotice = source("../app/compendium/components/DailyRerollNotice.tsx");
 const profilePage = source("../app/players/[dotaId]/page.tsx");
+const rewardsCss = source("../app/styles/38-compendium-rewards.css");
+const baseViewTypes = source("../app/compendium/admin/types.ts");
 
 describe("compendium persistence and security contract", () => {
   it("stores one shared quest set per Moscow date", () => {
@@ -171,6 +176,21 @@ describe("compendium persistence and security contract", () => {
     expect(repository).toContain("BONUS_QUEST_STAR_THRESHOLD");
     expect(profilePage).toContain("profile.compendiumBadge");
     expect(profilePage).toContain("CompendiumBadge");
+  });
+
+  it("uses admin adjustments in every compendium star total", () => {
+    expect(adminStarsMigration).toContain("compendium_admin_star_adjustments");
+    expect(adminStarsMigration).toContain("compendium_player_star_totals");
+    expect(repository).toContain("compendium_player_star_totals");
+    expect(baseRepository).toContain("compendium_admin_star_adjustments");
+    expect(baseViewTypes).toContain('kind: "admin"');
+  });
+
+  it("keeps reward text readable and makes mobile quests swipe horizontally", () => {
+    expect(rewardsCss).toContain("font-size: 15px");
+    expect(compendiumCss).toContain("scroll-snap-type: x mandatory");
+    expect(compendiumCss).toContain("overflow-x: auto");
+    expect(dashboard).toContain("compendium-mobile-swipe-hint");
   });
 
   it("identifies the reroll owner from the session and updates one card", () => {

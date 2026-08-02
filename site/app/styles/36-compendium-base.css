@@ -261,6 +261,25 @@
   background: var(--surface);
 }
 
+.compendium-base-admin-reward {
+  border-color: rgba(54, 185, 204, 0.36);
+  background: linear-gradient(135deg, rgba(54, 185, 204, 0.1), var(--surface));
+}
+
+.compendium-base-admin-reward.removed {
+  border-color: rgba(222, 93, 102, 0.38);
+  background: linear-gradient(135deg, rgba(222, 93, 102, 0.1), var(--surface));
+}
+
+.compendium-base-admin-reward.removed .compendium-base-reward-value {
+  color: #de5d66;
+}
+
+.compendium-base-admin-reward small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .compendium-base-reward-heading {
   display: flex;
   align-items: center;

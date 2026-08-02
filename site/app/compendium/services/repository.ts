@@ -157,9 +157,9 @@ export async function loadDailyQuests(
        AND (
          quest.position <= 3
          OR COALESCE((
-           SELECT SUM(reward_amount)
-           FROM compendium_user_quest_completions player_completion
-           WHERE player_completion.player_id = $2
+           SELECT total_stars
+           FROM compendium_player_star_totals player_total
+           WHERE player_total.player_id = $2
          ), 0) >= $3
        )
      ORDER BY quest.position, hero.position`,
@@ -187,8 +187,8 @@ export async function loadDailyQuests(
 
 export async function totalCompendiumStars(playerId: string): Promise<number> {
   const row = await one<{ total: number }>(
-    `SELECT COALESCE(SUM(reward_amount), 0)::int AS total
-     FROM compendium_user_quest_completions WHERE player_id = $1`,
+    `SELECT COALESCE(total_stars, 0)::int AS total
+     FROM compendium_player_star_totals WHERE player_id = $1`,
     [playerId],
   );
   return row?.total ?? 0;
@@ -196,8 +196,8 @@ export async function totalCompendiumStars(playerId: string): Promise<number> {
 
 export async function totalCommunityCompendiumStars(): Promise<number> {
   const row = await one<{ total: number }>(
-    `SELECT COALESCE(SUM(reward_amount), 0)::int AS total
-     FROM compendium_user_quest_completions`,
+    `SELECT COALESCE(SUM(total_stars), 0)::int AS total
+     FROM compendium_player_star_totals`,
   );
   return row?.total ?? 0;
 }
@@ -232,9 +232,9 @@ export async function questForCurrentDay(
        AND (
          quest.position <= 3
          OR COALESCE((
-           SELECT SUM(reward_amount)
-           FROM compendium_user_quest_completions player_completion
-           WHERE player_completion.player_id = $3
+           SELECT total_stars
+           FROM compendium_player_star_totals player_total
+           WHERE player_total.player_id = $3
          ), 0) >= $4
        )
      ORDER BY hero.position`,
@@ -357,9 +357,9 @@ export async function recordQuestCompletion(input: {
          AND (
            quest.position <= 3
            OR COALESCE((
-             SELECT SUM(reward_amount)
-             FROM compendium_user_quest_completions player_completion
-             WHERE player_completion.player_id = $3
+             SELECT total_stars
+             FROM compendium_player_star_totals player_total
+             WHERE player_total.player_id = $3
            ), 0) >= $4
          )
          AND quest_set.moscow_date =

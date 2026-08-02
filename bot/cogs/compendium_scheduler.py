@@ -96,9 +96,8 @@ class CompendiumScheduler(commands.Cog):
                 return set(), True
             rows = await session.execute(
                 text(
-                    "SELECT player_id FROM compendium_user_quest_completions "
-                    "GROUP BY player_id "
-                    "HAVING SUM(reward_amount) >= :required_stars"
+                    "SELECT player_id FROM compendium_player_star_totals "
+                    "WHERE total_stars >= :required_stars"
                 ),
                 {"required_stars": COMPENDIUM_GOLD_ROLE_STARS},
             )

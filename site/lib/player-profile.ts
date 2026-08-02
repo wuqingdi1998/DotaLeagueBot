@@ -228,8 +228,8 @@ export async function loadPublicPlayerProfile(
       [playerIds],
     ),
     one<{ total: number }>(
-      `SELECT COALESCE(SUM(reward_amount), 0)::int AS total
-       FROM compendium_user_quest_completions
+      `SELECT COALESCE(SUM(total_stars), 0)::int AS total
+       FROM compendium_player_star_totals
        WHERE player_id = ANY($1::bigint[])`,
       [playerIds],
     ),

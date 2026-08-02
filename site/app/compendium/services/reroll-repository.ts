@@ -20,33 +20,60 @@ async function rerollsRemainingWithClient(
   dateKey: string,
   playerId: string,
 ): Promise<number> {
-  const statement = `WITH threshold_reward AS (
-       SELECT completion.completed_at
+  const statement = `WITH star_events AS (
+       SELECT completion.completed_at AS occurred_at,
+         completion.reward_amount::int AS amount,
+         completion.id AS event_id,
+         0 AS event_kind
        FROM compendium_user_quest_completions completion
        WHERE completion.player_id = $2
-       ORDER BY completion.completed_at, completion.id
-       OFFSET ($3::int - 1) LIMIT 1
+       UNION ALL
+       SELECT adjustment.created_at,
+         adjustment.amount::int,
+         adjustment.id,
+         1
+       FROM compendium_admin_star_adjustments adjustment
+       WHERE adjustment.player_id = $2
+     ), running_totals AS (
+       SELECT occurred_at, event_id, event_kind,
+         SUM(amount) OVER (
+           ORDER BY occurred_at, event_kind, event_id
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+         )::int AS running_total
+       FROM star_events
+     ), running_with_previous AS (
+       SELECT occurred_at, running_total,
+         LAG(running_total, 1, 0) OVER (
+           ORDER BY occurred_at, event_kind, event_id
+         )::int AS previous_total
+       FROM running_totals
+     ), threshold_reward AS (
+       SELECT occurred_at
+       FROM running_with_previous
+       WHERE previous_total < $3 AND running_total >= $3
+       ORDER BY occurred_at DESC
+       LIMIT 1
      )
      SELECT
        COALESCE((
-         SELECT SUM(completion.reward_amount)
-         FROM compendium_user_quest_completions completion
-         WHERE completion.player_id = $2
+         SELECT total_stars
+         FROM compendium_player_star_totals player_total
+         WHERE player_total.player_id = $2
        ), 0)::int AS total_stars,
        COUNT(reroll.id)::int AS used_count,
        COALESCE(
-         (threshold.completed_at AT TIME ZONE 'Europe/Moscow')::date = $1::date,
+         (threshold.occurred_at AT TIME ZONE 'Europe/Moscow')::date = $1::date,
          FALSE
        ) AS threshold_reached_today,
        COUNT(reroll.id) FILTER (
-         WHERE reroll.used_at < threshold.completed_at
+         WHERE reroll.used_at < threshold.occurred_at
        )::int AS used_before_threshold
      FROM compendium_daily_quest_sets quest_set
      LEFT JOIN compendium_user_quest_rerolls reroll
        ON reroll.quest_set_id = quest_set.id AND reroll.player_id = $2
      LEFT JOIN threshold_reward threshold ON TRUE
      WHERE quest_set.moscow_date = $1::date
-     GROUP BY threshold.completed_at`;
+     GROUP BY threshold.occurred_at`;
   const values = [dateKey, playerId, REROLL_REWARD_STAR_THRESHOLD];
   const rows = client
     ? (await client.query<RerollAllowanceRow>(statement, values)).rows
@@ -109,9 +136,9 @@ export async function recordDailyQuestReroll(input: {
          AND (
            quest.position <= 3
            OR COALESCE((
-             SELECT SUM(reward_amount)
-             FROM compendium_user_quest_completions completion
-             WHERE completion.player_id = $3
+             SELECT total_stars
+             FROM compendium_player_star_totals player_total
+             WHERE player_total.player_id = $3
            ), 0) >= $4
          )
        FOR SHARE OF quest`,

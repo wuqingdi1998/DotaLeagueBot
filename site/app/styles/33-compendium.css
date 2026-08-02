@@ -159,6 +159,10 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.compendium-mobile-swipe-hint {
+  display: none;
+}
+
 .compendium-quest {
   display: flex;
   flex-direction: column;
@@ -404,14 +408,56 @@
   .compendium-link-profile { width: min(100% - 32px, 1460px); }
   .compendium-daily-section { padding-top: 28px; }
   .compendium-section-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
-  .compendium-quest-grid { grid-template-columns: 1fr; }
+  .compendium-mobile-swipe-hint {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin: 0 0 10px;
+    color: var(--blue-strong);
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .compendium-mobile-swipe-hint svg {
+    animation: compendium-swipe-hint 1.5s ease-in-out infinite;
+  }
+  .compendium-quest-grid,
+  .compendium-quest-grid.quest-count-4 {
+    display: flex;
+    grid-template-columns: none;
+    gap: 12px;
+    margin-right: -16px;
+    padding: 2px 48px 16px 2px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-left: 2px;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--blue-strong) var(--surface-soft);
+    scrollbar-width: thin;
+  }
   .compendium-quest-grid.quest-count-3 > .compendium-quest:last-child {
     grid-column: auto;
-    width: 100%;
+    width: auto;
   }
-  .compendium-quest { padding: 18px; border-radius: 20px; }
+  .compendium-quest {
+    width: auto;
+    flex: 0 0 min(84vw, 360px);
+    padding: 18px;
+    border-radius: 20px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
   .compendium-link-profile { grid-template-columns: 46px 1fr; }
   .compendium-link-profile > svg { font-size: 36px; }
   .compendium-link-profile a { grid-column: 1 / -1; text-align: center; }
   .compendium-toast { right: 16px; bottom: 16px; width: calc(100% - 32px); }
+}
+
+@keyframes compendium-swipe-hint {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compendium-mobile-swipe-hint svg { animation: none; }
 }

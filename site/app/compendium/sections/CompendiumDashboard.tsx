@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
-import { FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
+import { FiArrowRight, FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentCountdownLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
@@ -224,6 +224,10 @@ export function CompendiumDashboard({
             remaining={data.rerollsRemaining}
             totalStars={data.totalStars}
           />
+          <p className="compendium-mobile-swipe-hint">
+            Листайте задания влево и вправо
+            <FiArrowRight aria-hidden="true" />
+          </p>
           <div className={`compendium-quest-grid quest-count-${data.quests.length}`}>
             {data.quests.map((quest) => (
               <QuestCard

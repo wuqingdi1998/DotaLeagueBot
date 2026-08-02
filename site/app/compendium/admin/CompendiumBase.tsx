@@ -8,11 +8,17 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import type {
+  CompendiumAdminRewardHistory,
   CompendiumAdminParticipant,
+  CompendiumQuestRewardHistory,
   CompendiumRewardHistory,
 } from "./types";
 
-function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
+function QuestRewardHistoryItem({
+  reward,
+}: {
+  reward: CompendiumQuestRewardHistory;
+}) {
   return (
     <article className="compendium-base-reward">
       <div className="compendium-base-reward-heading">
@@ -48,6 +54,42 @@ function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
         <FiExternalLink aria-hidden="true" />
       </a>
     </article>
+  );
+}
+
+function AdminRewardHistoryItem({
+  reward,
+}: {
+  reward: CompendiumAdminRewardHistory;
+}) {
+  const isAdded = reward.rewardAmount > 0;
+  return (
+    <article
+      className={`compendium-base-reward compendium-base-admin-reward ${
+        isAdded ? "added" : "removed"
+      }`}
+    >
+      <div className="compendium-base-reward-heading">
+        <div>
+          <span>{reward.dateLabel}</span>
+          <strong>{isAdded ? "Выдано админом" : "Снято админом"}</strong>
+          <small>Администратор: {reward.administratorName}</small>
+        </div>
+        <span className="compendium-base-reward-value">
+          <FaStar aria-hidden="true" />
+          {isAdded ? "+" : "−"}
+          {Math.abs(reward.rewardAmount)}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
+  return reward.kind === "admin" ? (
+    <AdminRewardHistoryItem reward={reward} />
+  ) : (
+    <QuestRewardHistoryItem reward={reward} />
   );
 }
 
@@ -87,7 +129,7 @@ function ParticipantHistory({
           <FaStar aria-hidden="true" /> {participant.totalStars}
         </span>
         <span className="compendium-base-history-count">
-          {participant.rewards.length} выполнено
+          {participant.rewards.length} операций
         </span>
         <FiChevronDown className="compendium-base-chevron" aria-hidden="true" />
       </summary>
@@ -129,7 +171,7 @@ export function CompendiumBase({
         <h1>База компендиума</h1>
         <p>
           Нажмите на участника, чтобы увидеть каждый день, состав задания и
-          героя, победа на котором принесла звезду.
+          героя, победа на котором принесла звезду, а также ручные изменения.
         </p>
         <div className="compendium-base-totals">
           <div><FiUsers aria-hidden="true" /><strong>{participants.length}</strong><span>участников</span></div>
