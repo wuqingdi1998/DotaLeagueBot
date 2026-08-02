@@ -12,7 +12,9 @@ import {
 } from "./quests";
 import {
   compendiumBadgeForStars,
+  communityCompendiumRewards,
   dailyRerollsRemainingForProgress,
+  personalCompendiumRewards,
 } from "./rewards";
 import {
   currentMoscowDay,
@@ -99,6 +101,15 @@ describe("daily quest reroll", () => {
 });
 
 describe("compendium personal rewards", () => {
+  it("uses the shortened personal and community goal levels", () => {
+    expect(personalCompendiumRewards.map((reward) => reward.stars)).toEqual([
+      10, 20, 30, 40, 60,
+    ]);
+    expect(communityCompendiumRewards.map((reward) => reward.stars)).toEqual([
+      100, 200, 300, 500, 700, 1000,
+    ]);
+  });
+
   it("creates a six-hero bonus quest outside the regular daily set", () => {
     const originalHeroIds = COMPENDIUM_HEROES.slice(0, 12).map((hero) => hero.id);
     const bonus = generateBonusQuestHeroes(
@@ -114,19 +125,19 @@ describe("compendium personal rewards", () => {
   it("selects the highest earned TI 2026 profile badge", () => {
     expect(compendiumBadgeForStars(9)).toBeNull();
     expect(compendiumBadgeForStars(10)).toBe("ti-2026-bronze");
-    expect(compendiumBadgeForStars(40)).toBe("ti-2026-silver");
-    expect(compendiumBadgeForStars(75)).toBe("ti-2026-gold");
+    expect(compendiumBadgeForStars(30)).toBe("ti-2026-silver");
+    expect(compendiumBadgeForStars(60)).toBe("ti-2026-gold");
   });
 
-  it("grants three fresh rerolls when the 25th star is earned", () => {
+  it("grants three fresh rerolls when the 20th star is earned", () => {
     expect(dailyRerollsRemainingForProgress({
-      totalStars: 24,
+      totalStars: 19,
       usedCount: 1,
       thresholdReachedToday: false,
       usedBeforeThreshold: 0,
     })).toBe(0);
     expect(dailyRerollsRemainingForProgress({
-      totalStars: 25,
+      totalStars: 20,
       usedCount: 1,
       thresholdReachedToday: true,
       usedBeforeThreshold: 1,

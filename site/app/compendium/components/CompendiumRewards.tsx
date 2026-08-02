@@ -1,15 +1,16 @@
-import { FaStar } from "react-icons/fa";
+import { FaCheck, FaStar } from "react-icons/fa";
 import {
-  compendiumBadgeForStars,
   communityCompendiumRewards,
   personalCompendiumRewards,
 } from "../model/rewards";
 import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
+import type { ProfileBadgeKey } from "@/lib/profile-badges";
 
 type Reward = {
   readonly stars: number;
   readonly title: string;
   readonly description: string;
+  readonly badgeKey?: ProfileBadgeKey;
 };
 
 function RewardTrack({
@@ -35,16 +36,34 @@ function RewardTrack({
         <strong><FaStar aria-hidden="true" /> {stars}</strong>
       </div>
       <div className="compendium-reward-progress" aria-hidden="true">
-        <span style={{ width: `${progress}%` }} />
+        <span className="compendium-reward-progress-fill" style={{ width: `${progress}%` }} />
+        <div className="compendium-reward-markers">
+          {rewards.map((reward) => {
+            const markerPosition = Math.min(100, (reward.stars / maximum) * 100);
+            const isUnlocked = stars >= reward.stars;
+            return (
+              <span
+                className={`compendium-reward-marker${isUnlocked ? " unlocked" : ""}`}
+                key={reward.stars}
+                style={{ left: `${markerPosition}%` }}
+              >
+                <strong>{reward.stars}</strong>
+              </span>
+            );
+          })}
+        </div>
       </div>
       <div className="compendium-reward-milestones">
         {rewards.map((reward) => {
           const isUnlocked = stars >= reward.stars;
-          const badgeTier = kind === "personal" && [10, 40, 75].includes(reward.stars)
-            ? compendiumBadgeForStars(reward.stars)
-            : null;
+          const badgeTier = kind === "personal" ? reward.badgeKey ?? null : null;
           return (
             <article className={isUnlocked ? "unlocked" : ""} key={reward.stars}>
+              {isUnlocked && (
+                <span className="compendium-milestone-unlocked">
+                  <FaCheck aria-hidden="true" /> Получено
+                </span>
+              )}
               <div className="compendium-milestone-stars">
                 <FaStar aria-hidden="true" />
                 <strong>{reward.stars}</strong>

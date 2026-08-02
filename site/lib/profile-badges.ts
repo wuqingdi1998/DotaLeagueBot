@@ -49,8 +49,8 @@ export function profileBadgeDefinition(
 export function ti2026ProfileBadgeForStars(
   stars: number,
 ): ProfileBadgeKey | null {
-  if (stars >= 75) return "ti-2026-gold";
-  if (stars >= 40) return "ti-2026-silver";
+  if (stars >= 60) return "ti-2026-gold";
+  if (stars >= 30) return "ti-2026-silver";
   if (stars >= 10) return "ti-2026-bronze";
   return null;
 }

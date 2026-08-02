@@ -11,26 +11,29 @@ import {
 export const personalCompendiumRewards = [
   {
     stars: 10,
+    badgeKey: "ti-2026-bronze",
     title: "Бронзовый бейдж TI 2026",
     description: "Бронзовый бейдж The International 2026 в профиле на сайте.",
   },
   {
-    stars: 25,
+    stars: 20,
     title: "Три реролла в день",
     description: "Ежедневный запас увеличивается с одного до трёх рероллов. При достижении порога три реролла выдаются сразу, даже если прежний уже потрачен.",
   },
   {
-    stars: 40,
+    stars: 30,
+    badgeKey: "ti-2026-silver",
     title: "Серебряный бейдж TI 2026",
     description: "Серебряный бейдж The International 2026 в профиле на сайте.",
   },
   {
-    stars: 55,
+    stars: 40,
     title: "Бонусное испытание",
     description: "Четвёртое ежедневное испытание с шестью героями и наградой в одну звезду.",
   },
   {
-    stars: 75,
+    stars: 60,
+    badgeKey: "ti-2026-gold",
     title: "Золотой бейдж и роль",
     description: "Золотой бейдж TI 2026 и уникальная роль над остальными ролями на сервере до старта 9-го сезона.",
   },
@@ -38,32 +41,32 @@ export const personalCompendiumRewards = [
 
 export const communityCompendiumRewards = [
   {
-    stars: 200,
+    stars: 100,
     title: "Linken's Sphere 5x5 League остаётся бесплатной",
     description: "Лига не будет требовать подписки, все сезонные турниры остаются бесплатными. Будущие финалы 9-го сезона — 5 000 ₽, Кубок лиги — 3 000 ₽.",
   },
   {
-    stars: 400,
+    stars: 200,
     title: "Призовые 7 500 ₽ / 5 000 ₽",
     description: "Финалы лиги — 7 500 ₽, Кубок лиги — 5 000 ₽.",
   },
   {
-    stars: 600,
+    stars: 300,
     title: "Призовые 10 000 ₽ / 6 000 ₽",
     description: "Финалы лиги — 10 000 ₽, Кубок лиги — 6 000 ₽.",
   },
   {
-    stars: 800,
+    stars: 500,
     title: "Призовые 12 000 ₽ / 7 500 ₽",
     description: "Финалы лиги — 12 000 ₽, Кубок лиги — 7 500 ₽.",
   },
   {
-    stars: 1000,
+    stars: 700,
     title: "Призовые 15 000 ₽ / 9 000 ₽",
     description: "Финалы лиги — 15 000 ₽, Кубок лиги — 9 000 ₽.",
   },
   {
-    stars: 1500,
+    stars: 1000,
     title: "Гайд на Winter Wyvern",
     description: "Гайд на Winter Wyvern от cYc.Lon3.",
   },

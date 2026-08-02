@@ -13,7 +13,7 @@ from database.core import async_session
 
 MOSCOW_TIME_ZONE = ZoneInfo("Europe/Moscow")
 COMPENDIUM_GOLD_ROLE_NAME = "TI 2026 — Золотой компендиум"
-COMPENDIUM_GOLD_ROLE_STARS = 75
+COMPENDIUM_GOLD_ROLE_STARS = 60
 AUTUMN_SEASON_NUMBER = 9
 
 
@@ -111,7 +111,7 @@ class CompendiumScheduler(commands.Cog):
                 name=COMPENDIUM_GOLD_ROLE_NAME,
                 colour=discord.Colour.gold(),
                 hoist=True,
-                reason="Награда за 75 звёзд компендиума TI 2026",
+                reason="Награда за 60 звёзд компендиума TI 2026",
             )
             if guild.me and guild.me.top_role.position > 1:
                 await role.edit(position=guild.me.top_role.position - 1)
@@ -134,7 +134,7 @@ class CompendiumScheduler(commands.Cog):
                     continue
             await member.add_roles(
                 role,
-                reason="Награда за 75 звёзд компендиума TI 2026",
+                reason="Награда за 60 звёзд компендиума TI 2026",
             )
 
     @tasks.loop(minutes=5)

@@ -15,6 +15,9 @@ PROFILE_BADGES_MIGRATION = (
 STAR_RESET_MIGRATION = (
     ROOT / "database" / "migrations" / "0046_reset_compendium_stars.sql"
 ).read_text(encoding="utf-8")
+SHORTENED_GOALS_MIGRATION = (
+    ROOT / "database" / "migrations" / "0047_shorten_compendium_goals.sql"
+).read_text(encoding="utf-8")
 ADMIN_COG = (ROOT / "cogs" / "compendium_admin.py").read_text(encoding="utf-8")
 ADMIN_SERVICE = (
     ROOT / "services" / "compendium_star_service.py"
@@ -22,7 +25,7 @@ ADMIN_SERVICE = (
 
 
 def test_gold_compendium_role_is_earned_and_expires_at_season_nine() -> None:
-    assert 'COMPENDIUM_GOLD_ROLE_STARS = 75' in SCHEDULER
+    assert 'COMPENDIUM_GOLD_ROLE_STARS = 60' in SCHEDULER
     assert 'AUTUMN_SEASON_NUMBER = 9' in SCHEDULER
     assert 'total_stars >= :required_stars' in SCHEDULER
     assert 'season_number >= :season_number' in SCHEDULER
@@ -65,3 +68,10 @@ def test_star_reset_clears_all_sources_but_keeps_permanent_badges() -> None:
     assert "DELETE FROM compendium_admin_star_adjustments" in STAR_RESET_MIGRATION
     assert "DELETE FROM compendium_prediction_rewards" in STAR_RESET_MIGRATION
     assert "player_profile_badges" not in STAR_RESET_MIGRATION
+
+
+def test_shortened_badge_goals_are_persistent_and_backfilled() -> None:
+    assert "('ti-2026-bronze'::varchar, 10)" in SHORTENED_GOALS_MIGRATION
+    assert "('ti-2026-silver'::varchar, 30)" in SHORTENED_GOALS_MIGRATION
+    assert "('ti-2026-gold'::varchar, 60)" in SHORTENED_GOALS_MIGRATION
+    assert "grant_ti_2026_profile_badges(player_id)" in SHORTENED_GOALS_MIGRATION
