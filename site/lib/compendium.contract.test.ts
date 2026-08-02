@@ -15,6 +15,9 @@ const rewardsMigration = source(
 const adminStarsMigration = source(
   "../../bot/database/migrations/0043_compendium_admin_stars.sql",
 );
+const profileBadgesMigration = source(
+  "../../bot/database/migrations/0044_persistent_profile_badges.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const header = source("../app/components/SiteHeader.tsx");
@@ -35,6 +38,10 @@ const questCard = source("../app/compendium/components/QuestCard.tsx");
 const rewards = source("../app/compendium/components/CompendiumRewards.tsx");
 const rerollNotice = source("../app/compendium/components/DailyRerollNotice.tsx");
 const profilePage = source("../app/players/[dotaId]/page.tsx");
+const playerProfileRepository = source("./player-profile.ts");
+const profileBadge = source("../app/components/ProfileEventBadge.tsx");
+const profileCustomizationCss = source("../app/styles/18-profile-customization.css");
+const playerProfileCss = source("../app/styles/12-player-profile.css");
 const rewardsCss = source("../app/styles/38-compendium-rewards.css");
 const baseViewTypes = source("../app/compendium/admin/types.ts");
 
@@ -174,8 +181,46 @@ describe("compendium persistence and security contract", () => {
     expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 4)");
     expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 6)");
     expect(repository).toContain("BONUS_QUEST_STAR_THRESHOLD");
-    expect(profilePage).toContain("profile.compendiumBadge");
-    expect(profilePage).toContain("CompendiumBadge");
+    expect(profilePage).toContain("profile.profileBadge");
+    expect(profilePage).toContain("ProfileEventBadge");
+  });
+
+  it("stores earned badges permanently outside the compendium data", () => {
+    expect(profileBadgesMigration).toContain("player_profile_badges");
+    expect(profileBadgesMigration).toContain("PRIMARY KEY (player_id, badge_key)");
+    expect(profileBadgesMigration).toContain(
+      "ON CONFLICT (player_id, badge_key) DO NOTHING",
+    );
+    expect(profileBadgesMigration).toContain("MAX(running_stars)");
+    expect(profileBadgesMigration).toContain(
+      "compendium_completion_profile_badges_trigger",
+    );
+    expect(profileBadgesMigration).toContain(
+      "compendium_adjustment_profile_badges_trigger",
+    );
+    expect(playerProfileRepository).toContain("FROM player_profile_badges");
+    expect(playerProfileRepository).not.toContain(
+      "compendium_player_star_totals",
+    );
+  });
+
+  it("renders the stored badge to the right of the profile nickname", () => {
+    const nicknameStart = profilePage.indexOf(
+      'className="public-profile-nickname-line"',
+    );
+    const nicknameEnd = profilePage.indexOf("</div>", nicknameStart);
+    const nicknameLine = profilePage.slice(nicknameStart, nicknameEnd);
+    expect(nicknameLine.indexOf("<h1")).toBeLessThan(
+      nicknameLine.indexOf("<ProfileEventBadge"),
+    );
+    expect(profileBadge).toContain("profile-event-badge");
+    expect(profileCustomizationCss).toContain(".profile-event-badge");
+    expect(playerProfileCss).toMatch(
+      /\.public-profile-nickname-line\s*\{[^}]*display:\s*flex;/,
+    );
+    expect(profileCustomizationCss).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.public-profile-nickname-line \.profile-event-badge/,
+    );
   });
 
   it("uses admin adjustments in every compendium star total", () => {

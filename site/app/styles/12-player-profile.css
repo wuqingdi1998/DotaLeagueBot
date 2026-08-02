@@ -51,7 +51,10 @@
 }
 
 .public-profile-nickname-line {
-  display: contents;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
 }
 
 .public-profile-heading {
@@ -72,6 +75,7 @@
 }
 
 .public-profile-name-row h1 {
+  min-width: 0;
   max-width: 100%;
   margin: 8px 0;
   font-family: "5ka Sans Design", sans-serif;

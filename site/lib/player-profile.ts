@@ -5,9 +5,9 @@ import {
 } from "./player-tournament-history";
 import { loadPlayerMapStatistics } from "./player-map-statistics";
 import {
-  compendiumBadgeForStars,
-  type CompendiumBadgeTier,
-} from "../app/compendium/model/rewards";
+  profileBadgeDefinition,
+  type ProfileBadgeKey,
+} from "./profile-badges";
 
 const steamId64Offset = BigInt("76561197960265728");
 const maximumDotaAccountId = BigInt("4294967295");
@@ -95,7 +95,7 @@ export type PublicPlayerProfile = {
     mapWins: number;
   };
   medals: PlayerMedals;
-  compendiumBadge: CompendiumBadgeTier | null;
+  profileBadge: ProfileBadgeKey | null;
   lastTournament: PlayerTournamentHistory | null;
   tournamentHistory: PlayerTournamentHistory[];
 };
@@ -215,7 +215,7 @@ export async function loadPublicPlayerProfile(
     ? identityMembers.map((member) => member.player_id)
     : [player.discord_id];
 
-  const [tournamentHistory, mapStatistics, medalCounts, compendiumStars] = await Promise.all([
+  const [tournamentHistory, mapStatistics, medalCounts, storedProfileBadge] = await Promise.all([
     loadPlayerTournamentHistory(playerIds, player.nickname),
     loadPlayerMapStatistics(playerIds),
     one<PlayerMedals>(
@@ -227,10 +227,21 @@ export async function loadPublicPlayerProfile(
        WHERE player_id = ANY($1::bigint[])`,
       [playerIds],
     ),
-    one<{ total: number }>(
-      `SELECT COALESCE(SUM(total_stars), 0)::int AS total
-       FROM compendium_player_star_totals
-       WHERE player_id = ANY($1::bigint[])`,
+    one<{ badge_key: string }>(
+      `SELECT badge_key
+       FROM player_profile_badges
+       WHERE player_id = ANY($1::bigint[])
+         AND badge_key IN (
+           'ti-2026-bronze',
+           'ti-2026-silver',
+           'ti-2026-gold'
+         )
+       ORDER BY CASE badge_key
+         WHEN 'ti-2026-gold' THEN 1
+         WHEN 'ti-2026-silver' THEN 2
+         ELSE 3
+       END
+       LIMIT 1`,
       [playerIds],
     ),
   ]);
@@ -283,7 +294,9 @@ export async function loadPublicPlayerProfile(
       mapWins: mapStatistics.mapWins,
     },
     medals: medalCounts ?? { gold: 0, silver: 0, bronze: 0 },
-    compendiumBadge: compendiumBadgeForStars(compendiumStars?.total ?? 0),
+    profileBadge: profileBadgeDefinition(
+      storedProfileBadge?.badge_key ?? null,
+    )?.key ?? null,
     lastTournament: tournamentHistory[0] ?? null,
     tournamentHistory,
   };

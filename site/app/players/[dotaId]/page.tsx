@@ -20,7 +20,7 @@ import { mapWinRatePercent } from "@/lib/player-map-statistics";
 import { loadLinkedArchiveProfiles } from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
-import { CompendiumBadge } from "@/app/compendium/components/CompendiumBadge";
+import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
 import { LinkedArchiveProfilesCard } from "./LinkedArchiveProfilesCard";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
 
@@ -166,7 +166,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </div>
           )}
           <div>
-            {(profile.realName || profile.subscriptionRole || profile.compendiumBadge) && (
+            {(profile.realName || profile.subscriptionRole) && (
               <div className="public-profile-heading">
                 {profile.realName && (
                   <p className="public-profile-real-name">
@@ -180,9 +180,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                     className="profile-heading-role"
                   />
                 )}
-                {profile.compendiumBadge && (
-                  <CompendiumBadge tier={profile.compendiumBadge} />
-                )}
               </div>
             )}
             <div className="public-profile-name-row">
@@ -195,6 +192,9 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 }
               >
                 <h1 title={profile.nickname}>{profile.nickname}</h1>
+                {profile.profileBadge && (
+                  <ProfileEventBadge badgeKey={profile.profileBadge} />
+                )}
                 <PlayerPositionsBadge
                   positions={profile.positions}
                   className="mobile-profile-positions"

@@ -4,7 +4,7 @@ import {
   communityCompendiumRewards,
   personalCompendiumRewards,
 } from "../model/rewards";
-import { CompendiumBadge } from "./CompendiumBadge";
+import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
 
 type Reward = {
   readonly stars: number;
@@ -50,7 +50,7 @@ function RewardTrack({
                 <strong>{reward.stars}</strong>
               </div>
               <h3>{reward.title}</h3>
-              {badgeTier && <CompendiumBadge tier={badgeTier} />}
+              {badgeTier && <ProfileEventBadge badgeKey={badgeTier} />}
               <p>{reward.description}</p>
             </article>
           );

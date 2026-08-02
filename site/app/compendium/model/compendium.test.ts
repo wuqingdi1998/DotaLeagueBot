@@ -113,9 +113,9 @@ describe("compendium personal rewards", () => {
 
   it("selects the highest earned TI 2026 profile badge", () => {
     expect(compendiumBadgeForStars(9)).toBeNull();
-    expect(compendiumBadgeForStars(10)).toBe("bronze");
-    expect(compendiumBadgeForStars(40)).toBe("silver");
-    expect(compendiumBadgeForStars(75)).toBe("gold");
+    expect(compendiumBadgeForStars(10)).toBe("ti-2026-bronze");
+    expect(compendiumBadgeForStars(40)).toBe("ti-2026-silver");
+    expect(compendiumBadgeForStars(75)).toBe("ti-2026-gold");
   });
 
   it("grants three fresh rerolls when the 25th star is earned", () => {

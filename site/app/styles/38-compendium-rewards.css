@@ -165,45 +165,6 @@
   line-height: 1.55;
 }
 
-.compendium-ti-badge {
-  --badge-main: #ad733f;
-  --badge-light: #f0ba78;
-  display: inline-flex;
-  min-height: 38px;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 12px 5px 6px;
-  border: 1px solid color-mix(in srgb, var(--badge-light) 72%, transparent);
-  border-radius: 10px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--badge-main) 24%, var(--surface)), var(--surface));
-  color: var(--badge-light);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.compendium-ti-badge-mark {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  place-items: center;
-  clip-path: polygon(50% 0, 100% 23%, 88% 82%, 50% 100%, 12% 82%, 0 23%);
-  background: linear-gradient(145deg, var(--badge-light), var(--badge-main));
-  color: #15202a;
-  font-size: 10px;
-  letter-spacing: -0.06em;
-}
-
-.compendium-ti-badge-silver {
-  --badge-main: #7e8b99;
-  --badge-light: #e4edf2;
-}
-
-.compendium-ti-badge-gold {
-  --badge-main: #b68316;
-  --badge-light: #ffe28a;
-}
-
 @media (max-width: 1180px) {
   .compendium-reward-milestones,
   .compendium-reward-track-community .compendium-reward-milestones {

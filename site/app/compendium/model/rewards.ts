@@ -3,6 +3,10 @@ import {
   REROLL_REWARD_STAR_THRESHOLD,
   REWARDED_DAILY_REROLL_COUNT,
 } from "./constants";
+import {
+  ti2026ProfileBadgeForStars,
+  type ProfileBadgeKey,
+} from "../../../lib/profile-badges";
 
 export const personalCompendiumRewards = [
   {
@@ -65,15 +69,10 @@ export const communityCompendiumRewards = [
   },
 ] as const;
 
-export type CompendiumBadgeTier = "bronze" | "silver" | "gold";
-
 export function compendiumBadgeForStars(
   stars: number,
-): CompendiumBadgeTier | null {
-  if (stars >= 75) return "gold";
-  if (stars >= 40) return "silver";
-  if (stars >= 10) return "bronze";
-  return null;
+): ProfileBadgeKey | null {
+  return ti2026ProfileBadgeForStars(stars);
 }
 
 export function dailyRerollsRemainingForProgress(input: {

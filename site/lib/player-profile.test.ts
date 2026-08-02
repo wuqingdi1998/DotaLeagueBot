@@ -8,6 +8,10 @@ import {
   subscriptionRoleNames,
   tournamentResultLabel,
 } from "./player-profile";
+import {
+  profileBadgeDefinition,
+  ti2026ProfileBadgeForStars,
+} from "./profile-badges";
 
 describe("public player profile", () => {
   it("normalizes a public Dota account id", () => {
@@ -58,5 +62,16 @@ describe("public player profile", () => {
     );
     expect(profileBackgroundForSubscriptionRole("Руна Воды")).toBe("default");
     expect(profileBackgroundForSubscriptionRole(null)).toBe("default");
+  });
+
+  it("describes permanent TI 2026 profile badges independently of the event page", () => {
+    expect(ti2026ProfileBadgeForStars(10)).toBe("ti-2026-bronze");
+    expect(ti2026ProfileBadgeForStars(40)).toBe("ti-2026-silver");
+    expect(ti2026ProfileBadgeForStars(75)).toBe("ti-2026-gold");
+    expect(profileBadgeDefinition("ti-2026-gold")).toMatchObject({
+      label: "Золотой бейдж TI 2026",
+      tier: "gold",
+    });
+    expect(profileBadgeDefinition("unknown-badge")).toBeNull();
   });
 });
