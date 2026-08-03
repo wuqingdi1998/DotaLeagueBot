@@ -48,7 +48,8 @@
   font-size: clamp(27px, 3vw, 38px);
 }
 
-.compendium-reward-track-heading > strong {
+.compendium-reward-track-heading > strong,
+.compendium-community-stars-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -59,6 +60,32 @@
   color: #f1b92d;
   font-size: 24px;
   box-shadow: 0 8px 28px rgba(201, 139, 16, 0.16);
+}
+
+.compendium-community-stars-link {
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.compendium-community-stars-link:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 216, 114, 0.76);
+  background: rgba(245, 190, 52, 0.19);
+  box-shadow: 0 11px 30px rgba(201, 139, 16, 0.25);
+}
+
+.compendium-community-stars-link:focus-visible {
+  outline: 2px solid #ffe083;
+  outline-offset: 3px;
+}
+
+.compendium-community-stars-link svg:last-child {
+  margin-left: 2px;
+  font-size: 16px;
 }
 
 .compendium-reward-progress {
@@ -261,7 +288,8 @@
     border-radius: 20px;
   }
 
-  .compendium-reward-track-heading > strong {
+  .compendium-reward-track-heading > strong,
+  .compendium-community-stars-link {
     font-size: 20px;
   }
 

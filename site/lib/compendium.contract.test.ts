@@ -54,6 +54,14 @@ const profileBadge = source("../app/components/ProfileEventBadge.tsx");
 const profileCustomizationCss = source("../app/styles/18-profile-customization.css");
 const playerProfileCss = source("../app/styles/12-player-profile.css");
 const rewardsCss = source("../app/styles/38-compendium-rewards.css");
+const leaderboardPage = source("../app/compendium/leaderboard/page.tsx");
+const leaderboardRepository = source(
+  "../app/compendium/services/leaderboard-repository.ts",
+);
+const leaderboardView = source(
+  "../app/compendium/sections/CompendiumLeaderboard.tsx",
+);
+const leaderboardCss = source("../app/styles/41-compendium-leaderboard.css");
 const baseViewTypes = source("../app/compendium/admin/types.ts");
 const predictionRoute = source(
   "../app/api/compendium/predictions/[matchId]/route.ts",
@@ -212,6 +220,29 @@ describe("compendium persistence and security contract", () => {
     expect(dashboard.indexOf("<CompendiumRewards")).toBeLessThan(
       dashboard.indexOf('className={`compendium-quest-grid'),
     );
+  });
+
+  it("opens a star-only community leaderboard from the community total", () => {
+    expect(rewards).toContain('href="/compendium/leaderboard"');
+    expect(rewards).toContain("compendium-community-stars-link");
+    expect(leaderboardPage).toContain("getSession()");
+    expect(leaderboardPage).toContain("loadCompendiumLeaderboard()");
+    expect(leaderboardRepository).toContain("compendium_player_star_totals");
+    expect(leaderboardRepository).toContain("RANK() OVER");
+    expect(leaderboardRepository).toContain("total_stars > 0");
+    expect(leaderboardRepository).not.toContain(
+      "compendium_user_quest_completions",
+    );
+    expect(leaderboardRepository).not.toContain(
+      "compendium_admin_star_adjustments",
+    );
+    expect(leaderboardRepository).not.toContain(
+      "compendium_prediction_rewards",
+    );
+    expect(leaderboardView).toContain("Место");
+    expect(leaderboardView).toContain("Участник");
+    expect(leaderboardView).toContain("Звёзды");
+    expect(leaderboardCss).toContain("@media (max-width: 720px)");
   });
 
   it("uses the shortened reward goals and visible progress markers", () => {

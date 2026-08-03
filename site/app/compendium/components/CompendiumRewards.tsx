@@ -1,4 +1,6 @@
+import Link from "next/link";
 import { FaCheck, FaStar } from "react-icons/fa";
+import { FiArrowRight } from "react-icons/fi";
 import {
   communityCompendiumRewards,
   personalCompendiumRewards,
@@ -33,7 +35,18 @@ function RewardTrack({
           <span>Награды компендиума</span>
           <h2>{title}</h2>
         </div>
-        <strong><FaStar aria-hidden="true" /> {stars}</strong>
+        {kind === "community" ? (
+          <Link
+            className="compendium-community-stars-link"
+            href="/compendium/leaderboard"
+            aria-label={`Открыть рейтинг участников: ${stars} звёзд сообщества`}
+          >
+            <FaStar aria-hidden="true" /> {stars}
+            <FiArrowRight aria-hidden="true" />
+          </Link>
+        ) : (
+          <strong><FaStar aria-hidden="true" /> {stars}</strong>
+        )}
       </div>
       <div className="compendium-reward-progress" aria-hidden="true">
         <span className="compendium-reward-progress-fill" style={{ width: `${progress}%` }} />

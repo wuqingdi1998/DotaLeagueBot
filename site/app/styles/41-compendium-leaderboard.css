@@ -1,0 +1,256 @@
+.compendium-leaderboard-page {
+  min-height: calc(100vh - 80px);
+  padding: 42px 0 72px;
+  background:
+    radial-gradient(circle at 12% 0, rgba(23, 158, 179, 0.16), transparent 34%),
+    radial-gradient(circle at 88% 6%, rgba(116, 88, 244, 0.14), transparent 30%);
+}
+
+.compendium-leaderboard-hero,
+.compendium-leaderboard-card {
+  width: min(980px, calc(100% - 64px));
+  margin-inline: auto;
+}
+
+.compendium-leaderboard-hero {
+  margin-bottom: 24px;
+}
+
+.compendium-leaderboard-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 28px;
+  color: var(--muted);
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.compendium-leaderboard-back:hover {
+  transform: translateX(-3px);
+  color: var(--text);
+}
+
+.compendium-leaderboard-back:focus-visible,
+.compendium-leaderboard-player:focus-visible {
+  outline: 2px solid var(--blue-strong);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+
+.compendium-leaderboard-hero > span {
+  display: block;
+  color: var(--blue-strong);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.compendium-leaderboard-hero h1 {
+  margin: 7px 0 8px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(36px, 5vw, 58px);
+  line-height: 1.05;
+}
+
+.compendium-leaderboard-hero p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.compendium-leaderboard-card {
+  overflow: hidden;
+  border: 1px solid rgba(70, 160, 244, 0.34);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.compendium-leaderboard-heading,
+.compendium-leaderboard-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 130px;
+  align-items: center;
+  gap: 18px;
+}
+
+.compendium-leaderboard-heading {
+  padding: 15px 24px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.compendium-leaderboard-heading span:last-child {
+  text-align: right;
+}
+
+.compendium-leaderboard-row {
+  min-height: 76px;
+  padding: 12px 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+  transition: background 160ms ease;
+}
+
+.compendium-leaderboard-row:last-child {
+  border-bottom: 0;
+}
+
+.compendium-leaderboard-row:hover {
+  background: rgba(65, 215, 191, 0.05);
+}
+
+.compendium-leaderboard-rank {
+  color: var(--muted);
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 24px;
+}
+
+.compendium-leaderboard-rank::before {
+  content: "#";
+  margin-right: 2px;
+  opacity: 0.5;
+}
+
+.compendium-leaderboard-row.place-1 .compendium-leaderboard-rank { color: #ffd35b; }
+.compendium-leaderboard-row.place-2 .compendium-leaderboard-rank { color: #c9d7e0; }
+.compendium-leaderboard-row.place-3 .compendium-leaderboard-rank { color: #d99058; }
+
+.compendium-leaderboard-player {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.compendium-leaderboard-player > strong {
+  overflow: hidden;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compendium-leaderboard-avatar {
+  display: grid;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(65, 215, 191, 0.38);
+  border-radius: 14px;
+  background: rgba(18, 132, 151, 0.16);
+  color: var(--blue-strong);
+  font-size: 19px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.compendium-leaderboard-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.compendium-leaderboard-stars {
+  display: inline-flex;
+  justify-self: end;
+  align-items: center;
+  gap: 7px;
+  min-width: 82px;
+  justify-content: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(245, 190, 52, 0.36);
+  border-radius: 999px;
+  background: rgba(245, 190, 52, 0.11);
+  color: #f1b92d;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.compendium-leaderboard-empty {
+  margin: 0;
+  padding: 56px 24px;
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 720px) {
+  .compendium-leaderboard-page {
+    padding: 26px 0 48px;
+  }
+
+  .compendium-leaderboard-hero,
+  .compendium-leaderboard-card {
+    width: min(100% - 20px, 980px);
+  }
+
+  .compendium-leaderboard-back {
+    margin-bottom: 22px;
+  }
+
+  .compendium-leaderboard-hero h1 {
+    font-size: 37px;
+  }
+
+  .compendium-leaderboard-hero p {
+    font-size: 15px;
+  }
+
+  .compendium-leaderboard-card {
+    border-radius: 18px;
+  }
+
+  .compendium-leaderboard-heading,
+  .compendium-leaderboard-row {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .compendium-leaderboard-heading {
+    padding: 13px 14px;
+    font-size: 9px;
+  }
+
+  .compendium-leaderboard-heading span:first-child {
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  .compendium-leaderboard-row {
+    min-height: 66px;
+    padding: 9px 14px;
+  }
+
+  .compendium-leaderboard-rank {
+    font-size: 20px;
+  }
+
+  .compendium-leaderboard-player {
+    gap: 10px;
+  }
+
+  .compendium-leaderboard-player > strong {
+    font-size: 15px;
+  }
+
+  .compendium-leaderboard-avatar {
+    flex-basis: 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .compendium-leaderboard-stars {
+    min-width: 58px;
+    padding: 7px 9px;
+    font-size: 16px;
+  }
+}
