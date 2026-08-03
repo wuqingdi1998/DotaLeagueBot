@@ -25,9 +25,15 @@ type TournamentHistoryRow = {
   team_name: string | null;
   used_nickname: string | null;
   rank_snapshot: number | null;
+  standings_section: "active" | "inactive" | null;
   placement: number | null;
   result_label: string | null;
 };
+
+type TournamentResultLabelInput = Pick<
+  TournamentHistoryRow,
+  "tournament_type" | "rank_snapshot" | "standings_section" | "result_label"
+>;
 
 function iso(value: Date | string) {
   return new Date(value).toISOString();
@@ -45,6 +51,17 @@ export function historicalNickname(
   ) === 0
     ? null
     : usedNickname.trim();
+}
+
+export function tournamentHistoryResultLabel(
+  row: TournamentResultLabelInput,
+): string | null {
+  if (row.result_label) return row.result_label;
+  if (row.tournament_type !== "seasonal") return null;
+  if (row.standings_section === "inactive") return "Вне общей таблицы";
+  return row.rank_snapshot
+    ? `Место в сезонной таблице — ${row.rank_snapshot}`
+    : "Участвовал в сезоне";
 }
 
 export async function loadPlayerTournamentHistory(
@@ -88,6 +105,7 @@ export async function loadPlayerTournamentHistory(
          application.team_name,
          participation.used_nickname,
          NULL::int AS rank_snapshot,
+         NULL::text AS standings_section,
          result.placement::int,
          result.result_label
        FROM ordinary_participations participation
@@ -107,6 +125,7 @@ export async function loadPlayerTournamentHistory(
          participant.tournament_id,
          participant.nickname_snapshot AS used_nickname,
          participant.rank_snapshot::int,
+         participant.standings_section,
          1 AS source_priority
        FROM season_participants participant
        WHERE participant.player_id = ANY($1::bigint[])
@@ -117,6 +136,7 @@ export async function loadPlayerTournamentHistory(
          round.tournament_id,
          participant.nickname_snapshot AS used_nickname,
          NULL::int AS rank_snapshot,
+         NULL::text AS standings_section,
          2 AS source_priority
        FROM season_match_participants participant
        JOIN season_matches match ON match.id = participant.match_id
@@ -136,6 +156,7 @@ export async function loadPlayerTournamentHistory(
          NULL::text AS team_name,
          participation.used_nickname,
          participation.rank_snapshot,
+         participation.standings_section,
          CASE medal.medal_type
            WHEN 'gold' THEN 1
            WHEN 'silver' THEN 2
@@ -184,12 +205,6 @@ export async function loadPlayerTournamentHistory(
     teamName: row.team_name,
     usedNickname: historicalNickname(currentNickname, row.used_nickname),
     placement: row.placement,
-    resultLabel:
-      row.result_label ??
-      (row.tournament_type === "seasonal"
-        ? row.rank_snapshot
-          ? `Место в сезонной таблице — ${row.rank_snapshot}`
-          : "Участвовал в сезоне"
-        : null),
+    resultLabel: tournamentHistoryResultLabel(row),
   }));
 }
