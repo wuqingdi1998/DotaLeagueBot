@@ -473,6 +473,11 @@ describe("compendium persistence and security contract", () => {
     expect(runeChallengeSelectionRoute).toContain("requireSession()");
     expect(runeChallengeCheckRoute).toContain("requireSession()");
     expect(runeChallengeView).toContain("compendium-check-button");
+    expect(runeChallengeView).toContain(
+      "Выбор героя откроет для вас уникальное испытание",
+    );
+    expect(dashboard).toContain("resetCountdown={countdown}");
+    expect(runeChallengeView).toContain("До нового испытания");
   });
 
   it("counts rune stars everywhere and excludes favorites after reset", () => {

@@ -284,6 +284,7 @@ export function CompendiumDashboard({
           </div>
           <RuneChallenge
             initialChallenge={data.runeChallenge}
+            resetCountdown={countdown}
             onStarsChange={(totalStars, communityStars) => setData((current) => ({
               ...current,
               totalStars,

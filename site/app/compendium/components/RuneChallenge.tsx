@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FaStar } from "react-icons/fa";
 import {
   FiCheck,
+  FiClock,
   FiExternalLink,
   FiLoader,
   FiLock,
@@ -69,9 +70,11 @@ function HeroPicker({
 
 export function RuneChallenge({
   initialChallenge,
+  resetCountdown,
   onStarsChange,
 }: {
   initialChallenge: RuneChallengeData;
+  resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
 }) {
   const [challenge, setChallenge] = useState(initialChallenge);
@@ -200,7 +203,11 @@ export function RuneChallenge({
         <div className="compendium-rune-content">
           {!challenge.selection ? (
             <div className="compendium-rune-first-selection">
-              <p>Выберите любимого героя. После выбора сменить его можно будет через 7 дней.</p>
+              <p>
+                Выбор героя откроет для вас уникальное испытание. Оно обновляется
+                ежедневно вместе с остальными заданиями, а сменить героя можно
+                будет через 7 дней.
+              </p>
               <HeroPicker
                 selectedHeroId={selectedHeroId}
                 disabled={isSaving}
@@ -228,18 +235,25 @@ export function RuneChallenge({
               <div className="compendium-rune-action">
                 <p>Победите в рейтинговом матче на выбранном герое после его выбора.</p>
                 {challenge.completion ? (
-                  <div className="compendium-completion" role="status">
-                    <span className="compendium-checkmark"><FiCheck aria-hidden="true" /></span>
-                    <div>
-                      <strong>Испытание выполнено</strong>
-                      {completionHero && <span>Победа на герое {completionHero.name}</span>}
-                      <a
-                        href={`https://www.opendota.com/matches/${challenge.completion.matchedMatchId}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Матч {challenge.completion.matchedMatchId} <FiExternalLink aria-hidden="true" />
-                      </a>
+                  <div className="compendium-rune-completed-state">
+                    <div className="compendium-completion" role="status">
+                      <span className="compendium-checkmark"><FiCheck aria-hidden="true" /></span>
+                      <div>
+                        <strong>Испытание выполнено</strong>
+                        {completionHero && <span>Победа на герое {completionHero.name}</span>}
+                        <a
+                          href={`https://www.opendota.com/matches/${challenge.completion.matchedMatchId}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          Матч {challenge.completion.matchedMatchId} <FiExternalLink aria-hidden="true" />
+                        </a>
+                      </div>
+                    </div>
+                    <div className="compendium-section-countdown compendium-rune-reset-countdown">
+                      <FiClock aria-hidden="true" />
+                      <span>До нового испытания</span>
+                      <strong>{resetCountdown}</strong>
                     </div>
                   </div>
                 ) : (
