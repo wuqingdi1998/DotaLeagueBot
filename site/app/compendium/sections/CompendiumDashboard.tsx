@@ -16,6 +16,7 @@ import { DailyRerollNotice } from "../components/DailyRerollNotice";
 import { QuestCard } from "../components/QuestCard";
 import { CompendiumRewards } from "../components/CompendiumRewards";
 import { CompendiumPredictions } from "../components/CompendiumPredictions";
+import { RuneChallenge } from "../components/RuneChallenge";
 import type { PredictionScore } from "../model/predictions";
 
 function countdownLabel(nextResetAt: string): string {
@@ -281,6 +282,14 @@ export function CompendiumDashboard({
               />
             ))}
           </div>
+          <RuneChallenge
+            initialChallenge={data.runeChallenge}
+            onStarsChange={(totalStars, communityStars) => setData((current) => ({
+              ...current,
+              totalStars,
+              communityStars,
+            }))}
+          />
           </section>
           <CompendiumPredictions
             matches={data.predictions}

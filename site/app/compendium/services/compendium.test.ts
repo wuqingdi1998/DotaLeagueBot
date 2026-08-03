@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
   dailyRerollsRemaining: vi.fn(),
   recordDailyQuestReroll: vi.fn(),
   loadDailyPredictions: vi.fn(),
+  loadRuneChallenge: vi.fn(),
 }));
 
 vi.mock("./repository", () => ({
@@ -38,6 +39,10 @@ vi.mock("./reroll-repository", () => ({
 
 vi.mock("./prediction-repository", () => ({
   loadDailyPredictions: mocks.loadDailyPredictions,
+}));
+
+vi.mock("./rune-challenge", () => ({
+  loadRuneChallenge: mocks.loadRuneChallenge,
 }));
 
 vi.mock("@/lib/player-profile", () => ({

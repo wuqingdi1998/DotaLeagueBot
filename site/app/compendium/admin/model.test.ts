@@ -131,4 +131,24 @@ describe("compendium organizer base", () => {
       actualScore: "2:1",
     });
   });
+
+  it("shows rune challenge wins as a separate reward source", () => {
+    const participants = buildCompendiumAdminParticipants([
+      row({
+        history_kind: "rune",
+        completion_id: "701",
+        quest_position: null,
+        matched_hero_id: 1,
+        matched_match_id: "8001",
+        quest_hero_id: 1,
+        hero_position: 1,
+      }),
+    ]);
+
+    expect(participants[0].rewards[0]).toMatchObject({
+      kind: "rune",
+      matchedMatchId: "8001",
+      hero: { id: 1, name: "Anti-Mage" },
+    });
+  });
 });

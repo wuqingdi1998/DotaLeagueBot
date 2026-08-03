@@ -18,6 +18,20 @@ export type DailyQuest = {
   completion: QuestCompletion | null;
 };
 
+export type RuneChallengeSelection = {
+  hero: CompendiumHero;
+  selectedAt: string;
+  nextChangeAt: string;
+  canChangeHero: boolean;
+};
+
+export type RuneChallengeData = {
+  hasAccess: boolean;
+  accessRoleName: string | null;
+  selection: RuneChallengeSelection | null;
+  completion: QuestCompletion | null;
+};
+
 export type PredictionTeam = {
   key: string;
   name: string;
@@ -46,6 +60,7 @@ export type CompendiumData = {
   communityStars: number;
   hasDotaId: boolean;
   quests: DailyQuest[];
+  runeChallenge: RuneChallengeData;
   predictions: DailyPredictionMatch[];
 };
 

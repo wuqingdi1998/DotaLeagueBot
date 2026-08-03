@@ -1,0 +1,147 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const mocks = vi.hoisted(() => ({
+  loadState: vi.fn(),
+  recordCompletion: vi.fn(),
+  saveSelection: vi.fn(),
+  fetchMatches: vi.fn(),
+  consumeAllowance: vi.fn(),
+  totalStars: vi.fn(),
+  communityStars: vi.fn(),
+}));
+
+vi.mock("./rune-challenge-repository", () => ({
+  loadRuneChallengeStateRecord: mocks.loadState,
+  recordRuneChallengeCompletion: mocks.recordCompletion,
+  saveRuneChallengeSelection: mocks.saveSelection,
+}));
+
+vi.mock("./opendota", () => ({
+  fetchRecentPlayerMatches: mocks.fetchMatches,
+}));
+
+vi.mock("./repository", () => ({
+  consumeCheckAllowance: mocks.consumeAllowance,
+  totalCompendiumStars: mocks.totalStars,
+  totalCommunityCompendiumStars: mocks.communityStars,
+}));
+
+vi.mock("@/lib/player-profile", () => ({
+  normalizeDotaAccountId: (value: string) => value || null,
+}));
+
+import { checkRuneChallenge, selectRuneChallengeHero } from "./rune-challenge";
+
+const user = {
+  discordId: "100",
+  dotaId: "301109815",
+  username: "discord-user",
+  avatarUrl: null,
+  playerName: "Player",
+  realName: null,
+  positions: "1/2",
+  serverName: "Player 1/2",
+  isAdmin: false,
+};
+
+function state(selectedAt: Date) {
+  return {
+    accessRoleName: "Руна Ускорения",
+    selection: {
+      heroId: 1,
+      selectedAt,
+      nextChangeAt: new Date(selectedAt.getTime() + 7 * 86_400_000),
+      canChangeHero: false,
+    },
+    completion: null,
+  };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.consumeAllowance.mockResolvedValue(true);
+  mocks.totalStars.mockResolvedValue(8);
+  mocks.communityStars.mockResolvedValue(80);
+});
+
+describe("rune challenge", () => {
+  it("rejects access immediately after an eligible role is removed", async () => {
+    mocks.loadState.mockResolvedValue({
+      accessRoleName: null,
+      selection: null,
+      completion: null,
+    });
+
+    await expect(checkRuneChallenge(user)).rejects.toMatchObject({
+      code: "RUNE_ACCESS_REQUIRED",
+    });
+    expect(mocks.fetchMatches).not.toHaveBeenCalled();
+  });
+
+  it("accepts only heroes from the compendium catalog", async () => {
+    await expect(selectRuneChallengeHero(user, 9999)).rejects.toMatchObject({
+      code: "RUNE_HERO_INVALID",
+    });
+    expect(mocks.saveSelection).not.toHaveBeenCalled();
+  });
+
+  it("awards one daily star for a ranked win after hero selection", async () => {
+    const now = new Date();
+    const selectedAt = new Date(now.getTime() - 60 * 60 * 1_000);
+    const currentState = state(selectedAt);
+    const completion = {
+      matchedHeroId: 1,
+      matchedMatchId: "9001",
+      completedAt: now.toISOString(),
+    };
+    mocks.loadState
+      .mockResolvedValueOnce(currentState)
+      .mockResolvedValueOnce(currentState)
+      .mockResolvedValueOnce({ ...currentState, completion });
+    mocks.fetchMatches.mockResolvedValue([
+      {
+        match_id: 9001,
+        player_slot: 0,
+        radiant_win: true,
+        duration: 600,
+        game_mode: 22,
+        lobby_type: 7,
+        hero_id: 1,
+        start_time: Math.floor((now.getTime() - 30 * 60 * 1_000) / 1_000),
+      },
+    ]);
+    mocks.recordCompletion.mockResolvedValue(completion);
+
+    await expect(checkRuneChallenge(user, now)).resolves.toMatchObject({
+      totalStars: 8,
+      communityStars: 80,
+      runeChallenge: { completion },
+    });
+    expect(mocks.recordCompletion).toHaveBeenCalledWith(
+      expect.objectContaining({ heroId: 1, matchId: "9001" }),
+    );
+  });
+
+  it("does not count a win completed before the hero was selected", async () => {
+    const now = new Date();
+    const selectedAt = new Date(now.getTime() - 10 * 60 * 1_000);
+    mocks.loadState.mockResolvedValue(state(selectedAt));
+    mocks.fetchMatches.mockResolvedValue([
+      {
+        match_id: 9002,
+        player_slot: 0,
+        radiant_win: true,
+        duration: 600,
+        game_mode: 22,
+        lobby_type: 7,
+        hero_id: 1,
+        start_time: Math.floor((now.getTime() - 60 * 60 * 1_000) / 1_000),
+      },
+    ]);
+
+    await expect(checkRuneChallenge(user, now)).rejects.toMatchObject({
+      code: "NO_MATCH",
+    });
+    expect(mocks.recordCompletion).not.toHaveBeenCalled();
+  });
+});

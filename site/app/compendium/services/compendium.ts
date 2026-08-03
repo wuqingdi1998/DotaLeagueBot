@@ -25,6 +25,8 @@ import {
   recordDailyQuestReroll,
 } from "./reroll-repository";
 import { loadDailyPredictions } from "./prediction-repository";
+import { requireCompendiumDotaId } from "./participant";
+import { loadRuneChallenge } from "./rune-challenge";
 
 export type CheckQuestResult = {
   completion: QuestCompletion;
@@ -39,28 +41,18 @@ export type RerollQuestResult = {
   rerollsRemaining: number;
 };
 
-function requireDotaId(user: AuthUser): string {
-  const dotaId = normalizeDotaAccountId(user.dotaId);
-  if (!dotaId) {
-    throw new CompendiumError(
-      "MISSING_DOTA_ID",
-      "Сначала привяжите Dota ID в профиле участника",
-    );
-  }
-  return dotaId;
-}
-
 export async function loadCompendium(
   user: AuthUser,
   now: Date = new Date(),
 ): Promise<CompendiumData> {
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
-  const [quests, totalStars, communityStars, rerollsRemaining, predictions] = await Promise.all([
+  const [quests, totalStars, communityStars, rerollsRemaining, runeChallenge, predictions] = await Promise.all([
     loadDailyQuests(day.dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
     totalCommunityCompendiumStars(),
     dailyRerollsRemaining(day.dateKey, user.discordId),
+    loadRuneChallenge(user.discordId, day.dateKey),
     loadDailyPredictions(day.dateKey, user.discordId, now),
   ]);
   return {
@@ -73,6 +65,7 @@ export async function loadCompendium(
     communityStars,
     hasDotaId: normalizeDotaAccountId(user.dotaId) !== null,
     quests,
+    runeChallenge,
     predictions,
   };
 }
@@ -82,7 +75,7 @@ export async function checkDailyQuest(
   questId: string,
   now: Date = new Date(),
 ): Promise<CheckQuestResult> {
-  const dotaId = requireDotaId(user);
+  const dotaId = requireCompendiumDotaId(user);
 
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
@@ -179,7 +172,7 @@ export async function rerollDailyQuest(
   questId: string,
   now: Date = new Date(),
 ): Promise<RerollQuestResult> {
-  requireDotaId(user);
+  requireCompendiumDotaId(user);
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey);
   await recordDailyQuestReroll({

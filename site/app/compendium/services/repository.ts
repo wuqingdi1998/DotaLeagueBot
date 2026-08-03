@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
+import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import {
   BONUS_QUEST_POSITION,
   BONUS_QUEST_STAR_THRESHOLD,
@@ -104,6 +105,19 @@ export async function ensureDailyQuestSet(dateKey: string): Promise<string> {
     const excludedHeroIds = new Set(
       existingQuestData.rows.map((row) => row.hero_id),
     );
+    if (!existing.rowCount) {
+      const runeHeroes = await client.query<{ hero_id: number }>(
+        `SELECT DISTINCT selection.hero_id
+         FROM compendium_rune_challenge_selections selection
+         JOIN player_discord_roles role
+           ON role.player_id = selection.player_id
+          AND role.role_name = ANY($2::text[])
+         WHERE $1::date >
+           (selection.selected_at AT TIME ZONE 'Europe/Moscow')::date`,
+        [dateKey, runeChallengeAccessRoleNames],
+      );
+      runeHeroes.rows.forEach((row) => excludedHeroIds.add(row.hero_id));
+    }
     for (let position = 1; position <= DAILY_QUEST_COUNT; position += 1) {
       if (existingPositions.has(position)) continue;
       const heroes = generateRerollQuestHeroes(

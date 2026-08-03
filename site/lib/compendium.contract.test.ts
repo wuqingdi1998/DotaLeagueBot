@@ -24,6 +24,9 @@ const predictionsMigration = source(
 const starResetMigration = source(
   "../../bot/database/migrations/0046_reset_compendium_stars.sql",
 );
+const runeChallengeMigration = source(
+  "../../bot/database/migrations/0049_compendium_rune_challenge.sql",
+);
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
 const questSetMaintenance = source(
@@ -62,6 +65,23 @@ const leaderboardView = source(
   "../app/compendium/sections/CompendiumLeaderboard.tsx",
 );
 const leaderboardCss = source("../app/styles/41-compendium-leaderboard.css");
+const runeChallengeRoles = source("./subscription-roles.ts");
+const runeChallengeRepository = source(
+  "../app/compendium/services/rune-challenge-repository.ts",
+);
+const runeChallengeService = source(
+  "../app/compendium/services/rune-challenge.ts",
+);
+const runeChallengeView = source(
+  "../app/compendium/components/RuneChallenge.tsx",
+);
+const runeChallengeCss = source("../app/styles/42-compendium-rune-challenge.css");
+const runeChallengeSelectionRoute = source(
+  "../app/api/compendium/rune-challenge/selection/route.ts",
+);
+const runeChallengeCheckRoute = source(
+  "../app/api/compendium/rune-challenge/check/route.ts",
+);
 const baseViewTypes = source("../app/compendium/admin/types.ts");
 const predictionRoute = source(
   "../app/api/compendium/predictions/[matchId]/route.ts",
@@ -419,5 +439,57 @@ describe("compendium persistence and security contract", () => {
       "`compendium-quest-mutation:${input.playerId}:${input.questId}`",
     );
     expect(baseRepository).toContain("compendium_user_quest_reroll_heroes");
+  });
+
+  it("offers the rune challenge only to colored runes and Supporters", () => {
+    for (const role of [
+      "Руна Регенерации",
+      "Руна Ускорения",
+      "Руна Невидимости",
+      "Руна Волшебства",
+      "Руна Иллюзий",
+      "Руна Усиления урона",
+      "Суппортеры",
+    ]) {
+      expect(runeChallengeRoles).toContain(role);
+    }
+    expect(runeChallengeRoles).toContain('role !== "Руна Воды"');
+    expect(runeChallengeRepository).toContain("player_discord_roles");
+    expect(runeChallengeRepository).toContain("runeChallengeAccessRoleNames");
+    expect(runeChallengeView).toContain("Испытание Рун");
+    expect(runeChallengeView).toContain("Руна Воды не открывает");
+  });
+
+  it("locks a selected rune hero for seven days and checks a daily win", () => {
+    expect(runeChallengeMigration).toContain(
+      "compendium_rune_challenge_selections",
+    );
+    expect(runeChallengeMigration).toContain(
+      "compendium_rune_challenge_completions",
+    );
+    expect(runeChallengeRepository).toContain("INTERVAL '7 days'");
+    expect(runeChallengeService).toContain("findMatchingWin");
+    expect(runeChallengeService).toContain("selection.selectedAt");
+    expect(runeChallengeSelectionRoute).toContain("requireSession()");
+    expect(runeChallengeCheckRoute).toContain("requireSession()");
+    expect(runeChallengeView).toContain("compendium-check-button");
+  });
+
+  it("counts rune stars everywhere and excludes favorites after reset", () => {
+    expect(runeChallengeMigration).toContain(
+      "CREATE OR REPLACE VIEW compendium_player_star_totals",
+    );
+    expect(runeChallengeMigration).toContain(
+      "grant_ti_2026_profile_badges_after_change",
+    );
+    expect(repository).toContain("compendium_rune_challenge_selections");
+    expect(repository).toContain("selected_at AT TIME ZONE 'Europe/Moscow'");
+    expect(rerollRepository).toContain(
+      "compendium_rune_challenge_selections",
+    );
+    expect(baseRepository).toContain(
+      "compendium_rune_challenge_completions",
+    );
+    expect(runeChallengeCss).toContain("@media (max-width: 720px)");
   });
 });

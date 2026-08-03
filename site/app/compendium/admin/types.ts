@@ -6,7 +6,7 @@ export type CompendiumAdminSourceRow = {
   dota_id: string;
   avatar_url: string | null;
   total_stars: number;
-  history_kind: "quest" | "admin" | "prediction" | null;
+  history_kind: "quest" | "admin" | "prediction" | "rune" | null;
   completion_id: string | null;
   moscow_date: string | null;
   quest_position: number | null;
@@ -59,10 +59,22 @@ export type CompendiumPredictionRewardHistory = {
   actualScore: string;
 };
 
+export type CompendiumRuneRewardHistory = {
+  kind: "rune";
+  id: string;
+  dateKey: string;
+  dateLabel: string;
+  completedAt: string;
+  rewardAmount: number;
+  hero: CompendiumHero;
+  matchedMatchId: string;
+};
+
 export type CompendiumRewardHistory =
   | CompendiumQuestRewardHistory
   | CompendiumAdminRewardHistory
-  | CompendiumPredictionRewardHistory;
+  | CompendiumPredictionRewardHistory
+  | CompendiumRuneRewardHistory;
 
 export type CompendiumAdminParticipant = {
   discordId: string;

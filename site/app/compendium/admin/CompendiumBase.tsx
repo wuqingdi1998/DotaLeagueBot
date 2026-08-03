@@ -12,8 +12,38 @@ import type {
   CompendiumAdminParticipant,
   CompendiumQuestRewardHistory,
   CompendiumPredictionRewardHistory,
+  CompendiumRuneRewardHistory,
   CompendiumRewardHistory,
 } from "./types";
+
+function RuneRewardHistoryItem({
+  reward,
+}: {
+  reward: CompendiumRuneRewardHistory;
+}) {
+  return (
+    <article className="compendium-base-reward compendium-base-rune-reward">
+      <div className="compendium-base-reward-heading">
+        <div>
+          <span>{reward.dateLabel}</span>
+          <strong>Испытание Рун: {reward.hero.name}</strong>
+        </div>
+        <span className="compendium-base-reward-value">
+          <FaStar aria-hidden="true" /> +{reward.rewardAmount}
+        </span>
+      </div>
+      <a
+        className="compendium-base-match-link"
+        href={`https://www.opendota.com/matches/${reward.matchedMatchId}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        Победа в матче {reward.matchedMatchId}
+        <FiExternalLink aria-hidden="true" />
+      </a>
+    </article>
+  );
+}
 
 function PredictionRewardHistoryItem({
   reward,
@@ -108,6 +138,9 @@ function AdminRewardHistoryItem({
 }
 
 function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
+  if (reward.kind === "rune") {
+    return <RuneRewardHistoryItem reward={reward} />;
+  }
   if (reward.kind === "prediction") {
     return <PredictionRewardHistoryItem reward={reward} />;
   }

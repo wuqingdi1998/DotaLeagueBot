@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from utils.subscription_roles import (
+    SUPPORTER_ROLE_NAME,
     SUBSCRIPTION_ROLE_NAMES,
     canonical_subscription_role_name,
     subscription_role_rows,
@@ -41,6 +42,12 @@ def test_water_rune_is_written_to_profile_role_rows() -> None:
             "role_color": 0x36C5F0,
         }
     ]
+
+
+def test_supporters_role_is_stored_for_feature_access() -> None:
+    supporter = role(8, SUPPORTER_ROLE_NAME, 0xE0A62F)
+
+    assert canonical_subscription_role_name(supporter, set()) == SUPPORTER_ROLE_NAME
 
 
 def test_unrelated_discord_roles_are_not_written() -> None:

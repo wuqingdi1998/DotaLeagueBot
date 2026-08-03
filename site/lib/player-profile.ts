@@ -8,22 +8,18 @@ import {
   profileBadgeDefinition,
   type ProfileBadgeKey,
 } from "./profile-badges";
+import {
+  customizableSubscriptionRoleNames,
+  subscriptionRoleNames,
+} from "./subscription-roles";
+
+export {
+  customizableSubscriptionRoleNames,
+  subscriptionRoleNames,
+} from "./subscription-roles";
 
 const steamId64Offset = BigInt("76561197960265728");
 const maximumDotaAccountId = BigInt("4294967295");
-
-export const subscriptionRoleNames = [
-  "Руна Регенерации",
-  "Руна Ускорения",
-  "Руна Невидимости",
-  "Руна Волшебства",
-  "Руна Иллюзий",
-  "Руна Усиления урона",
-  "Руна Воды",
-] as const;
-
-export const customizableSubscriptionRoleNames =
-  subscriptionRoleNames.filter((role) => role !== "Руна Воды");
 
 export const profileBackgroundKeys = [
   "default",

@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { query, transaction } from "@/lib/db";
+import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import {
   BONUS_QUEST_STAR_THRESHOLD,
   REROLL_REWARD_STAR_THRESHOLD,
@@ -41,6 +42,13 @@ async function rerollsRemainingWithClient(
          2
        FROM compendium_prediction_rewards reward
        WHERE reward.player_id = $2
+       UNION ALL
+       SELECT completion.completed_at,
+         completion.reward_amount::int,
+         completion.id,
+         3
+       FROM compendium_rune_challenge_completions completion
+       WHERE completion.player_id = $2
      ), running_totals AS (
        SELECT occurred_at, event_id, event_kind,
          SUM(amount) OVER (
@@ -189,8 +197,22 @@ export async function recordDailyQuestReroll(input: {
        FROM compendium_user_quest_rerolls reroll
        JOIN compendium_user_quest_reroll_heroes reroll_hero
          ON reroll_hero.reroll_id = reroll.id
-       WHERE reroll.quest_set_id = $1 AND reroll.player_id = $2`,
-      [quest.rows[0].quest_set_id, input.playerId],
+       WHERE reroll.quest_set_id = $1 AND reroll.player_id = $2
+       UNION
+       SELECT selection.hero_id
+       FROM compendium_rune_challenge_selections selection
+       JOIN player_discord_roles role
+         ON role.player_id = selection.player_id
+        AND role.role_name = ANY($4::text[])
+       WHERE selection.player_id = $2
+         AND $3::date >
+           (selection.selected_at AT TIME ZONE 'Europe/Moscow')::date`,
+      [
+        quest.rows[0].quest_set_id,
+        input.playerId,
+        input.dateKey,
+        runeChallengeAccessRoleNames,
+      ],
     );
     const replacementHeroes = generateRerollQuestHeroes(
       excludedHeroes.rows.map((hero) => hero.hero_id),

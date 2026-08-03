@@ -134,6 +134,31 @@ export async function loadCompendiumAdminParticipants(): Promise<
         AND prediction_pick.player_id = prediction_reward.player_id
        JOIN compendium_prediction_matches prediction_match
          ON prediction_match.id = prediction_reward.match_id
+       UNION ALL
+       SELECT
+         participant.discord_id::text,
+         participant.player_name,
+         participant.dota_id,
+         participant.avatar_url,
+         participant.total_stars,
+         'rune' AS history_kind,
+         rune_reward.id::text,
+         rune_reward.moscow_date::text,
+         NULL::smallint,
+         rune_reward.hero_id,
+         rune_reward.matched_match_id::text,
+         rune_reward.completed_at,
+         rune_reward.reward_amount,
+         rune_reward.hero_id,
+         1::smallint,
+         NULL::text,
+         NULL::text,
+         NULL::text,
+         NULL::text,
+         NULL::text
+       FROM participants participant
+       JOIN compendium_rune_challenge_completions rune_reward
+         ON rune_reward.player_id = participant.discord_id
      ) history
      ORDER BY LOWER(player_name), completed_at DESC NULLS LAST,
        quest_position, hero_position`,
