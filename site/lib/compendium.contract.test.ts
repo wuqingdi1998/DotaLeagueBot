@@ -297,6 +297,9 @@ describe("compendium persistence and security contract", () => {
     expect(rewardsCss).toContain("font-size: 15px");
     expect(compendiumCss).toContain("scroll-snap-type: x mandatory");
     expect(compendiumCss).toContain("overflow-x: auto");
+    expect(compendiumCss).toContain("padding: 2px 2px 16px");
+    expect(compendiumCss).toContain("scroll-padding-inline: 2px");
+    expect(compendiumCss).not.toContain("padding: 2px 48px 16px 2px");
     expect(dashboard).toContain("compendium-mobile-swipe-hint");
   });
 
