@@ -26,6 +26,10 @@ const starResetMigration = source(
 );
 const checkRoute = source("../app/api/compendium/daily-quests/[questId]/check/route.ts");
 const repository = source("../app/compendium/services/repository.ts");
+const questSetMaintenance = source(
+  "../app/compendium/services/quest-set-maintenance.ts",
+);
+const compendiumConstants = source("../app/compendium/model/constants.ts");
 const header = source("../app/components/SiteHeader.tsx");
 const navigationCss = source("../app/styles/34-compendium-navigation.css");
 const dashboard = source("../app/compendium/sections/CompendiumDashboard.tsx");
@@ -160,7 +164,7 @@ describe("compendium persistence and security contract", () => {
     expect(basePage).toContain("if (!user?.isAdmin) notFound()");
   });
 
-  it("loads every participant and the four heroes behind each rewarded star", () => {
+  it("loads every participant and the heroes behind each rewarded star", () => {
     expect(baseRepository).toContain("FROM players player");
     expect(baseRepository).toContain("compendium_user_quest_completions");
     expect(baseRepository).toContain("compendium_daily_quest_heroes");
@@ -224,6 +228,18 @@ describe("compendium persistence and security contract", () => {
     expect(repository).toContain("BONUS_QUEST_STAR_THRESHOLD");
     expect(profilePage).toContain("profile.profileBadge");
     expect(profilePage).toContain("ProfileEventBadge");
+  });
+
+  it("expands today's existing quest cards to six heroes without resetting them", () => {
+    expect(compendiumConstants).toContain("HEROES_PER_QUEST = 6");
+    expect(repository).toContain("completeExistingQuestCards");
+    expect(questSetMaintenance).toContain(
+      "INSERT INTO compendium_daily_quest_heroes",
+    );
+    expect(questSetMaintenance).toContain(
+      "INSERT INTO compendium_user_quest_reroll_heroes",
+    );
+    expect(questSetMaintenance).not.toContain("DELETE FROM");
   });
 
   it("stores earned badges permanently outside the compendium data", () => {
@@ -354,7 +370,7 @@ describe("compendium persistence and security contract", () => {
     expect(questCard).toContain("compendium-reroll-button");
   });
 
-  it("checks and reports the player's rerolled four-hero card", () => {
+  it("checks and reports the player's rerolled six-hero card", () => {
     expect(repository).toContain("compendium_user_quest_reroll_heroes");
     expect(repository).toContain("reroll.player_id = $3");
     expect(repository).toContain(

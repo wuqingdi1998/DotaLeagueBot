@@ -56,11 +56,11 @@ describe("daily compendium quest generation", () => {
     expect(quests).toHaveLength(3);
   });
 
-  it("puts exactly four heroes in every quest", () => {
-    expect(quests.every((quest) => quest.length === 4)).toBe(true);
+  it("puts exactly six heroes in every quest", () => {
+    expect(quests.every((quest) => quest.length === 6)).toBe(true);
   });
 
-  it("uses twelve different heroes across the day", () => {
+  it("uses eighteen different heroes across the day", () => {
     const ids = quests.flat().map((hero) => hero.id);
     expect(ids).toHaveLength(DAILY_HERO_COUNT);
     expect(new Set(ids)).toHaveLength(DAILY_HERO_COUNT);
@@ -74,21 +74,21 @@ describe("daily compendium quest generation", () => {
   });
 
   it("rejects a catalog that is too small", () => {
-    expect(() => generateDailyQuestHeroes(COMPENDIUM_HEROES.slice(0, 11))).toThrow();
+    expect(() => generateDailyQuestHeroes(COMPENDIUM_HEROES.slice(0, 17))).toThrow();
   });
 });
 
 describe("daily quest reroll", () => {
-  it("creates four different heroes outside the original daily set", () => {
-    const originalHeroIds = COMPENDIUM_HEROES.slice(0, 12).map((hero) => hero.id);
+  it("creates six different heroes outside the original daily set", () => {
+    const originalHeroIds = COMPENDIUM_HEROES.slice(0, 18).map((hero) => hero.id);
     const replacement = generateRerollQuestHeroes(
       originalHeroIds,
       COMPENDIUM_HEROES,
       () => 0.42,
     );
 
-    expect(replacement).toHaveLength(4);
-    expect(new Set(replacement.map((hero) => hero.id))).toHaveLength(4);
+    expect(replacement).toHaveLength(6);
+    expect(new Set(replacement.map((hero) => hero.id))).toHaveLength(6);
     expect(
       replacement.every((hero) => !originalHeroIds.includes(hero.id)),
     ).toBe(true);
@@ -111,7 +111,7 @@ describe("compendium personal rewards", () => {
   });
 
   it("creates a six-hero bonus quest outside the regular daily set", () => {
-    const originalHeroIds = COMPENDIUM_HEROES.slice(0, 12).map((hero) => hero.id);
+    const originalHeroIds = COMPENDIUM_HEROES.slice(0, 18).map((hero) => hero.id);
     const bonus = generateBonusQuestHeroes(
       originalHeroIds,
       COMPENDIUM_HEROES,

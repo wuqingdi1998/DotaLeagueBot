@@ -1,7 +1,7 @@
 export const COMPENDIUM_TIME_ZONE = "Europe/Moscow";
 export const COMPENDIUM_TOURNAMENT_START_AT = "2026-08-13T07:00:00+03:00";
 export const DAILY_QUEST_COUNT = 3;
-export const HEROES_PER_QUEST = 4;
+export const HEROES_PER_QUEST = 6;
 export const DAILY_HERO_COUNT = DAILY_QUEST_COUNT * HEROES_PER_QUEST;
 export const BONUS_QUEST_POSITION = 4;
 export const BONUS_QUEST_HERO_COUNT = 6;

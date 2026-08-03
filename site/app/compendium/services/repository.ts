@@ -16,6 +16,7 @@ import {
   generateRerollQuestHeroes,
 } from "../model/quests";
 import type { DailyQuest, QuestCompletion } from "../model/types";
+import { completeExistingQuestCards } from "./quest-set-maintenance";
 
 type QuestDataRow = {
   quest_id: string;
@@ -118,6 +119,7 @@ export async function ensureDailyQuestSet(dateKey: string): Promise<string> {
       const heroes = generateBonusQuestHeroes(excludedHeroIds);
       await insertDailyQuest(client, questSetId, BONUS_QUEST_POSITION, heroes);
     }
+    await completeExistingQuestCards(client, questSetId);
     return questSetId;
   });
 }
