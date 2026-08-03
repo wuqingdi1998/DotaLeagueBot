@@ -440,10 +440,10 @@
     grid-template-columns: none;
     gap: 12px;
     margin-right: -16px;
-    padding: 2px 2px 16px;
+    padding: 2px 10px 16px;
     overflow-x: auto;
     overscroll-behavior-x: contain;
-    scroll-padding-inline: 2px;
+    scroll-padding-inline: 10px;
     scroll-snap-type: x mandatory;
     scrollbar-color: var(--blue-strong) var(--surface-soft);
     scrollbar-width: thin;
