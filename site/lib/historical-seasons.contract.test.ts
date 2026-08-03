@@ -17,6 +17,9 @@ const winRateCleanup = source(
 const historicalSuspensions = source(
   "../../bot/database/migrations/0035_historical_season_suspensions.sql",
 );
+const historicalAliasRepairs = source(
+  "../../bot/database/migrations/0048_merge_historical_season_aliases.sql",
+);
 const profileLink = source("../app/components/PlayerProfileLink.tsx");
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
@@ -93,6 +96,36 @@ describe("historical seasonal leagues", () => {
     });
     expect(historicalSuspensions).toContain("166568345");
     expect(historicalSuspensions).not.toContain("updated_at");
+  });
+
+  it("merges duplicate same-season aliases without rewriting match nicknames", () => {
+    const repairs = [
+      ["league-season-4", "NineTeen", "Komaru"],
+      ["league-season-4", "D", "Decadence"],
+      ["league-season-4", "resolved", "resovled"],
+      ["league-season-4", "z3r0n", "zer0n"],
+      ["league-season-5", "wispiq", "violltany"],
+      ["league-season-5", "Komaru~", "XOM94OK"],
+      ["league-season-6", "serenity", "Kotic diff"],
+      ["league-season-6", "Pancake", "Morana"],
+      ["league-season-6", "shu", "shh"],
+    ];
+
+    for (const [season, primaryNickname, aliasNickname] of repairs) {
+      expect(historicalAliasRepairs).toContain(
+        `'${season}', '${primaryNickname}', '${aliasNickname}'`,
+      );
+    }
+    expect(historicalAliasRepairs).toContain(
+      "UPDATE season_match_participants participant",
+    );
+    expect(historicalAliasRepairs).toContain(
+      "DELETE FROM season_participants participant",
+    );
+    expect(historicalAliasRepairs).toContain(
+      "UPDATE player_identity_members member",
+    );
+    expect(historicalAliasRepairs).not.toContain("SET nickname_snapshot");
   });
 
   it("renders unresolved archive identities without false profile links", () => {
