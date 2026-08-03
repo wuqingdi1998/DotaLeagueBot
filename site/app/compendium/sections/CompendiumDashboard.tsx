@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
-import { FiArrowRight, FiClock, FiDatabase, FiRefreshCw } from "react-icons/fi";
+import { FiArrowRight, FiClock, FiDatabase } from "react-icons/fi";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentCountdownLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
@@ -252,12 +252,6 @@ export function CompendiumDashboard({
                 <span>До новых заданий</span>
                 <strong>{countdown}</strong>
               </div>
-              <p>
-                <FiRefreshCw aria-hidden="true" />
-                {data.quests.length === 4
-                  ? "Четыре задания · до четырёх звёзд"
-                  : "Три задания · до трёх звёзд"}
-              </p>
             </div>
           </div>
           <DailyRerollNotice

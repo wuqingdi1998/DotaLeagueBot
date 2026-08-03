@@ -144,7 +144,12 @@ describe("compendium persistence and security contract", () => {
     const heading = dashboard.slice(headingStart, questGridStart);
     expect(heading).toContain("До новых заданий");
     expect(heading).toContain("{countdown}");
+    expect(heading).not.toContain("Три задания · до трёх звёзд");
+    expect(heading).not.toContain("Четыре задания · до четырёх звёзд");
     expect(headingCss).toContain(".compendium-section-countdown");
+    expect(headingCss).toMatch(
+      /\.compendium-section-status\s*\{[^}]*justify-content:\s*flex-end/,
+    );
   });
 
   it("shows the tournament countdown in place of today's Moscow date", () => {

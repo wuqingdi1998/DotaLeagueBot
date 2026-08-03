@@ -74,7 +74,7 @@
 .compendium-section-status {
   display: flex;
   align-items: flex-end;
-  gap: clamp(22px, 3vw, 48px);
+  justify-content: flex-end;
 }
 
 .compendium-section-countdown {
@@ -101,14 +101,6 @@
   margin-top: 4px;
   font-size: 20px;
   font-variant-numeric: tabular-nums;
-}
-
-.compendium-section-status > p {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 7px;
-  color: var(--muted);
 }
 
 @media (max-width: 720px) {
@@ -176,15 +168,7 @@
   .compendium-section-status {
     width: 100%;
     align-items: flex-start;
-    justify-content: space-between;
-    gap: 18px;
-  }
-
-  .compendium-section-status > p {
-    max-width: 150px;
-    margin-top: 4px;
-    font-size: 12px;
-    text-align: right;
+    justify-content: flex-end;
   }
 }
 
@@ -194,12 +178,4 @@
     justify-content: space-between;
   }
 
-  .compendium-section-status {
-    flex-direction: column;
-  }
-
-  .compendium-section-status > p {
-    max-width: none;
-    text-align: left;
-  }
 }
