@@ -106,14 +106,6 @@ const predictionScheduleList = source("../app/compendium/admin/PredictionSchedul
 const teams = source("../app/compendium/model/teams.ts");
 
 describe("compendium persistence and security contract", () => {
-  it("stores one shared quest set per Moscow date", () => {
-    expect(migration).toContain("moscow_date DATE NOT NULL UNIQUE");
-  });
-
-  it("prevents a hero from appearing twice in one daily set", () => {
-    expect(migration).toContain("UNIQUE (quest_set_id, hero_id)");
-  });
-
   it("prevents duplicate rewards for one player quest", () => {
     expect(migration).toContain("UNIQUE (player_id, daily_quest_id)");
     expect(repository).toContain("ON CONFLICT (player_id, daily_quest_id) DO NOTHING");
@@ -487,8 +479,6 @@ describe("compendium persistence and security contract", () => {
     expect(runeChallengeMigration).toContain(
       "grant_ti_2026_profile_badges_after_change",
     );
-    expect(repository).toContain("compendium_rune_challenge_selections");
-    expect(repository).toContain("selected_at AT TIME ZONE 'Europe/Moscow'");
     expect(rerollRepository).toContain(
       "compendium_rune_challenge_selections",
     );

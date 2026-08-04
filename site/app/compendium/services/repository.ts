@@ -1,22 +1,15 @@
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
-import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import {
-  BONUS_QUEST_POSITION,
   BONUS_QUEST_STAR_THRESHOLD,
   CHECK_RATE_LIMIT,
   CHECK_RATE_WINDOW_SECONDS,
-  DAILY_QUEST_COUNT,
-  HEROES_PER_QUEST,
   QUEST_REWARD_STARS,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import { compendiumHeroById } from "../model/heroes";
-import {
-  generateBonusQuestHeroes,
-  generateRerollQuestHeroes,
-} from "../model/quests";
 import type { DailyQuest, QuestCompletion } from "../model/types";
+import { ensurePersonalDailyQuests } from "./personal-quest-generation";
 import { completeExistingQuestCards } from "./quest-set-maintenance";
 
 type QuestDataRow = {
@@ -39,27 +32,6 @@ export type QuestForCheck = {
   heroIds: number[];
 };
 
-async function insertDailyQuest(
-  client: PoolClient,
-  questSetId: string,
-  position: number,
-  heroes: ReturnType<typeof generateRerollQuestHeroes>,
-): Promise<void> {
-  const quest = await client.query<{ id: string }>(
-    `INSERT INTO compendium_daily_quests(quest_set_id, position)
-     VALUES ($1, $2) RETURNING id::text`,
-    [questSetId, position],
-  );
-  for (let heroIndex = 0; heroIndex < heroes.length; heroIndex += 1) {
-    await client.query(
-      `INSERT INTO compendium_daily_quest_heroes
-        (daily_quest_id, quest_set_id, hero_id, position)
-       VALUES ($1, $2, $3, $4)`,
-      [quest.rows[0].id, questSetId, heroes[heroIndex].id, heroIndex + 1],
-    );
-  }
-}
-
 function completionFromRow(row: CompletionRow): QuestCompletion {
   return {
     matchedHeroId: row.matched_hero_id,
@@ -68,7 +40,10 @@ function completionFromRow(row: CompletionRow): QuestCompletion {
   };
 }
 
-export async function ensureDailyQuestSet(dateKey: string): Promise<string> {
+export async function ensureDailyQuestSet(
+  dateKey: string,
+  playerId?: string,
+): Promise<string> {
   return transaction(async (client) => {
     await client.query(
       "SELECT pg_advisory_xact_lock(hashtext($1))",
@@ -88,52 +63,13 @@ export async function ensureDailyQuestSet(dateKey: string): Promise<string> {
             [dateKey],
           )
         ).rows[0].id;
-    const existingQuestData = await client.query<{
-      position: number;
-      hero_id: number;
-    }>(
-      `SELECT quest.position, hero.hero_id
-       FROM compendium_daily_quests quest
-       JOIN compendium_daily_quest_heroes hero
-         ON hero.daily_quest_id = quest.id
-       WHERE quest.quest_set_id = $1`,
-      [questSetId],
+    await completeExistingQuestCards(client, questSetId, playerId);
+    await ensurePersonalDailyQuests(
+      client,
+      questSetId,
+      dateKey,
+      playerId,
     );
-    const existingPositions = new Set(
-      existingQuestData.rows.map((row) => row.position),
-    );
-    const excludedHeroIds = new Set(
-      existingQuestData.rows.map((row) => row.hero_id),
-    );
-    if (!existing.rowCount) {
-      const runeHeroes = await client.query<{ hero_id: number }>(
-        `SELECT DISTINCT selection.hero_id
-         FROM compendium_rune_challenge_selections selection
-         JOIN player_discord_roles role
-           ON role.player_id = selection.player_id
-          AND role.role_name = ANY($2::text[])
-         WHERE $1::date >
-           (selection.selected_at AT TIME ZONE 'Europe/Moscow')::date`,
-        [dateKey, runeChallengeAccessRoleNames],
-      );
-      runeHeroes.rows.forEach((row) => excludedHeroIds.add(row.hero_id));
-    }
-    for (let position = 1; position <= DAILY_QUEST_COUNT; position += 1) {
-      if (existingPositions.has(position)) continue;
-      const heroes = generateRerollQuestHeroes(
-        excludedHeroIds,
-        undefined,
-        undefined,
-        HEROES_PER_QUEST,
-      );
-      await insertDailyQuest(client, questSetId, position, heroes);
-      heroes.forEach((hero) => excludedHeroIds.add(hero.id));
-    }
-    if (!existingPositions.has(BONUS_QUEST_POSITION)) {
-      const heroes = generateBonusQuestHeroes(excludedHeroIds);
-      await insertDailyQuest(client, questSetId, BONUS_QUEST_POSITION, heroes);
-    }
-    await completeExistingQuestCards(client, questSetId);
     return questSetId;
   });
 }
@@ -170,6 +106,7 @@ export async function loadDailyQuests(
      LEFT JOIN compendium_user_quest_completions completion
        ON completion.daily_quest_id = quest.id AND completion.player_id = $2
      WHERE quest_set.moscow_date = $1::date
+       AND quest.player_id = $2
        AND (
          quest.position <= 3
          OR COALESCE((
@@ -245,6 +182,7 @@ export async function questForCurrentDay(
          AND latest_reroll.id IS NULL
      ) hero ON TRUE
      WHERE quest.id = $1 AND quest_set.moscow_date = $2::date
+       AND quest.player_id = $3
        AND (
          quest.position <= 3
          OR COALESCE((
@@ -370,6 +308,7 @@ export async function recordQuestCompletion(input: {
        ) hero ON TRUE
        WHERE quest.id = $1
          AND hero.hero_id = $2
+         AND quest.player_id = $3
          AND (
            quest.position <= 3
            OR COALESCE((

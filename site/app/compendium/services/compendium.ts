@@ -46,7 +46,7 @@ export async function loadCompendium(
   now: Date = new Date(),
 ): Promise<CompendiumData> {
   const day = currentMoscowDay(now);
-  await ensureDailyQuestSet(day.dateKey);
+  await ensureDailyQuestSet(day.dateKey, user.discordId);
   const [quests, totalStars, communityStars, rerollsRemaining, runeChallenge, predictions] = await Promise.all([
     loadDailyQuests(day.dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
@@ -78,7 +78,7 @@ export async function checkDailyQuest(
   const dotaId = requireCompendiumDotaId(user);
 
   const day = currentMoscowDay(now);
-  await ensureDailyQuestSet(day.dateKey);
+  await ensureDailyQuestSet(day.dateKey, user.discordId);
   const quest = await questForCurrentDay(
     questId,
     day.dateKey,
@@ -174,7 +174,7 @@ export async function rerollDailyQuest(
 ): Promise<RerollQuestResult> {
   requireCompendiumDotaId(user);
   const day = currentMoscowDay(now);
-  await ensureDailyQuestSet(day.dateKey);
+  await ensureDailyQuestSet(day.dateKey, user.discordId);
   await recordDailyQuestReroll({
     playerId: user.discordId,
     questId,

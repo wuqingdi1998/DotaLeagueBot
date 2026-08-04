@@ -145,6 +145,7 @@ export async function recordDailyQuestReroll(input: {
        JOIN compendium_daily_quest_sets quest_set
          ON quest_set.id = quest.quest_set_id
        WHERE quest.id = $1
+         AND quest.player_id = $3
          AND quest_set.moscow_date = $2::date
          AND quest_set.moscow_date =
            (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
@@ -191,7 +192,10 @@ export async function recordDailyQuestReroll(input: {
     const excludedHeroes = await client.query<{ hero_id: number }>(
       `SELECT hero.hero_id
        FROM compendium_daily_quest_heroes hero
+       JOIN compendium_daily_quests daily_quest
+         ON daily_quest.id = hero.daily_quest_id
        WHERE hero.quest_set_id = $1
+         AND daily_quest.player_id = $2
        UNION
        SELECT reroll_hero.hero_id
        FROM compendium_user_quest_rerolls reroll

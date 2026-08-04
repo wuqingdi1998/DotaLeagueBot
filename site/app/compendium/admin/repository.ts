@@ -181,6 +181,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
          ON quest_set.moscow_date = $1::date
        JOIN compendium_daily_quests quest
          ON quest.quest_set_id = quest_set.id
+        AND quest.player_id = player.discord_id
         AND quest.position <= 3
        LEFT JOIN LATERAL (
          SELECT reroll.id

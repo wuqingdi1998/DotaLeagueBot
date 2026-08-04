@@ -4,6 +4,7 @@ import { generateRerollQuestHeroes } from "../model/quests";
 
 type StoredQuestHero = {
   quest_id: string;
+  player_id: string | null;
   hero_id: number;
   hero_position: number;
 };
@@ -17,15 +18,28 @@ type StoredRerollHero = {
 
 type QuestCard = {
   id: string;
+  playerId: string | null;
   heroIds: number[];
   lastPosition: number;
 };
+
+type QuestHeroScopes = {
+  sharedHeroIds: Set<number>;
+  personalHeroIds: Map<string, Set<number>>;
+};
+
+const LEGACY_SCOPE = "legacy";
+
+function questScope(playerId: string | null): string {
+  return playerId ?? LEGACY_SCOPE;
+}
 
 function groupQuestCards(rows: StoredQuestHero[]): QuestCard[] {
   const cards = new Map<string, QuestCard>();
   for (const row of rows) {
     const card = cards.get(row.quest_id) ?? {
       id: row.quest_id,
+      playerId: row.player_id ?? null,
       heroIds: [],
       lastPosition: 0,
     };
@@ -36,25 +50,36 @@ function groupQuestCards(rows: StoredQuestHero[]): QuestCard[] {
   return [...cards.values()];
 }
 
-async function addSharedQuestHeroes(
+async function addOriginalQuestHeroes(
   client: PoolClient,
   questSetId: string,
-): Promise<Set<number>> {
+  requestedPlayerId?: string,
+): Promise<QuestHeroScopes> {
   const result = await client.query<StoredQuestHero>(
     `SELECT quest.id::text AS quest_id,
+       quest.player_id::text,
        hero.hero_id,
        hero.position AS hero_position
      FROM compendium_daily_quests quest
      JOIN compendium_daily_quest_heroes hero
        ON hero.daily_quest_id = quest.id
      WHERE quest.quest_set_id = $1
-     ORDER BY quest.position, hero.position`,
-    [questSetId],
+       AND ($2::bigint IS NULL OR quest.player_id IS NULL OR quest.player_id = $2)
+     ORDER BY quest.player_id NULLS FIRST, quest.position, hero.position`,
+    [questSetId, requestedPlayerId ?? null],
   );
-  const excludedHeroIds = new Set(result.rows.map((row) => row.hero_id));
+  const excludedByScope = new Map<string, Set<number>>();
+  for (const row of result.rows) {
+    const scope = questScope(row.player_id ?? null);
+    const excluded = excludedByScope.get(scope) ?? new Set<number>();
+    excluded.add(row.hero_id);
+    excludedByScope.set(scope, excluded);
+  }
   for (const card of groupQuestCards(result.rows)) {
     const missingHeroCount = HEROES_PER_QUEST - card.heroIds.length;
     if (missingHeroCount <= 0) continue;
+    const scope = questScope(card.playerId);
+    const excludedHeroIds = excludedByScope.get(scope) ?? new Set<number>();
     const additions = generateRerollQuestHeroes(
       excludedHeroIds,
       undefined,
@@ -75,14 +100,23 @@ async function addSharedQuestHeroes(
       );
       excludedHeroIds.add(additions[index].id);
     }
+    excludedByScope.set(scope, excludedHeroIds);
   }
-  return excludedHeroIds;
+  const personalHeroIds = new Map<string, Set<number>>();
+  for (const [scope, heroIds] of excludedByScope) {
+    if (scope !== LEGACY_SCOPE) personalHeroIds.set(scope, heroIds);
+  }
+  return {
+    sharedHeroIds: excludedByScope.get(LEGACY_SCOPE) ?? new Set<number>(),
+    personalHeroIds,
+  };
 }
 
 async function addRerollQuestHeroes(
   client: PoolClient,
   questSetId: string,
-  sharedHeroIds: Set<number>,
+  originalHeroScopes: QuestHeroScopes,
+  requestedPlayerId?: string,
 ): Promise<void> {
   const result = await client.query<StoredRerollHero>(
     `SELECT reroll.id::text AS reroll_id,
@@ -93,13 +127,17 @@ async function addRerollQuestHeroes(
      LEFT JOIN compendium_user_quest_reroll_heroes hero
        ON hero.reroll_id = reroll.id
      WHERE reroll.quest_set_id = $1
+       AND ($2::bigint IS NULL OR reroll.player_id = $2)
      ORDER BY reroll.player_id, reroll.id, hero.position`,
-    [questSetId],
+    [questSetId, requestedPlayerId ?? null],
   );
   const cards = new Map<string, QuestCard & { playerId: string }>();
   const excludedByPlayer = new Map<string, Set<number>>();
   for (const row of result.rows) {
-    const excluded = excludedByPlayer.get(row.player_id) ?? new Set(sharedHeroIds);
+    const excluded = excludedByPlayer.get(row.player_id) ?? new Set([
+      ...originalHeroScopes.sharedHeroIds,
+      ...(originalHeroScopes.personalHeroIds.get(row.player_id) ?? []),
+    ]);
     const card = cards.get(row.reroll_id) ?? {
       id: row.reroll_id,
       playerId: row.player_id,
@@ -117,7 +155,10 @@ async function addRerollQuestHeroes(
   for (const card of cards.values()) {
     const missingHeroCount = HEROES_PER_QUEST - card.heroIds.length;
     if (missingHeroCount <= 0) continue;
-    const excludedHeroIds = excludedByPlayer.get(card.playerId) ?? new Set(sharedHeroIds);
+    const excludedHeroIds = excludedByPlayer.get(card.playerId) ?? new Set([
+      ...originalHeroScopes.sharedHeroIds,
+      ...(originalHeroScopes.personalHeroIds.get(card.playerId) ?? []),
+    ]);
     const additions = generateRerollQuestHeroes(
       excludedHeroIds,
       undefined,
@@ -140,7 +181,17 @@ async function addRerollQuestHeroes(
 export async function completeExistingQuestCards(
   client: PoolClient,
   questSetId: string,
+  requestedPlayerId?: string,
 ): Promise<void> {
-  const sharedHeroIds = await addSharedQuestHeroes(client, questSetId);
-  await addRerollQuestHeroes(client, questSetId, sharedHeroIds);
+  const originalHeroScopes = await addOriginalQuestHeroes(
+    client,
+    questSetId,
+    requestedPlayerId,
+  );
+  await addRerollQuestHeroes(
+    client,
+    questSetId,
+    originalHeroScopes,
+    requestedPlayerId,
+  );
 }
