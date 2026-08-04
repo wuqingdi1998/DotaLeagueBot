@@ -1,0 +1,164 @@
+.profile-win-rate-trigger {
+  display: grid;
+  width: 100%;
+  min-height: 100%;
+  align-content: center;
+  gap: 9px;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.profile-win-rate-trigger::after {
+  content: "Нажмите для детализации";
+  color: var(--blue-strong);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.profile-win-rate-trigger:hover strong,
+.profile-win-rate-trigger:focus-visible strong {
+  color: var(--blue-strong);
+}
+
+.profile-win-rate-trigger:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 5px;
+}
+
+.profile-map-statistics-dialog {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(720px, calc(100vh - 32px));
+  border: 1px solid var(--line-strong);
+  border-radius: 24px;
+  padding: 0;
+  color: var(--text);
+  background: var(--surface);
+  box-shadow: var(--shadow-strong);
+}
+
+.profile-map-statistics-dialog::backdrop {
+  background: rgb(9 16 28 / 68%);
+  backdrop-filter: blur(5px);
+}
+
+.profile-map-statistics-dialog > section {
+  padding: 26px;
+}
+
+.profile-map-statistics-dialog header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.profile-map-statistics-dialog h2 {
+  margin: 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 600;
+}
+
+.profile-map-statistics-dialog header button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.profile-map-statistics-dialog header svg {
+  width: 20px;
+  height: 20px;
+}
+
+.profile-map-statistics-heading,
+.profile-map-statistics-dialog li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px 86px;
+  align-items: center;
+  gap: 14px;
+}
+
+.profile-map-statistics-heading {
+  padding: 0 16px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profile-map-statistics-heading > span {
+  font-size: inherit;
+}
+
+.profile-map-statistics-heading span:not(:first-child),
+.profile-map-statistics-dialog li > span {
+  text-align: center;
+}
+
+.profile-map-statistics-dialog ul {
+  display: grid;
+  gap: 8px;
+  max-height: min(520px, calc(100vh - 190px));
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.profile-map-statistics-dialog li {
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: var(--surface-soft);
+}
+
+.profile-map-statistics-dialog li > strong {
+  min-width: 0;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.profile-map-statistics-dialog li > span {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+@media (max-width: 560px) {
+  .profile-map-statistics-dialog > section {
+    padding: 20px 14px;
+  }
+
+  .profile-map-statistics-heading,
+  .profile-map-statistics-dialog li {
+    grid-template-columns: minmax(0, 1fr) 54px 64px;
+    gap: 8px;
+  }
+
+  .profile-map-statistics-heading {
+    padding-inline: 10px;
+    font-size: 10px;
+  }
+
+  .profile-map-statistics-dialog li {
+    padding-inline: 10px;
+  }
+
+  .profile-map-statistics-dialog li > strong {
+    font-size: 13px;
+  }
+}

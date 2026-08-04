@@ -23,6 +23,7 @@ import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
 import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
 import { LinkedArchiveProfilesCard } from "./LinkedArchiveProfilesCard";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
+import { PlayerMapStatisticsDialog } from "./PlayerMapStatisticsDialog";
 
 export const dynamic = "force-dynamic";
 
@@ -275,10 +276,17 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <span>Побед на картах</span>
             <strong>{profile.statistics.mapWins}</strong>
           </article>
-          <article>
-            <span>Победный процент</span>
-            <strong>{winRate}%</strong>
-          </article>
+          {user?.isAdmin ? (
+            <PlayerMapStatisticsDialog
+              winRate={winRate}
+              tournaments={profile.mapStatisticsByTournament}
+            />
+          ) : (
+            <article>
+              <span>Победный процент</span>
+              <strong>{winRate}%</strong>
+            </article>
+          )}
         </div>
       </section>
 

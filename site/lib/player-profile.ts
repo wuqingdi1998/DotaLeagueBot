@@ -3,7 +3,10 @@ import {
   loadPlayerTournamentHistory,
   type PlayerTournamentHistory,
 } from "./player-tournament-history";
-import { loadPlayerMapStatistics } from "./player-map-statistics";
+import {
+  loadPlayerMapStatistics,
+  type PlayerTournamentMapStatistics,
+} from "./player-map-statistics";
 import {
   profileBadgeDefinition,
   type ProfileBadgeKey,
@@ -90,6 +93,7 @@ export type PublicPlayerProfile = {
     maps: number;
     mapWins: number;
   };
+  mapStatisticsByTournament: PlayerTournamentMapStatistics[];
   medals: PlayerMedals;
   profileBadge: ProfileBadgeKey | null;
   lastTournament: PlayerTournamentHistory | null;
@@ -289,6 +293,7 @@ export async function loadPublicPlayerProfile(
       maps: mapStatistics.maps,
       mapWins: mapStatistics.mapWins,
     },
+    mapStatisticsByTournament: mapStatistics.tournaments,
     medals: medalCounts ?? { gold: 0, silver: 0, bronze: 0 },
     profileBadge: profileBadgeDefinition(
       storedProfileBadge?.badge_key ?? null,
