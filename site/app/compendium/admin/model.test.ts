@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCompendiumAdminParticipants } from "./model";
 import type { CompendiumAdminSourceRow } from "./types";
+import type { CompendiumAdminCurrentQuestSourceRow } from "./types";
 
 function row(
   input: Partial<CompendiumAdminSourceRow> = {},
@@ -31,6 +32,26 @@ function row(
 }
 
 describe("compendium organizer base", () => {
+  it("groups each participant's current heroes into three quest cards", () => {
+    const currentQuestRows: CompendiumAdminCurrentQuestSourceRow[] = [
+      { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 1, hero_position: 1 },
+      { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 2, hero_position: 2 },
+      { player_id: "100", quest_id: "902", quest_position: 2, hero_id: 3, hero_position: 1 },
+      { player_id: "100", quest_id: "903", quest_position: 3, hero_id: 4, hero_position: 1 },
+    ];
+    const participants = buildCompendiumAdminParticipants(
+      [row()],
+      currentQuestRows,
+    );
+
+    expect(participants[0].currentQuests).toHaveLength(3);
+    expect(participants[0].currentQuests[0]).toMatchObject({
+      id: "901",
+      position: 1,
+      heroes: [{ id: 1 }, { id: 2 }],
+    });
+  });
+
   it("groups four quest heroes into one rewarded star", () => {
     const participants = buildCompendiumAdminParticipants([
       row({ quest_hero_id: 1, hero_position: 1 }),

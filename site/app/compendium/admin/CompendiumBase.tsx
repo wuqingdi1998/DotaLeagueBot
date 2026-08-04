@@ -16,6 +16,47 @@ import type {
   CompendiumRewardHistory,
 } from "./types";
 
+function CurrentQuestCards({
+  participant,
+}: {
+  participant: CompendiumAdminParticipant;
+}) {
+  return (
+    <section className="compendium-base-current-quests">
+      <div className="compendium-base-current-heading">
+        <strong>Герои на сегодня</strong>
+        <span>Текущий набор участника с учётом замен</span>
+      </div>
+      {participant.currentQuests.length ? (
+        <div className="compendium-base-current-grid">
+          {participant.currentQuests.map((quest) => (
+            <article className="compendium-base-current-card" key={quest.id}>
+              <strong>Испытание {quest.position}</strong>
+              <div className="compendium-base-current-heroes">
+                {quest.heroes.map((hero) => (
+                  <Image
+                    key={hero.id}
+                    src={hero.imageUrl}
+                    alt={hero.name}
+                    title={hero.name}
+                    width={64}
+                    height={36}
+                    unoptimized
+                  />
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="compendium-base-empty-current">
+          Задания на сегодня ещё не подготовлены.
+        </p>
+      )}
+    </section>
+  );
+}
+
 function RuneRewardHistoryItem({
   reward,
 }: {
@@ -192,6 +233,7 @@ function ParticipantHistory({
         <FiChevronDown className="compendium-base-chevron" aria-hidden="true" />
       </summary>
       <div className="compendium-base-history">
+        <CurrentQuestCards participant={participant} />
         {participant.rewards.length ? (
           participant.rewards.map((reward) => (
             <RewardHistoryItem key={reward.id} reward={reward} />
@@ -228,8 +270,8 @@ export function CompendiumBase({
         <span className="compendium-base-kicker">Только для организаторов</span>
         <h1>База компендиума</h1>
         <p>
-          Нажмите на участника, чтобы увидеть каждый день, состав задания и
-          героя, победа на котором принесла звезду, а также ручные изменения.
+          Нажмите на участника, чтобы увидеть его текущих героев, историю
+          заданий и побед, а также ручные изменения звёзд.
         </p>
         <div className="compendium-base-totals">
           <div><FiUsers aria-hidden="true" /><strong>{participants.length}</strong><span>участников</span></div>

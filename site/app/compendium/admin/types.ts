@@ -23,6 +23,20 @@ export type CompendiumAdminSourceRow = {
   actual_score: string | null;
 };
 
+export type CompendiumAdminCurrentQuestSourceRow = {
+  player_id: string;
+  quest_id: string;
+  quest_position: number;
+  hero_id: number;
+  hero_position: number;
+};
+
+export type CompendiumAdminCurrentQuest = {
+  id: string;
+  position: number;
+  heroes: CompendiumHero[];
+};
+
 export type CompendiumQuestRewardHistory = {
   kind: "quest";
   id: string;
@@ -82,5 +96,6 @@ export type CompendiumAdminParticipant = {
   playerName: string;
   avatarUrl: string | null;
   totalStars: number;
+  currentQuests: CompendiumAdminCurrentQuest[];
   rewards: CompendiumRewardHistory[];
 };

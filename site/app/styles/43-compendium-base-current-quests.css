@@ -1,0 +1,81 @@
+.compendium-base-current-quests {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(54, 185, 204, 0.3);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(54, 185, 204, 0.1), var(--surface));
+}
+
+.compendium-base-current-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.compendium-base-current-heading strong {
+  font-size: 14px;
+}
+
+.compendium-base-current-heading span {
+  color: var(--quiet);
+  font-size: 11px;
+}
+
+.compendium-base-current-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.compendium-base-current-card {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.compendium-base-current-card > strong {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.compendium-base-current-heroes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.compendium-base-current-heroes img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.compendium-base-empty-current {
+  margin: 0;
+  color: var(--quiet);
+  font-size: 12px;
+}
+
+@media (max-width: 720px) {
+  .compendium-base-current-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .compendium-base-current-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compendium-base-current-heroes {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}

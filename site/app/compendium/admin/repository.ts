@@ -1,6 +1,9 @@
 import { query } from "@/lib/db";
+import { currentMoscowDay } from "../model/time";
+import { ensureDailyQuestSet } from "../services/repository";
 import { buildCompendiumAdminParticipants } from "./model";
 import type {
+  CompendiumAdminCurrentQuestSourceRow,
   CompendiumAdminParticipant,
   CompendiumAdminSourceRow,
 } from "./types";
@@ -8,7 +11,10 @@ import type {
 export async function loadCompendiumAdminParticipants(): Promise<
   CompendiumAdminParticipant[]
 > {
-  const rows = await query<CompendiumAdminSourceRow>(
+  const dateKey = currentMoscowDay().dateKey;
+  await ensureDailyQuestSet(dateKey);
+  const [rows, currentQuestRows] = await Promise.all([
+    query<CompendiumAdminSourceRow>(
     `WITH participants AS (
        SELECT
          player.discord_id,
@@ -162,6 +168,42 @@ export async function loadCompendiumAdminParticipants(): Promise<
      ) history
      ORDER BY LOWER(player_name), completed_at DESC NULLS LAST,
        quest_position, hero_position`,
-  );
-  return buildCompendiumAdminParticipants(rows);
+    ),
+    query<CompendiumAdminCurrentQuestSourceRow>(
+      `SELECT
+         player.discord_id::text AS player_id,
+         quest.id::text AS quest_id,
+         quest.position AS quest_position,
+         hero.hero_id,
+         hero.position AS hero_position
+       FROM players player
+       JOIN compendium_daily_quest_sets quest_set
+         ON quest_set.moscow_date = $1::date
+       JOIN compendium_daily_quests quest
+         ON quest.quest_set_id = quest_set.id
+        AND quest.position <= 3
+       LEFT JOIN LATERAL (
+         SELECT reroll.id
+         FROM compendium_user_quest_rerolls reroll
+         WHERE reroll.daily_quest_id = quest.id
+           AND reroll.player_id = player.discord_id
+         ORDER BY reroll.used_at DESC, reroll.id DESC
+         LIMIT 1
+       ) latest_reroll ON TRUE
+       JOIN LATERAL (
+         SELECT reroll_hero.hero_id, reroll_hero.position
+         FROM compendium_user_quest_reroll_heroes reroll_hero
+         WHERE reroll_hero.reroll_id = latest_reroll.id
+         UNION ALL
+         SELECT original_hero.hero_id, original_hero.position
+         FROM compendium_daily_quest_heroes original_hero
+         WHERE original_hero.daily_quest_id = quest.id
+           AND latest_reroll.id IS NULL
+       ) hero ON TRUE
+       WHERE player.is_archived = FALSE
+       ORDER BY player.discord_id, quest.position, hero.position`,
+      [dateKey],
+    ),
+  ]);
+  return buildCompendiumAdminParticipants(rows, currentQuestRows);
 }

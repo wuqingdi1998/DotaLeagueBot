@@ -1,6 +1,8 @@
 import { compendiumHeroById } from "../model/heroes";
 import { moscowDateLabel } from "../model/time";
 import type {
+  CompendiumAdminCurrentQuest,
+  CompendiumAdminCurrentQuestSourceRow,
   CompendiumAdminParticipant,
   CompendiumAdminSourceRow,
   CompendiumRewardHistory,
@@ -8,6 +10,7 @@ import type {
 
 export function buildCompendiumAdminParticipants(
   rows: CompendiumAdminSourceRow[],
+  currentQuestRows: CompendiumAdminCurrentQuestSourceRow[] = [],
 ): CompendiumAdminParticipant[] {
   const participants = new Map<string, CompendiumAdminParticipant>();
   const rewardsByParticipant = new Map<
@@ -22,6 +25,7 @@ export function buildCompendiumAdminParticipants(
       playerName: row.player_name,
       avatarUrl: row.avatar_url,
       totalStars: row.total_stars,
+      currentQuests: [],
       rewards: [],
     };
     participants.set(row.player_id, participant);
@@ -129,6 +133,33 @@ export function buildCompendiumAdminParticipants(
       participant.rewards.push(reward);
       participantRewards.set(historyId, reward);
     }
+  }
+
+  const currentQuestsByParticipant = new Map<
+    string,
+    Map<string, CompendiumAdminCurrentQuest>
+  >();
+  for (const row of currentQuestRows) {
+    const participant = participants.get(row.player_id);
+    if (!participant) continue;
+    const participantQuests = currentQuestsByParticipant.get(row.player_id) ??
+      new Map<string, CompendiumAdminCurrentQuest>();
+    const quest = participantQuests.get(row.quest_id) ?? {
+      id: row.quest_id,
+      position: row.quest_position,
+      heroes: [],
+    };
+    quest.heroes.push(compendiumHeroById(row.hero_id));
+    participantQuests.set(row.quest_id, quest);
+    currentQuestsByParticipant.set(row.player_id, participantQuests);
+  }
+
+  for (const [playerId, quests] of currentQuestsByParticipant) {
+    const participant = participants.get(playerId);
+    if (!participant) continue;
+    participant.currentQuests = [...quests.values()].sort(
+      (left, right) => left.position - right.position,
+    );
   }
 
   for (const participant of participants.values()) {
