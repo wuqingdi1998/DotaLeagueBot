@@ -21,7 +21,7 @@ describe("personal daily quest generation", () => {
             rows: [1, 2, 3, 4, 5, 6].map((heroId, index) => ({
               completion_id: "700",
               player_id: "100",
-              position: 1,
+              position: 3,
               hero_id: heroId,
               hero_position: index + 1,
             })),
@@ -65,8 +65,8 @@ describe("personal daily quest generation", () => {
     );
 
     expect(questInserts).toHaveLength(8);
-    expect(completionMoves).toEqual([["901", "700"]]);
-    expect(heroInserts.find(({ questId }) => questId === "901")?.heroIds).toEqual([
+    expect(completionMoves).toEqual([["903", "700"]]);
+    expect(heroInserts.find(({ questId }) => questId === "903")?.heroIds).toEqual([
       1, 2, 3, 4, 5, 6,
     ]);
 

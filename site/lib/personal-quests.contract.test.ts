@@ -8,6 +8,9 @@ function source(path: string) {
 const migration = source(
   "../../bot/database/migrations/0050_personal_compendium_quests.sql",
 );
+const unfinishedResetMigration = source(
+  "../../bot/database/migrations/0051_regenerate_unfinished_personal_quests.sql",
+);
 const generation = source(
   "../app/compendium/services/personal-quest-generation.ts",
 );
@@ -33,6 +36,15 @@ describe("personal daily quest contract", () => {
     expect(generation).toContain("UPDATE compendium_user_quest_completions");
     expect(generation).toContain("SET daily_quest_id = $1");
     expect(generation).toContain("generateRerollQuestHeroes");
+    expect(unfinishedResetMigration).toContain(
+      "NOT EXISTS (\n    SELECT 1\n    FROM compendium_user_quest_completions",
+    );
+    expect(unfinishedResetMigration).toContain(
+      "DELETE FROM compendium_daily_quests personal_quest",
+    );
+    expect(unfinishedResetMigration).toContain(
+      "SET daily_quest_id = legacy_quest.id",
+    );
   });
 
   it("excludes the player's rune challenge hero from new cards", () => {

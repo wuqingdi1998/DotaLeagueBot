@@ -191,6 +191,11 @@ export async function ensurePersonalDailyQuests(
     const excludedHeroIds =
       excludedHeroesByPlayer.get(playerId) ?? new Set<number>();
     for (let position = 1; position <= BONUS_QUEST_POSITION; position += 1) {
+      preservedCompletions
+        .get(questPositionKey(playerId, position))
+        ?.heroes.forEach((hero) => excludedHeroIds.add(hero.id));
+    }
+    for (let position = 1; position <= BONUS_QUEST_POSITION; position += 1) {
       if (positions.has(position)) continue;
       const preserved = preservedCompletions.get(
         questPositionKey(playerId, position),
