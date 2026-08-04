@@ -62,7 +62,12 @@ export function SeasonRoundPanel() {
         <SeasonFinalistsSummary round={round} />
       )}
       {!round.lobbies.length ? (
-        <div className="empty-standings">В этом туре пока нет лобби.</div>
+        <div className="empty-standings">
+          {data.tournament.status === "archived" &&
+          round.round_kind === "regular"
+            ? "Составы лобби этого тура не сохранились. Результаты участников перенесены в таблицу сезона."
+            : "В этом туре пока нет лобби."}
+        </div>
       ) : (
         <div className="season-lobby-list">
           {round.lobbies.map((lobby) => (

@@ -23,6 +23,7 @@ site/coverage/
 *.tsbuildinfo
 bot/.mypy_cache/
 bot/.pytest_cache/
+site/.pytest_cache/
 bot/.ruff_cache/
 **/.coverage
 **/__pycache__/

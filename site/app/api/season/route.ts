@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { one, query } from "@/lib/db";
 import {
   calculateSeasonStandings,
+  type SeasonStandingSnapshot,
   type SeasonStandingIdentity,
   type SeasonStandingMatch,
 } from "@/lib/season";
@@ -79,18 +80,7 @@ type SeasonPlayerRow = {
   standings_section: "active" | "inactive";
   inactive_reason: string | null;
   rank_snapshot: number | null;
-  standings_snapshot: {
-    playedRounds: number;
-    wins: number;
-    draws: number;
-    losses: number;
-    adjustmentPoints: number;
-    activityPoints: number;
-    points: number;
-    winRate: number | null;
-    supportsActivityPoints: boolean;
-    suspendedRoundNumbers?: number[];
-  } | null;
+  standings_snapshot: SeasonStandingSnapshot | null;
 };
 
 export async function GET(request: Request) {

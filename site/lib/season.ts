@@ -56,23 +56,32 @@ export type SeasonStandingPenalty = {
   isExcluded: boolean;
 };
 
+export type SeasonStandingSnapshot = {
+  playedRounds: number;
+  wins: number;
+  draws: number;
+  losses: number;
+  adjustmentPoints: number;
+  activityPoints: number;
+  points: number;
+  winRate: number | null;
+  supportsActivityPoints: boolean;
+  suspendedRoundNumbers?: number[];
+  rounds?: Record<
+    string,
+    {
+      points: number;
+      outcome: "win" | "draw" | "loss";
+    }
+  >;
+};
+
 export type SeasonStandingParticipantState = {
   playerId: string;
   section: "active" | "inactive";
   inactiveReason: string | null;
   rankSnapshot?: number | null;
-  standingsSnapshot?: {
-    playedRounds: number;
-    wins: number;
-    draws: number;
-    losses: number;
-    adjustmentPoints: number;
-    activityPoints: number;
-    points: number;
-    winRate: number | null;
-    supportsActivityPoints: boolean;
-    suspendedRoundNumbers?: number[];
-  } | null;
+  standingsSnapshot?: SeasonStandingSnapshot | null;
 };
 
 export type SeasonStandingModifiers = {
@@ -417,6 +426,14 @@ export function calculateSeasonStandings(
     row.winRate = playedMaps > 0 ? row.mapWins / playedMaps : null;
     const snapshot = participantStates.get(row.playerId)?.standingsSnapshot;
     if (snapshot) {
+      if (snapshot.rounds) {
+        row.rounds = Object.fromEntries(
+          Object.entries(snapshot.rounds).map(([roundNumber, cell]) => [
+            roundNumber,
+            { ...cell, matchIds: [] },
+          ]),
+        );
+      }
       row.playedRounds = snapshot.playedRounds;
       row.wins = snapshot.wins;
       row.draws = snapshot.draws;

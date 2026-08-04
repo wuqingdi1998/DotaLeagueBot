@@ -9,6 +9,7 @@ export type Tournament = {
   id: number;
   tournament_type: "ordinary" | "seasonal";
   season_round_count: number;
+  season_activity_points_note: string | null;
   slug: string;
   name: string;
   eyebrow: string;

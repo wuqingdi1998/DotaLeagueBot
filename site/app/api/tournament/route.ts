@@ -96,6 +96,7 @@ export async function GET(request: Request) {
        status_label, format, team_size, max_teams, region, server,
        check_in_minutes, group_format, playoff_format, final_format,
        playoff_type, tournament_type, season_round_count::int,
+       season_activity_points_note,
        discord_url, status, updated_at
      FROM tournaments
      ${tournamentFilter}

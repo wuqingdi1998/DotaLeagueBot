@@ -253,6 +253,9 @@ describe("season standings", () => {
               points: 21,
               winRate: 0.64,
               supportsActivityPoints: true,
+              rounds: {
+                "1": { points: 2, outcome: "win" },
+              },
             },
           },
         ],
@@ -269,6 +272,9 @@ describe("season standings", () => {
       points: 21,
       winRate: 0.64,
       rankSnapshot: 1,
+      rounds: {
+        "1": { points: 2, outcome: "win", matchIds: [] },
+      },
     });
   });
 

@@ -189,6 +189,14 @@ function StandingsTable({
                       >
                         ×
                       </span>
+                    ) : cell &&
+                      ["win", "draw", "loss"].includes(cell.outcome) ? (
+                      <span
+                        className={`season-result-cell ${cell.outcome}`}
+                        title="Результат перенесён из итоговой таблицы; состав матча не сохранился"
+                      >
+                        {cell.points}
+                      </span>
                     ) : (
                       <span className="season-result-cell absent">—</span>
                     )}
@@ -204,7 +212,7 @@ function StandingsTable({
 }
 
 function SeasonStandingsLegend() {
-  const { season } = useTournament();
+  const { data, season } = useTournament();
   const showsActivityPoints = Boolean(
     season.data?.standings.some((row) => row.hasActivityPoints),
   );
@@ -223,8 +231,9 @@ function SeasonStandingsLegend() {
       </p>
       {showsActivityPoints && (
         <p className="season-legend-explanation">
-          <b>+ap</b> — отдельные базовые очки за активность по правилам этого
-          сезона.
+          <b>+ap</b> —{" "}
+          {data?.tournament.season_activity_points_note ??
+            "отдельные базовые очки за активность по правилам этого сезона."}
         </p>
       )}
       <p className="season-legend-explanation">
