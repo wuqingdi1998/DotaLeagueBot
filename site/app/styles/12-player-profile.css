@@ -357,6 +357,8 @@
   box-shadow: 0 14px 44px rgba(24, 98, 141, 0.08);
 }
 
+.profile-side-card > .section-kicker { margin-top: 0; }
+
 .medal-count-grid {
   display: grid;
   gap: 10px;
