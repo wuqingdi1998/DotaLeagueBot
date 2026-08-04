@@ -270,6 +270,12 @@ describe("compendium persistence and security contract", () => {
     expect(rewards).toContain("Получено");
   });
 
+  it("gives the first community reward more room on wide screens", () => {
+    expect(rewardsCss).toContain(
+      "grid-template-columns: minmax(0, 1.8fr) repeat(5, minmax(0, 1fr));",
+    );
+  });
+
   it("unlocks a fourth six-hero quest and TI profile badges", () => {
     expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 4)");
     expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 6)");

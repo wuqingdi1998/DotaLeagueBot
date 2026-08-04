@@ -173,7 +173,7 @@
 }
 
 .compendium-reward-track-community .compendium-reward-milestones {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.8fr) repeat(5, minmax(0, 1fr));
 }
 
 .compendium-reward-milestones article {
