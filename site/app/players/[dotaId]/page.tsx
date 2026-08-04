@@ -276,17 +276,10 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <span>Побед на картах</span>
             <strong>{profile.statistics.mapWins}</strong>
           </article>
-          {user?.isAdmin ? (
-            <PlayerMapStatisticsDialog
-              winRate={winRate}
-              tournaments={profile.mapStatisticsByTournament}
-            />
-          ) : (
-            <article>
-              <span>Победный процент</span>
-              <strong>{winRate}%</strong>
-            </article>
-          )}
+          <PlayerMapStatisticsDialog
+            winRate={winRate}
+            tournaments={profile.mapStatisticsByTournament}
+          />
         </div>
       </section>
 

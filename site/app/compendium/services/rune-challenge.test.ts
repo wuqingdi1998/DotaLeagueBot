@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   loadState: vi.fn(),
@@ -58,10 +58,14 @@ function state(selectedAt: Date) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   mocks.consumeAllowance.mockResolvedValue(true);
   mocks.totalStars.mockResolvedValue(8);
   mocks.communityStars.mockResolvedValue(80);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("rune challenge", () => {
@@ -86,7 +90,9 @@ describe("rune challenge", () => {
   });
 
   it("awards one daily star for a ranked win after hero selection", async () => {
-    const now = new Date();
+    const now = new Date("2026-08-05T12:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
     const selectedAt = new Date(now.getTime() - 60 * 60 * 1_000);
     const currentState = state(selectedAt);
     const completion = {
@@ -123,7 +129,9 @@ describe("rune challenge", () => {
   });
 
   it("does not count a win completed before the hero was selected", async () => {
-    const now = new Date();
+    const now = new Date("2026-08-05T12:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
     const selectedAt = new Date(now.getTime() - 10 * 60 * 1_000);
     mocks.loadState.mockResolvedValue(state(selectedAt));
     mocks.fetchMatches.mockResolvedValue([

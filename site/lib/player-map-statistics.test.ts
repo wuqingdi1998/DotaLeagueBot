@@ -17,6 +17,10 @@ const organizerDialog = readFileSync(
   new URL("../app/players/[dotaId]/PlayerMapStatisticsDialog.tsx", import.meta.url),
   "utf8",
 );
+const dialogStyles = readFileSync(
+  new URL("../app/styles/44-player-map-statistics-dialog.css", import.meta.url),
+  "utf8",
+);
 
 describe("player map statistics", () => {
   it("calculates win rate from won maps rather than match wins", () => {
@@ -62,11 +66,12 @@ describe("player map statistics", () => {
     expect(profilePage).not.toContain("<span>Матчей</span>");
   });
 
-  it("shows the tournament map breakdown only to an organizer", () => {
-    expect(profilePage).toContain("user?.isAdmin ? (");
+  it("makes the tournament map breakdown a hidden action for every visitor", () => {
     expect(profilePage).toContain("<PlayerMapStatisticsDialog");
+    expect(profilePage).not.toContain("user?.isAdmin ? (");
     expect(organizerDialog).toContain("tournament.maps");
     expect(organizerDialog).toContain("tournament.mapWins");
     expect(organizerDialog).not.toContain("winRatePercent");
+    expect(dialogStyles).not.toContain("Нажмите для детализации");
   });
 });
