@@ -1,27 +1,11 @@
 import type { PoolClient } from "pg";
-import { one, query, transaction } from "./db";
+import { transaction } from "./db";
 import { normalizeParticipantTierInput } from "./player-tier-status";
 
-export type ArchiveIdentityProfile = {
-  id: string;
-  primaryNickname: string;
-  aliases: string[];
-  tournaments: Array<{
-    slug: string;
-    name: string;
-    nickname: string;
-  }>;
-  registeredCandidates: Array<{
-    discordId: string;
-    dotaId: string;
-    nickname: string;
-  }>;
-  archiveCandidates: Array<{
-    id: string;
-    nickname: string;
-    aliases: string[];
-  }>;
-};
+export {
+  loadArchiveIdentityProfile,
+  type ArchiveIdentityProfile,
+} from "./archive-identity-profile";
 
 async function audit(
   client: PoolClient,
@@ -312,18 +296,34 @@ export async function linkArchiveIdentity(
 export async function unlinkArchiveProfile(
   archivePlayerId: string,
   actorDiscordId: string,
+  expectedIdentityId?: string,
 ) {
   if (!/^-?\d+$/.test(archivePlayerId.trim())) {
+    throw new Response("Архивный профиль не найден", { status: 404 });
+  }
+  const normalizedIdentityId = expectedIdentityId?.trim() || null;
+  if (normalizedIdentityId && !/^\d+$/.test(normalizedIdentityId)) {
     throw new Response("Архивный профиль не найден", { status: 404 });
   }
   return transaction(async (client) => {
     const linked = await client.query<{
       identity_id: string;
       nickname: string;
+      is_registered_identity: boolean;
+      member_count: number;
     }>(
       `SELECT
          member.identity_id::text,
-         archived.ingame_name AS nickname
+         COALESCE(
+           NULLIF(BTRIM(member.nickname_snapshot), ''),
+           archived.ingame_name
+         ) AS nickname,
+         identity.registered_player_id IS NOT NULL AS is_registered_identity,
+         (
+           SELECT COUNT(*)::int
+           FROM player_identity_members identity_member
+           WHERE identity_member.identity_id = identity.id
+         ) AS member_count
        FROM players archived
        JOIN player_identity_members member
          ON member.player_id = archived.discord_id
@@ -331,14 +331,20 @@ export async function unlinkArchiveProfile(
          ON identity.id = member.identity_id
        WHERE archived.discord_id = $1
          AND archived.is_archived = TRUE
-         AND identity.registered_player_id IS NOT NULL
+         AND ($2::bigint IS NULL OR identity.id = $2::bigint)
        FOR UPDATE OF archived, member, identity`,
-      [archivePlayerId],
+      [archivePlayerId, normalizedIdentityId],
     );
     if (!linked.rows[0]) {
       throw new Response("Связанный архивный профиль не найден", {
         status: 404,
       });
+    }
+    if (
+      !linked.rows[0].is_registered_identity &&
+      linked.rows[0].member_count <= 1
+    ) {
+      throw new Response("Этот архивный профиль уже отделён", { status: 400 });
     }
 
     const previousIdentityId = linked.rows[0].identity_id;
@@ -358,7 +364,23 @@ export async function unlinkArchiveProfile(
     );
     await client.query(
       `UPDATE player_identities
-       SET updated_at = NOW()
+       SET primary_nickname = CASE
+             WHEN EXISTS (
+               SELECT 1
+               FROM player_identity_members remaining_member
+               WHERE remaining_member.identity_id = $1
+                 AND LOWER(BTRIM(remaining_member.nickname_snapshot)) =
+                     LOWER(BTRIM(player_identities.primary_nickname))
+             ) THEN primary_nickname
+             ELSE (
+               SELECT remaining_member.nickname_snapshot
+               FROM player_identity_members remaining_member
+               WHERE remaining_member.identity_id = $1
+               ORDER BY remaining_member.player_id
+               LIMIT 1
+             )
+           END,
+           updated_at = NOW()
        WHERE id = $1`,
       [previousIdentityId],
     );
@@ -375,105 +397,4 @@ export async function unlinkArchiveProfile(
     );
     return { identityId, nickname: linked.rows[0].nickname };
   });
-}
-
-export async function loadArchiveIdentityProfile(
-  identityId: string,
-): Promise<ArchiveIdentityProfile | null> {
-  if (!/^\d+$/.test(identityId)) return null;
-  const identity = await one<{
-    id: string;
-    primary_nickname: string;
-    aliases: string[];
-  }>(
-    `SELECT
-       identity.id::text,
-       identity.primary_nickname,
-       ARRAY_AGG(
-         DISTINCT member.nickname_snapshot
-         ORDER BY member.nickname_snapshot
-       ) AS aliases
-     FROM player_identities identity
-     JOIN player_identity_members member ON member.identity_id = identity.id
-     WHERE identity.id = $1
-       AND identity.registered_player_id IS NULL
-     GROUP BY identity.id, identity.primary_nickname`,
-    [identityId],
-  );
-  if (!identity) return null;
-
-  const [tournaments, registeredCandidates, archiveCandidates] =
-    await Promise.all([
-      query<{ slug: string; name: string; nickname: string }>(
-        `SELECT DISTINCT history.slug, history.name, history.nickname
-         FROM (
-           SELECT
-             tournament.slug,
-             tournament.name,
-             participant.nickname_snapshot AS nickname
-           FROM player_identity_members member
-           JOIN season_match_participants participant
-             ON participant.player_id = member.player_id
-           JOIN season_matches match ON match.id = participant.match_id
-           JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-           JOIN season_rounds round ON round.id = lobby.round_id
-           JOIN tournaments tournament ON tournament.id = round.tournament_id
-           WHERE member.identity_id = $1
-
-           UNION
-
-           SELECT
-             tournament.slug,
-             tournament.name,
-             snapshot.nickname_snapshot AS nickname
-           FROM player_identity_members member
-           JOIN tournament_roster_snapshots snapshot
-             ON snapshot.player_id = member.player_id
-           JOIN tournament_team_applications application
-             ON application.id = snapshot.application_id
-           JOIN tournaments tournament ON tournament.id = application.tournament_id
-           WHERE member.identity_id = $1
-         ) history
-         ORDER BY history.name, history.nickname`,
-        [identityId],
-      ),
-      query<{ discord_id: string; dota_id: string; nickname: string }>(
-        `SELECT
-           discord_id::text,
-           steam_id32::text AS dota_id,
-           ingame_name AS nickname
-         FROM players
-         WHERE is_archived = FALSE
-           AND steam_id32 BETWEEN 1 AND 4294967295
-         ORDER BY LOWER(ingame_name), discord_id`,
-      ),
-      query<{ id: string; nickname: string; aliases: string[] }>(
-        `SELECT
-           identity.id::text,
-           identity.primary_nickname AS nickname,
-           ARRAY_AGG(
-             DISTINCT member.nickname_snapshot
-             ORDER BY member.nickname_snapshot
-           ) AS aliases
-         FROM player_identities identity
-         JOIN player_identity_members member ON member.identity_id = identity.id
-         WHERE identity.registered_player_id IS NULL
-           AND identity.id <> $1
-         GROUP BY identity.id, identity.primary_nickname
-         ORDER BY LOWER(identity.primary_nickname), identity.id`,
-        [identityId],
-      ),
-    ]);
-  return {
-    id: identity.id,
-    primaryNickname: identity.primary_nickname,
-    aliases: identity.aliases,
-    tournaments,
-    registeredCandidates: registeredCandidates.map((candidate) => ({
-      discordId: candidate.discord_id,
-      dotaId: candidate.dota_id,
-      nickname: candidate.nickname,
-    })),
-    archiveCandidates,
-  };
 }

@@ -30,6 +30,10 @@ const adminService = readFileSync(
   new URL("./player-identity-admin.ts", import.meta.url),
   "utf8",
 );
+const archiveProfileService = readFileSync(
+  new URL("./archive-identity-profile.ts", import.meta.url),
+  "utf8",
+);
 const publicProfile = readFileSync(
   new URL("../app/players/[dotaId]/page.tsx", import.meta.url),
   "utf8",
@@ -56,6 +60,13 @@ const organizerProfile = readFileSync(
 const linkedArchiveCard = readFileSync(
   new URL(
     "../app/players/[dotaId]/LinkedArchiveProfilesCard.tsx",
+    import.meta.url,
+  ),
+  "utf8",
+);
+const archiveIdentityAdmin = readFileSync(
+  new URL(
+    "../app/archive-players/[identityId]/ArchiveIdentityAdmin.tsx",
     import.meta.url,
   ),
   "utf8",
@@ -96,6 +107,21 @@ describe("player identities and archive safety", () => {
     expect(linkedArchiveCard).toContain("Отвязать");
     expect(linkedArchiveCard).toContain('"unlink-archive"');
     expect(linkedArchiveCard).toContain("router.refresh()");
+    expect(adminService).toContain("member_count");
+    expect(adminService).toContain("Этот архивный профиль уже отделён");
+    expect(archiveIdentityAdmin).toContain("Архивные записи в профиле");
+    expect(archiveIdentityAdmin).toContain('action: "unlink-archive"');
+    expect(archiveIdentityAdmin).toContain("window.confirm");
+  });
+
+  it("does not render a blank nickname for old tournament records", () => {
+    expect(archiveProfileService).toContain(
+      "NULLIF(BTRIM(participant.nickname_snapshot), '')",
+    );
+    expect(archiveProfileService).toContain(
+      "NULLIF(BTRIM(snapshot.nickname_snapshot), '')",
+    );
+    expect(archiveProfileService).toContain("member.nickname_snapshot");
   });
 
   it("removes Discord from the public profile", () => {

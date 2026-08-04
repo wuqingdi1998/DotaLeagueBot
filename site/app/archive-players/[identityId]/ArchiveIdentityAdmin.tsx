@@ -119,6 +119,45 @@ export function ArchiveIdentityAdmin({
     );
   }
 
+  function detachArchiveMember(member: {
+    playerId: string;
+    nickname: string;
+  }) {
+    if (
+      !window.confirm(
+        `Отделить архивный профиль ${member.nickname}? Его турнирная история сохранится в отдельном профиле.`,
+      )
+    ) {
+      return;
+    }
+    void run(
+      {
+        action: "unlink-archive",
+        identityId: profile.id,
+        playerId: member.playerId,
+      },
+      `Профиль ${member.nickname} отделён.`,
+    );
+  }
+
+  function mergeArchive(candidate: { id: string; nickname: string }) {
+    if (
+      !window.confirm(
+        `Объединить ${candidate.nickname} с ${profile.primaryNickname}? Отменить это можно будет через список архивных записей.`,
+      )
+    ) {
+      return;
+    }
+    void run(
+      {
+        action: "merge-archive",
+        identityId: profile.id,
+        sourceIdentityId: candidate.id,
+      },
+      `Профиль ${candidate.nickname} объединён с текущим.`,
+    );
+  }
+
   return (
     <section className="archive-player-card archive-player-admin">
       <div>
@@ -148,6 +187,29 @@ export function ArchiveIdentityAdmin({
           Сохранить основной ник
         </button>
       </form>
+
+      {profile.members.length > 1 && (
+        <div className="archive-link-section">
+          <h2>Архивные записи в профиле</h2>
+          <p>
+            Если профили объединены ошибочно, отделите нужную запись. Результаты
+            турниров не удалятся.
+          </p>
+          <div className="archive-candidate-list">
+            {profile.members.map((member) => (
+              <button
+                type="button"
+                disabled={isSaving}
+                onClick={() => detachArchiveMember(member)}
+                key={member.playerId}
+              >
+                <strong>{member.nickname}</strong>
+                <span>Отделить</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="archive-link-section">
         <h2>Связать с зарегистрированным участником</h2>
@@ -192,16 +254,7 @@ export function ArchiveIdentityAdmin({
               <button
                 type="button"
                 disabled={isSaving}
-                onClick={() =>
-                  void run(
-                    {
-                      action: "merge-archive",
-                      identityId: profile.id,
-                      sourceIdentityId: candidate.id,
-                    },
-                    `Профиль ${candidate.nickname} объединён с текущим.`,
-                  )
-                }
+                onClick={() => mergeArchive(candidate)}
                 key={candidate.id}
               >
                 <strong>{candidate.nickname}</strong>

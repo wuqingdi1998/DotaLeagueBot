@@ -35,7 +35,10 @@ export default async function ArchivePlayerPage({
         </p>
       </section>
       <section className="archive-player-content">
-        <ArchiveIdentityAdmin profile={profile} />
+        <ArchiveIdentityAdmin
+          key={`${profile.id}:${profile.primaryNickname}`}
+          profile={profile}
+        />
         <section className="archive-player-card">
           <h2>История турниров</h2>
           {profile.tournaments.length ? (

@@ -70,7 +70,11 @@ export async function POST(request: Request) {
         );
       case "unlink-archive":
         return Response.json(
-          await unlinkArchiveProfile(body.playerId ?? "", admin.discordId),
+          await unlinkArchiveProfile(
+            body.playerId ?? "",
+            admin.discordId,
+            body.identityId,
+          ),
         );
       default:
         return Response.json({ error: "Неизвестное действие" }, { status: 400 });
