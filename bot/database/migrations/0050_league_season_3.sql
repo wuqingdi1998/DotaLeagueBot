@@ -111,7 +111,7 @@ $season3_players$::jsonb) AS source(
         'Турнир завершён',
         'Сезонная лига · 5 × 5 · BO2',
         5,
-        76,
+        64,
         'EU / RU',
         'EU West',
         60,

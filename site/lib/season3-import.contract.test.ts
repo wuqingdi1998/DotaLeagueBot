@@ -68,6 +68,8 @@ describe("Season 3 archive import", () => {
     expect(players[0]).toMatchObject({ nickname: "Besst", rank: 1 });
     expect(players[65]).toMatchObject({ nickname: "Yoichi", rank: 66 });
     expect(players[66]).toMatchObject({ nickname: "Uclonist", rank: 1 });
+    expect(migration).toContain("\n        64,\n        'EU / RU',");
+    expect(migration).not.toContain("\n        76,\n        'EU / RU',");
   });
 
   it("keeps the Excel totals, colors, p and +ap rules", () => {
