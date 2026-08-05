@@ -91,4 +91,16 @@ describe("hall of fame and participant directory", () => {
       /@media \(max-width:\s*760px\)[\s\S]*?\.participant-tier\s*\{[^}]*width:\s*34px;[^}]*height:\s*34px;[^}]*font-size:\s*14px;/,
     );
   });
+
+  it("centers participant column headings over roles, tiers and profiles", () => {
+    expect(directoryStyles).toMatch(
+      /\.participants-row\.hall-head > span:nth-child\(n \+ 3\)\s*\{[^}]*justify-self:\s*center;[^}]*text-align:\s*center;/,
+    );
+    expect(directoryStyles).toMatch(
+      /\.participant-roles\s*\{[^}]*justify-self:\s*center;[^}]*text-align:\s*center;/,
+    );
+    expect(directoryStyles).toMatch(
+      /\.participant-links\s*\{[^}]*justify-self:\s*center;[^}]*justify-content:\s*center;/,
+    );
+  });
 });

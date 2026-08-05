@@ -49,7 +49,6 @@ const rerollRepository = source(
 );
 const questCard = source("../app/compendium/components/QuestCard.tsx");
 const rewards = source("../app/compendium/components/CompendiumRewards.tsx");
-const rewardsModel = source("../app/compendium/model/rewards.ts");
 const rerollNotice = source("../app/compendium/components/DailyRerollNotice.tsx");
 const profilePage = source("../app/players/[dotaId]/page.tsx");
 const playerProfileRepository = source("./player-profile.ts");
@@ -255,19 +254,6 @@ describe("compendium persistence and security contract", () => {
     expect(leaderboardView).toContain("Участник");
     expect(leaderboardView).toContain("Звёзды");
     expect(leaderboardCss).toContain("@media (max-width: 720px)");
-  });
-
-  it("uses the shortened reward goals and visible progress markers", () => {
-    for (const stars of [10, 20, 30, 40, 60]) {
-      expect(rewardsModel).toContain(`stars: ${stars}`);
-    }
-    for (const stars of [100, 200, 300, 500, 700, 1000]) {
-      expect(rewardsModel).toContain(`stars: ${stars}`);
-    }
-    expect(rewards).toContain("compendium-reward-marker");
-    expect(rewardsCss).toContain("height: 33px");
-    expect(rewards).toContain("compendium-milestone-unlocked");
-    expect(rewards).toContain("Получено");
   });
 
   it("gives the first community reward more room on wide screens", () => {

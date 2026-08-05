@@ -71,10 +71,13 @@ function RewardTrack({
           const isUnlocked = stars >= reward.stars;
           const badgeTier = kind === "personal" ? reward.badgeKey ?? null : null;
           return (
-            <article className={isUnlocked ? "unlocked" : ""} key={reward.stars}>
+            <article
+              className={isUnlocked ? "unlocked" : "locked"}
+              key={reward.stars}
+            >
               {isUnlocked && (
                 <span className="compendium-milestone-unlocked">
-                  <FaCheck aria-hidden="true" /> Получено
+                  <FaCheck aria-hidden="true" /> получено
                 </span>
               )}
               <div className="compendium-milestone-stars">

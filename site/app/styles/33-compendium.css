@@ -272,12 +272,19 @@
 }
 
 .compendium-check-button {
+  display: inline-flex;
+  width: 100%;
   min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 0;
   border-radius: 13px;
   background: linear-gradient(135deg, #1d9f91, #087ca3);
   color: #fff;
+  font: inherit;
   font-weight: 600;
+  line-height: 1.2;
   cursor: pointer;
   transition: transform 160ms ease, opacity 160ms ease;
 }
@@ -292,7 +299,8 @@
 }
 
 .compendium-spinner {
-  margin-right: 7px;
+  flex: 0 0 auto;
+  margin: 0;
   animation: compendium-spin 900ms linear infinite;
 }
 

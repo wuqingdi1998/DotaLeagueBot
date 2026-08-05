@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
+import { CompendiumAccessGate } from "./components/CompendiumAccessGate";
 import { CompendiumDashboard } from "./sections/CompendiumDashboard";
 import { loadCompendium } from "./services/compendium";
 
@@ -14,7 +14,13 @@ export const metadata: Metadata = {
 
 export default async function CompendiumPage() {
   const user = await getSession();
-  if (!user) redirect("/api/auth/discord?returnTo=%2Fcompendium");
+  if (!user) {
+    return (
+      <PlatformShell user={null}>
+        <CompendiumAccessGate />
+      </PlatformShell>
+    );
+  }
   const data = await loadCompendium(user);
   return (
     <PlatformShell user={user}>

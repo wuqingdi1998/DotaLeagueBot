@@ -1,0 +1,178 @@
+.compendium-access-gate {
+  position: relative;
+  isolation: isolate;
+  min-height: calc(100svh - 76px);
+  overflow: hidden;
+}
+
+.compendium-access-preview {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  filter: blur(10px) brightness(0.62);
+  transform: scale(1.02);
+  transform-origin: top center;
+}
+
+.compendium-access-preview .compendium-page {
+  min-height: 1200px;
+}
+
+.compendium-access-preview-quests {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.compendium-access-preview-quests span {
+  min-height: 280px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent),
+    var(--surface);
+}
+
+.compendium-access-overlay {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  min-height: calc(100svh - 76px);
+  place-items: center;
+  padding: clamp(28px, 7vw, 90px) 18px;
+  background: rgba(2, 18, 30, 0.38);
+  backdrop-filter: blur(5px);
+}
+
+.compendium-access-card {
+  width: min(100%, 680px);
+  border: 1px solid rgba(72, 205, 225, 0.44);
+  border-radius: 26px;
+  padding: clamp(24px, 5vw, 42px);
+  background:
+    radial-gradient(circle at 100% 0, rgba(30, 173, 202, 0.2), transparent 36%),
+    color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+  text-align: center;
+}
+
+.compendium-access-icon {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border: 1px solid rgba(96, 216, 235, 0.52);
+  border-radius: 18px;
+  background: rgba(18, 144, 181, 0.18);
+  color: #55c9ee;
+  font-size: 30px;
+}
+
+.compendium-access-kicker {
+  margin: 0;
+  color: var(--blue-strong);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.compendium-access-card h1 {
+  margin: 8px 0 10px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(31px, 5vw, 48px);
+  line-height: 1.05;
+}
+
+.compendium-access-intro {
+  max-width: 520px;
+  margin: 0 auto;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.compendium-access-card ol {
+  display: grid;
+  gap: 12px;
+  margin: 26px 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.compendium-access-card li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 11px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--surface-soft);
+  line-height: 1.55;
+}
+
+.compendium-access-card li > svg {
+  margin-top: 3px;
+  color: #45c8a7;
+  font-size: 20px;
+}
+
+.compendium-access-card li a {
+  color: var(--blue-strong);
+  font-weight: 900;
+  text-underline-offset: 3px;
+}
+
+.compendium-access-login {
+  display: inline-flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 14px;
+  padding: 0 22px;
+  background: linear-gradient(135deg, #5865f2, #3788d8);
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 14px 36px rgba(66, 90, 220, 0.3);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.compendium-access-login:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 42px rgba(66, 90, 220, 0.4);
+}
+
+@media (max-width: 760px) {
+  .compendium-access-overlay {
+    min-height: calc(100svh - 66px);
+    padding: 24px 12px;
+  }
+
+  .compendium-access-card {
+    border-radius: 21px;
+    padding: 24px 18px;
+  }
+
+  .compendium-access-card ol {
+    margin: 21px 0;
+  }
+
+  .compendium-access-card li {
+    padding: 12px;
+  }
+
+  .compendium-access-login {
+    width: 100%;
+    padding-inline: 14px;
+  }
+
+  .compendium-access-preview-quests {
+    grid-template-columns: 1fr;
+  }
+}

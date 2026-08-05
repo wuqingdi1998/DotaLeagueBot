@@ -62,6 +62,11 @@
   grid-template-columns: 58px minmax(210px, 1fr) 70px 60px 160px;
 }
 
+.participants-row.hall-head > span:nth-child(n + 3) {
+  justify-self: center;
+  text-align: center;
+}
+
 .participants-player {
   min-width: 0;
   width: fit-content;
@@ -86,8 +91,10 @@
 }
 
 .participant-roles {
+  justify-self: center;
   color: var(--muted);
   font-weight: 800;
+  text-align: center;
 }
 
 .participant-tier {
@@ -118,7 +125,8 @@
 
 .participant-links {
   display: flex;
-  justify-content: flex-start;
+  justify-self: center;
+  justify-content: center;
   gap: 8px;
 }
 

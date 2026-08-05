@@ -189,14 +189,19 @@
     linear-gradient(145deg, color-mix(in srgb, var(--milestone-color) 10%, transparent), transparent 58%),
     var(--surface-soft);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  opacity: 0.72;
-  filter: saturate(0.72);
+  opacity: 1;
+  filter: none;
   transition:
     transform 180ms ease,
     opacity 180ms ease,
     filter 180ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
+}
+
+.compendium-reward-milestones article.locked {
+  opacity: 0.48;
+  filter: grayscale(0.68) brightness(0.58) saturate(0.35);
 }
 
 .compendium-reward-milestones article::before {
@@ -239,10 +244,14 @@
 }
 
 .compendium-milestone-unlocked {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-bottom: 12px;
+  margin: 0;
   padding: 5px 9px;
   border: 1px solid color-mix(in srgb, var(--milestone-color) 65%, transparent);
   border-radius: 999px;

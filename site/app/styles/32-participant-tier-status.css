@@ -3,7 +3,7 @@
 .participant-tier-cell {
   display: flex;
   align-items: center;
-  justify-self: start;
+  justify-self: center;
   gap: 7px;
 }
 
