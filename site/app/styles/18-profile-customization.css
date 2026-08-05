@@ -388,7 +388,51 @@
   font-weight: 700;
 }
 
+@media (max-width: 900px) {
+  .profile-background-crop-workspace {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .profile-background-crop-frame.mobile {
+    width: min(100%, 320px);
+  }
+}
+
 @media (max-width: 760px) {
+  .profile-background-crop-backdrop {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  .profile-background-crop-modal {
+    max-height: none;
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .profile-background-crop-modal > header {
+    gap: 14px;
+  }
+
+  .profile-background-crop-modal > p {
+    font-size: 14px;
+  }
+
+  .profile-background-crop-frame > span {
+    padding: 8px;
+    text-align: center;
+  }
+
+  .profile-background-crop-actions {
+    flex-direction: column-reverse;
+  }
+
+  .profile-background-crop-actions > button {
+    width: 100%;
+  }
+
   .public-profile-nickname-line .profile-event-badge {
     min-height: 34px;
     gap: 5px;

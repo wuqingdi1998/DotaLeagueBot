@@ -29,6 +29,20 @@ export type TournamentListResponse = {
   user: SessionUser | null;
 };
 
+export type TournamentDirectoryFilter = "all" | "seasonal";
+
+export function filterTournamentSummaries(
+  tournaments: TournamentSummary[],
+  filter: TournamentDirectoryFilter,
+) {
+  if (filter === "seasonal") {
+    return tournaments.filter(
+      (tournament) => tournament.tournament_type === "seasonal",
+    );
+  }
+  return tournaments;
+}
+
 export type NewTournament = {
   tournament_type: "ordinary" | "seasonal";
   season_round_count: number;

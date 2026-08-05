@@ -9,7 +9,7 @@ const contentSecurityPolicy = [
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' data: https://cdn.discordapp.com https://cdn.cloudflare.steamstatic.com",
+  "img-src 'self' data: blob: https://cdn.discordapp.com https://cdn.cloudflare.steamstatic.com",
   "connect-src 'self'",
   "worker-src 'self' blob:",
 ].join("; ");

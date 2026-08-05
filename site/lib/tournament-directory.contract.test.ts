@@ -9,6 +9,7 @@ const tournamentListRoute = source("../app/api/tournaments/route.ts");
 const tournamentCard = source(
   "../app/tournaments/hub/TournamentCard.tsx",
 );
+const tournamentDirectory = source("../app/tournaments/TournamentsHub.tsx");
 const tournamentDirectoryStyles = source(
   "../app/styles/11-tournament-directory.css",
 );
@@ -37,6 +38,13 @@ describe("tournament directory contract", () => {
     expect(tournamentCard).toContain("tournament.season_round_count");
     expect(tournamentCard).toContain("tournament-seasonal-badge");
     expect(tournamentCard).toContain("Сезонный");
+  });
+
+  it("offers only all and seasonal directory filters", () => {
+    expect(tournamentDirectory).toContain('["all", "Все"]');
+    expect(tournamentDirectory).toContain('["seasonal", "Сезонные"]');
+    expect(tournamentDirectory).not.toContain("Текущие и будущие");
+    expect(tournamentDirectory).not.toContain('["archive", "Архив"]');
   });
 
   it("positions card details directly after descriptions of any length", () => {

@@ -19,7 +19,6 @@ import {
 } from "@/app/components/SiteHeader";
 import {
   isPastTournament,
-  isUpcomingTournament,
   type TournamentStatus,
 } from "@/lib/tournaments";
 import { formatTournamentDateRange } from "@/lib/tournament-date";
@@ -27,8 +26,10 @@ import { OrganizerAccess } from "./OrganizerAccess";
 import { TournamentCard } from "./hub/TournamentCard";
 import { TournamentForm } from "./hub/TournamentForm";
 import {
+  filterTournamentSummaries,
   loadSavedTheme,
   statusDetails,
+  type TournamentDirectoryFilter,
   type TournamentListResponse,
 } from "./hub/tournament-hub-model";
 
@@ -244,22 +245,13 @@ export function CommunityHome() {
 export function TournamentsDirectory() {
   const { data, loading, error, reload } = useTournamentList();
   const [createOpen, setCreateOpen] = useState(false);
-  const [filter, setFilter] = useState<"all" | "upcoming" | "archive">("all");
+  const [filter, setFilter] = useState<TournamentDirectoryFilter>("all");
   const [toast, setToast] = useState("");
 
-  const visibleTournaments = useMemo(() => {
-    if (filter === "upcoming") {
-      return data.tournaments.filter((item) =>
-        isUpcomingTournament(item.status),
-      );
-    }
-    if (filter === "archive") {
-      return data.tournaments.filter((item) =>
-        isPastTournament(item.status),
-      );
-    }
-    return data.tournaments;
-  }, [data.tournaments, filter]);
+  const visibleTournaments = useMemo(
+    () => filterTournamentSummaries(data.tournaments, filter),
+    [data.tournaments, filter],
+  );
 
   async function changeStatus(id: number, status: TournamentStatus) {
     const response = await fetch("/api/tournaments", {
@@ -301,8 +293,7 @@ export function TournamentsDirectory() {
             {(
               [
                 ["all", "Все"],
-                ["upcoming", "Текущие и будущие"],
-                ["archive", "Архив"],
+                ["seasonal", "Сезонные"],
               ] as const
             ).map(([value, label]) => (
               <button
@@ -338,8 +329,8 @@ export function TournamentsDirectory() {
           <div className="directory-empty">
             <FiCalendar />
             <h2>
-              {filter === "archive"
-                ? "Архив пока пуст"
+              {filter === "seasonal"
+                ? "Сезонных турниров пока нет"
                 : "В этом разделе пока нет турниров"}
             </h2>
             <p>

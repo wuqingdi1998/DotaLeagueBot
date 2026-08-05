@@ -57,6 +57,7 @@ describe("site security boundaries", () => {
   it("sends browser hardening headers without identifying the framework", () => {
     expect(nextConfig).toContain("Content-Security-Policy");
     expect(nextConfig).toContain("frame-ancestors 'self'");
+    expect(nextConfig).toContain("img-src 'self' data: blob:");
     expect(nextConfig).toContain('poweredByHeader: false');
     expect(nextConfig).toContain("X-Content-Type-Options");
   });
