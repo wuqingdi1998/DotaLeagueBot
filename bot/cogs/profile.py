@@ -17,6 +17,7 @@ from utils.logger import send_log
 from utils.steam_tools import resolve_steam_id
 from utils.nickname_validator import validate_nickname
 from services.discord_avatar_sync import collect_discord_avatar_updates
+from services.player_tier import effective_player_tier, set_player_tier
 
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
 NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
@@ -595,7 +596,7 @@ class TierModalInternal(discord.ui.Modal):
             player = result.scalar_one_or_none()
 
             if player:
-                player.internal_rating = val
+                set_player_tier(player, val)
                 await session.commit()
                 # Логируем или сообщаем об успехе
                 await interaction.response.send_message(f"✅ Тир игрока **{player.ingame_name}** изменен на **{val}**.",
@@ -724,9 +725,7 @@ def create_player_embed(player, discord_member):
     if player.internal_rating and player.internal_rating > 0:
         tier_str = f"🛠️ **{player.internal_rating}** (Manual)"
     else:
-        raw = player.rank_tier or 0
-        val = raw // 10 if raw >= 10 else raw
-        tier_str = f"🤖 {val} (Auto)"
+        tier_str = f"🤖 {effective_player_tier(player)} (Auto)"
     # -------------------
 
     embed = discord.Embed(title=f"👤 {player.ingame_name}", color=discord.Color.blue())

@@ -173,7 +173,7 @@ export function ArchiveRosterEditor({
             <input
               type="number"
               min="0"
-              max="20"
+              max="12"
               aria-label={`Исторический тир, ${roles[index][1]}`}
               placeholder="Тир"
               value={player.tier}

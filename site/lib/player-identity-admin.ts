@@ -44,7 +44,6 @@ export async function updateParticipantTier(
       `UPDATE players
        SET internal_rating = CASE WHEN $2 THEN internal_rating ELSE $3 END,
            tier_status = CASE
-             WHEN tier_status = 'inactive' THEN 'inactive'
              WHEN $2 THEN 'outdated'
              ELSE 'current'
            END,

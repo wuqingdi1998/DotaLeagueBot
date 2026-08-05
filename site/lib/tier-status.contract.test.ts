@@ -46,7 +46,13 @@ describe("current player tier status", () => {
     expect(participantDialog).toContain('player.tierStatus === "current"');
     expect(participantDialog).toContain('pattern="!|[0-9]|1[0-2]"');
     expect(participantAdmin).toContain("tier_status = CASE");
-    expect(participantAdmin).toContain("WHEN tier_status = 'inactive'");
+    expect(participantAdmin).toContain("WHEN $2 THEN 'outdated'");
+    expect(participantAdmin).toContain("ELSE 'current'");
+    expect(participantAdmin).not.toContain("WHEN tier_status = 'inactive'");
+    expect(participantDialog).toContain(
+      "Любое числовое значение снимает",
+    );
+    expect(participantDialog).toContain("отметки ! и «Инактив».");
     expect(normalizeParticipantTierInput("!")).toEqual({
       isOutdated: true,
       numericTier: 0,

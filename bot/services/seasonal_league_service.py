@@ -7,6 +7,7 @@ from database.models import (
     PlayerStatus,
 )
 from datetime import datetime, timedelta
+from services.player_tier import update_player_tier_values
 
 
 class SeasonalLeagueService:
@@ -274,7 +275,7 @@ class SeasonalLeagueService:
         stmt = (
             update(Player)
             .where(Player.discord_id == discord_id)
-            .values(internal_rating=rating)
+            .values(**update_player_tier_values(rating))
         )
         await self.session.execute(stmt)
         await self.session.commit()

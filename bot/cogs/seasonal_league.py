@@ -9,6 +9,7 @@ from discord.ui import Modal, View, Select, Button, TextInput
 from sqlalchemy import select
 from database.models import Player
 from services.seasonal_league_service import SeasonalLeagueService
+from services.player_tier import effective_player_tier
 from services.profile_service import ProfileService
 from services.stratz_service import StratzService
 from datetime import datetime, timedelta, timezone
@@ -209,11 +210,8 @@ class TierAdjustmentViewWrapper(View):
         self.update_components()
 
     def _get_display_tier(self, player):
-        if player.internal_rating and player.internal_rating > 0:
-            return player.internal_rating, True
-        raw = player.rank_tier or 0
-        val = raw // 10 if raw >= 10 else raw
-        return val, False
+        is_manual = bool(player.internal_rating and player.internal_rating > 0)
+        return effective_player_tier(player), is_manual
 
     def update_components(self):
         self.clear_items()
@@ -379,8 +377,7 @@ class DMCheckinView(discord.ui.View):
 
 
 def simple_balance(players):
-    sorted_p = sorted(players, key=lambda x: x.internal_rating if x.internal_rating else (x.rank_tier or 0) // 10,
-                      reverse=True)
+    sorted_p = sorted(players, key=effective_player_tier, reverse=True)
 
     t1 = []
     t2 = []
@@ -467,11 +464,7 @@ class MultiLobbyView(View):
         self.update_components()
 
     def get_tier(self, p):
-        if p.internal_rating and p.internal_rating > 0:
-            return int(p.internal_rating)
-        if p.rank_tier:
-            return int(p.rank_tier // 10)
-        return 0
+        return effective_player_tier(p)
 
     def get_current_lobby(self):
         return self.lobbies[self.current_lobby_idx]
@@ -1333,7 +1326,7 @@ class SeasonalLeague(commands.Cog):
 
         sorted_all = sorted(
             ready_players,
-            key=lambda x: x.internal_rating if x.internal_rating else (x.rank_tier or 0),
+            key=effective_player_tier,
             reverse=True
         )
 

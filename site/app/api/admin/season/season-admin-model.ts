@@ -98,7 +98,7 @@ export function seasonTierSnapshots(
     }
     const tier = Number(rawTier);
     if (!isValidSeasonTierSnapshot(tier)) {
-      throw new Response("Тир игрока должен быть целым числом от 0 до 20", {
+      throw new Response("Тир игрока должен быть целым числом от 0 до 12", {
         status: 400,
       });
     }

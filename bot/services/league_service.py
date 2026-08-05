@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import LeagueSession, LeagueRegistration, Player, SessionStatus, PlayerStatus
 from datetime import datetime, timedelta, timezone
 import traceback
+from services.player_tier import update_player_tier_values
 
 
 class LeagueService:
@@ -230,7 +231,7 @@ class LeagueService:
         stmt = (
             update(Player)
             .where(Player.discord_id == discord_id)
-            .values(internal_rating=rating)
+            .values(**update_player_tier_values(rating))
         )
         await self.session.execute(stmt)
         await self.session.commit()

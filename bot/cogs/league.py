@@ -10,6 +10,7 @@ from discord.ui import Modal, View, Select, Button, TextInput
 from sqlalchemy import select
 from database.models import Player
 from services.league_service import LeagueService
+from services.player_tier import effective_player_tier
 from services.profile_service import ProfileService
 from services.stratz_service import StratzService
 from datetime import datetime, timedelta, timezone
@@ -207,14 +208,8 @@ class TierAdjustmentViewWrapper(View):
         self.update_components()
 
     def _get_display_tier(self, player):
-        # Логика отображения: если есть ручной рейтинг > 0, берем его
-        if player.internal_rating and player.internal_rating > 0:
-            return player.internal_rating, True
-
-            # Иначе берем авто-ранк
-        raw = player.rank_tier or 0
-        val = raw // 10 if raw >= 10 else raw
-        return val, False
+        is_manual = bool(player.internal_rating and player.internal_rating > 0)
+        return effective_player_tier(player), is_manual
 
     def update_components(self):
         self.clear_items()  # Очищаем старые кнопки
@@ -404,8 +399,7 @@ class DMCheckinView(discord.ui.View):
 
 
 def simple_balance(players):
-    sorted_p = sorted(players, key=lambda x: x.internal_rating if x.internal_rating else (x.rank_tier or 0) // 10,
-                      reverse=True)
+    sorted_p = sorted(players, key=effective_player_tier, reverse=True)
 
     t1 = []
     t2 = []
@@ -503,11 +497,7 @@ class MultiLobbyView(View):
 
     # --- РАСЧЕТ ТИРА ---
     def get_tier(self, p):
-        if p.internal_rating and p.internal_rating > 0:
-            return int(p.internal_rating)
-        if p.rank_tier:
-            return int(p.rank_tier // 10)
-        return 0
+        return effective_player_tier(p)
 
     # --- ПОЛУЧЕНИЕ ДАННЫХ ---
     def get_current_lobby(self):
@@ -1547,8 +1537,7 @@ class League(commands.Cog):
 
         # 2. Сортируем всех по скиллу (Internal Rating -> Rank Tier)
         # Это критично, чтобы Лобби 1 было самым сильным
-        sorted_all = sorted(ready_players, key=lambda x: x.internal_rating if x.internal_rating else (x.rank_tier or 0),
-                            reverse=True)
+        sorted_all = sorted(ready_players, key=effective_player_tier, reverse=True)
 
         # 3. Определяем, сколько полных лобби получается
         total_players = len(sorted_all)

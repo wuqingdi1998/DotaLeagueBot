@@ -177,7 +177,7 @@ export function SeasonTierEditor({
           <input
             type="number"
             min="0"
-            max="20"
+            max="12"
             inputMode="numeric"
             aria-label={`Тир игрока ${optionsById.get(playerId)?.ingame_name ?? playerId} на этот тур`}
             value={tierSnapshots[playerId] ?? ""}

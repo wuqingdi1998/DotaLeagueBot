@@ -58,7 +58,8 @@ describe("hall of fame and participant directory", () => {
     expect(participantsPage).toContain("players={players}");
     expect(participantsLoader).toContain("NULLIF(player.internal_rating, 0)");
     expect(participantsLoader).toContain("player.rank_tier / 10");
-    expect(participantsLoader).toContain("latest_tier.tier");
+    expect(participantsLoader).not.toContain("latest_tier.tier");
+    expect(participantsLoader).not.toContain("known_tier");
     expect(participantsLoader).toContain("buildPlayerLinks(dotaId)");
     expect(participantsTable).toContain('player.tier ?? "—"');
     expect(participantsTable).not.toContain("`Тир ${player.tier}`");

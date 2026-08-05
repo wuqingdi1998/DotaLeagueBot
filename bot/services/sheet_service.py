@@ -1,4 +1,5 @@
 import gspread
+from services.player_tier import effective_player_tier
 
 
 class SheetService:
@@ -49,13 +50,7 @@ class SheetService:
             return str(val)
 
         def get_tier_val(p):
-            # 1. Internal Rating
-            if hasattr(p, 'internal_rating') and p.internal_rating:
-                return int(p.internal_rating)
-            # 2. Dota Rank Tier (делим на 10)
-            if hasattr(p, 'rank_tier') and p.rank_tier:
-                return int(int(p.rank_tier) / 10)
-            return 0
+            return effective_player_tier(p)
 
         # --- СБОР ДАННЫХ ---
 

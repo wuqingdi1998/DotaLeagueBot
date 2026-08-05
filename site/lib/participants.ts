@@ -96,8 +96,7 @@ export async function loadParticipantDirectory(
            WHEN player.rank_tier >= 10 THEN player.rank_tier / 10
            WHEN player.rank_tier > 0 THEN player.rank_tier
            ELSE NULL
-         END,
-         latest_tier.tier
+         END
        )::int AS tier
      FROM players player
      JOIN player_identity_members own_member
@@ -123,47 +122,6 @@ export async function loadParticipantDirectory(
        ORDER BY session.created_at DESC
        LIMIT 1
      ) latest_session ON TRUE
-     LEFT JOIN LATERAL (
-       SELECT known_tier.tier
-       FROM (
-         SELECT
-           NULLIF(
-             to_jsonb(participant)->>'tier_snapshot',
-             ''
-           )::smallint AS tier,
-           COALESCE(
-             match.scheduled_at,
-             round.scheduled_at,
-             tournament.end_at
-           ) AS recorded_at,
-           participant.match_id AS source_id
-         FROM season_match_participants participant
-         JOIN season_matches match ON match.id = participant.match_id
-         JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-         JOIN season_rounds round ON round.id = lobby.round_id
-         JOIN tournaments tournament ON tournament.id = round.tournament_id
-         WHERE participant.player_id = player.discord_id
-           AND NULLIF(
-             to_jsonb(participant)->>'tier_snapshot',
-             ''
-           ) IS NOT NULL
-
-         UNION ALL
-
-         SELECT
-           snapshot.tier_snapshot AS tier,
-           tournament.end_at AS recorded_at,
-           snapshot.id AS source_id
-         FROM tournament_roster_snapshots snapshot
-         JOIN tournament_team_applications application
-           ON application.id = snapshot.application_id
-         JOIN tournaments tournament ON tournament.id = application.tournament_id
-         WHERE snapshot.player_id = player.discord_id
-           AND snapshot.tier_snapshot IS NOT NULL
-       ) known_tier
-       ORDER BY known_tier.recorded_at DESC, known_tier.source_id DESC
-       LIMIT 1
-     ) latest_tier ON TRUE
      WHERE player.is_archived = FALSE
        AND player.steam_id32 BETWEEN 1 AND 4294967295
      ORDER BY LOWER(player.ingame_name), player.discord_id`,
