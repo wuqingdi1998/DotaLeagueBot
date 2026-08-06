@@ -6,6 +6,7 @@ import { CompendiumError } from "../model/errors";
 import { COMPENDIUM_HEROES, compendiumHeroById } from "../model/heroes";
 import { findMatchingWin } from "../model/matches";
 import { currentMoscowDay } from "../model/time";
+import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import type { RuneChallengeData } from "../model/types";
 import { fetchRecentPlayerMatches } from "./opendota";
 import { requireCompendiumDotaId } from "./participant";
@@ -142,6 +143,7 @@ export async function checkRuneChallenge(
       dateKey: day.dateKey,
       heroId: state.selection.heroId,
       matchId: matchingWin.matchId,
+      rewardStars: dailyChallengeRewardStars(day.dateKey),
     });
   }
   const [runeChallenge, totalStars, communityStars] = await Promise.all([

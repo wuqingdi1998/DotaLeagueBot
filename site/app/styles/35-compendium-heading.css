@@ -73,8 +73,35 @@
 
 .compendium-section-status {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
+  gap: 18px;
+}
+
+.compendium-weekend-bonus {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid rgba(245, 201, 91, 0.42);
+  border-radius: 15px;
+  background: rgba(245, 201, 91, 0.11);
+  color: #f5c95b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.compendium-weekend-bonus span {
+  color: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.compendium-weekend-bonus strong {
+  font-size: 20px;
+  line-height: 1;
 }
 
 .compendium-section-countdown {
@@ -154,6 +181,12 @@
     0 0 0 3px rgba(205, 145, 23, 0.13);
 }
 
+.site-shell[data-theme="light"] .compendium-weekend-bonus {
+  border-color: rgba(151, 102, 5, 0.38);
+  background: rgba(205, 145, 23, 0.13);
+  color: #7a5000;
+}
+
 @media (max-width: 720px) {
   .compendium-hero-section {
     justify-items: center;
@@ -218,8 +251,23 @@
 
   .compendium-section-status {
     width: 100%;
-    align-items: flex-start;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .compendium-weekend-bonus {
+    min-height: 43px;
+    padding: 7px 11px;
+  }
+
+  .compendium-weekend-bonus span {
+    max-width: 116px;
+    font-size: 10px;
+  }
+
+  .compendium-weekend-bonus strong {
+    font-size: 18px;
   }
 }
 
@@ -227,6 +275,20 @@
   .compendium-liquipedia-link {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .compendium-section-status {
+    gap: 8px;
+  }
+
+  .compendium-weekend-bonus {
+    gap: 7px;
+    padding-inline: 9px;
+  }
+
+  .compendium-weekend-bonus span {
+    max-width: 92px;
+    font-size: 9px;
   }
 
 }

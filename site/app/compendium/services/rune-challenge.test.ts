@@ -89,8 +89,8 @@ describe("rune challenge", () => {
     expect(mocks.saveSelection).not.toHaveBeenCalled();
   });
 
-  it("awards one daily star for a ranked win after hero selection", async () => {
-    const now = new Date("2026-08-05T12:00:00.000Z");
+  it("awards two stars for a Friday ranked win after hero selection", async () => {
+    const now = new Date("2026-08-07T12:00:00.000Z");
     vi.useFakeTimers();
     vi.setSystemTime(now);
     const selectedAt = new Date(now.getTime() - 60 * 60 * 1_000);
@@ -124,7 +124,11 @@ describe("rune challenge", () => {
       runeChallenge: { completion },
     });
     expect(mocks.recordCompletion).toHaveBeenCalledWith(
-      expect.objectContaining({ heroId: 1, matchId: "9001" }),
+      expect.objectContaining({
+        heroId: 1,
+        matchId: "9001",
+        rewardStars: 2,
+      }),
     );
   });
 

@@ -10,6 +10,7 @@ import { HeroChoice } from "./HeroChoice";
 
 export function QuestCard({
   quest,
+  rewardStars,
   isChecking,
   isRerolling,
   canCheck,
@@ -19,6 +20,7 @@ export function QuestCard({
   onReroll,
 }: {
   quest: DailyQuest;
+  rewardStars: number;
   isChecking: boolean;
   isRerolling: boolean;
   canCheck: boolean;
@@ -60,9 +62,12 @@ export function QuestCard({
               <FiRefreshCw aria-hidden="true" />
             )}
           </button>
-          <div className="compendium-reward" aria-label="Награда: одна звезда">
+          <div
+            className="compendium-reward"
+            aria-label={`Награда: ${rewardStars} ${rewardStars === 1 ? "звезда" : "звезды"}`}
+          >
             <FaStar aria-hidden="true" />
-            <strong>1</strong>
+            <strong>{rewardStars}</strong>
           </div>
         </div>
       </div>

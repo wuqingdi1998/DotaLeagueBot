@@ -77,7 +77,11 @@ const completion = {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.questForCurrentDay.mockResolvedValue({ id: "1", heroIds: [1, 2, 3, 4] });
+  mocks.questForCurrentDay.mockResolvedValue({
+    id: "1",
+    position: 1,
+    heroIds: [1, 2, 3, 4],
+  });
   mocks.existingCompletion.mockResolvedValue(null);
   mocks.consumeCheckAllowance.mockResolvedValue(true);
   mocks.totalCompendiumStars.mockResolvedValue(1);
@@ -144,6 +148,37 @@ describe("protected quest checks", () => {
       code: "RATE_LIMITED",
     });
     expect(mocks.fetchRecentPlayerMatches).not.toHaveBeenCalled();
+  });
+
+  it("records two stars for a quest completed on Friday", async () => {
+    const now = new Date("2026-08-07T12:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([
+      {
+        match_id: 9001,
+        player_slot: 0,
+        radiant_win: true,
+        duration: 600,
+        game_mode: 22,
+        lobby_type: 7,
+        hero_id: 1,
+        start_time: Math.floor((now.getTime() - 30 * 60 * 1_000) / 1_000),
+      },
+    ]);
+    mocks.recordQuestCompletion.mockResolvedValue(completion);
+    mocks.loadDailyQuests.mockResolvedValue([]);
+
+    await checkDailyQuest(user, "1", now);
+
+    expect(mocks.recordQuestCompletion).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      questId: "1",
+      heroId: 1,
+      matchId: "9001",
+      rewardStars: 2,
+    });
+    vi.useRealTimers();
   });
 });
 

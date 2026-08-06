@@ -105,7 +105,9 @@ export function CompendiumDashboard({
             : quest,
         ),
       }));
-      setToast("Задание выполнено. Вы получили 1 звезду!");
+      setToast(
+        `Задание выполнено. Вы получили ${data.dailyChallengeRewardStars} ${data.dailyChallengeRewardStars === 1 ? "звезду" : "звезды"}!`,
+      );
     } catch (error) {
       setToast(error instanceof Error ? error.message : "Не удалось проверить задание");
     } finally {
@@ -301,6 +303,12 @@ export function CompendiumDashboard({
           <div className="compendium-section-heading">
             <div><span>Обновление ежедневно в 00:00 МСК</span><h2>Задания дня</h2></div>
             <div className="compendium-section-status">
+              {data.dailyChallengeRewardStars === 2 && (
+                <div className="compendium-weekend-bonus" role="status">
+                  <span>Бонус выходного дня</span>
+                  <strong>Х2</strong>
+                </div>
+              )}
               <div className="compendium-section-countdown">
                 <FiClock aria-hidden="true" />
                 <span>До новых заданий</span>
@@ -321,6 +329,9 @@ export function CompendiumDashboard({
               <QuestCard
                 key={quest.id}
                 quest={quest}
+                rewardStars={
+                  quest.position <= 3 ? data.dailyChallengeRewardStars : 1
+                }
                 isChecking={checkingQuestId === quest.id}
                 isRerolling={rerollingQuestId === quest.id}
                 canCheck={checkingQuestId === null && rerollingQuestId === null}
@@ -337,6 +348,7 @@ export function CompendiumDashboard({
           </div>
           <RuneChallenge
             initialChallenge={data.runeChallenge}
+            rewardStars={data.dailyChallengeRewardStars}
             resetCountdown={countdown}
             onStarsChange={(totalStars, communityStars) => setData((current) => ({
               ...current,

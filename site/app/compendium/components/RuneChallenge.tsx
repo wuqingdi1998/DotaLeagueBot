@@ -70,10 +70,12 @@ function HeroPicker({
 
 export function RuneChallenge({
   initialChallenge,
+  rewardStars,
   resetCountdown,
   onStarsChange,
 }: {
   initialChallenge: RuneChallengeData;
+  rewardStars: number;
   resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
 }) {
@@ -168,7 +170,9 @@ export function RuneChallenge({
       ) {
         onStarsChange(result.totalStars, result.communityStars);
       }
-      setMessage("Испытание выполнено. Вы получили 1 звезду!");
+      setMessage(
+        `Испытание выполнено. Вы получили ${rewardStars} ${rewardStars === 1 ? "звезду" : "звезды"}!`,
+      );
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось проверить испытание");
     } finally {
@@ -183,8 +187,11 @@ export function RuneChallenge({
           <span>Ежедневное задание для подписчиков</span>
           <h2>Испытание Рун</h2>
         </div>
-        <div className="compendium-reward" aria-label="Награда: одна звезда">
-          <FaStar aria-hidden="true" /> <strong>1</strong>
+        <div
+          className="compendium-reward"
+          aria-label={`Награда: ${rewardStars} ${rewardStars === 1 ? "звезда" : "звезды"}`}
+        >
+          <FaStar aria-hidden="true" /> <strong>{rewardStars}</strong>
         </div>
       </div>
 

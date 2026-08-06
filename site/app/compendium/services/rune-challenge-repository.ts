@@ -3,6 +3,7 @@ import { one, transaction } from "@/lib/db";
 import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import { CompendiumError } from "../model/errors";
 import type { QuestCompletion } from "../model/types";
+import type { DailyChallengeRewardStars } from "../model/weekend-bonus";
 
 export type RuneChallengeSelectionRecord = {
   heroId: number;
@@ -167,6 +168,7 @@ export async function recordRuneChallengeCompletion(input: {
   dateKey: string;
   heroId: number;
   matchId: string;
+  rewardStars: DailyChallengeRewardStars;
 }): Promise<QuestCompletion> {
   return transaction(async (client) => {
     await client.query(
@@ -194,13 +196,19 @@ export async function recordRuneChallengeCompletion(input: {
     }
     const inserted = await client.query<CompletionRow>(
       `INSERT INTO compendium_rune_challenge_completions
-         (player_id, moscow_date, hero_id, matched_match_id)
-       SELECT $1, $2::date, $3, $4
+        (player_id, moscow_date, hero_id, matched_match_id, reward_amount)
+       SELECT $1, $2::date, $3, $4, $5
        WHERE $2::date =
          (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
        ON CONFLICT DO NOTHING
        RETURNING hero_id, matched_match_id::text, completed_at`,
-      [input.playerId, input.dateKey, input.heroId, input.matchId],
+      [
+        input.playerId,
+        input.dateKey,
+        input.heroId,
+        input.matchId,
+        input.rewardStars,
+      ],
     );
     if (inserted.rowCount) return completionFromRow(inserted.rows[0]);
     const existing = await client.query<CompletionRow>(

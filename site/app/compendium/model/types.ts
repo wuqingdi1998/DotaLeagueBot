@@ -55,6 +55,7 @@ export type CompendiumData = {
   moscowDateLabel: string;
   nextResetAt: string;
   tournamentStartsAt: string;
+  dailyChallengeRewardStars: import("./weekend-bonus").DailyChallengeRewardStars;
   rerollsRemaining: number;
   totalStars: number;
   communityStars: number;
