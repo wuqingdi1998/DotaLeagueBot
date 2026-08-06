@@ -277,17 +277,16 @@
 
 .tournament-status.registration {
   position: relative;
-  margin-left: 12px;
+  margin-right: 40px;
 }
 
 .tournament-status.registration .tournament-status-pulse {
   position: absolute;
   top: 50%;
-  left: -14px;
-  width: 8px;
-  height: 8px;
-  margin-top: -4px;
-  flex: 0 0 8px;
+  right: -30px;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
   border-radius: 50%;
   background: #18c88c;
   box-shadow: 0 0 0 5px rgba(24, 200, 140, 0.14);

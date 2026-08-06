@@ -74,7 +74,11 @@ describe("tournament directory contract", () => {
     expect(tournamentStatusStyles).toContain(
       "animation: tournament-registration-pulse",
     );
-    expect(tournamentStatusStyles).toContain("left: -14px");
+    expect(tournamentStatusStyles).toContain("margin-right: 40px");
+    expect(tournamentStatusStyles).toContain("right: -30px");
+    expect(tournamentStatusStyles).toMatch(
+      /\.tournament-status\.registration \.tournament-status-pulse\s*\{[^}]*width:\s*16px;[^}]*height:\s*16px;/,
+    );
     expect(tournamentStatusStyles).toContain(
       "@media (prefers-reduced-motion: reduce)",
     );
