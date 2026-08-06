@@ -22,6 +22,7 @@ const repository = source(
   "../app/compendium/services/star-race-repository.ts",
 );
 const styles = source("../app/styles/46-compendium-star-race.css");
+const rewardsStyles = source("../app/styles/38-compendium-rewards.css");
 
 describe("compendium star race contract", () => {
   it("counts every current star source inside the race period", () => {
@@ -66,5 +67,15 @@ describe("compendium star race contract", () => {
   it("keeps the seven quest cards usable on phones", () => {
     expect(styles).toContain(".compendium-star-race-quests");
     expect(styles).toMatch(/@media \(max-width: 720px\)/);
+  });
+
+  it("uses the shared star gold and readable section labels", () => {
+    expect(styles).toContain("--star-race-gold: #f1b92d");
+    expect(styles).toMatch(
+      /\.compendium-star-race-heading span\s*\{[^}]*color:\s*var\(--star-race-gold\);[^}]*font-size:\s*14px;/,
+    );
+    expect(rewardsStyles).toMatch(
+      /\.compendium-reward-track-heading span\s*\{[^}]*color:\s*var\(--blue-soft\);[^}]*font-size:\s*14px;/,
+    );
   });
 });
