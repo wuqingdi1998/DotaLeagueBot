@@ -11,7 +11,7 @@ const css = loadSiteStyles();
 describe("featured event card", () => {
   it("shows the nearest-event label above the registration status", () => {
     expect(component).toMatch(
-      /featured-event-heading[\s\S]*card-kicker">Ближайшее событие[\s\S]*tournament-status/,
+      /featured-event-heading[\s\S]*card-kicker">Ближайшее событие[\s\S]*TournamentStatusBadge/,
     );
   });
 

@@ -275,12 +275,46 @@
   color: var(--blue-soft);
 }
 
-.tournament-status.active i {
+.tournament-status.registration {
+  position: relative;
+  margin-left: 12px;
+}
+
+.tournament-status.registration .tournament-status-pulse {
+  position: absolute;
+  top: 50%;
+  left: -14px;
   width: 8px;
   height: 8px;
+  margin-top: -4px;
+  flex: 0 0 8px;
   border-radius: 50%;
   background: #18c88c;
   box-shadow: 0 0 0 5px rgba(24, 200, 140, 0.14);
+  animation: tournament-registration-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes tournament-registration-pulse {
+  0%,
+  100% {
+    opacity: 0.42;
+    box-shadow: 0 0 0 2px rgba(24, 200, 140, 0.1);
+    transform: scale(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 0 6px rgba(24, 200, 140, 0.18);
+    transform: scale(1.08);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournament-status.registration .tournament-status-pulse {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .tournament-status.finished,

@@ -12,10 +12,8 @@ import {
   type TournamentStatus,
 } from "@/lib/tournaments";
 import { formatTournamentDateRange } from "@/lib/tournament-date";
-import {
-  statusDetails,
-  type TournamentSummary,
-} from "./tournament-hub-model";
+import type { TournamentSummary } from "./tournament-hub-model";
+import { TournamentStatusBadge } from "./TournamentStatusBadge";
 
 export function TournamentCard({
   tournament,
@@ -37,10 +35,7 @@ export function TournamentCard({
           {isSeasonal && (
             <span className="tournament-seasonal-badge">Сезонный</span>
           )}
-          <span className={`tournament-status ${tournament.status}`}>
-            {tournament.status === "active" && <i />}
-            {statusDetails[tournament.status].label}
-          </span>
+          <TournamentStatusBadge status={tournament.status} />
         </div>
       </div>
       <p className="tournament-card-description">{tournament.description}</p>

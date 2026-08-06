@@ -175,6 +175,10 @@
   font-weight: 800;
 }
 
+.site-shell[data-theme="light"] .tournament-rules-list li::before {
+  color: #fff;
+}
+
 .tournament-content-editor,
 .archive-rosters-admin {
   display: grid;

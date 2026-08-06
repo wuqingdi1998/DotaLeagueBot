@@ -28,10 +28,10 @@ import { TournamentForm } from "./hub/TournamentForm";
 import {
   filterTournamentSummaries,
   loadSavedTheme,
-  statusDetails,
   type TournamentDirectoryFilter,
   type TournamentListResponse,
 } from "./hub/tournament-hub-model";
+import { TournamentStatusBadge } from "./hub/TournamentStatusBadge";
 
 function useTournamentList() {
   const [data, setData] = useState<TournamentListResponse>({
@@ -183,9 +183,10 @@ export function CommunityHome() {
             <>
               <div className="featured-event-heading">
                 <p className="card-kicker">Ближайшее событие</p>
-                <span className={`tournament-status ${featured.status}`}>
-                  {statusDetails[featured.status].short}
-                </span>
+                <TournamentStatusBadge
+                  status={featured.status}
+                  variant="short"
+                />
               </div>
               <h2>{featured.name}</h2>
               <p>{featured.description}</p>

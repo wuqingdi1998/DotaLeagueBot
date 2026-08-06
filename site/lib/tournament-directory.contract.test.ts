@@ -10,9 +10,13 @@ const tournamentCard = source(
   "../app/tournaments/hub/TournamentCard.tsx",
 );
 const tournamentDirectory = source("../app/tournaments/TournamentsHub.tsx");
+const tournamentStatusBadge = source(
+  "../app/tournaments/hub/TournamentStatusBadge.tsx",
+);
 const tournamentDirectoryStyles = source(
   "../app/styles/11-tournament-directory.css",
 );
+const tournamentStatusStyles = source("../app/styles/10-community-home.css");
 
 describe("tournament directory contract", () => {
   it("loads season participant and round totals", () => {
@@ -56,6 +60,23 @@ describe("tournament directory contract", () => {
     expect(descriptionStyles).not.toContain("min-height");
     expect(tournamentDirectoryStyles).toMatch(
       /\.tournament-card-actions\s*\{[^}]*margin-top:\s*auto;/,
+    );
+  });
+
+  it("pulses only the registration status in every tournament card", () => {
+    expect(tournamentCard).toContain("<TournamentStatusBadge");
+    expect(tournamentDirectory).toContain("<TournamentStatusBadge");
+    expect(tournamentStatusBadge).toContain('status === "registration"');
+    expect(tournamentStatusBadge).not.toContain('status === "active"');
+    expect(tournamentStatusStyles).toContain(
+      ".tournament-status.registration .tournament-status-pulse",
+    );
+    expect(tournamentStatusStyles).toContain(
+      "animation: tournament-registration-pulse",
+    );
+    expect(tournamentStatusStyles).toContain("left: -14px");
+    expect(tournamentStatusStyles).toContain(
+      "@media (prefers-reduced-motion: reduce)",
     );
   });
 });

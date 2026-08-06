@@ -80,6 +80,12 @@ describe("tournament page public behavior", () => {
     );
   });
 
+  it("keeps additional-rule numbers readable in the light theme", () => {
+    expect(stylesSource).toMatch(
+      /\.site-shell\[data-theme="light"\] \.tournament-rules-list li::before\s*\{[^}]*color:\s*#fff;/,
+    );
+  });
+
   it("keeps tournament navigation usable on narrow screens", () => {
     expect(stylesSource).toMatch(
       /\.tabs\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/,
