@@ -21,6 +21,7 @@ const checkRoute = source(
 const repository = source(
   "../app/compendium/services/star-race-repository.ts",
 );
+const service = source("../app/compendium/services/star-race.ts");
 const styles = source("../app/styles/46-compendium-star-race.css");
 const rewardsStyles = source("../app/styles/38-compendium-rewards.css");
 
@@ -39,6 +40,20 @@ describe("compendium star race contract", () => {
     expect(repository).toContain("FROM compendium_star_events");
     expect(repository).toContain("earned_at >= $1::timestamptz");
     expect(repository).toContain("earned_at < $2::timestamptz");
+  });
+
+  it("shows the signed-in player's tied rank from the same race standings", () => {
+    expect(repository).toContain("export async function loadStarRaceRank");
+    expect(repository).toContain(
+      "RANK() OVER (ORDER BY eligible_total.total_stars DESC)",
+    );
+    expect(repository).toContain("WHERE ranked_total.player_id = $3");
+    expect(service).toContain("loadStarRaceRank(user.discordId)");
+    expect(starRaceModel).toContain("personalRank: number | null");
+    expect(starRaceView).toContain("Ваше место в гонке");
+    expect(starRaceView).toContain('race.personalRank ?? "—"');
+    expect(styles).toContain(".compendium-star-race-rank-label");
+    expect(styles).toContain("grid-row: 1 / 5");
   });
 
   it("stores the two-star reward once and only during its Moscow day", () => {

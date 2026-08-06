@@ -131,6 +131,7 @@ export type StarRaceData = {
   startsAt: string;
   endsAt: string;
   totalStars: number | null;
+  personalRank: number | null;
   prizes: readonly StarRacePrize[];
   quests: StarRaceQuest[];
 };

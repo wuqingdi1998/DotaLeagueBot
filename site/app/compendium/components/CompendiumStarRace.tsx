@@ -189,11 +189,21 @@ export function CompendiumStarRace({
             <Link
               className="compendium-star-race-counter"
               href="/compendium/star-race"
-              aria-label={`Открыть рейтинг гонки: ${race.totalStars ?? 0} звёзд`}
+              aria-label={`Открыть рейтинг гонки: ${race.totalStars ?? 0} звёзд, ваше место — ${race.personalRank ?? "пока без места"}`}
             >
               <FaStar aria-hidden="true" />
-              <span>Звёзды за неделю</span>
-              <strong>{race.totalStars ?? 0}</strong>
+              <span className="compendium-star-race-total-label">
+                Звёзды за неделю
+              </span>
+              <strong className="compendium-star-race-total-value">
+                {race.totalStars ?? 0}
+              </strong>
+              <span className="compendium-star-race-rank-label">
+                Ваше место в гонке
+              </span>
+              <strong className="compendium-star-race-rank-value">
+                {race.personalRank ?? "—"}
+              </strong>
               <FiArrowRight aria-hidden="true" />
             </Link>
             <div className="compendium-star-race-prizes">

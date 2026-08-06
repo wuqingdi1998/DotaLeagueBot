@@ -24,6 +24,7 @@ import {
 import {
   existingStarRaceCompletion,
   loadStarRaceCompletions,
+  loadStarRaceRank,
   recordStarRaceCompletion,
   totalStarRaceStars,
 } from "./star-race-repository";
@@ -39,12 +40,14 @@ export async function loadStarRace(
       startsAt: STAR_RACE_START_AT,
       endsAt: STAR_RACE_END_AT,
       totalStars: null,
+      personalRank: null,
       prizes: STAR_RACE_PRIZES,
       quests: [],
     };
   }
-  const [totalStars, completions] = await Promise.all([
+  const [totalStars, personalRank, completions] = await Promise.all([
     totalStarRaceStars(),
+    loadStarRaceRank(user.discordId),
     loadStarRaceCompletions(user.discordId),
   ]);
   return {
@@ -52,6 +55,7 @@ export async function loadStarRace(
     startsAt: STAR_RACE_START_AT,
     endsAt: STAR_RACE_END_AT,
     totalStars,
+    personalRank,
     prizes: STAR_RACE_PRIZES,
     quests: STAR_RACE_QUESTS.map((quest) => {
       const bounds = moscowDayBounds(quest.dateKey);

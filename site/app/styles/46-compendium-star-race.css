@@ -107,12 +107,10 @@
 .compendium-star-race-counter {
   transition: transform 160ms ease, border-color 160ms ease;
 }
-
 .compendium-star-race-counter:hover {
   border-color: color-mix(in srgb, var(--star-race-gold) 70%, transparent);
   transform: translateY(-2px);
 }
-
 .compendium-star-race-counter:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--star-race-gold) 34%, transparent);
   outline-offset: 3px;
@@ -128,7 +126,9 @@
   background: color-mix(in srgb, var(--star-race-gold) 14%, transparent);
   color: var(--star-race-gold);
 }
-
+.compendium-star-race-counter > svg:first-of-type {
+  grid-row: 1 / 5;
+}
 .compendium-star-race-summary span {
   color: var(--muted);
   font-size: 12px;
@@ -142,7 +142,6 @@
   font-size: 18px;
   line-height: 1.35;
 }
-
 .compendium-star-race-counter strong {
   display: inline-flex;
   align-items: center;
@@ -160,10 +159,12 @@
 
 .compendium-star-race-counter > svg:last-child {
   grid-column: 3;
-  grid-row: 1 / 3;
+  grid-row: 1 / 5;
   color: var(--blue-strong);
 }
-
+.compendium-star-race-rank-label {
+  margin-top: 9px;
+}
 .compendium-star-race-prizes {
   display: grid;
   gap: 10px;
