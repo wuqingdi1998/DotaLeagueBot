@@ -48,6 +48,6 @@ describe("weekend bonus integration", () => {
   it("renders the calculated reward inside every eligible challenge card", () => {
     expect(questCard).toContain("<strong>{rewardStars}</strong>");
     expect(runeChallenge).toContain("<strong>{rewardStars}</strong>");
-    expect(dashboard).toContain("quest.position <= 3");
+    expect(dashboard).not.toContain("quest.position <= 3");
   });
 });

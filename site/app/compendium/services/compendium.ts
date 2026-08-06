@@ -9,10 +9,7 @@ import { CompendiumError } from "../model/errors";
 import { findMatchingWin } from "../model/matches";
 import { currentMoscowDay, moscowDateLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
-import {
-  dailyChallengeRewardStars,
-  dailyQuestRewardStars,
-} from "../model/weekend-bonus";
+import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import { fetchRecentPlayerMatches } from "./opendota";
 import {
   consumeCheckAllowance,
@@ -158,7 +155,7 @@ export async function checkDailyQuest(
     questId,
     heroId: matchingWin.heroId,
     matchId: matchingWin.matchId,
-    rewardStars: dailyQuestRewardStars(day.dateKey, quest.position),
+    rewardStars: dailyChallengeRewardStars(day.dateKey),
   });
   const [totalStars, communityStars, rerollsRemaining, quests] =
     await Promise.all([

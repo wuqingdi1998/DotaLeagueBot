@@ -29,7 +29,6 @@ type CompletionRow = {
 
 export type QuestForCheck = {
   id: string;
-  position: number;
   heroIds: number[];
 };
 
@@ -161,8 +160,8 @@ export async function questForCurrentDay(
   dateKey: string,
   playerId: string,
 ): Promise<QuestForCheck | null> {
-  const rows = await query<{ id: string; position: number; hero_id: number }>(
-    `SELECT quest.id::text, quest.position, hero.hero_id
+  const rows = await query<{ id: string; hero_id: number }>(
+    `SELECT quest.id::text, hero.hero_id
      FROM compendium_daily_quests quest
      JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
      LEFT JOIN LATERAL (
@@ -195,13 +194,7 @@ export async function questForCurrentDay(
      ORDER BY hero.position`,
     [questId, dateKey, playerId, BONUS_QUEST_STAR_THRESHOLD],
   );
-  return rows.length
-    ? {
-        id: rows[0].id,
-        position: rows[0].position,
-        heroIds: rows.map((row) => row.hero_id),
-      }
-    : null;
+  return rows.length ? { id: rows[0].id, heroIds: rows.map((row) => row.hero_id) } : null;
 }
 
 export async function existingCompletion(

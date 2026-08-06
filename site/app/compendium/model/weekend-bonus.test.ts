@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   dailyChallengeRewardStars,
-  dailyQuestRewardStars,
   isWeekendBonusDate,
 } from "./weekend-bonus";
 
@@ -22,10 +21,4 @@ describe("weekly weekend bonus", () => {
       expect(dailyChallengeRewardStars(dateKey)).toBe(rewardStars);
     },
   );
-
-  it("keeps the separate fourth bonus quest at one star", () => {
-    expect(dailyQuestRewardStars("2026-08-07", 4)).toBe(1);
-    expect(dailyQuestRewardStars("2026-08-07", 1)).toBe(2);
-    expect(dailyQuestRewardStars("2026-08-07", 3)).toBe(2);
-  });
 });

@@ -20,12 +20,3 @@ export function dailyChallengeRewardStars(
     ? WEEKEND_REWARD_STARS
     : STANDARD_REWARD_STARS;
 }
-
-export function dailyQuestRewardStars(
-  dateKey: string,
-  questPosition: number,
-): DailyChallengeRewardStars {
-  return questPosition <= 3
-    ? dailyChallengeRewardStars(dateKey)
-    : STANDARD_REWARD_STARS;
-}

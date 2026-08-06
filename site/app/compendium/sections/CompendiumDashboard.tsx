@@ -329,9 +329,7 @@ export function CompendiumDashboard({
               <QuestCard
                 key={quest.id}
                 quest={quest}
-                rewardStars={
-                  quest.position <= 3 ? data.dailyChallengeRewardStars : 1
-                }
+                rewardStars={data.dailyChallengeRewardStars}
                 isChecking={checkingQuestId === quest.id}
                 isRerolling={rerollingQuestId === quest.id}
                 canCheck={checkingQuestId === null && rerollingQuestId === null}
