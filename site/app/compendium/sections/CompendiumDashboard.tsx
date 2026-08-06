@@ -17,6 +17,7 @@ import { QuestCard } from "../components/QuestCard";
 import { CompendiumRewards } from "../components/CompendiumRewards";
 import { CompendiumPredictions } from "../components/CompendiumPredictions";
 import { RuneChallenge } from "../components/RuneChallenge";
+import { CompendiumStarRace } from "../components/CompendiumStarRace";
 import type { PredictionScore } from "../model/predictions";
 
 function countdownLabel(nextResetAt: string): string {
@@ -40,6 +41,7 @@ export function CompendiumDashboard({
   const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
   const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null);
+  const [checkingStarRaceDate, setCheckingStarRaceDate] = useState<string | null>(null);
   const [toast, setToast] = useState("");
   const [countdown, setCountdown] = useState(() => countdownLabel(data.nextResetAt));
   const [tournamentCountdown, setTournamentCountdown] = useState(() =>
@@ -183,6 +185,43 @@ export function CompendiumDashboard({
     }
   }
 
+  async function checkStarRaceQuest(dateKey: string) {
+    if (checkingStarRaceDate || checkingQuestId || rerollingQuestId) return;
+    setCheckingStarRaceDate(dateKey);
+    try {
+      const response = await fetch(
+        `/api/compendium/star-race/quests/${dateKey}/check`,
+        { method: "POST" },
+      );
+      const result = (await response.json()) as {
+        error?: string;
+        code?: string;
+        starRace?: CompendiumData["starRace"];
+        totalStars?: number;
+        communityStars?: number;
+      };
+      if (!response.ok || !result.starRace) {
+        if (result.code === "STAR_RACE_NOT_ACTIVE") router.refresh();
+        throw new Error(result.error ?? "Не удалось проверить задание гонки");
+      }
+      setData((current) => ({
+        ...current,
+        starRace: result.starRace ?? current.starRace,
+        totalStars: result.totalStars ?? current.totalStars,
+        communityStars: result.communityStars ?? current.communityStars,
+      }));
+      setToast("Задание выполнено. Вы получили 2 звезды!");
+    } catch (error) {
+      setToast(
+        error instanceof Error
+          ? error.message
+          : "Не удалось проверить задание гонки",
+      );
+    } finally {
+      setCheckingStarRaceDate(null);
+    }
+  }
+
   return (
     <div className="compendium-page">
       <CompendiumHeroImagePreloader />
@@ -225,7 +264,7 @@ export function CompendiumDashboard({
         </div>
       </section>
 
-      {!data.hasDotaId ? (
+      {!data.hasDotaId && (
         <section className="compendium-link-profile">
           <FaDiscord aria-hidden="true" />
           <div>
@@ -236,14 +275,28 @@ export function CompendiumDashboard({
             Перейти в Discord
           </a>
         </section>
-      ) : (
+      )}
+      <section className="compendium-rewards-section" id="compendium-rewards">
+        {data.hasDotaId && (
+          <CompendiumRewards
+            personalStars={data.totalStars}
+            communityStars={data.communityStars}
+          />
+        )}
+        <CompendiumStarRace
+          race={data.starRace}
+          checkingDateKey={checkingStarRaceDate}
+          canCheck={
+            data.hasDotaId &&
+            checkingStarRaceDate === null &&
+            checkingQuestId === null &&
+            rerollingQuestId === null
+          }
+          onCheck={checkStarRaceQuest}
+        />
+      </section>
+      {data.hasDotaId && (
         <>
-          <section className="compendium-rewards-section" id="compendium-rewards">
-            <CompendiumRewards
-              personalStars={data.totalStars}
-              communityStars={data.communityStars}
-            />
-          </section>
           <section className="compendium-daily-section" id="compendium-quests">
           <div className="compendium-section-heading">
             <div><span>Обновление ежедневно в 00:00 МСК</span><h2>Задания дня</h2></div>

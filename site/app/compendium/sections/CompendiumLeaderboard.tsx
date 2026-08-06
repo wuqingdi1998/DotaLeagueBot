@@ -25,8 +25,14 @@ function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
 
 export function CompendiumLeaderboard({
   participants,
+  eyebrow = "THE INTERNATIONAL 2026",
+  title = "Рейтинг участников",
+  description = "Звёзды, заработанные за всё время ивента.",
 }: {
   participants: CompendiumLeaderboardEntry[];
+  eyebrow?: string;
+  title?: string;
+  description?: string;
 }) {
   return (
     <main className="compendium-leaderboard-page">
@@ -34,9 +40,9 @@ export function CompendiumLeaderboard({
         <Link href="/compendium" className="compendium-leaderboard-back">
           <FiArrowLeft aria-hidden="true" /> К Компендиуму
         </Link>
-        <span>THE INTERNATIONAL 2026</span>
-        <h1>Рейтинг участников</h1>
-        <p>Звёзды, заработанные за всё время ивента.</p>
+        <span>{eyebrow}</span>
+        <h1>{title}</h1>
+        <p>{description}</p>
       </header>
 
       <section

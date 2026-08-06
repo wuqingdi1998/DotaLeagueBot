@@ -1,0 +1,224 @@
+import type { PoolClient } from "pg";
+import { one, query, transaction } from "@/lib/db";
+import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
+import { CompendiumError } from "../model/errors";
+import type { MatchingWin } from "../model/types";
+import {
+  STAR_RACE_END_AT,
+  STAR_RACE_START_AT,
+  type StarRaceQuestCompletion,
+} from "../model/star-race";
+import { compendiumHeroById } from "../model/heroes";
+
+type StarRaceCompletionRow = {
+  completion_id: string;
+  moscow_date: string;
+  completed_at: Date;
+  hero_id: number;
+  matched_match_id: string;
+};
+
+type StarRaceLeaderboardRow = {
+  rank: number;
+  player_id: string;
+  dota_id: string;
+  player_name: string;
+  avatar_url: string | null;
+  total_stars: number;
+};
+
+export type StarRaceCompletionByDate = Map<
+  string,
+  StarRaceQuestCompletion
+>;
+
+function completionsFromRows(
+  rows: StarRaceCompletionRow[],
+): StarRaceCompletionByDate {
+  const completions = new Map<string, StarRaceQuestCompletion>();
+  for (const row of rows) {
+    const completion = completions.get(row.moscow_date) ?? {
+      completedAt: row.completed_at.toISOString(),
+      wins: [],
+    };
+    completion.wins.push({
+      hero: compendiumHeroById(row.hero_id),
+      matchId: row.matched_match_id,
+    });
+    completions.set(row.moscow_date, completion);
+  }
+  return completions;
+}
+
+const completionSelect = `
+  SELECT
+    completion.id::text AS completion_id,
+    completion.moscow_date::text,
+    completion.completed_at,
+    win.hero_id,
+    win.matched_match_id::text
+  FROM compendium_star_race_quest_completions completion
+  JOIN compendium_star_race_quest_wins win
+    ON win.completion_id = completion.id
+  WHERE completion.player_id = $1
+    AND ($2::date IS NULL OR completion.moscow_date = $2::date)
+  ORDER BY completion.moscow_date, win.position`;
+
+export async function loadStarRaceCompletions(
+  playerId: string,
+): Promise<StarRaceCompletionByDate> {
+  return completionsFromRows(
+    await query<StarRaceCompletionRow>(completionSelect, [playerId, null]),
+  );
+}
+
+export async function existingStarRaceCompletion(
+  playerId: string,
+  dateKey: string,
+): Promise<StarRaceQuestCompletion | null> {
+  const rows = await query<StarRaceCompletionRow>(completionSelect, [
+    playerId,
+    dateKey,
+  ]);
+  return completionsFromRows(rows).get(dateKey) ?? null;
+}
+
+export async function totalStarRaceStars(): Promise<number> {
+  const row = await one<{ total: number }>(
+    `SELECT COALESCE(SUM(player_total.total), 0)::int AS total
+     FROM (
+       SELECT GREATEST(0, SUM(event.amount))::int AS total
+       FROM compendium_star_events event
+       WHERE event.earned_at >= $1::timestamptz
+         AND event.earned_at < $2::timestamptz
+       GROUP BY event.player_id
+     ) player_total`,
+    [STAR_RACE_START_AT, STAR_RACE_END_AT],
+  );
+  return row?.total ?? 0;
+}
+
+export async function loadStarRaceLeaderboard(): Promise<
+  CompendiumLeaderboardEntry[]
+> {
+  const rows = await query<StarRaceLeaderboardRow>(
+    `WITH race_totals AS (
+       SELECT
+         event.player_id,
+         GREATEST(0, SUM(event.amount))::int AS total_stars
+       FROM compendium_star_events event
+       WHERE event.earned_at >= $1::timestamptz
+         AND event.earned_at < $2::timestamptz
+       GROUP BY event.player_id
+     )
+     SELECT
+       (RANK() OVER (ORDER BY race_total.total_stars DESC))::int AS rank,
+       player.discord_id::text AS player_id,
+       player.steam_id32::text AS dota_id,
+       player.ingame_name AS player_name,
+       COALESCE(
+         NULLIF(player.avatar_url, ''),
+         NULLIF(latest_session.discord_avatar_url, '')
+       ) AS avatar_url,
+       race_total.total_stars
+     FROM race_totals race_total
+     JOIN players player ON player.discord_id = race_total.player_id
+     LEFT JOIN LATERAL (
+       SELECT session.discord_avatar_url
+       FROM web_sessions session
+       WHERE session.discord_id = player.discord_id
+         AND session.discord_avatar_url IS NOT NULL
+       ORDER BY session.created_at DESC
+       LIMIT 1
+     ) latest_session ON TRUE
+     WHERE race_total.total_stars > 0
+       AND player.is_archived = FALSE
+       AND player.steam_id32 BETWEEN 1 AND 4294967295
+     ORDER BY
+       race_total.total_stars DESC,
+       LOWER(player.ingame_name),
+       player.discord_id`,
+    [STAR_RACE_START_AT, STAR_RACE_END_AT],
+  );
+  return rows.map((row) => ({
+    rank: Number(row.rank),
+    playerId: row.player_id,
+    dotaId: row.dota_id,
+    playerName: row.player_name,
+    avatarUrl: row.avatar_url,
+    totalStars: Number(row.total_stars),
+  }));
+}
+
+async function completionFromClient(
+  client: PoolClient,
+  playerId: string,
+  dateKey: string,
+): Promise<StarRaceQuestCompletion | null> {
+  const result = await client.query<StarRaceCompletionRow>(completionSelect, [
+    playerId,
+    dateKey,
+  ]);
+  return completionsFromRows(result.rows).get(dateKey) ?? null;
+}
+
+export async function recordStarRaceCompletion(input: {
+  playerId: string;
+  dateKey: string;
+  rewardStars: number;
+  wins: MatchingWin[];
+}): Promise<StarRaceQuestCompletion> {
+  return transaction(async (client) => {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      `compendium-star-race:${input.playerId}:${input.dateKey}`,
+    ]);
+    const completed = await completionFromClient(
+      client,
+      input.playerId,
+      input.dateKey,
+    );
+    if (completed) return completed;
+
+    const activeDate = await client.query(
+      `SELECT 1
+       WHERE $1::date =
+         (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
+         AND CURRENT_TIMESTAMP >= $2::timestamptz
+         AND CURRENT_TIMESTAMP < $3::timestamptz`,
+      [input.dateKey, STAR_RACE_START_AT, STAR_RACE_END_AT],
+    );
+    if (!activeDate.rowCount) {
+      throw new CompendiumError(
+        "STAR_RACE_NOT_ACTIVE",
+        "Задание доступно только в назначенный день по московскому времени.",
+      );
+    }
+
+    const inserted = await client.query<{ id: string }>(
+      `INSERT INTO compendium_star_race_quest_completions
+         (player_id, moscow_date, reward_amount)
+       VALUES ($1, $2::date, $3)
+       ON CONFLICT (player_id, moscow_date) DO NOTHING
+       RETURNING id::text`,
+      [input.playerId, input.dateKey, input.rewardStars],
+    );
+    if (inserted.rowCount) {
+      const completionId = inserted.rows[0].id;
+      for (const [index, win] of input.wins.entries()) {
+        await client.query(
+          `INSERT INTO compendium_star_race_quest_wins
+             (completion_id, player_id, position, hero_id, matched_match_id)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [completionId, input.playerId, index + 1, win.heroId, win.matchId],
+        );
+      }
+    }
+    const saved = await completionFromClient(
+      client,
+      input.playerId,
+      input.dateKey,
+    );
+    if (!saved) throw new Error("Star race completion was not saved");
+    return saved;
+  });
+}

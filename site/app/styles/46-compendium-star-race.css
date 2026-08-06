@@ -1,0 +1,410 @@
+.compendium-star-race {
+  position: relative;
+  overflow: hidden;
+  margin-top: 20px;
+  padding: 28px;
+  border: 1px solid rgba(225, 169, 48, 0.42);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 94% 0, rgba(245, 193, 69, 0.2), transparent 27%),
+    linear-gradient(135deg, rgba(210, 146, 26, 0.12), rgba(121, 73, 187, 0.06)),
+    var(--surface);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.compendium-star-race::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: linear-gradient(90deg, #d99b24, #ffe08a, #9067d6);
+  content: "";
+}
+
+.compendium-star-race-heading span {
+  color: #a97412;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.site-shell[data-theme="light"] .compendium-star-race-heading span {
+  color: #755000;
+}
+
+.compendium-star-race-heading h2 {
+  margin: 5px 0 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+.compendium-star-race-soon {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  gap: 15px;
+  align-items: center;
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid rgba(225, 169, 48, 0.32);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-soft) 82%, transparent);
+}
+
+.compendium-star-race-soon > svg {
+  width: 50px;
+  height: 50px;
+  padding: 13px;
+  border-radius: 15px;
+  background: rgba(225, 169, 48, 0.14);
+  color: #c08a20;
+}
+
+.compendium-star-race-soon > div {
+  display: grid;
+  gap: 4px;
+}
+
+.compendium-star-race-soon > div strong {
+  font-size: 18px;
+}
+
+.compendium-star-race-soon > div span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.compendium-star-race-soon > b {
+  color: var(--text);
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(20px, 3vw, 32px);
+  font-variant-numeric: tabular-nums;
+}
+
+.compendium-star-race-summary {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(360px, 1.3fr);
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.compendium-star-race-summary > a,
+.compendium-star-race-summary > div {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  column-gap: 13px;
+  align-items: center;
+  min-height: 92px;
+  padding: 17px 18px;
+  border: 1px solid rgba(225, 169, 48, 0.32);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+}
+
+.compendium-star-race-summary > a {
+  transition: transform 160ms ease, border-color 160ms ease;
+}
+
+.compendium-star-race-summary > a:hover {
+  border-color: rgba(225, 169, 48, 0.7);
+  transform: translateY(-2px);
+}
+
+.compendium-star-race-summary > a:focus-visible {
+  outline: 3px solid rgba(225, 169, 48, 0.34);
+  outline-offset: 3px;
+}
+
+.compendium-star-race-summary > a > svg:first-of-type,
+.compendium-star-race-summary > div > svg {
+  grid-row: 1 / 3;
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  border-radius: 13px;
+  background: rgba(225, 169, 48, 0.14);
+  color: #c08a20;
+}
+
+.compendium-star-race-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.compendium-star-race-summary strong {
+  align-self: start;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.compendium-star-race-summary > a strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #d19a28;
+  font-size: 28px;
+}
+
+.site-shell[data-theme="light"] .compendium-star-race-summary > a strong,
+.site-shell[data-theme="light"] .compendium-star-race-soon > svg,
+.site-shell[data-theme="light"] .compendium-star-race-summary > a > svg:first-of-type,
+.site-shell[data-theme="light"] .compendium-star-race-summary > div > svg {
+  color: #755000;
+}
+
+.compendium-star-race-summary > a > svg:last-child {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  color: var(--blue-strong);
+}
+
+.compendium-star-race-quests {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.compendium-star-race-quest {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 260px;
+  flex-direction: column;
+  padding: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface-soft);
+}
+
+.compendium-star-race-quest::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #667b87;
+  content: "";
+}
+
+.compendium-star-race-quest.active {
+  border-color: rgba(225, 169, 48, 0.64);
+  box-shadow: 0 12px 28px rgba(157, 105, 15, 0.16);
+}
+
+.compendium-star-race-quest.active::before,
+.compendium-star-race-quest.completed::before {
+  background: linear-gradient(90deg, #d99b24, #ffe08a);
+}
+
+.compendium-star-race-quest.finished:not(.completed) {
+  opacity: 0.72;
+  filter: grayscale(0.55);
+}
+
+.compendium-star-race-quest > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.compendium-star-race-quest > header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.compendium-star-race-quest > header span {
+  color: var(--quiet);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.compendium-star-race-quest > header strong {
+  font-size: 13px;
+}
+
+.compendium-star-race-reward {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: rgba(225, 169, 48, 0.15);
+  color: #c08a20;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.site-shell[data-theme="light"] .compendium-star-race-reward {
+  color: #755000;
+}
+
+.compendium-star-race-quest h3 {
+  margin: 18px 0 8px;
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.compendium-star-race-quest > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.compendium-star-race-heroes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.compendium-star-race-heroes .compendium-hero strong {
+  font-size: 10px;
+}
+
+.compendium-star-race-completion {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  margin-top: auto;
+  padding-top: 16px;
+  color: #38b596;
+}
+
+.compendium-star-race-completion > div {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.compendium-star-race-completion a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--blue-strong);
+  font-size: 10px;
+}
+
+.compendium-star-race-action {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.compendium-star-race-action > div {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 3px 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.compendium-star-race-action > div svg {
+  grid-row: 1 / 3;
+}
+
+.compendium-star-race-action > div strong {
+  color: var(--text);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compendium-star-race-action button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #bd7e12, #8f5f0b);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.compendium-star-race-action button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.compendium-star-race-status,
+.compendium-star-race-empty-quest {
+  display: grid;
+  flex: 1;
+  place-items: center;
+  margin-top: 16px;
+  padding: 18px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 13px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 1180px) {
+  .compendium-star-race-quests {
+    grid-template-columns: repeat(7, minmax(210px, 1fr));
+    overflow-x: auto;
+    padding: 2px 2px 12px;
+    scroll-snap-type: x proximity;
+  }
+
+  .compendium-star-race-quest {
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 720px) {
+  .compendium-star-race {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .compendium-star-race-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .compendium-star-race-summary > a,
+  .compendium-star-race-summary > div {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    padding: 14px;
+  }
+
+  .compendium-star-race-soon {
+    grid-template-columns: 42px minmax(0, 1fr);
+    padding: 16px;
+  }
+
+  .compendium-star-race-soon > svg {
+    width: 42px;
+    height: 42px;
+    padding: 10px;
+  }
+
+  .compendium-star-race-soon > b {
+    grid-column: 1 / -1;
+    text-align: center;
+  }
+
+  .compendium-star-race-quests {
+    margin-right: -18px;
+    grid-template-columns: repeat(7, minmax(82vw, 1fr));
+  }
+
+  .compendium-star-race-quest {
+    min-height: 300px;
+  }
+
+  .compendium-star-race-heroes {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

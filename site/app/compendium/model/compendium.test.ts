@@ -4,7 +4,11 @@ import {
   DAILY_HERO_COUNT,
 } from "./constants";
 import { COMPENDIUM_HEROES } from "./heroes";
-import { findMatchingWin, matchEndedAt } from "./matches";
+import {
+  findDistinctMatchingWins,
+  findMatchingWin,
+  matchEndedAt,
+} from "./matches";
 import {
   generateDailyQuestHeroes,
   generateBonusQuestHeroes,
@@ -230,5 +234,27 @@ describe("OpenDota match qualification", () => {
 
   it("does not count a match that has not ended at check time", () => {
     expect(matching([match({ start_time: Date.parse("2026-08-01T17:50:00Z") / 1_000 })])).toBeNull();
+  });
+
+  it("requires wins on two different allowed heroes for the star race", () => {
+    const firstHeroWin = match({ match_id: 9101, hero_id: 97 });
+    const sameHeroWin = match({ match_id: 9102, hero_id: 97 });
+    const secondHeroWin = match({ match_id: 9103, hero_id: 3 });
+    const input = {
+      heroIds: [97, 3, 112, 106, 109],
+      requiredDistinctWins: 2,
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    };
+
+    expect(findDistinctMatchingWins({
+      ...input,
+      matches: [firstHeroWin, sameHeroWin],
+    })).toBeNull();
+    expect(findDistinctMatchingWins({
+      ...input,
+      matches: [firstHeroWin, sameHeroWin, secondHeroWin],
+    })?.map((win) => win.heroId)).toEqual([97, 3]);
   });
 });

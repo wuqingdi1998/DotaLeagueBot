@@ -13,7 +13,8 @@ export type CompendiumErrorCode =
   | "RUNE_HERO_LOCKED"
   | "PREDICTION_INVALID"
   | "PREDICTION_NOT_FOUND"
-  | "PREDICTION_LOCKED";
+  | "PREDICTION_LOCKED"
+  | "STAR_RACE_NOT_ACTIVE";
 
 export class CompendiumError extends Error {
   constructor(

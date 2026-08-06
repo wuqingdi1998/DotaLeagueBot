@@ -27,6 +27,7 @@ import {
 import { loadDailyPredictions } from "./prediction-repository";
 import { requireCompendiumDotaId } from "./participant";
 import { loadRuneChallenge } from "./rune-challenge";
+import { loadStarRace } from "./star-race";
 
 export type CheckQuestResult = {
   completion: QuestCompletion;
@@ -47,13 +48,14 @@ export async function loadCompendium(
 ): Promise<CompendiumData> {
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey, user.discordId);
-  const [quests, totalStars, communityStars, rerollsRemaining, runeChallenge, predictions] = await Promise.all([
+  const [quests, totalStars, communityStars, rerollsRemaining, runeChallenge, predictions, starRace] = await Promise.all([
     loadDailyQuests(day.dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
     totalCommunityCompendiumStars(),
     dailyRerollsRemaining(day.dateKey, user.discordId),
     loadRuneChallenge(user.discordId, day.dateKey),
     loadDailyPredictions(day.dateKey, user.discordId, now),
+    loadStarRace(user, now),
   ]);
   return {
     moscowDate: day.dateKey,
@@ -63,6 +65,7 @@ export async function loadCompendium(
     rerollsRemaining,
     totalStars,
     communityStars,
+    starRace,
     hasDotaId: normalizeDotaAccountId(user.dotaId) !== null,
     quests,
     runeChallenge,

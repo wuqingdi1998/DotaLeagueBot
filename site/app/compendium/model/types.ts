@@ -58,6 +58,7 @@ export type CompendiumData = {
   rerollsRemaining: number;
   totalStars: number;
   communityStars: number;
+  starRace: import("./star-race").StarRaceData;
   hasDotaId: boolean;
   quests: DailyQuest[];
   runeChallenge: RuneChallengeData;
