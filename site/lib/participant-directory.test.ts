@@ -92,6 +92,18 @@ describe("hall of fame and participant directory", () => {
     );
   });
 
+  it("groups gold and silver closer to bronze only on desktop", () => {
+    expect(hallStyles).toMatch(
+      /\.hall-row\s*\{[^}]*grid-template-columns:\s*90px minmax\(220px, 1fr\) 108px 108px 120px;/,
+    );
+    expect(hallStyles).toMatch(
+      /@media \(max-width:\s*900px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*44px\)/,
+    );
+    expect(hallStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*30px\)/,
+    );
+  });
+
   it("centers participant column headings over roles, tiers and profiles", () => {
     expect(directoryStyles).toMatch(
       /\.participants-row\.hall-head > span:nth-child\(n \+ 3\)\s*\{[^}]*justify-self:\s*center;[^}]*text-align:\s*center;/,
