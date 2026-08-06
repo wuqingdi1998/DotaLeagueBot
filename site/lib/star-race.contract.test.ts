@@ -59,13 +59,18 @@ describe("compendium star race contract", () => {
     expect(starRaceModel).toContain("Primal Beast");
   });
 
-  it("shows separate linked prize images for the top two places", () => {
+  it("previews each top-two prize image from its visibly interactive name", () => {
     expect(starRaceModel).toContain("Beast of Thunder");
     expect(starRaceView).toContain("race.prizes.map");
     expect(starRaceView).toContain("Награда за топ-${prize.place}");
-    expect(starRaceView).toContain("href={prize.imageUrl}");
-    expect(starRaceView).toContain('target="_blank"');
-    expect(starRaceView).toContain('rel="noreferrer"');
+    expect(starRaceView).toContain("src={prize.imageUrl}");
+    expect(starRaceView).toContain('role="tooltip"');
+    expect(starRaceView).toContain("tabIndex={0}");
+    expect(starRaceView).not.toContain("href={prize.imageUrl}");
+    expect(styles).toContain(
+      ".compendium-star-race-prize-name:hover .compendium-star-race-prize-preview",
+    );
+    expect(styles).toContain("border-bottom: 1px dashed");
   });
 
   it("identifies the checked player only through the signed-in session", () => {

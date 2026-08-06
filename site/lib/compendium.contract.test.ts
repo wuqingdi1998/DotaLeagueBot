@@ -221,6 +221,8 @@ describe("compendium persistence and security contract", () => {
     expect(rerollNotice).toContain(
       "Учитываются только рейтинговые победы завершенные до 23:59 текущего",
     );
+    expect(rerollNotice).toContain("по московскому времени");
+    expect(rerollNotice).not.toContain("по Московскому времени");
     expect(dashboard).not.toContain('className="compendium-note"');
     expect(dashboard).not.toContain("К турнирам сообщества");
   });

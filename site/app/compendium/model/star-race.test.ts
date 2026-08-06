@@ -9,7 +9,7 @@ import {
 } from "./star-race";
 
 describe("star race schedule", () => {
-  it("publishes separate clickable prizes for first and second place", () => {
+  it("publishes separate previewable prizes for first and second place", () => {
     expect(STAR_RACE_PRIZES).toEqual([
       {
         place: 1,

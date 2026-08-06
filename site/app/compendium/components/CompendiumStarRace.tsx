@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaStar } from "react-icons/fa";
@@ -10,6 +11,7 @@ import {
   FiClock,
   FiExternalLink,
   FiGift,
+  FiImage,
   FiLoader,
 } from "react-icons/fi";
 import type { StarRaceData, StarRaceQuest } from "../model/star-race";
@@ -196,18 +198,35 @@ export function CompendiumStarRace({
             </Link>
             <div className="compendium-star-race-prizes">
               {race.prizes.map((prize) => (
-                <a
+                <div
                   className="compendium-star-race-prize"
-                  href={prize.imageUrl}
-                  target="_blank"
-                  rel="noreferrer"
                   key={prize.place}
                 >
                   <FiGift aria-hidden="true" />
-                  <span>{`Награда за топ-${prize.place}`}</span>
-                  <strong>{prize.title}</strong>
-                  <FiExternalLink aria-hidden="true" />
-                </a>
+                  <span className="compendium-star-race-prize-label">
+                    {`Награда за топ-${prize.place}`}
+                  </span>
+                  <span
+                    className="compendium-star-race-prize-name"
+                    tabIndex={0}
+                    aria-label={`${prize.title}. Изображение появится при наведении или фокусе.`}
+                  >
+                    <strong>{prize.title}</strong>
+                    <FiImage aria-hidden="true" />
+                    <span
+                      className="compendium-star-race-prize-preview"
+                      role="tooltip"
+                    >
+                      <Image
+                        src={prize.imageUrl}
+                        alt={prize.title}
+                        width={480}
+                        height={436}
+                        unoptimized
+                      />
+                    </span>
+                  </span>
+                </div>
               ))}
             </div>
           </div>

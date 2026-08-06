@@ -82,6 +82,8 @@
 }
 
 .compendium-star-race-summary {
+  position: relative;
+  z-index: 2;
   display: grid;
   grid-template-columns: minmax(260px, 0.7fr) minmax(360px, 1.3fr);
   gap: 14px;
@@ -102,19 +104,16 @@
   background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
 }
 
-.compendium-star-race-counter,
-.compendium-star-race-prize {
+.compendium-star-race-counter {
   transition: transform 160ms ease, border-color 160ms ease;
 }
 
-.compendium-star-race-counter:hover,
-.compendium-star-race-prize:hover {
+.compendium-star-race-counter:hover {
   border-color: color-mix(in srgb, var(--star-race-gold) 70%, transparent);
   transform: translateY(-2px);
 }
 
-.compendium-star-race-counter:focus-visible,
-.compendium-star-race-prize:focus-visible {
+.compendium-star-race-counter:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--star-race-gold) 34%, transparent);
   outline-offset: 3px;
 }
@@ -159,8 +158,7 @@
   color: #805300;
 }
 
-.compendium-star-race-counter > svg:last-child,
-.compendium-star-race-prize > svg:last-child {
+.compendium-star-race-counter > svg:last-child {
   grid-column: 3;
   grid-row: 1 / 3;
   color: var(--blue-strong);
@@ -176,14 +174,79 @@
   padding-block: 14px;
 }
 
-.compendium-star-race-prize strong {
-  padding-right: 8px;
-  font-size: 16px;
+.compendium-star-race-prize-label {
+  grid-column: 2 / 4;
+  grid-row: 1;
 }
-
-.compendium-star-race-prize > svg:last-child {
+.compendium-star-race-prize-name {
+  position: relative;
+  display: inline-flex;
+  grid-column: 2 / 4;
+  grid-row: 2;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  cursor: zoom-in;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.compendium-star-race-prize-name > strong {
+  border-bottom: 1px dashed color-mix(in srgb, var(--blue-strong) 70%, transparent);
+  font-size: 16px;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+.compendium-star-race-prize-name > svg {
+  flex: 0 0 auto;
   width: 18px;
   height: 18px;
+  color: var(--blue-strong);
+}
+
+.compendium-star-race-prize-name:hover > strong,
+.compendium-star-race-prize-name:focus-visible > strong {
+  border-color: var(--star-race-gold);
+  color: var(--star-race-gold);
+}
+
+.compendium-star-race-prize-name:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--star-race-gold) 34%, transparent);
+  outline-offset: 4px;
+}
+
+.compendium-star-race-prize-preview {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(380px, 74vw);
+  padding: 8px;
+  visibility: hidden;
+  border: 1px solid color-mix(in srgb, var(--star-race-gold) 55%, transparent);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+}
+
+.compendium-star-race-prize-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 360px;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.compendium-star-race-prize-name:hover .compendium-star-race-prize-preview,
+.compendium-star-race-prize-name:focus-visible .compendium-star-race-prize-preview {
+  visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .compendium-star-race-quests {
