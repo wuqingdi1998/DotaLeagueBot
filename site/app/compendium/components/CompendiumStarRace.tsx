@@ -185,6 +185,7 @@ export function CompendiumStarRace({
         <>
           <div className="compendium-star-race-summary">
             <Link
+              className="compendium-star-race-counter"
               href="/compendium/star-race"
               aria-label={`Открыть рейтинг гонки: ${race.totalStars ?? 0} звёзд`}
             >
@@ -193,10 +194,21 @@ export function CompendiumStarRace({
               <strong>{race.totalStars ?? 0}</strong>
               <FiArrowRight aria-hidden="true" />
             </Link>
-            <div>
-              <FiGift aria-hidden="true" />
-              <span>Награда за топ-1</span>
-              <strong>{race.prize}</strong>
+            <div className="compendium-star-race-prizes">
+              {race.prizes.map((prize) => (
+                <a
+                  className="compendium-star-race-prize"
+                  href={prize.imageUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  key={prize.place}
+                >
+                  <FiGift aria-hidden="true" />
+                  <span>{`Награда за топ-${prize.place}`}</span>
+                  <strong>{prize.title}</strong>
+                  <FiExternalLink aria-hidden="true" />
+                </a>
+              ))}
             </div>
           </div>
           <div className="compendium-star-race-quests">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   STAR_RACE_END_AT,
+  STAR_RACE_PRIZES,
   STAR_RACE_QUESTS,
   STAR_RACE_START_AT,
   starRacePhase,
@@ -8,6 +9,23 @@ import {
 } from "./star-race";
 
 describe("star race schedule", () => {
+  it("publishes separate clickable prizes for first and second place", () => {
+    expect(STAR_RACE_PRIZES).toEqual([
+      {
+        place: 1,
+        title: "Сет Beast of Thunder на Storm Spirit",
+        imageUrl:
+          "/compendium/star-race/beast-of-thunder-storm-spirit.gif",
+      },
+      {
+        place: 2,
+        title: "Сет Primeval Abomination на Primal Beast",
+        imageUrl:
+          "/compendium/star-race/primeval-abomination-primal-beast.jpg",
+      },
+    ]);
+  });
+
   it("runs from 10 through 16 August 2026 in Moscow", () => {
     expect(new Date(STAR_RACE_START_AT).toISOString()).toBe(
       "2026-08-09T21:00:00.000Z",

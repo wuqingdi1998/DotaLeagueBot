@@ -4,8 +4,20 @@ import type { CompendiumHero } from "./types";
 
 export const STAR_RACE_START_AT = "2026-08-10T00:00:00+03:00";
 export const STAR_RACE_END_AT = "2026-08-17T00:00:00+03:00";
-export const STAR_RACE_PRIZE =
-  "Сет Primeval Abomination на Primal Beast";
+export const STAR_RACE_PRIZES = [
+  {
+    place: 1,
+    title: "Сет Beast of Thunder на Storm Spirit",
+    imageUrl: "/compendium/star-race/beast-of-thunder-storm-spirit.gif",
+  },
+  {
+    place: 2,
+    title: "Сет Primeval Abomination на Primal Beast",
+    imageUrl: "/compendium/star-race/primeval-abomination-primal-beast.jpg",
+  },
+] as const;
+
+export type StarRacePrize = (typeof STAR_RACE_PRIZES)[number];
 
 export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
@@ -119,7 +131,7 @@ export type StarRaceData = {
   startsAt: string;
   endsAt: string;
   totalStars: number | null;
-  prize: string;
+  prizes: readonly StarRacePrize[];
   quests: StarRaceQuest[];
 };
 

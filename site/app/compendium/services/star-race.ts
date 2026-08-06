@@ -3,7 +3,7 @@ import { CompendiumError } from "../model/errors";
 import { findDistinctMatchingWins } from "../model/matches";
 import {
   STAR_RACE_END_AT,
-  STAR_RACE_PRIZE,
+  STAR_RACE_PRIZES,
   STAR_RACE_QUESTS,
   STAR_RACE_START_AT,
   starRacePhase,
@@ -39,7 +39,7 @@ export async function loadStarRace(
       startsAt: STAR_RACE_START_AT,
       endsAt: STAR_RACE_END_AT,
       totalStars: null,
-      prize: STAR_RACE_PRIZE,
+      prizes: STAR_RACE_PRIZES,
       quests: [],
     };
   }
@@ -52,7 +52,7 @@ export async function loadStarRace(
     startsAt: STAR_RACE_START_AT,
     endsAt: STAR_RACE_END_AT,
     totalStars,
-    prize: STAR_RACE_PRIZE,
+    prizes: STAR_RACE_PRIZES,
     quests: STAR_RACE_QUESTS.map((quest) => {
       const bounds = moscowDayBounds(quest.dateKey);
       return {

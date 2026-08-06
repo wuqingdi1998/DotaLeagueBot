@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { getSession } from "@/lib/auth";
-import { starRacePhase } from "../model/star-race";
+import { STAR_RACE_PRIZES, starRacePhase } from "../model/star-race";
 import { CompendiumLeaderboard } from "../sections/CompendiumLeaderboard";
 import { loadStarRaceLeaderboard } from "../services/star-race-repository";
 
@@ -28,7 +28,7 @@ export default async function StarRaceLeaderboardPage() {
         participants={participants}
         eyebrow="10–16 АВГУСТА 2026"
         title="Гонка за звёздами"
-        description="Звёзды, полученные всеми способами только за неделю гонки. Награда за первое место — сет Primeval Abomination на Primal Beast."
+        description={`Звёзды, полученные всеми способами только за неделю гонки. Награда за первое место — ${STAR_RACE_PRIZES[0].title}; за второе — ${STAR_RACE_PRIZES[1].title}.`}
       />
     </PlatformShell>
   );

@@ -59,6 +59,15 @@ describe("compendium star race contract", () => {
     expect(starRaceModel).toContain("Primal Beast");
   });
 
+  it("shows separate linked prize images for the top two places", () => {
+    expect(starRaceModel).toContain("Beast of Thunder");
+    expect(starRaceView).toContain("race.prizes.map");
+    expect(starRaceView).toContain("Награда за топ-${prize.place}");
+    expect(starRaceView).toContain("href={prize.imageUrl}");
+    expect(starRaceView).toContain('target="_blank"');
+    expect(starRaceView).toContain('rel="noreferrer"');
+  });
+
   it("identifies the checked player only through the signed-in session", () => {
     expect(checkRoute).toContain("const user = await requireSession()");
     expect(checkRoute).not.toContain("playerId");
