@@ -79,9 +79,13 @@ a {
   --surface-soft: #eaf6fd;
   --surface-blue: #dff4ff;
   --surface-violet: #eef0ff;
-  --text: #143a52;
-  --muted: #506f82;
-  --quiet: #6d8999;
+  --blue: #006b9f;
+  --blue-soft: #1c6687;
+  --blue-strong: #006a9e;
+  --blue-deep: #064f7d;
+  --text: #071f2f;
+  --muted: #294c61;
+  --quiet: #456578;
   --line: rgba(20, 91, 132, 0.15);
   --line-strong: rgba(0, 164, 222, 0.38);
   --shadow: 0 24px 70px rgba(26, 104, 148, 0.13);
@@ -102,6 +106,8 @@ a {
   --surface-soft: #122f42;
   --surface-blue: #0e3b52;
   --surface-violet: #182948;
+  --blue: #00c3ff;
+  --blue-soft: #79ddff;
   --text: #f6fbff;
   --muted: #b2cad8;
   --quiet: #89a8ba;

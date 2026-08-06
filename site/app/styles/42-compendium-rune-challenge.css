@@ -254,6 +254,22 @@
   font-weight: 700;
 }
 
+.site-shell[data-theme="light"] .compendium-rune-heading > div:first-child > span,
+.site-shell[data-theme="light"] .compendium-rune-selected-hero span {
+  color: #60409c;
+}
+
+.site-shell[data-theme="light"] .compendium-rune-first-selection,
+.site-shell[data-theme="light"] .compendium-rune-selected-hero,
+.site-shell[data-theme="light"] .compendium-rune-reset-countdown {
+  border-color: rgba(96, 64, 156, 0.32);
+  background: rgba(96, 64, 156, 0.08);
+}
+
+.site-shell[data-theme="light"] .compendium-rune-picker select:focus-visible {
+  outline-color: #60409c;
+}
+
 @media (max-width: 900px) {
   .compendium-rune-content,
   .compendium-rune-first-selection {

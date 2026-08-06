@@ -204,6 +204,34 @@
   filter: grayscale(0.68) brightness(0.58) saturate(0.35);
 }
 
+.site-shell[data-theme="light"] .compendium-reward-milestones article.locked {
+  opacity: 0.72;
+  filter: grayscale(0.65) saturate(0.35);
+}
+
+.site-shell[data-theme="light"] .compendium-reward-track-heading > strong,
+.site-shell[data-theme="light"] .compendium-community-stars-link {
+  border-color: rgba(128, 83, 0, 0.38);
+  background: rgba(226, 177, 61, 0.18);
+  color: #805300;
+}
+
+.site-shell[data-theme="light"] .compendium-reward-marker strong {
+  border-color: rgba(83, 101, 112, 0.4);
+  background: #f8fbfc;
+  color: #304b5b;
+}
+
+.site-shell[data-theme="light"] .compendium-reward-marker.unlocked strong {
+  border-color: rgba(128, 83, 0, 0.54);
+  background: #67470c;
+  color: #fff4cc;
+}
+
+.site-shell[data-theme="light"] .compendium-milestone-stars {
+  color: color-mix(in srgb, var(--milestone-color) 58%, #2f2209);
+}
+
 .compendium-reward-milestones article::before {
   content: "";
   position: absolute;

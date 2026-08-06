@@ -103,6 +103,57 @@
   font-variant-numeric: tabular-nums;
 }
 
+.site-shell[data-theme="light"] .compendium-hero-section {
+  background:
+    radial-gradient(circle at 78% 10%, rgba(222, 169, 54, 0.26), transparent 38%),
+    linear-gradient(115deg, #fffaf0, #f2dfaa);
+  color: #3b2a08;
+}
+
+.site-shell[data-theme="light"] .compendium-kicker {
+  color: #855900;
+}
+
+.site-shell[data-theme="light"] .compendium-summary > div {
+  border-color: rgba(132, 91, 6, 0.28);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 14px 38px rgba(118, 81, 8, 0.12);
+}
+
+.site-shell[data-theme="light"] .compendium-summary svg {
+  color: #946300;
+}
+
+.site-shell[data-theme="light"] .compendium-summary span {
+  color: #624d20;
+}
+
+.site-shell[data-theme="light"] .compendium-summary strong {
+  color: #2f2209;
+}
+
+.site-shell[data-theme="light"] .compendium-orb-one {
+  background: rgba(205, 145, 23, 0.2);
+}
+
+.site-shell[data-theme="light"] .compendium-orb-two {
+  background: rgba(241, 193, 71, 0.22);
+}
+
+.site-shell[data-theme="light"] .compendium-liquipedia-link {
+  border-color: rgba(151, 102, 5, 0.44);
+  background: rgba(255, 253, 246, 0.88);
+  color: #3b2a08;
+  box-shadow: 0 12px 32px rgba(118, 81, 8, 0.16);
+}
+
+.site-shell[data-theme="light"] .compendium-liquipedia-link:hover {
+  border-color: #9b6800;
+  box-shadow:
+    0 15px 38px rgba(118, 81, 8, 0.2),
+    0 0 0 3px rgba(205, 145, 23, 0.13);
+}
+
 @media (max-width: 720px) {
   .compendium-hero-section {
     justify-items: center;

@@ -205,6 +205,34 @@
   font-size: 20px;
 }
 
+.site-shell[data-theme="light"] .compendium-predictions-heading > div > span,
+.site-shell[data-theme="light"] .compendium-prediction-card-heading > span,
+.site-shell[data-theme="light"] .compendium-predictions-admin-link {
+  color: #176f69;
+}
+
+.site-shell[data-theme="light"] .compendium-predictions-admin-link {
+  border-color: rgba(23, 111, 105, 0.4);
+  background: rgba(23, 111, 105, 0.1);
+}
+
+.site-shell[data-theme="light"] .compendium-prediction-versus > b,
+.site-shell[data-theme="light"] .compendium-prediction-result span,
+.site-shell[data-theme="light"] .compendium-predictions-empty span {
+  color: #7a5100;
+}
+
+.site-shell[data-theme="light"] .compendium-score-picks button:not(:disabled):hover,
+.site-shell[data-theme="light"] .compendium-score-picks button.selected {
+  border-color: #9b6800;
+  background: rgba(205, 145, 23, 0.16);
+  color: #694600;
+}
+
+.site-shell[data-theme="light"] .compendium-score-picks button:disabled:not(.selected) {
+  opacity: 0.68;
+}
+
 @media (max-width: 1050px) {
   .compendium-predictions-grid,
   .compendium-predictions-grid.match-count-2 { grid-template-columns: 1fr; }
