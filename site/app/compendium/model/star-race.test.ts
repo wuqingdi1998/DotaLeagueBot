@@ -70,10 +70,26 @@ describe("star race schedule", () => {
       weekday: "Понедельник",
       title: "Легенда СНГ",
       rewardStars: 2,
-      requiredDistinctWins: 2,
-      heroIds: [97, 3, 112, 106, 109],
+      requirement: {
+        kind: "distinct-hero-wins",
+        requiredDistinctWins: 2,
+        heroIds: [97, 3, 112, 106, 109],
+      },
     });
-    expect(STAR_RACE_QUESTS.slice(1).every((quest) => quest.title === null)).toBe(
+  });
+
+  it("defines Tuesday's cumulative winning building damage quest", () => {
+    expect(STAR_RACE_QUESTS[1]).toMatchObject({
+      dateKey: "2026-08-11",
+      weekday: "Вторник",
+      title: "Побеждает тот, у кого упадёт трон",
+      rewardStars: 2,
+      requirement: {
+        kind: "winning-building-damage",
+        targetDamage: 30_000,
+      },
+    });
+    expect(STAR_RACE_QUESTS.slice(2).every((quest) => quest.title === null)).toBe(
       true,
     );
   });

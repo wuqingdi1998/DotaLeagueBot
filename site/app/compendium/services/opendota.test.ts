@@ -40,6 +40,17 @@ describe("OpenDota client", () => {
     await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([]);
   });
 
+  it("keeps matches with unavailable building damage for hero quests", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ ...validMatch, tower_damage: null }]), {
+        status: 200,
+      }),
+    ));
+    await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
+      { ...validMatch, tower_damage: null },
+    ]);
+  });
+
   it("turns an OpenDota rate limit into a safe service error", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response("", { status: 429 })));
     await expect(fetchRecentPlayerMatches("301109815")).rejects.toMatchObject({
@@ -56,5 +67,38 @@ describe("OpenDota client", () => {
     const matches = await fetchRecentPlayerMatches("301109815");
     expect(JSON.stringify(matches)).not.toContain("test-secret");
     delete process.env.OPENDOTA_API_KEY;
+  });
+
+  it("requests building damage without dropping fields used by existing quests", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ ...validMatch, tower_damage: 12_345 }]), {
+        status: 200,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
+      { ...validMatch, tower_damage: 12_345 },
+    ]);
+    const url = new URL(String(fetchMock.mock.calls[0][0]));
+    expect(url.searchParams.getAll("project")).toEqual([
+      "hero_id",
+      "start_time",
+      "tower_damage",
+    ]);
+  });
+
+  it("can bypass the short cache for a fresh full-day scan", async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Promise.resolve(
+        new Response(JSON.stringify([validMatch]), { status: 200 }),
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await fetchRecentPlayerMatches("301109815");
+    await fetchRecentPlayerMatches("301109815", { forceRefresh: true });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

@@ -8,6 +8,7 @@ import {
   findDistinctMatchingWins,
   findMatchingWin,
   matchEndedAt,
+  scanWinningBuildingDamage,
 } from "./matches";
 import {
   generateDailyQuestHeroes,
@@ -256,5 +257,40 @@ describe("OpenDota match qualification", () => {
       ...input,
       matches: [firstHeroWin, sameHeroWin, secondHeroWin],
     })?.map((win) => win.heroId)).toEqual([97, 3]);
+  });
+
+  it("sums building damage only from wins ending inside the Moscow day", () => {
+    const result = scanWinningBuildingDamage({
+      matches: [
+        match({ match_id: 9201, tower_damage: 12_000 }),
+        match({ match_id: 9202, tower_damage: 8_500, game_mode: 23 }),
+        match({ match_id: 9203, tower_damage: 50_000, radiant_win: false }),
+        match({
+          match_id: 9204,
+          tower_damage: 40_000,
+          start_time: Date.parse("2026-07-31T17:00:00Z") / 1_000,
+        }),
+      ],
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    });
+
+    expect(result.totalDamage).toBe(20_500);
+    expect(result.wins.map((win) => win.matchId)).toEqual(["9201", "9202"]);
+  });
+
+  it("excludes bot and practice lobbies from building damage progress", () => {
+    const result = scanWinningBuildingDamage({
+      matches: [
+        match({ match_id: 9301, tower_damage: 10_000, lobby_type: 1 }),
+        match({ match_id: 9302, tower_damage: 20_000, lobby_type: 4 }),
+      ],
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    });
+
+    expect(result).toEqual({ totalDamage: 0, wins: [] });
   });
 });

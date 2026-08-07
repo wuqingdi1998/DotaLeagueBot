@@ -21,7 +21,10 @@ function isOpenDotaMatch(value: unknown): value is OpenDotaMatch {
     typeof match.game_mode === "number" &&
     typeof match.lobby_type === "number" &&
     typeof match.hero_id === "number" &&
-    typeof match.start_time === "number"
+    typeof match.start_time === "number" &&
+    (match.tower_damage === undefined ||
+      match.tower_damage === null ||
+      (typeof match.tower_damage === "number" && match.tower_damage >= 0))
   );
 }
 
@@ -33,6 +36,9 @@ async function requestRecentPlayerMatches(
     "https://api.opendota.com",
   );
   url.searchParams.set("date", "1");
+  for (const field of ["hero_id", "start_time", "tower_damage"]) {
+    url.searchParams.append("project", field);
+  }
   const apiKey = process.env.OPENDOTA_API_KEY?.trim();
   if (apiKey) url.searchParams.set("api_key", apiKey);
 
@@ -77,9 +83,16 @@ async function requestRecentPlayerMatches(
 
 export async function fetchRecentPlayerMatches(
   dotaId: string,
+  options: { forceRefresh?: boolean } = {},
 ): Promise<OpenDotaMatch[]> {
   const cached = matchCache.get(dotaId);
-  if (cached && cached.expiresAt > Date.now()) return cached.matches;
+  if (
+    !options.forceRefresh &&
+    cached &&
+    cached.expiresAt > Date.now()
+  ) {
+    return cached.matches;
+  }
   const pending = pendingMatchRequests.get(dotaId);
   if (pending) return pending;
 

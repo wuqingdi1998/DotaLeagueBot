@@ -30,6 +30,8 @@ function countdownLabel(targetAt: string): string {
   return days > 0 ? `${days} дн. ${clock}` : clock;
 }
 
+const damageNumber = new Intl.NumberFormat("ru-RU");
+
 function StarRaceQuestCard({
   quest,
   countdown,
@@ -65,38 +67,54 @@ function StarRaceQuestCard({
         <>
           <h3>{quest.title}</h3>
           <p>{quest.description}</p>
-          <div className="compendium-star-race-heroes">
-            {quest.heroes.map((hero) => (
-              <HeroChoice
-                key={hero.id}
-                hero={hero}
-                isMatched={Boolean(
-                  quest.completion?.wins.some((win) => win.hero.id === hero.id),
-                )}
-              />
-            ))}
-          </div>
-          {quest.completion ? (
-            <div className="compendium-star-race-completion" role="status">
-              <FiCheck aria-hidden="true" />
-              <div>
-                <strong>Задание выполнено</strong>
-                {quest.completion.wins.map((win) => (
-                  <a
-                    href={`https://www.opendota.com/matches/${win.matchId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    key={win.matchId}
-                  >
-                    {win.hero.name} · матч {win.matchId}
-                    <FiExternalLink aria-hidden="true" />
-                  </a>
-                ))}
-              </div>
+          {quest.heroes.length > 0 && (
+            <div className="compendium-star-race-heroes">
+              {quest.heroes.map((hero) => (
+                <HeroChoice
+                  key={hero.id}
+                  hero={hero}
+                  isMatched={Boolean(
+                    quest.completion?.wins.some((win) => win.hero.id === hero.id),
+                  )}
+                />
+              ))}
             </div>
+          )}
+          {quest.completion ? (
+            <>
+              {quest.progress && (
+                <BuildingDamageProgress
+                  current={quest.progress.current}
+                  target={quest.progress.target}
+                />
+              )}
+              <div className="compendium-star-race-completion" role="status">
+                <FiCheck aria-hidden="true" />
+                <div>
+                  <strong>Задание выполнено</strong>
+                  {quest.completion.wins.map((win) => (
+                    <a
+                      href={`https://www.opendota.com/matches/${win.matchId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      key={win.matchId}
+                    >
+                      {win.hero.name} · матч {win.matchId}
+                      <FiExternalLink aria-hidden="true" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </>
           ) : quest.phase === "active" ? (
             <div className="compendium-star-race-action">
-              <div>
+              {quest.progress && (
+                <BuildingDamageProgress
+                  current={quest.progress.current}
+                  target={quest.progress.target}
+                />
+              )}
+              <div className="compendium-star-race-countdown">
                 <FiClock aria-hidden="true" />
                 <span>До конца задания</span>
                 <strong>{countdown}</strong>
@@ -130,6 +148,31 @@ function StarRaceQuestCard({
         </div>
       )}
     </article>
+  );
+}
+
+function BuildingDamageProgress({
+  current,
+  target,
+}: {
+  current: number;
+  target: number;
+}) {
+  const percentage = Math.min(100, Math.round((current / target) * 100));
+  return (
+    <div
+      className="compendium-star-race-progress"
+      role="status"
+      aria-label={`Урон по строениям: ${current} из ${target}`}
+    >
+      <span>Урон по строениям</span>
+      <strong>
+        {damageNumber.format(current)} / {damageNumber.format(target)}
+      </strong>
+      <span className="compendium-star-race-progress-track" aria-hidden="true">
+        <i style={{ width: `${percentage}%` }} />
+      </span>
+    </div>
   );
 }
 

@@ -1,4 +1,8 @@
-import { RANKED_GAME_MODES, RANKED_LOBBY_TYPES } from "./constants";
+import {
+  MATCHMADE_LOBBY_TYPES,
+  RANKED_GAME_MODES,
+  RANKED_LOBBY_TYPES,
+} from "./constants";
 import type { MatchingWin, OpenDotaMatch } from "./types";
 
 function isPlayerWin(match: OpenDotaMatch): boolean {
@@ -13,15 +17,12 @@ function isQualifyingWin(input: {
   dayEnd: Date;
   now: Date;
 }): boolean {
-  const endedAt = matchEndedAt(input.match).getTime();
   return (
     input.allowedHeroes.has(input.match.hero_id) &&
     RANKED_LOBBY_TYPES.has(input.match.lobby_type) &&
     RANKED_GAME_MODES.has(input.match.game_mode) &&
     isPlayerWin(input.match) &&
-    endedAt >= input.dayStart.getTime() &&
-    endedAt < input.dayEnd.getTime() &&
-    endedAt <= input.now.getTime()
+    endedInsideWindow(input)
   );
 }
 
@@ -31,6 +32,20 @@ function matchingWin(match: OpenDotaMatch): MatchingWin {
     matchId: String(match.match_id),
     endedAt: matchEndedAt(match),
   };
+}
+
+function endedInsideWindow(input: {
+  match: OpenDotaMatch;
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): boolean {
+  const endedAt = matchEndedAt(input.match).getTime();
+  return (
+    endedAt >= input.dayStart.getTime() &&
+    endedAt < input.dayEnd.getTime() &&
+    endedAt <= input.now.getTime()
+  );
 }
 
 export function matchEndedAt(match: OpenDotaMatch): Date {
@@ -86,4 +101,26 @@ export function findDistinctMatchingWins(input: {
     if (wins.length === input.requiredDistinctWins) return wins;
   }
   return null;
+}
+
+export function scanWinningBuildingDamage(input: {
+  matches: OpenDotaMatch[];
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): { totalDamage: number; wins: MatchingWin[] } {
+  let totalDamage = 0;
+  const wins: MatchingWin[] = [];
+  for (const match of input.matches) {
+    if (
+      !MATCHMADE_LOBBY_TYPES.has(match.lobby_type) ||
+      !isPlayerWin(match) ||
+      !endedInsideWindow({ ...input, match })
+    ) {
+      continue;
+    }
+    totalDamage += match.tower_damage ?? 0;
+    wins.push(matchingWin(match));
+  }
+  return { totalDamage, wins };
 }

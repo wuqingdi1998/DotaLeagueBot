@@ -31,9 +31,20 @@ type StarRaceRankRow = {
   rank: number;
 };
 
+type StarRaceProgressRow = {
+  moscow_date: string;
+  progress_amount: string | number;
+  checked_at: Date;
+};
+
 export type StarRaceCompletionByDate = Map<
   string,
   StarRaceQuestCompletion
+>;
+
+export type StarRaceProgressByDate = Map<
+  string,
+  { current: number; checkedAt: string }
 >;
 
 function completionsFromRows(
@@ -85,6 +96,24 @@ export async function existingStarRaceCompletion(
     dateKey,
   ]);
   return completionsFromRows(rows).get(dateKey) ?? null;
+}
+
+export async function loadStarRaceProgress(
+  playerId: string,
+): Promise<StarRaceProgressByDate> {
+  const rows = await query<StarRaceProgressRow>(
+    `SELECT moscow_date::text, progress_amount, checked_at
+     FROM compendium_star_race_quest_progress
+     WHERE player_id = $1`,
+    [playerId],
+  );
+  return new Map(rows.map((row) => [
+    row.moscow_date,
+    {
+      current: Number(row.progress_amount),
+      checkedAt: row.checked_at.toISOString(),
+    },
+  ]));
 }
 
 export async function totalStarRaceStars(): Promise<number> {
@@ -190,6 +219,48 @@ async function completionFromClient(
   return completionsFromRows(result.rows).get(dateKey) ?? null;
 }
 
+async function assertActiveStarRaceDate(
+  client: PoolClient,
+  dateKey: string,
+): Promise<void> {
+  const activeDate = await client.query(
+    `SELECT 1
+     WHERE $1::date =
+       (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
+       AND CURRENT_TIMESTAMP >= $2::timestamptz
+       AND CURRENT_TIMESTAMP < $3::timestamptz`,
+    [dateKey, STAR_RACE_START_AT, STAR_RACE_END_AT],
+  );
+  if (!activeDate.rowCount) {
+    throw new CompendiumError(
+      "STAR_RACE_NOT_ACTIVE",
+      "Задание доступно только в назначенный день по московскому времени.",
+    );
+  }
+}
+
+export async function replaceStarRaceProgress(input: {
+  playerId: string;
+  dateKey: string;
+  current: number;
+}): Promise<void> {
+  await transaction(async (client) => {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      `compendium-star-race:${input.playerId}:${input.dateKey}`,
+    ]);
+    await assertActiveStarRaceDate(client, input.dateKey);
+    await client.query(
+      `INSERT INTO compendium_star_race_quest_progress
+         (player_id, moscow_date, progress_amount, checked_at)
+       VALUES ($1, $2::date, $3, NOW())
+       ON CONFLICT (player_id, moscow_date) DO UPDATE
+       SET progress_amount = EXCLUDED.progress_amount,
+           checked_at = EXCLUDED.checked_at`,
+      [input.playerId, input.dateKey, input.current],
+    );
+  });
+}
+
 export async function recordStarRaceCompletion(input: {
   playerId: string;
   dateKey: string;
@@ -207,20 +278,7 @@ export async function recordStarRaceCompletion(input: {
     );
     if (completed) return completed;
 
-    const activeDate = await client.query(
-      `SELECT 1
-       WHERE $1::date =
-         (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
-         AND CURRENT_TIMESTAMP >= $2::timestamptz
-         AND CURRENT_TIMESTAMP < $3::timestamptz`,
-      [input.dateKey, STAR_RACE_START_AT, STAR_RACE_END_AT],
-    );
-    if (!activeDate.rowCount) {
-      throw new CompendiumError(
-        "STAR_RACE_NOT_ACTIVE",
-        "Задание доступно только в назначенный день по московскому времени.",
-      );
-    }
+    await assertActiveStarRaceDate(client, input.dateKey);
 
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO compendium_star_race_quest_completions

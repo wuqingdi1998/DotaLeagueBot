@@ -1,6 +1,9 @@
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
-import { findDistinctMatchingWins } from "../model/matches";
+import {
+  findDistinctMatchingWins,
+  scanWinningBuildingDamage,
+} from "../model/matches";
 import {
   STAR_RACE_END_AT,
   STAR_RACE_PRIZES,
@@ -12,6 +15,7 @@ import {
   starRaceQuestPhase,
   type StarRaceData,
   type StarRaceQuestCompletion,
+  type StarRaceQuestProgress,
 } from "../model/star-race";
 import { moscowDayBounds } from "../model/time";
 import { fetchRecentPlayerMatches } from "./opendota";
@@ -24,8 +28,10 @@ import {
 import {
   existingStarRaceCompletion,
   loadStarRaceCompletions,
+  loadStarRaceProgress,
   loadStarRaceRank,
   recordStarRaceCompletion,
+  replaceStarRaceProgress,
   totalStarRaceStars,
 } from "./star-race-repository";
 
@@ -45,10 +51,11 @@ export async function loadStarRace(
       quests: [],
     };
   }
-  const [totalStars, personalRank, completions] = await Promise.all([
+  const [totalStars, personalRank, completions, progresses] = await Promise.all([
     totalStarRaceStars(),
     loadStarRaceRank(user.discordId),
     loadStarRaceCompletions(user.discordId),
+    loadStarRaceProgress(user.discordId),
   ]);
   return {
     ...visibility,
@@ -59,6 +66,7 @@ export async function loadStarRace(
     prizes: STAR_RACE_PRIZES,
     quests: STAR_RACE_QUESTS.map((quest) => {
       const bounds = moscowDayBounds(quest.dateKey);
+      const savedProgress = progresses.get(quest.dateKey);
       return {
         ...quest,
         startsAt: bounds.start.toISOString(),
@@ -66,17 +74,50 @@ export async function loadStarRace(
         phase: starRaceQuestPhase(quest, now),
         heroes: starRaceQuestHeroes(quest),
         completion: completions.get(quest.dateKey) ?? null,
+        progress: quest.requirement?.kind === "winning-building-damage"
+          ? {
+              current: savedProgress?.current ?? 0,
+              target: quest.requirement.targetDamage,
+              checkedAt: savedProgress?.checkedAt ?? null,
+            }
+          : null,
       };
     }),
   };
 }
 
 export type CheckStarRaceQuestResult = {
-  completion: StarRaceQuestCompletion;
+  completion: StarRaceQuestCompletion | null;
+  progress: StarRaceQuestProgress | null;
+  rewardStars: number;
   starRace: StarRaceData;
   totalStars: number;
   communityStars: number;
 };
+
+async function starRaceCheckResult(input: {
+  user: AuthUser;
+  dateKey: string;
+  now: Date;
+  completion: StarRaceQuestCompletion | null;
+  rewardStars: number;
+}): Promise<CheckStarRaceQuestResult> {
+  const [starRace, totalStars, communityStars] = await Promise.all([
+    loadStarRace(input.user, input.now),
+    totalCompendiumStars(input.user.discordId),
+    totalCommunityCompendiumStars(),
+  ]);
+  return {
+    completion: input.completion,
+    progress:
+      starRace.quests.find((quest) => quest.dateKey === input.dateKey)
+        ?.progress ?? null,
+    rewardStars: input.rewardStars,
+    starRace,
+    totalStars,
+    communityStars,
+  };
+}
 
 export async function checkStarRaceQuest(
   user: AuthUser,
@@ -89,7 +130,7 @@ export async function checkStarRaceQuest(
     !quest ||
     !quest.title ||
     quest.rewardStars === null ||
-    quest.requiredDistinctWins < 1
+    !quest.requirement
   ) {
     throw new CompendiumError(
       "QUEST_NOT_FOUND",
@@ -104,12 +145,13 @@ export async function checkStarRaceQuest(
   }
   const completed = await existingStarRaceCompletion(user.discordId, dateKey);
   if (completed) {
-    const [starRace, totalStars, communityStars] = await Promise.all([
-      loadStarRace(user, now),
-      totalCompendiumStars(user.discordId),
-      totalCommunityCompendiumStars(),
-    ]);
-    return { completion: completed, starRace, totalStars, communityStars };
+    return starRaceCheckResult({
+      user,
+      dateKey,
+      now,
+      completion: completed,
+      rewardStars: quest.rewardStars,
+    });
   }
   if (!(await consumeCheckAllowance(user.discordId))) {
     throw new CompendiumError(
@@ -118,7 +160,9 @@ export async function checkStarRaceQuest(
     );
   }
 
-  const matches = await fetchRecentPlayerMatches(dotaId);
+  const matches = await fetchRecentPlayerMatches(dotaId, {
+    forceRefresh: quest.requirement.kind === "winning-building-damage",
+  });
   const verificationNow = new Date();
   if (starRaceQuestPhase(quest, verificationNow) !== "active") {
     throw new CompendiumError(
@@ -127,30 +171,58 @@ export async function checkStarRaceQuest(
     );
   }
   const bounds = moscowDayBounds(dateKey);
-  const wins = findDistinctMatchingWins({
-    matches,
-    heroIds: quest.heroIds,
-    requiredDistinctWins: quest.requiredDistinctWins,
-    dayStart: bounds.start,
-    dayEnd: bounds.end,
-    now: verificationNow,
-  });
-  if (!wins) {
-    throw new CompendiumError(
-      "NO_MATCH",
-      `Пока не найдены победы на ${quest.requiredDistinctWins} разных героях задания за текущие сутки по Москве.`,
-    );
+  let completion: StarRaceQuestCompletion | null = null;
+  if (quest.requirement.kind === "distinct-hero-wins") {
+    const wins = findDistinctMatchingWins({
+      matches,
+      heroIds: quest.requirement.heroIds,
+      requiredDistinctWins: quest.requirement.requiredDistinctWins,
+      dayStart: bounds.start,
+      dayEnd: bounds.end,
+      now: verificationNow,
+    });
+    if (!wins) {
+      throw new CompendiumError(
+        "NO_MATCH",
+        `Пока не найдены победы на ${quest.requirement.requiredDistinctWins} разных героях задания за текущие сутки по Москве.`,
+      );
+    }
+    completion = await recordStarRaceCompletion({
+      playerId: user.discordId,
+      dateKey,
+      rewardStars: quest.rewardStars,
+      wins,
+    });
+  } else {
+    const scan = scanWinningBuildingDamage({
+      matches,
+      dayStart: bounds.start,
+      dayEnd: bounds.end,
+      now: verificationNow,
+    });
+    await replaceStarRaceProgress({
+      playerId: user.discordId,
+      dateKey,
+      current: scan.totalDamage,
+    });
+    if (scan.totalDamage >= quest.requirement.targetDamage) {
+      const evidenceWin = scan.wins[0];
+      if (!evidenceWin) {
+        throw new Error("Completed building damage scan has no winning match");
+      }
+      completion = await recordStarRaceCompletion({
+        playerId: user.discordId,
+        dateKey,
+        rewardStars: quest.rewardStars,
+        wins: [evidenceWin],
+      });
+    }
   }
-  const completion = await recordStarRaceCompletion({
-    playerId: user.discordId,
+  return starRaceCheckResult({
+    user,
     dateKey,
+    now: verificationNow,
+    completion,
     rewardStars: quest.rewardStars,
-    wins,
   });
-  const [starRace, totalStars, communityStars] = await Promise.all([
-    loadStarRace(user, verificationNow),
-    totalCompendiumStars(user.discordId),
-    totalCommunityCompendiumStars(),
-  ]);
-  return { completion, starRace, totalStars, communityStars };
 }

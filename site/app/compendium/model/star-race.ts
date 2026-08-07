@@ -22,6 +22,17 @@ export type StarRacePrize = (typeof STAR_RACE_PRIZES)[number];
 export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
 
+export type StarRaceQuestRequirement =
+  | {
+      readonly kind: "distinct-hero-wins";
+      readonly requiredDistinctWins: number;
+      readonly heroIds: readonly number[];
+    }
+  | {
+      readonly kind: "winning-building-damage";
+      readonly targetDamage: number;
+    };
+
 export type StarRaceQuestDefinition = {
   readonly dateKey: string;
   readonly weekday: string;
@@ -29,8 +40,7 @@ export type StarRaceQuestDefinition = {
   readonly title: string | null;
   readonly description: string | null;
   readonly rewardStars: number | null;
-  readonly requiredDistinctWins: number;
-  readonly heroIds: readonly number[];
+  readonly requirement: StarRaceQuestRequirement | null;
 };
 
 export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
@@ -42,18 +52,24 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     description:
       "Выиграйте рейтинговые матчи на двух разных героях из пика Team Spirit с последней карты The International.",
     rewardStars: 2,
-    requiredDistinctWins: 2,
-    heroIds: [97, 3, 112, 106, 109],
+    requirement: {
+      kind: "distinct-hero-wins",
+      requiredDistinctWins: 2,
+      heroIds: [97, 3, 112, 106, 109],
+    },
   },
   {
     dateKey: "2026-08-11",
     weekday: "Вторник",
     dateLabel: "11 августа",
-    title: null,
-    description: null,
-    rewardStars: null,
-    requiredDistinctWins: 0,
-    heroIds: [],
+    title: "Побеждает тот, у кого упадёт трон",
+    description:
+      "Нанесите 30 000 урона по строениям. Прогресс засчитывается только в победных матчах и суммируется за все игры в рамках суток.",
+    rewardStars: 2,
+    requirement: {
+      kind: "winning-building-damage",
+      targetDamage: 30_000,
+    },
   },
   {
     dateKey: "2026-08-12",
@@ -62,8 +78,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     title: null,
     description: null,
     rewardStars: null,
-    requiredDistinctWins: 0,
-    heroIds: [],
+    requirement: null,
   },
   {
     dateKey: "2026-08-13",
@@ -72,8 +87,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     title: null,
     description: null,
     rewardStars: null,
-    requiredDistinctWins: 0,
-    heroIds: [],
+    requirement: null,
   },
   {
     dateKey: "2026-08-14",
@@ -82,8 +96,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     title: null,
     description: null,
     rewardStars: null,
-    requiredDistinctWins: 0,
-    heroIds: [],
+    requirement: null,
   },
   {
     dateKey: "2026-08-15",
@@ -92,8 +105,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     title: null,
     description: null,
     rewardStars: null,
-    requiredDistinctWins: 0,
-    heroIds: [],
+    requirement: null,
   },
   {
     dateKey: "2026-08-16",
@@ -102,8 +114,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     title: null,
     description: null,
     rewardStars: null,
-    requiredDistinctWins: 0,
-    heroIds: [],
+    requirement: null,
   },
 ];
 
@@ -117,12 +128,19 @@ export type StarRaceQuestCompletion = {
   wins: StarRaceQuestWin[];
 };
 
+export type StarRaceQuestProgress = {
+  current: number;
+  target: number;
+  checkedAt: string | null;
+};
+
 export type StarRaceQuest = StarRaceQuestDefinition & {
   startsAt: string;
   endsAt: string;
   phase: StarRaceQuestPhase;
   heroes: CompendiumHero[];
   completion: StarRaceQuestCompletion | null;
+  progress: StarRaceQuestProgress | null;
 };
 
 export type StarRaceData = {
@@ -170,5 +188,7 @@ export function starRaceQuestByDate(
 export function starRaceQuestHeroes(
   quest: StarRaceQuestDefinition,
 ): CompendiumHero[] {
-  return quest.heroIds.map(compendiumHeroById);
+  return quest.requirement?.kind === "distinct-hero-wins"
+    ? quest.requirement.heroIds.map(compendiumHeroById)
+    : [];
 }

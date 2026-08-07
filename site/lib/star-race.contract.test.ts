@@ -8,6 +8,9 @@ function source(path: string) {
 const migration = source(
   "../../bot/database/migrations/0053_compendium_star_race.sql",
 );
+const progressMigration = source(
+  "../../bot/database/migrations/0055_compendium_star_race_progress.sql",
+);
 const dashboard = source(
   "../app/compendium/sections/CompendiumDashboard.tsx",
 );
@@ -61,6 +64,21 @@ describe("compendium star race contract", () => {
     expect(migration).toContain("UNIQUE (player_id, moscow_date)");
     expect(repository).toContain("pg_advisory_xact_lock");
     expect(repository).toContain("CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow'");
+  });
+
+  it("replaces Tuesday's scanned progress instead of adding it twice", () => {
+    expect(progressMigration).toContain(
+      "CREATE TABLE IF NOT EXISTS compendium_star_race_quest_progress",
+    );
+    expect(repository).toContain("progress_amount = EXCLUDED.progress_amount");
+    expect(repository).not.toContain(
+      "progress_amount + EXCLUDED.progress_amount",
+    );
+    expect(service).toContain(
+      'forceRefresh: quest.requirement.kind === "winning-building-damage"',
+    );
+    expect(starRaceModel).toContain("winning-building-damage");
+    expect(starRaceView).toContain("Урон по строениям");
   });
 
   it("places the race after community rewards and hides details before launch", () => {

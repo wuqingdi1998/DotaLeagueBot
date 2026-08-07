@@ -29,6 +29,8 @@ function countdownLabel(nextResetAt: string): string {
   return [hours, minutes, seconds].map((part) => String(part).padStart(2, "0")).join(":");
 }
 
+const progressNumber = new Intl.NumberFormat("ru-RU");
+
 export function CompendiumDashboard({
   initialData,
   isOrganizer,
@@ -198,6 +200,9 @@ export function CompendiumDashboard({
       const result = (await response.json()) as {
         error?: string;
         code?: string;
+        completion?: unknown | null;
+        progress?: { current: number; target: number } | null;
+        rewardStars?: number;
         starRace?: CompendiumData["starRace"];
         totalStars?: number;
         communityStars?: number;
@@ -212,7 +217,15 @@ export function CompendiumDashboard({
         totalStars: result.totalStars ?? current.totalStars,
         communityStars: result.communityStars ?? current.communityStars,
       }));
-      setToast("Задание выполнено. Вы получили 2 звезды!");
+      setToast(
+        result.completion
+          ? `Задание выполнено. Вы получили ${result.rewardStars ?? 2} звезды!`
+          : `Учтено ${progressNumber.format(
+              result.progress?.current ?? 0,
+            )} из ${progressNumber.format(
+              result.progress?.target ?? 30_000,
+            )} урона по строениям`,
+      );
     } catch (error) {
       setToast(
         error instanceof Error
