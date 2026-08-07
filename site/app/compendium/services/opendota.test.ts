@@ -69,22 +69,32 @@ describe("OpenDota client", () => {
     delete process.env.OPENDOTA_API_KEY;
   });
 
-  it("requests building damage without dropping fields used by existing quests", async () => {
+  it("requests all statistics used by compendium quests", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      new Response(JSON.stringify([{ ...validMatch, tower_damage: 12_345 }]), {
-        status: 200,
-      }),
+      new Response(JSON.stringify([{
+        ...validMatch,
+        tower_damage: 12_345,
+        hero_damage: 60_000,
+        kills: 16,
+      }]), { status: 200 }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
-      { ...validMatch, tower_damage: 12_345 },
+      {
+        ...validMatch,
+        tower_damage: 12_345,
+        hero_damage: 60_000,
+        kills: 16,
+      },
     ]);
     const url = new URL(String(fetchMock.mock.calls[0][0]));
     expect(url.searchParams.getAll("project")).toEqual([
       "hero_id",
       "start_time",
       "tower_damage",
+      "hero_damage",
+      "kills",
     ]);
   });
 

@@ -6,6 +6,7 @@ import {
   REROLL_REWARD_STAR_THRESHOLD,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
+import { dailyQuestExcludedHeroIds } from "../model/daily-quest-exclusions";
 import { generateRerollQuestHeroes } from "../model/quests";
 import { dailyRerollsRemainingForProgress } from "../model/rewards";
 
@@ -219,7 +220,10 @@ export async function recordDailyQuestReroll(input: {
       ],
     );
     const replacementHeroes = generateRerollQuestHeroes(
-      excludedHeroes.rows.map((hero) => hero.hero_id),
+      [
+        ...excludedHeroes.rows.map((hero) => hero.hero_id),
+        ...dailyQuestExcludedHeroIds(input.dateKey),
+      ],
       undefined,
       undefined,
       quest.rows[0].hero_count,

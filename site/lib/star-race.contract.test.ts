@@ -74,8 +74,8 @@ describe("compendium star race contract", () => {
     expect(repository).not.toContain(
       "progress_amount + EXCLUDED.progress_amount",
     );
-    expect(service).toContain(
-      'forceRefresh: quest.requirement.kind === "winning-building-damage"',
+    expect(service).toMatch(
+      /forceRefresh:\s+quest\.requirement\.kind === "winning-building-damage"/,
     );
     expect(starRaceModel).toContain("winning-building-damage");
     expect(starRaceView).toContain("Урон по строениям");

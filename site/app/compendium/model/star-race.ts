@@ -31,6 +31,12 @@ export type StarRaceQuestRequirement =
   | {
       readonly kind: "winning-building-damage";
       readonly targetDamage: number;
+    }
+  | {
+      readonly kind: "ranked-win-stat";
+      readonly heroIds: readonly number[] | null;
+      readonly stat: "hero_damage" | "kills";
+      readonly minimum: number;
     };
 
 export type StarRaceQuestDefinition = {
@@ -50,7 +56,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "10 августа",
     title: "Легенда СНГ",
     description:
-      "Выиграйте рейтинговые матчи на двух разных героях из пика Team Spirit с последней карты The International.",
+      "Выиграйте рейтинговые матчи на двух разных героях из пика Team Spirit с последней карты The International 2021.",
     rewardStars: 2,
     requirement: {
       kind: "distinct-hero-wins",
@@ -75,37 +81,59 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateKey: "2026-08-12",
     weekday: "Среда",
     dateLabel: "12 августа",
-    title: null,
-    description: null,
-    rewardStars: null,
-    requirement: null,
+    title: "Это снайпер?",
+    description:
+      "Выиграть рейтинговый матч на Pudge, нанеся 60 000 урона героям.",
+    rewardStars: 2,
+    requirement: {
+      kind: "ranked-win-stat",
+      heroIds: [14],
+      stat: "hero_damage",
+      minimum: 60_000,
+    },
   },
   {
     dateKey: "2026-08-13",
     weekday: "Четверг",
     dateLabel: "13 августа",
-    title: null,
-    description: null,
-    rewardStars: null,
-    requirement: null,
+    title: "Пакистанский король",
+    description:
+      "Повтори рекорд Suma1L хотя бы наполовину. Выиграть рейтинговый матч на любом герое, сделав 16 убийств.",
+    rewardStars: 2,
+    requirement: {
+      kind: "ranked-win-stat",
+      heroIds: null,
+      stat: "kills",
+      minimum: 16,
+    },
   },
   {
     dateKey: "2026-08-14",
     weekday: "Пятница",
     dateLabel: "14 августа",
-    title: null,
-    description: null,
-    rewardStars: null,
-    requirement: null,
+    title: "Welcome to The International!",
+    description:
+      "Выиграть одну рейтинговую игру на одном из любимых героев Гейба Ньюэлла — Sand King или Weaver.",
+    rewardStars: 2,
+    requirement: {
+      kind: "distinct-hero-wins",
+      requiredDistinctWins: 1,
+      heroIds: [16, 63],
+    },
   },
   {
     dateKey: "2026-08-15",
     weekday: "Суббота",
     dateLabel: "15 августа",
-    title: null,
-    description: null,
-    rewardStars: null,
-    requirement: null,
+    title: "Чемпионы прошлого Шанхайского The International",
+    description:
+      "Выиграть на 1 из 5 героев из пика OG с последней карты The International 2019.",
+    rewardStars: 2,
+    requirement: {
+      kind: "distinct-hero-wins",
+      requiredDistinctWins: 1,
+      heroIds: [91, 19, 102, 98, 72],
+    },
   },
   {
     dateKey: "2026-08-16",
@@ -188,7 +216,13 @@ export function starRaceQuestByDate(
 export function starRaceQuestHeroes(
   quest: StarRaceQuestDefinition,
 ): CompendiumHero[] {
-  return quest.requirement?.kind === "distinct-hero-wins"
-    ? quest.requirement.heroIds.map(compendiumHeroById)
-    : [];
+  const requirement = quest.requirement;
+  if (!requirement) return [];
+  if (requirement.kind === "distinct-hero-wins") {
+    return requirement.heroIds.map(compendiumHeroById);
+  }
+  if (requirement.kind === "ranked-win-stat" && requirement.heroIds) {
+    return requirement.heroIds.map(compendiumHeroById);
+  }
+  return [];
 }

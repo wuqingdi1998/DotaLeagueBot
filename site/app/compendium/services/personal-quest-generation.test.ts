@@ -59,7 +59,7 @@ describe("personal daily quest generation", () => {
     await ensurePersonalDailyQuests(
       client,
       "500",
-      "2026-08-04",
+      "2026-08-12",
       undefined,
       random,
     );
@@ -87,5 +87,6 @@ describe("personal daily quest generation", () => {
       regularHeroesByPlayer.get("101"),
     );
     expect(regularHeroesByPlayer.get("100")).not.toContain(7);
+    expect(heroInserts.flatMap(({ heroIds }) => heroIds)).not.toContain(14);
   });
 });

@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { HEROES_PER_QUEST } from "../model/constants";
+import { dailyQuestExcludedHeroIds } from "../model/daily-quest-exclusions";
 import { generateRerollQuestHeroes } from "../model/quests";
 
 type StoredQuestHero = {
@@ -53,6 +54,7 @@ function groupQuestCards(rows: StoredQuestHero[]): QuestCard[] {
 async function addOriginalQuestHeroes(
   client: PoolClient,
   questSetId: string,
+  dateKey: string,
   requestedPlayerId?: string,
 ): Promise<QuestHeroScopes> {
   const result = await client.query<StoredQuestHero>(
@@ -71,7 +73,9 @@ async function addOriginalQuestHeroes(
   const excludedByScope = new Map<string, Set<number>>();
   for (const row of result.rows) {
     const scope = questScope(row.player_id ?? null);
-    const excluded = excludedByScope.get(scope) ?? new Set<number>();
+    const excluded = excludedByScope.get(scope) ?? new Set<number>(
+      dailyQuestExcludedHeroIds(dateKey),
+    );
     excluded.add(row.hero_id);
     excludedByScope.set(scope, excluded);
   }
@@ -79,7 +83,9 @@ async function addOriginalQuestHeroes(
     const missingHeroCount = HEROES_PER_QUEST - card.heroIds.length;
     if (missingHeroCount <= 0) continue;
     const scope = questScope(card.playerId);
-    const excludedHeroIds = excludedByScope.get(scope) ?? new Set<number>();
+    const excludedHeroIds = excludedByScope.get(scope) ?? new Set<number>(
+      dailyQuestExcludedHeroIds(dateKey),
+    );
     const additions = generateRerollQuestHeroes(
       excludedHeroIds,
       undefined,
@@ -107,7 +113,9 @@ async function addOriginalQuestHeroes(
     if (scope !== LEGACY_SCOPE) personalHeroIds.set(scope, heroIds);
   }
   return {
-    sharedHeroIds: excludedByScope.get(LEGACY_SCOPE) ?? new Set<number>(),
+    sharedHeroIds: excludedByScope.get(LEGACY_SCOPE) ?? new Set<number>(
+      dailyQuestExcludedHeroIds(dateKey),
+    ),
     personalHeroIds,
   };
 }
@@ -181,11 +189,13 @@ async function addRerollQuestHeroes(
 export async function completeExistingQuestCards(
   client: PoolClient,
   questSetId: string,
+  dateKey: string,
   requestedPlayerId?: string,
 ): Promise<void> {
   const originalHeroScopes = await addOriginalQuestHeroes(
     client,
     questSetId,
+    dateKey,
     requestedPlayerId,
   );
   await addRerollQuestHeroes(

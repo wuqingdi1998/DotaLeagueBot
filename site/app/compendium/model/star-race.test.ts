@@ -76,6 +76,9 @@ describe("star race schedule", () => {
         heroIds: [97, 3, 112, 106, 109],
       },
     });
+    expect(STAR_RACE_QUESTS[0].description).toContain(
+      "The International 2021",
+    );
   });
 
   it("defines Tuesday's cumulative winning building damage quest", () => {
@@ -89,8 +92,60 @@ describe("star race schedule", () => {
         targetDamage: 30_000,
       },
     });
-    expect(STAR_RACE_QUESTS.slice(2).every((quest) => quest.title === null)).toBe(
-      true,
-    );
+  });
+
+  it("defines Wednesday's Pudge hero-damage quest", () => {
+    expect(STAR_RACE_QUESTS[2]).toMatchObject({
+      dateKey: "2026-08-12",
+      title: "Это снайпер?",
+      rewardStars: 2,
+      requirement: {
+        kind: "ranked-win-stat",
+        heroIds: [14],
+        stat: "hero_damage",
+        minimum: 60_000,
+      },
+    });
+  });
+
+  it("defines Thursday's 16-kill ranked win quest", () => {
+    expect(STAR_RACE_QUESTS[3]).toMatchObject({
+      dateKey: "2026-08-13",
+      title: "Пакистанский король",
+      rewardStars: 2,
+      requirement: {
+        kind: "ranked-win-stat",
+        heroIds: null,
+        stat: "kills",
+        minimum: 16,
+      },
+    });
+  });
+
+  it("defines Friday's Sand King or Weaver win quest", () => {
+    expect(STAR_RACE_QUESTS[4]).toMatchObject({
+      dateKey: "2026-08-14",
+      title: "Welcome to The International!",
+      rewardStars: 2,
+      requirement: {
+        kind: "distinct-hero-wins",
+        requiredDistinctWins: 1,
+        heroIds: [16, 63],
+      },
+    });
+  });
+
+  it("defines Saturday's OG International 2019 win quest", () => {
+    expect(STAR_RACE_QUESTS[5]).toMatchObject({
+      dateKey: "2026-08-15",
+      title: "Чемпионы прошлого Шанхайского The International",
+      rewardStars: 2,
+      requirement: {
+        kind: "distinct-hero-wins",
+        requiredDistinctWins: 1,
+        heroIds: [91, 19, 102, 98, 72],
+      },
+    });
+    expect(STAR_RACE_QUESTS[6].title).toBeNull();
   });
 });

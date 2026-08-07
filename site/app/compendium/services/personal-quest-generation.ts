@@ -9,6 +9,7 @@ import {
   generateBonusQuestHeroes,
   generateRerollQuestHeroes,
 } from "../model/quests";
+import { dailyQuestExcludedHeroIds } from "../model/daily-quest-exclusions";
 
 type ExistingQuestRow = {
   player_id: string;
@@ -173,7 +174,10 @@ export async function ensurePersonalDailyQuests(
   const excludedHeroesByPlayer = new Map<string, Set<number>>();
   for (const playerId of playerIds) {
     positionsByPlayer.set(playerId, new Set());
-    excludedHeroesByPlayer.set(playerId, new Set());
+    excludedHeroesByPlayer.set(
+      playerId,
+      new Set(dailyQuestExcludedHeroIds(dateKey)),
+    );
   }
   for (const row of existingResult.rows) {
     positionsByPlayer.get(row.player_id)?.add(row.position);

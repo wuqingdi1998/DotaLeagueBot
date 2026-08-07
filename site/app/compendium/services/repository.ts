@@ -63,7 +63,7 @@ export async function ensureDailyQuestSet(
             [dateKey],
           )
         ).rows[0].id;
-    await completeExistingQuestCards(client, questSetId, playerId);
+    await completeExistingQuestCards(client, questSetId, dateKey, playerId);
     await ensurePersonalDailyQuests(
       client,
       questSetId,

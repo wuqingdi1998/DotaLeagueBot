@@ -162,3 +162,69 @@ describe("Tuesday star race building damage check", () => {
     });
   });
 });
+
+describe("single-match star race statistic checks", () => {
+  it("awards Wednesday only for a Pudge win with 60,000 hero damage", async () => {
+    const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
+    vi.setSystemTime(wednesdayNow);
+    const completion = {
+      completedAt: wednesdayNow.toISOString(),
+      wins: [],
+    };
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([{
+      ...winningMatch(3001, 0),
+      hero_id: 14,
+      start_time: Date.parse("2026-08-12T09:00:00.000Z") / 1_000,
+      hero_damage: 60_000,
+    }]);
+    mocks.recordStarRaceCompletion.mockResolvedValue(completion);
+
+    const result = await checkStarRaceQuest(
+      user,
+      "2026-08-12",
+      wednesdayNow,
+    );
+
+    expect(result.completion).toBe(completion);
+    expect(result.rewardStars).toBe(2);
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledWith(user.dotaId, {
+      forceRefresh: true,
+    });
+    expect(mocks.recordStarRaceCompletion).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      dateKey: "2026-08-12",
+      rewardStars: 2,
+      wins: [expect.objectContaining({ matchId: "3001", heroId: 14 })],
+    });
+  });
+
+  it("awards Thursday for 16 kills in a ranked win on any hero", async () => {
+    const thursdayNow = new Date("2026-08-13T12:00:00.000Z");
+    vi.setSystemTime(thursdayNow);
+    const completion = {
+      completedAt: thursdayNow.toISOString(),
+      wins: [],
+    };
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([{
+      ...winningMatch(4001, 0),
+      hero_id: 137,
+      start_time: Date.parse("2026-08-13T09:00:00.000Z") / 1_000,
+      kills: 16,
+    }]);
+    mocks.recordStarRaceCompletion.mockResolvedValue(completion);
+
+    const result = await checkStarRaceQuest(
+      user,
+      "2026-08-13",
+      thursdayNow,
+    );
+
+    expect(result.completion).toBe(completion);
+    expect(mocks.recordStarRaceCompletion).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      dateKey: "2026-08-13",
+      rewardStars: 2,
+      wins: [expect.objectContaining({ matchId: "4001", heroId: 137 })],
+    });
+  });
+});

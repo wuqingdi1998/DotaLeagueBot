@@ -76,6 +76,8 @@ export type OpenDotaMatch = {
   hero_id: number;
   start_time: number;
   tower_damage?: number | null;
+  hero_damage?: number | null;
+  kills?: number | null;
 };
 
 export type MatchingWin = {

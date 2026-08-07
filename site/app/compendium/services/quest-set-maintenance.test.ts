@@ -31,7 +31,7 @@ describe("existing compendium quest cards", () => {
       }),
     } as unknown as PoolClient;
 
-    await completeExistingQuestCards(client, "401");
+    await completeExistingQuestCards(client, "401", "2026-08-15");
 
     const sharedInserts = statements.filter(({ sql }) =>
       sql.includes("INSERT INTO compendium_daily_quest_heroes"),
@@ -43,6 +43,14 @@ describe("existing compendium quest cards", () => {
     expect(rerollInserts).toHaveLength(2);
     expect(sharedInserts.map(({ values }) => values[3])).toEqual([5, 6]);
     expect(rerollInserts.map(({ values }) => values[2])).toEqual([5, 6]);
+    const reservedHeroIds = new Set([91, 19, 102, 98, 72]);
+    const insertedHeroIds = [
+      ...sharedInserts.map(({ values }) => Number(values[2])),
+      ...rerollInserts.map(({ values }) => Number(values[1])),
+    ];
+    expect(insertedHeroIds.every((heroId) => !reservedHeroIds.has(heroId))).toBe(
+      true,
+    );
     expect(statements.every(({ sql }) => !sql.includes("DELETE FROM"))).toBe(true);
   });
 });

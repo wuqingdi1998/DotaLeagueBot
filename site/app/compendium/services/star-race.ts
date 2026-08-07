@@ -2,6 +2,7 @@ import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
 import {
   findDistinctMatchingWins,
+  findRankedStatWin,
   scanWinningBuildingDamage,
 } from "../model/matches";
 import {
@@ -161,7 +162,9 @@ export async function checkStarRaceQuest(
   }
 
   const matches = await fetchRecentPlayerMatches(dotaId, {
-    forceRefresh: quest.requirement.kind === "winning-building-damage",
+    forceRefresh:
+      quest.requirement.kind === "winning-building-damage" ||
+      quest.requirement.kind === "ranked-win-stat",
   });
   const verificationNow = new Date();
   if (starRaceQuestPhase(quest, verificationNow) !== "active") {
@@ -193,7 +196,7 @@ export async function checkStarRaceQuest(
       rewardStars: quest.rewardStars,
       wins,
     });
-  } else {
+  } else if (quest.requirement.kind === "winning-building-damage") {
     const scan = scanWinningBuildingDamage({
       matches,
       dayStart: bounds.start,
@@ -217,6 +220,31 @@ export async function checkStarRaceQuest(
         wins: [evidenceWin],
       });
     }
+  } else {
+    const win = findRankedStatWin({
+      matches,
+      heroIds: quest.requirement.heroIds,
+      stat: quest.requirement.stat,
+      minimum: quest.requirement.minimum,
+      dayStart: bounds.start,
+      dayEnd: bounds.end,
+      now: verificationNow,
+    });
+    if (!win) {
+      const target = quest.requirement.stat === "hero_damage"
+        ? `${quest.requirement.minimum.toLocaleString("ru-RU")} урона героям`
+        : `${quest.requirement.minimum} убийств`;
+      throw new CompendiumError(
+        "NO_MATCH",
+        `Пока не найден победный рейтинговый матч с результатом: ${target}.`,
+      );
+    }
+    completion = await recordStarRaceCompletion({
+      playerId: user.discordId,
+      dateKey,
+      rewardStars: quest.rewardStars,
+      wins: [win],
+    });
   }
   return starRaceCheckResult({
     user,

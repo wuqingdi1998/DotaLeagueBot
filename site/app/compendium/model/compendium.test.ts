@@ -7,9 +7,11 @@ import { COMPENDIUM_HEROES } from "./heroes";
 import {
   findDistinctMatchingWins,
   findMatchingWin,
+  findRankedStatWin,
   matchEndedAt,
   scanWinningBuildingDamage,
 } from "./matches";
+import { dailyQuestExcludedHeroIds } from "./daily-quest-exclusions";
 import {
   generateDailyQuestHeroes,
   generateBonusQuestHeroes,
@@ -80,6 +82,24 @@ describe("daily compendium quest generation", () => {
 
   it("rejects a catalog that is too small", () => {
     expect(() => generateDailyQuestHeroes(COMPENDIUM_HEROES.slice(0, 17))).toThrow();
+  });
+});
+
+describe("star-race hero exclusions from daily cards", () => {
+  it("reserves the configured heroes on Monday, Wednesday, Friday and Saturday", () => {
+    expect(dailyQuestExcludedHeroIds("2026-08-10")).toEqual([
+      97, 3, 112, 106, 109,
+    ]);
+    expect(dailyQuestExcludedHeroIds("2026-08-12")).toEqual([14]);
+    expect(dailyQuestExcludedHeroIds("2026-08-14")).toEqual([16, 63]);
+    expect(dailyQuestExcludedHeroIds("2026-08-15")).toEqual([
+      91, 19, 102, 98, 72,
+    ]);
+  });
+
+  it("does not reserve heroes outside the configured dates", () => {
+    expect(dailyQuestExcludedHeroIds("2026-08-11")).toEqual([]);
+    expect(dailyQuestExcludedHeroIds("2026-08-16")).toEqual([]);
   });
 });
 
@@ -292,5 +312,49 @@ describe("OpenDota match qualification", () => {
     });
 
     expect(result).toEqual({ totalDamage: 0, wins: [] });
+  });
+
+  it("requires 60,000 hero damage in one Pudge ranked win", () => {
+    const input = {
+      heroIds: [14],
+      stat: "hero_damage" as const,
+      minimum: 60_000,
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    };
+    expect(findRankedStatWin({
+      ...input,
+      matches: [
+        match({ match_id: 9401, hero_id: 14, hero_damage: 59_999 }),
+        match({ match_id: 9402, hero_id: 1, hero_damage: 70_000 }),
+      ],
+    })).toBeNull();
+    expect(findRankedStatWin({
+      ...input,
+      matches: [match({ match_id: 9403, hero_id: 14, hero_damage: 60_000 })],
+    })?.matchId).toBe("9403");
+  });
+
+  it("requires 16 kills in one ranked win on any hero", () => {
+    const input = {
+      heroIds: null,
+      stat: "kills" as const,
+      minimum: 16,
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    };
+    expect(findRankedStatWin({
+      ...input,
+      matches: [
+        match({ match_id: 9501, kills: 15 }),
+        match({ match_id: 9502, kills: 20, radiant_win: false }),
+      ],
+    })).toBeNull();
+    expect(findRankedStatWin({
+      ...input,
+      matches: [match({ match_id: 9503, hero_id: 137, kills: 16 })],
+    })?.matchId).toBe("9503");
   });
 });

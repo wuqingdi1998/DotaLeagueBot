@@ -24,7 +24,13 @@ function isOpenDotaMatch(value: unknown): value is OpenDotaMatch {
     typeof match.start_time === "number" &&
     (match.tower_damage === undefined ||
       match.tower_damage === null ||
-      (typeof match.tower_damage === "number" && match.tower_damage >= 0))
+      (typeof match.tower_damage === "number" && match.tower_damage >= 0)) &&
+    (match.hero_damage === undefined ||
+      match.hero_damage === null ||
+      (typeof match.hero_damage === "number" && match.hero_damage >= 0)) &&
+    (match.kills === undefined ||
+      match.kills === null ||
+      (typeof match.kills === "number" && match.kills >= 0))
   );
 }
 
@@ -36,7 +42,13 @@ async function requestRecentPlayerMatches(
     "https://api.opendota.com",
   );
   url.searchParams.set("date", "1");
-  for (const field of ["hero_id", "start_time", "tower_damage"]) {
+  for (const field of [
+    "hero_id",
+    "start_time",
+    "tower_damage",
+    "hero_damage",
+    "kills",
+  ]) {
     url.searchParams.append("project", field);
   }
   const apiKey = process.env.OPENDOTA_API_KEY?.trim();

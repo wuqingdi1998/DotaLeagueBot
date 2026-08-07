@@ -103,6 +103,32 @@ export function findDistinctMatchingWins(input: {
   return null;
 }
 
+export function findRankedStatWin(input: {
+  matches: OpenDotaMatch[];
+  heroIds: readonly number[] | null;
+  stat: "hero_damage" | "kills";
+  minimum: number;
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): MatchingWin | null {
+  const allowedHeroes = input.heroIds ? new Set(input.heroIds) : null;
+  const match = input.matches.find((candidate) => {
+    const isAllowedHero = !allowedHeroes || allowedHeroes.has(candidate.hero_id);
+    const statValue = candidate[input.stat];
+    return (
+      isAllowedHero &&
+      typeof statValue === "number" &&
+      statValue >= input.minimum &&
+      RANKED_LOBBY_TYPES.has(candidate.lobby_type) &&
+      RANKED_GAME_MODES.has(candidate.game_mode) &&
+      isPlayerWin(candidate) &&
+      endedInsideWindow({ ...input, match: candidate })
+    );
+  });
+  return match ? matchingWin(match) : null;
+}
+
 export function scanWinningBuildingDamage(input: {
   matches: OpenDotaMatch[];
   dayStart: Date;
