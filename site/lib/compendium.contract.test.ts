@@ -469,7 +469,7 @@ describe("compendium persistence and security contract", () => {
     expect(runeChallengeView).toContain("До нового испытания");
   });
 
-  it("keeps rune stars in personal totals and excludes race heroes by date", () => {
+  it("keeps rune stars personal and allows race heroes in Rune Challenge", () => {
     expect(runeChallengeMigration).toContain(
       "CREATE OR REPLACE VIEW compendium_player_star_totals",
     );
@@ -482,9 +482,9 @@ describe("compendium persistence and security contract", () => {
     expect(baseRepository).toContain(
       "compendium_rune_challenge_completions",
     );
-    expect(runeChallengeService).toContain("dailyQuestExcludedHeroIds");
-    expect(runeChallengeView).toContain("unavailableHeroIds.includes");
-    expect(runeChallengeRepository).toContain("cooldownBypassHeroIds");
+    expect(runeChallengeService).not.toContain("dailyQuestExcludedHeroIds");
+    expect(runeChallengeView).not.toContain("unavailableHeroIds");
+    expect(runeChallengeRepository).not.toContain("cooldownBypassHeroIds");
     expect(dailyQuestExclusions).toContain(
       '"2026-08-15": [91, 19, 102, 98, 72]',
     );

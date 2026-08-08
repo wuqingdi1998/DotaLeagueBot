@@ -28,14 +28,12 @@ function cooldownLabel(nextChangeAt: string, now: number): string {
 
 function HeroPicker({
   selectedHeroId,
-  unavailableHeroIds,
   disabled,
   actionLabel,
   onChange,
   onSubmit,
 }: {
   selectedHeroId: string;
-  unavailableHeroIds: number[];
   disabled: boolean;
   actionLabel: string;
   onChange: (heroId: string) => void;
@@ -52,7 +50,6 @@ function HeroPicker({
         >
           <option value="">Выберите героя</option>
           {[...COMPENDIUM_HEROES]
-            .filter((hero) => !unavailableHeroIds.includes(hero.id))
             .sort((left, right) => left.name.localeCompare(right.name, "en"))
             .map((hero) => (
               <option value={hero.id} key={hero.id}>{hero.name}</option>
@@ -94,13 +91,8 @@ export function RuneChallenge({
       : null,
     [challenge.completion],
   );
-  const isSelectedHeroUnavailable = Boolean(
-    challenge.selection &&
-    challenge.unavailableHeroIds.includes(challenge.selection.hero.id),
-  );
   const canChangeHero = challenge.selection
-    ? isSelectedHeroUnavailable ||
-      challenge.selection.canChangeHero ||
+    ? challenge.selection.canChangeHero ||
       new Date(challenge.selection.nextChangeAt).getTime() <= now
     : false;
 
@@ -129,7 +121,6 @@ export function RuneChallenge({
           setChallenge({
             hasAccess: false,
             accessRoleName: null,
-            unavailableHeroIds: challenge.unavailableHeroIds,
             selection: null,
             completion: null,
           });
@@ -166,7 +157,6 @@ export function RuneChallenge({
           setChallenge({
             hasAccess: false,
             accessRoleName: null,
-            unavailableHeroIds: challenge.unavailableHeroIds,
             selection: null,
             completion: null,
           });
@@ -218,22 +208,17 @@ export function RuneChallenge({
         </div>
       ) : (
         <div className="compendium-rune-content">
-          {!challenge.selection || isSelectedHeroUnavailable ? (
+          {!challenge.selection ? (
             <div className="compendium-rune-first-selection">
               <p>
-                {isSelectedHeroUnavailable
-                  ? "Выбранный герой участвует в сегодняшнем задании гонки. Выберите другого героя для Испытания Рун."
-                  : "Выбор героя откроет для вас уникальное испытание. Оно обновляется ежедневно вместе с остальными заданиями, а сменить героя можно будет через 7 дней."}
+                Выбор героя откроет для вас уникальное испытание. Оно обновляется
+                ежедневно вместе с остальными заданиями, а сменить героя можно
+                будет через 7 дней.
               </p>
               <HeroPicker
                 selectedHeroId={selectedHeroId}
-                unavailableHeroIds={challenge.unavailableHeroIds}
                 disabled={isSaving}
-                actionLabel={isSaving
-                  ? "Сохраняем…"
-                  : isSelectedHeroUnavailable
-                    ? "Сменить героя"
-                    : "Выбрать героя"}
+                actionLabel={isSaving ? "Сохраняем…" : "Выбрать героя"}
                 onChange={setSelectedHeroId}
                 onSubmit={saveHero}
               />
@@ -295,7 +280,6 @@ export function RuneChallenge({
                 <div className="compendium-rune-change-hero">
                   <HeroPicker
                     selectedHeroId={selectedHeroId}
-                    unavailableHeroIds={challenge.unavailableHeroIds}
                     disabled={isSaving}
                     actionLabel={isSaving ? "Сохраняем…" : "Сменить героя"}
                     onChange={setSelectedHeroId}

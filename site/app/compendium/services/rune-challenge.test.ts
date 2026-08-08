@@ -89,40 +89,58 @@ describe("rune challenge", () => {
     expect(mocks.saveSelection).not.toHaveBeenCalled();
   });
 
-  it("does not allow Wednesday's Pudge quest hero in Rune Challenge", async () => {
+  it("allows Wednesday's Pudge quest hero in Rune Challenge", async () => {
     const now = new Date("2026-08-12T12:00:00.000Z");
-
-    await expect(selectRuneChallengeHero(user, 14, now)).rejects.toMatchObject({
-      code: "RUNE_HERO_UNAVAILABLE",
-    });
-    expect(mocks.saveSelection).not.toHaveBeenCalled();
-  });
-
-  it("passes the day's excluded heroes as a cooldown exception", async () => {
-    const now = new Date("2026-08-15T12:00:00.000Z");
     mocks.saveSelection.mockResolvedValue(undefined);
-    mocks.loadState.mockResolvedValue(state(now));
-
-    await selectRuneChallengeHero(user, 1, now);
-
-    expect(mocks.saveSelection).toHaveBeenCalledWith({
-      playerId: user.discordId,
-      heroId: 1,
-      cooldownBypassHeroIds: [91, 19, 102, 98, 72],
-    });
-  });
-
-  it("does not check a previously selected hero excluded for the current day", async () => {
-    const now = new Date("2026-08-12T12:00:00.000Z");
     mocks.loadState.mockResolvedValue({
       ...state(now),
       selection: { ...state(now).selection, heroId: 14 },
     });
 
-    await expect(checkRuneChallenge(user, now)).rejects.toMatchObject({
-      code: "RUNE_HERO_UNAVAILABLE",
+    await selectRuneChallengeHero(user, 14, now);
+
+    expect(mocks.saveSelection).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      heroId: 14,
     });
-    expect(mocks.fetchMatches).not.toHaveBeenCalled();
+  });
+
+  it("checks a Rune win on a hero from the current star-race quest", async () => {
+    const now = new Date("2026-08-12T12:00:00.000Z");
+    vi.useFakeTimers();
+    vi.setSystemTime(now);
+    const selectedAt = new Date(now.getTime() - 60 * 60 * 1_000);
+    const currentState = {
+      ...state(selectedAt),
+      selection: { ...state(selectedAt).selection, heroId: 14 },
+    };
+    const completion = {
+      matchedHeroId: 14,
+      matchedMatchId: "9014",
+      completedAt: now.toISOString(),
+    };
+    mocks.loadState
+      .mockResolvedValueOnce(currentState)
+      .mockResolvedValueOnce(currentState)
+      .mockResolvedValueOnce({ ...currentState, completion });
+    mocks.fetchMatches.mockResolvedValue([{
+      match_id: 9014,
+      player_slot: 0,
+      radiant_win: true,
+      duration: 600,
+      game_mode: 22,
+      lobby_type: 7,
+      hero_id: 14,
+      start_time: Math.floor((now.getTime() - 30 * 60 * 1_000) / 1_000),
+    }]);
+    mocks.recordCompletion.mockResolvedValue(completion);
+
+    await expect(checkRuneChallenge(user, now)).resolves.toMatchObject({
+      runeChallenge: { completion },
+    });
+    expect(mocks.recordCompletion).toHaveBeenCalledWith(
+      expect.objectContaining({ heroId: 14, matchId: "9014" }),
+    );
   });
 
   it("awards two stars for a Friday ranked win after hero selection", async () => {

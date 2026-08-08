@@ -121,7 +121,6 @@ export async function loadRuneChallengeStateRecord(
 export async function saveRuneChallengeSelection(input: {
   playerId: string;
   heroId: number;
-  cooldownBypassHeroIds?: readonly number[];
 }): Promise<RuneChallengeSelectionRecord> {
   return transaction(async (client) => {
     await client.query(
@@ -143,11 +142,7 @@ export async function saveRuneChallengeSelection(input: {
        FOR UPDATE`,
       [input.playerId],
     );
-    if (
-      current.rowCount &&
-      !current.rows[0].can_change_hero &&
-      !input.cooldownBypassHeroIds?.includes(current.rows[0].hero_id)
-    ) {
+    if (current.rowCount && !current.rows[0].can_change_hero) {
       throw new CompendiumError(
         "RUNE_HERO_LOCKED",
         `Любимого героя можно сменить после ${current.rows[0].next_change_at.toLocaleString("ru-RU", { timeZone: "Europe/Moscow" })}`,
