@@ -87,13 +87,13 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "12 августа",
     title: "Это снайпер?",
     description:
-      "Выиграть рейтинговый матч на Pudge, нанеся 60 000 урона героям.",
+      "Выиграть рейтинговый матч на Pudge, нанеся 50 000 урона героям.",
     rewardStars: 2,
     requirement: {
       kind: "ranked-win-stat",
       heroIds: [14],
       stat: "hero_damage",
-      minimum: 60_000,
+      minimum: 50_000,
     },
   },
   {

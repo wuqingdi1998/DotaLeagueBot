@@ -14,6 +14,9 @@ const progressMigration = source(
 const heroProgressMigration = source(
   "../../bot/database/migrations/0056_compendium_star_race_hero_progress.sql",
 );
+const raceEventsMigration = source(
+  "../../bot/database/migrations/0057_compendium_star_race_exclude_runes.sql",
+);
 const dashboard = source(
   "../app/compendium/sections/CompendiumDashboard.tsx",
 );
@@ -29,7 +32,11 @@ const repository = source(
 );
 const service = source("../app/compendium/services/star-race.ts");
 const styles = source("../app/styles/46-compendium-star-race.css");
+const summaryStyles = source(
+  "../app/styles/48-compendium-star-race-summary.css",
+);
 const rewardsStyles = source("../app/styles/38-compendium-rewards.css");
+const globalStyles = source("../app/globals.css");
 
 describe("compendium star race contract", () => {
   it("counts every current star source inside the race period", () => {
@@ -43,9 +50,20 @@ describe("compendium star race contract", () => {
       expect(migration).toContain(table);
     }
     expect(migration).toContain("CREATE OR REPLACE VIEW compendium_star_events");
-    expect(repository).toContain("FROM compendium_star_events");
+    expect(repository).toContain("FROM compendium_star_race_events");
     expect(repository).toContain("earned_at >= $1::timestamptz");
     expect(repository).toContain("earned_at < $2::timestamptz");
+  });
+
+  it("excludes Rune Challenge only from star-race totals", () => {
+    expect(raceEventsMigration).toContain(
+      "CREATE OR REPLACE VIEW compendium_star_race_events",
+    );
+    expect(raceEventsMigration).not.toContain(
+      "compendium_rune_challenge_completions",
+    );
+    expect(migration).toContain("compendium_rune_challenge_completions");
+    expect(migration).toContain("FROM compendium_star_events event");
   });
 
   it("shows the signed-in player's tied rank from the same race standings", () => {
@@ -134,6 +152,17 @@ describe("compendium star race contract", () => {
     );
     expect(rewardsStyles).toMatch(
       /\.compendium-reward-track-heading span\s*\{[^}]*color:\s*var\(--blue-soft\);[^}]*font-size:\s*14px;/,
+    );
+  });
+
+  it("places race rules between the compact counter and right-side prizes", () => {
+    expect(starRaceView).toContain("Условия гонки");
+    expect(starRaceView).toContain(
+      "Звёзды за Испытание Рун в гонке не учитываются",
+    );
+    expect(summaryStyles).toContain(".compendium-star-race-rules");
+    expect(globalStyles).toContain(
+      '@import "./styles/48-compendium-star-race-summary.css";',
     );
   });
 });

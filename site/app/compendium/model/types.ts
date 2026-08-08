@@ -28,6 +28,7 @@ export type RuneChallengeSelection = {
 export type RuneChallengeData = {
   hasAccess: boolean;
   accessRoleName: string | null;
+  unavailableHeroIds: number[];
   selection: RuneChallengeSelection | null;
   completion: QuestCompletion | null;
 };

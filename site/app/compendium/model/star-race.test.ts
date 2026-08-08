@@ -94,7 +94,7 @@ describe("star race schedule", () => {
     });
   });
 
-  it("defines Wednesday's Pudge hero-damage quest", () => {
+  it("defines Wednesday's 50,000 Pudge hero-damage quest", () => {
     expect(STAR_RACE_QUESTS[2]).toMatchObject({
       dateKey: "2026-08-12",
       title: "Это снайпер?",
@@ -103,7 +103,7 @@ describe("star race schedule", () => {
         kind: "ranked-win-stat",
         heroIds: [14],
         stat: "hero_damage",
-        minimum: 60_000,
+        minimum: 50_000,
       },
     });
   });

@@ -141,7 +141,7 @@ export async function totalStarRaceStars(): Promise<number> {
     `SELECT COALESCE(SUM(player_total.total), 0)::int AS total
      FROM (
        SELECT GREATEST(0, SUM(event.amount))::int AS total
-       FROM compendium_star_events event
+       FROM compendium_star_race_events event
        WHERE event.earned_at >= $1::timestamptz
          AND event.earned_at < $2::timestamptz
        GROUP BY event.player_id
@@ -155,7 +155,7 @@ const eligibleStarRaceTotalsCte = `WITH race_totals AS (
   SELECT
     event.player_id,
     GREATEST(0, SUM(event.amount))::int AS total_stars
-  FROM compendium_star_events event
+  FROM compendium_star_race_events event
   WHERE event.earned_at >= $1::timestamptz
     AND event.earned_at < $2::timestamptz
   GROUP BY event.player_id

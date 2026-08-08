@@ -323,11 +323,11 @@ describe("OpenDota match qualification", () => {
     expect(result).toEqual({ totalDamage: 0, wins: [] });
   });
 
-  it("requires 60,000 hero damage in one Pudge ranked win", () => {
+  it("requires 50,000 hero damage in one Pudge ranked win", () => {
     const input = {
       heroIds: [14],
       stat: "hero_damage" as const,
-      minimum: 60_000,
+      minimum: 50_000,
       dayStart: augustFirst.start,
       dayEnd: augustFirst.end,
       now: new Date("2026-08-01T18:00:00.000Z"),
@@ -335,13 +335,13 @@ describe("OpenDota match qualification", () => {
     expect(findRankedStatWin({
       ...input,
       matches: [
-        match({ match_id: 9401, hero_id: 14, hero_damage: 59_999 }),
+        match({ match_id: 9401, hero_id: 14, hero_damage: 49_999 }),
         match({ match_id: 9402, hero_id: 1, hero_damage: 70_000 }),
       ],
     })).toBeNull();
     expect(findRankedStatWin({
       ...input,
-      matches: [match({ match_id: 9403, hero_id: 14, hero_damage: 60_000 })],
+      matches: [match({ match_id: 9403, hero_id: 14, hero_damage: 50_000 })],
     })?.matchId).toBe("9403");
   });
 

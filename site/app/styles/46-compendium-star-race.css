@@ -85,7 +85,7 @@
   position: relative;
   z-index: 2;
   display: grid;
-  grid-template-columns: minmax(260px, 0.7fr) minmax(360px, 1.3fr);
+  grid-template-columns: minmax(210px, 0.5fr) minmax(300px, 0.75fr) minmax(400px, 1.25fr);
   gap: 14px;
   margin-top: 22px;
 }

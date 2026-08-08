@@ -89,6 +89,42 @@ describe("rune challenge", () => {
     expect(mocks.saveSelection).not.toHaveBeenCalled();
   });
 
+  it("does not allow Wednesday's Pudge quest hero in Rune Challenge", async () => {
+    const now = new Date("2026-08-12T12:00:00.000Z");
+
+    await expect(selectRuneChallengeHero(user, 14, now)).rejects.toMatchObject({
+      code: "RUNE_HERO_UNAVAILABLE",
+    });
+    expect(mocks.saveSelection).not.toHaveBeenCalled();
+  });
+
+  it("passes the day's excluded heroes as a cooldown exception", async () => {
+    const now = new Date("2026-08-15T12:00:00.000Z");
+    mocks.saveSelection.mockResolvedValue(undefined);
+    mocks.loadState.mockResolvedValue(state(now));
+
+    await selectRuneChallengeHero(user, 1, now);
+
+    expect(mocks.saveSelection).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      heroId: 1,
+      cooldownBypassHeroIds: [91, 19, 102, 98, 72],
+    });
+  });
+
+  it("does not check a previously selected hero excluded for the current day", async () => {
+    const now = new Date("2026-08-12T12:00:00.000Z");
+    mocks.loadState.mockResolvedValue({
+      ...state(now),
+      selection: { ...state(now).selection, heroId: 14 },
+    });
+
+    await expect(checkRuneChallenge(user, now)).rejects.toMatchObject({
+      code: "RUNE_HERO_UNAVAILABLE",
+    });
+    expect(mocks.fetchMatches).not.toHaveBeenCalled();
+  });
+
   it("awards two stars for a Friday ranked win after hero selection", async () => {
     const now = new Date("2026-08-07T12:00:00.000Z");
     vi.useFakeTimers();

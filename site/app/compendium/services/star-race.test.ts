@@ -185,7 +185,7 @@ describe("Tuesday star race building damage check", () => {
 });
 
 describe("single-match star race statistic checks", () => {
-  it("awards Wednesday only for a Pudge win with 60,000 hero damage", async () => {
+  it("awards Wednesday only for a Pudge win with 50,000 hero damage", async () => {
     const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
     vi.setSystemTime(wednesdayNow);
     const completion = {
@@ -196,7 +196,7 @@ describe("single-match star race statistic checks", () => {
       ...winningMatch(3001, 0),
       hero_id: 14,
       start_time: Date.parse("2026-08-12T09:00:00.000Z") / 1_000,
-      hero_damage: 60_000,
+      hero_damage: 50_000,
     }]);
     mocks.recordStarRaceCompletion.mockResolvedValue(completion);
 

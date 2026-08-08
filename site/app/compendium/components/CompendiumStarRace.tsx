@@ -12,6 +12,7 @@ import {
   FiExternalLink,
   FiGift,
   FiImage,
+  FiInfo,
   FiLoader,
 } from "react-icons/fi";
 import type { StarRaceData, StarRaceQuest } from "../model/star-race";
@@ -255,6 +256,19 @@ export function CompendiumStarRace({
               </strong>
               <FiArrowRight aria-hidden="true" />
             </Link>
+            <div className="compendium-star-race-rules">
+              <FiInfo aria-hidden="true" />
+              <div>
+                <strong>Условия гонки</strong>
+                <ul>
+                  <li>В зачёт входят звёзды, полученные с 10 по 16 августа.</li>
+                  <li>
+                    Звёзды за Испытание Рун в гонке не учитываются. В личном и
+                    общем зачётах они сохраняются.
+                  </li>
+                </ul>
+              </div>
+            </div>
             <div className="compendium-star-race-prizes">
               {race.prizes.map((prize) => (
                 <div

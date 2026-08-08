@@ -1,0 +1,54 @@
+.compendium-star-race-rules {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 13px;
+  align-items: start;
+  min-height: 92px;
+  padding: 17px 18px;
+  border: 1px solid color-mix(in srgb, var(--star-race-gold) 32%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+}
+
+.compendium-star-race-rules > svg {
+  width: 44px;
+  height: 44px;
+  padding: 11px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--star-race-gold) 14%, transparent);
+  color: var(--star-race-gold);
+}
+
+.compendium-star-race-rules > div {
+  min-width: 0;
+}
+
+.compendium-star-race-rules strong {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 15px;
+}
+
+.compendium-star-race-rules ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding-left: 17px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.site-shell[data-theme="light"] .compendium-star-race-rules > svg {
+  color: #805300;
+}
+
+@media (min-width: 721px) and (max-width: 1180px) {
+  .compendium-star-race-summary {
+    grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  }
+
+  .compendium-star-race-prizes {
+    grid-column: 1 / -1;
+  }
+}

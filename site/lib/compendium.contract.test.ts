@@ -71,6 +71,9 @@ const runeChallengeRepository = source(
 const runeChallengeService = source(
   "../app/compendium/services/rune-challenge.ts",
 );
+const dailyQuestExclusions = source(
+  "../app/compendium/model/daily-quest-exclusions.ts",
+);
 const runeChallengeView = source(
   "../app/compendium/components/RuneChallenge.tsx",
 );
@@ -466,7 +469,7 @@ describe("compendium persistence and security contract", () => {
     expect(runeChallengeView).toContain("До нового испытания");
   });
 
-  it("counts rune stars everywhere and excludes favorites after reset", () => {
+  it("keeps rune stars in personal totals and excludes race heroes by date", () => {
     expect(runeChallengeMigration).toContain(
       "CREATE OR REPLACE VIEW compendium_player_star_totals",
     );
@@ -478,6 +481,12 @@ describe("compendium persistence and security contract", () => {
     );
     expect(baseRepository).toContain(
       "compendium_rune_challenge_completions",
+    );
+    expect(runeChallengeService).toContain("dailyQuestExcludedHeroIds");
+    expect(runeChallengeView).toContain("unavailableHeroIds.includes");
+    expect(runeChallengeRepository).toContain("cooldownBypassHeroIds");
+    expect(dailyQuestExclusions).toContain(
+      '"2026-08-15": [91, 19, 102, 98, 72]',
     );
     expect(runeChallengeCss).toContain("@media (max-width: 720px)");
   });

@@ -3,6 +3,7 @@ import {
   OPEN_DOTA_ERROR_MESSAGE,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
+import { dailyQuestExcludedHeroIds } from "../model/daily-quest-exclusions";
 import { COMPENDIUM_HEROES, compendiumHeroById } from "../model/heroes";
 import { findMatchingWin } from "../model/matches";
 import { currentMoscowDay } from "../model/time";
@@ -30,11 +31,13 @@ export type RuneChallengeCheckResult = {
 
 function runeChallengeData(
   state: RuneChallengeStateRecord,
+  dateKey: string,
 ): RuneChallengeData {
   const hasAccess = state.accessRoleName !== null;
   return {
     hasAccess,
     accessRoleName: state.accessRoleName,
+    unavailableHeroIds: [...dailyQuestExcludedHeroIds(dateKey)],
     selection: hasAccess && state.selection
       ? {
           hero: compendiumHeroById(state.selection.heroId),
@@ -53,6 +56,7 @@ export async function loadRuneChallenge(
 ): Promise<RuneChallengeData> {
   return runeChallengeData(
     await loadRuneChallengeStateRecord(playerId, dateKey),
+    dateKey,
   );
 }
 
@@ -62,11 +66,23 @@ export async function selectRuneChallengeHero(
   now: Date = new Date(),
 ): Promise<RuneChallengeData> {
   requireCompendiumDotaId(user);
+  const day = currentMoscowDay(now);
   if (!COMPENDIUM_HEROES.some((hero) => hero.id === heroId)) {
     throw new CompendiumError("RUNE_HERO_INVALID", "Выберите героя из списка");
   }
-  await saveRuneChallengeSelection({ playerId: user.discordId, heroId });
-  return loadRuneChallenge(user.discordId, currentMoscowDay(now).dateKey);
+  const unavailableHeroIds = dailyQuestExcludedHeroIds(day.dateKey);
+  if (unavailableHeroIds.includes(heroId)) {
+    throw new CompendiumError(
+      "RUNE_HERO_UNAVAILABLE",
+      "Этот герой участвует в задании гонки и сегодня недоступен для Испытания Рун",
+    );
+  }
+  await saveRuneChallengeSelection({
+    playerId: user.discordId,
+    heroId,
+    cooldownBypassHeroIds: unavailableHeroIds,
+  });
+  return loadRuneChallenge(user.discordId, day.dateKey);
 }
 
 export async function checkRuneChallenge(
@@ -86,6 +102,12 @@ export async function checkRuneChallenge(
     throw new CompendiumError(
       "RUNE_HERO_REQUIRED",
       "Сначала выберите любимого героя",
+    );
+  }
+  if (dailyQuestExcludedHeroIds(day.dateKey).includes(state.selection.heroId)) {
+    throw new CompendiumError(
+      "RUNE_HERO_UNAVAILABLE",
+      "Выбранный герой участвует в задании гонки. Выберите другого героя для Испытания Рун",
     );
   }
   if (!state.completion) {
