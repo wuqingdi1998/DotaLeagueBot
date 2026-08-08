@@ -28,7 +28,7 @@ export default async function StarRaceLeaderboardPage() {
         participants={participants}
         eyebrow="10–16 АВГУСТА 2026"
         title="Гонка за звёздами"
-        description={`Звёзды, полученные всеми способами только за неделю гонки. Награда за первое место — ${STAR_RACE_PRIZES[0].title}; за второе — ${STAR_RACE_PRIZES[1].title}.`}
+        description={`Звёзды за Испытание Рун не учитываются. При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. Если совпадают оба показателя, участники делят место. Награда за первое место — ${STAR_RACE_PRIZES[0].title}; за второе — ${STAR_RACE_PRIZES[1].title}.`}
       />
     </PlatformShell>
   );

@@ -159,10 +159,26 @@ const eligibleStarRaceTotalsCte = `WITH race_totals AS (
   WHERE event.earned_at >= $1::timestamptz
     AND event.earned_at < $2::timestamptz
   GROUP BY event.player_id
+), race_quest_counts AS (
+  SELECT
+    completion.player_id,
+    COUNT(*)::int AS completed_race_quests
+  FROM compendium_star_race_quest_completions completion
+  WHERE completion.moscow_date >=
+      ($1::timestamptz AT TIME ZONE 'Europe/Moscow')::date
+    AND completion.moscow_date <
+      ($2::timestamptz AT TIME ZONE 'Europe/Moscow')::date
+  GROUP BY completion.player_id
 ), eligible_race_totals AS (
-  SELECT race_total.player_id, race_total.total_stars
+  SELECT
+    race_total.player_id,
+    race_total.total_stars,
+    COALESCE(quest_count.completed_race_quests, 0)::int
+      AS completed_race_quests
   FROM race_totals race_total
   JOIN players player ON player.discord_id = race_total.player_id
+  LEFT JOIN race_quest_counts quest_count
+    ON quest_count.player_id = race_total.player_id
   WHERE race_total.total_stars > 0
     AND player.is_archived = FALSE
     AND player.steam_id32 BETWEEN 1 AND 4294967295
@@ -175,7 +191,11 @@ export async function loadStarRaceRank(
     `${eligibleStarRaceTotalsCte}, ranked_totals AS (
        SELECT
          eligible_total.player_id,
-         (RANK() OVER (ORDER BY eligible_total.total_stars DESC))::int AS rank
+         (RANK() OVER (
+           ORDER BY
+             eligible_total.total_stars DESC,
+             eligible_total.completed_race_quests DESC
+         ))::int AS rank
        FROM eligible_race_totals eligible_total
      )
      SELECT ranked_total.rank
@@ -192,7 +212,11 @@ export async function loadStarRaceLeaderboard(): Promise<
   const rows = await query<StarRaceLeaderboardRow>(
     `${eligibleStarRaceTotalsCte}
      SELECT
-       (RANK() OVER (ORDER BY eligible_total.total_stars DESC))::int AS rank,
+       (RANK() OVER (
+         ORDER BY
+           eligible_total.total_stars DESC,
+           eligible_total.completed_race_quests DESC
+       ))::int AS rank,
        player.discord_id::text AS player_id,
        player.steam_id32::text AS dota_id,
        player.ingame_name AS player_name,
@@ -213,6 +237,7 @@ export async function loadStarRaceLeaderboard(): Promise<
      ) latest_session ON TRUE
      ORDER BY
        eligible_total.total_stars DESC,
+       eligible_total.completed_race_quests DESC,
        LOWER(player.ingame_name),
        player.discord_id`,
     [STAR_RACE_START_AT, STAR_RACE_END_AT],

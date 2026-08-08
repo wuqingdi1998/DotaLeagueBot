@@ -69,7 +69,7 @@ describe("compendium star race contract", () => {
   it("shows the signed-in player's tied rank from the same race standings", () => {
     expect(repository).toContain("export async function loadStarRaceRank");
     expect(repository).toContain(
-      "RANK() OVER (ORDER BY eligible_total.total_stars DESC)",
+      "eligible_total.completed_race_quests DESC",
     );
     expect(repository).toContain("WHERE ranked_total.player_id = $3");
     expect(service).toContain("loadStarRaceRank(user.discordId)");
@@ -78,6 +78,26 @@ describe("compendium star race contract", () => {
     expect(starRaceView).toContain('race.personalRank ?? "—"');
     expect(styles).toContain(".compendium-star-race-rank-label");
     expect(styles).toContain("grid-row: 1 / 5");
+  });
+
+  it("breaks star ties by completed daily race quests and explains the rule", () => {
+    expect(repository).toContain("race_quest_counts AS");
+    expect(repository).toContain(
+      "FROM compendium_star_race_quest_completions completion",
+    );
+    expect(repository).toMatch(
+      /RANK\(\) OVER \(\s*ORDER BY\s*eligible_total\.total_stars DESC,\s*eligible_total\.completed_race_quests DESC/,
+    );
+    expect(repository).toMatch(
+      /ORDER BY\s*eligible_total\.total_stars DESC,\s*eligible_total\.completed_race_quests DESC,\s*LOWER\(player\.ingame_name\)/,
+    );
+    const leaderboardPage = source("../app/compendium/star-race/page.tsx");
+    expect(leaderboardPage).toContain(
+      "При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки",
+    );
+    expect(leaderboardPage).toContain(
+      "Если совпадают оба показателя, участники делят место",
+    );
   });
 
   it("stores the two-star reward once and only during its Moscow day", () => {
