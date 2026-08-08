@@ -1,8 +1,9 @@
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
 import {
-  findDistinctMatchingWins,
+  findGameModeWin,
   findRankedStatWin,
+  scanDistinctMatchingWins,
   scanWinningBuildingDamage,
 } from "../model/matches";
 import {
@@ -16,6 +17,7 @@ import {
   starRaceQuestPhase,
   type StarRaceData,
   type StarRaceQuestCompletion,
+  type StarRaceQuestHeroProgress,
   type StarRaceQuestProgress,
 } from "../model/star-race";
 import { moscowDayBounds } from "../model/time";
@@ -32,6 +34,7 @@ import {
   loadStarRaceProgress,
   loadStarRaceRank,
   recordStarRaceCompletion,
+  replaceStarRaceHeroProgress,
   replaceStarRaceProgress,
   totalStarRaceStars,
 } from "./star-race-repository";
@@ -82,6 +85,16 @@ export async function loadStarRace(
               checkedAt: savedProgress?.checkedAt ?? null,
             }
           : null,
+        heroProgress:
+          quest.requirement?.kind === "distinct-hero-wins" &&
+          quest.requirement.requiredDistinctWins > 1 &&
+          savedProgress
+            ? {
+                checkedAt: savedProgress.checkedAt,
+                wins: savedProgress.wins,
+                target: quest.requirement.requiredDistinctWins,
+              }
+            : null,
       };
     }),
   };
@@ -90,6 +103,7 @@ export async function loadStarRace(
 export type CheckStarRaceQuestResult = {
   completion: StarRaceQuestCompletion | null;
   progress: StarRaceQuestProgress | null;
+  heroProgress: StarRaceQuestHeroProgress | null;
   rewardStars: number;
   starRace: StarRaceData;
   totalStars: number;
@@ -113,6 +127,9 @@ async function starRaceCheckResult(input: {
     progress:
       starRace.quests.find((quest) => quest.dateKey === input.dateKey)
         ?.progress ?? null,
+    heroProgress:
+      starRace.quests.find((quest) => quest.dateKey === input.dateKey)
+        ?.heroProgress ?? null,
     rewardStars: input.rewardStars,
     starRace,
     totalStars,
@@ -162,9 +179,7 @@ export async function checkStarRaceQuest(
   }
 
   const matches = await fetchRecentPlayerMatches(dotaId, {
-    forceRefresh:
-      quest.requirement.kind === "winning-building-damage" ||
-      quest.requirement.kind === "ranked-win-stat",
+    forceRefresh: true,
   });
   const verificationNow = new Date();
   if (starRaceQuestPhase(quest, verificationNow) !== "active") {
@@ -176,26 +191,36 @@ export async function checkStarRaceQuest(
   const bounds = moscowDayBounds(dateKey);
   let completion: StarRaceQuestCompletion | null = null;
   if (quest.requirement.kind === "distinct-hero-wins") {
-    const wins = findDistinctMatchingWins({
+    const wins = scanDistinctMatchingWins({
       matches,
       heroIds: quest.requirement.heroIds,
-      requiredDistinctWins: quest.requirement.requiredDistinctWins,
       dayStart: bounds.start,
       dayEnd: bounds.end,
       now: verificationNow,
     });
-    if (!wins) {
+    if (
+      wins.length < quest.requirement.requiredDistinctWins &&
+      quest.requirement.requiredDistinctWins === 1
+    ) {
       throw new CompendiumError(
         "NO_MATCH",
-        `Пока не найдены победы на ${quest.requirement.requiredDistinctWins} разных героях задания за текущие сутки по Москве.`,
+        "Пока не найдена победа на герое задания за текущие сутки по Москве.",
       );
     }
-    completion = await recordStarRaceCompletion({
-      playerId: user.discordId,
-      dateKey,
-      rewardStars: quest.rewardStars,
-      wins,
-    });
+    if (wins.length < quest.requirement.requiredDistinctWins) {
+      await replaceStarRaceHeroProgress({
+        playerId: user.discordId,
+        dateKey,
+        wins,
+      });
+    } else {
+      completion = await recordStarRaceCompletion({
+        playerId: user.discordId,
+        dateKey,
+        rewardStars: quest.rewardStars,
+        wins: wins.slice(0, quest.requirement.requiredDistinctWins),
+      });
+    }
   } else if (quest.requirement.kind === "winning-building-damage") {
     const scan = scanWinningBuildingDamage({
       matches,
@@ -220,7 +245,7 @@ export async function checkStarRaceQuest(
         wins: [evidenceWin],
       });
     }
-  } else {
+  } else if (quest.requirement.kind === "ranked-win-stat") {
     const win = findRankedStatWin({
       matches,
       heroIds: quest.requirement.heroIds,
@@ -237,6 +262,26 @@ export async function checkStarRaceQuest(
       throw new CompendiumError(
         "NO_MATCH",
         `Пока не найден победный рейтинговый матч с результатом: ${target}.`,
+      );
+    }
+    completion = await recordStarRaceCompletion({
+      playerId: user.discordId,
+      dateKey,
+      rewardStars: quest.rewardStars,
+      wins: [win],
+    });
+  } else {
+    const win = findGameModeWin({
+      matches,
+      gameMode: quest.requirement.gameMode,
+      dayStart: bounds.start,
+      dayEnd: bounds.end,
+      now: verificationNow,
+    });
+    if (!win) {
+      throw new CompendiumError(
+        "NO_MATCH",
+        "Пока не найдена победа в режиме Turbo за текущие сутки по Москве.",
       );
     }
     completion = await recordStarRaceCompletion({

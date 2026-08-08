@@ -146,6 +146,18 @@ describe("star race schedule", () => {
         heroIds: [91, 19, 102, 98, 72],
       },
     });
-    expect(STAR_RACE_QUESTS[6].title).toBeNull();
+    expect(STAR_RACE_QUESTS[5].description).toContain("рейтинговый матч");
+  });
+
+  it("defines Sunday's Turbo win quest", () => {
+    expect(STAR_RACE_QUESTS[6]).toMatchObject({
+      dateKey: "2026-08-16",
+      title: "А разговоров то было...",
+      rewardStars: 2,
+      requirement: {
+        kind: "game-mode-win",
+        gameMode: 23,
+      },
+    });
   });
 });

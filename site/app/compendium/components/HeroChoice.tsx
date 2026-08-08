@@ -4,12 +4,18 @@ import type { CompendiumHero } from "../model/types";
 export function HeroChoice({
   hero,
   isMatched,
+  isDimmed = false,
 }: {
   hero: CompendiumHero;
   isMatched: boolean;
+  isDimmed?: boolean;
 }) {
   return (
-    <div className={`compendium-hero${isMatched ? " matched" : ""}`}>
+    <div
+      className={`compendium-hero${isMatched ? " matched" : ""}${
+        isDimmed ? " dimmed" : ""
+      }`}
+    >
       <div className="compendium-hero-portrait">
         <Image
           src={hero.imageUrl}

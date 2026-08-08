@@ -6,10 +6,12 @@ import {
 import { COMPENDIUM_HEROES } from "./heroes";
 import {
   findDistinctMatchingWins,
+  findGameModeWin,
   findMatchingWin,
   findRankedStatWin,
   matchEndedAt,
   scanWinningBuildingDamage,
+  scanDistinctMatchingWins,
 } from "./matches";
 import { dailyQuestExcludedHeroIds } from "./daily-quest-exclusions";
 import {
@@ -277,6 +279,13 @@ describe("OpenDota match qualification", () => {
       ...input,
       matches: [firstHeroWin, sameHeroWin, secondHeroWin],
     })?.map((win) => win.heroId)).toEqual([97, 3]);
+    expect(scanDistinctMatchingWins({
+      matches: [firstHeroWin, sameHeroWin],
+      heroIds: input.heroIds,
+      dayStart: input.dayStart,
+      dayEnd: input.dayEnd,
+      now: input.now,
+    }).map((win) => win.heroId)).toEqual([97]);
   });
 
   it("sums building damage only from wins ending inside the Moscow day", () => {
@@ -356,5 +365,25 @@ describe("OpenDota match qualification", () => {
       ...input,
       matches: [match({ match_id: 9503, hero_id: 137, kills: 16 })],
     })?.matchId).toBe("9503");
+  });
+
+  it("counts a Turbo win but rejects Turbo bot and practice lobbies", () => {
+    const input = {
+      matches: [
+        match({ match_id: 9601, game_mode: 23, lobby_type: 1 }),
+        match({ match_id: 9602, game_mode: 23, lobby_type: 4 }),
+        match({ match_id: 9603, game_mode: 23, lobby_type: 0 }),
+      ],
+      gameMode: 23,
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    };
+
+    expect(findGameModeWin(input)?.matchId).toBe("9603");
+    expect(findGameModeWin({
+      ...input,
+      matches: [match({ match_id: 9604, game_mode: 23, radiant_win: false })],
+    })).toBeNull();
   });
 });

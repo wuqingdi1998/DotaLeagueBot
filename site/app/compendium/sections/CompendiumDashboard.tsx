@@ -202,6 +202,7 @@ export function CompendiumDashboard({
         code?: string;
         completion?: unknown | null;
         progress?: { current: number; target: number } | null;
+        heroProgress?: { wins: unknown[]; target: number } | null;
         rewardStars?: number;
         starRace?: CompendiumData["starRace"];
         totalStars?: number;
@@ -220,6 +221,8 @@ export function CompendiumDashboard({
       setToast(
         result.completion
           ? `Задание выполнено. Вы получили ${result.rewardStars ?? 2} звезды!`
+          : result.heroProgress
+            ? `Засчитано героев: ${result.heroProgress.wins.length} из ${result.heroProgress.target}`
           : `Учтено ${progressNumber.format(
               result.progress?.current ?? 0,
             )} из ${progressNumber.format(

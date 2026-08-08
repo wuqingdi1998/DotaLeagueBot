@@ -7,6 +7,7 @@ import {
   STAR_RACE_END_AT,
   STAR_RACE_START_AT,
   type StarRaceQuestCompletion,
+  type StarRaceQuestWin,
 } from "../model/star-race";
 import { compendiumHeroById } from "../model/heroes";
 
@@ -35,6 +36,8 @@ type StarRaceProgressRow = {
   moscow_date: string;
   progress_amount: string | number;
   checked_at: Date;
+  hero_id: number | null;
+  matched_match_id: string | null;
 };
 
 export type StarRaceCompletionByDate = Map<
@@ -44,7 +47,7 @@ export type StarRaceCompletionByDate = Map<
 
 export type StarRaceProgressByDate = Map<
   string,
-  { current: number; checkedAt: string }
+  { current: number; checkedAt: string; wins: StarRaceQuestWin[] }
 >;
 
 function completionsFromRows(
@@ -102,18 +105,35 @@ export async function loadStarRaceProgress(
   playerId: string,
 ): Promise<StarRaceProgressByDate> {
   const rows = await query<StarRaceProgressRow>(
-    `SELECT moscow_date::text, progress_amount, checked_at
-     FROM compendium_star_race_quest_progress
-     WHERE player_id = $1`,
+    `SELECT progress.moscow_date::text,
+       progress.progress_amount,
+       progress.checked_at,
+       win.hero_id,
+       win.matched_match_id::text
+     FROM compendium_star_race_quest_progress progress
+     LEFT JOIN compendium_star_race_quest_progress_wins win
+       ON win.player_id = progress.player_id
+      AND win.moscow_date = progress.moscow_date
+     WHERE progress.player_id = $1
+     ORDER BY progress.moscow_date, win.position`,
     [playerId],
   );
-  return new Map(rows.map((row) => [
-    row.moscow_date,
-    {
+  const progressByDate: StarRaceProgressByDate = new Map();
+  for (const row of rows) {
+    const progress = progressByDate.get(row.moscow_date) ?? {
       current: Number(row.progress_amount),
       checkedAt: row.checked_at.toISOString(),
-    },
-  ]));
+      wins: [],
+    };
+    if (row.hero_id !== null && row.matched_match_id !== null) {
+      progress.wins.push({
+        hero: compendiumHeroById(row.hero_id),
+        matchId: row.matched_match_id,
+      });
+    }
+    progressByDate.set(row.moscow_date, progress);
+  }
+  return progressByDate;
 }
 
 export async function totalStarRaceStars(): Promise<number> {
@@ -258,6 +278,41 @@ export async function replaceStarRaceProgress(input: {
            checked_at = EXCLUDED.checked_at`,
       [input.playerId, input.dateKey, input.current],
     );
+  });
+}
+
+export async function replaceStarRaceHeroProgress(input: {
+  playerId: string;
+  dateKey: string;
+  wins: MatchingWin[];
+}): Promise<void> {
+  await transaction(async (client) => {
+    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+      `compendium-star-race:${input.playerId}:${input.dateKey}`,
+    ]);
+    await assertActiveStarRaceDate(client, input.dateKey);
+    await client.query(
+      `INSERT INTO compendium_star_race_quest_progress
+         (player_id, moscow_date, progress_amount, checked_at)
+       VALUES ($1, $2::date, $3, NOW())
+       ON CONFLICT (player_id, moscow_date) DO UPDATE
+       SET progress_amount = EXCLUDED.progress_amount,
+           checked_at = EXCLUDED.checked_at`,
+      [input.playerId, input.dateKey, input.wins.length],
+    );
+    await client.query(
+      `DELETE FROM compendium_star_race_quest_progress_wins
+       WHERE player_id = $1 AND moscow_date = $2::date`,
+      [input.playerId, input.dateKey],
+    );
+    for (const [index, win] of input.wins.entries()) {
+      await client.query(
+        `INSERT INTO compendium_star_race_quest_progress_wins
+           (player_id, moscow_date, position, hero_id, matched_match_id)
+         VALUES ($1, $2::date, $3, $4, $5)`,
+        [input.playerId, input.dateKey, index + 1, win.heroId, win.matchId],
+      );
+    }
   });
 }
 

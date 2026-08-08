@@ -11,6 +11,9 @@ const migration = source(
 const progressMigration = source(
   "../../bot/database/migrations/0055_compendium_star_race_progress.sql",
 );
+const heroProgressMigration = source(
+  "../../bot/database/migrations/0056_compendium_star_race_hero_progress.sql",
+);
 const dashboard = source(
   "../app/compendium/sections/CompendiumDashboard.tsx",
 );
@@ -74,11 +77,19 @@ describe("compendium star race contract", () => {
     expect(repository).not.toContain(
       "progress_amount + EXCLUDED.progress_amount",
     );
-    expect(service).toMatch(
-      /forceRefresh:\s+quest\.requirement\.kind === "winning-building-damage"/,
-    );
+    expect(service).toContain("forceRefresh: true");
     expect(starRaceModel).toContain("winning-building-damage");
     expect(starRaceView).toContain("Урон по строениям");
+  });
+
+  it("persists Monday's partial hero win and renders its intermediate state", () => {
+    expect(heroProgressMigration).toContain(
+      "compendium_star_race_quest_progress_wins",
+    );
+    expect(repository).toContain("replaceStarRaceHeroProgress");
+    expect(repository).toContain("DELETE FROM compendium_star_race_quest_progress_wins");
+    expect(service).toContain("scanDistinctMatchingWins");
+    expect(starRaceView).toContain("isDimmed");
   });
 
   it("places the race after community rewards and hides details before launch", () => {

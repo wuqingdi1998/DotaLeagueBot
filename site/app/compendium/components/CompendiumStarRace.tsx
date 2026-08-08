@@ -76,6 +76,12 @@ function StarRaceQuestCard({
                   isMatched={Boolean(
                     quest.completion?.wins.some((win) => win.hero.id === hero.id),
                   )}
+                  isDimmed={Boolean(
+                    !quest.completion &&
+                    quest.heroProgress?.wins.some(
+                      (win) => win.hero.id === hero.id,
+                    ),
+                  )}
                 />
               ))}
             </div>

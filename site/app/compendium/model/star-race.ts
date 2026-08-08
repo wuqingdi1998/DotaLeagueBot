@@ -37,6 +37,10 @@ export type StarRaceQuestRequirement =
       readonly heroIds: readonly number[] | null;
       readonly stat: "hero_damage" | "kills";
       readonly minimum: number;
+    }
+  | {
+      readonly kind: "game-mode-win";
+      readonly gameMode: number;
     };
 
 export type StarRaceQuestDefinition = {
@@ -127,7 +131,7 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "15 августа",
     title: "Чемпионы прошлого Шанхайского The International",
     description:
-      "Выиграть на 1 из 5 героев из пика OG с последней карты The International 2019.",
+      "Выиграть рейтинговый матч на 1 из 5 героев из пика OG с последней карты The International 2019.",
     rewardStars: 2,
     requirement: {
       kind: "distinct-hero-wins",
@@ -139,10 +143,13 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateKey: "2026-08-16",
     weekday: "Воскресенье",
     dateLabel: "16 августа",
-    title: null,
-    description: null,
-    rewardStars: null,
-    requirement: null,
+    title: "А разговоров то было...",
+    description: "Выиграть одну игру в режиме Turbo.",
+    rewardStars: 2,
+    requirement: {
+      kind: "game-mode-win",
+      gameMode: 23,
+    },
   },
 ];
 
@@ -162,6 +169,12 @@ export type StarRaceQuestProgress = {
   checkedAt: string | null;
 };
 
+export type StarRaceQuestHeroProgress = {
+  checkedAt: string;
+  wins: StarRaceQuestWin[];
+  target: number;
+};
+
 export type StarRaceQuest = StarRaceQuestDefinition & {
   startsAt: string;
   endsAt: string;
@@ -169,6 +182,7 @@ export type StarRaceQuest = StarRaceQuestDefinition & {
   heroes: CompendiumHero[];
   completion: StarRaceQuestCompletion | null;
   progress: StarRaceQuestProgress | null;
+  heroProgress: StarRaceQuestHeroProgress | null;
 };
 
 export type StarRaceData = {

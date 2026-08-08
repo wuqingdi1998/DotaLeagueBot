@@ -80,6 +80,19 @@ export function findDistinctMatchingWins(input: {
   dayEnd: Date;
   now: Date;
 }): MatchingWin[] | null {
+  const wins = scanDistinctMatchingWins(input);
+  return wins.length >= input.requiredDistinctWins
+    ? wins.slice(0, input.requiredDistinctWins)
+    : null;
+}
+
+export function scanDistinctMatchingWins(input: {
+  matches: OpenDotaMatch[];
+  heroIds: readonly number[];
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): MatchingWin[] {
   const allowedHeroes = new Set(input.heroIds);
   const matchedHeroes = new Set<number>();
   const wins: MatchingWin[] = [];
@@ -98,9 +111,8 @@ export function findDistinctMatchingWins(input: {
     }
     matchedHeroes.add(candidate.hero_id);
     wins.push(matchingWin(candidate));
-    if (wins.length === input.requiredDistinctWins) return wins;
   }
-  return null;
+  return wins;
 }
 
 export function findRankedStatWin(input: {
@@ -126,6 +138,22 @@ export function findRankedStatWin(input: {
       endedInsideWindow({ ...input, match: candidate })
     );
   });
+  return match ? matchingWin(match) : null;
+}
+
+export function findGameModeWin(input: {
+  matches: OpenDotaMatch[];
+  gameMode: number;
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): MatchingWin | null {
+  const match = input.matches.find((candidate) =>
+    candidate.game_mode === input.gameMode &&
+    MATCHMADE_LOBBY_TYPES.has(candidate.lobby_type) &&
+    isPlayerWin(candidate) &&
+    endedInsideWindow({ ...input, match: candidate }),
+  );
   return match ? matchingWin(match) : null;
 }
 
