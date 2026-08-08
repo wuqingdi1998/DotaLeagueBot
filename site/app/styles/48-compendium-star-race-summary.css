@@ -25,18 +25,18 @@
 
 .compendium-star-race-rules strong {
   display: block;
-  margin-bottom: 6px;
-  font-size: 15px;
+  margin-bottom: 7px;
+  font-size: 16px;
 }
 
 .compendium-star-race-rules ul {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   margin: 0;
   padding-left: 17px;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .site-shell[data-theme="light"] .compendium-star-race-rules > svg {
