@@ -17,6 +17,9 @@ const heroProgressMigration = source(
 const raceEventsMigration = source(
   "../../bot/database/migrations/0057_compendium_star_race_exclude_runes.sql",
 );
+const tiebreakMigration = source(
+  "../../bot/database/migrations/0058_compendium_star_race_d20_tiebreak.sql",
+);
 const dashboard = source(
   "../app/compendium/sections/CompendiumDashboard.tsx",
 );
@@ -66,7 +69,7 @@ describe("compendium star race contract", () => {
     expect(migration).toContain("FROM compendium_star_events event");
   });
 
-  it("shows the signed-in player's tied rank from the same race standings", () => {
+  it("shows the signed-in player's unique rank from the same standings", () => {
     expect(repository).toContain("export async function loadStarRaceRank");
     expect(repository).toContain(
       "eligible_total.completed_race_quests DESC",
@@ -80,24 +83,30 @@ describe("compendium star race contract", () => {
     expect(styles).toContain("grid-row: 1 / 5");
   });
 
-  it("breaks star ties by completed daily race quests and explains the rule", () => {
+  it("breaks star ties by quests and persistent d20 rolls", () => {
     expect(repository).toContain("race_quest_counts AS");
     expect(repository).toContain(
       "FROM compendium_star_race_quest_completions completion",
     );
     expect(repository).toMatch(
-      /RANK\(\) OVER \(\s*ORDER BY\s*eligible_total\.total_stars DESC,\s*eligible_total\.completed_race_quests DESC/,
+      /ROW_NUMBER\(\) OVER \(\s*ORDER BY\s*eligible_total\.total_stars DESC,\s*eligible_total\.completed_race_quests DESC,\s*COALESCE\(tiebreak\.rolls/,
     );
-    expect(repository).toMatch(
-      /ORDER BY\s*eligible_total\.total_stars DESC,\s*eligible_total\.completed_race_quests DESC,\s*LOWER\(player\.ingame_name\)/,
+    expect(repository).toContain(
+      "ON CONFLICT (race_start_at, player_id) DO NOTHING",
     );
+    expect(tiebreakMigration).toContain(
+      "CREATE TABLE IF NOT EXISTS compendium_star_race_tiebreak_rolls",
+    );
+    expect(tiebreakMigration).toContain("CHECK (cardinality(rolls) = 64)");
+    expect(repository).toContain("FLOOR(RANDOM() * 20) + 1");
     const leaderboardPage = source("../app/compendium/star-race/page.tsx");
     expect(leaderboardPage).toContain(
       "При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки",
     );
     expect(leaderboardPage).toContain(
-      "Если совпадают оба показателя, участники делят место",
+      "сайт автоматически бросает 20-гранный кубик",
     );
+    expect(leaderboardPage).toContain("общих мест в итоге не будет");
   });
 
   it("stores the two-star reward once and only during its Moscow day", () => {

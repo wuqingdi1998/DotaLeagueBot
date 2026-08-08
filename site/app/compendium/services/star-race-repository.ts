@@ -184,22 +184,52 @@ const eligibleStarRaceTotalsCte = `WITH race_totals AS (
     AND player.steam_id32 BETWEEN 1 AND 4294967295
 )`;
 
+const rankedStarRaceTotalsCte = `${eligibleStarRaceTotalsCte}, ranked_race_totals AS (
+  SELECT
+    eligible_total.player_id,
+    eligible_total.total_stars,
+    eligible_total.completed_race_quests,
+    (ROW_NUMBER() OVER (
+      ORDER BY
+        eligible_total.total_stars DESC,
+        eligible_total.completed_race_quests DESC,
+        COALESCE(tiebreak.rolls, ARRAY[]::SMALLINT[]) DESC,
+        eligible_total.player_id
+    ))::int AS rank
+  FROM eligible_race_totals eligible_total
+  LEFT JOIN compendium_star_race_tiebreak_rolls tiebreak
+    ON tiebreak.race_start_at = $1::timestamptz
+   AND tiebreak.player_id = eligible_total.player_id
+)`;
+
+async function ensureStarRaceTiebreakRolls(): Promise<void> {
+  await query(
+    `${eligibleStarRaceTotalsCte}
+     INSERT INTO compendium_star_race_tiebreak_rolls
+       (race_start_at, player_id, rolls)
+     SELECT
+       $1::timestamptz,
+       eligible_total.player_id,
+       ARRAY_AGG(
+         (FLOOR(RANDOM() * 20) + 1)::smallint
+         ORDER BY roll_number
+       )
+     FROM eligible_race_totals eligible_total
+     CROSS JOIN generate_series(1, 64) roll_number
+     GROUP BY eligible_total.player_id
+     ON CONFLICT (race_start_at, player_id) DO NOTHING`,
+    [STAR_RACE_START_AT, STAR_RACE_END_AT],
+  );
+}
+
 export async function loadStarRaceRank(
   playerId: string,
 ): Promise<number | null> {
+  await ensureStarRaceTiebreakRolls();
   const row = await one<StarRaceRankRow>(
-    `${eligibleStarRaceTotalsCte}, ranked_totals AS (
-       SELECT
-         eligible_total.player_id,
-         (RANK() OVER (
-           ORDER BY
-             eligible_total.total_stars DESC,
-             eligible_total.completed_race_quests DESC
-         ))::int AS rank
-       FROM eligible_race_totals eligible_total
-     )
+    `${rankedStarRaceTotalsCte}
      SELECT ranked_total.rank
-     FROM ranked_totals ranked_total
+     FROM ranked_race_totals ranked_total
      WHERE ranked_total.player_id = $3`,
     [STAR_RACE_START_AT, STAR_RACE_END_AT, playerId],
   );
@@ -209,14 +239,11 @@ export async function loadStarRaceRank(
 export async function loadStarRaceLeaderboard(): Promise<
   CompendiumLeaderboardEntry[]
 > {
+  await ensureStarRaceTiebreakRolls();
   const rows = await query<StarRaceLeaderboardRow>(
-    `${eligibleStarRaceTotalsCte}
+    `${rankedStarRaceTotalsCte}
      SELECT
-       (RANK() OVER (
-         ORDER BY
-           eligible_total.total_stars DESC,
-           eligible_total.completed_race_quests DESC
-       ))::int AS rank,
+       ranked_total.rank,
        player.discord_id::text AS player_id,
        player.steam_id32::text AS dota_id,
        player.ingame_name AS player_name,
@@ -224,9 +251,9 @@ export async function loadStarRaceLeaderboard(): Promise<
          NULLIF(player.avatar_url, ''),
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
-       eligible_total.total_stars
-     FROM eligible_race_totals eligible_total
-     JOIN players player ON player.discord_id = eligible_total.player_id
+       ranked_total.total_stars
+     FROM ranked_race_totals ranked_total
+     JOIN players player ON player.discord_id = ranked_total.player_id
      LEFT JOIN LATERAL (
        SELECT session.discord_avatar_url
        FROM web_sessions session
@@ -235,11 +262,7 @@ export async function loadStarRaceLeaderboard(): Promise<
        ORDER BY session.created_at DESC
        LIMIT 1
      ) latest_session ON TRUE
-     ORDER BY
-       eligible_total.total_stars DESC,
-       eligible_total.completed_race_quests DESC,
-       LOWER(player.ingame_name),
-       player.discord_id`,
+     ORDER BY ranked_total.rank`,
     [STAR_RACE_START_AT, STAR_RACE_END_AT],
   );
   return rows.map((row) => ({
