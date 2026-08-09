@@ -59,4 +59,13 @@ describe("compendium interface contract", () => {
       /\.compendium-spinner\s*\{[^}]*flex:\s*0 0 auto;[^}]*margin:\s*0;/,
     );
   });
+
+  it("makes reward milestones horizontally swipeable on phones", () => {
+    expect(rewardsCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-milestones,[\s\S]*\.compendium-reward-track-community \.compendium-reward-milestones\s*\{[^}]*display:\s*flex;[^}]*overflow-x:\s*auto;[^}]*scroll-snap-type:\s*x mandatory;/,
+    );
+    expect(rewardsCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-milestones article\s*\{[^}]*flex:\s*0 0 min\(84vw, 360px\);[^}]*scroll-snap-align:\s*start;/,
+    );
+  });
 });

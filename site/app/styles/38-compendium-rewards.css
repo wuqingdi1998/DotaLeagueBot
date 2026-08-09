@@ -338,6 +338,22 @@
 
   .compendium-reward-milestones,
   .compendium-reward-track-community .compendium-reward-milestones {
-    grid-template-columns: 1fr;
+    display: flex;
+    grid-template-columns: none;
+    gap: 12px;
+    margin-right: -18px;
+    padding: 2px 10px 16px 0;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-padding-inline: 0;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--blue-strong) var(--surface-soft);
+    scrollbar-width: thin;
+  }
+
+  .compendium-reward-milestones article {
+    flex: 0 0 min(84vw, 360px);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 }
