@@ -10,10 +10,11 @@ const roles = [
 ] as const;
 
 type Role = (typeof roles)[number];
+type RosterRole = Role | "coach";
 type RosterPlayer = {
   nickname?: string;
   dotaId?: string | null;
-  role?: Role;
+  role?: RosterRole;
   tier?: number | null;
   isCaptain?: boolean;
 };
@@ -36,18 +37,18 @@ function validate(body: RosterBody) {
   if (!body.tournamentId || !teamName || !tag) {
     return "Укажите турнир, название и тег команды";
   }
-  if (teamName.length > 20 || tag.length > 5) {
-    return "Название команды — до 20 символов, тег — до 5";
+  if (teamName.length > 80 || tag.length > 5) {
+    return "Название команды — до 80 символов, тег — до 5";
   }
-  if (players.length !== 5) {
-    return "В архивном составе должно быть ровно 5 игроков";
+  if (players.length < 5 || players.length > 6) {
+    return "В архивном составе должны быть 5 игроков и, при наличии, один тренер";
   }
   if (
     players.some(
       (player) =>
         !player.nickname?.trim() ||
         !player.role ||
-        !roles.includes(player.role) ||
+        (player.role !== "coach" && !roles.includes(player.role)) ||
         (player.dotaId !== null &&
           player.dotaId !== undefined &&
           player.dotaId.trim() !== "" &&
@@ -61,10 +62,14 @@ function validate(body: RosterBody) {
   ) {
     return "Проверьте никнеймы, роли и исторические тиры игроков";
   }
-  if (new Set(players.map((player) => player.role)).size !== 5) {
+  const playingPlayers = players.filter((player) => player.role !== "coach");
+  if (playingPlayers.length !== 5 || new Set(playingPlayers.map((player) => player.role)).size !== 5) {
     return "Каждая игровая роль должна встречаться один раз";
   }
-  if (players.filter((player) => player.isCaptain).length !== 1) {
+  if (players.filter((player) => player.role === "coach").length > 1) {
+    return "В составе может быть только один тренер";
+  }
+  if (playingPlayers.filter((player) => player.isCaptain).length !== 1) {
     return "Укажите одного капитана";
   }
   return "";
@@ -82,7 +87,7 @@ export async function PUT(request: Request) {
     const players = body.players as Array<
       RosterPlayer & {
         nickname: string;
-        role: Role;
+        role: RosterRole;
         isCaptain: boolean;
       }
     >;

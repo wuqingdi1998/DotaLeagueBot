@@ -58,6 +58,7 @@ export function getTeamPlayers(team: TeamApplication) {
         role: member.role,
         isCaptain: member.is_captain,
         dotaId: member.dota_id,
+        archiveIdentityId: member.archive_identity_id,
         tier: member.tier_snapshot,
       }))
     : [
@@ -66,6 +67,7 @@ export function getTeamPlayers(team: TeamApplication) {
           role: team.captain_role,
           isCaptain: true,
           dotaId: null,
+          archiveIdentityId: null,
           tier: null,
         },
         {
@@ -73,6 +75,7 @@ export function getTeamPlayers(team: TeamApplication) {
           role: team.player_2_role,
           isCaptain: false,
           dotaId: null,
+          archiveIdentityId: null,
           tier: null,
         },
         {
@@ -80,6 +83,7 @@ export function getTeamPlayers(team: TeamApplication) {
           role: team.player_3_role,
           isCaptain: false,
           dotaId: null,
+          archiveIdentityId: null,
           tier: null,
         },
         {
@@ -87,6 +91,7 @@ export function getTeamPlayers(team: TeamApplication) {
           role: team.player_4_role,
           isCaptain: false,
           dotaId: null,
+          archiveIdentityId: null,
           tier: null,
         },
         {
@@ -94,14 +99,15 @@ export function getTeamPlayers(team: TeamApplication) {
           role: team.player_5_role,
           isCaptain: false,
           dotaId: null,
+          archiveIdentityId: null,
           tier: null,
         },
       ];
 
   return players.sort(
     (a, b) =>
-      roleOptions.findIndex((role) => role.value === a.role) -
-      roleOptions.findIndex((role) => role.value === b.role),
+      (a.role === "coach" ? roleOptions.length : roleOptions.findIndex((role) => role.value === a.role)) -
+      (b.role === "coach" ? roleOptions.length : roleOptions.findIndex((role) => role.value === b.role)),
   );
 }
 

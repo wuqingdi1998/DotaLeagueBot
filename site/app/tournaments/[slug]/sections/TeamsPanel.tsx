@@ -93,6 +93,13 @@ export function TeamsPanel() {
                       >
                         {player.name}
                       </Link>
+                    ) : player.archiveIdentityId ? (
+                      <Link
+                        className="player-name player-profile-link"
+                        href={`/archive-players/${player.archiveIdentityId}`}
+                      >
+                        {player.name}
+                      </Link>
                     ) : (
                       <span className="player-name">{player.name}</span>
                     )}

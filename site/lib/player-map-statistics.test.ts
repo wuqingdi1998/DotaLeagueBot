@@ -35,6 +35,8 @@ describe("player map statistics", () => {
     expect(source).toContain("season_match_substitutions");
     expect(source).toContain("game.id AS contribution_id");
     expect(source).toContain("FROM all_contributions");
+    expect(source).toContain("tournament.tournament_type <> 'seasonal'");
+    expect(source).toContain("snapshot.role <> 'coach'");
   });
 
   it("uses legacy standings only when detailed regular matches are absent", () => {

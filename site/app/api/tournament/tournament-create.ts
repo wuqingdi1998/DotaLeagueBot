@@ -25,9 +25,9 @@ export async function POST(request: Request) {
     }
 
     const tournamentType = String(body.tournament_type ?? "ordinary");
-    if (!["ordinary", "seasonal"].includes(tournamentType)) {
+    if (!["ordinary", "seasonal", "seasonal_cup"].includes(tournamentType)) {
       return Response.json(
-        { error: "Выберите обычный или сезонный турнир" },
+        { error: "Выберите обычный, сезонный турнир или Сезонный Кубок" },
         { status: 400 },
       );
     }

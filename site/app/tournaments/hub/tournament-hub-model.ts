@@ -1,4 +1,8 @@
 import type { SessionUser } from "@/app/components/SiteHeader";
+import {
+  isSeasonalTournament,
+  type TournamentType,
+} from "../../../lib/tournament-type";
 import type { TournamentStatus } from "@/lib/tournaments";
 
 export type TournamentSummary = {
@@ -16,7 +20,7 @@ export type TournamentSummary = {
   max_teams: number;
   region: string;
   status: TournamentStatus;
-  tournament_type: "ordinary" | "seasonal";
+  tournament_type: TournamentType;
   season_round_count: number;
   participant_count: number;
   team_count: number;
@@ -37,14 +41,14 @@ export function filterTournamentSummaries(
 ) {
   if (filter === "seasonal") {
     return tournaments.filter(
-      (tournament) => tournament.tournament_type === "seasonal",
+      (tournament) => isSeasonalTournament(tournament.tournament_type),
     );
   }
   return tournaments;
 }
 
 export type NewTournament = {
-  tournament_type: "ordinary" | "seasonal";
+  tournament_type: TournamentType;
   season_round_count: number;
   slug: string;
   name: string;

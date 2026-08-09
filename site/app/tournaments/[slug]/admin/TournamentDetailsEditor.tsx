@@ -80,7 +80,7 @@ export function TournamentDetailsEditor({
         {tournamentTextFields
           .filter(
             ({ field }) =>
-              tournament.tournament_type === "ordinary" ||
+              tournament.tournament_type !== "seasonal" ||
               !["group_format", "playoff_format", "final_format"].includes(
                 field,
               ),
@@ -126,7 +126,7 @@ export function TournamentDetailsEditor({
             }
           />
         </label>
-        {tournament.tournament_type === "ordinary" && (
+        {tournament.tournament_type !== "seasonal" && (
           <>
             <label>
               <span>Дедлайн регистрации</span>

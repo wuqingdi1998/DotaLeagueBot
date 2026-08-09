@@ -109,6 +109,7 @@ export function TournamentForm({
               >
                 <option value="ordinary">Обычный турнир</option>
                 <option value="seasonal">Сезонный турнир</option>
+                <option value="seasonal_cup">Сезонный Кубок</option>
               </select>
             </label>
             {form.tournament_type === "seasonal" && (
@@ -123,7 +124,7 @@ export function TournamentForm({
             {tournamentTextFields
               .filter(
                 ({ field }) =>
-                  form.tournament_type === "ordinary" ||
+                  form.tournament_type !== "seasonal" ||
                   !["group_format", "playoff_format", "final_format"].includes(
                     field,
                   ),
@@ -176,7 +177,7 @@ export function TournamentForm({
               value={form.registration_deadline}
               onChange={(value) => setField("registration_deadline", value)}
             />
-            {form.tournament_type === "ordinary" && (
+            {form.tournament_type !== "seasonal" && (
               <>
                 <NumberField
                   label="Игроков в команде"

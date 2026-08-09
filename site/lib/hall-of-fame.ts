@@ -52,7 +52,7 @@ export async function loadHallOfFame(): Promise<HallOfFamePlayer[]> {
      ) latest_session ON TRUE
      JOIN tournaments medal_tournament
        ON medal_tournament.id = medal.tournament_id
-      AND medal_tournament.tournament_type = 'seasonal'
+      AND medal_tournament.tournament_type IN ('seasonal', 'seasonal_cup')
      GROUP BY
        identity.id,
        identity.primary_nickname,

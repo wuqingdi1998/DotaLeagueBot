@@ -1,11 +1,18 @@
 "use client";
 
-import { FaHandHoldingMedical } from "react-icons/fa";
+import { FaHandHoldingMedical, FaUserTie } from "react-icons/fa";
 import { GiBoltShield, GiBowArrow, GiFlame, GiSwordWound } from "react-icons/gi";
 import { roleOptions } from "../model/constants";
-import type { PlayerRole } from "../model/types";
+import type { PlayerRole, TournamentRosterRole } from "../model/types";
 
-export function RoleIcon({ role }: { role: PlayerRole }) {
+export function RoleIcon({ role }: { role: TournamentRosterRole }) {
+  if (role === "coach") {
+    return (
+      <span className="role-icon role-coach" aria-label="Тренер" title="Тренер">
+        <FaUserTie aria-hidden="true" />
+      </span>
+    );
+  }
   const details =
     roleOptions.find((option) => option.value === role) ?? roleOptions[0];
   const icon = {

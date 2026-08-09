@@ -62,7 +62,8 @@ export async function loadPlayerMapStatistics(
        JOIN tournament_team_applications application
          ON application.id = snapshot.application_id
        WHERE snapshot.player_id = ANY($1::bigint[])
-         AND application.status = 'approved'
+          AND snapshot.role <> 'coach'
+          AND application.status = 'approved'
      ),
      ordinary_contributions AS (
        SELECT DISTINCT ON (ordinary_match.id)
@@ -83,7 +84,7 @@ export async function loadPlayerMapStatistics(
            ordinary_match.team_a_application_id,
            ordinary_match.team_b_application_id
          )
-       WHERE tournament.tournament_type = 'ordinary'
+       WHERE tournament.tournament_type <> 'seasonal'
          AND ordinary_match.status = 'finished'
          AND ordinary_match.result_type <> 'cancelled'
          AND ordinary_match.team_a_score IS NOT NULL

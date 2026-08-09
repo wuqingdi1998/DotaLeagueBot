@@ -12,6 +12,10 @@ import {
   type TournamentStatus,
 } from "@/lib/tournaments";
 import { formatTournamentDateRange } from "@/lib/tournament-date";
+import {
+  isSeasonLeague,
+  isSeasonalTournament,
+} from "@/lib/tournament-type";
 import type { TournamentSummary } from "./tournament-hub-model";
 import { TournamentStatusBadge } from "./TournamentStatusBadge";
 
@@ -25,14 +29,15 @@ export function TournamentCard({
   onStatusChange: (id: number, status: TournamentStatus) => Promise<void>;
 }) {
   const isPast = isPastTournament(tournament.status);
-  const isSeasonal = tournament.tournament_type === "seasonal";
+  const isSeasonLeagueTournament = isSeasonLeague(tournament.tournament_type);
+  const hasSeasonalBadge = isSeasonalTournament(tournament.tournament_type);
 
   return (
     <article className={`tournament-card status-${tournament.status}`}>
       <div className="tournament-card-top">
         <h2>{tournament.name}</h2>
         <div className="tournament-card-badges">
-          {isSeasonal && (
+          {hasSeasonalBadge && (
             <span className="tournament-seasonal-badge">Сезонный</span>
           )}
           <TournamentStatusBadge status={tournament.status} />
@@ -51,9 +56,9 @@ export function TournamentCard({
           <dd>{tournament.format}</dd>
         </div>
         <div>
-          <dt>{isSeasonal ? "Участники" : "Команды"}</dt>
+          <dt>{isSeasonLeagueTournament ? "Участники" : "Команды"}</dt>
           <dd>
-            {isSeasonal ? (
+            {isSeasonLeagueTournament ? (
               tournament.participant_count
             ) : (
               <>
@@ -64,9 +69,9 @@ export function TournamentCard({
           </dd>
         </div>
         <div>
-          <dt>{isSeasonal ? "Туры" : "Результаты"}</dt>
+          <dt>{isSeasonLeagueTournament ? "Туры" : "Результаты"}</dt>
           <dd>
-            {isSeasonal
+            {isSeasonLeagueTournament
               ? tournament.season_round_count
               : `${tournament.finished_match_count} из ${tournament.match_count} матчей`}
           </dd>

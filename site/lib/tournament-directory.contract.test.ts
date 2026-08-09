@@ -30,13 +30,13 @@ describe("tournament directory contract", () => {
 
   it("uses season statistics only for seasonal tournament cards", () => {
     expect(tournamentCard).toContain(
-      'tournament.tournament_type === "seasonal"',
+      "isSeasonLeague(tournament.tournament_type)",
     );
     expect(tournamentCard).toContain(
-      'isSeasonal ? "Участники" : "Команды"',
+      'isSeasonLeagueTournament ? "Участники" : "Команды"',
     );
     expect(tournamentCard).toContain(
-      'isSeasonal ? "Туры" : "Результаты"',
+      'isSeasonLeagueTournament ? "Туры" : "Результаты"',
     );
     expect(tournamentCard).toContain("tournament.participant_count");
     expect(tournamentCard).toContain("tournament.season_round_count");

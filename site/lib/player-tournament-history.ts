@@ -1,4 +1,5 @@
 import { query } from "./db";
+import type { TournamentType } from "./tournament-type";
 
 export type PlayerTournamentHistory = {
   id: number;
@@ -7,7 +8,7 @@ export type PlayerTournamentHistory = {
   startAt: string;
   endAt: string;
   status: string;
-  tournamentType: "ordinary" | "seasonal";
+  tournamentType: TournamentType;
   teamName: string | null;
   usedNickname: string | null;
   placement: number | null;
@@ -21,7 +22,7 @@ type TournamentHistoryRow = {
   start_at: Date | string;
   end_at: Date | string;
   status: string;
-  tournament_type: "ordinary" | "seasonal";
+  tournament_type: TournamentType;
   team_name: string | null;
   used_nickname: string | null;
   rank_snapshot: number | null;
@@ -101,7 +102,7 @@ export async function loadPlayerTournamentHistory(
          tournament.start_at,
          tournament.end_at,
          tournament.status,
-         'ordinary'::text AS tournament_type,
+         tournament.tournament_type::text AS tournament_type,
          application.team_name,
          participation.used_nickname,
          NULL::int AS rank_snapshot,

@@ -15,6 +15,7 @@ type MemberRow = {
   application_id: number;
   player_id: string | null;
   dota_id: string | null;
+  archive_identity_id: string | null;
   ingame_name: string;
   role: string;
   is_captain: boolean;
@@ -74,6 +75,7 @@ function publicApplication(
           ? member.player_id
           : null,
       dota_id: member.dota_id,
+      archive_identity_id: viewer?.isAdmin ? member.archive_identity_id : null,
       name: member.ingame_name,
       role: member.role,
       is_captain: member.is_captain,
@@ -169,7 +171,8 @@ export async function GET(request: Request) {
            WHERE a.tournament_id = $1 ${visibility}
          ),
          roster AS (
-           SELECT m.application_id, m.player_id, p.steam_id32 AS dota_id,
+           SELECT m.application_id, m.player_id, p.steam_id32::text AS dota_id,
+             NULL::text AS archive_identity_id,
              p.ingame_name, m.role, m.is_captain, m.invitation_status,
              NULL::smallint AS tier_snapshot, 0 AS source_order
            FROM tournament_team_members m
@@ -177,25 +180,39 @@ export async function GET(request: Request) {
            JOIN visible_applications a ON a.id = m.application_id
            UNION ALL
            SELECT snapshot.application_id, snapshot.player_id,
-             p.steam_id32 AS dota_id, snapshot.nickname_snapshot AS ingame_name,
+             COALESCE(
+               active_player.steam_id32::text,
+               CASE WHEN p.is_archived THEN NULL ELSE p.steam_id32::text END
+             ) AS dota_id,
+             CASE WHEN identity.registered_player_id IS NULL
+               THEN identity.id::text ELSE NULL END AS archive_identity_id,
+             snapshot.nickname_snapshot AS ingame_name,
              snapshot.role, snapshot.is_captain, 'accepted' AS invitation_status,
              snapshot.tier_snapshot, 1 AS source_order
            FROM tournament_roster_snapshots snapshot
            JOIN visible_applications a ON a.id = snapshot.application_id
            LEFT JOIN players p ON p.discord_id = snapshot.player_id
+           LEFT JOIN player_identity_members identity_member
+             ON identity_member.player_id = snapshot.player_id
+           LEFT JOIN player_identities identity
+             ON identity.id = identity_member.identity_id
+           LEFT JOIN players active_player
+             ON active_player.discord_id = identity.registered_player_id
+            AND active_player.is_archived = FALSE
            WHERE NOT EXISTS (
              SELECT 1 FROM tournament_team_members live
              WHERE live.application_id = snapshot.application_id
            )
          )
-         SELECT application_id::int, player_id::text, dota_id::text,
-           ingame_name, role, is_captain, invitation_status,
+         SELECT application_id::int, player_id::text, dota_id,
+           archive_identity_id, ingame_name, role, is_captain, invitation_status,
            tier_snapshot::int
          FROM roster
          ORDER BY application_id,
            CASE role
              WHEN 'safe_lane' THEN 1 WHEN 'mid_lane' THEN 2
-             WHEN 'off_lane' THEN 3 WHEN 'soft_support' THEN 4 ELSE 5
+             WHEN 'off_lane' THEN 3 WHEN 'soft_support' THEN 4
+             WHEN 'hard_support' THEN 5 ELSE 6
            END`,
         visibilityValues,
       ),

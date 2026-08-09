@@ -5,7 +5,7 @@ import { defaultSeasonFacts } from "@/lib/season-facts";
 type SourceTournament = {
   id: number;
   slug: string;
-  tournament_type: "ordinary" | "seasonal";
+  tournament_type: "ordinary" | "seasonal" | "seasonal_cup";
   season_round_count: number;
 };
 

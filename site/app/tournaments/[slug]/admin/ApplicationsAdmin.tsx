@@ -58,9 +58,13 @@ export function ApplicationsAdmin() {
                   );
                   return (
                     <li key={`${application.id}-${player.name}`}>
-                      <span>{role?.position ?? "—"}.</span>
+                      <span>{player.role === "coach" ? "Т" : (role?.position ?? "—")}.</span>
                       {player.dotaId ? (
                         <Link href={`/players/${player.dotaId}`}>
+                          {player.name}
+                        </Link>
+                      ) : player.archiveIdentityId ? (
+                        <Link href={`/archive-players/${player.archiveIdentityId}`}>
                           {player.name}
                         </Link>
                       ) : (

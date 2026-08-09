@@ -17,17 +17,20 @@ function tournament(
 describe("tournament directory filters", () => {
   const ordinary = tournament(1, "ordinary");
   const seasonal = tournament(2, "seasonal");
+  const seasonalCup = tournament(3, "seasonal_cup");
 
   it("shows every tournament in the default filter", () => {
-    expect(filterTournamentSummaries([ordinary, seasonal], "all")).toEqual([
-      ordinary,
-      seasonal,
-    ]);
+    expect(
+      filterTournamentSummaries([ordinary, seasonal, seasonalCup], "all"),
+    ).toEqual([ordinary, seasonal, seasonalCup]);
   });
 
   it("shows only marked seasonal tournaments in the seasonal filter", () => {
     expect(
-      filterTournamentSummaries([ordinary, seasonal], "seasonal"),
-    ).toEqual([seasonal]);
+      filterTournamentSummaries(
+        [ordinary, seasonal, seasonalCup],
+        "seasonal",
+      ),
+    ).toEqual([seasonal, seasonalCup]);
   });
 });

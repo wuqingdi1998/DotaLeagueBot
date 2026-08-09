@@ -11,6 +11,14 @@ const roles = [
 ] as const;
 
 type Role = (typeof roles)[number][0];
+type RosterRole = Role | "coach";
+type EditorPlayer = {
+  role: RosterRole;
+  nickname: string;
+  dotaId: string;
+  tier: string;
+  isCaptain: boolean;
+};
 type ExistingTeam = {
   id: number;
   team_name: string;
@@ -21,7 +29,7 @@ type ExistingTeam = {
   members: Array<{
     dota_id?: string | null;
     name: string;
-    role: Role;
+    role: RosterRole;
     tier_snapshot?: number | null;
     is_captain: boolean;
   }>;
@@ -40,9 +48,9 @@ export function ArchiveRosterEditor({
   onSaved,
   onMessage,
 }: Props) {
-  const initialPlayers = useMemo(
-    () =>
-      roles.map(([role]) => {
+  const initialPlayers = useMemo<EditorPlayer[]>(
+    () => {
+      const playingRoster = roles.map(([role]) => {
         const member = team?.members.find((item) => item.role === role);
         return {
           role,
@@ -51,7 +59,18 @@ export function ArchiveRosterEditor({
           tier: member?.tier_snapshot?.toString() ?? "",
           isCaptain: member?.is_captain ?? role === "safe_lane",
         };
-      }),
+      });
+      const coach = team?.members.find((item) => item.role === "coach");
+      return coach
+        ? [...playingRoster, {
+            role: "coach" as const,
+            nickname: coach.name,
+            dotaId: coach.dota_id ?? "",
+            tier: coach.tier_snapshot?.toString() ?? "",
+            isCaptain: false,
+          }]
+        : playingRoster;
+    },
     [team],
   );
   const [teamName, setTeamName] = useState(team?.team_name ?? "");
@@ -116,7 +135,7 @@ export function ArchiveRosterEditor({
           <span>Название команды</span>
           <input
             required
-            maxLength={20}
+            maxLength={80}
             value={teamName}
             onChange={(event) => setTeamName(event.target.value)}
           />
@@ -153,11 +172,11 @@ export function ArchiveRosterEditor({
       <div className="archive-roster-players">
         {players.map((player, index) => (
           <div className="archive-player-row" key={player.role}>
-            <strong>{roles[index][1]}</strong>
+            <strong>{player.role === "coach" ? "Тренер" : roles[index][1]}</strong>
             <input
               required
               maxLength={100}
-              aria-label={`Никнейм, ${roles[index][1]}`}
+              aria-label={`Никнейм, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
               placeholder="Никнейм"
               value={player.nickname}
               onChange={(event) =>
@@ -174,7 +193,7 @@ export function ArchiveRosterEditor({
               type="number"
               min="0"
               max="12"
-              aria-label={`Исторический тир, ${roles[index][1]}`}
+              aria-label={`Исторический тир, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
               placeholder="Тир"
               value={player.tier}
               onChange={(event) =>
@@ -193,7 +212,7 @@ export function ArchiveRosterEditor({
                 inputMode="numeric"
                 pattern="[0-9]*"
                 maxLength={12}
-                aria-label={`Dota ID профиля, ${roles[index][1]}`}
+                aria-label={`Dota ID профиля, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
                 placeholder="Без ссылки"
                 value={player.dotaId}
                 onChange={(event) =>
@@ -210,7 +229,7 @@ export function ArchiveRosterEditor({
                 }
               />
             </label>
-            <label className="archive-captain-choice">
+            {player.role !== "coach" && <label className="archive-captain-choice">
               <input
                 type="radio"
                 name={`captain-${team?.id ?? "new"}`}
@@ -225,7 +244,7 @@ export function ArchiveRosterEditor({
                 }
               />
               Капитан
-            </label>
+            </label>}
           </div>
         ))}
       </div>

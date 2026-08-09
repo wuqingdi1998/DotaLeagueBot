@@ -37,7 +37,9 @@ const hallStyles = readFileSync(
 describe("hall of fame and participant directory", () => {
   it("limits the hall of fame to medalists from seasonal tournaments", () => {
     expect(hallLoader).toContain("JOIN player_medals medal");
-    expect(hallLoader).toContain("medal_tournament.tournament_type = 'seasonal'");
+    expect(hallLoader).toContain(
+      "medal_tournament.tournament_type IN ('seasonal', 'seasonal_cup')",
+    );
     expect(hallPage).toContain(
       "Медальный зачёт участников за всю историю. В зачёт идут только",
     );

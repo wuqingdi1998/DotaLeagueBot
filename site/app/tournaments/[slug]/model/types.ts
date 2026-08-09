@@ -1,3 +1,5 @@
+import type { TournamentType } from "@/lib/tournament-type";
+
 export type PlayerRole =
   | "safe_lane"
   | "mid_lane"
@@ -5,9 +7,11 @@ export type PlayerRole =
   | "soft_support"
   | "hard_support";
 
+export type TournamentRosterRole = PlayerRole | "coach";
+
 export type Tournament = {
   id: number;
-  tournament_type: "ordinary" | "seasonal";
+  tournament_type: TournamentType;
   season_round_count: number;
   season_activity_points_note: string | null;
   slug: string;
@@ -63,7 +67,8 @@ export type TeamApplication = {
     discord_id: string | null;
     dota_id: string | null;
     name: string;
-    role: PlayerRole;
+    role: TournamentRosterRole;
+    archive_identity_id: string | null;
     is_captain: boolean;
     invitation_status: "invited" | "accepted" | "declined";
     tier_snapshot: number | null;
