@@ -71,6 +71,10 @@ const archiveIdentityAdmin = readFileSync(
   ),
   "utf8",
 );
+const participantAdminDialog = readFileSync(
+  new URL("../app/participants/ParticipantAdminDialog.tsx", import.meta.url),
+  "utf8",
+);
 
 describe("player identities and archive safety", () => {
   it("archives players without deleting their historical database row", () => {
@@ -80,6 +84,8 @@ describe("player identities and archive safety", () => {
       "CREATE TABLE IF NOT EXISTS player_identity_members",
     );
     expect(adminService).toContain("SET is_archived = TRUE");
+    expect(adminService).toContain("archived_steam_id32 = steam_id32");
+    expect(adminService).toContain("nextval('archived_player_steam_id_seq')");
     expect(adminService).not.toMatch(/DELETE FROM players/);
   });
 
@@ -91,6 +97,11 @@ describe("player identities and archive safety", () => {
     expect(adminService).toContain(
       "Нельзя перенести в архив собственный профиль организатора",
     );
+  });
+
+  it("labels the organizer action as archiving instead of deletion", () => {
+    expect(participantAdminDialog).toContain("Архивировать профиль");
+    expect(participantAdminDialog).not.toContain("Удалить из базы");
   });
 
   it("supports aliases, merging and linking archive identities", () => {

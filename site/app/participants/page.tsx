@@ -24,6 +24,9 @@ export default async function ParticipantsPage() {
           Все зарегистрированные участники сообщества, их актуальный турнирный
           тир и ссылки на игровые профили.
         </p>
+        {user?.isAdmin && (
+          <p>Нажмите на тир игрока, чтобы изменить его данные или отправить профиль в архив.</p>
+        )}
       </section>
 
       <section className="hall-content">

@@ -260,11 +260,13 @@
 }
 
 .participant-tier-form .participant-delete-button {
-  display: grid;
-  width: 46px;
-  flex: 0 0 46px;
-  place-items: center;
-  padding: 0;
+  display: inline-flex;
+  width: auto;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
   border-color: #e65c6a;
   background: rgba(230, 92, 106, 0.13);
   color: #ff7180;

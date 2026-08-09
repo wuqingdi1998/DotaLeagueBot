@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { FiTrash2, FiX } from "react-icons/fi";
+import { FiArchive, FiX } from "react-icons/fi";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 
 async function playerAdminRequest(payload: Record<string, unknown>) {
@@ -137,10 +137,11 @@ export function ParticipantAdminDialog({
                   className="participant-delete-button"
                   type="button"
                   onClick={() => setDeleteStep("question")}
-                  aria-label="Удалить из базы"
-                  title="Удалить из базы"
+                  aria-label="Архивировать профиль"
+                  title="Архивировать профиль"
                 >
-                  <FiTrash2 aria-hidden="true" />
+                  <FiArchive aria-hidden="true" />
+                  <span>В архив</span>
                 </button>
               )}
             </div>
@@ -149,10 +150,11 @@ export function ParticipantAdminDialog({
 
         {deleteStep === "question" && (
           <div className="participant-delete-confirm">
-            <h3>Удалить из базы?</h3>
+            <h3>Архивировать профиль?</h3>
             <p>
-              Участник станет архивным. Его старые матчи, результаты и медали
-              сохранятся.
+              Профиль пропадёт из списка действующих участников, но старые
+              матчи, результаты и медали сохранятся. Если игрок вернётся, он
+              сможет зарегистрироваться снова.
             </p>
             <div>
               <button

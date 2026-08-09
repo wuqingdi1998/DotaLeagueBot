@@ -102,7 +102,9 @@ export async function archiveParticipant(
       `UPDATE players
        SET is_archived = TRUE,
            archived_at = NOW(),
-           archived_by = $2
+           archived_by = $2,
+           archived_steam_id32 = steam_id32,
+           steam_id32 = nextval('archived_player_steam_id_seq')
        WHERE discord_id = $1`,
       [playerId, actorDiscordId],
     );

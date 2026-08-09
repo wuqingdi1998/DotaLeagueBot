@@ -48,6 +48,7 @@ class Player(Base):
     __tablename__ = 'players'
     discord_id = Column(BigInteger, primary_key=True, autoincrement=False)
     steam_id32 = Column(BigInteger, unique=True, nullable=False)
+    archived_steam_id32 = Column(BigInteger, nullable=True)
     ingame_name = Column(String, nullable=False)
     real_name = Column(String, nullable=True)
     positions = Column(String, nullable=True)

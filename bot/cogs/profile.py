@@ -17,6 +17,10 @@ from utils.logger import send_log
 from utils.steam_tools import resolve_steam_id
 from utils.nickname_validator import validate_nickname
 from services.discord_avatar_sync import collect_discord_avatar_updates
+from services.player_registration import (
+    PlayerRegistrationError,
+    register_or_reactivate_player,
+)
 from services.player_tier import effective_player_tier, set_player_tier
 
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
@@ -88,24 +92,30 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
         # --- 5. ЗАПИСЬ В БД ---
         async with async_session() as session:
-            existing_p = (await session.execute(
-                select(Player).where(Player.discord_id == interaction.user.id))).scalar_one_or_none()
-            if existing_p:
-                return await interaction.followup.send("❌ Вы уже зарегистрированы.", ephemeral=True)
-
-            new_p = Player(
-                discord_id=interaction.user.id,
-                steam_id32=sid32,
-                real_name=formatted_real_name,  # 👈 ИСПОЛЬЗУЕМ ОТФОРМАТИРОВАННОЕ ИМЯ
-                ingame_name=self.nickname.value,
-                positions=self.pos.value,
-                rank_tier=rank,
-                avatar_url=str(interaction.user.display_avatar.url)
-            )
-            session.add(new_p)
+            try:
+                registration = await register_or_reactivate_player(
+                    session,
+                    discord_id=interaction.user.id,
+                    steam_id32=sid32,
+                    real_name=formatted_real_name,
+                    ingame_name=self.nickname.value,
+                    positions=self.pos.value,
+                    rank_tier=rank,
+                    avatar_url=str(interaction.user.display_avatar.url),
+                )
+            except PlayerRegistrationError as error:
+                await session.rollback()
+                return await interaction.followup.send(
+                    f"❌ {error}", ephemeral=True
+                )
             await session.commit()
+            new_p = registration.player
 
-            print(f"[DB] New player registered: {self.nickname.value} (ID: {interaction.user.id})")
+            action = "reactivated" if registration.was_reactivated else "registered"
+            print(
+                f"[DB] Player {action}: {self.nickname.value} "
+                f"(ID: {interaction.user.id})"
+            )
 
             # --- AUTO-UPDATE DISCORD PROFILE ---
             cog = interaction.client.get_cog("Profile")
