@@ -49,8 +49,8 @@ export async function GET() {
          WHEN 'archived' THEN 3
          ELSE 4
        END,
-       CASE WHEN t.status IN ('active', 'registration') THEN t.start_at END ASC,
-       t.start_at DESC`,
+       CASE WHEN t.status IN ('active', 'registration') THEN t.end_at END ASC,
+       t.end_at DESC`,
   );
 
   return Response.json({ tournaments, user });

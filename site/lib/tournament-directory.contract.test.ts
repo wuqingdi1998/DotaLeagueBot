@@ -28,6 +28,16 @@ describe("tournament directory contract", () => {
     );
   });
 
+  it("orders tournaments by their end date within each status", () => {
+    expect(tournamentListRoute).toContain(
+      "CASE WHEN t.status IN ('active', 'registration') THEN t.end_at END ASC",
+    );
+    expect(tournamentListRoute).toContain("t.end_at DESC");
+    expect(tournamentListRoute).not.toContain(
+      "CASE WHEN t.status IN ('active', 'registration') THEN t.start_at END ASC",
+    );
+  });
+
   it("uses season statistics only for seasonal tournament cards", () => {
     expect(tournamentCard).toContain(
       "isSeasonLeague(tournament.tournament_type)",
