@@ -10,6 +10,7 @@ import {
   FiArrowUpRight,
   FiCalendar,
   FiClock,
+  FiCrosshair,
   FiPlus,
   FiUsers,
 } from "react-icons/fi";
@@ -103,14 +104,19 @@ export function PlatformShell({
           </span>
         </Link>
         <p>Турниры, лиги и события нашего Dota-сообщества</p>
-        <a
-          className="discord-link"
-          href="https://discord.gg/lsesports"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Discord <FiArrowUpRight />
-        </a>
+        <div className="platform-footer-links">
+          <Link className="fearless-footer-link" href="/fearless-draft">
+            <FiCrosshair /> Fearless Draft
+          </Link>
+          <a
+            className="discord-link"
+            href="https://discord.gg/lsesports"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Discord <FiArrowUpRight />
+          </a>
+        </div>
         <OrganizerAccess user={user} />
       </footer>
     </main>
