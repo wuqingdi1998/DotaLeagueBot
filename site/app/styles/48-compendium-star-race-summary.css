@@ -33,10 +33,11 @@
   display: grid;
   gap: 6px;
   margin: 0;
-  padding-left: 17px;
+  padding-left: 0;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
+  list-style: none;
 }
 
 .site-shell[data-theme="light"] .compendium-star-race-rules > svg {

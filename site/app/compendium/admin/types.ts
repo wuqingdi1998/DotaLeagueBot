@@ -1,4 +1,22 @@
 import type { CompendiumHero } from "../model/types";
+import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
+import type {
+  StarRacePhase,
+  StarRacePrize,
+  StarRaceQuestDefinition,
+} from "../model/star-race";
+
+export type CompendiumStarRaceArchive = {
+  id: string;
+  title: string;
+  dateLabel: string;
+  startsAt: string;
+  endsAt: string;
+  phase: StarRacePhase;
+  prizes: readonly StarRacePrize[];
+  quests: readonly StarRaceQuestDefinition[];
+  participants: CompendiumLeaderboardEntry[];
+};
 
 export type CompendiumAdminSourceRow = {
   player_id: string;

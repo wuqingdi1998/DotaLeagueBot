@@ -5,4 +5,5 @@ export type CompendiumLeaderboardEntry = {
   playerName: string;
   avatarUrl: string | null;
   totalStars: number;
+  completedQuests?: number;
 };

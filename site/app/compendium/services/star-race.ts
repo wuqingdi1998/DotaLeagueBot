@@ -7,10 +7,7 @@ import {
   scanWinningBuildingDamage,
 } from "../model/matches";
 import {
-  STAR_RACE_END_AT,
-  STAR_RACE_PRIZES,
-  STAR_RACE_QUESTS,
-  STAR_RACE_START_AT,
+  starRaceForMoment,
   starRacePhase,
   starRaceQuestByDate,
   starRaceQuestHeroes,
@@ -43,32 +40,39 @@ export async function loadStarRace(
   user: AuthUser,
   now: Date = new Date(),
 ): Promise<StarRaceData> {
-  const visibility = starRacePhase(now, user.isAdmin);
+  const race = starRaceForMoment(now);
+  const visibility = starRacePhase(now, user.isAdmin, race);
   if (!visibility.isDetailsVisible) {
     return {
       ...visibility,
-      startsAt: STAR_RACE_START_AT,
-      endsAt: STAR_RACE_END_AT,
+      id: race.id,
+      title: race.title,
+      dateLabel: race.dateLabel,
+      startsAt: race.startsAt,
+      endsAt: race.endsAt,
       totalStars: null,
       personalRank: null,
-      prizes: STAR_RACE_PRIZES,
+      prizes: race.prizes,
       quests: [],
     };
   }
   const [totalStars, personalRank, completions, progresses] = await Promise.all([
-    totalStarRaceStars(),
-    loadStarRaceRank(user.discordId),
+    totalStarRaceStars(race),
+    loadStarRaceRank(user.discordId, race),
     loadStarRaceCompletions(user.discordId),
     loadStarRaceProgress(user.discordId),
   ]);
   return {
     ...visibility,
-    startsAt: STAR_RACE_START_AT,
-    endsAt: STAR_RACE_END_AT,
+    id: race.id,
+    title: race.title,
+    dateLabel: race.dateLabel,
+    startsAt: race.startsAt,
+    endsAt: race.endsAt,
     totalStars,
     personalRank,
-    prizes: STAR_RACE_PRIZES,
-    quests: STAR_RACE_QUESTS.map((quest) => {
+    prizes: race.prizes,
+    quests: race.quests.map((quest) => {
       const bounds = moscowDayBounds(quest.dateKey);
       const savedProgress = progresses.get(quest.dateKey);
       return {

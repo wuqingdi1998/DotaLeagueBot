@@ -4,6 +4,7 @@ import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { getSession } from "@/lib/auth";
 import { CompendiumBase } from "../admin/CompendiumBase";
 import { loadCompendiumAdminParticipants } from "../admin/repository";
+import { loadCompendiumStarRaceArchive } from "../admin/star-race-archive-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +15,17 @@ export const metadata: Metadata = {
 export default async function CompendiumBasePage() {
   const user = await getSession();
   if (!user?.isAdmin) notFound();
-  const participants = await loadCompendiumAdminParticipants();
+  const [participants, starRaceArchive] = await Promise.all([
+    loadCompendiumAdminParticipants(),
+    loadCompendiumStarRaceArchive(),
+  ]);
 
   return (
     <PlatformShell user={user}>
-      <CompendiumBase participants={participants} />
+      <CompendiumBase
+        participants={participants}
+        starRaceArchive={starRaceArchive}
+      />
     </PlatformShell>
   );
 }

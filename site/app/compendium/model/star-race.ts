@@ -2,9 +2,13 @@ import { compendiumHeroById } from "./heroes";
 import { moscowDayBounds } from "./time";
 import type { CompendiumHero } from "./types";
 
-export const STAR_RACE_START_AT = "2026-08-10T00:00:00+03:00";
-export const STAR_RACE_END_AT = "2026-08-17T00:00:00+03:00";
-export const STAR_RACE_PRIZES = [
+export type StarRacePrize = {
+  readonly place: number;
+  readonly title: string;
+  readonly imageUrl: string;
+};
+
+const FIRST_STAR_RACE_PRIZES = [
   {
     place: 1,
     title: "Сет Beast of Thunder на Storm Spirit",
@@ -15,9 +19,7 @@ export const STAR_RACE_PRIZES = [
     title: "Сет Primeval Abomination на Primal Beast",
     imageUrl: "/compendium/star-race/primeval-abomination-primal-beast.jpg",
   },
-] as const;
-
-export type StarRacePrize = (typeof STAR_RACE_PRIZES)[number];
+] as const satisfies readonly StarRacePrize[];
 
 export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
@@ -53,7 +55,7 @@ export type StarRaceQuestDefinition = {
   readonly requirement: StarRaceQuestRequirement | null;
 };
 
-export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
+const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   {
     dateKey: "2026-08-10",
     weekday: "Понедельник",
@@ -153,6 +155,50 @@ export const STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   },
 ];
 
+export type StarRaceWeekDefinition = {
+  readonly id: string;
+  readonly title: string;
+  readonly dateLabel: string;
+  readonly startsAt: string;
+  readonly endsAt: string;
+  readonly prizes: readonly StarRacePrize[];
+  readonly quests: readonly StarRaceQuestDefinition[];
+};
+
+export const STAR_RACE_WEEKS: readonly StarRaceWeekDefinition[] = [
+  {
+    id: "2026-08-10",
+    title: "Гонка за звёздами",
+    dateLabel: "10–16 августа 2026",
+    startsAt: "2026-08-10T00:00:00+03:00",
+    endsAt: "2026-08-17T00:00:00+03:00",
+    prizes: FIRST_STAR_RACE_PRIZES,
+    quests: FIRST_STAR_RACE_QUESTS,
+  },
+];
+
+export const CURRENT_STAR_RACE = STAR_RACE_WEEKS.at(-1)!;
+export const STAR_RACE_START_AT = CURRENT_STAR_RACE.startsAt;
+export const STAR_RACE_END_AT = CURRENT_STAR_RACE.endsAt;
+export const STAR_RACE_PRIZES = CURRENT_STAR_RACE.prizes;
+export const STAR_RACE_QUESTS = CURRENT_STAR_RACE.quests;
+
+export function starRaceForMoment(
+  now: Date,
+  races: readonly StarRaceWeekDefinition[] = STAR_RACE_WEEKS,
+): StarRaceWeekDefinition {
+  const currentTime = now.getTime();
+  const activeRace = races.find(
+    (race) =>
+      currentTime >= new Date(race.startsAt).getTime() &&
+      currentTime < new Date(race.endsAt).getTime(),
+  );
+  if (activeRace) return activeRace;
+  return races.find(
+    (race) => currentTime < new Date(race.startsAt).getTime(),
+  ) ?? races.at(-1)!;
+}
+
 export type StarRaceQuestWin = {
   hero: CompendiumHero;
   matchId: string;
@@ -186,6 +232,9 @@ export type StarRaceQuest = StarRaceQuestDefinition & {
 };
 
 export type StarRaceData = {
+  id: string;
+  title: string;
+  dateLabel: string;
   phase: StarRacePhase;
   isDetailsVisible: boolean;
   startsAt: string;
@@ -196,10 +245,14 @@ export type StarRaceData = {
   quests: StarRaceQuest[];
 };
 
-export function starRacePhase(now: Date, isOrganizer: boolean) {
+export function starRacePhase(
+  now: Date,
+  isOrganizer: boolean,
+  race: StarRaceWeekDefinition = CURRENT_STAR_RACE,
+) {
   const currentTime = now.getTime();
-  const startsAt = new Date(STAR_RACE_START_AT).getTime();
-  const endsAt = new Date(STAR_RACE_END_AT).getTime();
+  const startsAt = new Date(race.startsAt).getTime();
+  const endsAt = new Date(race.endsAt).getTime();
   const phase: StarRacePhase =
     currentTime < startsAt
       ? "upcoming"
@@ -224,7 +277,21 @@ export function starRaceQuestPhase(
 export function starRaceQuestByDate(
   dateKey: string,
 ): StarRaceQuestDefinition | null {
-  return STAR_RACE_QUESTS.find((quest) => quest.dateKey === dateKey) ?? null;
+  return starRaceWeekByDate(dateKey)?.quests.find(
+    (quest) => quest.dateKey === dateKey,
+  ) ?? null;
+}
+
+export function starRaceWeekByDate(
+  dateKey: string,
+): StarRaceWeekDefinition | null {
+  return STAR_RACE_WEEKS.find(
+    (race) => race.quests.some((quest) => quest.dateKey === dateKey),
+  ) ?? null;
+}
+
+export function keepGroupedNumbersTogether(text: string): string {
+  return text.replace(/(\d)[ \u00a0\u202f](?=\d{3}(?:\D|$))/g, "$1\u00a0");
 }
 
 export function starRaceQuestHeroes(

@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  CURRENT_STAR_RACE,
   STAR_RACE_END_AT,
   STAR_RACE_PRIZES,
   STAR_RACE_QUESTS,
   STAR_RACE_START_AT,
+  STAR_RACE_WEEKS,
+  keepGroupedNumbersTogether,
+  starRaceForMoment,
   starRacePhase,
+  starRaceWeekByDate,
   starRaceQuestPhase,
 } from "./star-race";
 
@@ -34,6 +39,38 @@ describe("star race schedule", () => {
       "2026-08-16T21:00:00.000Z",
     );
     expect(STAR_RACE_QUESTS).toHaveLength(7);
+  });
+
+  it("keeps every configured week available as a reusable scenario", () => {
+    expect(STAR_RACE_WEEKS).toContain(CURRENT_STAR_RACE);
+    expect(starRaceWeekByDate("2026-08-12")).toBe(CURRENT_STAR_RACE);
+    expect(CURRENT_STAR_RACE.quests).toBe(STAR_RACE_QUESTS);
+  });
+
+  it("keeps the active week visible when the next scenario is prepared", () => {
+    const nextRace = {
+      ...CURRENT_STAR_RACE,
+      id: "2026-08-17",
+      startsAt: "2026-08-17T00:00:00+03:00",
+      endsAt: "2026-08-24T00:00:00+03:00",
+      quests: [],
+    };
+    const races = [CURRENT_STAR_RACE, nextRace];
+    expect(starRaceForMoment(new Date("2026-08-12T12:00:00Z"), races)).toBe(
+      CURRENT_STAR_RACE,
+    );
+    expect(starRaceForMoment(new Date("2026-08-16T22:00:00Z"), races)).toBe(
+      nextRace,
+    );
+  });
+
+  it("keeps grouped numbers on one line", () => {
+    expect(keepGroupedNumbersTogether("Нанесите 50 000 урона")).toBe(
+      "Нанесите 50\u00a0000 урона",
+    );
+    expect(keepGroupedNumbersTogether("Наберите 1 000 000 очков")).toBe(
+      "Наберите 1\u00a0000\u00a0000 очков",
+    );
   });
 
   it("shows full details to organizers before launch and everyone afterwards", () => {

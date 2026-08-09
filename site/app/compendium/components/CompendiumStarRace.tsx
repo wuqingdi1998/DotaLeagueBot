@@ -15,7 +15,11 @@ import {
   FiInfo,
   FiLoader,
 } from "react-icons/fi";
-import type { StarRaceData, StarRaceQuest } from "../model/star-race";
+import {
+  keepGroupedNumbersTogether,
+  type StarRaceData,
+  type StarRaceQuest,
+} from "../model/star-race";
 import { HeroChoice } from "./HeroChoice";
 
 function countdownLabel(targetAt: string): string {
@@ -67,7 +71,7 @@ function StarRaceQuestCard({
       {isConfigured ? (
         <>
           <h3>{quest.title}</h3>
-          <p>{quest.description}</p>
+          <p>{keepGroupedNumbersTogether(quest.description ?? "")}</p>
           {quest.heroes.length > 0 && (
             <div className="compendium-star-race-heroes">
               {quest.heroes.map((hero) => (
@@ -220,8 +224,8 @@ export function CompendiumStarRace({
     <section className="compendium-star-race" id="compendium-star-race">
       <div className="compendium-star-race-heading">
         <div>
-          <span>10–16 августа · отдельный недельный зачёт</span>
-          <h2>Гонка за звёздами</h2>
+          <span>{race.dateLabel} · отдельный недельный зачёт</span>
+          <h2>{race.title}</h2>
         </div>
       </div>
       {!race.isDetailsVisible ? (
@@ -261,7 +265,7 @@ export function CompendiumStarRace({
               <div>
                 <strong>Условия гонки</strong>
                 <ul>
-                  <li>В зачёт входят звёзды, полученные с 10 по 16 августа.</li>
+                  <li>В зачёт входят звёзды за {race.dateLabel}.</li>
                   <li>
                     Звёзды за Испытание Рун в гонке не учитываются. В личном и
                     общем зачётах они сохраняются.

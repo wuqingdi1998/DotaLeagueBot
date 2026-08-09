@@ -14,7 +14,9 @@ import type {
   CompendiumPredictionRewardHistory,
   CompendiumRuneRewardHistory,
   CompendiumRewardHistory,
+  CompendiumStarRaceArchive as ArchivedRace,
 } from "./types";
+import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
 
 function CurrentQuestCards({
   participant,
@@ -250,8 +252,10 @@ function ParticipantHistory({
 
 export function CompendiumBase({
   participants,
+  starRaceArchive,
 }: {
   participants: CompendiumAdminParticipant[];
+  starRaceArchive: ArchivedRace[];
 }) {
   const totalStars = participants.reduce(
     (sum, participant) => sum + participant.totalStars,
@@ -279,6 +283,8 @@ export function CompendiumBase({
           <div><FaStar aria-hidden="true" /><strong>{rewardedParticipants}</strong><span>получили звёзды</span></div>
         </div>
       </section>
+
+      <CompendiumStarRaceArchive races={starRaceArchive} />
 
       <section className="compendium-base-list">
         <div className="compendium-base-list-heading">

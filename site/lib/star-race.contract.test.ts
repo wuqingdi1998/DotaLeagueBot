@@ -20,6 +20,9 @@ const raceEventsMigration = source(
 const tiebreakMigration = source(
   "../../bot/database/migrations/0058_compendium_star_race_d20_tiebreak.sql",
 );
+const reusableWeeksMigration = source(
+  "../../bot/database/migrations/0059_compendium_star_race_weeks.sql",
+);
 const dashboard = source(
   "../app/compendium/sections/CompendiumDashboard.tsx",
 );
@@ -40,6 +43,17 @@ const summaryStyles = source(
 );
 const rewardsStyles = source("../app/styles/38-compendium-rewards.css");
 const globalStyles = source("../app/globals.css");
+const basePage = source("../app/compendium/base/page.tsx");
+const baseView = source("../app/compendium/admin/CompendiumBase.tsx");
+const archiveView = source(
+  "../app/compendium/admin/CompendiumStarRaceArchive.tsx",
+);
+const archiveRepository = source(
+  "../app/compendium/admin/star-race-archive-repository.ts",
+);
+const archiveStyles = source(
+  "../app/styles/49-compendium-star-race-archive.css",
+);
 
 describe("compendium star race contract", () => {
   it("counts every current star source inside the race period", () => {
@@ -74,8 +88,8 @@ describe("compendium star race contract", () => {
     expect(repository).toContain(
       "eligible_total.completed_race_quests DESC",
     );
-    expect(repository).toContain("WHERE ranked_total.player_id = $3");
-    expect(service).toContain("loadStarRaceRank(user.discordId)");
+    expect(repository).toContain("WHERE ranked_total.player_id = $4");
+    expect(service).toContain("loadStarRaceRank(user.discordId, race)");
     expect(starRaceModel).toContain("personalRank: number | null");
     expect(starRaceView).toContain("Ваше место в гонке");
     expect(starRaceView).toContain('race.personalRank ?? "—"');
@@ -116,6 +130,31 @@ describe("compendium star race contract", () => {
     expect(repository).toContain("CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow'");
   });
 
+  it("allows future race weeks without removing earlier results", () => {
+    expect(starRaceModel).toContain("STAR_RACE_WEEKS");
+    expect(starRaceModel).toContain("CURRENT_STAR_RACE");
+    expect(repository).toContain("starRaceWeekByDate");
+    expect(reusableWeeksMigration).toContain(
+      "DROP CONSTRAINT IF EXISTS compendium_star_race_quest_completions_moscow_date_check",
+    );
+    expect(reusableWeeksMigration).toContain(
+      "DROP CONSTRAINT IF EXISTS compendium_star_race_quest_progress_moscow_date_check",
+    );
+  });
+
+  it("archives every configured week and its standings in the organizer base", () => {
+    expect(basePage).toContain("loadCompendiumStarRaceArchive");
+    expect(baseView).toContain("CompendiumStarRaceArchive");
+    expect(archiveRepository).toContain("STAR_RACE_WEEKS.map");
+    expect(archiveRepository).toContain("loadStarRaceLeaderboard(race, true)");
+    expect(archiveView).toContain("Сценарии Гонки");
+    expect(archiveView).toContain("Итоговая таблица");
+    expect(archiveStyles).toContain("@media (max-width: 720px)");
+    expect(globalStyles).toContain(
+      '@import "./styles/49-compendium-star-race-archive.css";',
+    );
+  });
+
   it("replaces Tuesday's scanned progress instead of adding it twice", () => {
     expect(progressMigration).toContain(
       "CREATE TABLE IF NOT EXISTS compendium_star_race_quest_progress",
@@ -143,7 +182,8 @@ describe("compendium star race contract", () => {
     expect(dashboard.indexOf("<CompendiumStarRace")).toBeGreaterThan(
       dashboard.indexOf("<CompendiumRewards"),
     );
-    expect(starRaceView).toContain("Гонка за звёздами");
+    expect(starRaceModel).toContain('title: "Гонка за звёздами"');
+    expect(starRaceView).toContain("race.title");
     expect(starRaceView).toContain("Гонка скоро начнётся");
     expect(starRaceView).toContain("isDetailsVisible");
     expect(starRaceModel).toContain("Primeval Abomination");
@@ -193,5 +233,9 @@ describe("compendium star race contract", () => {
     expect(globalStyles).toContain(
       '@import "./styles/48-compendium-star-race-summary.css";',
     );
+    expect(summaryStyles).toMatch(
+      /\.compendium-star-race-rules ul\s*\{[^}]*padding-left:\s*0;[^}]*list-style:\s*none;/,
+    );
+    expect(starRaceView).toContain("keepGroupedNumbersTogether");
   });
 });

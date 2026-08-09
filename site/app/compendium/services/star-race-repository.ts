@@ -4,10 +4,11 @@ import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
 import { CompendiumError } from "../model/errors";
 import type { MatchingWin } from "../model/types";
 import {
-  STAR_RACE_END_AT,
-  STAR_RACE_START_AT,
+  CURRENT_STAR_RACE,
+  starRaceWeekByDate,
   type StarRaceQuestCompletion,
   type StarRaceQuestWin,
+  type StarRaceWeekDefinition,
 } from "../model/star-race";
 import { compendiumHeroById } from "../model/heroes";
 
@@ -26,6 +27,7 @@ type StarRaceLeaderboardRow = {
   player_name: string;
   avatar_url: string | null;
   total_stars: number;
+  completed_race_quests: number;
 };
 
 type StarRaceRankRow = {
@@ -136,7 +138,9 @@ export async function loadStarRaceProgress(
   return progressByDate;
 }
 
-export async function totalStarRaceStars(): Promise<number> {
+export async function totalStarRaceStars(
+  race: StarRaceWeekDefinition = CURRENT_STAR_RACE,
+): Promise<number> {
   const row = await one<{ total: number }>(
     `SELECT COALESCE(SUM(player_total.total), 0)::int AS total
      FROM (
@@ -146,7 +150,7 @@ export async function totalStarRaceStars(): Promise<number> {
          AND event.earned_at < $2::timestamptz
        GROUP BY event.player_id
      ) player_total`,
-    [STAR_RACE_START_AT, STAR_RACE_END_AT],
+    [race.startsAt, race.endsAt],
   );
   return row?.total ?? 0;
 }
@@ -180,7 +184,7 @@ const eligibleStarRaceTotalsCte = `WITH race_totals AS (
   LEFT JOIN race_quest_counts quest_count
     ON quest_count.player_id = race_total.player_id
   WHERE race_total.total_stars > 0
-    AND player.is_archived = FALSE
+    AND ($3::boolean OR player.is_archived = FALSE)
     AND player.steam_id32 BETWEEN 1 AND 4294967295
 )`;
 
@@ -202,7 +206,10 @@ const rankedStarRaceTotalsCte = `${eligibleStarRaceTotalsCte}, ranked_race_total
    AND tiebreak.player_id = eligible_total.player_id
 )`;
 
-async function ensureStarRaceTiebreakRolls(): Promise<void> {
+async function ensureStarRaceTiebreakRolls(
+  race: StarRaceWeekDefinition,
+  includeArchivedPlayers: boolean,
+): Promise<void> {
   await query(
     `${eligibleStarRaceTotalsCte}
      INSERT INTO compendium_star_race_tiebreak_rolls
@@ -218,28 +225,32 @@ async function ensureStarRaceTiebreakRolls(): Promise<void> {
      CROSS JOIN generate_series(1, 64) roll_number
      GROUP BY eligible_total.player_id
      ON CONFLICT (race_start_at, player_id) DO NOTHING`,
-    [STAR_RACE_START_AT, STAR_RACE_END_AT],
+    [race.startsAt, race.endsAt, includeArchivedPlayers],
   );
 }
 
 export async function loadStarRaceRank(
   playerId: string,
+  race: StarRaceWeekDefinition = CURRENT_STAR_RACE,
 ): Promise<number | null> {
-  await ensureStarRaceTiebreakRolls();
+  await ensureStarRaceTiebreakRolls(race, false);
   const row = await one<StarRaceRankRow>(
     `${rankedStarRaceTotalsCte}
      SELECT ranked_total.rank
      FROM ranked_race_totals ranked_total
-     WHERE ranked_total.player_id = $3`,
-    [STAR_RACE_START_AT, STAR_RACE_END_AT, playerId],
+     WHERE ranked_total.player_id = $4`,
+    [race.startsAt, race.endsAt, false, playerId],
   );
   return row ? Number(row.rank) : null;
 }
 
-export async function loadStarRaceLeaderboard(): Promise<
+export async function loadStarRaceLeaderboard(
+  race: StarRaceWeekDefinition = CURRENT_STAR_RACE,
+  includeArchivedPlayers = false,
+): Promise<
   CompendiumLeaderboardEntry[]
 > {
-  await ensureStarRaceTiebreakRolls();
+  await ensureStarRaceTiebreakRolls(race, includeArchivedPlayers);
   const rows = await query<StarRaceLeaderboardRow>(
     `${rankedStarRaceTotalsCte}
      SELECT
@@ -251,7 +262,8 @@ export async function loadStarRaceLeaderboard(): Promise<
          NULLIF(player.avatar_url, ''),
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
-       ranked_total.total_stars
+       ranked_total.total_stars,
+       ranked_total.completed_race_quests
      FROM ranked_race_totals ranked_total
      JOIN players player ON player.discord_id = ranked_total.player_id
      LEFT JOIN LATERAL (
@@ -263,7 +275,7 @@ export async function loadStarRaceLeaderboard(): Promise<
        LIMIT 1
      ) latest_session ON TRUE
      ORDER BY ranked_total.rank`,
-    [STAR_RACE_START_AT, STAR_RACE_END_AT],
+    [race.startsAt, race.endsAt, includeArchivedPlayers],
   );
   return rows.map((row) => ({
     rank: Number(row.rank),
@@ -272,6 +284,7 @@ export async function loadStarRaceLeaderboard(): Promise<
     playerName: row.player_name,
     avatarUrl: row.avatar_url,
     totalStars: Number(row.total_stars),
+    completedQuests: Number(row.completed_race_quests),
   }));
 }
 
@@ -291,13 +304,20 @@ async function assertActiveStarRaceDate(
   client: PoolClient,
   dateKey: string,
 ): Promise<void> {
+  const race = starRaceWeekByDate(dateKey);
+  if (!race) {
+    throw new CompendiumError(
+      "STAR_RACE_NOT_ACTIVE",
+      "Задание не относится ни к одной сохранённой неделе Гонки.",
+    );
+  }
   const activeDate = await client.query(
     `SELECT 1
      WHERE $1::date =
        (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
        AND CURRENT_TIMESTAMP >= $2::timestamptz
        AND CURRENT_TIMESTAMP < $3::timestamptz`,
-    [dateKey, STAR_RACE_START_AT, STAR_RACE_END_AT],
+    [dateKey, race.startsAt, race.endsAt],
   );
   if (!activeDate.rowCount) {
     throw new CompendiumError(
