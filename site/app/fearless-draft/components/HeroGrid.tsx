@@ -3,7 +3,10 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
-import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
+import {
+  FEARLESS_DRAFT_HEROES,
+  HERO_ATTRIBUTE_GROUPS,
+} from "../model/heroes";
 import type {
   DraftMapSnapshot,
   FearlessDraftCommand,
@@ -58,6 +61,13 @@ export function HeroGrid({
         )
       : FEARLESS_DRAFT_HEROES;
   }, [search]);
+  const groupedHeroes = useMemo(
+    () => HERO_ATTRIBUTE_GROUPS.map((group) => ({
+      ...group,
+      heroes: visibleHeroes.filter((hero) => hero.primaryAttribute === group.key),
+    })),
+    [visibleHeroes],
+  );
 
   function heroState(heroId: number): HeroState {
     const hero = FEARLESS_DRAFT_HEROES.find((candidate) => candidate.id === heroId);
@@ -86,36 +96,43 @@ export function HeroGrid({
         </label>
       </div>
       <div className="fearless-hero-grid">
-        {visibleHeroes.map((hero) => {
-          const state = heroState(hero.id);
-          const canSelect = isOwnTurn && state === "available";
-          return (
-            <button
-              key={hero.id}
-              className={`${state} ${selectedHeroId === hero.id ? "selected" : ""}`}
-              type="button"
-              disabled={!canSelect}
-              title={
-                state === "fearless-locked"
-                  ? "Использован на предыдущей карте"
-                  : state === "captains-disabled"
-                    ? "Временно недоступен в Captain's Mode"
-                  : state === "banned"
-                    ? "Забанен на текущей карте"
-                    : hero.name
-              }
-              onClick={() => setSelection({ heroId: hero.id, version: map.version })}
-            >
-              <span className="fearless-hero-image">
-                <Image src={hero.imageUrl} alt="" fill sizes="100px" unoptimized />
-                {state === "fearless-locked" && <FiLock />}
-                {state === "banned" && <FiSlash />}
-                {state.startsWith("picked") && <FiCheck />}
-              </span>
-              <strong>{hero.name}</strong>
-            </button>
-          );
-        })}
+        {groupedHeroes.map((group) => (
+          <section className={`fearless-attribute-group ${group.key}`} key={group.key}>
+            <header><i /> <strong>{group.label}</strong></header>
+            <div>
+              {group.heroes.map((hero) => {
+                const state = heroState(hero.id);
+                const canSelect = isOwnTurn && state === "available";
+                return (
+                  <button
+                    key={hero.id}
+                    className={`${state} ${selectedHeroId === hero.id ? "selected" : ""}`}
+                    type="button"
+                    disabled={!canSelect}
+                    title={
+                      state === "fearless-locked"
+                        ? "Использован на предыдущей карте"
+                        : state === "captains-disabled"
+                          ? "Временно недоступен в Captain's Mode"
+                          : state === "banned"
+                            ? "Забанен на текущей карте"
+                            : hero.name
+                    }
+                    onClick={() => setSelection({ heroId: hero.id, version: map.version })}
+                  >
+                    <span className="fearless-hero-image">
+                      <Image src={hero.imageUrl} alt="" fill sizes="64px" unoptimized />
+                      {state === "fearless-locked" && <FiLock />}
+                      {state === "banned" && <FiSlash />}
+                      {state.startsWith("picked") && <FiCheck />}
+                    </span>
+                    <strong>{hero.name}</strong>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
       {selectedHero && (
         <div className="fearless-hero-confirm">

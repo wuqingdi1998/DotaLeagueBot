@@ -6,8 +6,20 @@ const service = readFileSync(
   resolve(process.cwd(), "app/fearless-draft/server/series-service.ts"),
   "utf8",
 );
+const database = readFileSync(
+  resolve(process.cwd(), "app/fearless-draft/server/database.ts"),
+  "utf8",
+);
+const agreements = readFileSync(
+  resolve(process.cwd(), "app/fearless-draft/server/agreement-service.ts"),
+  "utf8",
+);
 const migration = readFileSync(
   resolve(process.cwd(), "../bot/database/migrations/0061_fearless_draft.sql"),
+  "utf8",
+);
+const agreementMigration = readFileSync(
+  resolve(process.cwd(), "../bot/database/migrations/0062_fearless_draft_agreements.sql"),
   "utf8",
 );
 const route = readFileSync(
@@ -29,9 +41,20 @@ const heroModel = readFileSync(
 
 describe("Fearless Draft server safety contract", () => {
   it("locks the map and rejects stale double-click requests", () => {
-    expect(service).toContain("FOR UPDATE");
+    expect(database).toContain("FOR UPDATE");
     expect(service).toContain("map.version !== expectedVersion");
     expect(service).toContain("version = version + 1");
+  });
+
+  it("requires both players for the next map and expires unanswered end requests", () => {
+    expect(agreementMigration).toContain("player1_ready_for_next_map");
+    expect(agreementMigration).toContain("player2_ready_for_next_map");
+    expect(agreementMigration).toContain("end_requested_at TIMESTAMPTZ");
+    expect(agreements).toContain("readiness.shouldAdvance");
+    expect(agreements).toContain("DRAFT_END_REQUEST_TTL_MINUTES");
+    expect(agreements).toContain("status = 'ABANDONED'");
+    expect(route).toContain('case "RESPOND_SERIES_END"');
+    expect(route).not.toContain('case "ABANDON_SERIES"');
   });
 
   it("keeps one action per step and one use per hero at database level", () => {

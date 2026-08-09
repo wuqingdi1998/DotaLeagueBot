@@ -151,7 +151,10 @@ export async function getSession(): Promise<AuthUser | null> {
        s.discord_id::text,
        p.steam_id32::text AS dota_id,
        s.discord_username,
-       s.discord_avatar_url,
+       COALESCE(
+         NULLIF(p.avatar_url, ''),
+         NULLIF(s.discord_avatar_url, '')
+       ) AS discord_avatar_url,
        p.ingame_name,
        p.real_name,
        p.positions,

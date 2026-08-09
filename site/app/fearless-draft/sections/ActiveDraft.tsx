@@ -1,6 +1,6 @@
 "use client";
 
-import { FiArrowRight, FiFlag, FiZap } from "react-icons/fi";
+import { FiArrowRight, FiCheck, FiZap } from "react-icons/fi";
 import type {
   DraftPlayer,
   DraftSeriesSnapshot,
@@ -63,11 +63,12 @@ export function ActiveDraft({
   const isComplete = map.status === "COMPLETE";
   const isOwnTurn = map.currentActorId === userId;
 
-  async function abandon() {
-    if (window.confirm("Завершить эту серию Fearless Draft для обоих участников?")) {
-      await send({ action: "ABANDON_SERIES" });
-    }
-  }
+  const ownReady = userId === series.player1.id
+    ? series.player1ReadyForNextMap
+    : series.player2ReadyForNextMap;
+  const opponentReady = userId === series.player1.id
+    ? series.player2ReadyForNextMap
+    : series.player1ReadyForNextMap;
 
   return (
     <section className="fearless-active-draft">
@@ -134,14 +135,23 @@ export function ActiveDraft({
               Вернуться к поиску <FiArrowRight />
             </button>
           ) : (
-            <button
-              className="primary-button"
-              type="button"
-              disabled={isSending}
-              onClick={() => void send({ action: "START_NEXT_MAP" })}
-            >
-              Перейти к карте {map.number + 1} <FiArrowRight />
-            </button>
+            <div className="fearless-next-map-ready">
+              <span>
+                {ownReady
+                  ? "Вы готовы. Ожидаем соперника…"
+                  : opponentReady
+                    ? "Соперник готов к следующей карте"
+                    : "Следующая карта начнётся после готовности обоих"}
+              </span>
+              <button
+                className="primary-button"
+                type="button"
+                disabled={isSending || ownReady}
+                onClick={() => void send({ action: "READY_FOR_NEXT_MAP" })}
+              >
+                {ownReady ? <><FiCheck /> Готовность подтверждена</> : <>Я готов к карте {map.number + 1} <FiArrowRight /></>}
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -150,11 +160,6 @@ export function ActiveDraft({
         <HeroGrid map={map} userId={userId} isSending={isSending} send={send} />
         <DraftHistory actions={map.actions} />
       </div>
-      {!isComplete && (
-        <button className="fearless-abandon" type="button" onClick={() => void abandon()}>
-          <FiFlag /> Завершить зависшую серию
-        </button>
-      )}
     </section>
   );
 }

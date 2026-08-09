@@ -7,12 +7,16 @@ import {
   sendDraftInvitation,
 } from "@/app/fearless-draft/server/queue-service";
 import {
-  abandonDraftSeries,
   dismissCompletedSeries,
   makeDraftChoice,
   selectDraftHero,
-  startNextDraftMap,
 } from "@/app/fearless-draft/server/series-service";
+import {
+  cancelDraftSeriesEnd,
+  markReadyForNextDraftMap,
+  requestDraftSeriesEnd,
+  respondToDraftSeriesEnd,
+} from "@/app/fearless-draft/server/agreement-service";
 import {
   loadFearlessDraftSnapshot,
 } from "@/app/fearless-draft/server/snapshot-service";
@@ -85,11 +89,23 @@ export async function POST(request: Request) {
           Number(command.expectedVersion),
         );
         break;
-      case "START_NEXT_MAP":
-        await startNextDraftMap(user.discordId);
+      case "READY_FOR_NEXT_MAP":
+        await markReadyForNextDraftMap(user.discordId);
         break;
-      case "ABANDON_SERIES":
-        await abandonDraftSeries(user.discordId);
+      case "REQUEST_SERIES_END":
+        await requestDraftSeriesEnd(user.discordId);
+        break;
+      case "RESPOND_SERIES_END":
+        if (
+          !("response" in command) ||
+          (command.response !== "ACCEPT" && command.response !== "DECLINE")
+        ) {
+          throw new DraftRequestError("Ответ на запрос не указан");
+        }
+        await respondToDraftSeriesEnd(user.discordId, command.response);
+        break;
+      case "CANCEL_SERIES_END":
+        await cancelDraftSeriesEnd(user.discordId);
         break;
       case "DISMISS_COMPLETE":
         await dismissCompletedSeries(user.discordId);

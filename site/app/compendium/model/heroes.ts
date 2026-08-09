@@ -1,5 +1,5 @@
 import heroCatalog from "./heroes.json";
-import type { CompendiumHero } from "./types";
+import type { CompendiumHero, HeroPrimaryAttribute } from "./types";
 
 const dotaImageRoot =
   "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes";
@@ -14,6 +14,7 @@ export function compendiumHeroImageSource(heroKey: string): string | null {
 
 export const COMPENDIUM_HEROES: CompendiumHero[] = heroCatalog.map((hero) => ({
   ...hero,
+  primaryAttribute: hero.primaryAttribute as HeroPrimaryAttribute,
   imageUrl: `/api/compendium/heroes/${hero.key}?v=${heroImageVersion}`,
 }));
 

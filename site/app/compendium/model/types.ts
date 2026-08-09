@@ -1,8 +1,15 @@
+export type HeroPrimaryAttribute =
+  | "strength"
+  | "agility"
+  | "intelligence"
+  | "universal";
+
 export type CompendiumHero = {
   id: number;
   key: string;
   name: string;
   imageUrl: string;
+  primaryAttribute: HeroPrimaryAttribute;
 };
 
 export type QuestCompletion = {

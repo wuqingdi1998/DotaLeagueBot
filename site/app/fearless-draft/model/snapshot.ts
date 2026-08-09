@@ -68,6 +68,13 @@ export type DraftSeriesSnapshot = {
   player2: DraftPlayer;
   player1Connected: boolean;
   player2Connected: boolean;
+  player1ReadyForNextMap: boolean;
+  player2ReadyForNextMap: boolean;
+  endRequest: {
+    requestedByPlayerId: string;
+    requestedAt: string;
+    expiresAt: string;
+  } | null;
   map: DraftMapSnapshot;
   createdAt: string;
   updatedAt: string;
@@ -91,8 +98,10 @@ export type FearlessDraftCommand =
   | { action: "CANCEL_INVITATION"; invitationId: number }
   | { action: "MAKE_CHOICE"; choice: DraftChoice }
   | { action: "SELECT_HERO"; heroId: number; expectedVersion: number }
-  | { action: "START_NEXT_MAP" }
-  | { action: "ABANDON_SERIES" }
+  | { action: "READY_FOR_NEXT_MAP" }
+  | { action: "REQUEST_SERIES_END" }
+  | { action: "RESPOND_SERIES_END"; response: "ACCEPT" | "DECLINE" }
+  | { action: "CANCEL_SERIES_END" }
   | { action: "DISMISS_COMPLETE" };
 
 export type DraftTeamView = DraftPlayer & {

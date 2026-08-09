@@ -4,70 +4,16 @@ import { transaction } from "@/lib/db";
 import { completeDraftAssignments, applyFirstChoice } from "../model/choices";
 import { DRAFT_SEQUENCE } from "../model/config";
 import { isDraftChoice } from "../model/choices";
-import type { DraftChoice, DraftFormat } from "../model/types";
-import { draftSeriesMapCount, firstChooserForMap } from "../model/series";
 import { ENABLED_FEARLESS_DRAFT_HEROES } from "../model/heroes";
-import { currentSeriesId, lockDraftPlayers } from "./database";
+import {
+  draftOpponentId,
+  loadLockedDraftSeries,
+  type DraftMapRow,
+  type DraftSeriesRow,
+} from "./database";
 import { DraftRequestError } from "./errors";
 
-type SeriesRow = {
-  id: number;
-  player1_id: string;
-  player2_id: string;
-  format: DraftFormat;
-  status: string;
-  current_map: number;
-  map1_coin_toss_winner_id: string;
-};
-
-type MapRow = {
-  id: number;
-  status: string;
-  map_number: number;
-  first_chooser_id: string;
-  first_choice: DraftChoice | null;
-  radiant_player_id: string | null;
-  first_pick_player_id: string | null;
-  current_step: number;
-  step_started_at: Date | null;
-  player1_reserve_seconds: number;
-  player2_reserve_seconds: number;
-  version: number;
-};
-
 const heroIds = new Set(ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id));
-
-async function loadLockedSeries(
-  client: PoolClient,
-  playerId: string,
-): Promise<{ series: SeriesRow; map: MapRow }> {
-  const seriesId = await currentSeriesId(client, playerId);
-  const seriesResult = await client.query<SeriesRow>(
-    `SELECT id::int, player1_id::text, player2_id::text, format, status,
-            current_map::int, map1_coin_toss_winner_id::text
-     FROM draft_series WHERE id = $1 FOR UPDATE`,
-    [seriesId],
-  );
-  const series = seriesResult.rows[0];
-  const mapResult = await client.query<MapRow>(
-    `SELECT id::int, status, map_number::int, first_chooser_id::text,
-            first_choice, radiant_player_id::text, first_pick_player_id::text,
-            current_step::int, step_started_at,
-            player1_reserve_seconds::float8, player2_reserve_seconds::float8,
-            version::int
-     FROM draft_maps
-     WHERE series_id = $1 AND map_number = $2
-     FOR UPDATE`,
-    [series.id, series.current_map],
-  );
-  const map = mapResult.rows[0];
-  if (!map) throw new DraftRequestError("Текущая карта не найдена", 404);
-  return { series, map };
-}
-
-function opponentId(series: SeriesRow, playerId: string): string {
-  return series.player1_id === playerId ? series.player2_id : series.player1_id;
-}
 
 export async function makeDraftChoice(
   playerId: string,
@@ -75,8 +21,8 @@ export async function makeDraftChoice(
 ): Promise<void> {
   if (!isDraftChoice(choice)) throw new DraftRequestError("Некорректный выбор");
   await transaction(async (client) => {
-    const { series, map } = await loadLockedSeries(client, playerId);
-    const secondChooserId = opponentId(series, map.first_chooser_id);
+    const { series, map } = await loadLockedDraftSeries(client, playerId);
+    const secondChooserId = draftOpponentId(series, map.first_chooser_id);
     if (map.status === "FIRST_DECISION") {
       if (playerId !== map.first_chooser_id) {
         throw new DraftRequestError("Первое решение принимает соперник", 403);
@@ -157,22 +103,30 @@ async function currentMapHeroIds(
   return new Set(result.rows.map((row) => row.hero_id));
 }
 
-function actorIdForStep(series: SeriesRow, map: MapRow, stepIndex: number): string {
+function actorIdForStep(
+  series: DraftSeriesRow,
+  map: DraftMapRow,
+  stepIndex: number,
+): string {
   if (!map.first_pick_player_id) throw new DraftRequestError("Очередность пиков не определена", 409);
   const actor = DRAFT_SEQUENCE[stepIndex]?.actor;
   if (!actor) throw new DraftRequestError("Драфт уже завершён", 409);
   return actor === "FIRST"
     ? map.first_pick_player_id
-    : opponentId(series, map.first_pick_player_id);
+    : draftOpponentId(series, map.first_pick_player_id);
 }
 
-function reserveForActor(series: SeriesRow, map: MapRow, actorId: string): number {
+function reserveForActor(
+  series: DraftSeriesRow,
+  map: DraftMapRow,
+  actorId: string,
+): number {
   return actorId === series.player1_id
     ? map.player1_reserve_seconds
     : map.player2_reserve_seconds;
 }
 
-function timerUsage(map: MapRow, reserveSeconds: number, now: Date) {
+function timerUsage(map: DraftMapRow, reserveSeconds: number, now: Date) {
   if (!map.step_started_at) throw new DraftRequestError("Таймер хода не запущен", 409);
   const step = DRAFT_SEQUENCE[map.current_step];
   const elapsed = Math.max(0, (now.getTime() - map.step_started_at.getTime()) / 1000);
@@ -188,8 +142,8 @@ function timerUsage(map: MapRow, reserveSeconds: number, now: Date) {
 
 async function commitHeroAction(
   client: PoolClient,
-  series: SeriesRow,
-  map: MapRow,
+  series: DraftSeriesRow,
+  map: DraftMapRow,
   heroId: number | null,
   isAutomatic: boolean,
   now: Date,
@@ -241,8 +195,8 @@ async function commitHeroAction(
 
 async function resolveExpiredStep(
   client: PoolClient,
-  series: SeriesRow,
-  map: MapRow,
+  series: DraftSeriesRow,
+  map: DraftMapRow,
   now: Date,
 ): Promise<boolean> {
   if (map.status !== "DRAFTING" || map.current_step >= DRAFT_SEQUENCE.length) return false;
@@ -271,7 +225,7 @@ export async function settleExpiredDraft(playerId: string): Promise<void> {
       [playerId],
     );
     if (!active.rows[0]) return;
-    const { series, map } = await loadLockedSeries(client, playerId);
+    const { series, map } = await loadLockedDraftSeries(client, playerId);
     await resolveExpiredStep(client, series, map, new Date());
   });
 }
@@ -288,7 +242,7 @@ export async function selectDraftHero(
     throw new DraftRequestError("Состояние драфта устарело", 409);
   }
   await transaction(async (client) => {
-    const { series, map } = await loadLockedSeries(client, playerId);
+    const { series, map } = await loadLockedDraftSeries(client, playerId);
     if (map.status !== "DRAFTING" || series.status !== "DRAFTING") {
       throw new DraftRequestError("Сейчас нельзя выбирать героя", 409);
     }
@@ -311,57 +265,6 @@ export async function selectDraftHero(
       throw new DraftRequestError("Герой уже выбран или забанен", 409);
     }
     await commitHeroAction(client, series, map, heroId, false, now);
-  });
-}
-
-export async function startNextDraftMap(playerId: string): Promise<void> {
-  await transaction(async (client) => {
-    const { series, map } = await loadLockedSeries(client, playerId);
-    if (series.status !== "MAP_COMPLETE" || map.status !== "COMPLETE") {
-      throw new DraftRequestError("Следующую карту пока нельзя начать", 409);
-    }
-    const nextMap = series.current_map + 1;
-    const hasNextMap = nextMap <= draftSeriesMapCount(series.format);
-    if (!hasNextMap) throw new DraftRequestError("Серия уже завершена", 409);
-
-    let coinTossWinnerId: string | null = null;
-    if (nextMap === 3) {
-      const players = [series.player1_id, series.player2_id];
-      coinTossWinnerId = players[randomInt(players.length)];
-    }
-    const firstChooserId = firstChooserForMap({
-      mapNumber: nextMap,
-      player1Id: series.player1_id,
-      player2Id: series.player2_id,
-      map1CoinTossWinnerId: series.map1_coin_toss_winner_id,
-      currentCoinTossWinnerId: coinTossWinnerId,
-    });
-    await client.query(
-      `INSERT INTO draft_maps
-        (series_id, map_number, coin_toss_winner_id, first_chooser_id)
-       VALUES ($1, $2, $3, $4)`,
-      [series.id, nextMap, coinTossWinnerId, firstChooserId],
-    );
-    await client.query(
-      `UPDATE draft_series
-       SET current_map = $1, status = 'CHOOSING', updated_at = NOW()
-       WHERE id = $2`,
-      [nextMap, series.id],
-    );
-  });
-}
-
-export async function abandonDraftSeries(playerId: string): Promise<void> {
-  await transaction(async (client) => {
-    await lockDraftPlayers(client, [playerId]);
-    const result = await client.query<{ player1_id: string; player2_id: string }>(
-      `UPDATE draft_series SET status = 'ABANDONED', updated_at = NOW()
-       WHERE (player1_id = $1 OR player2_id = $1)
-         AND status = ANY($2::text[])
-       RETURNING player1_id::text, player2_id::text`,
-      [playerId, ["CHOOSING", "DRAFTING", "MAP_COMPLETE"]],
-    );
-    if (!result.rowCount) throw new DraftRequestError("Активная серия не найдена", 404);
   });
 }
 

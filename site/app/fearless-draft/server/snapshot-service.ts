@@ -1,6 +1,9 @@
 import type { AuthUser } from "@/lib/auth";
 import { one, query, transaction } from "@/lib/db";
-import { DRAFT_QUEUE_TTL_SECONDS, DRAFT_SEQUENCE } from "../model/config";
+import {
+  DRAFT_QUEUE_TTL_SECONDS,
+  DRAFT_SEQUENCE,
+} from "../model/config";
 import type {
   DraftActionSnapshot,
   DraftInvitationSnapshot,
@@ -12,6 +15,8 @@ import type {
 } from "../model/snapshot";
 import type { DraftChoice, DraftFormat } from "../model/types";
 import { settleExpiredDraft } from "./series-service";
+import { settleExpiredDraftEndRequests } from "./agreement-service";
+import { draftEndRequestExpiresAt } from "../model/agreement";
 
 type PlayerRow = {
   id: string;
@@ -36,6 +41,10 @@ type SeriesRow = {
   status: DraftSeriesSnapshot["status"];
   current_map: number;
   map1_coin_toss_winner_id: string;
+  end_requested_by: string | null;
+  end_requested_at: Date | null;
+  player1_ready_for_next_map: boolean;
+  player2_ready_for_next_map: boolean;
   created_at: Date;
   updated_at: Date;
 };
@@ -81,7 +90,10 @@ async function loadPlayers(playerIds: string[]): Promise<Map<string, DraftPlayer
     `SELECT player.discord_id::text AS id,
             player.ingame_name AS name,
             COALESCE(latest.discord_username, player.ingame_name) AS discord_name,
-            latest.discord_avatar_url AS avatar_url
+            COALESCE(
+              NULLIF(player.avatar_url, ''),
+              NULLIF(latest.discord_avatar_url, '')
+            ) AS avatar_url
      FROM players player
      LEFT JOIN LATERAL (
        SELECT session.discord_username, session.discord_avatar_url
@@ -98,7 +110,10 @@ async function loadPlayers(playerIds: string[]): Promise<Map<string, DraftPlayer
 async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null> {
   const series = await one<SeriesRow>(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
-            current_map::int, map1_coin_toss_winner_id::text, created_at, updated_at
+            current_map::int, map1_coin_toss_winner_id::text,
+            end_requested_by::text, end_requested_at,
+            player1_ready_for_next_map, player2_ready_for_next_map,
+            created_at, updated_at
      FROM draft_series
      WHERE (player1_id = $1 OR player2_id = $1)
        AND (
@@ -194,6 +209,15 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
     player2,
     player1Connected: connected.has(series.player1_id),
     player2Connected: connected.has(series.player2_id),
+    player1ReadyForNextMap: series.player1_ready_for_next_map,
+    player2ReadyForNextMap: series.player2_ready_for_next_map,
+    endRequest: series.end_requested_by && series.end_requested_at
+      ? {
+          requestedByPlayerId: series.end_requested_by,
+          requestedAt: series.end_requested_at.toISOString(),
+          expiresAt: draftEndRequestExpiresAt(series.end_requested_at).toISOString(),
+        }
+      : null,
     map: {
       id: map.id,
       number: map.map_number,
@@ -224,6 +248,7 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
 export async function loadFearlessDraftSnapshot(
   user: AuthUser,
 ): Promise<FearlessDraftSnapshot> {
+  await settleExpiredDraftEndRequests();
   await settleExpiredDraft(user.discordId);
   return transaction(async (client) => {
     await client.query(
@@ -244,7 +269,11 @@ export async function loadFearlessDraftSnapshot(
     const waitingRows = await client.query<PlayerRow & { joined_at: Date }>(
       `SELECT player.discord_id::text AS id, player.ingame_name AS name,
               COALESCE(latest.discord_username, player.ingame_name) AS discord_name,
-              latest.discord_avatar_url AS avatar_url, queue.joined_at
+              COALESCE(
+                NULLIF(player.avatar_url, ''),
+                NULLIF(latest.discord_avatar_url, '')
+              ) AS avatar_url,
+              queue.joined_at
        FROM draft_queue queue
        JOIN players player ON player.discord_id = queue.player_id
        LEFT JOIN LATERAL (

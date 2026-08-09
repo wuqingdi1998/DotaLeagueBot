@@ -6,6 +6,7 @@ import { useFearlessDraft } from "./hooks/useFearlessDraft";
 import { ActiveDraft } from "./sections/ActiveDraft";
 import { DraftChoices } from "./sections/DraftChoices";
 import { DraftQueue } from "./sections/DraftQueue";
+import { DraftAgreementPanel } from "./sections/DraftAgreementPanel";
 
 export function FearlessDraftScreen({
   initialSnapshot,
@@ -33,6 +34,15 @@ export function FearlessDraftScreen({
       </section>
 
       {error && <div className="fearless-error" role="alert">{error}</div>}
+
+      {series && (
+        <DraftAgreementPanel
+          series={series}
+          userId={snapshot.user.id}
+          isSending={isSending}
+          send={send}
+        />
+      )}
 
       {!series ? (
         <DraftQueue snapshot={snapshot} isSending={isSending} send={send} />
