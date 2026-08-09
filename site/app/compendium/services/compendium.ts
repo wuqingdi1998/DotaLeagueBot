@@ -59,6 +59,7 @@ export async function loadCompendium(
     loadStarRace(user, now),
   ]);
   return {
+    serverNow: now.toISOString(),
     moscowDate: day.dateKey,
     moscowDateLabel: moscowDateLabel(day.dateKey),
     nextResetAt: day.end.toISOString(),

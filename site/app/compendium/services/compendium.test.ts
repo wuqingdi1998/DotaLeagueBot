@@ -55,7 +55,7 @@ vi.mock("@/lib/player-profile", () => ({
     /^\d+$/.test(value) ? value : null,
 }));
 
-import { checkDailyQuest, rerollDailyQuest } from "./compendium";
+import { checkDailyQuest, loadCompendium, rerollDailyQuest } from "./compendium";
 
 const user = {
   discordId: "100",
@@ -88,6 +88,17 @@ beforeEach(() => {
   mocks.totalCommunityCompendiumStars.mockResolvedValue(12);
   mocks.dailyRerollsRemaining.mockResolvedValue(1);
   mocks.loadDailyPredictions.mockResolvedValue([]);
+});
+
+describe("compendium clock", () => {
+  it("sends the server time used to calculate the current Moscow day", async () => {
+    const now = new Date("2026-08-09T21:02:23.000Z");
+
+    const result = await loadCompendium(user, now);
+
+    expect(result.serverNow).toBe("2026-08-09T21:02:23.000Z");
+    expect(result.moscowDate).toBe("2026-08-10");
+  });
 });
 
 describe("protected quest checks", () => {

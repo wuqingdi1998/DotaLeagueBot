@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FaStar } from "react-icons/fa";
 import {
   FiCheck,
@@ -70,11 +70,13 @@ function HeroPicker({
 
 export function RuneChallenge({
   initialChallenge,
+  currentTimeMs,
   rewardStars,
   resetCountdown,
   onStarsChange,
 }: {
   initialChallenge: RuneChallengeData;
+  currentTimeMs: number;
   rewardStars: number;
   resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
@@ -84,7 +86,6 @@ export function RuneChallenge({
   const [isSaving, setIsSaving] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const [message, setMessage] = useState("");
-  const [now, setNow] = useState(() => Date.now());
   const completionHero = useMemo(
     () => challenge.completion
       ? compendiumHeroById(challenge.completion.matchedHeroId)
@@ -93,13 +94,8 @@ export function RuneChallenge({
   );
   const canChangeHero = challenge.selection
     ? challenge.selection.canChangeHero ||
-      new Date(challenge.selection.nextChangeAt).getTime() <= now
+      new Date(challenge.selection.nextChangeAt).getTime() <= currentTimeMs
     : false;
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   async function saveHero() {
     if (!selectedHeroId || isSaving) return;
@@ -236,7 +232,7 @@ export function RuneChallenge({
                 <div>
                   <span>Ваш любимый герой</span>
                   <strong>{challenge.selection.hero.name}</strong>
-                  <small>{cooldownLabel(challenge.selection.nextChangeAt, now)}</small>
+                  <small>{cooldownLabel(challenge.selection.nextChangeAt, currentTimeMs)}</small>
                 </div>
               </div>
               <div className="compendium-rune-action">

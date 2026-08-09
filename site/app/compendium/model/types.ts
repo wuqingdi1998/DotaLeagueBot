@@ -58,6 +58,7 @@ export type DailyPredictionMatch = {
 };
 
 export type CompendiumData = {
+  serverNow: string;
   moscowDate: string;
   moscowDateLabel: string;
   nextResetAt: string;

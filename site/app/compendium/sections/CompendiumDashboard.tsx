@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { FiArrowRight, FiClock, FiDatabase } from "react-icons/fi";
+import { useServerClock } from "../hooks/useServerClock";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentCountdownLabel } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
@@ -20,8 +21,8 @@ import { RuneChallenge } from "../components/RuneChallenge";
 import { CompendiumStarRace } from "../components/CompendiumStarRace";
 import type { PredictionScore } from "../model/predictions";
 
-function countdownLabel(nextResetAt: string): string {
-  const remaining = Math.max(0, new Date(nextResetAt).getTime() - Date.now());
+function countdownLabel(nextResetAt: string, currentTimeMs: number): string {
+  const remaining = Math.max(0, new Date(nextResetAt).getTime() - currentTimeMs);
   const totalSeconds = Math.ceil(remaining / 1_000);
   const hours = Math.floor(totalSeconds / 3_600);
   const minutes = Math.floor((totalSeconds % 3_600) / 60);
@@ -45,25 +46,16 @@ export function CompendiumDashboard({
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null);
   const [checkingStarRaceDate, setCheckingStarRaceDate] = useState<string | null>(null);
   const [toast, setToast] = useState("");
-  const [countdown, setCountdown] = useState(() => countdownLabel(data.nextResetAt));
-  const [tournamentCountdown, setTournamentCountdown] = useState(() =>
-    tournamentCountdownLabel(data.tournamentStartsAt),
+  const currentTimeMs = useServerClock(data.serverNow);
+  const countdown = countdownLabel(data.nextResetAt, currentTimeMs);
+  const tournamentCountdown = tournamentCountdownLabel(
+    data.tournamentStartsAt,
+    new Date(currentTimeMs),
   );
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      const next = countdownLabel(data.nextResetAt);
-      setCountdown(next);
-      setTournamentCountdown(
-        tournamentCountdownLabel(data.tournamentStartsAt),
-      );
-      if (next === "00:00:00") {
-        window.clearInterval(timer);
-        router.refresh();
-      }
-    }, 1_000);
-    return () => window.clearInterval(timer);
-  }, [data.nextResetAt, data.tournamentStartsAt, router]);
+    if (countdown === "00:00:00") router.refresh();
+  }, [countdown, router]);
 
   useEffect(() => {
     if (!toast) return;
@@ -303,6 +295,7 @@ export function CompendiumDashboard({
         )}
         <CompendiumStarRace
           race={data.starRace}
+          currentTimeMs={currentTimeMs}
           checkingDateKey={checkingStarRaceDate}
           canCheck={
             data.hasDotaId &&
@@ -362,6 +355,7 @@ export function CompendiumDashboard({
           </div>
           <RuneChallenge
             initialChallenge={data.runeChallenge}
+            currentTimeMs={currentTimeMs}
             rewardStars={data.dailyChallengeRewardStars}
             resetCountdown={countdown}
             onStarsChange={(totalStars, communityStars) => setData((current) => ({

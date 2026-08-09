@@ -29,6 +29,7 @@ import {
 import {
   currentMoscowDay,
   moscowDateKey,
+  serverTimeFromAnchor,
   tournamentCountdownLabel,
 } from "./time";
 import type { OpenDotaMatch } from "./types";
@@ -48,6 +49,14 @@ function match(input: Partial<OpenDotaMatch> = {}): OpenDotaMatch {
 }
 
 const augustFirst = currentMoscowDay(new Date("2026-08-01T12:00:00.000Z"));
+
+describe("server-synchronized clock", () => {
+  it("advances from server time using only monotonic elapsed time", () => {
+    expect(
+      serverTimeFromAnchor("2026-08-09T21:00:00.000Z", 1_000, 6_250),
+    ).toBe(Date.parse("2026-08-09T21:00:05.250Z"));
+  });
+});
 
 function matching(matches: OpenDotaMatch[], heroIds = [1]) {
   return findMatchingWin({

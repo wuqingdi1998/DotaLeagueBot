@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,8 +22,8 @@ import {
 } from "../model/star-race";
 import { HeroChoice } from "./HeroChoice";
 
-function countdownLabel(targetAt: string): string {
-  const remaining = Math.max(0, new Date(targetAt).getTime() - Date.now());
+function countdownLabel(targetAt: string, currentTimeMs: number): string {
+  const remaining = Math.max(0, new Date(targetAt).getTime() - currentTimeMs);
   const totalSeconds = Math.ceil(remaining / 1_000);
   const days = Math.floor(totalSeconds / 86_400);
   const hours = Math.floor((totalSeconds % 86_400) / 3_600);
@@ -189,11 +189,13 @@ function BuildingDamageProgress({
 
 export function CompendiumStarRace({
   race,
+  currentTimeMs,
   checkingDateKey,
   canCheck,
   onCheck,
 }: {
   race: StarRaceData;
+  currentTimeMs: number;
   checkingDateKey: string | null;
   canCheck: boolean;
   onCheck: (dateKey: string) => void;
@@ -203,22 +205,13 @@ export function CompendiumStarRace({
   const countdownTarget = race.isDetailsVisible
     ? activeQuest?.endsAt ?? null
     : race.startsAt;
-  const [countdown, setCountdown] = useState(() =>
-    countdownTarget ? countdownLabel(countdownTarget) : "",
-  );
+  const countdown = countdownTarget
+    ? countdownLabel(countdownTarget, currentTimeMs)
+    : "";
 
   useEffect(() => {
-    if (!countdownTarget) return;
-    const timer = window.setInterval(() => {
-      const next = countdownLabel(countdownTarget);
-      setCountdown(next);
-      if (next === "00:00:00") {
-        window.clearInterval(timer);
-        router.refresh();
-      }
-    }, 1_000);
-    return () => window.clearInterval(timer);
-  }, [countdownTarget, router]);
+    if (countdownTarget && countdown === "00:00:00") router.refresh();
+  }, [countdown, countdownTarget, router]);
 
   return (
     <section className="compendium-star-race" id="compendium-star-race">
