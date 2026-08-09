@@ -41,6 +41,12 @@ export type StarRaceQuestRequirement =
       readonly minimum: number;
     }
   | {
+      readonly kind: "cumulative-ranked-win-stat";
+      readonly heroIds: readonly number[];
+      readonly stat: "hero_damage" | "kills";
+      readonly target: number;
+    }
+  | {
       readonly kind: "game-mode-win";
       readonly gameMode: number;
     };
@@ -62,11 +68,11 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "10 августа",
     title: "Легенда СНГ",
     description:
-      "Выиграйте рейтинговые матчи на двух разных героях из пика Team Spirit с последней карты The International 2021.",
+      "Выиграйте рейтинговый матч на одном из пяти героев из пика Team Spirit с последней карты The International 2021.",
     rewardStars: 2,
     requirement: {
       kind: "distinct-hero-wins",
-      requiredDistinctWins: 2,
+      requiredDistinctWins: 1,
       heroIds: [97, 3, 112, 106, 109],
     },
   },
@@ -76,7 +82,7 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "11 августа",
     title: "Побеждает тот, у кого упадёт трон",
     description:
-      "Нанесите 30 000 урона по строениям. Прогресс засчитывается только в победных матчах и суммируется за все игры в рамках суток.",
+      "Нанесите 30 000 урона по строениям. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     rewardStars: 2,
     requirement: {
       kind: "winning-building-damage",
@@ -89,13 +95,13 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "12 августа",
     title: "Это снайпер?",
     description:
-      "Выиграть рейтинговый матч на Pudge, нанеся 50 000 урона героям.",
+      "Нанесите 40 000 урона на Pudge. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     rewardStars: 2,
     requirement: {
-      kind: "ranked-win-stat",
+      kind: "cumulative-ranked-win-stat",
       heroIds: [14],
       stat: "hero_damage",
-      minimum: 50_000,
+      target: 40_000,
     },
   },
   {
@@ -303,6 +309,9 @@ export function starRaceQuestHeroes(
     return requirement.heroIds.map(compendiumHeroById);
   }
   if (requirement.kind === "ranked-win-stat" && requirement.heroIds) {
+    return requirement.heroIds.map(compendiumHeroById);
+  }
+  if (requirement.kind === "cumulative-ranked-win-stat") {
     return requirement.heroIds.map(compendiumHeroById);
   }
   return [];

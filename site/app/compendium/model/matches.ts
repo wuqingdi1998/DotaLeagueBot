@@ -141,6 +141,35 @@ export function findRankedStatWin(input: {
   return match ? matchingWin(match) : null;
 }
 
+export function scanCumulativeRankedWinStat(input: {
+  matches: OpenDotaMatch[];
+  heroIds: readonly number[];
+  stat: "hero_damage" | "kills";
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): { total: number; wins: MatchingWin[] } {
+  const allowedHeroes = new Set(input.heroIds);
+  let total = 0;
+  const wins: MatchingWin[] = [];
+  for (const match of input.matches) {
+    const statValue = match[input.stat];
+    if (
+      !allowedHeroes.has(match.hero_id) ||
+      typeof statValue !== "number" ||
+      !RANKED_LOBBY_TYPES.has(match.lobby_type) ||
+      !RANKED_GAME_MODES.has(match.game_mode) ||
+      !isPlayerWin(match) ||
+      !endedInsideWindow({ ...input, match })
+    ) {
+      continue;
+    }
+    total += statValue;
+    wins.push(matchingWin(match));
+  }
+  return { total, wins };
+}
+
 export function findGameModeWin(input: {
   matches: OpenDotaMatch[];
   gameMode: number;
@@ -167,7 +196,8 @@ export function scanWinningBuildingDamage(input: {
   const wins: MatchingWin[] = [];
   for (const match of input.matches) {
     if (
-      !MATCHMADE_LOBBY_TYPES.has(match.lobby_type) ||
+      !RANKED_LOBBY_TYPES.has(match.lobby_type) ||
+      !RANKED_GAME_MODES.has(match.game_mode) ||
       !isPlayerWin(match) ||
       !endedInsideWindow({ ...input, match })
     ) {

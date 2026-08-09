@@ -73,6 +73,7 @@ function winningMatch(matchId: number, towerDamage: number) {
 }
 
 let savedProgress = 0;
+let savedProgressDate = "2026-08-11";
 let savedHeroWins: Array<{ heroId: number; matchId: string }> = [];
 
 beforeEach(() => {
@@ -80,6 +81,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(tuesdayNow);
   savedProgress = 0;
+  savedProgressDate = "2026-08-11";
   savedHeroWins = [];
   mocks.consumeCheckAllowance.mockResolvedValue(true);
   mocks.totalCompendiumStars.mockResolvedValue(12);
@@ -95,7 +97,7 @@ beforeEach(() => {
       wins: Array<{ hero: ReturnType<typeof compendiumHeroById>; matchId: string }>;
     }]> = [];
     if (savedProgress > 0) {
-      entries.push(["2026-08-11", {
+      entries.push([savedProgressDate, {
         current: savedProgress,
         checkedAt: tuesdayNow.toISOString(),
         wins: [],
@@ -114,8 +116,9 @@ beforeEach(() => {
     return Promise.resolve(new Map(entries));
   });
   mocks.replaceStarRaceProgress.mockImplementation(
-    ({ current }: { current: number }) => {
+    ({ current, dateKey }: { current: number; dateKey: string }) => {
       savedProgress = current;
+      savedProgressDate = dateKey;
       return Promise.resolve();
     },
   );
@@ -136,6 +139,11 @@ describe("Tuesday star race building damage check", () => {
     mocks.fetchRecentPlayerMatches.mockResolvedValue([
       winningMatch(1001, 10_000),
       winningMatch(1002, 5_000),
+      {
+        ...winningMatch(1003, 100_000),
+        game_mode: 23,
+        lobby_type: 0,
+      },
     ]);
 
     const first = await checkStarRaceQuest(user, "2026-08-11", tuesdayNow);
@@ -184,20 +192,34 @@ describe("Tuesday star race building damage check", () => {
   });
 });
 
-describe("single-match star race statistic checks", () => {
-  it("awards Wednesday only for a Pudge win with 50,000 hero damage", async () => {
+describe("Wednesday cumulative Pudge damage check", () => {
+  it("sums Pudge hero damage from ranked wins and awards at 40,000", async () => {
     const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
     vi.setSystemTime(wednesdayNow);
     const completion = {
       completedAt: wednesdayNow.toISOString(),
       wins: [],
     };
-    mocks.fetchRecentPlayerMatches.mockResolvedValue([{
-      ...winningMatch(3001, 0),
-      hero_id: 14,
-      start_time: Date.parse("2026-08-12T09:00:00.000Z") / 1_000,
-      hero_damage: 50_000,
-    }]);
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([
+      {
+        ...winningMatch(3001, 0),
+        hero_id: 14,
+        start_time: Date.parse("2026-08-12T09:00:00.000Z") / 1_000,
+        hero_damage: 21_000,
+      },
+      {
+        ...winningMatch(3002, 0),
+        hero_id: 14,
+        start_time: Date.parse("2026-08-12T10:00:00.000Z") / 1_000,
+        hero_damage: 19_000,
+      },
+      {
+        ...winningMatch(3003, 0),
+        hero_id: 1,
+        start_time: Date.parse("2026-08-12T11:00:00.000Z") / 1_000,
+        hero_damage: 100_000,
+      },
+    ]);
     mocks.recordStarRaceCompletion.mockResolvedValue(completion);
 
     const result = await checkStarRaceQuest(
@@ -215,9 +237,43 @@ describe("single-match star race statistic checks", () => {
       playerId: user.discordId,
       dateKey: "2026-08-12",
       rewardStars: 2,
-      wins: [expect.objectContaining({ matchId: "3001", heroId: 14 })],
+      wins: [
+        expect.objectContaining({ matchId: "3001", heroId: 14 }),
+        expect.objectContaining({ matchId: "3002", heroId: 14 }),
+      ],
     });
   });
+
+  it("replaces Pudge progress with a fresh daily total instead of adding it", async () => {
+    const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
+    vi.setSystemTime(wednesdayNow);
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([{
+      ...winningMatch(3101, 0),
+      hero_id: 14,
+      start_time: Date.parse("2026-08-12T09:00:00.000Z") / 1_000,
+      hero_damage: 30_000,
+    }]);
+
+    const first = await checkStarRaceQuest(user, "2026-08-12", wednesdayNow);
+    const second = await checkStarRaceQuest(user, "2026-08-12", wednesdayNow);
+
+    expect(first.completion).toBeNull();
+    expect(second.progress).toMatchObject({ current: 30_000, target: 40_000 });
+    expect(mocks.replaceStarRaceProgress).toHaveBeenNthCalledWith(1, {
+      playerId: user.discordId,
+      dateKey: "2026-08-12",
+      current: 30_000,
+    });
+    expect(mocks.replaceStarRaceProgress).toHaveBeenNthCalledWith(2, {
+      playerId: user.discordId,
+      dateKey: "2026-08-12",
+      current: 30_000,
+    });
+    expect(mocks.recordStarRaceCompletion).not.toHaveBeenCalled();
+  });
+});
+
+describe("single-match star race statistic checks", () => {
 
   it("awards Thursday for 16 kills in a ranked win on any hero", async () => {
     const thursdayNow = new Date("2026-08-13T12:00:00.000Z");
@@ -251,7 +307,7 @@ describe("single-match star race statistic checks", () => {
 });
 
 describe("hero-list and Turbo star race checks", () => {
-  it("stores Monday's first distinct hero win without awarding stars", async () => {
+  it("awards Monday after one win on any listed hero", async () => {
     const mondayNow = new Date("2026-08-10T12:00:00.000Z");
     vi.setSystemTime(mondayNow);
     mocks.fetchRecentPlayerMatches.mockResolvedValue([{
@@ -260,17 +316,19 @@ describe("hero-list and Turbo star race checks", () => {
       start_time: Date.parse("2026-08-10T09:00:00.000Z") / 1_000,
     }]);
 
+    const completion = { completedAt: mondayNow.toISOString(), wins: [] };
+    mocks.recordStarRaceCompletion.mockResolvedValue(completion);
+
     const result = await checkStarRaceQuest(user, "2026-08-10", mondayNow);
 
-    expect(result.completion).toBeNull();
-    expect(result.heroProgress?.wins[0].hero.id).toBe(97);
-    expect(result.heroProgress?.target).toBe(2);
-    expect(mocks.replaceStarRaceHeroProgress).toHaveBeenCalledWith({
+    expect(result.completion).toBe(completion);
+    expect(mocks.recordStarRaceCompletion).toHaveBeenCalledWith({
       playerId: user.discordId,
       dateKey: "2026-08-10",
+      rewardStars: 2,
       wins: [expect.objectContaining({ matchId: "5001", heroId: 97 })],
     });
-    expect(mocks.recordStarRaceCompletion).not.toHaveBeenCalled();
+    expect(mocks.replaceStarRaceHeroProgress).not.toHaveBeenCalled();
   });
 
   it("awards Sunday's quest for one matchmade Turbo win", async () => {

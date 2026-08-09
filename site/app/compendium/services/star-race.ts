@@ -3,6 +3,7 @@ import { CompendiumError } from "../model/errors";
 import {
   findGameModeWin,
   findRankedStatWin,
+  scanCumulativeRankedWinStat,
   scanDistinctMatchingWins,
   scanWinningBuildingDamage,
 } from "../model/matches";
@@ -88,6 +89,12 @@ export async function loadStarRace(
               target: quest.requirement.targetDamage,
               checkedAt: savedProgress?.checkedAt ?? null,
             }
+          : quest.requirement?.kind === "cumulative-ranked-win-stat"
+            ? {
+                current: savedProgress?.current ?? 0,
+                target: quest.requirement.target,
+                checkedAt: savedProgress?.checkedAt ?? null,
+              }
           : null,
         heroProgress:
           quest.requirement?.kind === "distinct-hero-wins" &&
@@ -247,6 +254,28 @@ export async function checkStarRaceQuest(
         dateKey,
         rewardStars: quest.rewardStars,
         wins: [evidenceWin],
+      });
+    }
+  } else if (quest.requirement.kind === "cumulative-ranked-win-stat") {
+    const scan = scanCumulativeRankedWinStat({
+      matches,
+      heroIds: quest.requirement.heroIds,
+      stat: quest.requirement.stat,
+      dayStart: bounds.start,
+      dayEnd: bounds.end,
+      now: verificationNow,
+    });
+    await replaceStarRaceProgress({
+      playerId: user.discordId,
+      dateKey,
+      current: scan.total,
+    });
+    if (scan.total >= quest.requirement.target) {
+      completion = await recordStarRaceCompletion({
+        playerId: user.discordId,
+        dateKey,
+        rewardStars: quest.rewardStars,
+        wins: scan.wins,
       });
     }
   } else if (quest.requirement.kind === "ranked-win-stat") {

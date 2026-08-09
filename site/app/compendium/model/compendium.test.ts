@@ -10,6 +10,7 @@ import {
   findMatchingWin,
   findRankedStatWin,
   matchEndedAt,
+  scanCumulativeRankedWinStat,
   scanWinningBuildingDamage,
   scanDistinctMatchingWins,
 } from "./matches";
@@ -288,7 +289,7 @@ describe("OpenDota match qualification", () => {
     }).map((win) => win.heroId)).toEqual([97]);
   });
 
-  it("sums building damage only from wins ending inside the Moscow day", () => {
+  it("sums building damage only from ranked wins ending inside the Moscow day", () => {
     const result = scanWinningBuildingDamage({
       matches: [
         match({ match_id: 9201, tower_damage: 12_000 }),
@@ -305,8 +306,27 @@ describe("OpenDota match qualification", () => {
       now: new Date("2026-08-01T18:00:00.000Z"),
     });
 
-    expect(result.totalDamage).toBe(20_500);
-    expect(result.wins.map((win) => win.matchId)).toEqual(["9201", "9202"]);
+    expect(result.totalDamage).toBe(12_000);
+    expect(result.wins.map((win) => win.matchId)).toEqual(["9201"]);
+  });
+
+  it("recalculates cumulative Pudge damage from qualifying daily wins", () => {
+    const result = scanCumulativeRankedWinStat({
+      matches: [
+        match({ match_id: 9251, hero_id: 14, hero_damage: 21_000 }),
+        match({ match_id: 9252, hero_id: 14, hero_damage: 19_000 }),
+        match({ match_id: 9253, hero_id: 14, hero_damage: 90_000, game_mode: 23 }),
+        match({ match_id: 9254, hero_id: 1, hero_damage: 90_000 }),
+      ],
+      heroIds: [14],
+      stat: "hero_damage",
+      dayStart: augustFirst.start,
+      dayEnd: augustFirst.end,
+      now: new Date("2026-08-01T18:00:00.000Z"),
+    });
+
+    expect(result.total).toBe(40_000);
+    expect(result.wins.map((win) => win.matchId)).toEqual(["9251", "9252"]);
   });
 
   it("excludes bot and practice lobbies from building damage progress", () => {

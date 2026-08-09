@@ -101,7 +101,7 @@ describe("star race schedule", () => {
     );
   });
 
-  it("defines Monday's two-star Team Spirit quest", () => {
+  it("defines Monday's one-win Team Spirit quest", () => {
     expect(STAR_RACE_QUESTS[0]).toMatchObject({
       dateKey: "2026-08-10",
       weekday: "Понедельник",
@@ -109,7 +109,7 @@ describe("star race schedule", () => {
       rewardStars: 2,
       requirement: {
         kind: "distinct-hero-wins",
-        requiredDistinctWins: 2,
+        requiredDistinctWins: 1,
         heroIds: [97, 3, 112, 106, 109],
       },
     });
@@ -129,20 +129,26 @@ describe("star race schedule", () => {
         targetDamage: 30_000,
       },
     });
+    expect(STAR_RACE_QUESTS[1].description).toBe(
+      "Нанесите 30 000 урона по строениям. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+    );
   });
 
-  it("defines Wednesday's 50,000 Pudge hero-damage quest", () => {
+  it("defines Wednesday's cumulative 40,000 Pudge hero-damage quest", () => {
     expect(STAR_RACE_QUESTS[2]).toMatchObject({
       dateKey: "2026-08-12",
       title: "Это снайпер?",
       rewardStars: 2,
       requirement: {
-        kind: "ranked-win-stat",
+        kind: "cumulative-ranked-win-stat",
         heroIds: [14],
         stat: "hero_damage",
-        minimum: 50_000,
+        target: 40_000,
       },
     });
+    expect(STAR_RACE_QUESTS[2].description).toBe(
+      "Нанесите 40 000 урона на Pudge. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+    );
   });
 
   it("defines Thursday's 16-kill ranked win quest", () => {
