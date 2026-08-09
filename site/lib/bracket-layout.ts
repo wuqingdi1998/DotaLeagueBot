@@ -16,6 +16,12 @@ export type BracketGridPosition = {
   row: number;
 };
 
+function bracketSideOrder(match: BracketLayoutMatch) {
+  if (match.bracket_side === "upper") return 0;
+  if (match.bracket_side === "lower") return 1;
+  return 2;
+}
+
 export function automaticBracketLayout(
   matches: BracketLayoutMatch[],
 ): Record<number, BracketGridPosition> {
@@ -34,6 +40,7 @@ export function automaticBracketLayout(
       round,
       [...roundMatches].sort(
         (left, right) =>
+          bracketSideOrder(left) - bracketSideOrder(right) ||
           (left.bracket_slot ?? 0) - (right.bracket_slot ?? 0) ||
           left.id - right.id,
       ),

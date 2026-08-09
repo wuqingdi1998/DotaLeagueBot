@@ -41,6 +41,32 @@ const matches: BracketLayoutMatch[] = [
 ];
 
 describe("playoff bracket grid layout", () => {
+  it("places the upper bracket above the lower bracket in the same round", () => {
+    const sameRoundMatches: BracketLayoutMatch[] = [
+      {
+        id: 1,
+        bracket_round: 1,
+        bracket_slot: 1,
+        bracket_side: "lower",
+        bracket_grid_column: null,
+        bracket_grid_row: null,
+      },
+      {
+        id: 2,
+        bracket_round: 1,
+        bracket_slot: 1,
+        bracket_side: "upper",
+        bracket_grid_column: null,
+        bracket_grid_row: null,
+      },
+    ];
+
+    expect(automaticBracketLayout(sameRoundMatches)).toEqual({
+      1: { column: 1, row: 9 },
+      2: { column: 1, row: 1 },
+    });
+  });
+
   it("automatically separates rounds and vertically centers single matches", () => {
     expect(automaticBracketLayout(matches)).toEqual({
       1: { column: 1, row: 1 },
