@@ -227,14 +227,18 @@ describe("compendium star race contract", () => {
   it("places race rules between the compact counter and right-side prizes", () => {
     expect(starRaceView).toContain("Условия гонки");
     expect(starRaceView).toContain(
-      "Звёзды за Испытание Рун в гонке не учитываются",
+      "Звёзды за Испытание Рун в гонке не учитываются, но всё так же",
     );
+    expect(starRaceView).toContain("учитываются в других зачётах.");
     expect(summaryStyles).toContain(".compendium-star-race-rules");
     expect(globalStyles).toContain(
       '@import "./styles/48-compendium-star-race-summary.css";',
     );
     expect(summaryStyles).toMatch(
-      /\.compendium-star-race-rules ul\s*\{[^}]*padding-left:\s*0;[^}]*list-style:\s*none;/,
+      /\.compendium-star-race-rules ul\s*\{[^}]*padding-left:\s*0;[^}]*font-size:\s*15px;[^}]*list-style:\s*none;/,
+    );
+    expect(summaryStyles).toMatch(
+      /\.compendium-star-race-rules strong\s*\{[^}]*font-size:\s*18px;/,
     );
     expect(starRaceView).toContain("keepGroupedNumbersTogether");
   });

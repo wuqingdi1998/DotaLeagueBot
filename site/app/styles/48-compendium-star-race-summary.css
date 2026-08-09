@@ -26,7 +26,7 @@
 .compendium-star-race-rules strong {
   display: block;
   margin-bottom: 7px;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .compendium-star-race-rules ul {
@@ -35,7 +35,7 @@
   margin: 0;
   padding-left: 0;
   color: var(--muted);
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.5;
   list-style: none;
 }
