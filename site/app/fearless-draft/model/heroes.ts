@@ -1,4 +1,7 @@
-import { COMPENDIUM_HEROES } from "../../compendium/model/heroes";
+import {
+  COMPENDIUM_HEROES,
+  compendiumHeroImageUrl,
+} from "../../compendium/model/heroes";
 import type { HeroPrimaryAttribute } from "../../compendium/model/types";
 
 // When a new Dota hero is temporarily unavailable in Captain's Mode,
@@ -17,6 +20,7 @@ export const HERO_ATTRIBUTE_GROUPS: readonly {
 
 export const FEARLESS_DRAFT_HEROES = COMPENDIUM_HEROES.map((hero) => ({
   ...hero,
+  portraitUrl: compendiumHeroImageUrl(hero.key, "vertical"),
   isCaptainModeEnabled: !disabledCaptainModeHeroIds.has(hero.id),
 }));
 

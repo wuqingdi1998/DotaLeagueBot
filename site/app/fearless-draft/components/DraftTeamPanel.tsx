@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { DRAFT_SEQUENCE } from "../model/config";
 import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
 import type {
   DraftActionSnapshot,
@@ -7,6 +8,12 @@ import type {
 import { PlayerAvatar } from "./PlayerAvatar";
 
 const heroesById = new Map(FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]));
+
+function draftSlots(priority: "FIRST" | "SECOND", type: "PICK" | "BAN") {
+  return DRAFT_SEQUENCE.flatMap((sequenceStep, step) =>
+    sequenceStep.actor === priority && sequenceStep.type === type ? [step] : [],
+  );
+}
 
 export function DraftTeamPanel({
   player,
@@ -25,12 +32,9 @@ export function DraftTeamPanel({
   isCurrent: boolean;
   isConnected: boolean;
 }) {
-  const picks = actions.filter(
-    (action) => action.actorId === player.id && action.type === "PICK",
-  );
-  const bans = actions.filter(
-    (action) => action.actorId === player.id && action.type === "BAN",
-  );
+  const actionsByStep = new Map(actions.map((action) => [action.step, action]));
+  const pickSteps = draftSlots(priority, "PICK");
+  const banSteps = draftSlots(priority, "BAN");
   return (
     <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
       <header>
@@ -48,31 +52,39 @@ export function DraftTeamPanel({
         </div>
       </header>
       <div className="fearless-pick-slots">
-        {Array.from({ length: 5 }, (_, index) => {
-          const hero = picks[index]?.heroId
-            ? heroesById.get(picks[index].heroId as number)
+        {pickSteps.map((step) => {
+          const action = actionsByStep.get(step);
+          const hero = action?.heroId
+            ? heroesById.get(action.heroId)
             : null;
           return (
-            <div key={index} className={hero ? "filled" : ""}>
+            <div key={step} className={action ? "filled" : ""}>
               {hero ? (
                 <>
                   <Image src={hero.imageUrl} alt="" fill sizes="160px" unoptimized />
                   <span>{hero.name}</span>
                 </>
-              ) : <b>{index + 1}</b>}
+              ) : action ? <b>—</b> : null}
+              <small className="fearless-slot-step">{step + 1}</small>
             </div>
           );
         })}
       </div>
       <div className="fearless-ban-list">
         <span>Баны</span>
-        {bans.map((action) => {
-          const hero = action.heroId ? heroesById.get(action.heroId) : null;
+        {banSteps.map((step) => {
+          const action = actionsByStep.get(step);
+          const hero = action?.heroId ? heroesById.get(action.heroId) : null;
           return (
-            <div key={action.step} title={hero?.name ?? "Бан пропущен по таймеру"}>
+            <div
+              key={step}
+              className={action ? "filled" : ""}
+              title={hero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
+            >
               {hero ? (
                 <Image src={hero.imageUrl} alt={hero.name} fill sizes="48px" unoptimized />
-              ) : <b>—</b>}
+              ) : action ? <b>—</b> : null}
+              <small className="fearless-slot-step">{step + 1}</small>
             </div>
           );
         })}

@@ -1,12 +1,19 @@
 "use client";
 
-import { FiArrowRight, FiCheck, FiZap } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiCheck,
+  FiMaximize2,
+  FiMinimize2,
+  FiZap,
+} from "react-icons/fi";
 import type {
   DraftPlayer,
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
 import { formatDraftSeconds, useDraftClock } from "../hooks/useDraftClock";
+import { useDraftFullscreen } from "../hooks/useDraftFullscreen";
 import { DraftTeamPanel } from "../components/DraftTeamPanel";
 import { HeroGrid } from "../components/HeroGrid";
 import { DraftHistory } from "./DraftHistory";
@@ -62,6 +69,12 @@ export function ActiveDraft({
     : map.player2ReserveSeconds;
   const isComplete = map.status === "COMPLETE";
   const isOwnTurn = map.currentActorId === userId;
+  const {
+    draftRef,
+    isFullscreen,
+    isFullscreenSupported,
+    toggleFullscreen,
+  } = useDraftFullscreen();
 
   const ownReady = userId === series.player1.id
     ? series.player1ReadyForNextMap
@@ -71,7 +84,7 @@ export function ActiveDraft({
     : series.player1ReadyForNextMap;
 
   return (
-    <section className="fearless-active-draft">
+    <section className="fearless-active-draft" ref={draftRef}>
       <header className="fearless-draft-status">
         <div>
           <span>MAP {map.number} / {series.format}</span>
@@ -83,17 +96,32 @@ export function ActiveDraft({
             <strong>{map.currentAction}</strong>
           </div>
         )}
-        <div className={`fearless-main-clock ${clock?.isUsingReserve ? "reserve" : ""}`}>
-          <span>{clock?.isUsingReserve ? "RESERVE TIME" : "ВРЕМЯ ХОДА"}</span>
-          <strong>
-            {isComplete
-              ? "00:00"
-              : clock
-                ? formatDraftSeconds(clock.isUsingReserve
-                    ? clock.reserveRemainingSeconds
-                    : clock.baseRemainingSeconds)
-                : "--:--"}
-          </strong>
+        <div className="fearless-draft-view-controls">
+          <div className={`fearless-main-clock ${clock?.isUsingReserve ? "reserve" : ""}`}>
+            <span>{clock?.isUsingReserve ? "RESERVE TIME" : "ВРЕМЯ ХОДА"}</span>
+            <strong>
+              {isComplete
+                ? "00:00"
+                : clock
+                  ? formatDraftSeconds(clock.isUsingReserve
+                      ? clock.reserveRemainingSeconds
+                      : clock.baseRemainingSeconds)
+                  : "--:--"}
+            </strong>
+          </div>
+          {isFullscreenSupported && (
+            <button
+              className="fearless-fullscreen-toggle"
+              type="button"
+              role="switch"
+              aria-checked={isFullscreen}
+              onClick={() => void toggleFullscreen()}
+            >
+              {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
+              <span aria-hidden="true"><i /></span>
+              <em>На полный экран</em>
+            </button>
+          )}
         </div>
       </header>
 

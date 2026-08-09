@@ -35,6 +35,9 @@ describe("compendium hero image loading", () => {
     expect(compendiumHeroImageSource("antimage")).toBe(
       "https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/antimage.png",
     );
+    expect(compendiumHeroImageSource("antimage", "vertical")).toBe(
+      "https://courier.spectral.gg/images/dota/portraits_vert/antimage.png",
+    );
     expect(compendiumHeroImageSource("../../secret")).toBeNull();
   });
 

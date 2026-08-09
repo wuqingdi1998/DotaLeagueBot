@@ -5,11 +5,14 @@ const oneYearInSeconds = 31_536_000;
 export const revalidate = 31_536_000;
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ key: string }> },
 ) {
   const { key } = await params;
-  const imageSource = compendiumHeroImageSource(key);
+  const variant = new URL(request.url).searchParams.get("variant") === "vertical"
+    ? "vertical"
+    : "horizontal";
+  const imageSource = compendiumHeroImageSource(key, variant);
   if (!imageSource) return new Response("Not found", { status: 404 });
 
   const image = await fetch(imageSource, {

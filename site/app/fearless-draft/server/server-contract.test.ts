@@ -25,11 +25,11 @@ const agreementMigration = readFileSync(
 const route = readFileSync(
   resolve(process.cwd(), "app/api/fearless-draft/route.ts"),
   "utf8",
-);
+).replaceAll("\r\n", "\n");
 const footer = readFileSync(
   resolve(process.cwd(), "app/tournaments/TournamentsHub.tsx"),
   "utf8",
-);
+).replaceAll("\r\n", "\n");
 const heroGrid = readFileSync(
   resolve(process.cwd(), "app/fearless-draft/components/HeroGrid.tsx"),
   "utf8",

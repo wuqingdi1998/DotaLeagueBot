@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { MouseEvent } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
 import {
   FEARLESS_DRAFT_HEROES,
@@ -20,6 +21,14 @@ type HeroState =
   | "fearless-locked"
   | "captains-disabled";
 
+type DraftHero = (typeof FEARLESS_DRAFT_HEROES)[number];
+
+type HeroPreview = {
+  hero: DraftHero;
+  left: number;
+  top: number;
+};
+
 export function HeroGrid({
   map,
   userId,
@@ -36,6 +45,16 @@ export function HeroGrid({
     heroId: number;
     version: number;
   } | null>(null);
+  const [heroPreview, setHeroPreview] = useState<HeroPreview | null>(null);
+  const [flashingAction, setFlashingAction] = useState<{
+    heroId: number;
+    type: "PICK" | "BAN";
+  } | null>(null);
+  const latestAction = map.actions.at(-1);
+  const latestActionHeroId = latestAction?.heroId;
+  const latestActionType = latestAction?.type;
+  const latestActionSignature = `${map.id}:${latestAction?.step ?? -1}`;
+  const previousActionSignature = useRef(latestActionSignature);
   const actionByHero = useMemo(
     () => new Map(map.actions.flatMap((action) =>
       action.heroId === null ? [] : [[action.heroId, action] as const],
@@ -51,6 +70,22 @@ export function HeroGrid({
     : null;
   const selectedHero = FEARLESS_DRAFT_HEROES.find((hero) => hero.id === selectedHeroId);
   const isOwnTurn = map.currentActorId === userId;
+
+  useEffect(() => {
+    if (latestActionSignature === previousActionSignature.current) return;
+    previousActionSignature.current = latestActionSignature;
+    if (latestActionHeroId === null || latestActionHeroId === undefined) return;
+    if (latestActionType === undefined) return;
+
+    const showTimer = window.setTimeout(() => {
+      setFlashingAction({ heroId: latestActionHeroId, type: latestActionType });
+    }, 0);
+    const hideTimer = window.setTimeout(() => setFlashingAction(null), 850);
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, [latestActionHeroId, latestActionSignature, latestActionType]);
 
   const visibleHeroes = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase("ru");
@@ -79,6 +114,21 @@ export function HeroGrid({
     return action.actorId === map.radiantPlayerId ? "picked-radiant" : "picked-dire";
   }
 
+  function showHeroPreview(hero: DraftHero, event: MouseEvent<HTMLButtonElement>) {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const previewWidth = 180;
+    const previewHeight = 190;
+    const left = Math.min(
+      Math.max(8, bounds.left + bounds.width / 2 - previewWidth / 2),
+      window.innerWidth - previewWidth - 8,
+    );
+    const preferredTop = bounds.top - previewHeight - 8;
+    const top = preferredTop >= 8
+      ? preferredTop
+      : Math.min(bounds.bottom + 8, window.innerHeight - previewHeight - 8);
+    setHeroPreview({ hero, left, top });
+  }
+
   return (
     <section className="fearless-hero-pool">
       <div className="fearless-hero-toolbar">
@@ -103,12 +153,17 @@ export function HeroGrid({
               {group.heroes.map((hero) => {
                 const state = heroState(hero.id);
                 const canSelect = isOwnTurn && state === "available";
+                const flashClass = flashingAction?.heroId === hero.id
+                  ? `just-${flashingAction.type.toLowerCase()}`
+                  : "";
                 return (
                   <button
                     key={hero.id}
-                    className={`${state} ${selectedHeroId === hero.id ? "selected" : ""}`}
+                    className={`${state} ${selectedHeroId === hero.id ? "selected" : ""} ${flashClass}`}
                     type="button"
-                    disabled={!canSelect}
+                    aria-disabled={!canSelect}
+                    aria-label={hero.name}
+                    tabIndex={canSelect ? 0 : -1}
                     title={
                       state === "fearless-locked"
                         ? "Использован на предыдущей карте"
@@ -118,15 +173,20 @@ export function HeroGrid({
                             ? "Забанен на текущей карте"
                             : hero.name
                     }
-                    onClick={() => setSelection({ heroId: hero.id, version: map.version })}
+                    onMouseEnter={(event) => showHeroPreview(hero, event)}
+                    onMouseLeave={() => setHeroPreview(null)}
+                    onClick={() => {
+                      if (canSelect) {
+                        setSelection({ heroId: hero.id, version: map.version });
+                      }
+                    }}
                   >
                     <span className="fearless-hero-image">
-                      <Image src={hero.imageUrl} alt="" fill sizes="64px" unoptimized />
+                      <Image src={hero.portraitUrl} alt="" fill sizes="64px" unoptimized />
                       {state === "fearless-locked" && <FiLock />}
                       {state === "banned" && <FiSlash />}
                       {state.startsWith("picked") && <FiCheck />}
                     </span>
-                    <strong>{hero.name}</strong>
                   </button>
                 );
               })}
@@ -153,6 +213,24 @@ export function HeroGrid({
           >
             {map.currentAction === "BAN" ? "BAN HERO" : "PICK HERO"}
           </button>
+        </div>
+      )}
+      {heroPreview && (
+        <div
+          className="fearless-hero-preview"
+          role="tooltip"
+          style={{ left: heroPreview.left, top: heroPreview.top }}
+        >
+          <span>
+            <Image
+              src={heroPreview.hero.portraitUrl}
+              alt=""
+              fill
+              sizes="180px"
+              unoptimized
+            />
+          </span>
+          <strong>{heroPreview.hero.name}</strong>
         </div>
       )}
     </section>

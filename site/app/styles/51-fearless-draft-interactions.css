@@ -1,0 +1,217 @@
+.fearless-draft-view-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+.fearless-fullscreen-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+}
+
+.fearless-fullscreen-toggle > svg { font-size: 15px; }
+.fearless-fullscreen-toggle > span {
+  position: relative;
+  width: 34px;
+  height: 19px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.fearless-fullscreen-toggle i {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.fearless-fullscreen-toggle em { font-style: normal; white-space: nowrap; }
+.fearless-fullscreen-toggle[aria-checked="true"] { color: var(--blue); }
+.fearless-fullscreen-toggle[aria-checked="true"] > span {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 24%, var(--surface-soft));
+}
+.fearless-fullscreen-toggle[aria-checked="true"] i {
+  transform: translateX(15px);
+  background: var(--blue);
+}
+
+.fearless-slot-step {
+  position: absolute;
+  z-index: 3;
+  right: 3px;
+  bottom: 3px;
+  display: grid;
+  min-width: 19px;
+  height: 19px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 5px;
+  padding: 0 3px;
+  background: rgba(2, 10, 17, 0.82);
+  color: #fff;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.fearless-ban-list > div:not(.filled)::after { display: none; }
+.fearless-ban-list > div:not(.filled) .fearless-slot-step,
+.fearless-pick-slots > div:not(.filled) .fearless-slot-step {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--quiet);
+}
+
+.fearless-hero-preview {
+  position: fixed;
+  z-index: 100;
+  width: 180px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.48);
+  pointer-events: none;
+}
+
+.fearless-hero-preview > span {
+  position: relative;
+  display: block;
+  height: 150px;
+  background: #06131e;
+}
+.fearless-hero-preview img { object-fit: cover; }
+.fearless-hero-preview > strong {
+  display: block;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 12px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+@keyframes fearless-ban-flash {
+  0%, 58% {
+    border-color: #ff425b;
+    box-shadow: 0 0 0 2px rgba(255, 66, 91, 0.9), 0 0 22px 8px rgba(255, 45, 71, 0.68);
+  }
+  100% { border-color: rgba(239, 100, 114, 0.4); box-shadow: none; }
+}
+
+@keyframes fearless-pick-flash {
+  0%, 58% {
+    border-color: #40ed9e;
+    box-shadow: 0 0 0 2px rgba(64, 237, 158, 0.9), 0 0 22px 8px rgba(38, 221, 137, 0.64);
+  }
+  100% { box-shadow: none; }
+}
+
+@keyframes fearless-hero-dim {
+  0%, 58% { filter: brightness(1.1) saturate(1.12); }
+}
+
+.fearless-attribute-group button.just-ban {
+  z-index: 4;
+  animation: fearless-ban-flash 850ms ease-out both;
+}
+.fearless-attribute-group button.just-pick {
+  z-index: 4;
+  animation: fearless-pick-flash 850ms ease-out both;
+}
+.fearless-attribute-group button.just-ban img,
+.fearless-attribute-group button.just-pick img {
+  animation: fearless-hero-dim 850ms ease-out;
+}
+
+.fearless-active-draft:fullscreen {
+  display: flex;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  flex-direction: column;
+  margin: 0;
+  padding: 9px;
+  background:
+    radial-gradient(circle at 12% 2%, rgba(0, 195, 255, 0.12), transparent 27%),
+    var(--bg);
+  color: var(--text);
+}
+.fearless-active-draft:fullscreen::backdrop { background: var(--bg); }
+.fearless-active-draft:fullscreen .fearless-draft-status { flex: 0 0 auto; padding: 8px 13px; }
+.fearless-active-draft:fullscreen .fearless-draft-status > div:first-child strong { font-size: 16px; }
+.fearless-active-draft:fullscreen .fearless-main-clock strong { font-size: 28px; }
+.fearless-active-draft:fullscreen .fearless-turn { padding: 7px 12px; }
+.fearless-active-draft:fullscreen .fearless-team-columns { flex: 0 0 auto; margin-top: 6px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header { gap: 8px; padding: 6px 9px; }
+.fearless-active-draft:fullscreen .fearless-player-avatar { display: none; }
+.fearless-active-draft:fullscreen .fearless-pick-slots { padding: 5px 7px; }
+.fearless-active-draft:fullscreen .fearless-pick-slots > div { min-height: 46px; }
+.fearless-active-draft:fullscreen .fearless-pick-slots span { display: none; }
+.fearless-active-draft:fullscreen .fearless-ban-list { min-height: 34px; padding: 0 7px 6px; }
+.fearless-active-draft:fullscreen .fearless-ban-list > div { height: 31px; }
+.fearless-active-draft:fullscreen .fearless-map-complete { flex: 0 0 auto; margin-top: 6px; padding: 8px; }
+.fearless-active-draft:fullscreen .fearless-draft-workspace {
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 6px;
+}
+.fearless-active-draft:fullscreen .fearless-history { display: none; }
+.fearless-active-draft:fullscreen .fearless-hero-pool {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+.fearless-active-draft:fullscreen .fearless-hero-toolbar { flex: 0 0 auto; padding: 6px 10px; }
+.fearless-active-draft:fullscreen .fearless-hero-toolbar input { min-height: 31px; }
+.fearless-active-draft:fullscreen .fearless-hero-grid {
+  min-height: 0;
+  max-height: none;
+  flex: 1;
+  overflow: hidden;
+  gap: 8px;
+  padding: 5px 8px 8px;
+}
+.fearless-active-draft:fullscreen .fearless-attribute-group > header { min-height: 19px; }
+.fearless-active-draft:fullscreen .fearless-attribute-group > div { gap: 3px; }
+.fearless-active-draft:fullscreen .fearless-attribute-group button { padding: 2px; }
+.fearless-active-draft:fullscreen .fearless-hero-confirm {
+  position: absolute;
+  z-index: 6;
+  right: 10px;
+  bottom: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+}
+.fearless-active-draft:fullscreen .fearless-hero-confirm > img,
+.fearless-active-draft:fullscreen .fearless-hero-confirm > div { display: none; }
+
+@media (max-width: 980px) {
+  .fearless-fullscreen-toggle { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fearless-attribute-group button.just-ban,
+  .fearless-attribute-group button.just-pick,
+  .fearless-attribute-group button.just-ban img,
+  .fearless-attribute-group button.just-pick img { animation-duration: 1ms; }
+}
