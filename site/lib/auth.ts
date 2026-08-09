@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { one, query } from "@/lib/db";
 import {
@@ -12,9 +12,12 @@ import {
   parsePendingOauthStates,
   takePendingOauthState,
 } from "@/lib/oauth-state";
+import {
+  organizerSessionCookie,
+  playerSessionCookie,
+  sessionTokenHash,
+} from "@/lib/auth-session";
 
-const sessionCookie = "ls_session";
-const organizerSessionCookie = "ls_organizer_session";
 const oauthStateCookie = "ls_oauth_state";
 const sessionLifetimeDays = 30;
 const organizerSessionLifetimeHours = 12;
@@ -48,10 +51,6 @@ type TemporaryOrganizerPasswordRow = {
   password_hash: string;
   expires_at: Date;
 };
-
-function tokenHash(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
-}
 
 export async function createOauthState(returnTo: string): Promise<string> {
   const state = randomBytes(32).toString("base64url");
@@ -124,7 +123,7 @@ export async function createSession(input: {
       (token_hash, discord_id, discord_username, discord_avatar_url, expires_at)
      VALUES ($1, $2, $3, $4, $5)`,
     [
-      tokenHash(token),
+      sessionTokenHash(token),
       input.discordId,
       input.username,
       input.avatarUrl,
@@ -132,7 +131,7 @@ export async function createSession(input: {
     ],
   );
   const cookieStore = await cookies();
-  cookieStore.set(sessionCookie, token, {
+  cookieStore.set(playerSessionCookie, token, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
@@ -143,7 +142,7 @@ export async function createSession(input: {
 
 export async function getSession(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
-  const token = cookieStore.get(sessionCookie)?.value;
+  const token = cookieStore.get(playerSessionCookie)?.value;
   if (!token) return null;
   const organizerToken = cookieStore.get(organizerSessionCookie)?.value;
   const row = await one<SessionRow>(
@@ -170,7 +169,10 @@ export async function getSession(): Promise<AuthUser | null> {
      WHERE s.token_hash = $1
        AND s.expires_at > NOW()
        AND p.is_archived = FALSE`,
-    [tokenHash(token), organizerToken ? tokenHash(organizerToken) : ""],
+    [
+      sessionTokenHash(token),
+      organizerToken ? sessionTokenHash(organizerToken) : "",
+    ],
   );
   if (!row) return null;
   return {
@@ -293,7 +295,7 @@ export async function createOrganizerSession(
     `INSERT INTO web_organizer_sessions
       (token_hash, discord_id, expires_at)
      VALUES ($1, $2, $3)`,
-    [tokenHash(token), user.discordId, expiresAt],
+    [sessionTokenHash(token), user.discordId, expiresAt],
   );
   const cookieStore = await cookies();
   cookieStore.set(organizerSessionCookie, token, {
@@ -312,7 +314,7 @@ export async function deleteOrganizerSession(): Promise<void> {
   if (token) {
     await query(
       "DELETE FROM web_organizer_sessions WHERE token_hash = $1",
-      [tokenHash(token)],
+      [sessionTokenHash(token)],
     );
   }
   cookieStore.delete(organizerSessionCookie);
@@ -321,13 +323,13 @@ export async function deleteOrganizerSession(): Promise<void> {
 export async function deleteSession(): Promise<void> {
   await deleteOrganizerSession();
   const cookieStore = await cookies();
-  const token = cookieStore.get(sessionCookie)?.value;
+  const token = cookieStore.get(playerSessionCookie)?.value;
   if (token) {
     await query("DELETE FROM web_sessions WHERE token_hash = $1", [
-      tokenHash(token),
+      sessionTokenHash(token),
     ]);
   }
-  cookieStore.delete(sessionCookie);
+  cookieStore.delete(playerSessionCookie);
 }
 
 export function responseFromAuthError(error: unknown): Response {

@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 import { usePathname } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { FiLogOut, FiShield, FiX } from "react-icons/fi";
+import { SiteBreakButton } from "./SiteBreakButton";
 
 type OrganizerUser = {
   isAdmin: boolean;
@@ -67,14 +68,17 @@ export function OrganizerAccess({
 
   return (
     <>
-      <button
-        className="organizer-entry"
-        type="button"
-        onClick={() => setOpen(true)}
-      >
-        <FiShield aria-hidden="true" />
-        {user?.isAdmin ? "Организатор · активен" : "Режим организатора"}
-      </button>
+      <div className="organizer-controls">
+        <button
+          className="organizer-entry"
+          type="button"
+          onClick={() => setOpen(true)}
+        >
+          <FiShield aria-hidden="true" />
+          {user?.isAdmin ? "Организатор · активен" : "Режим организатора"}
+        </button>
+        {user?.isAdmin && <SiteBreakButton />}
+      </div>
 
       {open && (
         <div className="modal-backdrop" onMouseDown={() => setOpen(false)}>

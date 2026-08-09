@@ -50,7 +50,8 @@ describe("site security boundaries", () => {
 
   it("applies origin, size and request-frequency protection to all APIs", () => {
     expect(proxySource).toContain("inspectApiRequest");
-    expect(proxySource).toContain('matcher: "/api/:path*"');
+    expect(proxySource).toContain('"/api/:path*"');
+    expect(proxySource).toContain('"/((?!api/|_next/static|_next/image|');
     expect(caddyfile).toMatch(/request_body\s*\{[\s\S]*max_size 55MB/);
   });
 
