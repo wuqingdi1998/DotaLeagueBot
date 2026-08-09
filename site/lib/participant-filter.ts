@@ -8,6 +8,7 @@ export type ParticipantDirectoryFilters = {
   tier: number | null;
   tierOrder: ParticipantTierOrder;
   showArchived: boolean;
+  showManualTiers: boolean;
 };
 
 function compareTier(
@@ -42,7 +43,8 @@ export function filterParticipantDirectory(
     .filter((player) =>
       filters.showArchived
         ? player.kind === "archive"
-        : player.kind === "registered",
+        : player.kind === "registered" &&
+          (!filters.showManualTiers || player.hasManualTier),
     )
     .filter((player) => {
       if (!normalizedSearch) return true;

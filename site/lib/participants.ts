@@ -18,6 +18,7 @@ export type ParticipantDirectoryPlayer = {
   secondaryRole: number | null;
   tier: number | null;
   tierStatus: PlayerTierStatus;
+  hasManualTier: boolean;
   links: {
     dotabuff: string;
     stratz: string;
@@ -35,6 +36,7 @@ type RegisteredParticipantRow = {
   positions: string | null;
   tier: number | null;
   tier_status: PlayerTierStatus;
+  has_manual_tier: boolean;
 };
 
 type ArchiveParticipantRow = {
@@ -69,6 +71,7 @@ function registeredParticipant(
       secondaryRole: roleAt(row.positions, 1),
       tier: row.tier,
       tierStatus: row.tier_status,
+      hasManualTier: row.has_manual_tier,
       links: buildPlayerLinks(dotaId),
     },
   ];
@@ -90,6 +93,7 @@ export async function loadParticipantDirectory(
        ) AS avatar_url,
        player.positions,
        player.tier_status,
+       player.internal_rating <> 0 AS has_manual_tier,
        COALESCE(
          NULLIF(player.internal_rating, 0),
          CASE
@@ -169,6 +173,7 @@ export async function loadParticipantDirectory(
       secondaryRole: null,
       tier: row.tier,
       tierStatus: "current",
+      hasManualTier: false,
       links: null,
     })),
   ];

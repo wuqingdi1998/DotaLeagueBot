@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { FiArchive, FiSearch, FiX } from "react-icons/fi";
+import { FiArchive, FiEdit3, FiSearch, FiX } from "react-icons/fi";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
 import {
   filterParticipantDirectory,
@@ -26,6 +26,7 @@ export function ParticipantsTable({
   const [tier, setTier] = useState<number | null>(null);
   const [tierOrder, setTierOrder] = useState<ParticipantTierOrder>("desc");
   const [showArchived, setShowArchived] = useState(false);
+  const [showManualTiers, setShowManualTiers] = useState(false);
   const [editedPlayer, setEditedPlayer] =
     useState<ParticipantDirectoryPlayer | null>(null);
 
@@ -36,8 +37,9 @@ export function ParticipantsTable({
       tier,
       tierOrder,
       showArchived,
+      showManualTiers,
     });
-  }, [players, role, search, showArchived, tier, tierOrder]);
+  }, [players, role, search, showArchived, showManualTiers, tier, tierOrder]);
 
   return (
     <>
@@ -111,10 +113,27 @@ export function ParticipantsTable({
             <input
               type="checkbox"
               checked={showArchived}
-              onChange={(event) => setShowArchived(event.target.checked)}
+              onChange={(event) => {
+                setShowArchived(event.target.checked);
+                if (event.target.checked) setShowManualTiers(false);
+              }}
             />
             <FiArchive aria-hidden="true" />
             Показать только архивных
+          </label>
+        )}
+        {isOrganizer && (
+          <label className="participant-archive-toggle">
+            <input
+              type="checkbox"
+              checked={showManualTiers}
+              onChange={(event) => {
+                setShowManualTiers(event.target.checked);
+                if (event.target.checked) setShowArchived(false);
+              }}
+            />
+            <FiEdit3 aria-hidden="true" />
+            Показать ручные тиры
           </label>
         )}
       </div>

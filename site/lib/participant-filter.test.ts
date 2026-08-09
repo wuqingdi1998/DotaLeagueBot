@@ -11,6 +11,7 @@ function player(
   primaryRole: number,
   secondaryRole: number,
   tierStatus: ParticipantDirectoryPlayer["tierStatus"] = "current",
+  hasManualTier = false,
 ): ParticipantDirectoryPlayer {
   return {
     kind: "registered",
@@ -25,6 +26,7 @@ function player(
     secondaryRole,
     tier,
     tierStatus,
+    hasManualTier,
     links: {
       dotabuff: "#",
       stratz: "#",
@@ -39,6 +41,7 @@ const defaultFilters: ParticipantDirectoryFilters = {
   tier: null,
   tierOrder: "desc",
   showArchived: false,
+  showManualTiers: false,
 };
 
 describe("participant directory filters", () => {
@@ -120,5 +123,16 @@ describe("participant directory filters", () => {
         showArchived: true,
       }),
     ).toEqual([archive]);
+  });
+
+  it("shows only registered players with a non-zero manual tier", () => {
+    const automatic = player("automatic", 6, 1, 2);
+    const manual = player("manual", 8, 2, 3, "current", true);
+    expect(
+      filterParticipantDirectory([automatic, manual], {
+        ...defaultFilters,
+        showManualTiers: true,
+      }),
+    ).toEqual([manual]);
   });
 });

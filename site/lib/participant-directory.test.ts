@@ -67,6 +67,14 @@ describe("hall of fame and participant directory", () => {
     expect(participantsTable).toContain("participant-links");
   });
 
+  it("lets the organizer show only manually assigned tiers", () => {
+    expect(participantsLoader).toContain(
+      "player.internal_rating <> 0 AS has_manual_tier",
+    );
+    expect(participantsTable).toContain("Показать ручные тиры");
+    expect(participantsTable).toContain("showManualTiers");
+  });
+
   it("does not let archive identities break the participant page", () => {
     expect(participantsLoader).toContain(
       "player.steam_id32 BETWEEN 1 AND 4294967295",
