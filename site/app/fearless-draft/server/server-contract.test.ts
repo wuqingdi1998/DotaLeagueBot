@@ -22,6 +22,10 @@ const heroGrid = readFileSync(
   resolve(process.cwd(), "app/fearless-draft/components/HeroGrid.tsx"),
   "utf8",
 );
+const heroModel = readFileSync(
+  resolve(process.cwd(), "app/fearless-draft/model/heroes.ts"),
+  "utf8",
+);
 
 describe("Fearless Draft server safety contract", () => {
   it("locks the map and rejects stale double-click requests", () => {
@@ -48,7 +52,9 @@ describe("Fearless Draft server safety contract", () => {
   });
 
   it("reuses the shared hero catalog and names the footer button Fearless Draft", () => {
-    expect(heroGrid).toContain("COMPENDIUM_HEROES");
+    expect(heroGrid).toContain("FEARLESS_DRAFT_HEROES");
+    expect(heroModel).toContain("COMPENDIUM_HEROES.map");
+    expect(heroModel).toContain("disabledCaptainModeHeroIds");
     expect(footer).toContain(">\n            <FiCrosshair /> Fearless Draft");
     expect(footer).toContain('href="/fearless-draft"');
   });

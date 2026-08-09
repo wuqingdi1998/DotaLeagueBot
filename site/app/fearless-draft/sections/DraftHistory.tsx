@@ -1,8 +1,8 @@
 import Image from "next/image";
-import { COMPENDIUM_HEROES } from "@/app/compendium/model/heroes";
+import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
 import type { DraftActionSnapshot } from "../model/snapshot";
 
-const heroesById = new Map(COMPENDIUM_HEROES.map((hero) => [hero.id, hero]));
+const heroesById = new Map(FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]));
 
 export function DraftHistory({ actions }: { actions: DraftActionSnapshot[] }) {
   return (

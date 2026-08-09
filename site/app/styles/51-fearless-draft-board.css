@@ -292,6 +292,8 @@
 .fearless-hero-grid .banned img { filter: grayscale(1) brightness(0.35); }
 .fearless-hero-grid .fearless-locked img { filter: grayscale(0.8) brightness(0.22) sepia(0.25); }
 .fearless-hero-grid .fearless-locked { border-color: rgba(244, 184, 74, 0.35); color: #b3945d; }
+.fearless-hero-grid .captains-disabled img { filter: grayscale(1) brightness(0.18); }
+.fearless-hero-grid .captains-disabled { color: var(--quiet); opacity: 0.72; }
 .fearless-hero-grid .picked-radiant { border-color: rgba(67, 201, 142, 0.5); color: #43c98e; }
 .fearless-hero-grid .picked-dire { border-color: rgba(237, 101, 117, 0.5); color: #ed6575; }
 .fearless-hero-grid .picked-radiant img,

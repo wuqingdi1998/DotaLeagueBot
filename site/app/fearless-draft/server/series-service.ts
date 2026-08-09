@@ -1,12 +1,12 @@
 import { randomInt } from "node:crypto";
 import type { PoolClient } from "pg";
-import { COMPENDIUM_HEROES } from "@/app/compendium/model/heroes";
 import { transaction } from "@/lib/db";
 import { completeDraftAssignments, applyFirstChoice } from "../model/choices";
 import { DRAFT_SEQUENCE } from "../model/config";
 import { isDraftChoice } from "../model/choices";
 import type { DraftChoice, DraftFormat } from "../model/types";
 import { draftSeriesMapCount, firstChooserForMap } from "../model/series";
+import { ENABLED_FEARLESS_DRAFT_HEROES } from "../model/heroes";
 import { currentSeriesId, lockDraftPlayers } from "./database";
 import { DraftRequestError } from "./errors";
 
@@ -35,7 +35,7 @@ type MapRow = {
   version: number;
 };
 
-const heroIds = new Set(COMPENDIUM_HEROES.map((hero) => hero.id));
+const heroIds = new Set(ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id));
 
 async function loadLockedSeries(
   client: PoolClient,

@@ -3,13 +3,19 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
-import { COMPENDIUM_HEROES } from "@/app/compendium/model/heroes";
+import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
 import type {
   DraftMapSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
 
-type HeroState = "available" | "picked-radiant" | "picked-dire" | "banned" | "fearless-locked";
+type HeroState =
+  | "available"
+  | "picked-radiant"
+  | "picked-dire"
+  | "banned"
+  | "fearless-locked"
+  | "captains-disabled";
 
 export function HeroGrid({
   map,
@@ -40,20 +46,22 @@ export function HeroGrid({
   const selectedHeroId = selection?.version === map.version
     ? selection.heroId
     : null;
-  const selectedHero = COMPENDIUM_HEROES.find((hero) => hero.id === selectedHeroId);
+  const selectedHero = FEARLESS_DRAFT_HEROES.find((hero) => hero.id === selectedHeroId);
   const isOwnTurn = map.currentActorId === userId;
 
   const visibleHeroes = useMemo(() => {
     const needle = search.trim().toLocaleLowerCase("ru");
     return needle
-      ? COMPENDIUM_HEROES.filter((hero) =>
+      ? FEARLESS_DRAFT_HEROES.filter((hero) =>
           hero.name.toLocaleLowerCase("en").includes(needle) ||
           hero.key.toLocaleLowerCase("en").includes(needle),
         )
-      : COMPENDIUM_HEROES;
+      : FEARLESS_DRAFT_HEROES;
   }, [search]);
 
   function heroState(heroId: number): HeroState {
+    const hero = FEARLESS_DRAFT_HEROES.find((candidate) => candidate.id === heroId);
+    if (!hero?.isCaptainModeEnabled) return "captains-disabled";
     if (unavailable.has(heroId)) return "fearless-locked";
     const action = actionByHero.get(heroId);
     if (!action) return "available";
@@ -90,6 +98,8 @@ export function HeroGrid({
               title={
                 state === "fearless-locked"
                   ? "Использован на предыдущей карте"
+                  : state === "captains-disabled"
+                    ? "Временно недоступен в Captain's Mode"
                   : state === "banned"
                     ? "Забанен на текущей карте"
                     : hero.name
