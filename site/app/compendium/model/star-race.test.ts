@@ -134,20 +134,20 @@ describe("star race schedule", () => {
     );
   });
 
-  it("defines Wednesday's cumulative 40,000 Pudge hero-damage quest", () => {
+  it("defines Wednesday's cumulative 40,000 Pudge or Sniper damage quest", () => {
     expect(STAR_RACE_QUESTS[2]).toMatchObject({
       dateKey: "2026-08-12",
       title: "Это снайпер?",
       rewardStars: 2,
       requirement: {
         kind: "cumulative-ranked-win-stat",
-        heroIds: [14],
+        heroIds: [14, 35],
         stat: "hero_damage",
         target: 40_000,
       },
     });
     expect(STAR_RACE_QUESTS[2].description).toBe(
-      "Нанесите 40 000 урона на Pudge. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+      "Нанесите 40 000 урона на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     );
   });
 

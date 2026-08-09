@@ -95,11 +95,11 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "12 августа",
     title: "Это снайпер?",
     description:
-      "Нанесите 40 000 урона на Pudge. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+      "Нанесите 40 000 урона на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     rewardStars: 2,
     requirement: {
       kind: "cumulative-ranked-win-stat",
-      heroIds: [14],
+      heroIds: [14, 35],
       stat: "hero_damage",
       target: 40_000,
     },

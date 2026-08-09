@@ -192,8 +192,8 @@ describe("Tuesday star race building damage check", () => {
   });
 });
 
-describe("Wednesday cumulative Pudge damage check", () => {
-  it("sums Pudge hero damage from ranked wins and awards at 40,000", async () => {
+describe("Wednesday cumulative Pudge or Sniper damage check", () => {
+  it("sums both heroes' damage from ranked wins and awards at 40,000", async () => {
     const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
     vi.setSystemTime(wednesdayNow);
     const completion = {
@@ -209,7 +209,7 @@ describe("Wednesday cumulative Pudge damage check", () => {
       },
       {
         ...winningMatch(3002, 0),
-        hero_id: 14,
+        hero_id: 35,
         start_time: Date.parse("2026-08-12T10:00:00.000Z") / 1_000,
         hero_damage: 19_000,
       },
@@ -239,12 +239,12 @@ describe("Wednesday cumulative Pudge damage check", () => {
       rewardStars: 2,
       wins: [
         expect.objectContaining({ matchId: "3001", heroId: 14 }),
-        expect.objectContaining({ matchId: "3002", heroId: 14 }),
+        expect.objectContaining({ matchId: "3002", heroId: 35 }),
       ],
     });
   });
 
-  it("replaces Pudge progress with a fresh daily total instead of adding it", async () => {
+  it("replaces the heroes' progress with a fresh daily total instead of adding it", async () => {
     const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
     vi.setSystemTime(wednesdayNow);
     mocks.fetchRecentPlayerMatches.mockResolvedValue([{
