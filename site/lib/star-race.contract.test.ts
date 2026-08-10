@@ -30,6 +30,9 @@ const starRaceView = source(
   "../app/compendium/components/CompendiumStarRace.tsx",
 );
 const starRaceModel = source("../app/compendium/model/star-race.ts");
+const starRaceEvaluation = source(
+  "../app/compendium/model/star-race-evaluation.ts",
+);
 const checkRoute = source(
   "../app/api/compendium/star-race/quests/[dateKey]/check/route.ts",
 );
@@ -182,7 +185,8 @@ describe("compendium star race contract", () => {
     );
     expect(repository).toContain("replaceStarRaceHeroProgress");
     expect(repository).toContain("DELETE FROM compendium_star_race_quest_progress_wins");
-    expect(service).toContain("scanDistinctMatchingWins");
+    expect(starRaceEvaluation).toContain("scanDistinctMatchingWins");
+    expect(service).toContain("evaluateStarRaceRequirement");
     expect(starRaceView).toContain("isDimmed");
   });
 

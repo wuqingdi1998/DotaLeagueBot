@@ -1,12 +1,6 @@
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
-import {
-  findGameModeWin,
-  findRankedStatWin,
-  scanCumulativeRankedWinStat,
-  scanDistinctMatchingWins,
-  scanWinningBuildingDamage,
-} from "../model/matches";
+import { evaluateStarRaceRequirement } from "../model/star-race-evaluation";
 import {
   starRaceForMoment,
   starRacePhase,
@@ -200,17 +194,17 @@ export async function checkStarRaceQuest(
     );
   }
   const bounds = moscowDayBounds(dateKey);
+  const evaluation = evaluateStarRaceRequirement({
+    requirement: quest.requirement,
+    matches,
+    dayStart: bounds.start,
+    dayEnd: bounds.end,
+    now: verificationNow,
+  });
   let completion: StarRaceQuestCompletion | null = null;
   if (quest.requirement.kind === "distinct-hero-wins") {
-    const wins = scanDistinctMatchingWins({
-      matches,
-      heroIds: quest.requirement.heroIds,
-      dayStart: bounds.start,
-      dayEnd: bounds.end,
-      now: verificationNow,
-    });
     if (
-      wins.length < quest.requirement.requiredDistinctWins &&
+      !evaluation.isComplete &&
       quest.requirement.requiredDistinctWins === 1
     ) {
       throw new CompendiumError(
@@ -218,34 +212,28 @@ export async function checkStarRaceQuest(
         "Пока не найдена победа на герое задания за текущие сутки по Москве.",
       );
     }
-    if (wins.length < quest.requirement.requiredDistinctWins) {
+    if (!evaluation.isComplete) {
       await replaceStarRaceHeroProgress({
         playerId: user.discordId,
         dateKey,
-        wins,
+        wins: evaluation.wins,
       });
     } else {
       completion = await recordStarRaceCompletion({
         playerId: user.discordId,
         dateKey,
         rewardStars: quest.rewardStars,
-        wins: wins.slice(0, quest.requirement.requiredDistinctWins),
+        wins: evaluation.wins.slice(0, quest.requirement.requiredDistinctWins),
       });
     }
   } else if (quest.requirement.kind === "winning-building-damage") {
-    const scan = scanWinningBuildingDamage({
-      matches,
-      dayStart: bounds.start,
-      dayEnd: bounds.end,
-      now: verificationNow,
-    });
     await replaceStarRaceProgress({
       playerId: user.discordId,
       dateKey,
-      current: scan.totalDamage,
+      current: evaluation.progress,
     });
-    if (scan.totalDamage >= quest.requirement.targetDamage) {
-      const evidenceWin = scan.wins[0];
+    if (evaluation.isComplete) {
+      const evidenceWin = evaluation.wins[0];
       if (!evidenceWin) {
         throw new Error("Completed building damage scan has no winning match");
       }
@@ -257,37 +245,21 @@ export async function checkStarRaceQuest(
       });
     }
   } else if (quest.requirement.kind === "cumulative-ranked-win-stat") {
-    const scan = scanCumulativeRankedWinStat({
-      matches,
-      heroIds: quest.requirement.heroIds,
-      stat: quest.requirement.stat,
-      dayStart: bounds.start,
-      dayEnd: bounds.end,
-      now: verificationNow,
-    });
     await replaceStarRaceProgress({
       playerId: user.discordId,
       dateKey,
-      current: scan.total,
+      current: evaluation.progress,
     });
-    if (scan.total >= quest.requirement.target) {
+    if (evaluation.isComplete) {
       completion = await recordStarRaceCompletion({
         playerId: user.discordId,
         dateKey,
         rewardStars: quest.rewardStars,
-        wins: scan.wins,
+        wins: evaluation.wins,
       });
     }
   } else if (quest.requirement.kind === "ranked-win-stat") {
-    const win = findRankedStatWin({
-      matches,
-      heroIds: quest.requirement.heroIds,
-      stat: quest.requirement.stat,
-      minimum: quest.requirement.minimum,
-      dayStart: bounds.start,
-      dayEnd: bounds.end,
-      now: verificationNow,
-    });
+    const win = evaluation.wins[0];
     if (!win) {
       const target = quest.requirement.stat === "hero_damage"
         ? `${quest.requirement.minimum.toLocaleString("ru-RU")} урона героям`
@@ -304,13 +276,7 @@ export async function checkStarRaceQuest(
       wins: [win],
     });
   } else {
-    const win = findGameModeWin({
-      matches,
-      gameMode: quest.requirement.gameMode,
-      dayStart: bounds.start,
-      dayEnd: bounds.end,
-      now: verificationNow,
-    });
+    const win = evaluation.wins[0];
     if (!win) {
       throw new CompendiumError(
         "NO_MATCH",

@@ -1,14 +1,8 @@
-import { findUnclaimedStarRaceWins } from "@/app/compendium/services/unclaimed-star-race";
-import { compendiumInternalAuthError } from "@/lib/compendium-internal-auth";
+import { POST as checkUnclaimedChallenges } from "../unclaimed-challenges/route";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 600;
 
 export async function POST(request: Request) {
-  const authError = compendiumInternalAuthError(request);
-  if (authError) return authError;
-  return Response.json({
-    ok: true,
-    ...(await findUnclaimedStarRaceWins()),
-  });
+  return checkUnclaimedChallenges(request);
 }

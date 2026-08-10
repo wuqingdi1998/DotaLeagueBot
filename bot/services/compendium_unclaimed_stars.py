@@ -12,20 +12,25 @@ class CompendiumUnclaimedStarsError(RuntimeError):
 
 
 @dataclass(frozen=True)
-class UnclaimedStarRacePlayer:
-    player_name: str
-    hero_name: str
-    match_id: str
+class UnclaimedChallenge:
+    kind: str
+    title: str
+    detail: str
+    match_ids: tuple[str, ...]
 
 
 @dataclass(frozen=True)
-class UnclaimedStarRaceReport:
-    is_available: bool
+class UnclaimedChallengePlayer:
+    player_name: str
+    challenges: tuple[UnclaimedChallenge, ...]
+
+
+@dataclass(frozen=True)
+class UnclaimedChallengesReport:
     date_key: str
-    quest_title: str | None
     checked_count: int
     failed_count: int
-    players: tuple[UnclaimedStarRacePlayer, ...]
+    players: tuple[UnclaimedChallengePlayer, ...]
 
 
 def _request_settings() -> tuple[str, str, str]:
@@ -47,7 +52,26 @@ def _request_settings() -> tuple[str, str, str]:
     return site_url, public_origin, secret
 
 
-def _report_from_payload(payload: object) -> UnclaimedStarRaceReport:
+def _challenge_from_payload(payload: object) -> UnclaimedChallenge:
+    if not isinstance(payload, dict):
+        raise CompendiumUnclaimedStarsError("Сайт вернул неполный результат проверки.")
+    match_ids = payload.get("matchIds")
+    if not isinstance(match_ids, list):
+        raise CompendiumUnclaimedStarsError("Сайт не вернул список матчей.")
+    try:
+        return UnclaimedChallenge(
+            kind=str(payload["kind"]),
+            title=str(payload["title"]),
+            detail=str(payload["detail"]),
+            match_ids=tuple(str(match_id) for match_id in match_ids),
+        )
+    except (KeyError, TypeError, ValueError) as error:
+        raise CompendiumUnclaimedStarsError(
+            "Сайт вернул неполный результат проверки."
+        ) from error
+
+
+def _report_from_payload(payload: object) -> UnclaimedChallengesReport:
     if not isinstance(payload, dict) or payload.get("ok") is not True:
         raise CompendiumUnclaimedStarsError("Сайт вернул некорректный результат проверки.")
     raw_players = payload.get("players")
@@ -55,22 +79,18 @@ def _report_from_payload(payload: object) -> UnclaimedStarRaceReport:
         raise CompendiumUnclaimedStarsError("Сайт не вернул список участников.")
     try:
         players = tuple(
-            UnclaimedStarRacePlayer(
+            UnclaimedChallengePlayer(
                 player_name=str(player["playerName"]),
-                hero_name=str(player["heroName"]),
-                match_id=str(player["matchId"]),
+                challenges=tuple(
+                    _challenge_from_payload(challenge)
+                    for challenge in player["challenges"]
+                ),
             )
             for player in raw_players
-            if isinstance(player, dict)
+            if isinstance(player, dict) and isinstance(player.get("challenges"), list)
         )
-        return UnclaimedStarRaceReport(
-            is_available=bool(payload["isAvailable"]),
+        return UnclaimedChallengesReport(
             date_key=str(payload["dateKey"]),
-            quest_title=(
-                str(payload["questTitle"])
-                if payload.get("questTitle") is not None
-                else None
-            ),
             checked_count=int(payload["checkedCount"]),
             failed_count=int(payload["failedCount"]),
             players=players,
@@ -81,7 +101,7 @@ def _report_from_payload(payload: object) -> UnclaimedStarRaceReport:
         ) from error
 
 
-async def request_unclaimed_star_race_report() -> UnclaimedStarRaceReport:
+async def request_unclaimed_challenges_report() -> UnclaimedChallengesReport:
     site_url, public_origin, secret = _request_settings()
     timeout = aiohttp.ClientTimeout(total=600)
     headers = {
@@ -91,7 +111,7 @@ async def request_unclaimed_star_race_report() -> UnclaimedStarRaceReport:
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
-                f"{site_url}/api/internal/compendium/unclaimed-star-race",
+                f"{site_url}/api/internal/compendium/unclaimed-challenges",
                 headers=headers,
             ) as response:
                 if response.status != 200:
@@ -107,33 +127,44 @@ async def request_unclaimed_star_race_report() -> UnclaimedStarRaceReport:
         ) from error
 
 
-def format_unclaimed_star_race_report(
-    report: UnclaimedStarRaceReport,
-) -> list[str]:
-    if not report.is_available:
-        return [
-            f"ℹ️ За **{report.date_key}** нет активного задания Гонки за звёздами "
-            "на победу указанным героем."
-        ]
+def _match_links(match_ids: tuple[str, ...]) -> str:
+    return ", ".join(
+        f"[матч {match_id}](https://www.opendota.com/matches/{match_id})"
+        for match_id in match_ids
+    )
 
-    title = report.quest_title or "Задание дня"
+
+def _report_lines(report: UnclaimedChallengesReport) -> list[str]:
+    lines: list[str] = []
+    for player in report.players:
+        lines.append(f"• **{discord.utils.escape_markdown(player.player_name)}**")
+        for challenge in player.challenges:
+            title = discord.utils.escape_markdown(challenge.title)
+            detail = discord.utils.escape_markdown(challenge.detail)
+            links = _match_links(challenge.match_ids)
+            suffix = f" · {links}" if links else ""
+            lines.append(f"  - {title} — {detail}{suffix}")
+    return lines
+
+
+def format_unclaimed_challenges_report(
+    report: UnclaimedChallengesReport,
+) -> list[str]:
     header = (
-        f"⭐ **Не получившие награду — {title} ({report.date_key})**\n"
+        f"⭐ **Выполненные, но не засчитанные испытания — {report.date_key}**\n"
         "Условие выполнено, но кнопка «Проверить» ещё не нажата."
     )
     summary = (
         f"Проверено участников: **{report.checked_count}**. "
         f"Не удалось проверить: **{report.failed_count}**."
     )
-    if not report.players:
-        return [f"{header}\n\n✅ Таких участников не найдено.\n{summary}"]
+    lines = _report_lines(report)
+    if not lines:
+        return [
+            f"{header}\n\n✅ Выполненных, но не засчитанных испытаний "
+            f"не найдено.\n{summary}"
+        ]
 
-    lines = [
-        f"• {discord.utils.escape_markdown(player.player_name)} — "
-        f"{discord.utils.escape_markdown(player.hero_name)} · "
-        f"[матч {player.match_id}](https://www.opendota.com/matches/{player.match_id})"
-        for player in report.players
-    ]
     messages: list[str] = []
     current = header
     for line in lines:

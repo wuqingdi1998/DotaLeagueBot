@@ -11,8 +11,8 @@ from services.compendium_star_service import (
 from services.compendium_announcement import broadcast_compendium_announcement
 from services.compendium_unclaimed_stars import (
     CompendiumUnclaimedStarsError,
-    format_unclaimed_star_race_report,
-    request_unclaimed_star_race_report,
+    format_unclaimed_challenges_report,
+    request_unclaimed_challenges_report,
 )
 
 
@@ -124,12 +124,12 @@ class CompendiumAdmin(commands.Cog):
     async def complete_stars(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
         try:
-            report = await request_unclaimed_star_race_report()
+            report = await request_unclaimed_challenges_report()
         except CompendiumUnclaimedStarsError as error:
             await interaction.followup.send(f"❌ {error}", ephemeral=True)
             return
 
-        for message in format_unclaimed_star_race_report(report):
+        for message in format_unclaimed_challenges_report(report):
             await interaction.followup.send(
                 message,
                 ephemeral=True,
