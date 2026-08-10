@@ -41,7 +41,9 @@ def test_reward_migration_allows_four_quests_and_six_hero_cards() -> None:
 def test_admin_star_commands_are_restricted_and_persistent() -> None:
     assert 'name="add_stars"' in ADMIN_COG
     assert 'name="delete_stars"' in ADMIN_COG
-    assert ADMIN_COG.count("has_permissions(administrator=True)") == 2
+    assert 'name="compendium"' in ADMIN_COG
+    assert ADMIN_COG.count("has_permissions(administrator=True)") == 3
+    assert "@app_commands.guild_only()" in ADMIN_COG
     assert "compendium_admin_star_adjustments" in ADMIN_SERVICE
     assert "pg_advisory_xact_lock" in ADMIN_SERVICE
     assert "Недостаточно звёзд" in ADMIN_SERVICE

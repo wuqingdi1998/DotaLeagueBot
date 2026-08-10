@@ -8,6 +8,7 @@ from services.compendium_star_service import (
     CompendiumStarAdjustmentError,
     CompendiumStarService,
 )
+from services.compendium_announcement import broadcast_compendium_announcement
 
 
 async def compendium_nickname_autocomplete(
@@ -77,6 +78,37 @@ class CompendiumAdmin(commands.Cog):
         amount: app_commands.Range[int, 1, 10000],
     ) -> None:
         await self.change_stars(interaction, nickname, -int(amount))
+
+    @app_commands.command(
+        name="compendium",
+        description="[Admin] Разослать участникам анонс Гонки за звёздами",
+    )
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator=True)
+    async def announce_compendium(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+        if interaction.guild is None:
+            await interaction.followup.send(
+                "❌ Команду можно использовать только на сервере.",
+                ephemeral=True,
+            )
+            return
+
+        try:
+            report = await broadcast_compendium_announcement(interaction.guild)
+        except discord.HTTPException:
+            await interaction.followup.send(
+                "❌ Не удалось получить список участников сервера.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.followup.send(
+            f"✅ Рассылка завершена. Отправлено: **{report.sent_count}**. "
+            f"Не доставлено: **{report.failed_count}**. "
+            f"Боты пропущены: **{report.skipped_bot_count}**.",
+            ephemeral=True,
+        )
 
 
 async def setup(bot: commands.Bot) -> None:
