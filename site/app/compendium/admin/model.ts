@@ -43,6 +43,31 @@ export function buildCompendiumAdminParticipants(
     rewardsByParticipant.set(row.player_id, participantRewards);
     const historyId = `${row.history_kind}:${row.completion_id}`;
     if (
+      row.history_kind === "star_race" &&
+      row.matched_hero_id !== null &&
+      row.matched_match_id
+    ) {
+      const existingReward = participantRewards.get(historyId);
+      const reward = existingReward?.kind === "star_race" ? existingReward : {
+        kind: "star_race" as const,
+        id: historyId,
+        dateKey: row.moscow_date,
+        dateLabel: moscowDateLabel(row.moscow_date),
+        completedAt: row.completed_at.toISOString(),
+        rewardAmount: row.reward_amount,
+        wins: [],
+      };
+      reward.wins.push({
+        hero: compendiumHeroById(row.matched_hero_id),
+        matchedMatchId: row.matched_match_id,
+      });
+      if (!participantRewards.has(historyId)) {
+        participant.rewards.push(reward);
+        participantRewards.set(historyId, reward);
+      }
+      continue;
+    }
+    if (
       row.history_kind === "rune" &&
       row.matched_hero_id !== null &&
       row.matched_match_id

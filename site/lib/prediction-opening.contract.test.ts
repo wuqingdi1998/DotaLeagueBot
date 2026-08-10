@@ -39,4 +39,12 @@ describe("prediction day opening contract", () => {
     expect(predictionsView).toContain("Откроется");
     expect(predictionsView).toContain("currentTimeMs");
   });
+
+  it("locks every prediction when the first match of the day starts", () => {
+    expect(repository).toContain("MIN(first_match.starts_at)");
+    expect(repository).toContain("row.locks_at.getTime() <= now.getTime()");
+    expect(repository).toContain("row.locks_at <= input.now");
+    expect(predictionsView).toContain("firstMatchStartsAtMs");
+    expect(predictionsView).toContain("до начала первого матча");
+  });
 });

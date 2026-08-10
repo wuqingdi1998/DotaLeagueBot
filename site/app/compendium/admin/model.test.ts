@@ -172,4 +172,39 @@ describe("compendium organizer base", () => {
       hero: { id: 1, name: "Anti-Mage" },
     });
   });
+
+  it("groups star race wins into one visible reward source", () => {
+    const participants = buildCompendiumAdminParticipants([
+      row({
+        history_kind: "star_race",
+        completion_id: "801",
+        quest_position: 1,
+        matched_hero_id: 1,
+        matched_match_id: "9001",
+        quest_hero_id: null,
+        hero_position: null,
+        reward_amount: 2,
+      }),
+      row({
+        history_kind: "star_race",
+        completion_id: "801",
+        quest_position: 2,
+        matched_hero_id: 2,
+        matched_match_id: "9002",
+        quest_hero_id: null,
+        hero_position: null,
+        reward_amount: 2,
+      }),
+    ]);
+
+    expect(participants[0].rewards).toHaveLength(1);
+    expect(participants[0].rewards[0]).toMatchObject({
+      kind: "star_race",
+      rewardAmount: 2,
+      wins: [
+        { matchedMatchId: "9001", hero: { id: 1, name: "Anti-Mage" } },
+        { matchedMatchId: "9002", hero: { id: 2, name: "Axe" } },
+      ],
+    });
+  });
 });

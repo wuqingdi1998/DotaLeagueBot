@@ -195,8 +195,11 @@ describe("compendium persistence and security contract", () => {
     expect(baseRepository).toContain("FROM players player");
     expect(baseRepository).toContain("compendium_user_quest_completions");
     expect(baseRepository).toContain("compendium_daily_quest_heroes");
+    expect(baseRepository).toContain("compendium_star_race_quest_completions");
+    expect(baseRepository).toContain("compendium_star_race_quest_wins");
     expect(baseView).toContain("reward.heroes.map");
     expect(baseView).toContain("hero.id === reward.matchedHeroId");
+    expect(baseView).toContain("Гонка за звёздами");
   });
 
   it("shows participant avatars and links Dota IDs to site profiles", () => {

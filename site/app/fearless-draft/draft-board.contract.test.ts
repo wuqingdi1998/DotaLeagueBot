@@ -39,4 +39,13 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain("fearless-ban-flash");
     expect(interactions).toContain("fearless-pick-flash");
   });
+
+  it("keeps picked hero images at their landscape ratio in fullscreen", () => {
+    expect(interactions).toMatch(
+      /\.fearless-active-draft:fullscreen \.fearless-pick-slots > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/,
+    );
+    expect(interactions).toMatch(
+      /\.fearless-active-draft:fullscreen \.fearless-pick-slots img\s*\{[^}]*object-fit:\s*contain;/,
+    );
+  });
 });

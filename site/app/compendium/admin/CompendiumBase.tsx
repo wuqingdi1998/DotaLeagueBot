@@ -14,6 +14,7 @@ import type {
   CompendiumPredictionRewardHistory,
   CompendiumRuneRewardHistory,
   CompendiumRewardHistory,
+  CompendiumStarRaceRewardHistory,
   CompendiumStarRaceArchive as ArchivedRace,
 } from "./types";
 import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
@@ -109,6 +110,40 @@ function PredictionRewardHistoryItem({
   );
 }
 
+function StarRaceRewardHistoryItem({
+  reward,
+}: {
+  reward: CompendiumStarRaceRewardHistory;
+}) {
+  return (
+    <article className="compendium-base-reward">
+      <div className="compendium-base-reward-heading">
+        <div>
+          <span>{reward.dateLabel}</span>
+          <strong>Гонка за звёздами</strong>
+        </div>
+        <span className="compendium-base-reward-value">
+          <FaStar aria-hidden="true" /> +{reward.rewardAmount}
+        </span>
+      </div>
+      <div className="compendium-base-heroes" aria-label="Победы в задании гонки">
+        {reward.wins.map((win) => (
+          <a
+            className="compendium-base-match-link"
+            href={`https://www.opendota.com/matches/${win.matchedMatchId}`}
+            target="_blank"
+            rel="noreferrer"
+            key={win.matchedMatchId}
+          >
+            {win.hero.name} · матч {win.matchedMatchId}
+            <FiExternalLink aria-hidden="true" />
+          </a>
+        ))}
+      </div>
+    </article>
+  );
+}
+
 function QuestRewardHistoryItem({
   reward,
 }: {
@@ -186,6 +221,9 @@ function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
   }
   if (reward.kind === "prediction") {
     return <PredictionRewardHistoryItem reward={reward} />;
+  }
+  if (reward.kind === "star_race") {
+    return <StarRaceRewardHistoryItem reward={reward} />;
   }
   return reward.kind === "admin" ? (
     <AdminRewardHistoryItem reward={reward} />

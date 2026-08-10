@@ -9,6 +9,7 @@ type PredictionRow = {
   moscow_date: string;
   position: number;
   starts_at: Date;
+  locks_at: Date;
   opens_at: Date;
   team_a_key: string;
   team_a_name: string;
@@ -47,12 +48,17 @@ function mapPrediction(row: PredictionRow, now: Date): DailyPredictionMatch {
     isLocked:
       row.actual_score !== null ||
       row.opens_at.getTime() > now.getTime() ||
-      row.starts_at.getTime() <= now.getTime(),
+      row.locks_at.getTime() <= now.getTime(),
   };
 }
 
+const predictionLockSelect = `(SELECT MIN(first_match.starts_at)
+  FROM compendium_prediction_matches first_match
+  WHERE first_match.moscow_date = match.moscow_date)`;
+
 const predictionSelect = `SELECT match.id::text, match.moscow_date::text,
-  match.position, match.starts_at, day.opens_at,
+  match.position, match.starts_at, ${predictionLockSelect} AS locks_at,
+  day.opens_at,
   match.team_a_key, match.team_a_name,
   match.team_b_key, match.team_b_name, pick.predicted_score,
   match.actual_score, reward.reward_amount
@@ -112,11 +118,12 @@ export async function recordPredictionPick(input: {
 }): Promise<DailyPredictionMatch> {
   return transaction(async (client) => {
     const match = await client.query<{
-      starts_at: Date;
+      locks_at: Date;
       opens_at: Date;
       actual_score: string | null;
     }>(
-      `SELECT match.starts_at, day.opens_at, match.actual_score
+      `SELECT ${predictionLockSelect} AS locks_at,
+         day.opens_at, match.actual_score
        FROM compendium_prediction_matches match
        JOIN compendium_prediction_days day
          ON day.moscow_date = match.moscow_date
@@ -127,7 +134,7 @@ export async function recordPredictionPick(input: {
     const row = match.rows[0];
     if (!row) throw new Error("PREDICTION_NOT_FOUND");
     if (row.opens_at > input.now) throw new Error("PREDICTION_NOT_OPEN");
-    if (row.actual_score || row.starts_at <= input.now) {
+    if (row.actual_score || row.locks_at <= input.now) {
       throw new Error("PREDICTION_LOCKED");
     }
     await client.query(
@@ -200,7 +207,8 @@ export async function replacePredictionMatches(input: {
 export async function loadPredictionAdminMatches(now: Date): Promise<PredictionAdminMatch[]> {
   const rows = await query<PredictionRow>(
     `SELECT match.id::text, match.moscow_date::text, match.position,
-       match.starts_at, day.opens_at, match.team_a_key, match.team_a_name,
+       match.starts_at, ${predictionLockSelect} AS locks_at,
+       day.opens_at, match.team_a_key, match.team_a_name,
        match.team_b_key, match.team_b_name, NULL::varchar AS predicted_score,
        match.actual_score, NULL::smallint AS reward_amount
      FROM compendium_prediction_matches match

@@ -165,6 +165,33 @@ export async function loadCompendiumAdminParticipants(): Promise<
        FROM participants participant
        JOIN compendium_rune_challenge_completions rune_reward
          ON rune_reward.player_id = participant.discord_id
+       UNION ALL
+       SELECT
+         participant.discord_id::text,
+         participant.player_name,
+         participant.dota_id,
+         participant.avatar_url,
+         participant.total_stars,
+         'star_race' AS history_kind,
+         race_completion.id::text,
+         race_completion.moscow_date::text,
+         race_win.position,
+         race_win.hero_id,
+         race_win.matched_match_id::text,
+         race_completion.completed_at,
+         race_completion.reward_amount,
+         NULL::smallint,
+         NULL::smallint,
+         NULL::text,
+         NULL::text,
+         NULL::text,
+         NULL::text,
+         NULL::text
+       FROM participants participant
+       JOIN compendium_star_race_quest_completions race_completion
+         ON race_completion.player_id = participant.discord_id
+       JOIN compendium_star_race_quest_wins race_win
+         ON race_win.completion_id = race_completion.id
      ) history
      ORDER BY LOWER(player_name), completed_at DESC NULLS LAST,
        quest_position, hero_position`,

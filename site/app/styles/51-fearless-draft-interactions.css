@@ -162,7 +162,14 @@
 .fearless-active-draft:fullscreen .fearless-team-panel > header { gap: 8px; padding: 6px 9px; }
 .fearless-active-draft:fullscreen .fearless-player-avatar { display: none; }
 .fearless-active-draft:fullscreen .fearless-pick-slots { padding: 5px 7px; }
-.fearless-active-draft:fullscreen .fearless-pick-slots > div { min-height: 46px; }
+.fearless-active-draft:fullscreen .fearless-pick-slots > div {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+}
+.fearless-active-draft:fullscreen .fearless-pick-slots img {
+  object-fit: contain;
+  background: #06131e;
+}
 .fearless-active-draft:fullscreen .fearless-pick-slots span { display: none; }
 .fearless-active-draft:fullscreen .fearless-ban-list { min-height: 34px; padding: 0 7px 6px; }
 .fearless-active-draft:fullscreen .fearless-ban-list > div { height: 31px; }

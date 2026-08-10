@@ -42,11 +42,13 @@ function PredictionTeam({ team }: { team: DailyPredictionMatch["teamA"] }) {
 
 function PredictionCard({
   match,
+  firstMatchStartsAtMs,
   currentTimeMs,
   submitting,
   onSelect,
 }: {
   match: DailyPredictionMatch;
+  firstMatchStartsAtMs: number;
   currentTimeMs: number;
   submitting: boolean;
   onSelect: (matchId: string, score: PredictionScore) => void;
@@ -55,7 +57,7 @@ function PredictionCard({
   const isLocked =
     !isOpen ||
     match.actualScore !== null ||
-    currentTimeMs >= new Date(match.startsAt).getTime();
+    currentTimeMs >= firstMatchStartsAtMs;
   return (
     <article className={`compendium-prediction-card${match.actualScore ? " completed" : ""}`}>
       <div className="compendium-prediction-card-heading">
@@ -92,7 +94,7 @@ function PredictionCard({
       ) : isLocked ? (
         <p className="compendium-prediction-note">Прогноз принят, ожидаем результат</p>
       ) : (
-        <p className="compendium-prediction-note">Можно менять выбор до начала матча</p>
+        <p className="compendium-prediction-note">Можно менять выбор до начала первого матча</p>
       )}
     </article>
   );
@@ -111,6 +113,9 @@ export function CompendiumPredictions({
   submittingMatchId: string | null;
   onSelect: (matchId: string, score: PredictionScore) => void;
 }) {
+  const firstMatchStartsAtMs = matches.length
+    ? Math.min(...matches.map((match) => new Date(match.startsAt).getTime()))
+    : Number.POSITIVE_INFINITY;
   return (
     <section className="compendium-predictions-section" id="compendium-predictions">
       <div className="compendium-predictions-heading">
@@ -134,6 +139,7 @@ export function CompendiumPredictions({
           {matches.map((match) => (
             <PredictionCard
               match={match}
+              firstMatchStartsAtMs={firstMatchStartsAtMs}
               currentTimeMs={currentTimeMs}
               submitting={submittingMatchId === match.id}
               onSelect={onSelect}
