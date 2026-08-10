@@ -201,6 +201,32 @@ export function TournamentForm({
                   onChange={(value) => setField("check_in_minutes", value)}
                 />
                 <label>
+                  <span>Максимальный тир</span>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={form.max_team_tier ?? ""}
+                    placeholder="Без ограничения"
+                    onChange={(event) =>
+                      setField(
+                        "max_team_tier",
+                        event.target.value ? Number(event.target.value) : null,
+                      )
+                    }
+                  />
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={form.show_tiers}
+                    onChange={(event) =>
+                      setField("show_tiers", event.target.checked)
+                    }
+                  />
+                  <span>Показать тиры</span>
+                </label>
+                <label>
                   <span>Формат плей-офф</span>
                   <select
                     value={form.playoff_type}

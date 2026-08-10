@@ -6,7 +6,6 @@ import { emptyMatchDraft, emptyRegistration, roleOptions } from "../model/consta
 import { getTeamNameError } from "../model/formatters";
 import { buildMatchResultPayload } from "../model/match-result-payload";
 import { startDiscordLogin } from "../services/discord-login";
-import { usePlayerNameSearch } from "./usePlayerNameSearch";
 import { useSeasonController } from "./useSeasonController";
 import type { MatchDraft, RegistrationForm, TeamApplication } from "../model/types";
 import type { TournamentMatch, TournamentSiteData, TournamentTab } from "../model/types";
@@ -42,10 +41,6 @@ export function useTournamentController() {
     setMessage: setToast,
     slug: tournamentSlug,
   });
-  const { playerNames, searchPlayerNames } = usePlayerNameSearch(
-    data?.user !== null && data?.user !== undefined,
-  );
-
   const loadData = useCallback(async () => {
     try {
       const response = await fetch(
@@ -250,6 +245,22 @@ export function useTournamentController() {
     await loadData();
   }
 
+  async function deleteApplication(id: number, teamName: string) {
+    if (!window.confirm(`Удалить отклонённую заявку команды «${teamName}»?`)) {
+      return;
+    }
+    const response = await fetch(`/api/applications?id=${id}`, {
+      method: "DELETE",
+    });
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setToast(result.error ?? "Не удалось удалить заявку");
+      return;
+    }
+    setToast("Отклонённая заявка удалена");
+    await loadData();
+  }
+
   async function answerInvitation(
     applicationId: number,
     invitationStatus: "accepted" | "declined",
@@ -442,6 +453,7 @@ export function useTournamentController() {
     createMatch,
     data,
     daysLeft,
+    deleteApplication,
     deleteMatch,
     generateGroups,
     groupCount,
@@ -452,7 +464,6 @@ export function useTournamentController() {
     openRegistration,
     openTournamentTab,
     pendingTeams,
-    playerNames,
     registration,
     registrationAvailable,
     registrationOpen,
@@ -460,7 +471,6 @@ export function useTournamentController() {
     saveMatchResult,
     saveTeamResult,
     saving,
-    searchPlayerNames,
     season,
     setActiveTab,
     setCaptainChoices,

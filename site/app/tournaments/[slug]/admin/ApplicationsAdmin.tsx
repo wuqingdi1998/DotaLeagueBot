@@ -7,7 +7,7 @@ import { useTournament } from "../hooks/TournamentContext";
 import { getTeamPlayers, initials } from "../model/formatters";
 
 export function ApplicationsAdmin() {
-  const { data, updateApplicationStatus } = useTournament();
+  const { data, deleteApplication, updateApplicationStatus } = useTournament();
   if (!data) return null;
 
   return (
@@ -51,6 +51,9 @@ export function ApplicationsAdmin() {
               <p>
                 Капитан: {application.captain} · {application.contact}
               </p>
+              <p>
+                Сумма тиров при регистрации: {application.team_tier_total_snapshot ?? "—"}
+              </p>
               <ul className="application-roster-links">
                 {getTeamPlayers(application).map((player) => {
                   const role = roleOptions.find(
@@ -71,6 +74,9 @@ export function ApplicationsAdmin() {
                         <b>{player.name}</b>
                       )}
                       {player.isCaptain && <small>капитан</small>}
+                      <small className="player-tier">
+                        тир {player.tier ?? "—"}
+                      </small>
                     </li>
                   );
                 })}
@@ -94,6 +100,16 @@ export function ApplicationsAdmin() {
               >
                 Отклонить
               </button>
+              {application.status === "declined" && (
+                <button
+                  className="danger"
+                  onClick={() =>
+                    void deleteApplication(application.id, application.team_name)
+                  }
+                >
+                  Удалить заявку
+                </button>
+              )}
             </div>
           </article>
         ))}

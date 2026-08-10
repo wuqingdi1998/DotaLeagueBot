@@ -73,7 +73,7 @@ export function TeamsPanel() {
               <h3>{team.team_name}</h3>
               <div className="team-archive-meta">
                 <span>{team.selection_method}</span>
-                {team.team_tier_total_snapshot !== null && (
+                {tournament.show_tiers && team.team_tier_total_snapshot !== null && (
                   <span>Тир команды: {team.team_tier_total_snapshot}</span>
                 )}
               </div>
@@ -108,7 +108,7 @@ export function TeamsPanel() {
                         <FaCrown aria-hidden="true" /> капитан
                       </small>
                     )}
-                    {player.tier !== null && (
+                    {tournament.show_tiers && player.tier !== null && (
                       <small className="player-tier">тир {player.tier}</small>
                     )}
                   </li>

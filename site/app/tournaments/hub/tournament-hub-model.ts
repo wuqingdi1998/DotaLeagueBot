@@ -64,6 +64,8 @@ export type NewTournament = {
   format: string;
   team_size: number;
   max_teams: number;
+  max_team_tier: number | null;
+  show_tiers: boolean;
   region: string;
   server: string;
   check_in_minutes: number;
@@ -92,6 +94,8 @@ export const emptyTournament: NewTournament = {
   format: "",
   team_size: 5,
   max_teams: 8,
+  max_team_tier: null,
+  show_tiers: false,
   region: "EU / RU",
   server: "EU West",
   check_in_minutes: 60,

@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { FaDiscord } from "react-icons/fa";
 import { FiArrowRight, FiUploadCloud } from "react-icons/fi";
+import { PlayerAutocomplete } from "./PlayerAutocomplete";
 import { RoleIcon, RoleSelect } from "./RoleField";
 import { useTournament } from "../hooks/TournamentContext";
 
@@ -12,12 +14,10 @@ export function TournamentModals() {
     captainChoices,
     data,
     loginOpen,
-    playerNames,
     registration,
     registrationOpen,
     registrationReady,
     saving,
-    searchPlayerNames,
     setActiveTab,
     setCaptainChoices,
     setLoginOpen,
@@ -32,7 +32,28 @@ export function TournamentModals() {
     toast,
     transferCaptain,
   } = useTournament();
+  const [memberTiers, setMemberTiers] = useState<
+    Partial<Record<"player_2" | "player_3" | "player_4" | "player_5", number | null>>
+  >({});
+
+  const registrationTierTotal = useMemo(() => {
+    const tiers = [
+      data?.registrationCaptainTier ?? null,
+      registration.player_2.trim() ? memberTiers.player_2 ?? null : null,
+      registration.player_3.trim() ? memberTiers.player_3 ?? null : null,
+      registration.player_4.trim() ? memberTiers.player_4 ?? null : null,
+      registration.player_5.trim() ? memberTiers.player_5 ?? null : null,
+    ];
+    return tiers.every((tier): tier is number => tier !== null)
+      ? tiers.reduce((sum, tier) => sum + tier, 0)
+      : null;
+  }, [data?.registrationCaptainTier, memberTiers, registration]);
+
   if (!data) return null;
+  const isRegistrationTierExceeded =
+    data.tournament.max_team_tier !== null &&
+    registrationTierTotal !== null &&
+    registrationTierTotal > data.tournament.max_team_tier;
 
   return (
     <>
@@ -69,6 +90,21 @@ export function TournamentModals() {
               Заполните состав. Заявка сохранится в базе, а организатор увидит
               её в своей панели.
             </p>
+            {data.tournament.max_team_tier !== null && (
+              <div
+                className={`registration-tier-limit ${
+                  isRegistrationTierExceeded ? "exceeded" : ""
+                }`}
+              >
+                <span>Максимальный тир команды</span>
+                <strong>{data.tournament.max_team_tier}</strong>
+                <small>
+                  {registrationTierTotal === null
+                    ? "Выберите всех игроков, чтобы увидеть сумму тиров"
+                    : `Сумма выбранного состава: ${registrationTierTotal} из ${data.tournament.max_team_tier}`}
+                </small>
+              </div>
+            )}
             <form onSubmit={submitRegistration}>
               <div className="form-grid two">
                 <label>
@@ -116,11 +152,6 @@ export function TournamentModals() {
                   />
                 </label>
               </div>
-              <datalist id="registered-players">
-                {playerNames.map((name) => (
-                  <option value={name} key={name} />
-                ))}
-              </datalist>
               <label
                 className={`emblem-upload ${teamEmblem ? "has-file" : ""}`}
               >
@@ -176,6 +207,11 @@ export function TournamentModals() {
                     value={registration.captain}
                     placeholder="Игровой ник из профиля"
                   />
+                  <small className="player-autocomplete-tier">
+                    {data.registrationCaptainTier !== null
+                      ? `Тир на момент регистрации: ${data.registrationCaptainTier}`
+                      : "Актуальный тир не подтверждён"}
+                  </small>
                 </label>
                 <RoleSelect
                   value={registration.captain_role}
@@ -222,22 +258,23 @@ export function TournamentModals() {
                       key={playerField}
                     >
                       <RoleIcon role={registration[roleField]} />
-                      <label>
-                        <span>Игрок {index + 2}</span>
-                        <input
-                          list="registered-players"
-                          required
-                          value={registration[playerField]}
-                          onChange={(event) => {
-                            setRegistration({
-                              ...registration,
-                              [playerField]: event.target.value,
-                            });
-                            searchPlayerNames(event.target.value);
-                          }}
-                          placeholder="Игровой ник из базы бота"
-                        />
-                      </label>
+                      <PlayerAutocomplete
+                        label={`Игрок ${index + 2}`}
+                        value={registration[playerField]}
+                        onChange={(value) =>
+                          setRegistration({
+                            ...registration,
+                            [playerField]: value,
+                          })
+                        }
+                        onTierResolved={(tier) =>
+                          setMemberTiers((current) =>
+                            current[playerField] === tier
+                              ? current
+                              : { ...current, [playerField]: tier },
+                          )
+                        }
+                      />
                       <RoleSelect
                         value={registration[roleField]}
                         onChange={(value) =>
@@ -268,7 +305,9 @@ export function TournamentModals() {
               <button
                 className="primary-button submit-button"
                 type="submit"
-                disabled={saving || !registrationReady}
+                disabled={
+                  saving || !registrationReady || isRegistrationTierExceeded
+                }
               >
                 {saving ? "Отправляем…" : "Отправить заявку"} <FiArrowRight />
               </button>

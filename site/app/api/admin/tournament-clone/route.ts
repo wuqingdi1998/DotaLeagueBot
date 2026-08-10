@@ -53,7 +53,8 @@ export async function POST(request: Request) {
            about, start_at, end_at, registration_deadline, status_label,
            format, team_size, max_teams, region, server, check_in_minutes,
            group_format, playoff_format, final_format, discord_url, status,
-           playoff_type, tournament_type, season_round_count
+           playoff_type, tournament_type, season_round_count,
+           max_team_tier, show_tiers
          )
          SELECT
            $2, LEFT(name, 140) || ' — копия', eyebrow, headline,
@@ -61,7 +62,8 @@ export async function POST(request: Request) {
            registration_deadline, status_label, format, team_size,
            max_teams, region, server, check_in_minutes, group_format,
            playoff_format, final_format, discord_url, 'draft',
-           playoff_type, tournament_type, season_round_count
+           playoff_type, tournament_type, season_round_count,
+           max_team_tier, show_tiers
          FROM tournaments
          WHERE id = $1
          RETURNING id::int, name`,

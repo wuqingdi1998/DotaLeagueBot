@@ -21,7 +21,10 @@ export function TournamentDetailsEditor({
   const [draft, setDraft] = useState(tournament);
   const [saving, setSaving] = useState(false);
 
-  function setField(field: keyof Tournament, value: string | number) {
+  function setField(
+    field: keyof Tournament,
+    value: string | number | boolean | null,
+  ) {
     setDraft((current) => ({ ...current, [field]: value }));
   }
 
@@ -176,6 +179,32 @@ export function TournamentDetailsEditor({
                   setField("check_in_minutes", Number(event.target.value))
                 }
               />
+            </label>
+            <label>
+              <span>Максимальный тир</span>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={draft.max_team_tier ?? ""}
+                placeholder="Без ограничения"
+                onChange={(event) =>
+                  setField(
+                    "max_team_tier",
+                    event.target.value ? Number(event.target.value) : null,
+                  )
+                }
+              />
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={draft.show_tiers}
+                onChange={(event) =>
+                  setField("show_tiers", event.target.checked)
+                }
+              />
+              <span>Показать тиры</span>
             </label>
             <label>
               <span>Формат плей-офф</span>

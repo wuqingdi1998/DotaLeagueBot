@@ -28,6 +28,8 @@ export type Tournament = {
   format: string;
   team_size: number;
   max_teams: number;
+  max_team_tier: number | null;
+  show_tiers: boolean;
   region: string;
   server: string;
   check_in_minutes: number;
@@ -181,6 +183,7 @@ export type TournamentSiteData = {
   }>;
   scheduleDays: TournamentScheduleDay[];
   seasonFacts: TournamentSeasonFact[];
+  registrationCaptainTier: number | null;
   user: {
     discordId: string;
     dotaId: string;

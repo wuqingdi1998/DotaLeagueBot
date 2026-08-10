@@ -14,8 +14,18 @@ export async function GET(request: Request) {
       ingame_name: string;
       positions: string | null;
       avatar_url: string | null;
+      tier: number | null;
+      tier_status: string;
     }>(
-      `SELECT ingame_name, positions, avatar_url
+      `SELECT ingame_name, positions, avatar_url, tier_status,
+       COALESCE(
+         NULLIF(internal_rating, 0),
+         CASE
+           WHEN rank_tier >= 10 THEN rank_tier / 10
+           WHEN rank_tier > 0 THEN rank_tier
+           ELSE NULL
+         END
+       )::int AS tier
        FROM players
        WHERE is_archived = FALSE
          AND ingame_name ILIKE '%' || $1 || '%'

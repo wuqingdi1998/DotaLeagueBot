@@ -12,7 +12,14 @@ const applicationStatus = readFileSync(
   ),
   "utf8",
 );
-const applicationFlow = `${applicationRoute}\n${applicationStatus}`;
+const applicationUpdate = readFileSync(
+  new URL(
+    "../app/api/applications/application-update.ts",
+    import.meta.url,
+  ),
+  "utf8",
+);
+const applicationFlow = `${applicationRoute}\n${applicationStatus}\n${applicationUpdate}`;
 const groupRoute = readFileSync(
   new URL("../app/api/admin/groups/route.ts", import.meta.url),
   "utf8",
@@ -51,7 +58,7 @@ describe("complete tournament lifecycle", () => {
     expect(applicationStatus).toMatch(
       /transaction\(async \(client\)[\s\S]*status === "approved"[\s\S]*pg_advisory_xact_lock[\s\S]*TOURNAMENT_FULL[\s\S]*UPDATE tournament_team_applications/,
     );
-    expect(applicationRoute).toContain("Все командные слоты уже заняты");
+    expect(applicationUpdate).toContain("Все командные слоты уже заняты");
   });
 
   it("protects group generation, match results and final results with organizer access", () => {

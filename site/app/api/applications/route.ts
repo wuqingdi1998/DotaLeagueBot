@@ -1,7 +1,6 @@
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
-  requireAdmin,
   requireSession,
   responseFromAuthError,
 } from "@/lib/auth";
@@ -11,13 +10,19 @@ import {
   rolesAreComplete,
 } from "@/lib/validation";
 import {
+  registrationTierError,
+  teamTierTotal,
+} from "@/lib/tournament-registration-tier";
+import {
   allowedTeamImageTypes as allowedImageTypes,
   hasExpectedImageSignature as hasExpectedSignature,
   resolveApplicationPlayer as resolvePlayer,
   outdatedTierApplicationError,
   type ApplicationPlayerRow as PlayerRow,
 } from "./application-support";
-import { updateApplicationStatus } from "./application-status";
+
+export { DELETE } from "./application-deletion";
+export { PATCH } from "./application-update";
 
 export const dynamic = "force-dynamic";
 
@@ -64,10 +69,11 @@ export async function POST(request: Request) {
       id: number;
       registration_open: boolean;
       max_teams: number;
+      max_team_tier: number | null;
     }>(
       `SELECT id::int,
         (status = 'registration' AND registration_deadline > NOW()) AS registration_open,
-        max_teams
+        max_teams, max_team_tier::int
        FROM tournaments WHERE id = $1`,
       [tournamentId],
     );
@@ -143,6 +149,13 @@ export async function POST(request: Request) {
     if (outdatedTierError) {
       return Response.json({ error: outdatedTierError }, { status: 409 });
     }
+    const tierLimitError = registrationTierError(
+      tournament.max_team_tier,
+      members,
+    );
+    if (tierLimitError) {
+      return Response.json({ error: tierLimitError }, { status: 409 });
+    }
 
     const emblem = body.get("emblem");
     if (!(emblem instanceof File) || emblem.size === 0) {
@@ -185,10 +198,12 @@ export async function POST(request: Request) {
       );
       const currentTournament = await client.query<{
         registration_open: boolean;
+        max_team_tier: number | null;
       }>(
         `SELECT
            (status = 'registration' AND registration_deadline > NOW())
-             AS registration_open
+             AS registration_open,
+           max_team_tier::int
          FROM tournaments
          WHERE id = $1
          FOR UPDATE`,
@@ -198,6 +213,43 @@ export async function POST(request: Request) {
       if (!currentTournament.rows[0].registration_open) {
         throw new Error("REGISTRATION_CLOSED");
       }
+      const lockedPlayers = await client.query<PlayerRow>(
+        `SELECT discord_id::text, ingame_name, tier_status,
+           COALESCE(
+             NULLIF(internal_rating, 0),
+             CASE
+               WHEN rank_tier >= 10 THEN rank_tier / 10
+               WHEN rank_tier > 0 THEN rank_tier
+               ELSE NULL
+             END
+           )::int AS tier
+         FROM players
+         WHERE discord_id = ANY($1::bigint[]) AND is_archived = FALSE
+         FOR SHARE`,
+        [members.map((member) => member.discord_id)],
+      );
+      const lockedPlayerById = new Map(
+        lockedPlayers.rows.map((player) => [player.discord_id, player]),
+      );
+      const registrationMembers = members.map((member) =>
+        lockedPlayerById.get(member.discord_id),
+      );
+      if (registrationMembers.some((member) => !member)) {
+        throw new Error("REGISTRATION_PLAYER_CHANGED");
+      }
+      const currentMembers = registrationMembers as PlayerRow[];
+      const currentOutdatedTierError = outdatedTierApplicationError(currentMembers);
+      if (currentOutdatedTierError) {
+        throw new Error(`REGISTRATION_TIER:${currentOutdatedTierError}`);
+      }
+      const currentTierLimitError = registrationTierError(
+        currentTournament.rows[0].max_team_tier,
+        currentMembers,
+      );
+      if (currentTierLimitError) {
+        throw new Error(`REGISTRATION_TIER:${currentTierLimitError}`);
+      }
+      const tierTotal = teamTierTotal(currentMembers);
       const existing = await client.query(
         `SELECT 1 FROM tournament_team_members m
          JOIN tournament_team_applications a ON a.id = m.application_id
@@ -213,8 +265,9 @@ export async function POST(request: Request) {
 
       const created = await client.query<{ id: number }>(
         `INSERT INTO tournament_team_applications
-          (tournament_id, team_name, tag, captain_discord_id, contact, logo_key)
-         VALUES ($1, $2, $3, $4, $5, $6)
+          (tournament_id, team_name, tag, captain_discord_id, contact, logo_key,
+           team_tier_total_snapshot)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING id::int`,
         [
           tournamentId,
@@ -223,21 +276,24 @@ export async function POST(request: Request) {
           captain.discordId,
           contact,
           logoKey,
+          tierTotal,
         ],
       );
       const id = created.rows[0].id;
-      for (let index = 0; index < members.length; index += 1) {
+      for (let index = 0; index < currentMembers.length; index += 1) {
         await client.query(
           `INSERT INTO tournament_team_members
-            (application_id, player_id, role, is_captain, invitation_status, responded_at)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
+            (application_id, player_id, role, is_captain, invitation_status,
+             responded_at, tier_snapshot)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
           [
             id,
-            members[index].discord_id,
+            currentMembers[index].discord_id,
             selectedRoles[index],
             index === 0,
             index === 0 ? "accepted" : "invited",
             index === 0 ? new Date() : null,
+            currentMembers[index].tier,
           ],
         );
         if (index > 0) {
@@ -246,7 +302,7 @@ export async function POST(request: Request) {
               (discord_id, event_type, title, message, action_url)
              VALUES ($1, 'team_invitation', $2, $3, $4)`,
             [
-              members[index].discord_id,
+              currentMembers[index].discord_id,
               `Приглашение в ${teamName}`,
               `${captain.playerName} приглашает вас в состав на турнир. Подтвердите или отклоните приглашение на сайте.`,
               process.env.PUBLIC_BASE_URL ?? null,
@@ -290,189 +346,29 @@ export async function POST(request: Request) {
     }
     if (
       error instanceof Error &&
+      error.message.startsWith("REGISTRATION_TIER:")
+    ) {
+      return Response.json(
+        { error: error.message.slice("REGISTRATION_TIER:".length) },
+        { status: 409 },
+      );
+    }
+    if (
+      error instanceof Error &&
+      error.message === "REGISTRATION_PLAYER_CHANGED"
+    ) {
+      return Response.json(
+        { error: "Данные одного из игроков изменились. Выберите состав заново." },
+        { status: 409 },
+      );
+    }
+    if (
+      error instanceof Error &&
       "code" in error &&
       (error as { code?: string }).code === "23505"
     ) {
       return Response.json(
         { error: "Команда с таким названием или тегом уже зарегистрирована" },
-        { status: 409 },
-      );
-    }
-    return responseFromAuthError(error);
-  }
-}
-
-export async function PATCH(request: Request) {
-  try {
-    const user = await requireSession();
-    const body = (await request.json()) as {
-      id?: number;
-      status?: string;
-      invitationStatus?: string;
-      newCaptainId?: string;
-    };
-    if (!body.id) {
-      return Response.json({ error: "Некорректная заявка" }, { status: 400 });
-    }
-
-    if (body.newCaptainId) {
-      await transaction(async (client) => {
-        const application = await client.query<{
-          tournament_id: number;
-          team_name: string;
-        }>(
-          `SELECT tournament_id::int, team_name
-           FROM tournament_team_applications
-           WHERE id = $1 AND captain_discord_id = $2
-           FOR UPDATE`,
-          [body.id, user.discordId],
-        );
-        if (!application.rowCount) throw new Error("APPLICATION_NOT_FOUND");
-        const newCaptain = await client.query<{ ingame_name: string }>(
-          `SELECT p.ingame_name
-           FROM tournament_team_members m
-           JOIN players p ON p.discord_id = m.player_id
-           WHERE m.application_id = $1 AND m.player_id = $2
-             AND m.invitation_status = 'accepted'`,
-          [body.id, body.newCaptainId],
-        );
-        if (!newCaptain.rowCount) throw new Error("CAPTAIN_NOT_ELIGIBLE");
-        await client.query(
-          `UPDATE tournament_team_members
-           SET is_captain = (player_id = $2)
-           WHERE application_id = $1`,
-          [body.id, body.newCaptainId],
-        );
-        await client.query(
-          `UPDATE tournament_team_applications
-           SET captain_discord_id = $2, updated_at = NOW()
-           WHERE id = $1`,
-          [body.id, body.newCaptainId],
-        );
-        await client.query(
-          `INSERT INTO tournament_audit_log
-            (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
-           VALUES ($1, $2, 'transfer_captain', 'team_application', $3, $4::jsonb)`,
-          [
-            application.rows[0].tournament_id,
-            user.discordId,
-            String(body.id),
-            JSON.stringify({ newCaptainId: body.newCaptainId }),
-          ],
-        );
-        await client.query(
-          `INSERT INTO notification_outbox
-            (discord_id, event_type, title, message, action_url)
-           VALUES ($1, 'captain_transfer', $2, $3, $4)`,
-          [
-            body.newCaptainId,
-            `Вы стали капитаном: ${application.rows[0].team_name}`,
-            `${user.playerName} передал вам роль капитана команды.`,
-            process.env.PUBLIC_BASE_URL ?? null,
-          ],
-        );
-      });
-      return Response.json({ ok: true });
-    }
-
-    if (body.invitationStatus) {
-      if (!["accepted", "declined"].includes(body.invitationStatus)) {
-        return Response.json(
-          { error: "Некорректный ответ на приглашение" },
-          { status: 400 },
-        );
-      }
-      await transaction(async (client) => {
-        const application = await client.query<{
-          captain_discord_id: string;
-          team_name: string;
-        }>(
-          `SELECT captain_discord_id::text, team_name
-           FROM tournament_team_applications WHERE id = $1`,
-          [body.id],
-        );
-        if (!application.rowCount) throw new Error("INVITE_NOT_FOUND");
-        const updated = await client.query(
-          `UPDATE tournament_team_members
-           SET invitation_status = $1, responded_at = NOW()
-           WHERE application_id = $2 AND player_id = $3
-             AND NOT is_captain AND invitation_status = 'invited'
-           RETURNING application_id`,
-          [body.invitationStatus, body.id, user.discordId],
-        );
-        if (!updated.rowCount) throw new Error("INVITE_NOT_FOUND");
-        await client.query(
-          `INSERT INTO notification_outbox
-            (discord_id, event_type, title, message, action_url)
-           VALUES ($1, 'team_invitation_response', $2, $3, $4)`,
-          [
-            application.rows[0].captain_discord_id,
-            `Ответ на приглашение: ${application.rows[0].team_name}`,
-            `${user.playerName} ${
-              body.invitationStatus === "accepted" ? "принял" : "отклонил"
-            } приглашение в команду.`,
-            process.env.PUBLIC_BASE_URL ?? null,
-          ],
-        );
-        if (body.invitationStatus === "declined") {
-          await client.query(
-            `UPDATE tournament_team_applications
-             SET status = 'declined', updated_at = NOW()
-             WHERE id = $1`,
-            [body.id],
-          );
-        } else {
-          await client.query(
-            `UPDATE tournament_team_applications a
-             SET status = 'pending', updated_at = NOW()
-             WHERE a.id = $1
-               AND NOT EXISTS (
-                 SELECT 1 FROM tournament_team_members m
-                 WHERE m.application_id = a.id
-                   AND m.invitation_status <> 'accepted'
-               )`,
-            [body.id],
-          );
-        }
-      });
-      return Response.json({ ok: true });
-    }
-
-    const admin = await requireAdmin();
-    if (!["approved", "declined", "pending"].includes(body.status ?? "")) {
-      return Response.json(
-        { error: "Некорректный статус заявки" },
-        { status: 400 },
-      );
-    }
-    await updateApplicationStatus({
-      applicationId: body.id,
-      status: body.status as "approved" | "declined" | "pending",
-      actorDiscordId: admin.discordId,
-    });
-    return Response.json({ ok: true });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      ["INVITE_NOT_FOUND", "APPLICATION_NOT_FOUND"].includes(error.message)
-    ) {
-      return Response.json({ error: "Заявка не найдена" }, { status: 404 });
-    }
-    if (error instanceof Error && error.message === "CAPTAIN_NOT_ELIGIBLE") {
-      return Response.json(
-        { error: "Новым капитаном может стать принявший приглашение игрок" },
-        { status: 409 },
-      );
-    }
-    if (error instanceof Error && error.message === "MEMBERS_NOT_ACCEPTED") {
-      return Response.json(
-        { error: "Сначала все игроки должны принять приглашение" },
-        { status: 409 },
-      );
-    }
-    if (error instanceof Error && error.message === "TOURNAMENT_FULL") {
-      return Response.json(
-        { error: "Все командные слоты уже заняты" },
         { status: 409 },
       );
     }

@@ -65,7 +65,8 @@ describe("tournament page public behavior", () => {
 
   it("searches the full player list after two nickname characters", () => {
     expect(tournamentSource).toContain("minimumPlayerSearchLength = 2");
-    expect(tournamentSource).toContain("searchPlayerNames(event.target.value)");
+    expect(tournamentSource).toContain("PlayerAutocomplete");
+    expect(tournamentSource).toContain("encodeURIComponent(search)");
     expect(playerSearchRoute).toContain("search.length < 2");
     expect(playerSearchRoute).toContain("ingame_name ILIKE");
     expect(playerSearchRoute).toContain("LIMIT 100");

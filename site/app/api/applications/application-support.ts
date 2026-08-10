@@ -43,13 +43,22 @@ export type ApplicationPlayerRow = {
   discord_id: string;
   ingame_name: string;
   tier_status: PlayerTierStatus;
+  tier: number | null;
 };
 
 export async function resolveApplicationPlayer(
   name: string,
 ): Promise<ApplicationPlayerRow | null> {
   const players = await query<ApplicationPlayerRow>(
-     `SELECT discord_id::text, ingame_name, tier_status
+     `SELECT discord_id::text, ingame_name, tier_status,
+       COALESCE(
+         NULLIF(internal_rating, 0),
+         CASE
+           WHEN rank_tier >= 10 THEN rank_tier / 10
+           WHEN rank_tier > 0 THEN rank_tier
+           ELSE NULL
+         END
+       )::int AS tier
      FROM players
      WHERE is_archived = FALSE
        AND LOWER(ingame_name) = LOWER($1)

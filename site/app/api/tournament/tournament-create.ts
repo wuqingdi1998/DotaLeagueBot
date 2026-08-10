@@ -2,6 +2,7 @@ import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
 import { validSeasonRoundCount } from "@/lib/season";
 import { defaultSeasonFacts } from "@/lib/season-facts";
+import { parseMaximumTeamTier } from "@/lib/tournament-registration-tier";
 import {
   editableTournamentFields,
   missingFieldsMessage,
@@ -42,6 +43,14 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+    const maximumTeamTier = parseMaximumTeamTier(body.max_team_tier);
+    if (maximumTeamTier === undefined) {
+      return Response.json(
+        { error: "Максимальный тир должен быть целым числом от 1 до 100 или оставаться пустым" },
+        { status: 400 },
+      );
+    }
+    const showTiers = body.show_tiers === true;
 
     const playoffType = String(
       body.playoff_type ?? "double_elimination",
@@ -70,13 +79,22 @@ export async function POST(request: Request) {
           start_at, end_at, registration_deadline, status_label, format,
           team_size, max_teams, region, server, check_in_minutes,
           group_format, playoff_format, final_format, discord_url, status,
-          playoff_type, tournament_type, season_round_count
+          playoff_type, tournament_type, season_round_count,
+          max_team_tier, show_tiers
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
           $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
-          $24, $25
+          $24, $25, $26, $27
         ) RETURNING id::int`,
-        [slug, ...values, playoffType, tournamentType, seasonRoundCount],
+        [
+          slug,
+          ...values,
+          playoffType,
+          tournamentType,
+          seasonRoundCount,
+          maximumTeamTier,
+          showTiers,
+        ],
       );
       const id = result.rows[0].id;
       await client.query(
