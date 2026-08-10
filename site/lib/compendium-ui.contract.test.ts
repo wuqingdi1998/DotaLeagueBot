@@ -61,11 +61,22 @@ describe("compendium interface contract", () => {
   });
 
   it("makes reward milestones horizontally swipeable on phones", () => {
+    expect(rewards).toContain("compendium-reward-swipe-hint");
+    expect(rewards).toContain("Листайте награды влево и вправо");
+    expect(rewardsCss).toMatch(
+      /\.compendium-reward-swipe-hint\s*\{[^}]*display:\s*none;/,
+    );
     expect(rewardsCss).toMatch(
       /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-milestones,[\s\S]*\.compendium-reward-track-community \.compendium-reward-milestones\s*\{[^}]*display:\s*flex;[^}]*overflow-x:\s*auto;[^}]*scroll-snap-type:\s*x mandatory;/,
     );
     expect(rewardsCss).toMatch(
-      /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-milestones article\s*\{[^}]*flex:\s*0 0 min\(84vw, 360px\);[^}]*scroll-snap-align:\s*start;/,
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-milestones article\s*\{[^}]*flex:\s*0 0 min\(calc\(100% - 28px\), 360px\);[^}]*scroll-snap-align:\s*start;/,
+    );
+    expect(rewardsCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-swipe-hint\s*\{[^}]*display:\s*flex;/,
+    );
+    expect(rewardsCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-reward-milestones article\.unlocked\s*\{[^}]*box-shadow:\s*inset/,
     );
   });
 });

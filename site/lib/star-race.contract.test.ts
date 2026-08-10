@@ -84,14 +84,22 @@ describe("compendium star race contract", () => {
   });
 
   it("shows the signed-in player's unique rank from the same standings", () => {
+    expect(repository).toContain("export async function loadPersonalStarRaceStars");
+    expect(repository).toContain("event.player_id = $3");
     expect(repository).toContain("export async function loadStarRaceRank");
     expect(repository).toContain(
       "eligible_total.completed_race_quests DESC",
     );
     expect(repository).toContain("WHERE ranked_total.player_id = $4");
     expect(service).toContain("loadStarRaceRank(user.discordId, race)");
+    expect(service).toContain("loadPersonalStarRaceStars(user.discordId, race)");
+    expect(starRaceModel).toContain("personalStars: number | null");
+    expect(starRaceModel).not.toContain("totalStars: number | null");
     expect(starRaceModel).toContain("personalRank: number | null");
     expect(starRaceView).toContain("Ваше место в гонке");
+    expect(starRaceView).toContain("Ваш результат");
+    expect(starRaceView).toContain("race.personalStars ?? 0");
+    expect(starRaceView).not.toContain("race.totalStars");
     expect(starRaceView).toContain('race.personalRank ?? "—"');
     expect(styles).toContain(".compendium-star-race-rank-label");
     expect(styles).toContain("grid-row: 1 / 5");

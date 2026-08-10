@@ -245,7 +245,7 @@ export type StarRaceData = {
   isDetailsVisible: boolean;
   startsAt: string;
   endsAt: string;
-  totalStars: number | null;
+  personalStars: number | null;
   personalRank: number | null;
   prizes: readonly StarRacePrize[];
   quests: StarRaceQuest[];

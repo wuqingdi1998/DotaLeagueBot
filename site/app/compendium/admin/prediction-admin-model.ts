@@ -7,6 +7,11 @@ export type PredictionMatchDraft = {
   isLocked: boolean;
 };
 
+export type PredictionOpeningDraft = {
+  dateKey: string;
+  time: string;
+};
+
 const defaultTimes = ["12:00", "15:00", "18:00"];
 
 export function predictionTimeValue(startsAt: string): string {
@@ -16,6 +21,30 @@ export function predictionTimeValue(startsAt: string): string {
     minute: "2-digit",
     hourCycle: "h23",
   }).format(new Date(startsAt));
+}
+
+function predictionDateValue(value: string): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Moscow",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+export function predictionOpeningDraftForDate(
+  matches: PredictionAdminMatch[],
+  dateKey: string,
+): PredictionOpeningDraft {
+  const opensAt = matches.find((match) => match.moscowDate === dateKey)?.opensAt;
+  if (!opensAt) return { dateKey, time: "00:00" };
+  return {
+    dateKey: predictionDateValue(opensAt),
+    time: predictionTimeValue(opensAt),
+  };
 }
 
 export function predictionDraftsForDate(
@@ -50,7 +79,7 @@ export function groupPredictionMatchesByDate(matches: PredictionAdminMatch[]) {
   }
   return [...groups.entries()].map(([dateKey, dayMatches]) => ({
     dateKey,
+    opensAt: dayMatches[0].opensAt,
     matches: dayMatches.sort((left, right) => left.position - right.position),
   }));
 }
-

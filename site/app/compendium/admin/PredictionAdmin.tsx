@@ -9,6 +9,7 @@ import { PredictionDayEditor } from "./PredictionDayEditor";
 import {
   predictionDraftsForDate,
   predictionMatchCountForDate,
+  predictionOpeningDraftForDate,
   type PredictionMatchDraft,
 } from "./prediction-admin-model";
 import { PredictionScheduleList } from "./PredictionScheduleList";
@@ -22,8 +23,11 @@ export function PredictionAdmin({
   teams: Array<{ key: string; name: string }>;
   initialDate: string;
 }) {
+  const initialOpening = predictionOpeningDraftForDate(initialMatches, initialDate);
   const [matches, setMatches] = useState(initialMatches);
   const [dateKey, setDateKey] = useState(initialDate);
+  const [openingDateKey, setOpeningDateKey] = useState(initialOpening.dateKey);
+  const [openingTime, setOpeningTime] = useState(initialOpening.time);
   const [drafts, setDrafts] = useState(() => predictionDraftsForDate(initialMatches, initialDate));
   const [matchCount, setMatchCount] = useState<2 | 3>(() => predictionMatchCountForDate(initialMatches, initialDate));
   const [results, setResults] = useState<Record<string, PredictionScore>>(() => Object.fromEntries(
@@ -34,7 +38,10 @@ export function PredictionAdmin({
   const [isSaving, setIsSaving] = useState(false);
 
   function loadDate(nextDate: string, shouldScroll = false) {
+    const opening = predictionOpeningDraftForDate(matches, nextDate);
     setDateKey(nextDate);
+    setOpeningDateKey(opening.dateKey);
+    setOpeningTime(opening.time);
     setDrafts(predictionDraftsForDate(matches, nextDate));
     setMatchCount(predictionMatchCountForDate(matches, nextDate));
     if (shouldScroll) {
@@ -59,6 +66,7 @@ export function PredictionAdmin({
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           dateKey,
+          opensAt: `${openingDateKey}T${openingTime}:00+03:00`,
           matches: drafts.slice(0, matchCount).map((draft) => ({
             teamAKey: draft.teamAKey,
             teamBKey: draft.teamBKey,
@@ -72,6 +80,9 @@ export function PredictionAdmin({
         const refreshedMatches = result.matches;
         setMatches(refreshedMatches);
         setDrafts(predictionDraftsForDate(refreshedMatches, dateKey));
+        const opening = predictionOpeningDraftForDate(refreshedMatches, dateKey);
+        setOpeningDateKey(opening.dateKey);
+        setOpeningTime(opening.time);
         setResults((current) => ({
           ...Object.fromEntries(refreshedMatches.map((match) => [match.id, current[match.id] ?? match.actualScore ?? "2:0"])),
         }));
@@ -133,6 +144,9 @@ export function PredictionAdmin({
       const refreshedMatches = result.matches ?? [];
       setMatches(refreshedMatches);
       setDrafts(predictionDraftsForDate(refreshedMatches, dateKey));
+      const opening = predictionOpeningDraftForDate(refreshedMatches, dateKey);
+      setOpeningDateKey(opening.dateKey);
+      setOpeningTime(opening.time);
       setMatchCount(predictionMatchCountForDate(refreshedMatches, dateKey));
       setActiveResultMatchId(null);
       setMessage(`Удалено матчей: ${result.deletedMatches ?? 0}. Можно заполнить расписание заново.`);
@@ -153,11 +167,15 @@ export function PredictionAdmin({
       </header>
       <PredictionDayEditor
         dateKey={dateKey}
+        openingDateKey={openingDateKey}
+        openingTime={openingTime}
         drafts={drafts}
         matchCount={matchCount}
         teams={teams}
         isSaving={isSaving}
         onDateChange={loadDate}
+        onOpeningDateChange={setOpeningDateKey}
+        onOpeningTimeChange={setOpeningTime}
         onMatchCountChange={setMatchCount}
         onDraftChange={updateDraft}
         onSave={saveMatches}

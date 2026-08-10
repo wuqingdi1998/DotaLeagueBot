@@ -12,6 +12,16 @@ function predictionDateLabel(dateKey: string): string {
   }).format(new Date(`${dateKey}T12:00:00+03:00`));
 }
 
+function predictionOpeningLabel(opensAt: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "Europe/Moscow",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(opensAt));
+}
+
 export function PredictionScheduleList({
   matches,
   results,
@@ -45,7 +55,10 @@ export function PredictionScheduleList({
       {groupedMatches.length ? groupedMatches.map((group) => (
         <section className="prediction-admin-day" key={group.dateKey}>
           <header>
-            <div><strong>{predictionDateLabel(group.dateKey)}</strong><span>{group.matches.length} матча</span></div>
+            <div>
+              <strong>{predictionDateLabel(group.dateKey)}</strong>
+              <span>{group.matches.length} матча · открытие {predictionOpeningLabel(group.opensAt)} МСК</span>
+            </div>
             <button className="prediction-admin-delete" type="button" disabled={isSaving} onClick={() => onDeleteDay(group.dateKey)}>
               <FiTrash2 aria-hidden="true" /> Удалить день
             </button>

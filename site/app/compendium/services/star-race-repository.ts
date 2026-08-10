@@ -138,19 +138,17 @@ export async function loadStarRaceProgress(
   return progressByDate;
 }
 
-export async function totalStarRaceStars(
+export async function loadPersonalStarRaceStars(
+  playerId: string,
   race: StarRaceWeekDefinition = CURRENT_STAR_RACE,
 ): Promise<number> {
   const row = await one<{ total: number }>(
-    `SELECT COALESCE(SUM(player_total.total), 0)::int AS total
-     FROM (
-       SELECT GREATEST(0, SUM(event.amount))::int AS total
-       FROM compendium_star_race_events event
-       WHERE event.earned_at >= $1::timestamptz
-         AND event.earned_at < $2::timestamptz
-       GROUP BY event.player_id
-     ) player_total`,
-    [race.startsAt, race.endsAt],
+    `SELECT GREATEST(0, COALESCE(SUM(event.amount), 0))::int AS total
+     FROM compendium_star_race_events event
+     WHERE event.earned_at >= $1::timestamptz
+       AND event.earned_at < $2::timestamptz
+       AND event.player_id = $3`,
+    [race.startsAt, race.endsAt, playerId],
   );
   return row?.total ?? 0;
 }

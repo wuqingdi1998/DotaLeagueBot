@@ -7,12 +7,12 @@ const mocks = vi.hoisted(() => ({
   fetchRecentPlayerMatches: vi.fn(),
   existingStarRaceCompletion: vi.fn(),
   loadStarRaceCompletions: vi.fn(),
+  loadPersonalStarRaceStars: vi.fn(),
   loadStarRaceProgress: vi.fn(),
   loadStarRaceRank: vi.fn(),
   recordStarRaceCompletion: vi.fn(),
   replaceStarRaceHeroProgress: vi.fn(),
   replaceStarRaceProgress: vi.fn(),
-  totalStarRaceStars: vi.fn(),
 }));
 
 vi.mock("./repository", () => ({
@@ -28,12 +28,12 @@ vi.mock("./opendota", () => ({
 vi.mock("./star-race-repository", () => ({
   existingStarRaceCompletion: mocks.existingStarRaceCompletion,
   loadStarRaceCompletions: mocks.loadStarRaceCompletions,
+  loadPersonalStarRaceStars: mocks.loadPersonalStarRaceStars,
   loadStarRaceProgress: mocks.loadStarRaceProgress,
   loadStarRaceRank: mocks.loadStarRaceRank,
   recordStarRaceCompletion: mocks.recordStarRaceCompletion,
   replaceStarRaceHeroProgress: mocks.replaceStarRaceHeroProgress,
   replaceStarRaceProgress: mocks.replaceStarRaceProgress,
-  totalStarRaceStars: mocks.totalStarRaceStars,
 }));
 
 vi.mock("@/lib/player-profile", () => ({
@@ -89,7 +89,7 @@ beforeEach(() => {
   mocks.existingStarRaceCompletion.mockResolvedValue(null);
   mocks.loadStarRaceCompletions.mockResolvedValue(new Map());
   mocks.loadStarRaceRank.mockResolvedValue(3);
-  mocks.totalStarRaceStars.mockResolvedValue(45);
+  mocks.loadPersonalStarRaceStars.mockResolvedValue(9);
   mocks.loadStarRaceProgress.mockImplementation(() => {
     const entries: Array<[string, {
       current: number;

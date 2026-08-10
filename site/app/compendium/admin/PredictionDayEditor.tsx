@@ -3,21 +3,29 @@ import type { PredictionMatchDraft } from "./prediction-admin-model";
 
 export function PredictionDayEditor({
   dateKey,
+  openingDateKey,
+  openingTime,
   drafts,
   matchCount,
   teams,
   isSaving,
   onDateChange,
+  onOpeningDateChange,
+  onOpeningTimeChange,
   onMatchCountChange,
   onDraftChange,
   onSave,
 }: {
   dateKey: string;
+  openingDateKey: string;
+  openingTime: string;
   drafts: PredictionMatchDraft[];
   matchCount: 2 | 3;
   teams: Array<{ key: string; name: string }>;
   isSaving: boolean;
   onDateChange: (dateKey: string) => void;
+  onOpeningDateChange: (dateKey: string) => void;
+  onOpeningTimeChange: (time: string) => void;
   onMatchCountChange: (count: 2 | 3) => void;
   onDraftChange: (index: number, update: Partial<PredictionMatchDraft>) => void;
   onSave: () => void;
@@ -33,6 +41,29 @@ export function PredictionDayEditor({
             <span>Дата по Москве</span>
             <input type="date" value={dateKey} onChange={(event) => onDateChange(event.target.value)} />
           </label>
+          <fieldset className="prediction-admin-opening">
+            <legend>Открыть прогнозы</legend>
+            <label>
+              <FiCalendar aria-hidden="true" />
+              <span>Дата</span>
+              <input
+                required
+                type="date"
+                value={openingDateKey}
+                onChange={(event) => onOpeningDateChange(event.target.value)}
+              />
+            </label>
+            <label>
+              <FiClock aria-hidden="true" />
+              <span>Время МСК</span>
+              <input
+                required
+                type="time"
+                value={openingTime}
+                onChange={(event) => onOpeningTimeChange(event.target.value)}
+              />
+            </label>
+          </fieldset>
           <label className="prediction-admin-two-matches">
             <input
               type="checkbox"
@@ -77,4 +108,3 @@ export function PredictionDayEditor({
     </section>
   );
 }
-

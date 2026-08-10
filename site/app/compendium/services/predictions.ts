@@ -28,6 +28,12 @@ export async function submitPrediction(
   try {
     return await recordPredictionPick({ matchId, playerId: user.discordId, score, now });
   } catch (error) {
+    if (error instanceof Error && error.message === "PREDICTION_NOT_OPEN") {
+      throw new CompendiumError(
+        "PREDICTION_NOT_OPEN",
+        "Приём прогнозов на этот день ещё не открыт",
+      );
+    }
     if (error instanceof Error && error.message === "PREDICTION_LOCKED") {
       throw new CompendiumError("PREDICTION_LOCKED", "Приём прогнозов на этот матч уже завершён");
     }
@@ -41,6 +47,7 @@ export async function submitPrediction(
 export async function configurePredictionMatches(input: {
   administrator: AuthUser;
   dateKey: string;
+  opensAt: unknown;
   matches: Array<{ teamAKey?: unknown; teamBKey?: unknown; startsAt?: unknown }>;
 }): Promise<void> {
   if (!isPredictionDateKey(input.dateKey)) {
@@ -48,6 +55,15 @@ export async function configurePredictionMatches(input: {
   }
   if (![2, 3].includes(input.matches.length)) {
     throw new CompendiumError("PREDICTION_INVALID", "На день можно сохранить два или три матча");
+  }
+  const opensAt = typeof input.opensAt === "string"
+    ? new Date(input.opensAt)
+    : new Date(NaN);
+  if (Number.isNaN(opensAt.getTime())) {
+    throw new CompendiumError(
+      "PREDICTION_INVALID",
+      "Укажите дату и время открытия прогнозов",
+    );
   }
   const matches: PredictionMatchInput[] = input.matches.map((match, index) => {
     const teamA = typeof match.teamAKey === "string" ? compendiumTeamByKey(match.teamAKey) : null;
@@ -68,8 +84,22 @@ export async function configurePredictionMatches(input: {
       teamB: { key: teamB.key, name: teamB.name, logoPath: teamB.liquipediaLogoPath ?? "/tbd-team.svg" },
     };
   });
+  const firstMatchStartsAt = Math.min(
+    ...matches.map((match) => match.startsAt.getTime()),
+  );
+  if (opensAt.getTime() >= firstMatchStartsAt) {
+    throw new CompendiumError(
+      "PREDICTION_INVALID",
+      "Прогнозы должны открываться раньше первого матча дня",
+    );
+  }
   try {
-    await replacePredictionMatches({ dateKey: input.dateKey, administratorId: input.administrator.discordId, matches });
+    await replacePredictionMatches({
+      dateKey: input.dateKey,
+      opensAt,
+      administratorId: input.administrator.discordId,
+      matches,
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "PREDICTION_RESULT_LOCKED") {
       throw new CompendiumError(

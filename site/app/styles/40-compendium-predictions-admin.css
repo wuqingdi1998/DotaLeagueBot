@@ -64,6 +64,23 @@
   min-width: 210px;
 }
 
+.prediction-admin-opening {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 7px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.prediction-admin-opening legend {
+  padding: 0 5px;
+  color: var(--blue-strong);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .prediction-admin-panel label.prediction-admin-two-matches {
   display: flex;
   min-height: 44px;
@@ -263,6 +280,7 @@
   .prediction-admin-panel-heading { align-items: stretch; flex-direction: column; }
   .prediction-admin-day-controls { align-items: stretch; flex-direction: column; }
   .prediction-admin-date { min-width: 0; }
+  .prediction-admin-opening { grid-template-columns: 1fr; }
   .prediction-admin-day > header { align-items: stretch; flex-direction: column; }
   .prediction-admin-results article { align-items: stretch; flex-direction: column; }
   .prediction-admin-results article > .prediction-admin-match-actions,

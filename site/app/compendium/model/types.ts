@@ -47,13 +47,16 @@ export type PredictionTeam = {
 
 export type DailyPredictionMatch = {
   id: string;
+  moscowDate: string;
   position: number;
   startsAt: string;
+  opensAt: string;
   teamA: PredictionTeam;
   teamB: PredictionTeam;
   predictedScore: import("./predictions").PredictionScore | null;
   actualScore: import("./predictions").PredictionScore | null;
   rewardStars: number | null;
+  isOpen: boolean;
   isLocked: boolean;
 };
 

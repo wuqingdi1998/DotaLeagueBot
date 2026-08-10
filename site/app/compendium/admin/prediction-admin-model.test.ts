@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   groupPredictionMatchesByDate,
+  predictionOpeningDraftForDate,
   predictionDraftsForDate,
   predictionMatchCountForDate,
 } from "./prediction-admin-model";
@@ -15,6 +16,7 @@ function match(input: Partial<PredictionAdminMatch> = {}): PredictionAdminMatch 
     teamA: { key: "tbd", name: "TBD", logoUrl: "/tbd-team.svg" },
     teamB: { key: "og", name: "OG", logoUrl: "/api/compendium/teams/og" },
     actualScore: null,
+    opensAt: "2026-08-09T15:00:00.000Z",
     ...input,
   };
 }
@@ -38,6 +40,13 @@ describe("prediction organizer schedule model", () => {
     ]);
     expect(groups).toHaveLength(2);
     expect(groups[0].matches).toHaveLength(2);
+    expect(groups[0].opensAt).toBe("2026-08-09T15:00:00.000Z");
+  });
+
+  it("restores the configured Moscow opening date and time", () => {
+    expect(predictionOpeningDraftForDate([match()], "2026-08-10")).toEqual({
+      dateKey: "2026-08-09",
+      time: "18:00",
+    });
   });
 });
-

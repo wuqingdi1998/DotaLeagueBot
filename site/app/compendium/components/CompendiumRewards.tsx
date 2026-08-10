@@ -66,6 +66,10 @@ function RewardTrack({
           })}
         </div>
       </div>
+      <p className="compendium-reward-swipe-hint">
+        Листайте награды влево и вправо
+        <FiArrowRight aria-hidden="true" />
+      </p>
       <div className="compendium-reward-milestones">
         {rewards.map((reward) => {
           const isUnlocked = stars >= reward.stars;

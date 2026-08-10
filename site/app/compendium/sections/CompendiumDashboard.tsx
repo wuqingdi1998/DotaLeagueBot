@@ -368,6 +368,7 @@ export function CompendiumDashboard({
           <CompendiumPredictions
             matches={data.predictions}
             isOrganizer={isOrganizer}
+            currentTimeMs={currentTimeMs}
             submittingMatchId={submittingMatchId}
             onSelect={selectPrediction}
           />

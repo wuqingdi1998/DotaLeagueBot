@@ -9,6 +9,7 @@ type PredictionRow = {
   moscow_date: string;
   position: number;
   starts_at: Date;
+  opens_at: Date;
   team_a_key: string;
   team_a_name: string;
   team_b_key: string;
@@ -25,29 +26,38 @@ export type PredictionMatchInput = {
   teamB: { key: string; name: string; logoPath: string };
 };
 
-export type PredictionAdminMatch = Omit<DailyPredictionMatch, "predictedScore" | "rewardStars" | "isLocked"> & {
-  moscowDate: string;
-};
+export type PredictionAdminMatch = Omit<
+  DailyPredictionMatch,
+  "predictedScore" | "rewardStars" | "isLocked" | "isOpen"
+>;
 
 function mapPrediction(row: PredictionRow, now: Date): DailyPredictionMatch {
   return {
     id: row.id,
+    moscowDate: row.moscow_date,
     position: row.position,
     startsAt: row.starts_at.toISOString(),
+    opensAt: row.opens_at.toISOString(),
     teamA: { key: row.team_a_key, name: row.team_a_name, logoUrl: compendiumTeamLogoUrl(row.team_a_key) },
     teamB: { key: row.team_b_key, name: row.team_b_name, logoUrl: compendiumTeamLogoUrl(row.team_b_key) },
     predictedScore: row.predicted_score,
     actualScore: row.actual_score,
     rewardStars: row.reward_amount,
-    isLocked: row.actual_score !== null || row.starts_at.getTime() <= now.getTime(),
+    isOpen: row.opens_at.getTime() <= now.getTime(),
+    isLocked:
+      row.actual_score !== null ||
+      row.opens_at.getTime() > now.getTime() ||
+      row.starts_at.getTime() <= now.getTime(),
   };
 }
 
 const predictionSelect = `SELECT match.id::text, match.moscow_date::text,
-  match.position, match.starts_at, match.team_a_key, match.team_a_name,
+  match.position, match.starts_at, day.opens_at,
+  match.team_a_key, match.team_a_name,
   match.team_b_key, match.team_b_name, pick.predicted_score,
   match.actual_score, reward.reward_amount
  FROM compendium_prediction_matches match
+ JOIN compendium_prediction_days day ON day.moscow_date = match.moscow_date
  LEFT JOIN compendium_prediction_picks pick
    ON pick.match_id = match.id AND pick.player_id = $2
  LEFT JOIN compendium_prediction_rewards reward
@@ -58,9 +68,24 @@ export async function loadDailyPredictions(
   playerId: string,
   now: Date,
 ): Promise<DailyPredictionMatch[]> {
+  const availableDays = await query<{ moscow_date: string }>(
+    `SELECT day.moscow_date::text
+     FROM compendium_prediction_days day
+     WHERE day.opens_at <= $1
+       AND day.moscow_date >= $2::date
+       AND EXISTS (
+         SELECT 1 FROM compendium_prediction_matches match
+         WHERE match.moscow_date = day.moscow_date
+           AND match.starts_at > $1
+       )
+     ORDER BY day.moscow_date
+     LIMIT 1`,
+    [now, dateKey],
+  );
+  const displayedDate = availableDays[0]?.moscow_date ?? dateKey;
   const rows = await query<PredictionRow>(
     `${predictionSelect} WHERE match.moscow_date = $1::date ORDER BY match.position`,
-    [dateKey, playerId],
+    [displayedDate, playerId],
   );
   return rows.map((row) => mapPrediction(row, now));
 }
@@ -86,17 +111,23 @@ export async function recordPredictionPick(input: {
   now: Date;
 }): Promise<DailyPredictionMatch> {
   return transaction(async (client) => {
-    const match = await client.query<{ starts_at: Date; moscow_date: string; actual_score: string | null }>(
-      `SELECT starts_at, moscow_date::text, actual_score
-       FROM compendium_prediction_matches WHERE id = $1 FOR UPDATE`,
+    const match = await client.query<{
+      starts_at: Date;
+      opens_at: Date;
+      actual_score: string | null;
+    }>(
+      `SELECT match.starts_at, day.opens_at, match.actual_score
+       FROM compendium_prediction_matches match
+       JOIN compendium_prediction_days day
+         ON day.moscow_date = match.moscow_date
+       WHERE match.id = $1
+       FOR UPDATE OF match`,
       [input.matchId],
     );
     const row = match.rows[0];
     if (!row) throw new Error("PREDICTION_NOT_FOUND");
-    const today = await client.query<{ today: string }>(
-      "SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date::text AS today",
-    );
-    if (row.moscow_date !== today.rows[0].today || row.actual_score || row.starts_at <= input.now) {
+    if (row.opens_at > input.now) throw new Error("PREDICTION_NOT_OPEN");
+    if (row.actual_score || row.starts_at <= input.now) {
       throw new Error("PREDICTION_LOCKED");
     }
     await client.query(
@@ -113,11 +144,22 @@ export async function recordPredictionPick(input: {
 
 export async function replacePredictionMatches(input: {
   dateKey: string;
+  opensAt: Date;
   administratorId: string;
   matches: PredictionMatchInput[];
 }): Promise<void> {
   await transaction(async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`compendium-predictions:${input.dateKey}`]);
+    await client.query(
+      `INSERT INTO compendium_prediction_days(
+         moscow_date, opens_at, configured_by
+       ) VALUES ($1::date, $2, $3)
+       ON CONFLICT (moscow_date) DO UPDATE SET
+         opens_at = EXCLUDED.opens_at,
+         configured_by = EXCLUDED.configured_by,
+         updated_at = NOW()`,
+      [input.dateKey, input.opensAt, input.administratorId],
+    );
     const protectedTrailingMatch = await client.query(
       `SELECT 1 FROM compendium_prediction_matches
        WHERE moscow_date = $1::date AND position > $2 AND actual_score IS NOT NULL`,
@@ -158,19 +200,21 @@ export async function replacePredictionMatches(input: {
 export async function loadPredictionAdminMatches(now: Date): Promise<PredictionAdminMatch[]> {
   const rows = await query<PredictionRow>(
     `SELECT match.id::text, match.moscow_date::text, match.position,
-       match.starts_at, match.team_a_key, match.team_a_name,
+       match.starts_at, day.opens_at, match.team_a_key, match.team_a_name,
        match.team_b_key, match.team_b_name, NULL::varchar AS predicted_score,
        match.actual_score, NULL::smallint AS reward_amount
      FROM compendium_prediction_matches match
+     JOIN compendium_prediction_days day ON day.moscow_date = match.moscow_date
      ORDER BY match.moscow_date, match.position`,
   );
   return rows.map((row) => {
     const match = mapPrediction(row, now);
     return {
       id: match.id,
-      moscowDate: row.moscow_date,
       position: match.position,
       startsAt: match.startsAt,
+      opensAt: match.opensAt,
+      moscowDate: match.moscowDate,
       teamA: match.teamA,
       teamB: match.teamB,
       actualScore: match.actualScore,
@@ -179,21 +223,39 @@ export async function loadPredictionAdminMatches(now: Date): Promise<PredictionA
 }
 
 export async function deletePredictionMatch(matchId: string): Promise<void> {
-  const deletedMatches = await query<{ id: string }>(
-    "DELETE FROM compendium_prediction_matches WHERE id = $1 RETURNING id::text",
-    [matchId],
-  );
-  if (!deletedMatches[0]) throw new Error("PREDICTION_NOT_FOUND");
+  await transaction(async (client) => {
+    const deletedMatches = await client.query<{ moscow_date: string }>(
+      `DELETE FROM compendium_prediction_matches
+       WHERE id = $1 RETURNING moscow_date::text`,
+      [matchId],
+    );
+    const deleted = deletedMatches.rows[0];
+    if (!deleted) throw new Error("PREDICTION_NOT_FOUND");
+    await client.query(
+      `DELETE FROM compendium_prediction_days day
+       WHERE day.moscow_date = $1::date
+         AND NOT EXISTS (
+           SELECT 1 FROM compendium_prediction_matches match
+           WHERE match.moscow_date = day.moscow_date
+         )`,
+      [deleted.moscow_date],
+    );
+  });
 }
 
 export async function deletePredictionDay(dateKey: string): Promise<number> {
   return transaction(async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [`compendium-predictions:${dateKey}`]);
-    const result = await client.query(
-      "DELETE FROM compendium_prediction_matches WHERE moscow_date = $1::date",
+    const count = await client.query<{ total: number }>(
+      `SELECT COUNT(*)::int AS total
+       FROM compendium_prediction_matches WHERE moscow_date = $1::date`,
       [dateKey],
     );
-    return result.rowCount ?? 0;
+    await client.query(
+      "DELETE FROM compendium_prediction_days WHERE moscow_date = $1::date",
+      [dateKey],
+    );
+    return Number(count.rows[0]?.total ?? 0);
   });
 }
 

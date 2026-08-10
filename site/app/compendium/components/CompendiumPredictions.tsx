@@ -13,6 +13,24 @@ function matchTimeLabel(startsAt: string): string {
   }).format(new Date(startsAt));
 }
 
+function predictionDateLabel(dateKey: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "Europe/Moscow",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${dateKey}T12:00:00+03:00`));
+}
+
+function predictionOpeningLabel(opensAt: string): string {
+  return new Intl.DateTimeFormat("ru-RU", {
+    timeZone: "Europe/Moscow",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(opensAt));
+}
+
 function PredictionTeam({ team }: { team: DailyPredictionMatch["teamA"] }) {
   return (
     <div className="compendium-prediction-team">
@@ -24,13 +42,20 @@ function PredictionTeam({ team }: { team: DailyPredictionMatch["teamA"] }) {
 
 function PredictionCard({
   match,
+  currentTimeMs,
   submitting,
   onSelect,
 }: {
   match: DailyPredictionMatch;
+  currentTimeMs: number;
   submitting: boolean;
   onSelect: (matchId: string, score: PredictionScore) => void;
 }) {
+  const isOpen = currentTimeMs >= new Date(match.opensAt).getTime();
+  const isLocked =
+    !isOpen ||
+    match.actualScore !== null ||
+    currentTimeMs >= new Date(match.startsAt).getTime();
   return (
     <article className={`compendium-prediction-card${match.actualScore ? " completed" : ""}`}>
       <div className="compendium-prediction-card-heading">
@@ -47,7 +72,7 @@ function PredictionCard({
           <button
             type="button"
             className={match.predictedScore === score ? "selected" : undefined}
-            disabled={match.isLocked || submitting}
+            disabled={isLocked || submitting}
             onClick={() => onSelect(match.id, score)}
             key={score}
           >
@@ -60,7 +85,11 @@ function PredictionCard({
           Итог: <strong>{match.actualScore}</strong>
           <span><FaStar aria-hidden="true" /> +{match.rewardStars ?? 0}</span>
         </p>
-      ) : match.isLocked ? (
+      ) : !isOpen ? (
+        <p className="compendium-prediction-note">
+          Откроется {predictionOpeningLabel(match.opensAt)} МСК
+        </p>
+      ) : isLocked ? (
         <p className="compendium-prediction-note">Прогноз принят, ожидаем результат</p>
       ) : (
         <p className="compendium-prediction-note">Можно менять выбор до начала матча</p>
@@ -72,11 +101,13 @@ function PredictionCard({
 export function CompendiumPredictions({
   matches,
   isOrganizer,
+  currentTimeMs,
   submittingMatchId,
   onSelect,
 }: {
   matches: DailyPredictionMatch[];
   isOrganizer: boolean;
+  currentTimeMs: number;
   submittingMatchId: string | null;
   onSelect: (matchId: string, score: PredictionScore) => void;
 }) {
@@ -84,7 +115,11 @@ export function CompendiumPredictions({
     <section className="compendium-predictions-section" id="compendium-predictions">
       <div className="compendium-predictions-heading">
         <div>
-          <span>Ежедневные матчи TI 2026</span>
+          <span>
+            {matches.length
+              ? `Прогнозы на ${predictionDateLabel(matches[0].moscowDate)}`
+              : "Ежедневные матчи TI 2026"}
+          </span>
           <h2>Прогнозы</h2>
           <p>Точный счёт — 2 звезды, верный победитель — 1 звезда.</p>
         </div>
@@ -99,6 +134,7 @@ export function CompendiumPredictions({
           {matches.map((match) => (
             <PredictionCard
               match={match}
+              currentTimeMs={currentTimeMs}
               submitting={submittingMatchId === match.id}
               onSelect={onSelect}
               key={match.id}

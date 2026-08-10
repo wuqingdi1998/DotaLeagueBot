@@ -47,6 +47,7 @@ describe("prediction schedule configuration", () => {
     await configurePredictionMatches({
       administrator,
       dateKey: "2026-07-01",
+      opensAt: "2026-06-30T18:00:00+03:00",
       matches: [
         { teamAKey: "tbd", teamBKey: "team-spirit", startsAt: "2026-07-01T12:00:00+03:00" },
         { teamAKey: "og", teamBKey: "team-liquid", startsAt: "2026-07-01T15:00:00+03:00" },
@@ -55,6 +56,7 @@ describe("prediction schedule configuration", () => {
 
     expect(mocks.replacePredictionMatches).toHaveBeenCalledWith(expect.objectContaining({
       dateKey: "2026-07-01",
+      opensAt: new Date("2026-06-30T18:00:00+03:00"),
       matches: expect.arrayContaining([
         expect.objectContaining({ teamA: expect.objectContaining({ key: "tbd" }) }),
       ]),
@@ -65,15 +67,29 @@ describe("prediction schedule configuration", () => {
     await expect(configurePredictionMatches({
       administrator,
       dateKey: "2026-08-10",
+      opensAt: "2026-08-09T18:00:00+03:00",
       matches: [{ teamAKey: "og", teamBKey: "team-liquid", startsAt: "2026-08-10T12:00:00+03:00" }],
     })).rejects.toMatchObject({ code: "PREDICTION_INVALID" });
 
     await expect(configurePredictionMatches({
       administrator,
       dateKey: "2026-08-10",
+      opensAt: "2026-08-09T18:00:00+03:00",
       matches: [
         { teamAKey: "tbd", teamBKey: "tbd", startsAt: "2026-08-10T12:00:00+03:00" },
         { teamAKey: "og", teamBKey: "team-liquid", startsAt: "2026-08-10T15:00:00+03:00" },
+      ],
+    })).rejects.toMatchObject({ code: "PREDICTION_INVALID" });
+  });
+
+  it("rejects an opening moment at or after the first match", async () => {
+    await expect(configurePredictionMatches({
+      administrator,
+      dateKey: "2026-08-10",
+      opensAt: "2026-08-10T12:00:00+03:00",
+      matches: [
+        { teamAKey: "og", teamBKey: "team-liquid", startsAt: "2026-08-10T12:00:00+03:00" },
+        { teamAKey: "team-spirit", teamBKey: "tbd", startsAt: "2026-08-10T15:00:00+03:00" },
       ],
     })).rejects.toMatchObject({ code: "PREDICTION_INVALID" });
   });

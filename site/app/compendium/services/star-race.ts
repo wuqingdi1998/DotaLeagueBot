@@ -29,12 +29,12 @@ import {
 import {
   existingStarRaceCompletion,
   loadStarRaceCompletions,
+  loadPersonalStarRaceStars,
   loadStarRaceProgress,
   loadStarRaceRank,
   recordStarRaceCompletion,
   replaceStarRaceHeroProgress,
   replaceStarRaceProgress,
-  totalStarRaceStars,
 } from "./star-race-repository";
 
 export async function loadStarRace(
@@ -51,14 +51,14 @@ export async function loadStarRace(
       dateLabel: race.dateLabel,
       startsAt: race.startsAt,
       endsAt: race.endsAt,
-      totalStars: null,
+      personalStars: null,
       personalRank: null,
       prizes: race.prizes,
       quests: [],
     };
   }
-  const [totalStars, personalRank, completions, progresses] = await Promise.all([
-    totalStarRaceStars(race),
+  const [personalStars, personalRank, completions, progresses] = await Promise.all([
+    loadPersonalStarRaceStars(user.discordId, race),
     loadStarRaceRank(user.discordId, race),
     loadStarRaceCompletions(user.discordId),
     loadStarRaceProgress(user.discordId),
@@ -70,7 +70,7 @@ export async function loadStarRace(
     dateLabel: race.dateLabel,
     startsAt: race.startsAt,
     endsAt: race.endsAt,
-    totalStars,
+    personalStars,
     personalRank,
     prizes: race.prizes,
     quests: race.quests.map((quest) => {
