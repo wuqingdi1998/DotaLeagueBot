@@ -93,6 +93,12 @@ describe("tournament page public behavior", () => {
     );
   });
 
+  it("zooms team emblems on mouse hover", () => {
+    expect(stylesSource).toMatch(
+      /@media \(hover: hover\) and \(pointer: fine\)\s*\{\s*\.team-card \.team-emblem:hover\s*\{[^}]*transform:\s*scale\(1\.12\);[^}]*cursor:\s*zoom-in;/,
+    );
+  });
+
   it("keeps tournament navigation usable on narrow screens", () => {
     expect(stylesSource).toMatch(
       /\.tabs\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/,

@@ -68,12 +68,20 @@
   background: var(--surface-soft);
   object-fit: cover;
   box-shadow: 0 9px 24px rgba(7, 95, 150, 0.15);
+  transition: transform 160ms ease;
 }
 
 .team-emblem.small {
   width: 48px;
   height: 48px;
   border-radius: 12px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .team-card .team-emblem:hover {
+    transform: scale(1.12);
+    cursor: zoom-in;
+  }
 }
 
 .status-badge {
