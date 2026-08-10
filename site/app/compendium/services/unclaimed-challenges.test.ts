@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   ensureDailyQuestSet: vi.fn(),
@@ -45,6 +45,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.ensureDailyQuestSet.mockResolvedValue("quest-set");
   mocks.loadClaimedKeys.mockResolvedValue(new Set());
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("unclaimed compendium challenge audit", () => {
@@ -159,5 +163,40 @@ describe("unclaimed compendium challenge audit", () => {
     );
 
     expect(report.players).toEqual([]);
+  });
+
+  it("starts no more than 50 OpenDota requests per minute", async () => {
+    vi.useFakeTimers();
+    mocks.loadCandidates.mockResolvedValue(
+      Array.from({ length: 51 }, (_, index) => ({
+        playerId: String(index + 1),
+        dotaId: String(index + 101),
+        playerName: `Player ${index + 1}`,
+        dailyQuests: [{
+          id: String(index + 1_001),
+          position: 1,
+          heroIds: [1],
+        }],
+        isStarRaceCandidate: false,
+      })),
+    );
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([]);
+
+    const reportPromise = findUnclaimedChallenges(
+      new Date("2026-08-17T12:00:00.000Z"),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(50);
+
+    await vi.advanceTimersByTimeAsync(59_999);
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(50);
+
+    await vi.advanceTimersByTimeAsync(1);
+    const report = await reportPromise;
+
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(51);
+    expect(report.checkedCount).toBe(51);
+    expect(report.failedCount).toBe(0);
   });
 });

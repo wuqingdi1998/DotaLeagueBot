@@ -17,6 +17,8 @@ import {
 } from "./unclaimed-challenges-repository";
 
 const AUDIT_CONCURRENCY = 5;
+const AUDIT_REQUESTS_PER_MINUTE = 50;
+const AUDIT_RATE_WINDOW_MS = 60_000;
 
 export type UnclaimedChallenge = {
   kind: "daily" | "star-race";
@@ -181,6 +183,13 @@ async function scanCandidate(input: {
   };
 }
 
+async function waitForNextRequestWindow(windowStartedAt: number): Promise<void> {
+  const remainingWindowMs = AUDIT_RATE_WINDOW_MS -
+    (Date.now() - windowStartedAt);
+  if (remainingWindowMs <= 0) return;
+  await new Promise((resolve) => setTimeout(resolve, remainingWindowMs));
+}
+
 export async function findUnclaimedChallenges(
   now: Date = new Date(),
 ): Promise<UnclaimedChallengesReport> {
@@ -200,30 +209,50 @@ export async function findUnclaimedChallenges(
   const locatedPlayers: LocatedPlayer[] = [];
   let failedCount = 0;
 
-  for (let offset = 0; offset < candidates.length; offset += AUDIT_CONCURRENCY) {
-    const batch = candidates.slice(offset, offset + AUDIT_CONCURRENCY);
-    const results = await Promise.allSettled(
-      batch.map((candidate) => scanCandidate({
-        candidate,
-        quest: activeStarRaceQuest,
-        dayStart: day.start,
-        dayEnd: day.end,
-        now,
-      })),
+  for (
+    let windowOffset = 0;
+    windowOffset < candidates.length;
+    windowOffset += AUDIT_REQUESTS_PER_MINUTE
+  ) {
+    const windowStartedAt = Date.now();
+    const requestWindow = candidates.slice(
+      windowOffset,
+      windowOffset + AUDIT_REQUESTS_PER_MINUTE,
     );
-    results.forEach((result, index) => {
-      if (result.status === "fulfilled") {
-        locatedPlayers.push(result.value);
-        return;
-      }
-      failedCount += 1;
-      console.warn("Compendium challenge audit could not check a player", {
-        playerId: batch[index].playerId,
-        reason: result.reason instanceof Error
-          ? result.reason.message
-          : "unknown error",
+    for (
+      let offset = 0;
+      offset < requestWindow.length;
+      offset += AUDIT_CONCURRENCY
+    ) {
+      const batch = requestWindow.slice(offset, offset + AUDIT_CONCURRENCY);
+      const results = await Promise.allSettled(
+        batch.map((candidate) => scanCandidate({
+          candidate,
+          quest: activeStarRaceQuest,
+          dayStart: day.start,
+          dayEnd: day.end,
+          now,
+        })),
+      );
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          locatedPlayers.push(result.value);
+          return;
+        }
+        failedCount += 1;
+        console.warn("Compendium challenge audit could not check a player", {
+          playerId: batch[index].playerId,
+          reason: result.reason instanceof Error
+            ? result.reason.message
+            : "unknown error",
+        });
       });
-    });
+    }
+    const hasMoreRequestWindows =
+      windowOffset + AUDIT_REQUESTS_PER_MINUTE < candidates.length;
+    if (hasMoreRequestWindows) {
+      await waitForNextRequestWindow(windowStartedAt);
+    }
   }
 
   const locatedChallenges = locatedPlayers.flatMap((player) => player.challenges);
