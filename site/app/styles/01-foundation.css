@@ -31,10 +31,43 @@
   --blue-gradient: linear-gradient(135deg, #009edc 0%, #0079c9 52%, #3155b5 100%);
   --blue-gradient-hover: linear-gradient(135deg, #00ade8 0%, #0087d7 52%, #365fc5 100%);
   --discord: #5865f2;
+  --scrollbar-track: #081a28;
+  --scrollbar-thumb: #287896;
+  --scrollbar-thumb-hover: #00a9d9;
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  min-width: 38px;
+  min-height: 38px;
+  border: 2px solid var(--scrollbar-track);
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
 }
 
 html {
@@ -90,6 +123,9 @@ a {
   --line-strong: rgba(0, 164, 222, 0.38);
   --shadow: 0 24px 70px rgba(26, 104, 148, 0.13);
   --header: rgba(255, 255, 255, 0.9);
+  --scrollbar-track: #d9eaf3;
+  --scrollbar-thumb: #2c7695;
+  --scrollbar-thumb-hover: #006b9f;
   min-height: 100vh;
   overflow-x: clip;
   background: var(--bg);
@@ -115,6 +151,18 @@ a {
   --line-strong: rgba(0, 195, 255, 0.34);
   --shadow: 0 24px 75px rgba(2, 10, 20, 0.36);
   --header: rgba(7, 24, 39, 0.91);
+  --scrollbar-track: #081a28;
+  --scrollbar-thumb: #287896;
+  --scrollbar-thumb-hover: #00a9d9;
+}
+
+html:has(.site-shell[data-theme="light"]),
+html:has(.loading-screen[data-theme="light"]),
+html:has(.error-screen[data-theme="light"]),
+html:has(.setup-screen[data-theme="light"]) {
+  --scrollbar-track: #d9eaf3;
+  --scrollbar-thumb: #2c7695;
+  --scrollbar-thumb-hover: #006b9f;
 }
 
 .site-shell select,
