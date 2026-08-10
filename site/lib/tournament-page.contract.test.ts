@@ -93,10 +93,16 @@ describe("tournament page public behavior", () => {
     );
   });
 
-  it("zooms team emblems on mouse hover", () => {
+  it("shows a large team emblem popup on mouse hover", () => {
+    expect(tournamentSource).toContain("TeamEmblemPreview");
+    expect(tournamentSource).toContain('className="team-emblem-popup"');
     expect(stylesSource).toMatch(
-      /@media \(hover: hover\) and \(pointer: fine\)\s*\{\s*\.team-card \.team-emblem:hover\s*\{[^}]*transform:\s*scale\(1\.12\);[^}]*cursor:\s*zoom-in;/,
+      /\.team-emblem-popup\s*\{[^}]*width:\s*220px;[^}]*height:\s*220px;[^}]*visibility:\s*hidden;/,
     );
+    expect(stylesSource).toMatch(
+      /\.team-emblem-preview:hover \.team-emblem-popup\s*\{[^}]*visibility:\s*visible;[^}]*opacity:\s*1;/,
+    );
+    expect(stylesSource).not.toContain(".team-card .team-emblem:hover");
   });
 
   it("keeps tournament navigation usable on narrow screens", () => {

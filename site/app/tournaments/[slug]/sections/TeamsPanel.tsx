@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { FaCrown } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
 import { isPastTournament } from "@/lib/tournaments";
 import { RoleIcon } from "../components/RoleField";
+import { TeamEmblemPreview } from "../components/TeamEmblemPreview";
 import { useTournament } from "../hooks/TournamentContext";
 import { getTeamPlayers, initials } from "../model/formatters";
 
@@ -48,13 +48,9 @@ export function TeamsPanel() {
             <article className="team-card" key={team.id}>
               <div className="team-card-head">
                 {team.logo_key ? (
-                  <Image
-                    className="team-emblem"
+                  <TeamEmblemPreview
                     src={`/api/team-emblems/${team.logo_key}`}
                     alt={`Эмблема команды ${team.team_name}`}
-                    width={60}
-                    height={60}
-                    unoptimized
                   />
                 ) : (
                   <div className="team-avatar">
