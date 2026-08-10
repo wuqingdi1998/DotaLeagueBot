@@ -5,6 +5,7 @@ import os
 
 import discord
 from discord.ext import commands, tasks
+from sqlalchemy.engine import RowMapping
 from sqlalchemy import text
 
 from database.core import async_session
@@ -21,16 +22,44 @@ class WebsiteBridge(commands.Cog):
     async def cog_unload(self) -> None:
         self.deliver_notifications.cancel()
 
+    async def _delete_notification_message(
+        self, user: discord.User, notification: RowMapping
+    ) -> None:
+        channel = user.dm_channel or await user.create_dm()
+        message_id = notification["discord_message_id"]
+        if message_id is not None:
+            try:
+                message = await channel.fetch_message(int(message_id))
+            except discord.NotFound:
+                return
+            await message.delete()
+            return
+
+        if self.bot.user is None:
+            return
+        async for message in channel.history(limit=200):
+            if message.author.id != self.bot.user.id:
+                continue
+            if any(
+                embed.title == notification["title"]
+                and embed.description == notification["message"]
+                for embed in message.embeds
+            ):
+                await message.delete()
+                return
+
     @tasks.loop(seconds=15)
     async def deliver_notifications(self) -> None:
         async with async_session() as session:
             result = await session.execute(
                 text(
                     """
-                    SELECT id, discord_id, title, message, action_url
+                    SELECT id, discord_id, title, message, action_url,
+                           status, discord_message_id
                     FROM notification_outbox
-                    WHERE status = 'pending' AND available_at <= NOW()
-                    ORDER BY id
+                    WHERE status IN ('pending', 'delete_pending')
+                      AND available_at <= NOW()
+                    ORDER BY CASE WHEN status = 'delete_pending' THEN 0 ELSE 1 END, id
                     FOR UPDATE SKIP LOCKED
                     LIMIT 20
                     """
@@ -42,23 +71,42 @@ class WebsiteBridge(commands.Cog):
                     user = self.bot.get_user(notification["discord_id"])
                     if user is None:
                         user = await self.bot.fetch_user(notification["discord_id"])
-                    await user.send(
-                        embed=notification_embed(
-                            notification["title"],
-                            notification["message"],
-                            notification["action_url"],
+                    if notification["status"] == "delete_pending":
+                        await self._delete_notification_message(user, notification)
+                        await session.execute(
+                            text(
+                                """
+                                UPDATE notification_outbox
+                                SET status = 'deleted', attempts = attempts + 1,
+                                    last_error = NULL
+                                WHERE id = :id
+                                """
+                            ),
+                            {"id": notification["id"]},
                         )
-                    )
-                    await session.execute(
-                        text(
-                            """
-                            UPDATE notification_outbox
-                            SET status = 'sent', sent_at = NOW(), attempts = attempts + 1
-                            WHERE id = :id
-                            """
-                        ),
-                        {"id": notification["id"]},
-                    )
+                    else:
+                        sent_message = await user.send(
+                            embed=notification_embed(
+                                notification["title"],
+                                notification["message"],
+                                notification["action_url"],
+                            )
+                        )
+                        await session.execute(
+                            text(
+                                """
+                                UPDATE notification_outbox
+                                SET status = 'sent', sent_at = NOW(),
+                                    attempts = attempts + 1,
+                                    discord_message_id = :message_id
+                                WHERE id = :id
+                                """
+                            ),
+                            {
+                                "id": notification["id"],
+                                "message_id": sent_message.id,
+                            },
+                        )
                 except (discord.Forbidden, discord.NotFound) as error:
                     await session.execute(
                         text(
@@ -79,11 +127,18 @@ class WebsiteBridge(commands.Cog):
                             SET attempts = attempts + 1,
                                 available_at = NOW() + INTERVAL '5 minutes',
                                 last_error = :error,
-                                status = CASE WHEN attempts >= 4 THEN 'failed' ELSE 'pending' END
+                                status = CASE
+                                    WHEN attempts >= 4 THEN 'failed'
+                                    ELSE :retry_status
+                                END
                             WHERE id = :id
                             """
                         ),
-                        {"id": notification["id"], "error": str(error)[:1000]},
+                        {
+                            "id": notification["id"],
+                            "error": str(error)[:1000],
+                            "retry_status": notification["status"],
+                        },
                     )
             await session.commit()
 

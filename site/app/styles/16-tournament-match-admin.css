@@ -42,6 +42,19 @@
   font-weight: 800;
 }
 
+.application-roster-links .application-player-confirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid color-mix(in srgb, #1a9c61 45%, var(--line));
+  background: color-mix(in srgb, #1a9c61 12%, var(--surface));
+  color: #117447;
+}
+
+[data-theme="dark"] .application-roster-links .application-player-confirmed {
+  color: #64dda0;
+}
+
 .application-actions button:disabled {
   cursor: default;
   border-color: var(--line);

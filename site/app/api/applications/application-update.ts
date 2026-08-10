@@ -4,6 +4,7 @@ import {
   responseFromAuthError,
 } from "@/lib/auth";
 import { transaction } from "@/lib/db";
+import { cancelApplicationInvitations } from "./application-invitation-cancellation";
 import { updateApplicationStatus } from "./application-status";
 
 export async function PATCH(request: Request) {
@@ -18,6 +19,7 @@ export async function PATCH(request: Request) {
     if (!body.id) {
       return Response.json({ error: "Некорректная заявка" }, { status: 400 });
     }
+    const applicationId = body.id;
 
     if (body.newCaptainId) {
       await transaction(async (client) => {
@@ -90,12 +92,18 @@ export async function PATCH(request: Request) {
         const application = await client.query<{
           captain_discord_id: string;
           team_name: string;
+          status: string;
         }>(
-          `SELECT captain_discord_id::text, team_name
-           FROM tournament_team_applications WHERE id = $1`,
+          `SELECT captain_discord_id::text, team_name, status
+           FROM tournament_team_applications
+           WHERE id = $1
+           FOR UPDATE`,
           [body.id],
         );
         if (!application.rowCount) throw new Error("INVITE_NOT_FOUND");
+        if (application.rows[0].status !== "awaiting_members") {
+          throw new Error("INVITATION_CLOSED");
+        }
         const updated = await client.query(
           `UPDATE tournament_team_members
            SET invitation_status = $1, responded_at = NOW()
@@ -125,6 +133,7 @@ export async function PATCH(request: Request) {
              WHERE id = $1`,
             [body.id],
           );
+          await cancelApplicationInvitations(client, applicationId);
         } else {
           await client.query(
             `UPDATE tournament_team_applications a
@@ -165,6 +174,12 @@ export async function PATCH(request: Request) {
     if (error instanceof Error && error.message === "CAPTAIN_NOT_ELIGIBLE") {
       return Response.json(
         { error: "Новым капитаном может стать принявший приглашение игрок" },
+        { status: 409 },
+      );
+    }
+    if (error instanceof Error && error.message === "INVITATION_CLOSED") {
+      return Response.json(
+        { error: "Заявка уже закрыта организатором" },
         { status: 409 },
       );
     }

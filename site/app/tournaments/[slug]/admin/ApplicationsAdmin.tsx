@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { FiCheckCircle } from "react-icons/fi";
 import { roleOptions } from "../model/constants";
 import { useTournament } from "../hooks/TournamentContext";
 import { getTeamPlayers, initials } from "../model/formatters";
@@ -74,6 +75,15 @@ export function ApplicationsAdmin() {
                         <b>{player.name}</b>
                       )}
                       {player.isCaptain && <small>капитан</small>}
+                      {application.uses_player_confirmation &&
+                        player.invitationStatus === "accepted" && (
+                          <small
+                            className="application-player-confirmed"
+                            title="Участие подтверждено"
+                          >
+                            <FiCheckCircle aria-hidden="true" /> подтверждено
+                          </small>
+                        )}
                       <small className="player-tier">
                         тир {player.tier ?? "—"}
                       </small>

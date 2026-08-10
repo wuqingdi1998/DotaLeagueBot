@@ -43,6 +43,13 @@ PROFILE_AND_BRACKET_MIGRATION = (
     / "0007_profile_roles_and_bracket_links.sql"
 ).read_text(encoding="utf-8")
 
+INVITATION_CLEANUP_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0067_tournament_invitation_cleanup.sql"
+).read_text(encoding="utf-8")
+
 BRACKET_LAYOUT_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -209,6 +216,14 @@ def test_checkin_is_idempotent() -> None:
 def test_notification_outbox_supports_retries() -> None:
     assert "notification_outbox" in MIGRATION
     assert "attempts SMALLINT" in MIGRATION
+
+
+def test_invitation_cleanup_tracks_and_deletes_discord_messages() -> None:
+    assert "application_id BIGINT" in INVITATION_CLEANUP_MIGRATION
+    assert "discord_message_id BIGINT" in INVITATION_CLEANUP_MIGRATION
+    assert "delete_pending" in INVITATION_CLEANUP_MIGRATION
+    assert "ON DELETE SET NULL" in INVITATION_CLEANUP_MIGRATION
+    assert "invitation_candidates" in INVITATION_CLEANUP_MIGRATION
 
 
 def test_organizer_sessions_are_separate_from_player_sessions() -> None:

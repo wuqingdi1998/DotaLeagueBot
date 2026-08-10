@@ -1,4 +1,5 @@
 import { transaction } from "@/lib/db";
+import { cancelApplicationInvitations } from "./application-invitation-cancellation";
 
 type ApplicationStatus = "approved" | "declined" | "pending";
 
@@ -66,6 +67,9 @@ export async function updateApplicationStatus({
       [status, applicationId],
     );
     if (!updated.rowCount) throw new Error("APPLICATION_NOT_FOUND");
+    if (status === "declined") {
+      await cancelApplicationInvitations(client, applicationId);
+    }
     await client.query(
       `INSERT INTO tournament_audit_log
         (tournament_id, actor_discord_id, action, entity_type, entity_id, details)

@@ -167,6 +167,10 @@ export async function GET(request: Request) {
         `SELECT a.id::int, a.tournament_id::int, a.team_name, a.tag,
            a.captain_discord_id::text, a.contact, a.logo_key, a.status, a.created_at,
            a.selection_method, a.team_tier_total_snapshot,
+           EXISTS (
+             SELECT 1 FROM tournament_team_members confirmation_member
+             WHERE confirmation_member.application_id = a.id
+           ) AS uses_player_confirmation,
            result.placement::int, result.result_label,
            COALESCE(captain.ingame_name, a.captain_name_snapshot) AS captain_name
          FROM tournament_team_applications a
@@ -332,6 +336,7 @@ export async function GET(request: Request) {
              JOIN tournament_team_applications a ON a.id = m.application_id
              WHERE m.player_id = $1 AND NOT m.is_captain
                AND m.invitation_status = 'invited'
+               AND a.status = 'awaiting_members'
              ORDER BY a.created_at DESC`,
             [user.discordId],
           )

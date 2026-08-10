@@ -299,13 +299,14 @@ export async function POST(request: Request) {
         if (index > 0) {
           await client.query(
             `INSERT INTO notification_outbox
-              (discord_id, event_type, title, message, action_url)
-             VALUES ($1, 'team_invitation', $2, $3, $4)`,
+              (discord_id, event_type, title, message, action_url, application_id)
+             VALUES ($1, 'team_invitation', $2, $3, $4, $5)`,
             [
               currentMembers[index].discord_id,
               `Приглашение в ${teamName}`,
               `${captain.playerName} приглашает вас в состав на турнир. Подтвердите или отклоните приглашение на сайте.`,
               process.env.PUBLIC_BASE_URL ?? null,
+              id,
             ],
           );
         }

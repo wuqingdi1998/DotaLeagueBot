@@ -60,6 +60,7 @@ export function getTeamPlayers(team: TeamApplication) {
         dotaId: member.dota_id,
         archiveIdentityId: member.archive_identity_id,
         tier: member.tier_snapshot,
+        invitationStatus: member.invitation_status,
       }))
     : [
         {
@@ -69,6 +70,7 @@ export function getTeamPlayers(team: TeamApplication) {
           dotaId: null,
           archiveIdentityId: null,
           tier: null,
+          invitationStatus: null,
         },
         {
           name: team.player_2,
@@ -77,6 +79,7 @@ export function getTeamPlayers(team: TeamApplication) {
           dotaId: null,
           archiveIdentityId: null,
           tier: null,
+          invitationStatus: null,
         },
         {
           name: team.player_3,
@@ -85,6 +88,7 @@ export function getTeamPlayers(team: TeamApplication) {
           dotaId: null,
           archiveIdentityId: null,
           tier: null,
+          invitationStatus: null,
         },
         {
           name: team.player_4,
@@ -93,6 +97,7 @@ export function getTeamPlayers(team: TeamApplication) {
           dotaId: null,
           archiveIdentityId: null,
           tier: null,
+          invitationStatus: null,
         },
         {
           name: team.player_5,
@@ -101,6 +106,7 @@ export function getTeamPlayers(team: TeamApplication) {
           dotaId: null,
           archiveIdentityId: null,
           tier: null,
+          invitationStatus: null,
         },
       ];
 

@@ -60,6 +60,7 @@ export type TeamApplication = {
   player_5_role: PlayerRole;
   logo_key: string | null;
   selection_method: string;
+  uses_player_confirmation: boolean;
   team_tier_total_snapshot: number | null;
   placement: number | null;
   result_label: string | null;
