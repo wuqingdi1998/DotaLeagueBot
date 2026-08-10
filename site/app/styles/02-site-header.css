@@ -207,7 +207,7 @@
 }
 
 .discord-login.is-admin {
-  background: var(--blue-deep);
+  background: var(--blue-solid);
 }
 
 .player-profile-control {

@@ -42,6 +42,13 @@
   font-weight: 800;
 }
 
+.application-actions button:disabled {
+  cursor: default;
+  border-color: var(--line);
+  background: var(--surface-soft);
+  color: var(--quiet);
+}
+
 .match-create-panel,
 .match-result-card {
   overflow: hidden;
