@@ -87,6 +87,12 @@ describe("tournament page public behavior", () => {
     );
   });
 
+  it("separates the captain label from the player tier", () => {
+    expect(stylesSource).toMatch(
+      /\.team-card \.captain-badge \+ \.player-tier\s*\{[^}]*margin-left:\s*12px;/,
+    );
+  });
+
   it("keeps tournament navigation usable on narrow screens", () => {
     expect(stylesSource).toMatch(
       /\.tabs\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/,

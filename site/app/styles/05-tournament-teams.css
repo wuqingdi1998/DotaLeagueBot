@@ -222,6 +222,10 @@
   font-size: 14px;
 }
 
+.team-card .captain-badge + .player-tier {
+  margin-left: 12px;
+}
+
 .empty-team {
   display: flex;
   align-items: center;
