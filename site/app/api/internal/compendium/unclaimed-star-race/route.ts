@@ -1,13 +1,14 @@
+import { findUnclaimedStarRaceWins } from "@/app/compendium/services/unclaimed-star-race";
 import { compendiumInternalAuthError } from "@/lib/compendium-internal-auth";
-import { moscowDateKey } from "@/app/compendium/model/time";
-import { ensureDailyQuestSet } from "@/app/compendium/services/repository";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 600;
 
 export async function POST(request: Request) {
   const authError = compendiumInternalAuthError(request);
   if (authError) return authError;
-  const date = moscowDateKey();
-  await ensureDailyQuestSet(date);
-  return Response.json({ ok: true, moscowDate: date });
+  return Response.json({
+    ok: true,
+    ...(await findUnclaimedStarRaceWins()),
+  });
 }

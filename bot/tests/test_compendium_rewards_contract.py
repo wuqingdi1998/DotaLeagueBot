@@ -42,7 +42,8 @@ def test_admin_star_commands_are_restricted_and_persistent() -> None:
     assert 'name="add_stars"' in ADMIN_COG
     assert 'name="delete_stars"' in ADMIN_COG
     assert 'name="compendium"' in ADMIN_COG
-    assert ADMIN_COG.count("has_permissions(administrator=True)") == 3
+    assert 'name="completestars"' in ADMIN_COG
+    assert ADMIN_COG.count("has_permissions(administrator=True)") == 4
     assert "@app_commands.guild_only()" in ADMIN_COG
     assert "compendium_admin_star_adjustments" in ADMIN_SERVICE
     assert "pg_advisory_xact_lock" in ADMIN_SERVICE

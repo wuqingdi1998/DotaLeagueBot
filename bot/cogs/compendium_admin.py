@@ -9,6 +9,11 @@ from services.compendium_star_service import (
     CompendiumStarService,
 )
 from services.compendium_announcement import broadcast_compendium_announcement
+from services.compendium_unclaimed_stars import (
+    CompendiumUnclaimedStarsError,
+    format_unclaimed_star_race_report,
+    request_unclaimed_star_race_report,
+)
 
 
 async def compendium_nickname_autocomplete(
@@ -109,6 +114,27 @@ class CompendiumAdmin(commands.Cog):
             f"Боты пропущены: **{report.skipped_bot_count}**.",
             ephemeral=True,
         )
+
+    @app_commands.command(
+        name="completestars",
+        description="[Admin] Найти выполнивших задание без полученной награды",
+    )
+    @app_commands.guild_only()
+    @app_commands.checks.has_permissions(administrator=True)
+    async def complete_stars(self, interaction: discord.Interaction) -> None:
+        await interaction.response.defer(ephemeral=True)
+        try:
+            report = await request_unclaimed_star_race_report()
+        except CompendiumUnclaimedStarsError as error:
+            await interaction.followup.send(f"❌ {error}", ephemeral=True)
+            return
+
+        for message in format_unclaimed_star_race_report(report):
+            await interaction.followup.send(
+                message,
+                ephemeral=True,
+                allowed_mentions=discord.AllowedMentions.none(),
+            )
 
 
 async def setup(bot: commands.Bot) -> None:
