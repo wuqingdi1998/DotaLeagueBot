@@ -96,8 +96,12 @@ describe("tournament page public behavior", () => {
   it("shows a large team emblem popup on mouse hover", () => {
     expect(tournamentSource).toContain("TeamEmblemPreview");
     expect(tournamentSource).toContain('className="team-emblem-popup"');
+    expect(tournamentSource).toContain('className="team-emblem-popup-image"');
     expect(stylesSource).toMatch(
-      /\.team-emblem-popup\s*\{[^}]*width:\s*220px;[^}]*height:\s*220px;[^}]*visibility:\s*hidden;/,
+      /\.team-emblem-popup\s*\{[^}]*width:\s*240px;[^}]*height:\s*240px;[^}]*visibility:\s*hidden;/,
+    );
+    expect(stylesSource).toMatch(
+      /\.team-emblem-popup-image\s*\{[^}]*width:\s*100%;[^}]*height:\s*100%;[^}]*object-fit:\s*contain;/,
     );
     expect(stylesSource).toMatch(
       /\.team-emblem-preview:hover \.team-emblem-popup\s*\{[^}]*visibility:\s*visible;[^}]*opacity:\s*1;/,

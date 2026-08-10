@@ -16,15 +16,16 @@ export function TeamEmblemPreview({ src, alt }: TeamEmblemPreviewProps) {
         height={60}
         unoptimized
       />
-      <Image
-        className="team-emblem-popup"
-        src={src}
-        alt=""
-        aria-hidden="true"
-        width={220}
-        height={220}
-        unoptimized
-      />
+      <span className="team-emblem-popup" aria-hidden="true">
+        <Image
+          className="team-emblem-popup-image"
+          src={src}
+          alt=""
+          width={240}
+          height={240}
+          unoptimized
+        />
+      </span>
     </span>
   );
 }
