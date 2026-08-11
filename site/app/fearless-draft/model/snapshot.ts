@@ -54,8 +54,10 @@ export type DraftMapSnapshot = {
   stepStartedAt: string | null;
   player1ReserveSeconds: number;
   player2ReserveSeconds: number;
+  previewHeroId: number | null;
   actions: DraftActionSnapshot[];
   unavailableHeroIds: number[];
+  createdAt: string;
 };
 
 export type DraftSeriesSnapshot = {
@@ -97,6 +99,7 @@ export type FearlessDraftCommand =
   | { action: "DECLINE_INVITATION"; invitationId: number }
   | { action: "CANCEL_INVITATION"; invitationId: number }
   | { action: "MAKE_CHOICE"; choice: DraftChoice }
+  | { action: "PREVIEW_HERO"; heroId: number; expectedVersion: number }
   | { action: "SELECT_HERO"; heroId: number; expectedVersion: number }
   | { action: "READY_FOR_NEXT_MAP" }
   | { action: "REQUEST_SERIES_END" }

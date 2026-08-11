@@ -64,7 +64,9 @@ type MapRow = {
   step_started_at: Date | null;
   player1_reserve_seconds: number;
   player2_reserve_seconds: number;
+  preview_hero_id: number | null;
   version: number;
+  created_at: Date;
 };
 
 function playerFromAuth(user: AuthUser): DraftPlayer {
@@ -135,7 +137,7 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
             radiant_player_id::text, first_pick_player_id::text,
             current_step::int, step_started_at,
             player1_reserve_seconds::float8, player2_reserve_seconds::float8,
-            version::int
+            preview_hero_id::int, version::int, created_at
      FROM draft_maps WHERE series_id = $1 AND map_number = $2`,
     [series.id, series.current_map],
   );
@@ -238,8 +240,10 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
       stepStartedAt: map.step_started_at?.toISOString() ?? null,
       player1ReserveSeconds: map.player1_reserve_seconds,
       player2ReserveSeconds: map.player2_reserve_seconds,
+      previewHeroId: map.preview_hero_id,
       actions,
       unavailableHeroIds: unavailableRows.map((row) => row.hero_id),
+      createdAt: map.created_at.toISOString(),
     },
     createdAt: series.created_at.toISOString(),
     updatedAt: series.updated_at.toISOString(),

@@ -14,6 +14,10 @@ const agreements = readFileSync(
   resolve(process.cwd(), "app/fearless-draft/server/agreement-service.ts"),
   "utf8",
 );
+const queue = readFileSync(
+  resolve(process.cwd(), "app/fearless-draft/server/queue-service.ts"),
+  "utf8",
+);
 const migration = readFileSync(
   resolve(process.cwd(), "../bot/database/migrations/0061_fearless_draft.sql"),
   "utf8",
@@ -80,5 +84,19 @@ describe("Fearless Draft server safety contract", () => {
     expect(heroModel).toContain("disabledCaptainModeHeroIds");
     expect(footer).toContain(">\n            <FiCrosshair /> Fearless Draft");
     expect(footer).toContain('href="/fearless-draft"');
+  });
+
+  it("synchronizes hero previews without trusting a player id from the browser", () => {
+    expect(route).toContain('case "PREVIEW_HERO"');
+    expect(route).toContain("previewDraftHero(\n          user.discordId");
+    expect(service).toContain("previewDraftHero");
+    expect(service).toContain("preview_hero_id");
+  });
+
+  it("uses one cryptographically random 50/50 toss for maps one and three", () => {
+    expect(queue).toContain("randomCoinTossWinner");
+    expect(agreements).toContain("randomCoinTossWinner");
+    expect(queue).not.toContain("players[randomInt(players.length)]");
+    expect(agreements).not.toContain("players[randomInt(players.length)]");
   });
 });

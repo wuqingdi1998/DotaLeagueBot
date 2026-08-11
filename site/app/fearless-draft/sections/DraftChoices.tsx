@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { FiCheckCircle } from "react-icons/fi";
+import { DraftCoinToss, type CoinTossStage } from "../components/DraftCoinToss";
+import { PlayerAvatar } from "../components/PlayerAvatar";
+import { useServerNow } from "../hooks/useServerNow";
+import {
+  COIN_FLIP_DURATION_MS,
+  COIN_SPINNER_DURATION_MS,
+} from "../model/config";
 import type {
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
 import type { DraftChoice } from "../model/types";
-import { PlayerAvatar } from "../components/PlayerAvatar";
 
 const choiceLabels: Record<DraftChoice, string> = {
   FIRST: "First Pick",
@@ -16,24 +22,29 @@ const choiceLabels: Record<DraftChoice, string> = {
   DIRE: "Dire",
 };
 
+function coinTossStage(elapsedMs: number): CoinTossStage {
+  if (elapsedMs < COIN_FLIP_DURATION_MS) return "FLIPPING";
+  if (elapsedMs < COIN_FLIP_DURATION_MS + COIN_SPINNER_DURATION_MS) {
+    return "SPINNING";
+  }
+  return "REVEALED";
+}
+
 export function DraftChoices({
   series,
   userId,
+  serverNow,
   isSending,
   send,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
+  serverNow: string;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
 }) {
-  const [isCoinRevealed, setIsCoinRevealed] = useState(false);
   const { map } = series;
-  useEffect(() => {
-    const timer = window.setTimeout(() => setIsCoinRevealed(true), 1_500);
-    return () => window.clearTimeout(timer);
-  }, [map.id]);
-
+  const synchronizedNow = useServerNow(serverNow, 50);
   const firstChooser = map.firstChooserId === series.player1.id
     ? series.player1
     : series.player2;
@@ -49,6 +60,11 @@ export function DraftChoices({
       : ["RADIANT", "DIRE"];
   }, [isFirstDecision, map.firstChoice]);
   const hasCoinToss = map.coinTossWinnerId !== null;
+  const tossStage = coinTossStage(Math.max(
+    0,
+    synchronizedNow - Date.parse(map.createdAt),
+  ));
+  const isCoinRevealed = !hasCoinToss || tossStage === "REVEALED";
 
   return (
     <section className="fearless-choice-screen">
@@ -56,23 +72,37 @@ export function DraftChoices({
         <span>MAP {map.number} / {series.format}</span>
         <strong>Определение сторон и очередности</strong>
       </div>
-      <div className={`fearless-coin ${isCoinRevealed ? "revealed" : "spinning"}`}>
-        <div><span>LS</span></div>
-      </div>
-      <p className="fearless-coin-result">
-        {hasCoinToss ? (
-          isCoinRevealed
-            ? <><FiCheckCircle /> Монетку выиграл <strong>{firstChooser.name}</strong></>
-            : "Монетка решает, кто выбирает первым…"
-        ) : (
-          <>На второй карте первым выбирает <strong>{firstChooser.name}</strong></>
-        )}
-      </p>
 
-      {(!hasCoinToss || isCoinRevealed) && (
+      {hasCoinToss && map.coinTossWinnerId && (
+        <>
+          <DraftCoinToss
+            leftPlayer={series.player1}
+            rightPlayer={series.player2}
+            winnerId={map.coinTossWinnerId}
+            stage={tossStage}
+          />
+          <p className="fearless-coin-result">
+            {tossStage === "FLIPPING" && "Монетка делает несколько оборотов…"}
+            {tossStage === "SPINNING" && "Волчок определяет победителя…"}
+            {tossStage === "REVEALED" && (
+              <><FiCheckCircle /> Монетку выиграл <strong>{firstChooser.name}</strong></>
+            )}
+          </p>
+        </>
+      )}
+
+      {!hasCoinToss && (
+        <p className="fearless-map-two-choice">
+          На первой карте монетку проиграл <strong>{firstChooser.name}</strong>,
+          поэтому на второй карте право первого выбора стороны или очереди пика
+          досталось ему.
+        </p>
+      )}
+
+      {isCoinRevealed && (
         <div className="fearless-decision-card">
           <div className="fearless-decision-player">
-            <PlayerAvatar player={decisionPlayer} />
+            <PlayerAvatar player={decisionPlayer} freezeAnimation />
             <div>
               <span>{isFirstDecision ? "Первый выбор" : "Ответный выбор"}</span>
               <strong>{decisionPlayer.name}</strong>

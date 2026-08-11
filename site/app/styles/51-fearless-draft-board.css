@@ -249,6 +249,7 @@
 }
 
 .fearless-draft-workspace {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 260px;
   gap: 12px;
@@ -261,6 +262,11 @@
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
+}
+
+.fearless-hero-pool {
+  position: relative;
+  overflow: hidden;
 }
 
 .fearless-hero-toolbar {
@@ -378,12 +384,18 @@
 .fearless-hero-grid .picked-dire img { filter: brightness(0.55); }
 
 .fearless-hero-confirm {
+  position: absolute;
+  z-index: 6;
+  right: 10px;
+  bottom: 10px;
   display: flex;
   align-items: center;
   gap: 12px;
-  border-top: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
   padding: 10px;
   background: var(--surface-soft);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
 }
 .fearless-hero-confirm > img { width: 100px; height: 56px; border-radius: 7px; object-fit: cover; }
 .fearless-hero-confirm > div { display: flex; min-width: 0; flex: 1; flex-direction: column; }
@@ -402,9 +414,10 @@
 .fearless-hero-confirm button.ban { background: linear-gradient(135deg, #b93e52, #df5c69); }
 
 .fearless-history { overflow: hidden; }
-.fearless-history > header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--line); padding: 14px; }
+.fearless-history > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: 14px; }
 .fearless-history > header span { font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .fearless-history > header strong { color: var(--blue); font-size: 12px; }
+.fearless-history > header button { display: none; }
 .fearless-history > div { max-height: 575px; overflow-y: auto; }
 .fearless-history article {
   display: grid;
@@ -422,6 +435,8 @@
 .fearless-history article > strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
 .fearless-history article small { color: #f0a83f; font-size: 8px; }
 .fearless-history > div > p { padding: 20px; color: var(--muted); font-size: 12px; text-align: center; }
+
+.fearless-history-toggle { display: none; }
 
 @media (max-width: 980px) {
   .fearless-active-draft,
@@ -459,7 +474,7 @@
   .fearless-end-request > div:not(.fearless-end-actions) { flex-basis: calc(100% - 40px); }
   .fearless-end-actions { width: 100%; }
   .fearless-end-actions button { flex: 1; }
-  .fearless-hero-confirm { position: sticky; z-index: 5; bottom: 0; flex-wrap: wrap; }
+  .fearless-hero-confirm { position: sticky; z-index: 5; right: auto; bottom: 0; flex-wrap: wrap; border-radius: 0; }
   .fearless-hero-confirm > img { width: 72px; height: 41px; }
   .fearless-hero-confirm button { width: 100%; }
   .fearless-map-ready-control { min-width: 0; }

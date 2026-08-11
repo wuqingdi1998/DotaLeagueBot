@@ -32,3 +32,6 @@ export const DRAFT_SEQUENCE: readonly DraftSequenceStep[] = [
 export const DRAFT_QUEUE_TTL_SECONDS = 30;
 export const DRAFT_INVITATION_TTL_MINUTES = 5;
 export const DRAFT_END_REQUEST_TTL_MINUTES = 5;
+
+export const COIN_FLIP_DURATION_MS = 2_000;
+export const COIN_SPINNER_DURATION_MS = 10_000;

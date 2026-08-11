@@ -1,4 +1,3 @@
-import { randomInt } from "node:crypto";
 import { query, transaction } from "@/lib/db";
 import {
   canRespondToDraftEndRequest,
@@ -9,6 +8,7 @@ import { DRAFT_END_REQUEST_TTL_MINUTES } from "../model/config";
 import { draftSeriesMapCount, firstChooserForMap } from "../model/series";
 import { loadLockedDraftSeries } from "./database";
 import { databaseNow } from "./database-clock";
+import { randomCoinTossWinner } from "./coin-toss";
 import { DraftRequestError } from "./errors";
 
 export async function settleExpiredDraftEndRequests(): Promise<void> {
@@ -110,9 +110,9 @@ export async function markReadyForNextDraftMap(playerId: string): Promise<void> 
     if (nextMap > draftSeriesMapCount(series.format)) {
       throw new DraftRequestError("Серия уже завершена", 409);
     }
-    const players = [series.player1_id, series.player2_id];
+    const players = [series.player1_id, series.player2_id] as const;
     const coinTossWinnerId = nextMap === 3
-      ? players[randomInt(players.length)]
+      ? randomCoinTossWinner(players)
       : null;
     const firstChooserId = firstChooserForMap({
       mapNumber: nextMap,

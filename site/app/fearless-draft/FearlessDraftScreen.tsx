@@ -52,6 +52,7 @@ export function FearlessDraftScreen({
           key={series.map.id}
           series={series}
           userId={snapshot.user.id}
+          serverNow={snapshot.serverNow}
           isSending={isSending}
           send={send}
         />

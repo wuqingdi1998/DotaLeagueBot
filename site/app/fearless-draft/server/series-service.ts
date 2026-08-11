@@ -167,7 +167,7 @@ async function commitHeroAction(
     await client.query(
       `UPDATE draft_maps
        SET current_step = $1, ${reserveColumn} = $2, status = 'COMPLETE',
-           completed_at = $3, version = version + 1
+           preview_hero_id = NULL, completed_at = $3, version = version + 1
        WHERE id = $4`,
       [nextStep, timer.reserveRemaining, now, map.id],
     );
@@ -183,7 +183,7 @@ async function commitHeroAction(
     await client.query(
       `UPDATE draft_maps
        SET current_step = $1, ${reserveColumn} = $2,
-           step_started_at = $3, version = version + 1
+           preview_hero_id = NULL, step_started_at = $3, version = version + 1
        WHERE id = $4`,
       [nextStep, timer.reserveRemaining, now, map.id],
     );
@@ -217,6 +217,66 @@ async function resolveExpiredStep(
   return true;
 }
 
+function validateHeroCommand(heroId: number, expectedVersion: number): void {
+  if (!Number.isInteger(heroId) || !heroIds.has(heroId)) {
+    throw new DraftRequestError("Герой не найден", 404);
+  }
+  if (!Number.isInteger(expectedVersion) || expectedVersion < 0) {
+    throw new DraftRequestError("Состояние драфта устарело", 409);
+  }
+}
+
+async function loadSelectableHeroTurn(
+  client: PoolClient,
+  playerId: string,
+  heroId: number,
+  expectedVersion: number,
+) {
+  const { series, map } = await loadLockedDraftSeries(client, playerId);
+  if (map.status !== "DRAFTING" || series.status !== "DRAFTING") {
+    throw new DraftRequestError("Сейчас нельзя выбирать героя", 409);
+  }
+  if (map.version !== expectedVersion) {
+    throw new DraftRequestError("Ход уже изменился — экран обновлён", 409);
+  }
+  const now = await databaseNow(client);
+  if (await resolveExpiredStep(client, series, map, now)) {
+    throw new DraftRequestError("Время хода уже истекло", 409);
+  }
+  if (actorIdForStep(series, map, map.current_step) !== playerId) {
+    throw new DraftRequestError("Сейчас ход соперника", 403);
+  }
+  const unavailable = await unavailableHeroIds(client, series.id, map.map_number);
+  const used = await currentMapHeroIds(client, map.id);
+  if (unavailable.has(heroId)) {
+    throw new DraftRequestError("Герой уже использован на предыдущей карте", 409);
+  }
+  if (used.has(heroId)) {
+    throw new DraftRequestError("Герой уже выбран или забанен", 409);
+  }
+  return { series, map, now };
+}
+
+export async function previewDraftHero(
+  playerId: string,
+  heroId: number,
+  expectedVersion: number,
+): Promise<void> {
+  validateHeroCommand(heroId, expectedVersion);
+  await transaction(async (client) => {
+    const { map } = await loadSelectableHeroTurn(
+      client,
+      playerId,
+      heroId,
+      expectedVersion,
+    );
+    await client.query(
+      "UPDATE draft_maps SET preview_hero_id = $1 WHERE id = $2",
+      [heroId, map.id],
+    );
+  });
+}
+
 export async function settleExpiredDraft(playerId: string): Promise<void> {
   await transaction(async (client) => {
     const active = await client.query<{ id: number }>(
@@ -237,35 +297,14 @@ export async function selectDraftHero(
   heroId: number,
   expectedVersion: number,
 ): Promise<void> {
-  if (!Number.isInteger(heroId) || !heroIds.has(heroId)) {
-    throw new DraftRequestError("Герой не найден", 404);
-  }
-  if (!Number.isInteger(expectedVersion) || expectedVersion < 0) {
-    throw new DraftRequestError("Состояние драфта устарело", 409);
-  }
+  validateHeroCommand(heroId, expectedVersion);
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, playerId);
-    if (map.status !== "DRAFTING" || series.status !== "DRAFTING") {
-      throw new DraftRequestError("Сейчас нельзя выбирать героя", 409);
-    }
-    if (map.version !== expectedVersion) {
-      throw new DraftRequestError("Ход уже изменился — экран обновлён", 409);
-    }
-    const now = await databaseNow(client);
-    if (await resolveExpiredStep(client, series, map, now)) {
-      throw new DraftRequestError("Время хода уже истекло", 409);
-    }
-    if (actorIdForStep(series, map, map.current_step) !== playerId) {
-      throw new DraftRequestError("Сейчас ход соперника", 403);
-    }
-    const unavailable = await unavailableHeroIds(client, series.id, map.map_number);
-    const used = await currentMapHeroIds(client, map.id);
-    if (unavailable.has(heroId)) {
-      throw new DraftRequestError("Герой уже использован на предыдущей карте", 409);
-    }
-    if (used.has(heroId)) {
-      throw new DraftRequestError("Герой уже выбран или забанен", 409);
-    }
+    const { series, map, now } = await loadSelectableHeroTurn(
+      client,
+      playerId,
+      heroId,
+      expectedVersion,
+    );
     await commitHeroAction(client, series, map, heroId, false, now);
   });
 }

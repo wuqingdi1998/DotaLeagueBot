@@ -13,8 +13,11 @@ function source(path: string) {
 
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const agreementPanel = source("app/fearless-draft/sections/DraftAgreementPanel.tsx");
+const choices = source("app/fearless-draft/sections/DraftChoices.tsx");
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
+const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
+const playerAvatar = source("app/fearless-draft/components/PlayerAvatar.tsx");
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const board = source("app/styles/51-fearless-draft-board.css");
 const interactions = source("app/styles/51-fearless-draft-interactions.css");
@@ -115,5 +118,44 @@ describe("Fearless Draft board interface", () => {
     expect(draftScreen).toContain("serverNow={snapshot.serverNow}");
     expect(agreementPanel).toContain("useServerNow(serverNow, 1_000)");
     expect(agreementPanel).not.toContain("Date.now()");
+  });
+
+  it("keeps confirmation in the lower-right corner without adding a row", () => {
+    expect(board).toMatch(
+      /\.fearless-hero-pool\s*\{[^}]*position:\s*relative;[^}]*overflow:\s*hidden;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-hero-confirm\s*\{[^}]*position:\s*absolute;[^}]*right:\s*10px;[^}]*bottom:\s*10px;/,
+    );
+  });
+
+  it("opens an ordered history drawer from the fullscreen right wall", () => {
+    expect(activeDraft).toContain('className="fearless-history-toggle"');
+    expect(activeDraft).toContain("isHistoryOpen");
+    expect(interactions).toContain(".fearless-history.drawer-open");
+    expect(history).not.toContain("[...actions].reverse()");
+    expect(history).toContain("actions.map((action)");
+  });
+
+  it("shows the synchronized selected hero in the current gray slot", () => {
+    expect(heroGrid).toContain('action: "PREVIEW_HERO"');
+    expect(teamPanel).toContain("previewHeroId");
+    expect(teamPanel).toContain('"previewing"');
+    expect(interactions).toContain(".previewing img");
+    expect(interactions).toContain("grayscale(1)");
+  });
+
+  it("freezes animated captain avatars during the draft", () => {
+    expect(teamPanel).toContain("freezeAnimation");
+    expect(playerAvatar).toContain("staticAvatarUrl");
+    expect(playerAvatar).toContain("freezeAnimation");
+  });
+
+  it("runs a server-synchronized ten-second spinner only on maps one and three", () => {
+    expect(draftScreen).toContain("serverNow={snapshot.serverNow}");
+    expect(choices).toContain("COIN_SPINNER_DURATION_MS");
+    expect(choices).toContain("useServerNow(serverNow");
+    expect(choices).toContain("На первой карте монетку проиграл");
+    expect(choices).toContain("hasCoinToss &&");
   });
 });

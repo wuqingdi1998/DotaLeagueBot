@@ -235,8 +235,108 @@
   font-size: 29px;
 }
 
-.fearless-coin.spinning > div { animation: fearless-coin-spin 520ms linear infinite; }
+.fearless-coin.flipping > div { animation: fearless-coin-spin 520ms linear infinite; }
 @keyframes fearless-coin-spin { to { transform: rotateY(360deg) rotateZ(8deg); } }
+
+.fearless-toss-wheel {
+  position: relative;
+  width: 220px;
+  height: 220px;
+  margin: 28px auto 20px;
+  border: 5px solid #d9b956;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28), 0 0 34px rgba(218, 160, 46, 0.2);
+}
+
+.fearless-wheel-sectors {
+  position: absolute;
+  overflow: hidden;
+  border-radius: 50%;
+  inset: 5px;
+  background: linear-gradient(90deg, rgba(67, 201, 142, 0.48) 0 50%, rgba(237, 101, 117, 0.48) 50%);
+}
+
+.fearless-wheel-sectors::after {
+  position: absolute;
+  width: 2px;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - 1px);
+  background: rgba(255, 255, 255, 0.48);
+  content: "";
+}
+
+.fearless-wheel-sectors span {
+  position: absolute;
+  width: 45%;
+  top: 50%;
+  overflow: hidden;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-shadow: 0 2px 5px #000;
+  white-space: nowrap;
+}
+.fearless-wheel-sectors .left { left: 3%; }
+.fearless-wheel-sectors .right { right: 3%; }
+
+.fearless-wheel-spinner {
+  position: absolute;
+  z-index: 2;
+  width: 24px;
+  height: 82px;
+  top: calc(50% - 41px);
+  left: calc(50% - 12px);
+  transform-origin: 50% 50%;
+}
+.fearless-wheel-spinner::after {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 32px;
+  left: 3px;
+  border: 3px solid #ffe899;
+  border-radius: 50%;
+  background: #734916;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  content: "";
+}
+.fearless-wheel-spinner b {
+  position: absolute;
+  width: 0;
+  height: 0;
+  top: -7px;
+  left: 4px;
+  border-right: 8px solid transparent;
+  border-bottom: 19px solid #fff0a8;
+  border-left: 8px solid transparent;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+.fearless-toss-wheel.spinning .winner-left {
+  animation: fearless-spinner-left 10s cubic-bezier(0.12, 0.58, 0.14, 1) forwards;
+}
+.fearless-toss-wheel.spinning .winner-right {
+  animation: fearless-spinner-right 10s cubic-bezier(0.12, 0.58, 0.14, 1) forwards;
+}
+.fearless-toss-wheel.revealed .winner-left { transform: rotate(3150deg); }
+.fearless-toss-wheel.revealed .winner-right { transform: rotate(2970deg); }
+@keyframes fearless-spinner-left { to { transform: rotate(3150deg); } }
+@keyframes fearless-spinner-right { to { transform: rotate(2970deg); } }
+.fearless-toss-wheel > strong {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  color: #ffe899;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-align: center;
+}
 
 .fearless-coin-result {
   display: flex;
@@ -251,6 +351,19 @@
 
 .fearless-coin-result svg { color: #39d398; }
 .fearless-coin-result strong { color: var(--text); }
+
+.fearless-map-two-choice {
+  max-width: 720px;
+  margin: 34px auto 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--surface-blue);
+  color: var(--muted);
+  line-height: 1.55;
+  text-align: center;
+}
+.fearless-map-two-choice strong { color: var(--text); }
 
 .fearless-decision-card {
   max-width: 720px;

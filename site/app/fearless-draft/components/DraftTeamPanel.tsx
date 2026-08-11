@@ -21,6 +21,7 @@ export function DraftTeamPanel({
   priority,
   actions,
   currentStep,
+  previewHeroId,
   reserveSeconds,
   isCurrent,
   isConnected,
@@ -30,6 +31,7 @@ export function DraftTeamPanel({
   priority: "FIRST" | "SECOND";
   actions: DraftActionSnapshot[];
   currentStep: number;
+  previewHeroId: number | null;
   reserveSeconds: number;
   isCurrent: boolean;
   isConnected: boolean;
@@ -37,10 +39,11 @@ export function DraftTeamPanel({
   const actionsByStep = new Map(actions.map((action) => [action.step, action]));
   const pickSteps = draftSlots(priority, "PICK");
   const banSteps = draftSlots(priority, "BAN");
+  const previewHero = previewHeroId ? heroesById.get(previewHeroId) : null;
   return (
     <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
       <header>
-        <PlayerAvatar player={player} />
+        <PlayerAvatar player={player} freezeAnimation />
         <div>
           <span>{side} · {priority} PICK</span>
           <strong>{player.name}</strong>
@@ -60,15 +63,17 @@ export function DraftTeamPanel({
           const hero = action?.heroId
             ? heroesById.get(action.heroId)
             : null;
+          const isPreviewing = !action && isCurrentAction && Boolean(previewHero);
+          const displayedHero = hero ?? (isPreviewing ? previewHero : null);
           return (
             <div
               key={step}
-              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""}`}
+              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""}`}
             >
-              {hero ? (
+              {displayedHero ? (
                 <>
-                  <Image src={hero.imageUrl} alt="" fill sizes="160px" unoptimized />
-                  <span>{hero.name}</span>
+                  <Image src={displayedHero.imageUrl} alt="" fill sizes="160px" unoptimized />
+                  <span>{displayedHero.name}</span>
                 </>
               ) : action ? <b>—</b> : null}
               <small className="fearless-slot-step">{step + 1}</small>
@@ -82,14 +87,16 @@ export function DraftTeamPanel({
           const action = actionsByStep.get(step);
           const isCurrentAction = isCurrent && step === currentStep;
           const hero = action?.heroId ? heroesById.get(action.heroId) : null;
+          const isPreviewing = !action && isCurrentAction && Boolean(previewHero);
+          const displayedHero = hero ?? (isPreviewing ? previewHero : null);
           return (
             <div
               key={step}
-              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""}`}
-              title={hero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
+              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""}`}
+              title={displayedHero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
             >
-              {hero ? (
-                <Image src={hero.imageUrl} alt={hero.name} fill sizes="48px" unoptimized />
+              {displayedHero ? (
+                <Image src={displayedHero.imageUrl} alt={displayedHero.name} fill sizes="48px" unoptimized />
               ) : action ? <b>—</b> : null}
               <small className="fearless-slot-step">{step + 1}</small>
             </div>

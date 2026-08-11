@@ -9,6 +9,7 @@ import {
 import {
   dismissCompletedSeries,
   makeDraftChoice,
+  previewDraftHero,
   selectDraftHero,
 } from "@/app/fearless-draft/server/series-service";
 import {
@@ -84,6 +85,16 @@ export async function POST(request: Request) {
           throw new DraftRequestError("Герой не указан");
         }
         await selectDraftHero(
+          user.discordId,
+          Number(command.heroId),
+          Number(command.expectedVersion),
+        );
+        break;
+      case "PREVIEW_HERO":
+        if (!("heroId" in command) || !("expectedVersion" in command)) {
+          throw new DraftRequestError("Герой не указан");
+        }
+        await previewDraftHero(
           user.discordId,
           Number(command.heroId),
           Number(command.expectedVersion),

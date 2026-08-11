@@ -70,7 +70,7 @@ export function HeroGrid({
   );
   const selectedHeroId = selection?.version === map.version
     ? selection.heroId
-    : null;
+    : map.previewHeroId;
   const selectedHero = FEARLESS_DRAFT_HEROES.find((hero) => hero.id === selectedHeroId);
   const isOwnTurn = map.currentActorId === userId;
 
@@ -186,6 +186,11 @@ export function HeroGrid({
                     onClick={() => {
                       if (canSelect) {
                         setSelection({ heroId: hero.id, version: map.version });
+                        void send({
+                          action: "PREVIEW_HERO",
+                          heroId: hero.id,
+                          expectedVersion: map.version,
+                        });
                       }
                     }}
                   >

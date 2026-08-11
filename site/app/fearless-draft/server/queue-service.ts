@@ -1,4 +1,3 @@
-import { randomInt } from "node:crypto";
 import { transaction } from "@/lib/db";
 import {
   DRAFT_INVITATION_TTL_MINUTES,
@@ -7,6 +6,7 @@ import {
 import type { DraftFormat } from "../model/types";
 import { DraftRequestError } from "./errors";
 import { hasActiveSeries, lockDraftPlayers } from "./database";
+import { randomCoinTossWinner } from "./coin-toss";
 
 const formats: DraftFormat[] = ["BO2", "BO3"];
 
@@ -159,8 +159,8 @@ export async function respondToDraftInvitation(
       throw new DraftRequestError("Один из участников уже покинул поиск", 409);
     }
 
-    const players = [invitation.sender_id, invitation.recipient_id];
-    const coinTossWinnerId = players[randomInt(players.length)];
+    const players = [invitation.sender_id, invitation.recipient_id] as const;
+    const coinTossWinnerId = randomCoinTossWinner(players);
     const seriesResult = await client.query<{ id: number }>(
       `INSERT INTO draft_series
         (player1_id, player2_id, format, map1_coin_toss_winner_id)

@@ -50,6 +50,13 @@ INVITATION_CLEANUP_MIGRATION = (
     / "0067_tournament_invitation_cleanup.sql"
 ).read_text(encoding="utf-8")
 
+FEARLESS_DRAFT_PREVIEW_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0068_fearless_draft_preview.sql"
+).read_text(encoding="utf-8")
+
 BRACKET_LAYOUT_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -224,6 +231,11 @@ def test_invitation_cleanup_tracks_and_deletes_discord_messages() -> None:
     assert "delete_pending" in INVITATION_CLEANUP_MIGRATION
     assert "ON DELETE SET NULL" in INVITATION_CLEANUP_MIGRATION
     assert "invitation_candidates" in INVITATION_CLEANUP_MIGRATION
+
+
+def test_fearless_draft_preview_is_shared_between_players() -> None:
+    assert "ALTER TABLE draft_maps" in FEARLESS_DRAFT_PREVIEW_MIGRATION
+    assert "preview_hero_id INTEGER" in FEARLESS_DRAFT_PREVIEW_MIGRATION
 
 
 def test_organizer_sessions_are_separate_from_player_sessions() -> None:

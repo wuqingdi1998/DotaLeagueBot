@@ -3,10 +3,19 @@
 import Image from "next/image";
 import { useState } from "react";
 import type { DraftPlayer } from "../model/snapshot";
+import { staticAvatarUrl } from "../model/avatar";
 
-export function PlayerAvatar({ player }: { player: DraftPlayer }) {
+export function PlayerAvatar({
+  player,
+  freezeAnimation = false,
+}: {
+  player: DraftPlayer;
+  freezeAnimation?: boolean;
+}) {
   const [failedAvatarUrl, setFailedAvatarUrl] = useState<string | null>(null);
-  const avatarUrl = player.avatarUrl;
+  const avatarUrl = player.avatarUrl && freezeAnimation
+    ? staticAvatarUrl(player.avatarUrl)
+    : player.avatarUrl;
   if (!avatarUrl || avatarUrl === failedAvatarUrl) {
     return (
       <span className="fearless-player-avatar fallback">

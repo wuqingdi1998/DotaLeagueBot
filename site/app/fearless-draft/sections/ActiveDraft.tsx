@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import {
   FiArrowRight,
   FiCheck,
   FiMaximize2,
   FiMinimize2,
+  FiList,
 } from "react-icons/fi";
 import type {
   DraftPlayer,
@@ -43,6 +45,7 @@ export function ActiveDraft({
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
 }) {
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const { map } = series;
   const radiantPlayerId = map.radiantPlayerId ?? series.player1.id;
   const firstPickPlayerId = map.firstPickPlayerId ?? series.player1.id;
@@ -143,7 +146,10 @@ export function ActiveDraft({
               type="button"
               role="switch"
               aria-checked={isFullscreen}
-              onClick={() => void toggleFullscreen()}
+              onClick={() => {
+                setIsHistoryOpen(false);
+                void toggleFullscreen();
+              }}
             >
               {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
               <span aria-hidden="true"><i /></span>
@@ -160,6 +166,7 @@ export function ActiveDraft({
           priority={firstPick.id === radiant.id ? "FIRST" : "SECOND"}
           actions={map.actions}
           currentStep={map.currentStep}
+          previewHeroId={map.previewHeroId}
           reserveSeconds={radiant.id === series.player1.id ? player1Reserve : player2Reserve}
           isCurrent={map.currentActorId === radiant.id}
           isConnected={radiant.id === series.player1.id ? series.player1Connected : series.player2Connected}
@@ -170,6 +177,7 @@ export function ActiveDraft({
           priority={firstPick.id === dire.id ? "FIRST" : "SECOND"}
           actions={map.actions}
           currentStep={map.currentStep}
+          previewHeroId={map.previewHeroId}
           reserveSeconds={dire.id === series.player1.id ? player1Reserve : player2Reserve}
           isCurrent={map.currentActorId === dire.id}
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}
@@ -178,7 +186,20 @@ export function ActiveDraft({
 
       <div className="fearless-draft-workspace">
         <HeroGrid map={map} userId={userId} isSending={isSending} send={send} />
-        <DraftHistory actions={map.actions} />
+        <button
+          className="fearless-history-toggle"
+          type="button"
+          aria-controls="fearless-draft-history"
+          aria-expanded={isHistoryOpen}
+          onClick={() => setIsHistoryOpen((isOpen) => !isOpen)}
+        >
+          <FiList /> <span>История</span>
+        </button>
+        <DraftHistory
+          actions={map.actions}
+          isDrawerOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+        />
       </div>
     </section>
   );
