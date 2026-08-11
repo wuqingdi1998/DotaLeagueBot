@@ -37,11 +37,13 @@ export function HeroGrid({
   userId,
   isSending,
   send,
+  onPreviewHeroIdChange,
 }: {
   map: DraftMapSnapshot;
   userId: string;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
+  onPreviewHeroIdChange: (heroId: number) => void;
 }) {
   const [search, setSearch] = useState("");
   const [selection, setSelection] = useState<{
@@ -70,7 +72,7 @@ export function HeroGrid({
   );
   const selectedHeroId = selection?.version === map.version
     ? selection.heroId
-    : map.previewHeroId;
+    : null;
   const selectedHero = FEARLESS_DRAFT_HEROES.find((hero) => hero.id === selectedHeroId);
   const isOwnTurn = map.currentActorId === userId;
 
@@ -186,11 +188,7 @@ export function HeroGrid({
                     onClick={() => {
                       if (canSelect) {
                         setSelection({ heroId: hero.id, version: map.version });
-                        void send({
-                          action: "PREVIEW_HERO",
-                          heroId: hero.id,
-                          expectedVersion: map.version,
-                        });
+                        onPreviewHeroIdChange(hero.id);
                       }
                     }}
                   >

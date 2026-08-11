@@ -316,12 +316,17 @@
   z-index: 6;
   right: 10px;
   bottom: 10px;
+  display: flex;
+  width: calc((100% - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4);
+  min-height: 78px;
+  align-items: stretch;
   border: 1px solid var(--line-strong);
   border-radius: 11px;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
 }
 .fearless-active-draft:fullscreen .fearless-hero-confirm > img,
 .fearless-active-draft:fullscreen .fearless-hero-confirm > div { display: none; }
+.fearless-active-draft:fullscreen .fearless-hero-confirm button { width: 100%; }
 
 .fearless-active-draft:fullscreen .fearless-history-toggle {
   position: absolute;

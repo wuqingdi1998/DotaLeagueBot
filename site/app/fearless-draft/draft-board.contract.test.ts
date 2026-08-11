@@ -49,7 +49,8 @@ describe("Fearless Draft board interface", () => {
         .sort((left, right) => left.localeCompare(right, "en")));
     }
     expect(heroGrid).toContain("heroes: sortHeroesAlphabetically(");
-    expect(board).toContain("column-gap: clamp(18px, 1.7vw, 26px)");
+    expect(board).toContain("--fearless-attribute-gap: clamp(18px, 1.7vw, 26px)");
+    expect(board).toContain("column-gap: var(--fearless-attribute-gap)");
     expect(board).toContain("flex: 0 0 8px");
   });
 
@@ -137,12 +138,24 @@ describe("Fearless Draft board interface", () => {
     expect(history).toContain("actions.map((action)");
   });
 
-  it("shows the synchronized selected hero in the current gray slot", () => {
-    expect(heroGrid).toContain('action: "PREVIEW_HERO"');
+  it("shows the selected hero only in the selecting player's current gray slot", () => {
+    expect(activeDraft).toContain("localPreviewHeroId");
+    expect(activeDraft).toContain("onPreviewHeroIdChange");
+    expect(heroGrid).not.toContain('action: "PREVIEW_HERO"');
     expect(teamPanel).toContain("previewHeroId");
     expect(teamPanel).toContain('"previewing"');
     expect(interactions).toContain(".previewing img");
     expect(interactions).toContain("grayscale(1)");
+  });
+
+  it("keeps the confirm panel inside the universal hero column", () => {
+    expect(board).toContain("--fearless-attribute-gap");
+    expect(board).toContain(
+      "width: calc((100% - 20px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
+    );
+    expect(interactions).toContain(
+      "width: calc((100% - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
+    );
   });
 
   it("freezes animated captain avatars during the draft", () => {

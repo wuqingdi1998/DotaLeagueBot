@@ -257,26 +257,6 @@ async function loadSelectableHeroTurn(
   return { series, map, now };
 }
 
-export async function previewDraftHero(
-  playerId: string,
-  heroId: number,
-  expectedVersion: number,
-): Promise<void> {
-  validateHeroCommand(heroId, expectedVersion);
-  await transaction(async (client) => {
-    const { map } = await loadSelectableHeroTurn(
-      client,
-      playerId,
-      heroId,
-      expectedVersion,
-    );
-    await client.query(
-      "UPDATE draft_maps SET preview_hero_id = $1 WHERE id = $2",
-      [heroId, map.id],
-    );
-  });
-}
-
 export async function settleExpiredDraft(playerId: string): Promise<void> {
   await transaction(async (client) => {
     const active = await client.query<{ id: number }>(

@@ -86,11 +86,9 @@ describe("Fearless Draft server safety contract", () => {
     expect(footer).toContain('href="/fearless-draft"');
   });
 
-  it("synchronizes hero previews without trusting a player id from the browser", () => {
-    expect(route).toContain('case "PREVIEW_HERO"');
-    expect(route).toContain("previewDraftHero(\n          user.discordId");
-    expect(service).toContain("previewDraftHero");
-    expect(service).toContain("preview_hero_id");
+  it("keeps unconfirmed hero previews out of shared server state", () => {
+    expect(route).not.toContain('case "PREVIEW_HERO"');
+    expect(service).not.toContain("previewDraftHero");
   });
 
   it("uses one cryptographically random 50/50 toss for maps one and three", () => {

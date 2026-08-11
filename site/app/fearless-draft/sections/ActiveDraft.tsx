@@ -46,7 +46,14 @@ export function ActiveDraft({
   send: (command: FearlessDraftCommand) => Promise<boolean>;
 }) {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [localPreview, setLocalPreview] = useState<{
+    heroId: number;
+    version: number;
+  } | null>(null);
   const { map } = series;
+  const localPreviewHeroId = localPreview?.version === map.version
+    ? localPreview.heroId
+    : null;
   const radiantPlayerId = map.radiantPlayerId ?? series.player1.id;
   const firstPickPlayerId = map.firstPickPlayerId ?? series.player1.id;
   const radiant = radiantPlayerId === series.player1.id
@@ -166,7 +173,7 @@ export function ActiveDraft({
           priority={firstPick.id === radiant.id ? "FIRST" : "SECOND"}
           actions={map.actions}
           currentStep={map.currentStep}
-          previewHeroId={map.previewHeroId}
+          previewHeroId={localPreviewHeroId}
           reserveSeconds={radiant.id === series.player1.id ? player1Reserve : player2Reserve}
           isCurrent={map.currentActorId === radiant.id}
           isConnected={radiant.id === series.player1.id ? series.player1Connected : series.player2Connected}
@@ -177,7 +184,7 @@ export function ActiveDraft({
           priority={firstPick.id === dire.id ? "FIRST" : "SECOND"}
           actions={map.actions}
           currentStep={map.currentStep}
-          previewHeroId={map.previewHeroId}
+          previewHeroId={localPreviewHeroId}
           reserveSeconds={dire.id === series.player1.id ? player1Reserve : player2Reserve}
           isCurrent={map.currentActorId === dire.id}
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}
@@ -185,7 +192,16 @@ export function ActiveDraft({
       </div>
 
       <div className="fearless-draft-workspace">
-        <HeroGrid map={map} userId={userId} isSending={isSending} send={send} />
+        <HeroGrid
+          map={map}
+          userId={userId}
+          isSending={isSending}
+          send={send}
+          onPreviewHeroIdChange={(heroId) => setLocalPreview({
+            heroId,
+            version: map.version,
+          })}
+        />
         <button
           className="fearless-history-toggle"
           type="button"
