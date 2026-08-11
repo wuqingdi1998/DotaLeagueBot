@@ -162,7 +162,7 @@
   font-family: "5ka Sans Design", sans-serif;
   font-size: 27px;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .team-card ul {

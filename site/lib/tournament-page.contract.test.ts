@@ -93,6 +93,12 @@ describe("tournament page public behavior", () => {
     );
   });
 
+  it("preserves the registered letter case in team names", () => {
+    expect(stylesSource).toMatch(
+      /\.team-card h3\s*\{[^}]*text-transform:\s*none;/,
+    );
+  });
+
   it("shows a large team emblem popup on mouse hover", () => {
     expect(tournamentSource).toContain("TeamEmblemPreview");
     expect(tournamentSource).toContain('className="team-emblem-popup"');
