@@ -120,8 +120,12 @@ describe("Fearless Draft board interface", () => {
   it("uses readable fullscreen labels and hides redundant online text", () => {
     expect(teamPanel).not.toContain('"В сети"');
     expect(interactions).toContain("font-size: 13px");
-    expect(interactions).toContain("font-size: 24px");
-    expect(interactions).toContain("gap: 7px");
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-team-reserve\s*\{[^}]*gap:\s*10px;/,
+    );
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*28px;/,
+    );
   });
 
   it("keeps reserve time beside its larger counter and gives turn text one size", () => {

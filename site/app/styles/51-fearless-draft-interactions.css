@@ -243,8 +243,8 @@
 .fearless-active-draft:fullscreen .fearless-team-panel > header { gap: 8px; padding: 9px 10px; }
 .fearless-active-draft:fullscreen .fearless-team-panel > header span { font-size: 13px; }
 .fearless-active-draft:fullscreen .fearless-team-panel > header strong { font-size: 17px; }
-.fearless-active-draft:fullscreen .fearless-team-reserve { gap: 7px; }
-.fearless-active-draft:fullscreen .fearless-team-reserve strong { font-size: 24px; }
+.fearless-active-draft:fullscreen .fearless-team-reserve { gap: 10px; }
+.fearless-active-draft:fullscreen .fearless-team-reserve strong { font-size: 28px; }
 .fearless-active-draft:fullscreen .fearless-player-avatar { display: none; }
 .fearless-active-draft:fullscreen .fearless-pick-slots { padding: 7px 9px; }
 .fearless-active-draft:fullscreen .fearless-pick-slots > div {
