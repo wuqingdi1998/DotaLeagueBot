@@ -79,6 +79,7 @@ export type CompendiumData = {
 
 export type OpenDotaMatch = {
   match_id: number | string;
+  account_id?: number | string;
   player_slot: number;
   radiant_win: boolean;
   duration: number;

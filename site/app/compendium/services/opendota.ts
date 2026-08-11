@@ -10,11 +10,17 @@ type MatchCacheEntry = {
 const matchCache = new Map<string, MatchCacheEntry>();
 const pendingMatchRequests = new Map<string, Promise<OpenDotaMatch[]>>();
 
-function isOpenDotaMatch(value: unknown): value is OpenDotaMatch {
+function isOpenDotaMatch(
+  value: unknown,
+  requestedDotaId: string,
+): value is OpenDotaMatch {
   if (!value || typeof value !== "object") return false;
   const match = value as Partial<OpenDotaMatch>;
   return (
     (typeof match.match_id === "number" || typeof match.match_id === "string") &&
+    (typeof match.account_id === "number" ||
+      typeof match.account_id === "string") &&
+    String(match.account_id) === requestedDotaId &&
     typeof match.player_slot === "number" &&
     typeof match.radiant_win === "boolean" &&
     typeof match.duration === "number" &&
@@ -34,6 +40,15 @@ function isOpenDotaMatch(value: unknown): value is OpenDotaMatch {
   );
 }
 
+function isForeignPlayerMatch(value: unknown, requestedDotaId: string): boolean {
+  if (!value || typeof value !== "object") return false;
+  const accountId = (value as Partial<OpenDotaMatch>).account_id;
+  return (
+    (typeof accountId === "number" || typeof accountId === "string") &&
+    String(accountId) !== requestedDotaId
+  );
+}
+
 async function requestRecentPlayerMatches(
   dotaId: string,
 ): Promise<OpenDotaMatch[]> {
@@ -43,6 +58,7 @@ async function requestRecentPlayerMatches(
   );
   url.searchParams.set("date", "1");
   for (const field of [
+    "account_id",
     "hero_id",
     "start_time",
     "tower_damage",
@@ -74,7 +90,10 @@ async function requestRecentPlayerMatches(
     if (!Array.isArray(payload)) {
       throw new Error("OpenDota returned a non-array match payload");
     }
-    const matches = payload.filter(isOpenDotaMatch);
+    if (payload.some((match) => isForeignPlayerMatch(match, dotaId))) {
+      throw new Error("OpenDota returned matches for another player");
+    }
+    const matches = payload.filter((match) => isOpenDotaMatch(match, dotaId));
     matchCache.set(dotaId, {
       matches,
       expiresAt: Date.now() + OPEN_DOTA_CACHE_TTL_MS,

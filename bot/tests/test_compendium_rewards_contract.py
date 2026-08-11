@@ -50,6 +50,15 @@ def test_admin_star_commands_are_restricted_and_persistent() -> None:
     assert "Недостаточно звёзд" in ADMIN_SERVICE
 
 
+def test_completestars_response_is_public() -> None:
+    command = ADMIN_COG.split('name="completestars"', 1)[1]
+    command = command.split("async def setup", 1)[0]
+
+    assert "defer(ephemeral=False)" in command
+    assert command.count("ephemeral=False") == 3
+    assert "ephemeral=True" not in command
+
+
 def test_admin_adjustments_feed_the_shared_star_total() -> None:
     assert "CREATE VIEW compendium_player_star_totals" in ADMIN_MIGRATION
     assert "COALESCE(completion.total, 0) + COALESCE(adjustment.total, 0)" in ADMIN_MIGRATION

@@ -3,6 +3,7 @@ import { fetchRecentPlayerMatches, resetOpenDotaCacheForTests } from "./opendota
 
 const validMatch = {
   match_id: 42,
+  account_id: 301109815,
   player_slot: 0,
   radiant_win: true,
   duration: 1800,
@@ -38,6 +39,18 @@ describe("OpenDota client", () => {
       new Response(JSON.stringify([{ ...validMatch, radiant_win: "yes" }]), { status: 200 }),
     ));
     await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([]);
+  });
+
+  it("rejects a match returned for another player", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+      new Response(JSON.stringify([{ ...validMatch, account_id: 999364750 }]), {
+        status: 200,
+      }),
+    ));
+
+    await expect(fetchRecentPlayerMatches("301109815")).rejects.toMatchObject({
+      code: "OPEN_DOTA_UNAVAILABLE",
+    });
   });
 
   it("keeps matches with unavailable building damage for hero quests", async () => {
@@ -90,6 +103,7 @@ describe("OpenDota client", () => {
     ]);
     const url = new URL(String(fetchMock.mock.calls[0][0]));
     expect(url.searchParams.getAll("project")).toEqual([
+      "account_id",
       "hero_id",
       "start_time",
       "tower_damage",

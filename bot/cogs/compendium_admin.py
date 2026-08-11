@@ -122,17 +122,17 @@ class CompendiumAdmin(commands.Cog):
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
     async def complete_stars(self, interaction: discord.Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=False)
         try:
             report = await request_unclaimed_challenges_report()
         except CompendiumUnclaimedStarsError as error:
-            await interaction.followup.send(f"❌ {error}", ephemeral=True)
+            await interaction.followup.send(f"❌ {error}", ephemeral=False)
             return
 
         for message in format_unclaimed_challenges_report(report):
             await interaction.followup.send(
                 message,
-                ephemeral=True,
+                ephemeral=False,
                 allowed_mentions=discord.AllowedMentions.none(),
             )
 
