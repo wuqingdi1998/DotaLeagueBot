@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { FiClock, FiFlag } from "react-icons/fi";
+import { useServerNow } from "../hooks/useServerNow";
 import type {
   DraftSeriesSnapshot,
   FearlessDraftCommand,
@@ -15,20 +15,17 @@ function remainingLabel(expiresAt: string, now: number): string {
 export function DraftAgreementPanel({
   series,
   userId,
+  serverNow,
   isSending,
   send,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
+  serverNow: string;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
 }) {
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    if (!series.endRequest) return;
-    const interval = window.setInterval(() => setNow(Date.now()), 1_000);
-    return () => window.clearInterval(interval);
-  }, [series.endRequest]);
+  const now = useServerNow(serverNow, 1_000);
 
   if (series.status === "COMPLETE") return null;
   const request = series.endRequest;

@@ -12,6 +12,8 @@ function source(path: string) {
 }
 
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
+const agreementPanel = source("app/fearless-draft/sections/DraftAgreementPanel.tsx");
+const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const board = source("app/styles/51-fearless-draft-board.css");
@@ -32,6 +34,7 @@ describe("Fearless Draft board interface", () => {
     expect(heroGrid).toContain("src={hero.portraitUrl}");
     expect(heroGrid).toContain('className="fearless-hero-preview"');
     expect(interactions).toContain("white-space: nowrap");
+    expect(board).toContain("aspect-ratio: 25 / 44");
   });
 
   it("sorts heroes alphabetically inside every attribute group", () => {
@@ -58,6 +61,7 @@ describe("Fearless Draft board interface", () => {
     expect(heroGrid).toContain("LATEST_ACTION_FLASH_DURATION_MS = 3_000");
     expect(interactions).toContain("animation: fearless-ban-flash 3000ms");
     expect(interactions).toContain("animation: fearless-pick-flash 3000ms");
+    expect(interactions).toContain("0 0 68px 26px");
   });
 
   it("marks the current pick or ban slot for a white shimmer", () => {
@@ -83,5 +87,33 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toMatch(
       /\.fearless-draft-view-controls\s*\{[^}]*grid-column:\s*3;[^}]*justify-self:\s*end;/,
     );
+  });
+
+  it("moves next-map readiness into the centered top status area", () => {
+    expect(activeDraft).toContain('className="fearless-map-ready-control"');
+    expect(activeDraft).not.toContain('className="fearless-map-complete"');
+    expect(board).toMatch(
+      /\.fearless-map-ready-control\s*\{[^}]*grid-column:\s*2;[^}]*justify-content:\s*center;/,
+    );
+  });
+
+  it("uses readable fullscreen labels and hides redundant online text", () => {
+    expect(teamPanel).not.toContain('"В сети"');
+    expect(interactions).toContain("font-size: 13px");
+    expect(interactions).toContain("font-size: 24px");
+    expect(interactions).toContain("gap: 7px");
+  });
+
+  it("animates a thicker outline around the team making the current action", () => {
+    expect(interactions).toContain("@keyframes fearless-current-team-flame");
+    expect(interactions).toMatch(
+      /\.fearless-team-panel\.current\s*\{[^}]*border-width:\s*2px;[^}]*animation:\s*fearless-current-team-flame/,
+    );
+  });
+
+  it("counts end-request time from the synchronized server clock", () => {
+    expect(draftScreen).toContain("serverNow={snapshot.serverNow}");
+    expect(agreementPanel).toContain("useServerNow(serverNow, 1_000)");
+    expect(agreementPanel).not.toContain("Date.now()");
   });
 });

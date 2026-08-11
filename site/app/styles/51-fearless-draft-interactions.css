@@ -81,6 +81,29 @@
   color: var(--quiet);
 }
 
+@keyframes fearless-current-team-flame {
+  0%, 100% {
+    border-color: color-mix(in srgb, var(--team-accent) 82%, white);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--team-accent) 72%, transparent),
+      0 0 11px color-mix(in srgb, var(--team-accent) 34%, transparent);
+  }
+  38% {
+    border-color: color-mix(in srgb, var(--team-accent) 48%, white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--team-accent) 88%, transparent),
+      0 0 19px color-mix(in srgb, var(--team-accent) 52%, transparent);
+  }
+  68% {
+    border-color: var(--team-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--team-accent) 65%, transparent),
+      0 0 15px color-mix(in srgb, var(--team-accent) 44%, transparent);
+  }
+}
+
+.fearless-team-panel.current {
+  border-width: 2px;
+  animation: fearless-current-team-flame 2200ms ease-in-out infinite;
+}
+
 @keyframes fearless-current-slot-shimmer {
   from { transform: translateX(-160%) skewX(-18deg); }
   to { transform: translateX(260%) skewX(-18deg); }
@@ -153,9 +176,9 @@
   }
   9%, 31%, 54%, 78% {
     border-color: #ff9270;
-    box-shadow: 0 0 0 3px rgba(255, 115, 92, 0.72), 0 0 44px 17px rgba(255, 72, 38, 0.42);
+    box-shadow: 0 0 0 3px rgba(255, 115, 92, 0.78), 0 0 68px 26px rgba(255, 72, 38, 0.48);
   }
-  88% { box-shadow: 0 0 25px 8px rgba(255, 45, 71, 0.28); }
+  88% { box-shadow: 0 0 42px 15px rgba(255, 45, 71, 0.3); }
   100% { border-color: rgba(239, 100, 114, 0.4); box-shadow: none; }
 }
 
@@ -166,9 +189,9 @@
   }
   9%, 31%, 54%, 78% {
     border-color: #9affd1;
-    box-shadow: 0 0 0 3px rgba(110, 255, 195, 0.7), 0 0 44px 17px rgba(29, 221, 180, 0.38);
+    box-shadow: 0 0 0 3px rgba(110, 255, 195, 0.76), 0 0 68px 26px rgba(29, 221, 180, 0.46);
   }
-  88% { box-shadow: 0 0 25px 8px rgba(38, 221, 137, 0.26); }
+  88% { box-shadow: 0 0 42px 15px rgba(38, 221, 137, 0.28); }
   100% { box-shadow: none; }
 }
 
@@ -205,11 +228,17 @@
 }
 .fearless-active-draft:fullscreen::backdrop { background: var(--bg); }
 .fearless-active-draft:fullscreen .fearless-draft-status { flex: 0 0 auto; padding: 9px 13px; }
+.fearless-active-draft:fullscreen .fearless-draft-status > div:first-child span,
+.fearless-active-draft:fullscreen .fearless-main-clock span { font-size: 13px; }
 .fearless-active-draft:fullscreen .fearless-draft-status > div:first-child strong { font-size: 16px; }
 .fearless-active-draft:fullscreen .fearless-main-clock strong { font-size: 28px; }
 .fearless-active-draft:fullscreen .fearless-turn { padding: 7px 12px; }
 .fearless-active-draft:fullscreen .fearless-team-columns { flex: 0 0 auto; margin-top: 8px; }
 .fearless-active-draft:fullscreen .fearless-team-panel > header { gap: 8px; padding: 9px 10px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header span { font-size: 13px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header strong { font-size: 17px; }
+.fearless-active-draft:fullscreen .fearless-team-reserve { gap: 7px; }
+.fearless-active-draft:fullscreen .fearless-team-reserve strong { font-size: 24px; }
 .fearless-active-draft:fullscreen .fearless-player-avatar { display: none; }
 .fearless-active-draft:fullscreen .fearless-pick-slots { padding: 7px 9px; }
 .fearless-active-draft:fullscreen .fearless-pick-slots > div {
@@ -227,7 +256,6 @@
   aspect-ratio: 16 / 9;
   height: auto;
 }
-.fearless-active-draft:fullscreen .fearless-map-complete { flex: 0 0 auto; margin-top: 6px; padding: 8px; }
 .fearless-active-draft:fullscreen .fearless-draft-workspace {
   min-height: 0;
   flex: 1;
@@ -251,7 +279,7 @@
   row-gap: 8px;
   padding: 5px 8px 8px;
 }
-.fearless-active-draft:fullscreen .fearless-attribute-group > header { min-height: 19px; }
+.fearless-active-draft:fullscreen .fearless-attribute-group > header { min-height: 28px; font-size: 13px; }
 .fearless-active-draft:fullscreen .fearless-attribute-group > div { gap: 3px; }
 .fearless-active-draft:fullscreen .fearless-attribute-group button { padding: 2px; }
 .fearless-active-draft:fullscreen .fearless-hero-confirm {
@@ -275,9 +303,10 @@
   .fearless-attribute-group button.just-ban,
   .fearless-attribute-group button.just-pick,
   .fearless-attribute-group button.just-ban img,
-  .fearless-attribute-group button.just-pick img,
+  .fearless-attribute-group button.just-pick img { animation-duration: 1ms; }
+  .fearless-team-panel.current,
   .fearless-pick-slots > div.current-action,
-  .fearless-ban-list > div.current-action,
+  .fearless-ban-list > div.current-action { animation: none; }
   .fearless-pick-slots > div.current-action::before,
-  .fearless-ban-list > div.current-action::before { animation-duration: 1ms; }
+  .fearless-ban-list > div.current-action::before { display: none; }
 }

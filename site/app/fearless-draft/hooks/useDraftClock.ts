@@ -1,23 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { DraftMapSnapshot } from "../model/snapshot";
 import { draftTimerSnapshot } from "../model/timer";
+import { useServerNow } from "./useServerNow";
 
 export function useDraftClock(
   map: DraftMapSnapshot,
   serverNow: string,
   currentActorReserveSeconds: number,
 ) {
-  const [nowMs, setNowMs] = useState(() => Date.parse(serverNow));
-  useEffect(() => {
-    const clockOffset = Date.parse(serverNow) - Date.now();
-    const timer = window.setInterval(
-      () => setNowMs(Date.now() + clockOffset),
-      200,
-    );
-    return () => window.clearInterval(timer);
-  }, [serverNow, map.id, map.currentStep]);
+  const nowMs = useServerNow(serverNow, 200);
 
   if (!map.stepStartedAt || map.baseDurationSeconds === null) return null;
   return draftTimerSnapshot(

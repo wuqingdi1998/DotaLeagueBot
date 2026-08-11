@@ -5,7 +5,6 @@ import {
   FiCheck,
   FiMaximize2,
   FiMinimize2,
-  FiZap,
 } from "react-icons/fi";
 import type {
   DraftPlayer,
@@ -90,7 +89,36 @@ export function ActiveDraft({
           <span>MAP {map.number} / {series.format}</span>
           <strong>{isComplete ? "DRAFT COMPLETE" : map.currentPhase ? phaseLabels[map.currentPhase] : "Драфт"}</strong>
         </div>
-        {!isComplete && currentActor && (
+        {isComplete ? (
+          <div className="fearless-map-ready-control">
+            {series.status === "COMPLETE" ? (
+              <button
+                className="primary-button"
+                type="button"
+                disabled={isSending}
+                onClick={() => void send({ action: "DISMISS_COMPLETE" })}
+              >
+                Вернуться к поиску <FiArrowRight />
+              </button>
+            ) : (
+              <button
+                className="primary-button"
+                type="button"
+                disabled={isSending || ownReady}
+                onClick={() => void send({ action: "READY_FOR_NEXT_MAP" })}
+              >
+                {ownReady ? (
+                  <><FiCheck /> Ожидаем соперника…</>
+                ) : (
+                  <>
+                    {opponentReady && "Соперник готов · "}
+                    Я готов к карте {map.number + 1} <FiArrowRight />
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        ) : currentActor && (
           <div className={`fearless-turn ${isOwnTurn ? "own" : "opponent"}`}>
             <span>{isOwnTurn ? "ВАШ ХОД" : `ХОД: ${currentActor.name}`}</span>
             <strong>{map.currentAction}</strong>
@@ -147,44 +175,6 @@ export function ActiveDraft({
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}
         />
       </div>
-
-      {isComplete && (
-        <div className="fearless-map-complete">
-          <FiZap />
-          <div>
-            <strong>{series.status === "COMPLETE" ? "Серия завершена" : `Карта ${map.number} завершена`}</strong>
-            <span>Все 24 действия подтверждены сервером.</span>
-          </div>
-          {series.status === "COMPLETE" ? (
-            <button
-              className="primary-button"
-              type="button"
-              disabled={isSending}
-              onClick={() => void send({ action: "DISMISS_COMPLETE" })}
-            >
-              Вернуться к поиску <FiArrowRight />
-            </button>
-          ) : (
-            <div className="fearless-next-map-ready">
-              <span>
-                {ownReady
-                  ? "Вы готовы. Ожидаем соперника…"
-                  : opponentReady
-                    ? "Соперник готов к следующей карте"
-                    : "Следующая карта начнётся после готовности обоих"}
-              </span>
-              <button
-                className="primary-button"
-                type="button"
-                disabled={isSending || ownReady}
-                onClick={() => void send({ action: "READY_FOR_NEXT_MAP" })}
-              >
-                {ownReady ? <><FiCheck /> Готовность подтверждена</> : <>Я готов к карте {map.number + 1} <FiArrowRight /></>}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       <div className="fearless-draft-workspace">
         <HeroGrid map={map} userId={userId} isSending={isSending} send={send} />

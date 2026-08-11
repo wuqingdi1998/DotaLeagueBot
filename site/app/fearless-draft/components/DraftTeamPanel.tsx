@@ -44,9 +44,9 @@ export function DraftTeamPanel({
         <div>
           <span>{side} · {priority} PICK</span>
           <strong>{player.name}</strong>
-          <small className={isConnected ? "connected" : "disconnected"}>
-            <i /> {isConnected ? "В сети" : "Соперник отключился"}
-          </small>
+          {!isConnected && (
+            <small className="disconnected"><i /> Соперник отключился</small>
+          )}
         </div>
         <div className="fearless-team-reserve">
           <span>Reserve</span>

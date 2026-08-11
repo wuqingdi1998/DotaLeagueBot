@@ -39,6 +39,7 @@ export function FearlessDraftScreen({
         <DraftAgreementPanel
           series={series}
           userId={snapshot.user.id}
+          serverNow={snapshot.serverNow}
           isSending={isSending}
           send={send}
         />

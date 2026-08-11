@@ -77,7 +77,7 @@
 .fearless-draft-status > div:first-child span,
 .fearless-main-clock span {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
 }
@@ -127,7 +127,6 @@
   background: var(--surface);
 }
 
-.fearless-team-panel.current { box-shadow: 0 0 0 2px var(--blue); }
 .fearless-team-panel.radiant { --team-accent: #43c98e; }
 .fearless-team-panel.dire { --team-accent: #ed6575; }
 
@@ -148,8 +147,8 @@
   gap: 2px;
 }
 
-.fearless-team-panel > header span { color: var(--team-accent); font-size: 11px; font-weight: 700; }
-.fearless-team-panel > header strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fearless-team-panel > header span { color: var(--team-accent); font-size: 12px; font-weight: 700; }
+.fearless-team-panel > header strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
 .fearless-team-panel > header small { color: var(--muted); font-size: 10px; }
 .fearless-team-panel > header small i {
   display: inline-block;
@@ -162,7 +161,13 @@
 .fearless-team-panel > header small.disconnected { color: #e78663; }
 .fearless-team-panel > header small.disconnected i { background: #e78663; }
 
-.fearless-team-reserve { align-items: flex-end; text-align: right; }
+.fearless-team-reserve {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 6px;
+  text-align: right;
+}
 .fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 20px; }
 
 .fearless-pick-slots {
@@ -230,26 +235,18 @@
   content: "";
 }
 
-.fearless-map-complete {
+.fearless-map-ready-control {
   display: flex;
+  min-width: 230px;
   align-items: center;
-  gap: 15px;
-  margin-top: 12px;
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  padding: 16px;
-  background: var(--surface-blue);
+  grid-column: 2;
+  justify-content: center;
 }
-
-.fearless-map-complete > svg { color: var(--blue); font-size: 28px; }
-.fearless-map-complete > div { display: flex; flex: 1; flex-direction: column; gap: 3px; }
-.fearless-map-complete span { color: var(--muted); font-size: 12px; }
-.fearless-next-map-ready {
-  display: flex;
-  align-items: flex-end;
-  gap: 9px;
+.fearless-map-ready-control .primary-button {
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 13px;
 }
-.fearless-next-map-ready > span { text-align: right; }
 
 .fearless-draft-workspace {
   display: grid;
@@ -314,9 +311,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 24px;
+  min-height: 28px;
   color: var(--muted);
-  font-size: 10px;
+  font-size: 12px;
+  font-weight: 700;
   letter-spacing: 0.08em;
 }
 .fearless-attribute-group > header i {
@@ -353,7 +351,7 @@
 .fearless-hero-image {
   position: relative;
   display: block;
-  aspect-ratio: 142 / 188;
+  aspect-ratio: 25 / 44;
   overflow: hidden;
   border-radius: 4px;
   background: #06131e;
@@ -430,7 +428,8 @@
   .fearless-end-controls,
   .fearless-end-request { width: calc(100% - 24px); }
   .fearless-draft-status { grid-template-columns: 1fr auto; }
-  .fearless-turn { grid-column: 1 / -1; grid-row: 2; }
+  .fearless-turn,
+  .fearless-map-ready-control { grid-column: 1 / -1; grid-row: 2; }
   .fearless-team-columns { grid-template-columns: 1fr; }
   .fearless-draft-workspace { grid-template-columns: 1fr; }
   .fearless-history > div { max-height: 230px; }
@@ -460,11 +459,9 @@
   .fearless-end-request > div:not(.fearless-end-actions) { flex-basis: calc(100% - 40px); }
   .fearless-end-actions { width: 100%; }
   .fearless-end-actions button { flex: 1; }
-  .fearless-next-map-ready { width: 100%; align-items: stretch; flex-direction: column; }
-  .fearless-next-map-ready > span { text-align: left; }
   .fearless-hero-confirm { position: sticky; z-index: 5; bottom: 0; flex-wrap: wrap; }
   .fearless-hero-confirm > img { width: 72px; height: 41px; }
   .fearless-hero-confirm button { width: 100%; }
-  .fearless-map-complete { align-items: flex-start; flex-wrap: wrap; }
-  .fearless-map-complete button { width: 100%; }
+  .fearless-map-ready-control { min-width: 0; }
+  .fearless-map-ready-control .primary-button { width: 100%; }
 }
