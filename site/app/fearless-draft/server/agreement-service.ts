@@ -8,6 +8,7 @@ import {
 import { DRAFT_END_REQUEST_TTL_MINUTES } from "../model/config";
 import { draftSeriesMapCount, firstChooserForMap } from "../model/series";
 import { loadLockedDraftSeries } from "./database";
+import { databaseNow } from "./database-clock";
 import { DraftRequestError } from "./errors";
 
 export async function settleExpiredDraftEndRequests(): Promise<void> {
@@ -55,7 +56,8 @@ export async function respondToDraftSeriesEnd(
       throw new DraftRequestError("Ответить на собственный запрос нельзя", 403);
     }
     const expiresAt = draftEndRequestExpiresAt(series.end_requested_at);
-    const expired = expiresAt.getTime() <= Date.now();
+    const now = await databaseNow(client);
+    const expired = expiresAt.getTime() <= now.getTime();
     await client.query(
       `UPDATE draft_series
        SET status = CASE WHEN $1::boolean OR $2 = 'ACCEPT' THEN 'ABANDONED' ELSE status END,

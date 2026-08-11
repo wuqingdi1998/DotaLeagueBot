@@ -13,7 +13,7 @@ export type DraftTimerSnapshot = {
 
 export function draftTimerSnapshot(
   timer: DraftTimerState,
-  now = new Date(),
+  now: Date,
 ): DraftTimerSnapshot {
   const startedAt = new Date(timer.stepStartedAt).getTime();
   const elapsedSeconds = Math.max(0, (now.getTime() - startedAt) / 1000);
@@ -40,7 +40,7 @@ export function draftTimerSnapshot(
 
 export function consumedReserveSeconds(
   timer: DraftTimerState,
-  now = new Date(),
+  now: Date,
 ): number {
   const snapshot = draftTimerSnapshot(timer, now);
   return Math.max(0, timer.reserveSeconds - snapshot.reserveRemainingSeconds);

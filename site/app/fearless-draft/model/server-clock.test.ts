@@ -1,17 +1,19 @@
 import { describe, expect, it } from "vitest";
-import {
-  applyServerClockOffset,
-  serverClockOffsetMs,
-} from "./server-clock";
+import { serverNowAfterElapsed } from "./server-clock";
 
 describe("Fearless Draft synchronized server clock", () => {
-  it("keeps a five-minute request at 5:00 when the player clock is ahead", () => {
-    const serverNow = "2026-08-11T12:00:00.000Z";
-    const clientNowMs = Date.parse("2026-08-11T12:00:20.000Z");
-    const expiresAtMs = Date.parse("2026-08-11T12:05:00.000Z");
-    const offsetMs = serverClockOffsetMs(serverNow, clientNowMs);
-    const synchronizedNowMs = applyServerClockOffset(clientNowMs, offsetMs);
+  it("advances from server time using only elapsed monotonic time", () => {
+    const synchronizedNowMs = serverNowAfterElapsed(
+      "2026-08-11T12:00:00.000Z",
+      10_000,
+    );
 
-    expect((expiresAtMs - synchronizedNowMs) / 1_000).toBe(300);
+    expect(synchronizedNowMs).toBe(Date.parse("2026-08-11T12:00:10.000Z"));
+  });
+
+  it("does not move backwards when an elapsed reading is negative", () => {
+    expect(serverNowAfterElapsed("2026-08-11T12:00:00.000Z", -1)).toBe(
+      Date.parse("2026-08-11T12:00:00.000Z"),
+    );
   });
 });

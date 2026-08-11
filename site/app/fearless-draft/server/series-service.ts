@@ -11,6 +11,7 @@ import {
   type DraftMapRow,
   type DraftSeriesRow,
 } from "./database";
+import { databaseNow } from "./database-clock";
 import { DraftRequestError } from "./errors";
 
 const heroIds = new Set(ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id));
@@ -226,7 +227,8 @@ export async function settleExpiredDraft(playerId: string): Promise<void> {
     );
     if (!active.rows[0]) return;
     const { series, map } = await loadLockedDraftSeries(client, playerId);
-    await resolveExpiredStep(client, series, map, new Date());
+    const now = await databaseNow(client);
+    await resolveExpiredStep(client, series, map, now);
   });
 }
 
@@ -249,7 +251,7 @@ export async function selectDraftHero(
     if (map.version !== expectedVersion) {
       throw new DraftRequestError("Ход уже изменился — экран обновлён", 409);
     }
-    const now = new Date();
+    const now = await databaseNow(client);
     if (await resolveExpiredStep(client, series, map, now)) {
       throw new DraftRequestError("Время хода уже истекло", 409);
     }

@@ -1,13 +1,6 @@
-export function serverClockOffsetMs(
+export function serverNowAfterElapsed(
   serverNow: string,
-  clientNowMs: number,
+  elapsedMs: number,
 ): number {
-  return Date.parse(serverNow) - clientNowMs;
-}
-
-export function applyServerClockOffset(
-  clientNowMs: number,
-  serverOffsetMs: number,
-): number {
-  return clientNowMs + serverOffsetMs;
+  return Date.parse(serverNow) + Math.max(0, elapsedMs);
 }

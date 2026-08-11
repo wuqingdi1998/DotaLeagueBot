@@ -17,6 +17,7 @@ import type { DraftChoice, DraftFormat } from "../model/types";
 import { settleExpiredDraft } from "./series-service";
 import { settleExpiredDraftEndRequests } from "./agreement-service";
 import { draftEndRequestExpiresAt } from "../model/agreement";
+import { databaseNow } from "./database-clock";
 
 type PlayerRow = {
   id: string;
@@ -314,13 +315,15 @@ export async function loadFearlessDraftSnapshot(
       ...playerFromRow(row),
       joinedAt: row.joined_at.toISOString(),
     }));
+    const series = await loadSeries(user.discordId);
+    const serverNow = await databaseNow(client);
     return {
-      serverNow: new Date().toISOString(),
+      serverNow: serverNow.toISOString(),
       user: playerFromAuth(user),
       isWaiting,
       waitingPlayers,
       invitations,
-      series: await loadSeries(user.discordId),
+      series,
     };
   });
 }
