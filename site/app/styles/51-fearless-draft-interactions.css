@@ -150,7 +150,7 @@
 .fearless-hero-preview {
   position: fixed;
   z-index: 100;
-  width: 180px;
+  width: 150px;
   overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: 10px;
@@ -162,7 +162,7 @@
 .fearless-hero-preview > span {
   position: relative;
   display: block;
-  height: 150px;
+  aspect-ratio: 25 / 44;
   background: #06131e;
 }
 .fearless-hero-preview img { object-fit: cover; }
@@ -278,6 +278,7 @@
 .fearless-active-draft:fullscreen .fearless-hero-toolbar { flex: 0 0 auto; padding: 6px 10px; }
 .fearless-active-draft:fullscreen .fearless-hero-toolbar input { min-height: 31px; }
 .fearless-active-draft:fullscreen .fearless-hero-grid {
+  height: auto;
   min-height: 0;
   max-height: none;
   flex: 1;
@@ -300,10 +301,13 @@
 }
 .fearless-active-draft:fullscreen .fearless-attribute-group button {
   display: grid;
+  width: fit-content;
+  max-width: 100%;
   min-height: 0;
   overflow: hidden;
+  justify-self: center;
   place-items: center;
-  padding: 2px;
+  padding: 0;
 }
 .fearless-active-draft:fullscreen .fearless-hero-image {
   width: auto;

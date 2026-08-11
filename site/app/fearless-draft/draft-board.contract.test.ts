@@ -14,11 +14,13 @@ function source(path: string) {
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const agreementPanel = source("app/fearless-draft/sections/DraftAgreementPanel.tsx");
 const choices = source("app/fearless-draft/sections/DraftChoices.tsx");
+const coinToss = source("app/fearless-draft/components/DraftCoinToss.tsx");
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
 const playerAvatar = source("app/fearless-draft/components/PlayerAvatar.tsx");
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
+const draftBase = source("app/styles/50-fearless-draft.css");
 const board = source("app/styles/51-fearless-draft-board.css");
 const interactions = source("app/styles/51-fearless-draft-interactions.css");
 
@@ -38,6 +40,20 @@ describe("Fearless Draft board interface", () => {
     expect(heroGrid).toContain('className="fearless-hero-preview"');
     expect(interactions).toContain("white-space: nowrap");
     expect(board).toContain("aspect-ratio: 25 / 44");
+    expect(interactions).toMatch(
+      /\.fearless-hero-preview > span\s*\{[^}]*aspect-ratio:\s*25 \/ 44;/,
+    );
+    expect(heroGrid).toContain("const previewWidth = 150");
+  });
+
+  it("fits hero frames tightly to portraits without stretching them", () => {
+    expect(board).toMatch(
+      /\.fearless-attribute-group button\s*\{[^}]*padding:\s*0;/,
+    );
+    expect(interactions).toMatch(
+      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*fit-content;[^}]*padding:\s*0;/,
+    );
+    expect(interactions).toContain("aspect-ratio: 25 / 44");
   });
 
   it("sorts heroes alphabetically inside every attribute group", () => {
@@ -108,6 +124,27 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain("gap: 7px");
   });
 
+  it("keeps reserve time beside its larger counter and gives turn text one size", () => {
+    expect(board).toMatch(
+      /\.fearless-team-reserve\s*\{[^}]*flex-direction:\s*row;[^}]*gap:\s*10px;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-team-reserve strong\s*\{[^}]*font-size:\s*26px;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-turn span,\s*\.fearless-turn strong\s*\{[^}]*font-size:\s*18px;/,
+    );
+  });
+
+  it("keeps the non-fullscreen draft rectangle stable while searching", () => {
+    expect(board).toMatch(
+      /\.fearless-hero-grid\s*\{[^}]*height:\s*680px;[^}]*max-height:\s*680px;/,
+    );
+    expect(interactions).toMatch(
+      /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;/,
+    );
+  });
+
   it("animates a thicker outline around the team making the current action", () => {
     expect(interactions).toContain("@keyframes fearless-current-team-flame");
     expect(interactions).toMatch(
@@ -170,5 +207,7 @@ describe("Fearless Draft board interface", () => {
     expect(choices).toContain("useServerNow(serverNow");
     expect(choices).toContain("На первой карте монетку проиграл");
     expect(choices).toContain("hasCoinToss &&");
+    expect(coinToss).not.toContain("50 / 50");
+    expect(draftBase).toContain("height: 88px");
   });
 });

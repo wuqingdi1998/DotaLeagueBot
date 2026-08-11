@@ -31,7 +31,6 @@ export function DraftCoinToss({
       <i className={`fearless-wheel-spinner winner-${winnerSide}`}>
         <b />
       </i>
-      <strong>50 / 50</strong>
     </div>
   );
 }

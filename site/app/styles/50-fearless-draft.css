@@ -287,34 +287,46 @@
 .fearless-wheel-spinner {
   position: absolute;
   z-index: 2;
-  width: 24px;
-  height: 82px;
-  top: calc(50% - 41px);
-  left: calc(50% - 12px);
+  width: 28px;
+  height: 176px;
+  top: calc(50% - 88px);
+  left: calc(50% - 14px);
   transform-origin: 50% 50%;
 }
 .fearless-wheel-spinner::after {
   position: absolute;
-  width: 18px;
-  height: 18px;
-  top: 32px;
+  z-index: 2;
+  width: 22px;
+  height: 22px;
+  top: 73px;
   left: 3px;
-  border: 3px solid #ffe899;
+  border: 4px solid #ffe899;
   border-radius: 50%;
   background: #734916;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.65), 0 0 12px rgba(255, 232, 153, 0.45);
   content: "";
 }
 .fearless-wheel-spinner b {
   position: absolute;
+  width: 8px;
+  height: 88px;
+  top: 4px;
+  left: 10px;
+  border-radius: 999px;
+  background: linear-gradient(#fff9cf, #e9bd43 78%, #734916);
+  box-shadow: 0 0 8px rgba(255, 240, 168, 0.72);
+}
+.fearless-wheel-spinner b::before {
+  position: absolute;
   width: 0;
   height: 0;
-  top: -7px;
-  left: 4px;
-  border-right: 8px solid transparent;
-  border-bottom: 19px solid #fff0a8;
-  border-left: 8px solid transparent;
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+  top: -14px;
+  left: -6px;
+  border-right: 10px solid transparent;
+  border-bottom: 25px solid #fff9cf;
+  border-left: 10px solid transparent;
+  content: "";
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
 .fearless-toss-wheel.spinning .winner-left {
   animation: fearless-spinner-left 10s cubic-bezier(0.12, 0.58, 0.14, 1) forwards;
@@ -326,18 +338,6 @@
 .fearless-toss-wheel.revealed .winner-right { transform: rotate(2970deg); }
 @keyframes fearless-spinner-left { to { transform: rotate(3150deg); } }
 @keyframes fearless-spinner-right { to { transform: rotate(2970deg); } }
-.fearless-toss-wheel > strong {
-  position: absolute;
-  z-index: 3;
-  right: 0;
-  bottom: -7px;
-  left: 0;
-  color: #ffe899;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-align: center;
-}
-
 .fearless-coin-result {
   display: flex;
   min-height: 28px;

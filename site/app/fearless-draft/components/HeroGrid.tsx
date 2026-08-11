@@ -126,8 +126,8 @@ export function HeroGrid({
 
   function showHeroPreview(hero: DraftHero, event: MouseEvent<HTMLButtonElement>) {
     const bounds = event.currentTarget.getBoundingClientRect();
-    const previewWidth = 180;
-    const previewHeight = 190;
+    const previewWidth = 150;
+    const previewHeight = 300;
     const left = Math.min(
       Math.max(8, bounds.left + bounds.width / 2 - previewWidth / 2),
       window.innerWidth - previewWidth - 8,
@@ -237,7 +237,7 @@ export function HeroGrid({
               src={heroPreview.hero.portraitUrl}
               alt=""
               fill
-              sizes="180px"
+              sizes="150px"
               unoptimized
             />
           </span>

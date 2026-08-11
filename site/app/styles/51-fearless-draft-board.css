@@ -101,8 +101,10 @@
   background: var(--surface-soft);
 }
 
-.fearless-turn span { color: var(--muted); font-size: 12px; font-weight: 700; }
-.fearless-turn strong { color: var(--blue); font-size: 19px; }
+.fearless-turn span,
+.fearless-turn strong { font-size: 18px; font-weight: 700; line-height: 1; }
+.fearless-turn span { color: var(--muted); }
+.fearless-turn strong { color: var(--blue); }
 .fearless-turn.own { border-color: var(--line-strong); background: var(--surface-blue); }
 
 .fearless-main-clock { align-items: flex-end; }
@@ -163,12 +165,13 @@
 
 .fearless-team-reserve {
   display: flex;
-  align-items: flex-end;
-  flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
   text-align: right;
+  white-space: nowrap;
 }
-.fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 20px; }
+.fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 26px; line-height: 1; }
 
 .fearless-pick-slots {
   display: grid;
@@ -308,6 +311,7 @@
   align-items: start;
   column-gap: var(--fearless-attribute-gap);
   row-gap: 12px;
+  height: 680px;
   max-height: 680px;
   overflow-y: auto;
   padding: 10px;
@@ -346,7 +350,7 @@
   min-width: 0;
   border: 1px solid transparent;
   border-radius: 7px;
-  padding: 3px;
+  padding: 0;
   background: var(--surface-soft);
   color: var(--text);
   cursor: pointer;
@@ -473,7 +477,7 @@
   .fearless-team-panel > header .fearless-player-avatar { display: none; }
   .fearless-hero-toolbar { align-items: stretch; flex-direction: column; }
   .fearless-hero-toolbar label { width: 100%; }
-  .fearless-hero-grid { grid-template-columns: 1fr; max-height: 540px; }
+  .fearless-hero-grid { grid-template-columns: 1fr; height: 540px; max-height: 540px; }
   .fearless-attribute-group > div { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .fearless-end-request { align-items: stretch; flex-wrap: wrap; }
   .fearless-end-request > div:not(.fearless-end-actions) { flex-basis: calc(100% - 40px); }
