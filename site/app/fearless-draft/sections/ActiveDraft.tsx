@@ -131,6 +131,7 @@ export function ActiveDraft({
           side="RADIANT"
           priority={firstPick.id === radiant.id ? "FIRST" : "SECOND"}
           actions={map.actions}
+          currentStep={map.currentStep}
           reserveSeconds={radiant.id === series.player1.id ? player1Reserve : player2Reserve}
           isCurrent={map.currentActorId === radiant.id}
           isConnected={radiant.id === series.player1.id ? series.player1Connected : series.player2Connected}
@@ -140,6 +141,7 @@ export function ActiveDraft({
           side="DIRE"
           priority={firstPick.id === dire.id ? "FIRST" : "SECOND"}
           actions={map.actions}
+          currentStep={map.currentStep}
           reserveSeconds={dire.id === series.player1.id ? player1Reserve : player2Reserve}
           isCurrent={map.currentActorId === dire.id}
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}

@@ -20,6 +20,7 @@ export function DraftTeamPanel({
   side,
   priority,
   actions,
+  currentStep,
   reserveSeconds,
   isCurrent,
   isConnected,
@@ -28,6 +29,7 @@ export function DraftTeamPanel({
   side: "RADIANT" | "DIRE";
   priority: "FIRST" | "SECOND";
   actions: DraftActionSnapshot[];
+  currentStep: number;
   reserveSeconds: number;
   isCurrent: boolean;
   isConnected: boolean;
@@ -54,11 +56,15 @@ export function DraftTeamPanel({
       <div className="fearless-pick-slots">
         {pickSteps.map((step) => {
           const action = actionsByStep.get(step);
+          const isCurrentAction = isCurrent && step === currentStep;
           const hero = action?.heroId
             ? heroesById.get(action.heroId)
             : null;
           return (
-            <div key={step} className={action ? "filled" : ""}>
+            <div
+              key={step}
+              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""}`}
+            >
               {hero ? (
                 <>
                   <Image src={hero.imageUrl} alt="" fill sizes="160px" unoptimized />
@@ -74,11 +80,12 @@ export function DraftTeamPanel({
         <span>Баны</span>
         {banSteps.map((step) => {
           const action = actionsByStep.get(step);
+          const isCurrentAction = isCurrent && step === currentStep;
           const hero = action?.heroId ? heroesById.get(action.heroId) : null;
           return (
             <div
               key={step}
-              className={action ? "filled" : ""}
+              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""}`}
               title={hero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
             >
               {hero ? (

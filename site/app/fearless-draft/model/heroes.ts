@@ -24,6 +24,12 @@ export const FEARLESS_DRAFT_HEROES = COMPENDIUM_HEROES.map((hero) => ({
   isCaptainModeEnabled: !disabledCaptainModeHeroIds.has(hero.id),
 }));
 
+export function sortHeroesAlphabetically<T extends { name: string }>(
+  heroes: readonly T[],
+): T[] {
+  return [...heroes].sort((left, right) => left.name.localeCompare(right.name, "en"));
+}
+
 export const ENABLED_FEARLESS_DRAFT_HEROES = FEARLESS_DRAFT_HEROES.filter(
   (hero) => hero.isCaptainModeEnabled,
 );

@@ -7,6 +7,7 @@ import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
 import {
   FEARLESS_DRAFT_HEROES,
   HERO_ATTRIBUTE_GROUPS,
+  sortHeroesAlphabetically,
 } from "../model/heroes";
 import type {
   DraftMapSnapshot,
@@ -28,6 +29,8 @@ type HeroPreview = {
   left: number;
   top: number;
 };
+
+const LATEST_ACTION_FLASH_DURATION_MS = 3_000;
 
 export function HeroGrid({
   map,
@@ -80,7 +83,10 @@ export function HeroGrid({
     const showTimer = window.setTimeout(() => {
       setFlashingAction({ heroId: latestActionHeroId, type: latestActionType });
     }, 0);
-    const hideTimer = window.setTimeout(() => setFlashingAction(null), 850);
+    const hideTimer = window.setTimeout(
+      () => setFlashingAction(null),
+      LATEST_ACTION_FLASH_DURATION_MS,
+    );
     return () => {
       window.clearTimeout(showTimer);
       window.clearTimeout(hideTimer);
@@ -99,7 +105,9 @@ export function HeroGrid({
   const groupedHeroes = useMemo(
     () => HERO_ATTRIBUTE_GROUPS.map((group) => ({
       ...group,
-      heroes: visibleHeroes.filter((hero) => hero.primaryAttribute === group.key),
+      heroes: sortHeroesAlphabetically(
+        visibleHeroes.filter((hero) => hero.primaryAttribute === group.key),
+      ),
     })),
     [visibleHeroes],
   );

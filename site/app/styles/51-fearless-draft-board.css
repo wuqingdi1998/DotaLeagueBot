@@ -302,7 +302,8 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: start;
-  gap: 12px;
+  column-gap: clamp(18px, 1.7vw, 26px);
+  row-gap: 12px;
   max-height: 680px;
   overflow-y: auto;
   padding: 10px;
@@ -319,6 +320,7 @@
   letter-spacing: 0.08em;
 }
 .fearless-attribute-group > header i {
+  flex: 0 0 8px;
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -432,7 +434,10 @@
   .fearless-team-columns { grid-template-columns: 1fr; }
   .fearless-draft-workspace { grid-template-columns: 1fr; }
   .fearless-history > div { max-height: 230px; }
-  .fearless-hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fearless-hero-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 12px;
+  }
 }
 
 @media (max-width: 600px) {
