@@ -66,7 +66,7 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-attribute-group button\s*\{[^}]*padding:\s*0;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*fit-content;[^}]*padding:\s*0;/,
+      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
     );
     expect(interactions).toContain("aspect-ratio: 25 / 44");
   });
@@ -161,7 +161,7 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-hero-grid\s*\{[^}]*aspect-ratio:\s*9 \/ 4;[^}]*height:\s*auto;[^}]*max-height:\s*680px;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;/,
+      /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;/,
     );
   });
 
@@ -221,7 +221,7 @@ describe("Fearless Draft board interface", () => {
       "width: calc((100% - 20px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
     );
     expect(interactions).toContain(
-      "width: calc((100% - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
+      "width: calc((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
     );
   });
 
