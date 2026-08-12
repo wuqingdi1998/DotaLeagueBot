@@ -165,10 +165,10 @@ describe("unclaimed compendium challenge audit", () => {
     expect(report.players).toEqual([]);
   });
 
-  it("starts no more than 50 OpenDota requests per minute", async () => {
+  it("starts OpenDota requests in waves of 10 every 15 seconds", async () => {
     vi.useFakeTimers();
     mocks.loadCandidates.mockResolvedValue(
-      Array.from({ length: 51 }, (_, index) => ({
+      Array.from({ length: 11 }, (_, index) => ({
         playerId: String(index + 1),
         dotaId: String(index + 101),
         playerName: `Player ${index + 1}`,
@@ -187,16 +187,71 @@ describe("unclaimed compendium challenge audit", () => {
     );
     await vi.advanceTimersByTimeAsync(0);
 
-    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(50);
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(10);
 
-    await vi.advanceTimersByTimeAsync(59_999);
-    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(50);
+    await vi.advanceTimersByTimeAsync(14_999);
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(10);
 
     await vi.advanceTimersByTimeAsync(1);
     const report = await reportPromise;
 
-    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(51);
-    expect(report.checkedCount).toBe(51);
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(11);
+    expect(report.checkedCount).toBe(11);
     expect(report.failedCount).toBe(0);
+  });
+
+  it("retries a temporarily failed player in a later wave", async () => {
+    vi.useFakeTimers();
+    mocks.loadCandidates.mockResolvedValue([{
+      playerId: "1",
+      dotaId: "101",
+      playerName: "Temporary failure",
+      dailyQuests: [{ id: "1001", position: 1, heroIds: [1] }],
+      isStarRaceCandidate: false,
+    }]);
+    mocks.fetchRecentPlayerMatches
+      .mockRejectedValueOnce(new Error("OpenDota rate limit"))
+      .mockResolvedValueOnce([]);
+
+    const reportPromise = findUnclaimedChallenges(
+      new Date("2026-08-17T12:00:00.000Z"),
+    );
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(14_999);
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    const report = await reportPromise;
+
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(2);
+    expect(report.checkedCount).toBe(1);
+    expect(report.failedCount).toBe(0);
+  });
+
+  it("reports a player only after three failed waves", async () => {
+    vi.useFakeTimers();
+    mocks.loadCandidates.mockResolvedValue([{
+      playerId: "1",
+      dotaId: "101",
+      playerName: "Unavailable player",
+      dailyQuests: [{ id: "1001", position: 1, heroIds: [1] }],
+      isStarRaceCandidate: false,
+    }]);
+    mocks.fetchRecentPlayerMatches.mockRejectedValue(
+      new Error("OpenDota unavailable"),
+    );
+
+    const reportPromise = findUnclaimedChallenges(
+      new Date("2026-08-17T12:00:00.000Z"),
+    );
+    await vi.advanceTimersByTimeAsync(30_000);
+    const report = await reportPromise;
+
+    expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledTimes(3);
+    expect(report.checkedCount).toBe(0);
+    expect(report.failedCount).toBe(1);
   });
 });
