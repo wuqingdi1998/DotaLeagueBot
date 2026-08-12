@@ -207,7 +207,7 @@ export function HeroGrid({
       </div>
       {selectedHero && (
         <div className="fearless-hero-confirm">
-          <Image src={selectedHero.imageUrl} alt="" width={176} height={99} unoptimized />
+          <Image src={selectedHero.portraitUrl} alt="" width={100} height={176} unoptimized />
           <div>
             <span>Выбран герой</span>
             <strong>{selectedHero.name}</strong>

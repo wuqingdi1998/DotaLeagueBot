@@ -37,6 +37,8 @@ describe("Fearless Draft board interface", () => {
       hero.portraitUrl.includes("variant=vertical"),
     )).toBe(true);
     expect(heroGrid).toContain("src={hero.portraitUrl}");
+    expect(heroGrid).toContain("src={selectedHero.portraitUrl}");
+    expect(heroGrid).not.toContain("src={selectedHero.imageUrl}");
     expect(heroGrid).toContain('className="fearless-hero-preview"');
     expect(interactions).toContain("white-space: nowrap");
     expect(board).toContain("aspect-ratio: 25 / 44");
