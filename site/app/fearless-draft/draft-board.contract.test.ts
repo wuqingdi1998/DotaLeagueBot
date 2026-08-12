@@ -140,9 +140,9 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("keeps the non-fullscreen draft rectangle stable while searching", () => {
+  it("keeps the non-fullscreen draft rectangle stable without empty space below heroes", () => {
     expect(board).toMatch(
-      /\.fearless-hero-grid\s*\{[^}]*height:\s*680px;[^}]*max-height:\s*680px;/,
+      /\.fearless-hero-grid\s*\{[^}]*aspect-ratio:\s*9 \/ 4;[^}]*height:\s*auto;[^}]*max-height:\s*680px;/,
     );
     expect(interactions).toMatch(
       /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;/,

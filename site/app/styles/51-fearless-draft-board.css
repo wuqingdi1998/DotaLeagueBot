@@ -311,7 +311,8 @@
   align-items: start;
   column-gap: var(--fearless-attribute-gap);
   row-gap: 12px;
-  height: 680px;
+  aspect-ratio: 9 / 4;
+  height: auto;
   max-height: 680px;
   overflow-y: auto;
   padding: 10px;
@@ -458,7 +459,9 @@
   .fearless-draft-workspace { grid-template-columns: 1fr; }
   .fearless-history > div { max-height: 230px; }
   .fearless-hero-grid {
+    aspect-ratio: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: 680px;
     column-gap: 12px;
   }
 }
