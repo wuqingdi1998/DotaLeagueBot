@@ -57,6 +57,10 @@ const organizerProfile = readFileSync(
   new URL("./player-profile-organizer.ts", import.meta.url),
   "utf8",
 );
+const discordServerMembership = readFileSync(
+  new URL("./discord-server-membership.ts", import.meta.url),
+  "utf8",
+);
 const linkedArchiveCard = readFileSync(
   new URL(
     "../app/players/[dotaId]/LinkedArchiveProfilesCard.tsx",
@@ -186,6 +190,17 @@ describe("player identities and archive safety", () => {
     expect(organizerProfile).toContain("player_nickname_history");
     expect(publicProfile).toContain("user?.isAdmin");
     expect(publicProfile).toContain("loadLinkedArchiveProfiles");
+  });
+
+  it("shows Discord identity and server membership only to organizers", () => {
+    expect(organizerProfile).toContain("loadOrganizerPlayerIdentity");
+    expect(discordServerMembership).toContain(
+      "guilds/${guildId}/members/${discordId}",
+    );
+    expect(discordServerMembership).toContain("discordUnknownMemberCode");
+    expect(publicProfile).toContain("user?.isAdmin");
+    expect(publicProfile).toContain("Discord ID");
+    expect(publicProfile).toContain("organizerIdentity.isOnDiscordServer === false");
   });
 
   it("shows tournament nicknames as linked historical profiles", () => {

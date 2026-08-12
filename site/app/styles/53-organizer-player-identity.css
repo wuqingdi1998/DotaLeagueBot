@@ -1,0 +1,72 @@
+/* Organizer-only Discord identity beside the public Dota ID. */
+
+.public-profile-id-row,
+.organizer-profile-discord-id {
+  display: inline-flex;
+  align-items: center;
+}
+
+.public-profile-id-row {
+  flex-wrap: wrap;
+  gap: 7px 12px;
+}
+
+.mobile-profile-ids {
+  display: none;
+}
+
+.organizer-profile-discord-id {
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.organizer-profile-discord-warning {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(216, 61, 79, 0.55);
+  border-radius: 50%;
+  background: rgba(216, 61, 79, 0.14);
+  color: #d83d4f;
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+[data-theme="dark"] .organizer-profile-discord-warning {
+  background: rgba(216, 61, 79, 0.2);
+  color: #ff7382;
+}
+
+@media (max-width: 760px) {
+  .player-service-links:has(.organizer-profile-discord-id) {
+    flex-wrap: wrap;
+  }
+
+  .desktop-profile-ids {
+    display: none;
+  }
+
+  .mobile-profile-ids {
+    display: inline-flex;
+    min-height: 40px;
+    flex-wrap: nowrap;
+    padding-left: 3px;
+    white-space: nowrap;
+  }
+
+  .mobile-profile-ids .public-profile-dota-id,
+  .mobile-profile-ids .organizer-profile-discord-id {
+    font-size: 12px;
+  }
+
+  .organizer-profile-discord-warning {
+    width: 18px;
+    height: 18px;
+    font-size: 12px;
+  }
+}

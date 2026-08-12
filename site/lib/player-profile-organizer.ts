@@ -1,5 +1,11 @@
-import { query } from "./db";
+import { one, query } from "./db";
+import { checkDiscordServerMembership } from "./discord-server-membership";
 import { normalizeDotaAccountId } from "./player-profile";
+
+export type OrganizerPlayerIdentity = {
+  discordId: string;
+  isOnDiscordServer: boolean | null;
+};
 
 export type LinkedArchiveProfile = {
   kind: "archive" | "historical";
@@ -14,6 +20,27 @@ type LinkedArchiveRow = {
   primary_nickname: string;
   aliases: string[];
 };
+
+export async function loadOrganizerPlayerIdentity(
+  requestedDotaId: string,
+): Promise<OrganizerPlayerIdentity | null> {
+  const dotaId = normalizeDotaAccountId(requestedDotaId);
+  if (!dotaId) return null;
+
+  const player = await one<{ discord_id: string }>(
+    `SELECT discord_id::text
+     FROM players
+     WHERE steam_id32 = $1
+       AND is_archived = FALSE`,
+    [dotaId],
+  );
+  if (!player) return null;
+
+  return {
+    discordId: player.discord_id,
+    isOnDiscordServer: await checkDiscordServerMembership(player.discord_id),
+  };
+}
 
 export async function loadLinkedArchiveProfiles(
   requestedDotaId: string,

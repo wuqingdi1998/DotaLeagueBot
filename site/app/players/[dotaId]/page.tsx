@@ -17,7 +17,11 @@ import {
   tournamentResultLabel,
 } from "@/lib/player-profile";
 import { mapWinRatePercent } from "@/lib/player-map-statistics";
-import { loadLinkedArchiveProfiles } from "@/lib/player-profile-organizer";
+import {
+  loadLinkedArchiveProfiles,
+  loadOrganizerPlayerIdentity,
+  type OrganizerPlayerIdentity,
+} from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
 import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
@@ -93,6 +97,37 @@ function PlayerPositionsBadge({
   );
 }
 
+function PlayerIdentityIds({
+  dotaId,
+  organizerIdentity,
+  className,
+}: {
+  dotaId: string;
+  organizerIdentity: OrganizerPlayerIdentity | null;
+  className: string;
+}) {
+  return (
+    <span className={`public-profile-id-row ${className}`}>
+      <span className="public-profile-dota-id">Dota ID {dotaId}</span>
+      {organizerIdentity && (
+        <span className="organizer-profile-discord-id">
+          Discord ID {organizerIdentity.discordId}
+          {organizerIdentity.isOnDiscordServer === false && (
+            <span
+              className="organizer-profile-discord-warning"
+              role="img"
+              aria-label="Участник сейчас не состоит на Discord-сервере"
+              title="Участник сейчас не состоит на Discord-сервере"
+            >
+              !
+            </span>
+          )}
+        </span>
+      )}
+    </span>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: PlayerPageProps): Promise<Metadata> {
@@ -115,9 +150,12 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
     getSession(),
   ]);
   if (!profile) notFound();
-  const linkedArchiveProfiles = user?.isAdmin
-    ? await loadLinkedArchiveProfiles(dotaId)
-    : [];
+  const [linkedArchiveProfiles, organizerIdentity] = user?.isAdmin
+    ? await Promise.all([
+        loadLinkedArchiveProfiles(dotaId),
+        loadOrganizerPlayerIdentity(dotaId),
+      ])
+    : [[], null];
 
   const winRate = mapWinRatePercent(profile.statistics);
   const mobileNicknameWidth = 270;
@@ -232,9 +270,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                   <PlayerServiceIcon service="steam" />
                   <span>Steam</span>
                 </a>
-                <span className="public-profile-dota-id mobile-profile-dota-id">
-                  Dota ID {profile.dotaId}
-                </span>
+                <PlayerIdentityIds
+                  dotaId={profile.dotaId}
+                  organizerIdentity={organizerIdentity}
+                  className="mobile-profile-ids"
+                />
               </div>
             </div>
             <div className="public-profile-meta">
@@ -242,9 +282,11 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 positions={profile.positions}
                 className="desktop-profile-positions"
               />
-              <span className="public-profile-dota-id desktop-profile-dota-id">
-                Dota ID {profile.dotaId}
-              </span>
+              <PlayerIdentityIds
+                dotaId={profile.dotaId}
+                organizerIdentity={organizerIdentity}
+                className="desktop-profile-ids"
+              />
             </div>
             {user?.dotaId === profile.dotaId &&
               profile.canCustomizeBackground && (
