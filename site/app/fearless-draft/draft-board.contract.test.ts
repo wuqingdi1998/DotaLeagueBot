@@ -106,6 +106,12 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain(".current-action::before");
   });
 
+  it("uses a solid border only for filled pick slots", () => {
+    expect(interactions).toMatch(
+      /\.fearless-pick-slots > div\.filled\s*\{[^}]*border-style:\s*solid;/,
+    );
+  });
+
   it("keeps picked hero images at their landscape ratio in fullscreen", () => {
     expect(interactions).toMatch(
       /\.fearless-active-draft:fullscreen \.fearless-pick-slots > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/,

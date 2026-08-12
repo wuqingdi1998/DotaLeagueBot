@@ -96,6 +96,10 @@
   color: var(--quiet);
 }
 
+.fearless-pick-slots > div.filled {
+  border-style: solid;
+}
+
 @keyframes fearless-current-team-flame {
   0%, 100% {
     border-color: color-mix(in srgb, var(--team-accent) 82%, white);
