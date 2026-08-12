@@ -54,4 +54,16 @@ describe("Fearless Draft fullscreen layout", () => {
       /\.fearless-active-draft:fullscreen \.fearless-hero-image\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;[^}]*aspect-ratio:\s*25 \/ 44;/,
     );
   });
+
+  it("does not let portrait corner styling change desktop frame geometry", () => {
+    expect(boardStyles).toMatch(
+      /\.fearless-attribute-group button\s*\{[^}]*min-width:\s*0;[^}]*border:\s*1px solid transparent;[^}]*padding:\s*0;/,
+    );
+    expect(boardStyles).toMatch(
+      /\.fearless-hero-image\s*\{[^}]*aspect-ratio:\s*25 \/ 44;[^}]*overflow:\s*hidden;/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
+    );
+  });
 });

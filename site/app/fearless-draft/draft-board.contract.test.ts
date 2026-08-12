@@ -71,6 +71,15 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain("aspect-ratio: 25 / 44");
   });
 
+  it("keeps portrait corners parallel to the hero card border", () => {
+    expect(board).toMatch(
+      /\.fearless-attribute-group button\s*\{[^}]*--fearless-hero-card-radius:\s*7px;[^}]*border:\s*1px solid transparent;[^}]*border-radius:\s*var\(--fearless-hero-card-radius\);/,
+    );
+    expect(board).toMatch(
+      /\.fearless-hero-image\s*\{[^}]*border-radius:\s*calc\(var\(--fearless-hero-card-radius\) - 1px\);/,
+    );
+  });
+
   it("sorts heroes alphabetically inside every attribute group", () => {
     for (const attribute of ["strength", "agility", "intelligence", "universal"]) {
       const heroes = FEARLESS_DRAFT_HEROES

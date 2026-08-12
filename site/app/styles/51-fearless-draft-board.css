@@ -347,11 +347,11 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 4px;
 }
-
 .fearless-attribute-group button {
+  --fearless-hero-card-radius: 7px;
   min-width: 0;
   border: 1px solid transparent;
-  border-radius: 7px;
+  border-radius: var(--fearless-hero-card-radius);
   padding: 0;
   background: var(--surface-soft);
   color: var(--text);
@@ -366,7 +366,7 @@
   display: block;
   aspect-ratio: 25 / 44;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: calc(var(--fearless-hero-card-radius) - 1px);
   background: #06131e;
 }
 .fearless-hero-image img { object-fit: cover; object-position: center; }
