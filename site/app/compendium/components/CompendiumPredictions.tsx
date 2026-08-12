@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
-import { FiClock, FiSettings } from "react-icons/fi";
+import { FiArchive, FiClock, FiSettings } from "react-icons/fi";
 import { predictionScores, type PredictionScore } from "../model/predictions";
 import type { DailyPredictionMatch } from "../model/types";
 
@@ -129,9 +129,14 @@ export function CompendiumPredictions({
           <p>Точный счёт — 2 звезды, верный победитель — 1 звезда.</p>
         </div>
         {isOrganizer && (
-          <Link href="/compendium/predictions" className="compendium-predictions-admin-link">
-            <FiSettings aria-hidden="true" /> Настроить матчи
-          </Link>
+          <div className="compendium-predictions-admin-actions">
+            <Link href="/compendium/predictions/history" className="compendium-predictions-admin-link">
+              <FiArchive aria-hidden="true" /> История прогнозов
+            </Link>
+            <Link href="/compendium/predictions" className="compendium-predictions-admin-link">
+              <FiSettings aria-hidden="true" /> Настроить матчи
+            </Link>
+          </div>
         )}
       </div>
       {matches.length ? (

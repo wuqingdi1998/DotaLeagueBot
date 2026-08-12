@@ -43,6 +43,13 @@
   font-weight: 800;
 }
 
+.compendium-predictions-admin-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .compendium-predictions-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -241,6 +248,7 @@
 @media (max-width: 720px) {
   .compendium-predictions-section { padding-top: 10px; }
   .compendium-predictions-heading { align-items: flex-start; flex-direction: column; gap: 14px; }
+  .compendium-predictions-admin-actions { width: 100%; align-items: stretch; flex-direction: column; }
   .compendium-predictions-admin-link { width: 100%; justify-content: center; }
   .compendium-prediction-card { padding: 17px; }
   .compendium-predictions-empty { min-height: 125px; }
