@@ -3,6 +3,7 @@ import type { PredictionMatchDraft } from "./prediction-admin-model";
 
 export function PredictionDayEditor({
   dateKey,
+  sourceDateKey,
   openingDateKey,
   openingTime,
   drafts,
@@ -17,6 +18,7 @@ export function PredictionDayEditor({
   onSave,
 }: {
   dateKey: string;
+  sourceDateKey: string | null;
   openingDateKey: string;
   openingTime: string;
   drafts: PredictionMatchDraft[];
@@ -31,6 +33,7 @@ export function PredictionDayEditor({
   onSave: () => void;
 }) {
   const cannotRemoveThirdMatch = drafts[2].isLocked;
+  const isRelocating = sourceDateKey !== null && sourceDateKey !== dateKey;
   return (
     <section className="prediction-admin-panel" id="prediction-day-editor">
       <div className="prediction-admin-panel-heading">
@@ -76,7 +79,9 @@ export function PredictionDayEditor({
         </div>
       </div>
       <p className="prediction-admin-help">
-        День можно заполнить или изменить в любое время. TBD выбирайте, если одна из команд ещё неизвестна.
+        {isRelocating
+          ? `День будет перенесён с ${sourceDateKey} на ${dateKey}. Прогнозы участников сохранятся.`
+          : "День можно заполнить или изменить в любое время. TBD выбирайте, если одна из команд ещё неизвестна."}
       </p>
       <div className={`prediction-admin-drafts match-count-${matchCount}`}>
         {drafts.slice(0, matchCount).map((draft, index) => (
@@ -103,7 +108,11 @@ export function PredictionDayEditor({
         ))}
       </div>
       <button type="button" className="prediction-admin-save" disabled={isSaving} onClick={onSave}>
-        <FiCheck aria-hidden="true" /> {isSaving ? "Сохраняем…" : `Сохранить ${matchCount} матча`}
+        <FiCheck aria-hidden="true" /> {isSaving
+          ? "Сохраняем…"
+          : isRelocating
+            ? "Перенести день и сохранить прогнозы"
+            : `Сохранить ${matchCount} матча`}
       </button>
     </section>
   );

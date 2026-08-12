@@ -13,6 +13,7 @@ export async function POST(request: Request) {
   try {
     const administrator = await requireAdmin();
     const body = (await request.json()) as {
+      sourceDateKey?: unknown;
       dateKey?: unknown;
       opensAt?: unknown;
       matches?: unknown;
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
     }
     await configurePredictionMatches({
       administrator,
+      sourceDateKey: body.sourceDateKey,
       dateKey: body.dateKey,
       opensAt: body.opensAt,
       matches: body.matches,

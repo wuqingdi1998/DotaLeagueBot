@@ -5,6 +5,7 @@ const mocks = vi.hoisted(() => ({
   deletePredictionMatch: vi.fn(),
   recordPredictionPick: vi.fn(),
   recordPredictionResult: vi.fn(),
+  relocatePredictionMatches: vi.fn(),
   replacePredictionMatches: vi.fn(),
 }));
 
@@ -13,6 +14,7 @@ vi.mock("./prediction-repository", () => ({
   deletePredictionMatch: mocks.deletePredictionMatch,
   recordPredictionPick: mocks.recordPredictionPick,
   recordPredictionResult: mocks.recordPredictionResult,
+  relocatePredictionMatches: mocks.relocatePredictionMatches,
   replacePredictionMatches: mocks.replacePredictionMatches,
 }));
 
@@ -37,6 +39,7 @@ const administrator = {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.replacePredictionMatches.mockResolvedValue(undefined);
+  mocks.relocatePredictionMatches.mockResolvedValue(undefined);
   mocks.recordPredictionResult.mockResolvedValue(4);
   mocks.deletePredictionDay.mockResolvedValue(3);
   mocks.deletePredictionMatch.mockResolvedValue(undefined);
@@ -92,6 +95,27 @@ describe("prediction schedule configuration", () => {
         { teamAKey: "team-spirit", teamBKey: "tbd", startsAt: "2026-08-10T15:00:00+03:00" },
       ],
     })).rejects.toMatchObject({ code: "PREDICTION_INVALID" });
+  });
+
+  it("moves a saved day without replacing its matches", async () => {
+    await configurePredictionMatches({
+      administrator,
+      sourceDateKey: "2026-08-14",
+      dateKey: "2026-08-13",
+      opensAt: "2026-08-12T18:00:00+03:00",
+      matches: [
+        { teamAKey: "og", teamBKey: "team-liquid", startsAt: "2026-08-13T12:00:00+03:00" },
+        { teamAKey: "team-spirit", teamBKey: "tbd", startsAt: "2026-08-13T15:00:00+03:00" },
+      ],
+    });
+
+    expect(mocks.relocatePredictionMatches).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceDateKey: "2026-08-14",
+        dateKey: "2026-08-13",
+      }),
+    );
+    expect(mocks.replacePredictionMatches).not.toHaveBeenCalled();
   });
 
   it("lets the organizer record a result without a schedule-time gate", async () => {

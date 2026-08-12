@@ -8,6 +8,7 @@ import {
   deletePredictionMatch,
   recordPredictionPick,
   recordPredictionResult,
+  relocatePredictionMatches,
   replacePredictionMatches,
   type PredictionMatchInput,
 } from "./prediction-repository";
@@ -46,12 +47,16 @@ export async function submitPrediction(
 
 export async function configurePredictionMatches(input: {
   administrator: AuthUser;
+  sourceDateKey?: unknown;
   dateKey: string;
   opensAt: unknown;
   matches: Array<{ teamAKey?: unknown; teamBKey?: unknown; startsAt?: unknown }>;
 }): Promise<void> {
   if (!isPredictionDateKey(input.dateKey)) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите дату матчей");
+  }
+  if (input.sourceDateKey !== undefined && !isPredictionDateKey(input.sourceDateKey)) {
+    throw new CompendiumError("PREDICTION_INVALID", "Исходный день расписания не найден");
   }
   if (![2, 3].includes(input.matches.length)) {
     throw new CompendiumError("PREDICTION_INVALID", "На день можно сохранить два или три матча");
@@ -94,18 +99,47 @@ export async function configurePredictionMatches(input: {
     );
   }
   try {
-    await replacePredictionMatches({
+    const schedule = {
       dateKey: input.dateKey,
       opensAt,
       administratorId: input.administrator.discordId,
       matches,
-    });
+    };
+    if (input.sourceDateKey && input.sourceDateKey !== input.dateKey) {
+      await relocatePredictionMatches({
+        ...schedule,
+        sourceDateKey: input.sourceDateKey,
+      });
+    } else {
+      await replacePredictionMatches(schedule);
+    }
   } catch (error) {
     if (error instanceof Error && error.message === "PREDICTION_RESULT_LOCKED") {
       throw new CompendiumError(
         "PREDICTION_LOCKED",
         "Завершённый матч нельзя удалить или заменить",
       );
+    }
+    if (error instanceof Error && error.message === "PREDICTION_TARGET_EXISTS") {
+      throw new CompendiumError(
+        "PREDICTION_INVALID",
+        "На выбранную дату уже сохранено другое расписание",
+      );
+    }
+    if (error instanceof Error && error.message === "PREDICTION_MATCH_COUNT_LOCKED") {
+      throw new CompendiumError(
+        "PREDICTION_LOCKED",
+        "При переносе нельзя добавлять или удалять матчи — прогнозы должны сохраниться",
+      );
+    }
+    if (error instanceof Error && error.message === "PREDICTION_PICKS_LOCKED") {
+      throw new CompendiumError(
+        "PREDICTION_LOCKED",
+        "Нельзя убрать матч, на который участники уже сделали прогнозы",
+      );
+    }
+    if (error instanceof Error && error.message === "PREDICTION_NOT_FOUND") {
+      throw new CompendiumError("PREDICTION_NOT_FOUND", "Сохранённый день не найден");
     }
     throw error;
   }

@@ -169,10 +169,14 @@ export async function replacePredictionMatches(input: {
     );
     const protectedTrailingMatch = await client.query(
       `SELECT 1 FROM compendium_prediction_matches
-       WHERE moscow_date = $1::date AND position > $2 AND actual_score IS NOT NULL`,
+       WHERE moscow_date = $1::date AND position > $2
+         AND (actual_score IS NOT NULL OR EXISTS (
+           SELECT 1 FROM compendium_prediction_picks pick
+           WHERE pick.match_id = compendium_prediction_matches.id
+         ))`,
       [input.dateKey, input.matches.length],
     );
-    if (protectedTrailingMatch.rowCount) throw new Error("PREDICTION_RESULT_LOCKED");
+    if (protectedTrailingMatch.rowCount) throw new Error("PREDICTION_PICKS_LOCKED");
     await client.query(
       `DELETE FROM compendium_prediction_matches
        WHERE moscow_date = $1::date AND position > $2 AND actual_score IS NULL`,
@@ -201,6 +205,74 @@ export async function replacePredictionMatches(input: {
           input.administratorId],
       );
     }
+  });
+}
+
+export async function relocatePredictionMatches(input: {
+  sourceDateKey: string;
+  dateKey: string;
+  opensAt: Date;
+  administratorId: string;
+  matches: PredictionMatchInput[];
+}): Promise<void> {
+  await transaction(async (client) => {
+    for (const dateKey of [input.sourceDateKey, input.dateKey].sort()) {
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
+        `compendium-predictions:${dateKey}`,
+      ]);
+    }
+    const storedMatches = await client.query<{
+      id: string;
+      position: number;
+      actual_score: PredictionScore | null;
+    }>(
+      `SELECT id::text, position, actual_score
+       FROM compendium_prediction_matches
+       WHERE moscow_date = $1::date
+       ORDER BY position
+       FOR UPDATE`,
+      [input.sourceDateKey],
+    );
+    if (!storedMatches.rowCount) throw new Error("PREDICTION_NOT_FOUND");
+    if (storedMatches.rowCount !== input.matches.length) {
+      throw new Error("PREDICTION_MATCH_COUNT_LOCKED");
+    }
+    if (storedMatches.rows.some((match) => match.actual_score !== null)) {
+      throw new Error("PREDICTION_RESULT_LOCKED");
+    }
+    const targetDay = await client.query(
+      "SELECT 1 FROM compendium_prediction_days WHERE moscow_date = $1::date",
+      [input.dateKey],
+    );
+    if (targetDay.rowCount) throw new Error("PREDICTION_TARGET_EXISTS");
+    await client.query(
+      `INSERT INTO compendium_prediction_days(
+         moscow_date, opens_at, configured_by
+       ) VALUES ($1::date, $2, $3)`,
+      [input.dateKey, input.opensAt, input.administratorId],
+    );
+    for (const [index, match] of input.matches.entries()) {
+      const storedMatch = storedMatches.rows[index];
+      if (storedMatch.position !== match.position) {
+        throw new Error("PREDICTION_MATCH_COUNT_LOCKED");
+      }
+      await client.query(
+        `UPDATE compendium_prediction_matches SET
+           moscow_date = $2::date, starts_at = $3,
+           team_a_key = $4, team_a_name = $5, team_a_logo_path = $6,
+           team_b_key = $7, team_b_name = $8, team_b_logo_path = $9,
+           configured_by = $10, updated_at = NOW()
+         WHERE id = $1`,
+        [storedMatch.id, input.dateKey, match.startsAt,
+          match.teamA.key, match.teamA.name, match.teamA.logoPath,
+          match.teamB.key, match.teamB.name, match.teamB.logoPath,
+          input.administratorId],
+      );
+    }
+    await client.query(
+      "DELETE FROM compendium_prediction_days WHERE moscow_date = $1::date",
+      [input.sourceDateKey],
+    );
   });
 }
 

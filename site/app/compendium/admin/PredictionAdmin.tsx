@@ -25,6 +25,11 @@ export function PredictionAdmin({
 }) {
   const initialOpening = predictionOpeningDraftForDate(initialMatches, initialDate);
   const [matches, setMatches] = useState(initialMatches);
+  const [sourceDateKey, setSourceDateKey] = useState<string | null>(() =>
+    initialMatches.some((match) => match.moscowDate === initialDate)
+      ? initialDate
+      : null,
+  );
   const [dateKey, setDateKey] = useState(initialDate);
   const [openingDateKey, setOpeningDateKey] = useState(initialOpening.dateKey);
   const [openingTime, setOpeningTime] = useState(initialOpening.time);
@@ -39,6 +44,7 @@ export function PredictionAdmin({
 
   function loadDate(nextDate: string, shouldScroll = false) {
     const opening = predictionOpeningDraftForDate(matches, nextDate);
+    setSourceDateKey(nextDate);
     setDateKey(nextDate);
     setOpeningDateKey(opening.dateKey);
     setOpeningTime(opening.time);
@@ -65,6 +71,7 @@ export function PredictionAdmin({
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
+          sourceDateKey: sourceDateKey ?? undefined,
           dateKey,
           opensAt: `${openingDateKey}T${openingTime}:00+03:00`,
           matches: drafts.slice(0, matchCount).map((draft) => ({
@@ -79,6 +86,7 @@ export function PredictionAdmin({
       if (result.matches) {
         const refreshedMatches = result.matches;
         setMatches(refreshedMatches);
+        setSourceDateKey(dateKey);
         setDrafts(predictionDraftsForDate(refreshedMatches, dateKey));
         const opening = predictionOpeningDraftForDate(refreshedMatches, dateKey);
         setOpeningDateKey(opening.dateKey);
@@ -167,13 +175,14 @@ export function PredictionAdmin({
       </header>
       <PredictionDayEditor
         dateKey={dateKey}
+        sourceDateKey={sourceDateKey}
         openingDateKey={openingDateKey}
         openingTime={openingTime}
         drafts={drafts}
         matchCount={matchCount}
         teams={teams}
         isSaving={isSaving}
-        onDateChange={loadDate}
+        onDateChange={setDateKey}
         onOpeningDateChange={setOpeningDateKey}
         onOpeningTimeChange={setOpeningTime}
         onMatchCountChange={setMatchCount}
