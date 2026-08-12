@@ -95,7 +95,7 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "12 августа",
     title: "Это снайпер?",
     description:
-      "Нанесите 40 000 урона на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+      "Нанесите 40 000 урона по героям на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     rewardStars: 2,
     requirement: {
       kind: "cumulative-ranked-win-stat",
@@ -110,13 +110,13 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "13 августа",
     title: "Пакистанский король",
     description:
-      "Повтори рекорд Suma1L хотя бы наполовину. Выиграть рейтинговый матч на любом герое, сделав 16 убийств.",
+      "Повтори рекорд Suma1L хотя бы наполовину. Выиграть рейтинговый матч на любом герое, сделав 15 и более убийств.",
     rewardStars: 2,
     requirement: {
       kind: "ranked-win-stat",
       heroIds: null,
       stat: "kills",
-      minimum: 16,
+      minimum: 15,
     },
   },
   {

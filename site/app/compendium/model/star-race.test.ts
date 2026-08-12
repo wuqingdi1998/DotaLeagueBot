@@ -147,11 +147,11 @@ describe("star race schedule", () => {
       },
     });
     expect(STAR_RACE_QUESTS[2].description).toBe(
-      "Нанесите 40 000 урона на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+      "Нанесите 40 000 урона по героям на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     );
   });
 
-  it("defines Thursday's 16-kill ranked win quest", () => {
+  it("defines Thursday's 15-kill ranked win quest", () => {
     expect(STAR_RACE_QUESTS[3]).toMatchObject({
       dateKey: "2026-08-13",
       title: "Пакистанский король",
@@ -160,9 +160,12 @@ describe("star race schedule", () => {
         kind: "ranked-win-stat",
         heroIds: null,
         stat: "kills",
-        minimum: 16,
+        minimum: 15,
       },
     });
+    expect(STAR_RACE_QUESTS[3].description).toContain(
+      "сделав 15 и более убийств",
+    );
   });
 
   it("defines Friday's Sand King or Weaver win quest", () => {

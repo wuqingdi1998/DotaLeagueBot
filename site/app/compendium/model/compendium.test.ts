@@ -319,10 +319,15 @@ describe("OpenDota match qualification", () => {
     expect(result.wins.map((win) => win.matchId)).toEqual(["9201"]);
   });
 
-  it("recalculates cumulative Pudge damage from qualifying daily wins", () => {
+  it("sums only hero damage on Pudge from qualifying daily wins", () => {
     const result = scanCumulativeRankedWinStat({
       matches: [
-        match({ match_id: 9251, hero_id: 14, hero_damage: 21_000 }),
+        match({
+          match_id: 9251,
+          hero_id: 14,
+          hero_damage: 21_000,
+          tower_damage: 100_000,
+        }),
         match({ match_id: 9252, hero_id: 14, hero_damage: 19_000 }),
         match({ match_id: 9253, hero_id: 14, hero_damage: 90_000, game_mode: 23 }),
         match({ match_id: 9254, hero_id: 1, hero_damage: 90_000 }),
@@ -374,11 +379,11 @@ describe("OpenDota match qualification", () => {
     })?.matchId).toBe("9403");
   });
 
-  it("requires 16 kills in one ranked win on any hero", () => {
+  it("requires 15 kills in one ranked win on any hero", () => {
     const input = {
       heroIds: null,
       stat: "kills" as const,
-      minimum: 16,
+      minimum: 15,
       dayStart: augustFirst.start,
       dayEnd: augustFirst.end,
       now: new Date("2026-08-01T18:00:00.000Z"),
@@ -386,13 +391,13 @@ describe("OpenDota match qualification", () => {
     expect(findRankedStatWin({
       ...input,
       matches: [
-        match({ match_id: 9501, kills: 15 }),
+        match({ match_id: 9501, kills: 14 }),
         match({ match_id: 9502, kills: 20, radiant_win: false }),
       ],
     })).toBeNull();
     expect(findRankedStatWin({
       ...input,
-      matches: [match({ match_id: 9503, hero_id: 137, kills: 16 })],
+      matches: [match({ match_id: 9503, hero_id: 137, kills: 15 })],
     })?.matchId).toBe("9503");
   });
 

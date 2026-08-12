@@ -244,11 +244,11 @@ describe("Wednesday cumulative Pudge or Sniper damage check", () => {
     });
   });
 
-  it("replaces the heroes' progress with a fresh daily total instead of adding it", async () => {
+  it("uses hero damage rather than building damage for fresh progress", async () => {
     const wednesdayNow = new Date("2026-08-12T12:00:00.000Z");
     vi.setSystemTime(wednesdayNow);
     mocks.fetchRecentPlayerMatches.mockResolvedValue([{
-      ...winningMatch(3101, 0),
+      ...winningMatch(3101, 100_000),
       hero_id: 14,
       start_time: Date.parse("2026-08-12T09:00:00.000Z") / 1_000,
       hero_damage: 30_000,
@@ -275,7 +275,7 @@ describe("Wednesday cumulative Pudge or Sniper damage check", () => {
 
 describe("single-match star race statistic checks", () => {
 
-  it("awards Thursday for 16 kills in a ranked win on any hero", async () => {
+  it("awards Thursday for 15 kills in a ranked win on any hero", async () => {
     const thursdayNow = new Date("2026-08-13T12:00:00.000Z");
     vi.setSystemTime(thursdayNow);
     const completion = {
@@ -286,7 +286,7 @@ describe("single-match star race statistic checks", () => {
       ...winningMatch(4001, 0),
       hero_id: 137,
       start_time: Date.parse("2026-08-13T09:00:00.000Z") / 1_000,
-      kills: 16,
+      kills: 15,
     }]);
     mocks.recordStarRaceCompletion.mockResolvedValue(completion);
 
