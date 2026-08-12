@@ -7,10 +7,12 @@ const heroesById = new Map(FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]))
 
 export function DraftHistory({
   actions,
+  radiantPlayerId,
   isDrawerOpen = false,
   onClose,
 }: {
   actions: DraftActionSnapshot[];
+  radiantPlayerId: string;
   isDrawerOpen?: boolean;
   onClose?: () => void;
 }) {
@@ -34,7 +36,9 @@ export function DraftHistory({
           return (
             <article key={action.step}>
               <b>{action.step + 1}</b>
-              <span className={action.type.toLowerCase()}>{action.type}</span>
+              <span className={action.actorId === radiantPlayerId ? "radiant" : "dire"}>
+                {action.type}
+              </span>
               {hero ? (
                 <Image src={hero.imageUrl} alt="" width={44} height={25} unoptimized />
               ) : <i>—</i>}

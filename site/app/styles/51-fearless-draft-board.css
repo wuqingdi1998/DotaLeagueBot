@@ -423,12 +423,17 @@
 .fearless-hero-confirm button.pick { background: linear-gradient(135deg, #159b65, #2eb888); }
 .fearless-hero-confirm button.ban { background: linear-gradient(135deg, #b93e52, #df5c69); }
 
-.fearless-history { overflow: hidden; }
+.fearless-history {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
 .fearless-history > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: 14px; }
 .fearless-history > header span { font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .fearless-history > header strong { color: var(--blue); font-size: 12px; }
 .fearless-history > header button { display: none; }
-.fearless-history > div { max-height: 575px; overflow-y: auto; }
+.fearless-history > div { min-height: 0; flex: 1; overflow-y: auto; }
 .fearless-history article {
   display: grid;
   grid-template-columns: 22px 35px 44px minmax(0, 1fr) auto;
@@ -437,13 +442,13 @@
   border-bottom: 1px solid var(--line);
   padding: 8px 10px;
 }
-.fearless-history article > b { color: var(--quiet); font-size: 10px; }
-.fearless-history article > span { font-size: 9px; font-weight: 700; }
-.fearless-history article > span.pick { color: #43c98e; }
-.fearless-history article > span.ban { color: #ed6575; }
+.fearless-history article > b { color: var(--quiet); font-size: 12px; }
+.fearless-history article > span { font-size: 11px; font-weight: 700; }
+.fearless-history article > span.radiant { color: #43c98e; }
+.fearless-history article > span.dire { color: #ed6575; }
 .fearless-history article img { border-radius: 4px; object-fit: cover; }
-.fearless-history article > strong { overflow: hidden; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
-.fearless-history article small { color: #f0a83f; font-size: 8px; }
+.fearless-history article > strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.fearless-history article small { color: #f0a83f; font-size: 10px; }
 .fearless-history > div > p { padding: 20px; color: var(--muted); font-size: 12px; text-align: center; }
 
 .fearless-history-toggle { display: none; }

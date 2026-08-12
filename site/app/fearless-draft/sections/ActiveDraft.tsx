@@ -213,6 +213,7 @@ export function ActiveDraft({
         </button>
         <DraftHistory
           actions={map.actions}
+          radiantPlayerId={radiant.id}
           isDrawerOpen={isHistoryOpen}
           onClose={() => setIsHistoryOpen(false)}
         />
