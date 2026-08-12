@@ -119,8 +119,9 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("uses readable fullscreen labels and hides redundant online text", () => {
-    expect(teamPanel).not.toContain('"В сети"');
+  it("uses readable fullscreen labels and keeps both player headers aligned", () => {
+    expect(teamPanel).toContain('isConnected ? "В сети" : "Соперник отключился"');
+    expect(teamPanel).toContain('className={isConnected ? undefined : "disconnected"}');
     expect(interactions).toContain("font-size: 13px");
     expect(interactions).toMatch(
       /:fullscreen \.fearless-team-reserve\s*\{[^}]*gap:\s*10px;/,
