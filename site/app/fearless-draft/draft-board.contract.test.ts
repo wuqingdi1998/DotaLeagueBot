@@ -32,6 +32,19 @@ describe("Fearless Draft board interface", () => {
     expect(teamPanel).toContain("fearless-slot-step");
   });
 
+  it("visually separates each team's bans into three draft phases", () => {
+    const banSteps = (priority: "FIRST" | "SECOND") => DRAFT_SEQUENCE
+      .flatMap((step, index) => step.actor === priority && step.type === "BAN"
+        ? [index + 1]
+        : []);
+
+    expect(banSteps("FIRST")).toEqual([1, 4, 7, 10, 11, 19, 22]);
+    expect(banSteps("SECOND")).toEqual([2, 3, 5, 6, 12, 20, 21]);
+    expect(teamPanel).toContain('isPhaseStart ? "phase-start" : ""');
+    expect(teamPanel).toContain("DRAFT_SEQUENCE[previousBanStep].phase !== DRAFT_SEQUENCE[step].phase");
+    expect(board).toContain(".fearless-ban-list > div.phase-start { margin-left: 12px; }");
+  });
+
   it("uses dedicated vertical portraits and a full-name hover preview", () => {
     expect(FEARLESS_DRAFT_HEROES.every((hero) =>
       hero.portraitUrl.includes("variant=vertical"),

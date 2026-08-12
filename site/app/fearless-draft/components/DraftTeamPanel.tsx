@@ -83,16 +83,19 @@ export function DraftTeamPanel({
       </div>
       <div className="fearless-ban-list">
         <span>Баны</span>
-        {banSteps.map((step) => {
+        {banSteps.map((step, banIndex) => {
           const action = actionsByStep.get(step);
           const isCurrentAction = isCurrent && step === currentStep;
+          const previousBanStep = banSteps[banIndex - 1];
+          const isPhaseStart = previousBanStep !== undefined &&
+            DRAFT_SEQUENCE[previousBanStep].phase !== DRAFT_SEQUENCE[step].phase;
           const hero = action?.heroId ? heroesById.get(action.heroId) : null;
           const isPreviewing = !action && isCurrentAction && Boolean(previewHero);
           const displayedHero = hero ?? (isPreviewing ? previewHero : null);
           return (
             <div
               key={step}
-              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""}`}
+              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""} ${isPhaseStart ? "phase-start" : ""}`}
               title={displayedHero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
             >
               {displayedHero ? (

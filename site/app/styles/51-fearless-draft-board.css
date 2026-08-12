@@ -226,6 +226,7 @@
   border-radius: 5px;
   background: var(--surface-soft);
 }
+.fearless-ban-list > div.phase-start { margin-left: 12px; }
 .fearless-ban-list img { object-fit: cover; filter: grayscale(1) brightness(0.55); }
 .fearless-ban-list > div.filled::after {
   position: absolute;
