@@ -426,7 +426,7 @@
 
 .fearless-history {
   display: flex;
-  min-height: 0;
+  align-self: start;
   flex-direction: column;
   overflow: hidden;
 }
@@ -434,7 +434,7 @@
 .fearless-history > header span { font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .fearless-history > header strong { color: var(--blue); font-size: 12px; }
 .fearless-history > header button { display: none; }
-.fearless-history > div { min-height: 0; flex: 1; overflow-y: auto; }
+.fearless-history > div { max-height: 575px; overflow-y: auto; }
 .fearless-history article {
   display: grid;
   grid-template-columns: 22px 35px 44px minmax(0, 1fr) auto;

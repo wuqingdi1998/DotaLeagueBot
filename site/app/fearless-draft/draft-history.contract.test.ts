@@ -11,14 +11,14 @@ const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const board = source("app/styles/51-fearless-draft-board.css");
 
 describe("Fearless Draft history", () => {
-  it("fills the history card and colors actions by team side", () => {
+  it("keeps a fixed scroll limit without a gap below the action list", () => {
     expect(activeDraft).toContain("radiantPlayerId={radiant.id}");
     expect(history).toContain('action.actorId === radiantPlayerId ? "radiant" : "dire"');
     expect(board).toMatch(
-      /\.fearless-history\s*\{[^}]*display:\s*flex;[^}]*min-height:\s*0;[^}]*flex-direction:\s*column;/,
+      /\.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*start;[^}]*flex-direction:\s*column;/,
     );
     expect(board).toMatch(
-      /\.fearless-history > div\s*\{[^}]*min-height:\s*0;[^}]*flex:\s*1;[^}]*overflow-y:\s*auto;/,
+      /\.fearless-history > div\s*\{[^}]*max-height:\s*575px;[^}]*overflow-y:\s*auto;/,
     );
     expect(board).toContain(".fearless-history article > span.radiant");
     expect(board).toContain(".fearless-history article > span.dire");
