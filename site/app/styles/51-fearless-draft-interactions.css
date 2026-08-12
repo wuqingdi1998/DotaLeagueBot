@@ -293,6 +293,7 @@
 .fearless-active-draft:fullscreen .fearless-hero-toolbar { flex: 0 0 auto; padding: 6px 10px; }
 .fearless-active-draft:fullscreen .fearless-hero-toolbar input { min-height: 31px; }
 .fearless-active-draft:fullscreen .fearless-hero-grid {
+  aspect-ratio: auto;
   height: auto;
   min-height: 0;
   max-height: none;
