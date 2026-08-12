@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import {
   keepGroupedNumbersTogether,
+  starRaceQuestProgressLabel,
   type StarRaceData,
   type StarRaceQuest,
 } from "../model/star-race";
@@ -51,6 +52,7 @@ function StarRaceQuestCard({
   onCheck: (dateKey: string) => void;
 }) {
   const isConfigured = Boolean(quest.title && quest.description);
+  const progressLabel = starRaceQuestProgressLabel(quest);
   return (
     <article
       className={`compendium-star-race-quest ${quest.phase}${
@@ -93,10 +95,11 @@ function StarRaceQuestCard({
           )}
           {quest.completion ? (
             <>
-              {quest.progress && (
-                <BuildingDamageProgress
+              {quest.progress && progressLabel && (
+                <StarRaceProgress
                   current={quest.progress.current}
                   target={quest.progress.target}
+                  label={progressLabel}
                 />
               )}
               <div className="compendium-star-race-completion" role="status">
@@ -119,10 +122,11 @@ function StarRaceQuestCard({
             </>
           ) : quest.phase === "active" ? (
             <div className="compendium-star-race-action">
-              {quest.progress && (
-                <BuildingDamageProgress
+              {quest.progress && progressLabel && (
+                <StarRaceProgress
                   current={quest.progress.current}
                   target={quest.progress.target}
+                  label={progressLabel}
                 />
               )}
               <div className="compendium-star-race-countdown">
@@ -162,21 +166,23 @@ function StarRaceQuestCard({
   );
 }
 
-function BuildingDamageProgress({
+function StarRaceProgress({
   current,
   target,
+  label,
 }: {
   current: number;
   target: number;
+  label: string;
 }) {
   const percentage = Math.min(100, Math.round((current / target) * 100));
   return (
     <div
       className="compendium-star-race-progress"
       role="status"
-      aria-label={`Урон по строениям: ${current} из ${target}`}
+      aria-label={`${label}: ${current} из ${target}`}
     >
-      <span>Урон по строениям</span>
+      <span>{label}</span>
       <strong>
         {damageNumber.format(current)} / {damageNumber.format(target)}
       </strong>

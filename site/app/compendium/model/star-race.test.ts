@@ -9,6 +9,7 @@ import {
   keepGroupedNumbersTogether,
   starRaceForMoment,
   starRacePhase,
+  starRaceQuestProgressLabel,
   starRaceWeekByDate,
   starRaceQuestPhase,
 } from "./star-race";
@@ -148,6 +149,9 @@ describe("star race schedule", () => {
     });
     expect(STAR_RACE_QUESTS[2].description).toBe(
       "Нанесите 40 000 урона по героям на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
+    );
+    expect(starRaceQuestProgressLabel(STAR_RACE_QUESTS[2])).toBe(
+      "Урон по героям",
     );
   });
 

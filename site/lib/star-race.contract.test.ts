@@ -176,7 +176,9 @@ describe("compendium star race contract", () => {
     );
     expect(service).toContain("forceRefresh: true");
     expect(starRaceModel).toContain("winning-building-damage");
-    expect(starRaceView).toContain("Урон по строениям");
+    expect(starRaceModel).toContain('return "Урон по строениям"');
+    expect(starRaceModel).toContain('"Урон по героям"');
+    expect(starRaceView).toContain("starRaceQuestProgressLabel(quest)");
   });
 
   it("persists Monday's partial hero win and renders its intermediate state", () => {

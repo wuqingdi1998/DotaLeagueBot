@@ -316,3 +316,16 @@ export function starRaceQuestHeroes(
   }
   return [];
 }
+
+export function starRaceQuestProgressLabel(
+  quest: StarRaceQuestDefinition,
+): string | null {
+  const requirement = quest.requirement;
+  if (requirement?.kind === "winning-building-damage") {
+    return "Урон по строениям";
+  }
+  if (requirement?.kind === "cumulative-ranked-win-stat") {
+    return requirement.stat === "hero_damage" ? "Урон по героям" : "Убийства";
+  }
+  return null;
+}
