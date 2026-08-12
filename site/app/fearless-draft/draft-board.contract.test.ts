@@ -175,8 +175,18 @@ describe("Fearless Draft board interface", () => {
     expect(activeDraft).toContain('className="fearless-history-toggle"');
     expect(activeDraft).toContain("isHistoryOpen");
     expect(interactions).toContain(".fearless-history.drawer-open");
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-history-toggle\s*\{[^}]*bottom:\s*112px;/,
+    );
     expect(history).not.toContain("[...actions].reverse()");
     expect(history).toContain("actions.map((action)");
+  });
+
+  it("highlights the pick or ban confirmation button on hover", () => {
+    expect(interactions).toContain(".fearless-hero-confirm button:not(:disabled):hover");
+    expect(interactions).toContain("filter: brightness(1.16) saturate(1.12)");
+    expect(interactions).toContain(".fearless-hero-confirm button.pick:not(:disabled):hover");
+    expect(interactions).toContain(".fearless-hero-confirm button.ban:not(:disabled):hover");
   });
 
   it("shows the selected hero only in the selecting player's current gray slot", () => {

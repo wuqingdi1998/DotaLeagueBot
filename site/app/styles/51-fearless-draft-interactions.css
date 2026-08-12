@@ -53,6 +53,21 @@
   background: var(--blue);
 }
 
+.fearless-hero-confirm button {
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+.fearless-hero-confirm button:not(:disabled):hover {
+  transform: translateY(-2px);
+  filter: brightness(1.16) saturate(1.12);
+}
+.fearless-hero-confirm button.pick:not(:disabled):hover {
+  box-shadow: 0 0 0 2px rgba(98, 237, 177, 0.62), 0 9px 22px rgba(21, 155, 101, 0.42);
+}
+.fearless-hero-confirm button.ban:not(:disabled):hover {
+  box-shadow: 0 0 0 2px rgba(255, 139, 151, 0.62), 0 9px 22px rgba(185, 62, 82, 0.42);
+}
+.fearless-hero-confirm button:not(:disabled):active { transform: translateY(0); }
+
 .fearless-slot-step {
   position: absolute;
   z-index: 3;
@@ -336,7 +351,7 @@
   position: absolute;
   z-index: 12;
   right: -9px;
-  bottom: 78px;
+  bottom: 112px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
