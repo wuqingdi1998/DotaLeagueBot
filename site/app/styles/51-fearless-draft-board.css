@@ -171,8 +171,8 @@
   text-align: right;
   white-space: nowrap;
 }
-.fearless-team-panel > header .fearless-team-reserve span { font-size: 48px; }
-.fearless-team-panel > header .fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 64px; line-height: 1; }
+.fearless-team-panel > header .fearless-team-reserve span { font-size: 13px; }
+.fearless-team-panel > header .fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 28px; line-height: 1; }
 .fearless-pick-slots {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

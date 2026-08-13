@@ -13,6 +13,7 @@ import type {
   DraftMapSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
+import { useHeroSearchHotkeys } from "../hooks/useHeroSearchHotkeys";
 
 type HeroState =
   | "available"
@@ -55,6 +56,7 @@ export function HeroGrid({
     heroId: number;
     type: "PICK" | "BAN";
   } | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const latestAction = map.actions.at(-1);
   const latestActionHeroId = latestAction?.heroId;
   const latestActionType = latestAction?.type;
@@ -75,6 +77,7 @@ export function HeroGrid({
     : null;
   const selectedHero = FEARLESS_DRAFT_HEROES.find((hero) => hero.id === selectedHeroId);
   const isOwnTurn = map.currentActorId === userId;
+  useHeroSearchHotkeys(searchInputRef, setSearch);
 
   useEffect(() => {
     if (latestActionSignature === previousActionSignature.current) return;
@@ -149,6 +152,7 @@ export function HeroGrid({
         <label>
           <FiSearch />
           <input
+            ref={searchInputRef}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Найти героя…"

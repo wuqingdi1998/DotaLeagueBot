@@ -264,12 +264,17 @@
 .fearless-active-draft:fullscreen .fearless-team-panel > header span { font-size: 13px; }
 .fearless-active-draft:fullscreen .fearless-team-panel > header strong { font-size: 17px; }
 .fearless-active-draft:fullscreen .fearless-team-reserve { gap: 10px; }
-.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-team-reserve span { font-size: 48px; }
-.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-team-reserve strong { font-size: 64px; }
-.fearless-active-draft:fullscreen .fearless-player-avatar { display: none; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-team-reserve span { font-size: 13px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-team-reserve strong { font-size: 28px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-player-avatar {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+  border-radius: 12px;
+}
 .fearless-active-draft:fullscreen .fearless-pick-slots { padding: 7px 9px; }
 .fearless-active-draft:fullscreen .fearless-pick-slots > div {
-  min-height: 95px;
+  min-height: 43px;
   aspect-ratio: 16 / 9;
 }
 .fearless-active-draft:fullscreen .fearless-pick-slots img {
@@ -279,17 +284,18 @@
 .fearless-active-draft:fullscreen .fearless-pick-slots span { display: none; }
 .fearless-active-draft:fullscreen .fearless-ban-list { min-height: 48px; padding: 0 9px 9px; }
 .fearless-active-draft:fullscreen .fearless-ban-list > div {
-  width: clamp(95px, 6vw, 110px);
-  height: 95px;
+  width: clamp(72px, 5vw, 88px);
+  aspect-ratio: 16 / 9;
+  height: auto;
 }
 .fearless-active-draft:fullscreen .fearless-slot-step {
-  min-width: 95px;
-  height: 95px;
+  min-width: 43px;
+  height: 43px;
   right: 0;
   bottom: 0;
   border-radius: 12px;
   padding: 0;
-  font-size: 45px;
+  font-size: 20px;
 }
 .fearless-active-draft:fullscreen .fearless-draft-workspace {
   width: 100%;
@@ -349,7 +355,8 @@
   bottom: 10px;
   display: flex;
   width: calc((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4);
-  min-height: 150px;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
   align-items: stretch;
   border: 1px solid var(--line-strong);
   border-radius: 11px;
@@ -366,7 +373,8 @@
 }
 .fearless-active-draft:fullscreen .fearless-hero-confirm-image {
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  background: #06131e;
 }
 .fearless-active-draft:fullscreen .fearless-hero-confirm-label { display: none; }
 .fearless-active-draft:fullscreen .fearless-hero-confirm-action {

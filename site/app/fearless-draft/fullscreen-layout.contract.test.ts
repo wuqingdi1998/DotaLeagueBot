@@ -65,7 +65,7 @@ describe("Fearless Draft fullscreen layout", () => {
       /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
     );
     expect(fullscreenStyles).toMatch(
-      /:fullscreen \.fearless-hero-confirm\s*\{[^}]*min-height:\s*150px;/,
+      /:fullscreen \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
     );
     expect(fullscreenStyles).toMatch(
       /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*calc\(\(100vw - 1830px\) \/ 2\) 1540px minmax\(260px, 1fr\);/,

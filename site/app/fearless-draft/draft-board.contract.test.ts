@@ -21,6 +21,7 @@ const heroPortraitPreloader = source(
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
+const heroSearchHotkeys = source("app/fearless-draft/hooks/useHeroSearchHotkeys.ts");
 const playerAvatar = source("app/fearless-draft/components/PlayerAvatar.tsx");
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const draftBase = source("app/styles/50-fearless-draft.css");
@@ -132,7 +133,7 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-active-draft:fullscreen \.fearless-pick-slots img\s*\{[^}]*object-fit:\s*contain;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-ban-list > div\s*\{[^}]*height:\s*95px;/,
+      /\.fearless-active-draft:fullscreen \.fearless-ban-list > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*height:\s*auto;/,
     );
   });
 
@@ -150,7 +151,7 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("uses larger fullscreen labels and keeps both player headers aligned", () => {
+  it("matches reserve typography to the upper clock and keeps player headers aligned", () => {
     expect(teamPanel).toContain('isConnected ? "В сети" : "Соперник отключился"');
     expect(teamPanel).toContain('className={isConnected ? undefined : "disconnected"}');
     expect(interactions).toContain("font-size: 13px");
@@ -158,19 +159,19 @@ describe("Fearless Draft board interface", () => {
       /:fullscreen \.fearless-team-reserve\s*\{[^}]*gap:\s*10px;/,
     );
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*64px;/,
+      /:fullscreen \.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*28px;/,
     );
   });
 
-  it("quadruples Reserve and its counter in regular and fullscreen modes", () => {
+  it("uses the upper clock sizes for Reserve and its counter in both modes", () => {
     expect(board).toMatch(
       /\.fearless-team-reserve\s*\{[^}]*flex-direction:\s*row;[^}]*gap:\s*10px;/,
     );
     expect(board).toMatch(
-      /\.fearless-team-panel > header \.fearless-team-reserve span\s*\{[^}]*font-size:\s*48px;/,
+      /\.fearless-team-panel > header \.fearless-team-reserve span\s*\{[^}]*font-size:\s*13px;/,
     );
     expect(board).toMatch(
-      /\.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*64px;/,
+      /\.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*28px;/,
     );
     expect(board).toMatch(
       /\.fearless-turn span,\s*\.fearless-turn strong\s*\{[^}]*font-size:\s*18px;/,
@@ -259,13 +260,31 @@ describe("Fearless Draft board interface", () => {
       /:fullscreen \.fearless-hero-confirm button\s*\{[^}]*position:\s*relative;[^}]*overflow:\s*hidden;/,
     );
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-hero-confirm-image\s*\{[^}]*display:\s*block;[^}]*object-fit:\s*cover;/,
+      /:fullscreen \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
+    );
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-hero-confirm-image\s*\{[^}]*display:\s*block;[^}]*object-fit:\s*contain;/,
     );
   });
 
-  it("makes fullscreen draft step badges and digits five times larger", () => {
+  it("makes fullscreen draft step badge area about five times larger", () => {
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-slot-step\s*\{[^}]*min-width:\s*95px;[^}]*height:\s*95px;[^}]*font-size:\s*45px;/,
+      /:fullscreen \.fearless-slot-step\s*\{[^}]*min-width:\s*43px;[^}]*height:\s*43px;[^}]*font-size:\s*20px;/,
+    );
+  });
+
+  it("sends physical letter keys to hero search in English", () => {
+    expect(heroGrid).toContain("useHeroSearchHotkeys");
+    expect(heroGrid).toContain("ref={searchInputRef}");
+    expect(heroSearchHotkeys).toContain('event.code.match(/^Key([A-Z])$/)');
+    expect(heroSearchHotkeys).toContain("event.preventDefault()");
+    expect(heroSearchHotkeys).toContain("searchInputRef.current?.focus()");
+  });
+
+  it("shows a large player avatar in fullscreen team headers", () => {
+    expect(interactions).not.toContain(":fullscreen .fearless-player-avatar { display: none; }");
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-team-panel > header \.fearless-player-avatar\s*\{[^}]*width:\s*64px;[^}]*height:\s*64px;[^}]*flex-basis:\s*64px;/,
     );
   });
 
