@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState, type SyntheticEvent } from "react";
 import { FaStar } from "react-icons/fa";
 import {
   FiArrowLeft,
@@ -9,7 +12,7 @@ import {
 } from "react-icons/fi";
 import type {
   CompendiumAdminRewardHistory,
-  CompendiumAdminParticipant,
+  CompendiumAdminParticipantSummary,
   CompendiumQuestRewardHistory,
   CompendiumPredictionRewardHistory,
   CompendiumRuneRewardHistory,
@@ -22,7 +25,7 @@ import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
 function CurrentQuestCards({
   participant,
 }: {
-  participant: CompendiumAdminParticipant;
+  participant: CompendiumAdminParticipantSummary;
 }) {
   return (
     <section className="compendium-base-current-quests">
@@ -235,10 +238,44 @@ function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
 function ParticipantHistory({
   participant,
 }: {
-  participant: CompendiumAdminParticipant;
+  participant: CompendiumAdminParticipantSummary;
 }) {
+  const [rewards, setRewards] = useState<CompendiumRewardHistory[] | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function loadHistory() {
+    if (rewards || isLoading) return;
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const response = await fetch(
+        `/api/admin/compendium-base/participants/${participant.discordId}/history`,
+      );
+      const result = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        rewards?: CompendiumRewardHistory[];
+      };
+      if (!response.ok || !result.rewards) {
+        throw new Error(result.error ?? "Не удалось загрузить историю");
+      }
+      setRewards(result.rewards);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Не удалось загрузить историю",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
-    <details className="compendium-base-participant">
+    <details
+      className="compendium-base-participant"
+      onToggle={(event: SyntheticEvent<HTMLDetailsElement>) => {
+        if (event.currentTarget.open) void loadHistory();
+      }}
+    >
       <summary>
         <span className="compendium-base-avatar">
           {participant.avatarUrl ? (
@@ -268,21 +305,33 @@ function ParticipantHistory({
           <FaStar aria-hidden="true" /> {participant.totalStars}
         </span>
         <span className="compendium-base-history-count">
-          {participant.rewards.length} операций
+          {participant.rewardCount} операций
         </span>
         <FiChevronDown className="compendium-base-chevron" aria-hidden="true" />
       </summary>
       <div className="compendium-base-history">
         <CurrentQuestCards participant={participant} />
-        {participant.rewards.length ? (
-          participant.rewards.map((reward) => (
+        {isLoading ? (
+          <p className="compendium-base-history-message" role="status">
+            Загружаем историю…
+          </p>
+        ) : loadError ? (
+          <button
+            className="compendium-base-history-retry"
+            type="button"
+            onClick={() => void loadHistory()}
+          >
+            {loadError}. Повторить
+          </button>
+        ) : rewards?.length ? (
+          rewards.map((reward) => (
             <RewardHistoryItem key={reward.id} reward={reward} />
           ))
-        ) : (
+        ) : rewards ? (
           <p className="compendium-base-empty-history">
             Этот участник пока не получил ни одной звезды.
           </p>
-        )}
+        ) : null}
       </div>
     </details>
   );
@@ -292,7 +341,7 @@ export function CompendiumBase({
   participants,
   starRaceArchive,
 }: {
-  participants: CompendiumAdminParticipant[];
+  participants: CompendiumAdminParticipantSummary[];
   starRaceArchive: ArchivedRace[];
 }) {
   const totalStars = participants.reduce(

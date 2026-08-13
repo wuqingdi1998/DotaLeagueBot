@@ -54,6 +54,9 @@ const archiveView = source(
 const archiveRepository = source(
   "../app/compendium/admin/star-race-archive-repository.ts",
 );
+const basePerformanceMigration = source(
+  "../../bot/database/migrations/0069_compendium_base_performance.sql",
+);
 const archiveStyles = source(
   "../app/styles/49-compendium-star-race-archive.css",
 );
@@ -162,6 +165,12 @@ describe("compendium star race contract", () => {
     expect(baseView).toContain("CompendiumStarRaceArchive");
     expect(archiveRepository).toContain("STAR_RACE_WEEKS.map");
     expect(archiveRepository).toContain("loadStarRaceLeaderboard(race, true)");
+    expect(archiveRepository).toContain('phase === "upcoming"');
+    expect(archiveRepository).toContain("loadFinishedRaceLeaderboard");
+    expect(archiveRepository).toContain("compendium_star_race_standings_snapshots");
+    expect(basePerformanceMigration).toContain(
+      "compendium_star_race_standings_snapshots",
+    );
     expect(archiveView).toContain("Сценарии Гонки");
     expect(archiveView).toContain("Итоговая таблица");
     expect(archiveStyles).toContain("@media (max-width: 720px)");

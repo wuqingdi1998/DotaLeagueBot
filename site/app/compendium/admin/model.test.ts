@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildCompendiumAdminParticipants } from "./model";
-import type { CompendiumAdminSourceRow } from "./types";
+import {
+  buildCompendiumAdminParticipantSummaries,
+  buildCompendiumAdminParticipants,
+} from "./model";
+import type {
+  CompendiumAdminParticipantSummaryRow,
+  CompendiumAdminSourceRow,
+} from "./types";
 import type { CompendiumAdminCurrentQuestSourceRow } from "./types";
 
 function row(
@@ -32,6 +38,26 @@ function row(
 }
 
 describe("compendium organizer base", () => {
+  it("builds the initial participant list without loading reward history", () => {
+    const summaryRows: CompendiumAdminParticipantSummaryRow[] = [{
+      player_id: "100",
+      player_name: "Игрок",
+      dota_id: "200",
+      avatar_url: null,
+      total_stars: 7,
+      reward_count: 5,
+    }];
+    const participants = buildCompendiumAdminParticipantSummaries(summaryRows);
+
+    expect(participants).toEqual([expect.objectContaining({
+      discordId: "100",
+      totalStars: 7,
+      rewardCount: 5,
+      currentQuests: [],
+    })]);
+    expect(participants[0]).not.toHaveProperty("rewards");
+  });
+
   it("groups each participant's current heroes into three quest cards", () => {
     const currentQuestRows: CompendiumAdminCurrentQuestSourceRow[] = [
       { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 1, hero_position: 1 },

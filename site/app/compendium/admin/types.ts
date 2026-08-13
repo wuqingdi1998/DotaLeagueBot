@@ -47,6 +47,15 @@ export type CompendiumAdminSourceRow = {
   actual_score: string | null;
 };
 
+export type CompendiumAdminParticipantSummaryRow = {
+  player_id: string;
+  player_name: string;
+  dota_id: string;
+  avatar_url: string | null;
+  total_stars: number;
+  reward_count: number;
+};
+
 export type CompendiumAdminCurrentQuestSourceRow = {
   player_id: string;
   quest_id: string;
@@ -136,4 +145,11 @@ export type CompendiumAdminParticipant = {
   totalStars: number;
   currentQuests: CompendiumAdminCurrentQuest[];
   rewards: CompendiumRewardHistory[];
+};
+
+export type CompendiumAdminParticipantSummary = Omit<
+  CompendiumAdminParticipant,
+  "rewards"
+> & {
+  rewardCount: number;
 };

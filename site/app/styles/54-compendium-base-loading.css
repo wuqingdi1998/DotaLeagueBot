@@ -1,0 +1,54 @@
+.compendium-base-loading {
+  width: min(1180px, calc(100% - 32px));
+  min-height: 55vh;
+  margin: 0 auto;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 12px;
+  color: var(--quiet);
+  text-align: center;
+}
+
+.compendium-base-loading svg {
+  width: 34px;
+  height: 34px;
+  color: var(--blue-soft);
+  animation: compendium-base-loading-pulse 900ms ease-in-out infinite alternate;
+}
+
+.compendium-base-loading strong {
+  color: var(--text);
+  font-size: 22px;
+}
+
+.compendium-base-history-message,
+.compendium-base-history-retry {
+  margin: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--quiet);
+  text-align: center;
+}
+
+.compendium-base-history-retry {
+  width: 100%;
+  cursor: pointer;
+}
+
+.compendium-base-history-retry:focus-visible {
+  outline: 2px solid var(--blue-soft);
+  outline-offset: 2px;
+}
+
+@keyframes compendium-base-loading-pulse {
+  to { opacity: 0.4; transform: scale(0.92); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .compendium-base-loading svg {
+    animation: none;
+  }
+}

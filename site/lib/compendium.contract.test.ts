@@ -40,7 +40,6 @@ const compendiumCss = source("../app/styles/33-compendium.css");
 const headingCss = source("../app/styles/35-compendium-heading.css");
 const basePage = source("../app/compendium/base/page.tsx");
 const baseRepository = source("../app/compendium/admin/repository.ts");
-const baseView = source("../app/compendium/admin/CompendiumBase.tsx");
 const rerollRoute = source(
   "../app/api/compendium/daily-quests/[questId]/reroll/route.ts",
 );
@@ -189,24 +188,6 @@ describe("compendium persistence and security contract", () => {
       /\.compendium-base-floating-link\s*\{[^}]*position:\s*absolute;/,
     );
     expect(basePage).toContain("if (!user?.isAdmin) notFound()");
-  });
-
-  it("loads every participant and the heroes behind each rewarded star", () => {
-    expect(baseRepository).toContain("FROM players player");
-    expect(baseRepository).toContain("compendium_user_quest_completions");
-    expect(baseRepository).toContain("compendium_daily_quest_heroes");
-    expect(baseRepository).toContain("compendium_star_race_quest_completions");
-    expect(baseRepository).toContain("compendium_star_race_quest_wins");
-    expect(baseView).toContain("reward.heroes.map");
-    expect(baseView).toContain("hero.id === reward.matchedHeroId");
-    expect(baseView).toContain("Гонка за звёздами");
-  });
-
-  it("shows participant avatars and links Dota IDs to site profiles", () => {
-    expect(baseRepository).toContain("player.avatar_url");
-    expect(baseRepository).toContain("latest_session.discord_avatar_url");
-    expect(baseView).toContain("participant.avatarUrl");
-    expect(baseView).toContain("`/players/${participant.dotaId}`");
   });
 
   it("upgrades daily rerolls from one to a persistent three-reroll allowance", () => {

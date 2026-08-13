@@ -4,9 +4,55 @@ import type {
   CompendiumAdminCurrentQuest,
   CompendiumAdminCurrentQuestSourceRow,
   CompendiumAdminParticipant,
+  CompendiumAdminParticipantSummary,
+  CompendiumAdminParticipantSummaryRow,
   CompendiumAdminSourceRow,
   CompendiumRewardHistory,
 } from "./types";
+
+export function buildCompendiumAdminParticipantSummaries(
+  rows: CompendiumAdminParticipantSummaryRow[],
+  currentQuestRows: CompendiumAdminCurrentQuestSourceRow[] = [],
+): CompendiumAdminParticipantSummary[] {
+  const participants = new Map<string, CompendiumAdminParticipantSummary>(
+    rows.map((row) => [row.player_id, {
+      discordId: row.player_id,
+      dotaId: row.dota_id,
+      playerName: row.player_name,
+      avatarUrl: row.avatar_url,
+      totalStars: row.total_stars,
+      rewardCount: row.reward_count,
+      currentQuests: [],
+    }]),
+  );
+  const questsByParticipant = new Map<
+    string,
+    Map<string, CompendiumAdminCurrentQuest>
+  >();
+  for (const row of currentQuestRows) {
+    if (!participants.has(row.player_id)) continue;
+    const participantQuests = questsByParticipant.get(row.player_id) ??
+      new Map<string, CompendiumAdminCurrentQuest>();
+    const quest = participantQuests.get(row.quest_id) ?? {
+      id: row.quest_id,
+      position: row.quest_position,
+      heroes: [],
+    };
+    quest.heroes.push(compendiumHeroById(row.hero_id));
+    participantQuests.set(row.quest_id, quest);
+    questsByParticipant.set(row.player_id, participantQuests);
+  }
+  for (const [playerId, quests] of questsByParticipant) {
+    participants.get(playerId)!.currentQuests = [...quests.values()].sort(
+      (left, right) => left.position - right.position,
+    );
+  }
+  return [...participants.values()].sort(
+    (left, right) =>
+      right.totalStars - left.totalStars ||
+      left.playerName.localeCompare(right.playerName, "ru"),
+  );
+}
 
 export function buildCompendiumAdminParticipants(
   rows: CompendiumAdminSourceRow[],

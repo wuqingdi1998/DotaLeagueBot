@@ -1,6 +1,7 @@
 import { compendiumInternalAuthError } from "@/lib/compendium-internal-auth";
 import { moscowDateKey } from "@/app/compendium/model/time";
 import { ensureDailyQuestSet } from "@/app/compendium/services/repository";
+import { saveFinishedStarRaceStandings } from "@/app/compendium/admin/star-race-archive-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,9 @@ export async function POST(request: Request) {
   const authError = compendiumInternalAuthError(request);
   if (authError) return authError;
   const date = moscowDateKey();
-  await ensureDailyQuestSet(date);
+  await Promise.all([
+    ensureDailyQuestSet(date),
+    saveFinishedStarRaceStandings(),
+  ]);
   return Response.json({ ok: true, moscowDate: date });
 }
