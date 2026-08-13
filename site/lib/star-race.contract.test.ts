@@ -132,6 +132,8 @@ describe("compendium star race contract", () => {
       "сайт автоматически бросает 20-гранный кубик",
     );
     expect(leaderboardPage).toContain("общих мест в итоге не будет");
+    expect(leaderboardPage).toContain("starRacePrizeDescription(race.prizes)");
+    expect(starRaceModel).toContain("Призы будут объявлены позже");
   });
 
   it("stores the two-star reward once and only during its Moscow day", () => {
@@ -144,6 +146,8 @@ describe("compendium star race contract", () => {
   it("allows future race weeks without removing earlier results", () => {
     expect(starRaceModel).toContain("STAR_RACE_WEEKS");
     expect(starRaceModel).toContain("CURRENT_STAR_RACE");
+    expect(starRaceModel).toContain('id: "2026-08-17"');
+    expect(starRaceModel).toContain('dateLabel: "17–23 августа 2026"');
     expect(repository).toContain("starRaceWeekByDate");
     expect(reusableWeeksMigration).toContain(
       "DROP CONSTRAINT IF EXISTS compendium_star_race_quest_completions_moscow_date_check",

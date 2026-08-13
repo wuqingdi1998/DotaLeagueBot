@@ -161,6 +161,24 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   },
 ];
 
+const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
+  ["2026-08-17", "Понедельник", "17 августа"],
+  ["2026-08-18", "Вторник", "18 августа"],
+  ["2026-08-19", "Среда", "19 августа"],
+  ["2026-08-20", "Четверг", "20 августа"],
+  ["2026-08-21", "Пятница", "21 августа"],
+  ["2026-08-22", "Суббота", "22 августа"],
+  ["2026-08-23", "Воскресенье", "23 августа"],
+].map(([dateKey, weekday, dateLabel]) => ({
+  dateKey,
+  weekday,
+  dateLabel,
+  title: null,
+  description: null,
+  rewardStars: null,
+  requirement: null,
+}));
+
 export type StarRaceWeekDefinition = {
   readonly id: string;
   readonly title: string;
@@ -180,6 +198,15 @@ export const STAR_RACE_WEEKS: readonly StarRaceWeekDefinition[] = [
     endsAt: "2026-08-17T00:00:00+03:00",
     prizes: FIRST_STAR_RACE_PRIZES,
     quests: FIRST_STAR_RACE_QUESTS,
+  },
+  {
+    id: "2026-08-17",
+    title: "Гонка за звёздами",
+    dateLabel: "17–23 августа 2026",
+    startsAt: "2026-08-17T00:00:00+03:00",
+    endsAt: "2026-08-24T00:00:00+03:00",
+    prizes: [],
+    quests: SECOND_STAR_RACE_QUESTS,
   },
 ];
 
@@ -298,6 +325,16 @@ export function starRaceWeekByDate(
 
 export function keepGroupedNumbersTogether(text: string): string {
   return text.replace(/(\d)[ \u00a0\u202f](?=\d{3}(?:\D|$))/g, "$1\u00a0");
+}
+
+export function starRacePrizeDescription(
+  prizes: readonly StarRacePrize[],
+): string {
+  if (prizes.length === 0) return "Призы будут объявлены позже.";
+  if (prizes.length === 1) {
+    return `Награда за первое место — ${prizes[0].title}.`;
+  }
+  return `Награда за первое место — ${prizes[0].title}; за второе — ${prizes[1].title}.`;
 }
 
 export function starRaceQuestHeroes(

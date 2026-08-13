@@ -9,14 +9,18 @@ import {
   keepGroupedNumbersTogether,
   starRaceForMoment,
   starRacePhase,
+  starRacePrizeDescription,
   starRaceQuestProgressLabel,
   starRaceWeekByDate,
   starRaceQuestPhase,
 } from "./star-race";
 
+const FIRST_STAR_RACE = STAR_RACE_WEEKS[0];
+const FIRST_STAR_RACE_QUESTS = FIRST_STAR_RACE.quests;
+
 describe("star race schedule", () => {
   it("publishes separate previewable prizes for first and second place", () => {
-    expect(STAR_RACE_PRIZES).toEqual([
+    expect(FIRST_STAR_RACE.prizes).toEqual([
       {
         place: 1,
         title: "Сет Beast of Thunder на Storm Spirit",
@@ -32,36 +36,49 @@ describe("star race schedule", () => {
     ]);
   });
 
-  it("runs from 10 through 16 August 2026 in Moscow", () => {
+  it("prepares an empty scenario for 17 through 23 August 2026", () => {
     expect(new Date(STAR_RACE_START_AT).toISOString()).toBe(
-      "2026-08-09T21:00:00.000Z",
-    );
-    expect(new Date(STAR_RACE_END_AT).toISOString()).toBe(
       "2026-08-16T21:00:00.000Z",
     );
+    expect(new Date(STAR_RACE_END_AT).toISOString()).toBe(
+      "2026-08-23T21:00:00.000Z",
+    );
+    expect(CURRENT_STAR_RACE.dateLabel).toBe("17–23 августа 2026");
+    expect(STAR_RACE_PRIZES).toEqual([]);
     expect(STAR_RACE_QUESTS).toHaveLength(7);
+    expect(STAR_RACE_QUESTS.map((quest) => quest.dateKey)).toEqual([
+      "2026-08-17",
+      "2026-08-18",
+      "2026-08-19",
+      "2026-08-20",
+      "2026-08-21",
+      "2026-08-22",
+      "2026-08-23",
+    ]);
+    expect(STAR_RACE_QUESTS.every((quest) =>
+      quest.title === null &&
+      quest.description === null &&
+      quest.rewardStars === null &&
+      quest.requirement === null
+    )).toBe(true);
+    expect(starRacePrizeDescription(STAR_RACE_PRIZES)).toBe(
+      "Призы будут объявлены позже.",
+    );
   });
 
   it("keeps every configured week available as a reusable scenario", () => {
     expect(STAR_RACE_WEEKS).toContain(CURRENT_STAR_RACE);
-    expect(starRaceWeekByDate("2026-08-12")).toBe(CURRENT_STAR_RACE);
+    expect(starRaceWeekByDate("2026-08-12")).toBe(FIRST_STAR_RACE);
+    expect(starRaceWeekByDate("2026-08-17")).toBe(CURRENT_STAR_RACE);
     expect(CURRENT_STAR_RACE.quests).toBe(STAR_RACE_QUESTS);
   });
 
-  it("keeps the active week visible when the next scenario is prepared", () => {
-    const nextRace = {
-      ...CURRENT_STAR_RACE,
-      id: "2026-08-17",
-      startsAt: "2026-08-17T00:00:00+03:00",
-      endsAt: "2026-08-24T00:00:00+03:00",
-      quests: [],
-    };
-    const races = [CURRENT_STAR_RACE, nextRace];
-    expect(starRaceForMoment(new Date("2026-08-12T12:00:00Z"), races)).toBe(
-      CURRENT_STAR_RACE,
+  it("switches to the next scenario exactly when the first week ends", () => {
+    expect(starRaceForMoment(new Date("2026-08-16T20:59:59.999Z"))).toBe(
+      FIRST_STAR_RACE,
     );
-    expect(starRaceForMoment(new Date("2026-08-16T22:00:00Z"), races)).toBe(
-      nextRace,
+    expect(starRaceForMoment(new Date("2026-08-16T21:00:00.000Z"))).toBe(
+      CURRENT_STAR_RACE,
     );
   });
 
@@ -75,22 +92,22 @@ describe("star race schedule", () => {
   });
 
   it("shows full details to organizers before launch and everyone afterwards", () => {
-    expect(starRacePhase(new Date("2026-08-09T20:59:59.999Z"), false)).toEqual({
+    expect(starRacePhase(new Date("2026-08-09T20:59:59.999Z"), false, FIRST_STAR_RACE)).toEqual({
       phase: "upcoming",
       isDetailsVisible: false,
     });
-    expect(starRacePhase(new Date("2026-08-09T20:59:59.999Z"), true)).toEqual({
+    expect(starRacePhase(new Date("2026-08-09T20:59:59.999Z"), true, FIRST_STAR_RACE)).toEqual({
       phase: "upcoming",
       isDetailsVisible: true,
     });
-    expect(starRacePhase(new Date("2026-08-09T21:00:00.000Z"), false)).toEqual({
+    expect(starRacePhase(new Date("2026-08-09T21:00:00.000Z"), false, FIRST_STAR_RACE)).toEqual({
       phase: "active",
       isDetailsVisible: true,
     });
   });
 
   it("makes each quest active only during its own Moscow day", () => {
-    const monday = STAR_RACE_QUESTS[0];
+    const monday = FIRST_STAR_RACE_QUESTS[0];
     expect(starRaceQuestPhase(monday, new Date("2026-08-09T20:59:59.999Z"))).toBe(
       "upcoming",
     );
@@ -103,7 +120,7 @@ describe("star race schedule", () => {
   });
 
   it("defines Monday's one-win Team Spirit quest", () => {
-    expect(STAR_RACE_QUESTS[0]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[0]).toMatchObject({
       dateKey: "2026-08-10",
       weekday: "Понедельник",
       title: "Легенда СНГ",
@@ -114,13 +131,13 @@ describe("star race schedule", () => {
         heroIds: [97, 3, 112, 106, 109],
       },
     });
-    expect(STAR_RACE_QUESTS[0].description).toContain(
+    expect(FIRST_STAR_RACE_QUESTS[0].description).toContain(
       "The International 2021",
     );
   });
 
   it("defines Tuesday's cumulative winning building damage quest", () => {
-    expect(STAR_RACE_QUESTS[1]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[1]).toMatchObject({
       dateKey: "2026-08-11",
       weekday: "Вторник",
       title: "Побеждает тот, у кого упадёт трон",
@@ -130,13 +147,13 @@ describe("star race schedule", () => {
         targetDamage: 30_000,
       },
     });
-    expect(STAR_RACE_QUESTS[1].description).toBe(
+    expect(FIRST_STAR_RACE_QUESTS[1].description).toBe(
       "Нанесите 30 000 урона по строениям. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     );
   });
 
   it("defines Wednesday's cumulative 40,000 Pudge or Sniper damage quest", () => {
-    expect(STAR_RACE_QUESTS[2]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[2]).toMatchObject({
       dateKey: "2026-08-12",
       title: "Это снайпер?",
       rewardStars: 2,
@@ -147,16 +164,16 @@ describe("star race schedule", () => {
         target: 40_000,
       },
     });
-    expect(STAR_RACE_QUESTS[2].description).toBe(
+    expect(FIRST_STAR_RACE_QUESTS[2].description).toBe(
       "Нанесите 40 000 урона по героям на Pudge или Sniper. Прогресс засчитывается только в победных рейтинговых матчах и суммируется за все игры в рамках суток.",
     );
-    expect(starRaceQuestProgressLabel(STAR_RACE_QUESTS[2])).toBe(
+    expect(starRaceQuestProgressLabel(FIRST_STAR_RACE_QUESTS[2])).toBe(
       "Урон по героям",
     );
   });
 
   it("defines Thursday's 15-kill ranked win quest", () => {
-    expect(STAR_RACE_QUESTS[3]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[3]).toMatchObject({
       dateKey: "2026-08-13",
       title: "Пакистанский король",
       rewardStars: 2,
@@ -167,13 +184,13 @@ describe("star race schedule", () => {
         minimum: 15,
       },
     });
-    expect(STAR_RACE_QUESTS[3].description).toContain(
+    expect(FIRST_STAR_RACE_QUESTS[3].description).toContain(
       "сделав 15 и более убийств",
     );
   });
 
   it("defines Friday's Sand King or Weaver win quest", () => {
-    expect(STAR_RACE_QUESTS[4]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[4]).toMatchObject({
       dateKey: "2026-08-14",
       title: "Welcome to The International!",
       rewardStars: 2,
@@ -186,7 +203,7 @@ describe("star race schedule", () => {
   });
 
   it("defines Saturday's OG International 2019 win quest", () => {
-    expect(STAR_RACE_QUESTS[5]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[5]).toMatchObject({
       dateKey: "2026-08-15",
       title: "Чемпионы прошлого Шанхайского The International",
       rewardStars: 2,
@@ -196,11 +213,11 @@ describe("star race schedule", () => {
         heroIds: [91, 19, 102, 98, 72],
       },
     });
-    expect(STAR_RACE_QUESTS[5].description).toContain("рейтинговый матч");
+    expect(FIRST_STAR_RACE_QUESTS[5].description).toContain("рейтинговый матч");
   });
 
   it("defines Sunday's Turbo win quest", () => {
-    expect(STAR_RACE_QUESTS[6]).toMatchObject({
+    expect(FIRST_STAR_RACE_QUESTS[6]).toMatchObject({
       dateKey: "2026-08-16",
       title: "А разговоров то было...",
       rewardStars: 2,

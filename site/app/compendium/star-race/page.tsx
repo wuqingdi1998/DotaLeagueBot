@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { getSession } from "@/lib/auth";
-import { starRaceForMoment, starRacePhase } from "../model/star-race";
+import {
+  starRaceForMoment,
+  starRacePhase,
+  starRacePrizeDescription,
+} from "../model/star-race";
 import { CompendiumLeaderboard } from "../sections/CompendiumLeaderboard";
 import { loadStarRaceLeaderboard } from "../services/star-race-repository";
 
@@ -33,7 +37,7 @@ export default async function StarRaceLeaderboardPage() {
         participants={participants}
         eyebrow={race.dateLabel.toUpperCase()}
         title={race.title}
-        description={`Звёзды за Испытание Рун не учитываются. При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. Награда за первое место — ${race.prizes[0].title}; за второе — ${race.prizes[1].title}.`}
+        description={`Звёзды за Испытание Рун не учитываются. При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. ${starRacePrizeDescription(race.prizes)}`}
       />
     </PlatformShell>
   );
