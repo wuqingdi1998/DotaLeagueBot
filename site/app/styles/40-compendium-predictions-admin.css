@@ -16,7 +16,18 @@
   padding: 34px 0 25px;
 }
 
-.prediction-admin-page > header > span,
+.prediction-admin-title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.prediction-admin-title-row > div {
+  min-width: 0;
+}
+
+.prediction-admin-title-row > div > span,
 .prediction-admin-panel-heading > div > span {
   color: #55d9c6;
   font-size: 12px;
@@ -35,6 +46,23 @@
   margin: 0;
   color: var(--muted);
   line-height: 1.6;
+}
+
+.prediction-admin-new-day {
+  display: inline-flex;
+  min-height: 48px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(79, 222, 200, 0.45);
+  border-radius: 13px;
+  padding: 0 18px;
+  background: rgba(41, 196, 171, 0.12);
+  color: #6ce6d2;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
 }
 
 .prediction-admin-panel {
@@ -276,6 +304,8 @@
 
 @media (max-width: 620px) {
   .prediction-admin-page { width: calc(100% - 28px); padding-top: 22px; }
+  .prediction-admin-title-row { align-items: stretch; flex-direction: column; }
+  .prediction-admin-new-day { width: 100%; }
   .prediction-admin-panel { padding: 16px; }
   .prediction-admin-panel-heading { align-items: stretch; flex-direction: column; }
   .prediction-admin-day-controls { align-items: stretch; flex-direction: column; }

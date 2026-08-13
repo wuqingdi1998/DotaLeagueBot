@@ -37,4 +37,10 @@ describe("prediction schedule editing contract", () => {
     expect(editor).toContain("onDateChange={setDateKey}");
     expect(dayEditor).toContain("Прогнозы участников сохранятся");
   });
+
+  it("starts a clean new day without relocating the selected schedule", () => {
+    expect(editor).toContain("Создать новый день");
+    expect(editor).toContain("setSourceDateKey(null)");
+    expect(editor).toContain("nextAvailablePredictionDate");
+  });
 });

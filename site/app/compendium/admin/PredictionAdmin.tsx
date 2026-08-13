@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiPlus } from "react-icons/fi";
 import type { PredictionScore } from "../model/predictions";
 import type { PredictionAdminMatch } from "../services/prediction-repository";
 import { PredictionDayEditor } from "./PredictionDayEditor";
 import {
+  nextAvailablePredictionDate,
   predictionDraftsForDate,
   predictionMatchCountForDate,
   predictionOpeningDraftForDate,
@@ -55,6 +56,20 @@ export function PredictionAdmin({
         document.getElementById("prediction-day-editor")?.scrollIntoView({ behavior: "smooth" });
       });
     }
+  }
+
+  function startNewDay() {
+    const nextDate = nextAvailablePredictionDate(matches, initialDate);
+    setSourceDateKey(null);
+    setDateKey(nextDate);
+    setOpeningDateKey(initialDate);
+    setOpeningTime("00:00");
+    setDrafts(predictionDraftsForDate(matches, nextDate));
+    setMatchCount(3);
+    setMessage("");
+    window.requestAnimationFrame(() => {
+      document.getElementById("prediction-day-editor")?.scrollIntoView({ behavior: "smooth" });
+    });
   }
 
   function updateDraft(index: number, update: Partial<PredictionMatchDraft>) {
@@ -169,9 +184,16 @@ export function PredictionAdmin({
     <main className="prediction-admin-page">
       <Link href="/compendium" className="prediction-admin-back"><FiArrowLeft aria-hidden="true" /> Вернуться в Компендиум</Link>
       <header>
-        <span>Только для организатора</span>
-        <h1>Матчи и прогнозы</h1>
-        <p>Создавайте расписание на любой день, редактируйте команды и время, а после матча сохраняйте итоговый счёт и автоматически раздавайте звёзды.</p>
+        <div className="prediction-admin-title-row">
+          <div>
+            <span>Только для организатора</span>
+            <h1>Матчи и прогнозы</h1>
+            <p>Создавайте расписание на любой день, редактируйте команды и время, а после матча сохраняйте итоговый счёт и автоматически раздавайте звёзды.</p>
+          </div>
+          <button type="button" className="prediction-admin-new-day" onClick={startNewDay}>
+            <FiPlus aria-hidden="true" /> Создать новый день
+          </button>
+        </div>
       </header>
       <PredictionDayEditor
         dateKey={dateKey}

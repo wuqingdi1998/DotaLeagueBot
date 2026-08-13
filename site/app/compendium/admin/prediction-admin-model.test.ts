@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   groupPredictionMatchesByDate,
+  nextAvailablePredictionDate,
   predictionOpeningDraftForDate,
   predictionDraftsForDate,
   predictionMatchCountForDate,
@@ -39,8 +40,19 @@ describe("prediction organizer schedule model", () => {
       match({ id: "3", position: 2 }),
     ]);
     expect(groups).toHaveLength(2);
-    expect(groups[0].matches).toHaveLength(2);
-    expect(groups[0].opensAt).toBe("2026-08-09T15:00:00.000Z");
+    expect(groups[0].dateKey).toBe("2026-08-11");
+    expect(groups[1].matches).toHaveLength(2);
+    expect(groups[1].opensAt).toBe("2026-08-09T15:00:00.000Z");
+  });
+
+  it("chooses the nearest free day after today for a new schedule", () => {
+    const matches = [
+      match({ moscowDate: "2026-08-14" }),
+      match({ id: "2", moscowDate: "2026-08-15" }),
+    ];
+    expect(nextAvailablePredictionDate(matches, "2026-08-13")).toBe(
+      "2026-08-16",
+    );
   });
 
   it("restores the configured Moscow opening date and time", () => {

@@ -14,6 +14,22 @@ export type PredictionOpeningDraft = {
 
 const defaultTimes = ["12:00", "15:00", "18:00"];
 
+function followingDate(dateKey: string): string {
+  const date = new Date(`${dateKey}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
+export function nextAvailablePredictionDate(
+  matches: PredictionAdminMatch[],
+  currentDateKey: string,
+): string {
+  const occupiedDates = new Set(matches.map((match) => match.moscowDate));
+  let candidate = followingDate(currentDateKey);
+  while (occupiedDates.has(candidate)) candidate = followingDate(candidate);
+  return candidate;
+}
+
 export function predictionTimeValue(startsAt: string): string {
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: "Europe/Moscow",
@@ -77,9 +93,11 @@ export function groupPredictionMatchesByDate(matches: PredictionAdminMatch[]) {
     group.push(match);
     groups.set(match.moscowDate, group);
   }
-  return [...groups.entries()].map(([dateKey, dayMatches]) => ({
-    dateKey,
-    opensAt: dayMatches[0].opensAt,
-    matches: dayMatches.sort((left, right) => left.position - right.position),
-  }));
+  return [...groups.entries()]
+    .sort(([leftDate], [rightDate]) => rightDate.localeCompare(leftDate))
+    .map(([dateKey, dayMatches]) => ({
+      dateKey,
+      opensAt: dayMatches[0].opensAt,
+      matches: dayMatches.sort((left, right) => left.position - right.position),
+    }));
 }
