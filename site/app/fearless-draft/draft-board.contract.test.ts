@@ -115,9 +115,9 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain(".current-action::before");
   });
 
-  it("uses a solid border only for filled pick slots", () => {
-    expect(interactions).toMatch(
-      /\.fearless-pick-slots > div\.filled\s*\{[^}]*border-style:\s*solid;/,
+  it("uses solid borders for every slot in the upper pick row", () => {
+    expect(board).toMatch(
+      /\.fearless-pick-slots > div\s*\{[^}]*border:\s*1px solid var\(--line\);/,
     );
   });
 
