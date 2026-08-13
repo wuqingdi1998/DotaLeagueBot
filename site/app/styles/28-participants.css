@@ -18,6 +18,10 @@
   margin: 0;
 }
 
+.participant-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
 .participant-toolbar > label:not(.hall-search, .participant-archive-toggle) {
   display: grid;
   min-width: 138px;

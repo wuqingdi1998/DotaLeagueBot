@@ -77,6 +77,13 @@ describe("hall of fame and participant directory", () => {
     expect(participantsTable).toContain("showManualTiers");
   });
 
+  it("keeps only the custom right-hand search clear button", () => {
+    expect(directoryStyles).toMatch(
+      /\.participant-search input::-webkit-search-cancel-button\s*\{[^}]*display:\s*none;/,
+    );
+    expect(participantsTable).toContain('aria-label="Очистить поиск"');
+  });
+
   it("does not let archive identities break the participant page", () => {
     expect(participantsLoader).toContain(
       "player.steam_id32 BETWEEN 1 AND 4294967295",
