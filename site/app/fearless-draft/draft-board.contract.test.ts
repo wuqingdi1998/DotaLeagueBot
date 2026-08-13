@@ -54,7 +54,7 @@ describe("Fearless Draft board interface", () => {
     )).toBe(true);
     expect(heroGrid).toContain("src={hero.portraitUrl}");
     expect(heroGrid).toContain("src={selectedHero.portraitUrl}");
-    expect(heroGrid).not.toContain("src={selectedHero.imageUrl}");
+    expect(heroGrid).toContain("src={selectedHero.imageUrl}");
     expect(heroGrid).toContain('className="fearless-hero-preview"');
     expect(interactions).toContain("white-space: nowrap");
     expect(board).toContain("aspect-ratio: 25 / 44");
@@ -132,7 +132,7 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-active-draft:fullscreen \.fearless-pick-slots img\s*\{[^}]*object-fit:\s*contain;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-ban-list > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*height:\s*auto;/,
+      /\.fearless-active-draft:fullscreen \.fearless-ban-list > div\s*\{[^}]*height:\s*95px;/,
     );
   });
 
@@ -150,7 +150,7 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("uses readable fullscreen labels and keeps both player headers aligned", () => {
+  it("uses larger fullscreen labels and keeps both player headers aligned", () => {
     expect(teamPanel).toContain('isConnected ? "В сети" : "Соперник отключился"');
     expect(teamPanel).toContain('className={isConnected ? undefined : "disconnected"}');
     expect(interactions).toContain("font-size: 13px");
@@ -158,16 +158,19 @@ describe("Fearless Draft board interface", () => {
       /:fullscreen \.fearless-team-reserve\s*\{[^}]*gap:\s*10px;/,
     );
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*28px;/,
+      /:fullscreen \.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*64px;/,
     );
   });
 
-  it("keeps reserve time beside its larger counter and gives turn text one size", () => {
+  it("quadruples Reserve and its counter in regular and fullscreen modes", () => {
     expect(board).toMatch(
       /\.fearless-team-reserve\s*\{[^}]*flex-direction:\s*row;[^}]*gap:\s*10px;/,
     );
     expect(board).toMatch(
-      /\.fearless-team-reserve strong\s*\{[^}]*font-size:\s*26px;/,
+      /\.fearless-team-panel > header \.fearless-team-reserve span\s*\{[^}]*font-size:\s*48px;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*64px;/,
     );
     expect(board).toMatch(
       /\.fearless-turn span,\s*\.fearless-turn strong\s*\{[^}]*font-size:\s*18px;/,
@@ -212,7 +215,7 @@ describe("Fearless Draft board interface", () => {
     expect(activeDraft).not.toContain('className="fearless-history-toggle"');
     expect(activeDraft).not.toContain("isHistoryOpen");
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1540px\) 260px;/,
+      /:fullscreen \.fearless-draft-workspace\s*\{[^}]*width:\s*100%;[^}]*grid-template-columns:\s*minmax\(0, 1540px\) minmax\(260px, 1fr\);/,
     );
     expect(interactions).toMatch(
       /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
@@ -245,6 +248,24 @@ describe("Fearless Draft board interface", () => {
     );
     expect(interactions).toContain(
       "width: calc((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
+    );
+  });
+
+  it("turns the fullscreen confirmation into a landscape hero button", () => {
+    expect(heroGrid).toContain("src={selectedHero.imageUrl}");
+    expect(heroGrid).toContain('className="fearless-hero-confirm-image"');
+    expect(heroGrid).toContain('className="fearless-hero-confirm-action"');
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-hero-confirm button\s*\{[^}]*position:\s*relative;[^}]*overflow:\s*hidden;/,
+    );
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-hero-confirm-image\s*\{[^}]*display:\s*block;[^}]*object-fit:\s*cover;/,
+    );
+  });
+
+  it("makes fullscreen draft step badges and digits five times larger", () => {
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-slot-step\s*\{[^}]*min-width:\s*95px;[^}]*height:\s*95px;[^}]*font-size:\s*45px;/,
     );
   });
 

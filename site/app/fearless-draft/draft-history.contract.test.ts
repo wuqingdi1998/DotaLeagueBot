@@ -23,4 +23,13 @@ describe("Fearless Draft history", () => {
     expect(board).toContain(".fearless-history article > span.radiant");
     expect(board).toContain(".fearless-history article > span.dire");
   });
+
+  it("scrolls to the latest row whenever an overflowing history grows", () => {
+    expect(history).toContain('"use client"');
+    expect(history).toContain("useEffect");
+    expect(history).toContain("historyListRef");
+    expect(history).toContain("historyList.scrollHeight > historyList.clientHeight");
+    expect(history).toContain("historyList.scrollTop = historyList.scrollHeight");
+    expect(history).toContain("[actions.length]");
+  });
 });

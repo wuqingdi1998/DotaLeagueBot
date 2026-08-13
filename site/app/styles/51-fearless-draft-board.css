@@ -171,8 +171,8 @@
   text-align: right;
   white-space: nowrap;
 }
-.fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 26px; line-height: 1; }
-
+.fearless-team-panel > header .fearless-team-reserve span { font-size: 48px; }
+.fearless-team-panel > header .fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 64px; line-height: 1; }
 .fearless-pick-slots {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -421,9 +421,9 @@
   cursor: pointer;
   font-weight: 700;
 }
+.fearless-hero-confirm-image, .fearless-hero-confirm-action { display: none; }
 .fearless-hero-confirm button.pick { background: linear-gradient(135deg, #159b65, #2eb888); }
 .fearless-hero-confirm button.ban { background: linear-gradient(135deg, #b93e52, #df5c69); }
-
 .fearless-history {
   display: flex;
   min-height: 0;

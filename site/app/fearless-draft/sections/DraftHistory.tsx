@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useRef } from "react";
 import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
 import type { DraftActionSnapshot } from "../model/snapshot";
 
@@ -11,13 +14,23 @@ export function DraftHistory({
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
 }) {
+  const historyListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const historyList = historyListRef.current;
+    if (!historyList) return;
+    if (historyList.scrollHeight > historyList.clientHeight) {
+      historyList.scrollTop = historyList.scrollHeight;
+    }
+  }, [actions.length]);
+
   return (
     <aside className="fearless-history" id="fearless-draft-history">
       <header>
         <span>История карты</span>
         <strong>{actions.length} / 24</strong>
       </header>
-      <div>
+      <div ref={historyListRef}>
         {actions.map((action) => {
           const hero = action.heroId ? heroesById.get(action.heroId) : null;
           return (

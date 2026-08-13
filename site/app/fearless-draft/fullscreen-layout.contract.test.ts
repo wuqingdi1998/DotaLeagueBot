@@ -13,14 +13,14 @@ const boardStyles = readFileSync(
 
 describe("Fearless Draft fullscreen layout", () => {
   it.each([
-    { viewportWidth: 1280, regularWidth: 1244, fullscreenWidth: 1262 },
-    { viewportWidth: 1920, regularWidth: 1540, fullscreenWidth: 1812 },
-    { viewportWidth: 3440, regularWidth: 1540, fullscreenWidth: 1812 },
+    { viewportWidth: 1280, regularWidth: 1244, fullscreenWidth: 1280 },
+    { viewportWidth: 1920, regularWidth: 1540, fullscreenWidth: 1920 },
+    { viewportWidth: 3440, regularWidth: 1540, fullscreenWidth: 3440 },
   ])(
     "keeps $viewportWidth px desktop layouts inside the centered frame",
-    ({ regularWidth, fullscreenWidth }) => {
+    ({ viewportWidth, regularWidth, fullscreenWidth }) => {
       expect(regularWidth).toBeLessThanOrEqual(1540);
-      expect(fullscreenWidth).toBeLessThanOrEqual(1812);
+      expect(fullscreenWidth).toBe(viewportWidth);
     },
   );
 
@@ -33,9 +33,12 @@ describe("Fearless Draft fullscreen layout", () => {
     );
   });
 
-  it("centers a capped fullscreen board with room for permanent history", () => {
+  it("fills the fullscreen width while keeping the upper board capped and centered", () => {
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen\s*\{[^}]*width:\s*min\(1812px, calc\(100% - 18px\)\);[^}]*margin:\s*0 auto;/,
+      /\.fearless-active-draft:fullscreen\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0;/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /:fullscreen \.fearless-draft-status,[\s\S]*:fullscreen \.fearless-team-columns\s*\{[^}]*width:\s*min\(1812px, calc\(100% - 18px\)\);[^}]*align-self:\s*center;/,
     );
   });
 
@@ -56,13 +59,16 @@ describe("Fearless Draft fullscreen layout", () => {
 
   it("fills the right side with history and grows confirmation toward the heroes", () => {
     expect(fullscreenStyles).toMatch(
-      /:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1540px\) 260px;/,
+      /:fullscreen \.fearless-draft-workspace\s*\{[^}]*width:\s*100%;[^}]*grid-template-columns:\s*minmax\(0, 1540px\) minmax\(260px, 1fr\);/,
     );
     expect(fullscreenStyles).toMatch(
       /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
     );
     expect(fullscreenStyles).toMatch(
       /:fullscreen \.fearless-hero-confirm\s*\{[^}]*min-height:\s*150px;/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*calc\(\(100vw - 1830px\) \/ 2\) 1540px minmax\(260px, 1fr\);/,
     );
   });
 

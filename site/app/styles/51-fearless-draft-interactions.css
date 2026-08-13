@@ -236,11 +236,11 @@
 
 .fearless-active-draft:fullscreen {
   display: flex;
-  width: min(1812px, calc(100% - 18px));
+  width: 100%;
   height: 100dvh;
   overflow: auto;
   flex-direction: column;
-  margin: 0 auto;
+  margin: 0;
   padding: 9px;
   background:
     radial-gradient(circle at 12% 2%, rgba(0, 195, 255, 0.12), transparent 27%),
@@ -248,6 +248,11 @@
   color: var(--text);
 }
 .fearless-active-draft:fullscreen::backdrop { background: var(--bg); }
+.fearless-active-draft:fullscreen .fearless-draft-status,
+.fearless-active-draft:fullscreen .fearless-team-columns {
+  width: min(1812px, calc(100% - 18px));
+  align-self: center;
+}
 .fearless-active-draft:fullscreen .fearless-draft-status { flex: 0 0 auto; padding: 9px 13px; }
 .fearless-active-draft:fullscreen .fearless-draft-status > div:first-child span,
 .fearless-active-draft:fullscreen .fearless-main-clock span { font-size: 13px; }
@@ -259,11 +264,12 @@
 .fearless-active-draft:fullscreen .fearless-team-panel > header span { font-size: 13px; }
 .fearless-active-draft:fullscreen .fearless-team-panel > header strong { font-size: 17px; }
 .fearless-active-draft:fullscreen .fearless-team-reserve { gap: 10px; }
-.fearless-active-draft:fullscreen .fearless-team-reserve strong { font-size: 28px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-team-reserve span { font-size: 48px; }
+.fearless-active-draft:fullscreen .fearless-team-panel > header .fearless-team-reserve strong { font-size: 64px; }
 .fearless-active-draft:fullscreen .fearless-player-avatar { display: none; }
 .fearless-active-draft:fullscreen .fearless-pick-slots { padding: 7px 9px; }
 .fearless-active-draft:fullscreen .fearless-pick-slots > div {
-  min-height: 0;
+  min-height: 95px;
   aspect-ratio: 16 / 9;
 }
 .fearless-active-draft:fullscreen .fearless-pick-slots img {
@@ -273,14 +279,23 @@
 .fearless-active-draft:fullscreen .fearless-pick-slots span { display: none; }
 .fearless-active-draft:fullscreen .fearless-ban-list { min-height: 48px; padding: 0 9px 9px; }
 .fearless-active-draft:fullscreen .fearless-ban-list > div {
-  width: clamp(72px, 5vw, 88px);
-  aspect-ratio: 16 / 9;
-  height: auto;
+  width: clamp(95px, 6vw, 110px);
+  height: 95px;
+}
+.fearless-active-draft:fullscreen .fearless-slot-step {
+  min-width: 95px;
+  height: 95px;
+  right: 0;
+  bottom: 0;
+  border-radius: 12px;
+  padding: 0;
+  font-size: 45px;
 }
 .fearless-active-draft:fullscreen .fearless-draft-workspace {
+  width: 100%;
   min-height: 0;
   flex: 0 0 auto;
-  grid-template-columns: minmax(0, 1540px) 260px;
+  grid-template-columns: minmax(0, 1540px) minmax(260px, 1fr);
   margin-top: 8px;
 }
 .fearless-active-draft:fullscreen .fearless-history {
@@ -338,11 +353,41 @@
   align-items: stretch;
   border: 1px solid var(--line-strong);
   border-radius: 11px;
+  padding: 0;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
 }
 .fearless-active-draft:fullscreen .fearless-hero-confirm > img,
 .fearless-active-draft:fullscreen .fearless-hero-confirm > div { display: none; }
-.fearless-active-draft:fullscreen .fearless-hero-confirm button { width: 100%; }
+.fearless-active-draft:fullscreen .fearless-hero-confirm button {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  padding: 0;
+}
+.fearless-active-draft:fullscreen .fearless-hero-confirm-image {
+  display: block;
+  object-fit: cover;
+}
+.fearless-active-draft:fullscreen .fearless-hero-confirm-label { display: none; }
+.fearless-active-draft:fullscreen .fearless-hero-confirm-action {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 10px;
+  display: block;
+  color: #fff;
+  font-size: 22px;
+  text-shadow: 0 2px 5px #000;
+}
+
+@media (min-width: 1831px) {
+  .fearless-active-draft:fullscreen .fearless-draft-workspace {
+    grid-template-columns: calc((100vw - 1830px) / 2) 1540px minmax(260px, 1fr);
+    gap: 0;
+  }
+  .fearless-active-draft:fullscreen .fearless-hero-pool { grid-column: 2; }
+  .fearless-active-draft:fullscreen .fearless-history { grid-column: 3; margin-left: 12px; }
+}
 
 @media (max-width: 980px) {
   .fearless-draft-view-controls { grid-column: 2; }

@@ -222,7 +222,20 @@ export function HeroGrid({
               expectedVersion: map.version,
             })}
           >
-            {map.currentAction === "BAN" ? "BAN HERO" : "PICK HERO"}
+            <Image
+              className="fearless-hero-confirm-image"
+              src={selectedHero.imageUrl}
+              alt=""
+              fill
+              sizes="360px"
+              unoptimized
+            />
+            <span className="fearless-hero-confirm-label">
+              {map.currentAction === "BAN" ? "BAN HERO" : "PICK HERO"}
+            </span>
+            <span className="fearless-hero-confirm-action">
+              {map.currentAction === "BAN" ? "BAN" : "PICK"}
+            </span>
           </button>
         </div>
       )}
