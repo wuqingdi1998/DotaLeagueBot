@@ -40,6 +40,7 @@ export type DraftMapSnapshot = {
   number: number;
   status: "FIRST_DECISION" | "SECOND_DECISION" | "DRAFTING" | "COMPLETE";
   coinTossWinnerId: string | null;
+  coinTossSegment: number | null;
   firstChooserId: string;
   firstChoice: DraftChoice | null;
   secondChoice: DraftChoice | null;
@@ -84,6 +85,7 @@ export type DraftSeriesSnapshot = {
 export type FearlessDraftSnapshot = {
   serverNow: string;
   user: DraftPlayer;
+  isOrganizer: boolean;
   isWaiting: boolean;
   waitingPlayers: WaitingDraftPlayer[];
   invitations: DraftInvitationSnapshot[];
@@ -91,6 +93,7 @@ export type FearlessDraftSnapshot = {
 };
 
 export type FearlessDraftCommand =
+  | { action: "START_BOT" }
   | { action: "JOIN_QUEUE" }
   | { action: "LEAVE_QUEUE" }
   | { action: "INVITE"; opponentId: string; format: DraftFormat }

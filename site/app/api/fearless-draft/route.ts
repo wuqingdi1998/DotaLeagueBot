@@ -24,6 +24,10 @@ import {
   DraftRequestError,
   draftErrorResponse,
 } from "@/app/fearless-draft/server/errors";
+import {
+  advanceBotDraft,
+  startBotDraft,
+} from "@/app/fearless-draft/server/bot-service";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,6 +46,12 @@ export async function POST(request: Request) {
     const user = await requireSession();
     const command = (await request.json()) as Partial<FearlessDraftCommand>;
     switch (command.action) {
+      case "START_BOT":
+        if (!user.isAdmin) {
+          throw new DraftRequestError("Режим с ботом доступен только организатору", 403);
+        }
+        await startBotDraft(user.discordId);
+        break;
       case "JOIN_QUEUE":
         await joinDraftQueue(user.discordId);
         break;
@@ -78,6 +88,7 @@ export async function POST(request: Request) {
       case "MAKE_CHOICE":
         if (!("choice" in command)) throw new DraftRequestError("Выбор не указан");
         await makeDraftChoice(user.discordId, command.choice);
+        await advanceBotDraft(user.discordId);
         break;
       case "SELECT_HERO":
         if (!("heroId" in command) || !("expectedVersion" in command)) {
@@ -88,12 +99,15 @@ export async function POST(request: Request) {
           Number(command.heroId),
           Number(command.expectedVersion),
         );
+        await advanceBotDraft(user.discordId);
         break;
       case "READY_FOR_NEXT_MAP":
         await markReadyForNextDraftMap(user.discordId);
+        await advanceBotDraft(user.discordId);
         break;
       case "REQUEST_SERIES_END":
         await requestDraftSeriesEnd(user.discordId);
+        await advanceBotDraft(user.discordId);
         break;
       case "RESPOND_SERIES_END":
         if (

@@ -253,6 +253,9 @@ describe("Fearless Draft board interface", () => {
     expect(choices).toContain("На первой карте монетку проиграл");
     expect(choices).toContain("hasCoinToss &&");
     expect(coinToss).not.toContain("50 / 50");
+    expect(coinToss).toContain("coinTossAngleDegrees(segment)");
+    expect(draftBase).not.toContain(".fearless-wheel-spinner b::before");
+    expect(draftBase).toContain("var(--fearless-spinner-angle)");
     expect(draftBase).toContain("height: 88px");
   });
 });

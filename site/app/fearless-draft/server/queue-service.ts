@@ -6,7 +6,7 @@ import {
 import type { DraftFormat } from "../model/types";
 import { DraftRequestError } from "./errors";
 import { hasActiveSeries, lockDraftPlayers } from "./database";
-import { randomCoinTossWinner } from "./coin-toss";
+import { randomCoinTossResult } from "./coin-toss";
 
 const formats: DraftFormat[] = ["BO2", "BO3"];
 
@@ -160,13 +160,13 @@ export async function respondToDraftInvitation(
     }
 
     const players = [invitation.sender_id, invitation.recipient_id] as const;
-    const coinTossWinnerId = randomCoinTossWinner(players);
+    const coinToss = randomCoinTossResult(players);
     const seriesResult = await client.query<{ id: number }>(
       `INSERT INTO draft_series
         (player1_id, player2_id, format, map1_coin_toss_winner_id)
        VALUES ($1, $2, $3, $4)
        RETURNING id::int`,
-      [invitation.sender_id, invitation.recipient_id, invitation.format, coinTossWinnerId],
+      [invitation.sender_id, invitation.recipient_id, invitation.format, coinToss.winnerId],
     );
     const seriesId = seriesResult.rows[0].id;
     await client.query(
@@ -181,9 +181,9 @@ export async function respondToDraftInvitation(
     );
     await client.query(
       `INSERT INTO draft_maps
-        (series_id, map_number, coin_toss_winner_id, first_chooser_id)
-       VALUES ($1, 1, $2, $2)`,
-      [seriesId, coinTossWinnerId],
+        (series_id, map_number, coin_toss_winner_id, coin_toss_segment, first_chooser_id)
+       VALUES ($1, 1, $2, $3, $2)`,
+      [seriesId, coinToss.winnerId, coinToss.segment],
     );
     await client.query(
       `UPDATE draft_invitations

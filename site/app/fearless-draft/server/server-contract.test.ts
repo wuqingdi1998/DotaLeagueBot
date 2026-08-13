@@ -91,9 +91,11 @@ describe("Fearless Draft server safety contract", () => {
     expect(service).not.toContain("previewDraftHero");
   });
 
-  it("uses one cryptographically random 50/50 toss for maps one and three", () => {
-    expect(queue).toContain("randomCoinTossWinner");
-    expect(agreements).toContain("randomCoinTossWinner");
+  it("uses one cryptographically random thousand-segment toss for maps one and three", () => {
+    expect(queue).toContain("randomCoinTossResult");
+    expect(agreements).toContain("randomCoinTossResult");
+    expect(queue).toContain("coin_toss_segment");
+    expect(agreements).toContain("coin_toss_segment");
     expect(queue).not.toContain("players[randomInt(players.length)]");
     expect(agreements).not.toContain("players[randomInt(players.length)]");
   });

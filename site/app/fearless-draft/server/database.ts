@@ -21,6 +21,7 @@ export type DraftMapRow = {
   status: string;
   map_number: number;
   first_chooser_id: string;
+  coin_toss_segment: number | null;
   first_choice: DraftChoice | null;
   radiant_player_id: string | null;
   first_pick_player_id: string | null;
@@ -98,6 +99,7 @@ export async function loadLockedDraftSeries(
   const series = seriesResult.rows[0];
   const mapResult = await client.query<DraftMapRow>(
     `SELECT id::int, status, map_number::int, first_chooser_id::text,
+            coin_toss_segment::int,
             first_choice, radiant_player_id::text, first_pick_player_id::text,
             current_step::int, step_started_at,
             player1_reserve_seconds::float8, player2_reserve_seconds::float8,

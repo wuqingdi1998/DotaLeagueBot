@@ -276,6 +276,7 @@ export async function selectDraftHero(
   playerId: string,
   heroId: number,
   expectedVersion: number,
+  isAutomatic = false,
 ): Promise<void> {
   validateHeroCommand(heroId, expectedVersion);
   await transaction(async (client) => {
@@ -285,7 +286,7 @@ export async function selectDraftHero(
       heroId,
       expectedVersion,
     );
-    await commitHeroAction(client, series, map, heroId, false, now);
+    await commitHeroAction(client, series, map, heroId, isAutomatic, now);
   });
 }
 

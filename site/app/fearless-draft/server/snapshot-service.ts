@@ -15,9 +15,11 @@ import type {
 } from "../model/snapshot";
 import type { DraftChoice, DraftFormat } from "../model/types";
 import { settleExpiredDraft } from "./series-service";
+import { advanceBotDraft } from "./bot-service";
 import { settleExpiredDraftEndRequests } from "./agreement-service";
 import { draftEndRequestExpiresAt } from "../model/agreement";
 import { databaseNow } from "./database-clock";
+import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
 
 type PlayerRow = {
   id: string;
@@ -55,6 +57,7 @@ type MapRow = {
   map_number: number;
   status: DraftMapSnapshot["status"];
   coin_toss_winner_id: string | null;
+  coin_toss_segment: number | null;
   first_chooser_id: string;
   first_choice: DraftChoice | null;
   second_choice: DraftChoice | null;
@@ -132,6 +135,7 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
   if (!series) return null;
   const map = await one<MapRow>(
     `SELECT id::int, map_number::int, status, coin_toss_winner_id::text,
+            coin_toss_segment::int,
             first_chooser_id::text, first_choice, second_choice,
             radiant_player_id::text, first_pick_player_id::text,
             current_step::int, step_started_at,
@@ -209,8 +213,10 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
     map1CoinTossWinnerId: series.map1_coin_toss_winner_id,
     player1,
     player2,
-    player1Connected: connected.has(series.player1_id),
-    player2Connected: connected.has(series.player2_id),
+    player1Connected:
+      series.player1_id === FEARLESS_DRAFT_BOT_PLAYER_ID || connected.has(series.player1_id),
+    player2Connected:
+      series.player2_id === FEARLESS_DRAFT_BOT_PLAYER_ID || connected.has(series.player2_id),
     player1ReadyForNextMap: series.player1_ready_for_next_map,
     player2ReadyForNextMap: series.player2_ready_for_next_map,
     endRequest: series.end_requested_by && series.end_requested_at
@@ -225,6 +231,7 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
       number: map.map_number,
       status: map.status,
       coinTossWinnerId: map.coin_toss_winner_id,
+      coinTossSegment: map.coin_toss_segment,
       firstChooserId: map.first_chooser_id,
       firstChoice: map.first_choice,
       secondChoice: map.second_choice,
@@ -253,6 +260,7 @@ export async function loadFearlessDraftSnapshot(
 ): Promise<FearlessDraftSnapshot> {
   await settleExpiredDraftEndRequests();
   await settleExpiredDraft(user.discordId);
+  await advanceBotDraft(user.discordId);
   return transaction(async (client) => {
     await client.query(
       `UPDATE draft_invitations SET status = 'EXPIRED', responded_at = NOW()
@@ -322,6 +330,7 @@ export async function loadFearlessDraftSnapshot(
     return {
       serverNow: serverNow.toISOString(),
       user: playerFromAuth(user),
+      isOrganizer: user.isAdmin,
       isWaiting,
       waitingPlayers,
       invitations,

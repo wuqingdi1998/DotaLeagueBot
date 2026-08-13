@@ -79,6 +79,7 @@ export function DraftChoices({
             leftPlayer={series.player1}
             rightPlayer={series.player2}
             winnerId={map.coinTossWinnerId}
+            segment={map.coinTossSegment ?? 0}
             stage={tossStage}
           />
           <p className="fearless-coin-result">

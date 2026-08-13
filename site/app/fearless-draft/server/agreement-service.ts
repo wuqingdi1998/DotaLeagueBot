@@ -8,7 +8,7 @@ import { DRAFT_END_REQUEST_TTL_MINUTES } from "../model/config";
 import { draftSeriesMapCount, firstChooserForMap } from "../model/series";
 import { loadLockedDraftSeries } from "./database";
 import { databaseNow } from "./database-clock";
-import { randomCoinTossWinner } from "./coin-toss";
+import { randomCoinTossResult } from "./coin-toss";
 import { DraftRequestError } from "./errors";
 
 export async function settleExpiredDraftEndRequests(): Promise<void> {
@@ -111,21 +111,21 @@ export async function markReadyForNextDraftMap(playerId: string): Promise<void> 
       throw new DraftRequestError("Серия уже завершена", 409);
     }
     const players = [series.player1_id, series.player2_id] as const;
-    const coinTossWinnerId = nextMap === 3
-      ? randomCoinTossWinner(players)
+    const coinToss = nextMap === 3
+      ? randomCoinTossResult(players)
       : null;
     const firstChooserId = firstChooserForMap({
       mapNumber: nextMap,
       player1Id: series.player1_id,
       player2Id: series.player2_id,
       map1CoinTossWinnerId: series.map1_coin_toss_winner_id,
-      currentCoinTossWinnerId: coinTossWinnerId,
+      currentCoinTossWinnerId: coinToss?.winnerId ?? null,
     });
     await client.query(
       `INSERT INTO draft_maps
-        (series_id, map_number, coin_toss_winner_id, first_chooser_id)
-       VALUES ($1, $2, $3, $4)`,
-      [series.id, nextMap, coinTossWinnerId, firstChooserId],
+        (series_id, map_number, coin_toss_winner_id, coin_toss_segment, first_chooser_id)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [series.id, nextMap, coinToss?.winnerId ?? null, coinToss?.segment ?? null, firstChooserId],
     );
     await client.query(
       `UPDATE draft_series

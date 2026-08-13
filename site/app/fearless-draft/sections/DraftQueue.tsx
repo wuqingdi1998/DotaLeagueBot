@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiRadio, FiSend, FiUserX } from "react-icons/fi";
+import { FiCpu, FiRadio, FiSend, FiUserX } from "react-icons/fi";
 import type {
   DraftInvitationSnapshot,
   FearlessDraftCommand,
@@ -74,25 +74,37 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
             Оба участника должны быть зарегистрированы и находиться на этой странице.
           </p>
         </div>
-        {snapshot.isWaiting ? (
-          <button
-            className="secondary-button"
-            type="button"
-            disabled={isSending}
-            onClick={() => void send({ action: "LEAVE_QUEUE" })}
-          >
-            <FiUserX /> Покинуть поиск
-          </button>
-        ) : (
-          <button
-            className="primary-button"
-            type="button"
-            disabled={isSending}
-            onClick={() => void send({ action: "JOIN_QUEUE" })}
-          >
-            <FiRadio /> Начать поиск
-          </button>
-        )}
+        <div className="fearless-queue-actions">
+          {snapshot.isOrganizer && (
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={isSending}
+              onClick={() => void send({ action: "START_BOT" })}
+            >
+              <FiCpu /> Bot
+            </button>
+          )}
+          {snapshot.isWaiting ? (
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={isSending}
+              onClick={() => void send({ action: "LEAVE_QUEUE" })}
+            >
+              <FiUserX /> Покинуть поиск
+            </button>
+          ) : (
+            <button
+              className="primary-button"
+              type="button"
+              disabled={isSending}
+              onClick={() => void send({ action: "JOIN_QUEUE" })}
+            >
+              <FiRadio /> Начать поиск
+            </button>
+          )}
+        </div>
       </div>
 
       {snapshot.invitations.length > 0 && (
