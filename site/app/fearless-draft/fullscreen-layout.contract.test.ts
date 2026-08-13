@@ -21,7 +21,6 @@ describe("Fearless Draft fullscreen layout", () => {
     ({ regularWidth, fullscreenWidth }) => {
       expect(regularWidth).toBeLessThanOrEqual(1540);
       expect(fullscreenWidth).toBeLessThanOrEqual(1540);
-      expect(Math.min(fullscreenWidth, 1268)).toBeLessThanOrEqual(1268);
     },
   );
 
@@ -40,9 +39,9 @@ describe("Fearless Draft fullscreen layout", () => {
     );
   });
 
-  it("sizes fullscreen portraits from fixed columns instead of viewport height", () => {
+  it("uses the full fullscreen frame for larger portraits", () => {
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-fullscreen-grid-width:\s*min\(100%, 1268px\);/,
+      /\.fearless-active-draft:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-fullscreen-grid-width:\s*min\(100%, 1540px\);/,
     );
     expect(fullscreenStyles).toMatch(
       /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*width:\s*var\(--fearless-fullscreen-grid-width\);[^}]*aspect-ratio:\s*auto;[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;[^}]*align-self:\s*center;[^}]*align-items:\s*start;/,

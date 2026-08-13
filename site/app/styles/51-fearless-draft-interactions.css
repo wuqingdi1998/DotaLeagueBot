@@ -285,7 +285,7 @@
 }
 .fearless-active-draft:fullscreen .fearless-history { display: none; }
 .fearless-active-draft:fullscreen .fearless-hero-pool {
-  --fearless-fullscreen-grid-width: min(100%, 1268px);
+  --fearless-fullscreen-grid-width: min(100%, 1540px);
   position: relative;
   display: flex;
   flex-direction: column;
