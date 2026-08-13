@@ -108,12 +108,15 @@ export function HeroGrid({
       : FEARLESS_DRAFT_HEROES;
   }, [search]);
   const groupedHeroes = useMemo(
-    () => HERO_ATTRIBUTE_GROUPS.map((group) => ({
-      ...group,
-      heroes: sortHeroesAlphabetically(
+    () => HERO_ATTRIBUTE_GROUPS.map((group) => {
+      const heroes = sortHeroesAlphabetically(
         visibleHeroes.filter((hero) => hero.primaryAttribute === group.key),
-      ),
-    })),
+      );
+      const emptySlotCount = FEARLESS_DRAFT_HEROES.filter(
+        (hero) => hero.primaryAttribute === group.key,
+      ).length - heroes.length;
+      return { ...group, heroes, emptySlotCount };
+    }),
     [visibleHeroes],
   );
 
@@ -205,6 +208,9 @@ export function HeroGrid({
                   </button>
                 );
               })}
+              {Array.from({ length: group.emptySlotCount }, (_, index) => (
+                <span className="fearless-hero-grid-placeholder" key={`empty-${index}`} />
+              ))}
             </div>
           </section>
         ))}

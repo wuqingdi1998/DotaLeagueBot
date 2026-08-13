@@ -92,7 +92,7 @@ describe("Fearless Draft board interface", () => {
       expect(sortedNames).toEqual(heroes.map((hero) => hero.name)
         .sort((left, right) => left.localeCompare(right, "en")));
     }
-    expect(heroGrid).toContain("heroes: sortHeroesAlphabetically(");
+    expect(heroGrid).toContain("const heroes = sortHeroesAlphabetically(");
     expect(board).toContain("--fearless-attribute-gap: clamp(18px, 1.7vw, 26px)");
     expect(board).toContain("column-gap: var(--fearless-attribute-gap)");
     expect(board).toContain("flex: 0 0 8px");
@@ -187,6 +187,14 @@ describe("Fearless Draft board interface", () => {
     );
     expect(interactions).toMatch(
       /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;/,
+    );
+  });
+
+  it("keeps the hero pool geometry fixed while search filters the visible cards", () => {
+    expect(heroGrid).toContain("emptySlotCount");
+    expect(heroGrid).toContain('className="fearless-hero-grid-placeholder"');
+    expect(interactions).toMatch(
+      /\.fearless-hero-grid-placeholder\s*\{[^}]*aspect-ratio:\s*25 \/ 44;[^}]*visibility:\s*hidden;/,
     );
   });
 

@@ -336,6 +336,7 @@
 .fearless-active-draft:fullscreen .fearless-attribute-group > div {
   gap: 3px;
 }
+.fearless-hero-grid-placeholder { aspect-ratio: 25 / 44; visibility: hidden; }
 .fearless-active-draft:fullscreen .fearless-attribute-group button {
   display: grid;
   width: 100%;
@@ -395,7 +396,7 @@
 
 @media (min-width: 1831px) {
   .fearless-active-draft:fullscreen .fearless-draft-workspace {
-    grid-template-columns: calc((100vw - 1830px) / 2) 1540px minmax(260px, 1fr);
+    grid-template-columns: calc((100vw - 1830px) / 2) 1540px minmax(260px, 1fr) calc((100vw - 1830px) / 2);
     gap: 0;
   }
   .fearless-active-draft:fullscreen .fearless-hero-pool { grid-column: 2; }

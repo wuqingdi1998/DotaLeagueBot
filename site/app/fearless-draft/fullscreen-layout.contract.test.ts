@@ -71,7 +71,10 @@ describe("Fearless Draft fullscreen layout", () => {
       "width: calc(((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px)",
     );
     expect(fullscreenStyles).toMatch(
-      /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*calc\(\(100vw - 1830px\) \/ 2\) 1540px minmax\(260px, 1fr\);/,
+      /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*calc\(\(100vw - 1830px\) \/ 2\) 1540px minmax\(260px, 1fr\) calc\(\(100vw - 1830px\) \/ 2\);/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-history\s*\{[^}]*grid-column:\s*3;[^}]*margin-left:\s*12px;/,
     );
   });
 
