@@ -57,7 +57,7 @@ describe("Fearless Draft fullscreen layout", () => {
     );
   });
 
-  it("fills the right side with history and grows confirmation toward the heroes", () => {
+  it("fills the right side with history and keeps confirmation inset from the heroes", () => {
     expect(fullscreenStyles).toMatch(
       /:fullscreen \.fearless-draft-workspace\s*\{[^}]*width:\s*100%;[^}]*grid-template-columns:\s*minmax\(0, 1540px\) minmax\(260px, 1fr\);/,
     );
@@ -66,6 +66,9 @@ describe("Fearless Draft fullscreen layout", () => {
     );
     expect(fullscreenStyles).toMatch(
       /:fullscreen \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
+    );
+    expect(fullscreenStyles).toContain(
+      "width: calc(((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px)",
     );
     expect(fullscreenStyles).toMatch(
       /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*calc\(\(100vw - 1830px\) \/ 2\) 1540px minmax\(260px, 1fr\);/,

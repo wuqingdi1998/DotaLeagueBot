@@ -165,7 +165,7 @@ describe("Fearless Draft board interface", () => {
 
   it("uses the upper clock sizes for Reserve and its counter in both modes", () => {
     expect(board).toMatch(
-      /\.fearless-team-reserve\s*\{[^}]*flex-direction:\s*row;[^}]*gap:\s*10px;/,
+      /\.fearless-team-reserve\s*\{[^}]*flex-direction:\s*row;[^}]*gap:\s*10px;[^}]*margin-right:\s*12px;/,
     );
     expect(board).toMatch(
       /\.fearless-team-panel > header \.fearless-team-reserve span\s*\{[^}]*font-size:\s*13px;/,
@@ -248,7 +248,7 @@ describe("Fearless Draft board interface", () => {
       "width: calc((100% - 20px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
     );
     expect(interactions).toContain(
-      "width: calc((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4)",
+      "width: calc(((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px)",
     );
   });
 
@@ -265,11 +265,17 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toMatch(
       /:fullscreen \.fearless-hero-confirm-image\s*\{[^}]*display:\s*block;[^}]*object-fit:\s*contain;/,
     );
+    expect(interactions).toMatch(
+      /button\.ban \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#b93e52;/,
+    );
+    expect(interactions).toMatch(
+      /button\.pick \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#159b65;/,
+    );
   });
 
-  it("makes fullscreen draft step badge area about five times larger", () => {
+  it("halves the fullscreen draft step badge area", () => {
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-slot-step\s*\{[^}]*min-width:\s*43px;[^}]*height:\s*43px;[^}]*font-size:\s*20px;/,
+      /:fullscreen \.fearless-slot-step\s*\{[^}]*min-width:\s*30px;[^}]*height:\s*30px;[^}]*font-size:\s*14px;/,
     );
   });
 
