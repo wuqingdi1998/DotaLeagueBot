@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
-import { FiX } from "react-icons/fi";
 import type { DraftActionSnapshot } from "../model/snapshot";
 
 const heroesById = new Map(FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]));
@@ -8,27 +7,15 @@ const heroesById = new Map(FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]))
 export function DraftHistory({
   actions,
   radiantPlayerId,
-  isDrawerOpen = false,
-  onClose,
 }: {
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
-  isDrawerOpen?: boolean;
-  onClose?: () => void;
 }) {
   return (
-    <aside
-      className={`fearless-history ${isDrawerOpen ? "drawer-open" : ""}`}
-      id="fearless-draft-history"
-    >
+    <aside className="fearless-history" id="fearless-draft-history">
       <header>
         <span>История карты</span>
         <strong>{actions.length} / 24</strong>
-        {onClose && (
-          <button type="button" aria-label="Закрыть историю" onClick={onClose}>
-            <FiX />
-          </button>
-        )}
       </header>
       <div>
         {actions.map((action) => {

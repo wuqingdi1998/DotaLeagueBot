@@ -6,7 +6,6 @@ import {
   FiCheck,
   FiMaximize2,
   FiMinimize2,
-  FiList,
 } from "react-icons/fi";
 import type {
   DraftPlayer,
@@ -45,7 +44,6 @@ export function ActiveDraft({
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
 }) {
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [localPreview, setLocalPreview] = useState<{
     heroId: number;
     version: number;
@@ -153,10 +151,7 @@ export function ActiveDraft({
               type="button"
               role="switch"
               aria-checked={isFullscreen}
-              onClick={() => {
-                setIsHistoryOpen(false);
-                void toggleFullscreen();
-              }}
+              onClick={() => void toggleFullscreen()}
             >
               {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
               <span aria-hidden="true"><i /></span>
@@ -202,20 +197,9 @@ export function ActiveDraft({
             version: map.version,
           })}
         />
-        <button
-          className="fearless-history-toggle"
-          type="button"
-          aria-controls="fearless-draft-history"
-          aria-expanded={isHistoryOpen}
-          onClick={() => setIsHistoryOpen((isOpen) => !isOpen)}
-        >
-          <FiList /> <span>История</span>
-        </button>
         <DraftHistory
           actions={map.actions}
           radiantPlayerId={radiant.id}
-          isDrawerOpen={isHistoryOpen}
-          onClose={() => setIsHistoryOpen(false)}
         />
       </div>
     </section>

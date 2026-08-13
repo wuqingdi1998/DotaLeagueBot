@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { FiCheckCircle } from "react-icons/fi";
 import { DraftCoinToss, type CoinTossStage } from "../components/DraftCoinToss";
+import { HeroPortraitPreloader } from "../components/HeroPortraitPreloader";
 import { PlayerAvatar } from "../components/PlayerAvatar";
 import { useServerNow } from "../hooks/useServerNow";
 import {
@@ -68,6 +69,7 @@ export function DraftChoices({
 
   return (
     <section className="fearless-choice-screen">
+      <HeroPortraitPreloader />
       <div className="fearless-series-meta">
         <span>MAP {map.number} / {series.format}</span>
         <strong>Определение сторон и очередности</strong>

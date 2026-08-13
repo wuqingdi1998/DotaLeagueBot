@@ -15,6 +15,9 @@ const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const agreementPanel = source("app/fearless-draft/sections/DraftAgreementPanel.tsx");
 const choices = source("app/fearless-draft/sections/DraftChoices.tsx");
 const coinToss = source("app/fearless-draft/components/DraftCoinToss.tsx");
+const heroPortraitPreloader = source(
+  "app/fearless-draft/components/HeroPortraitPreloader.tsx",
+);
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
@@ -173,7 +176,10 @@ describe("Fearless Draft board interface", () => {
 
   it("keeps the non-fullscreen draft rectangle stable without empty space below heroes", () => {
     expect(board).toMatch(
-      /\.fearless-hero-grid\s*\{[^}]*aspect-ratio:\s*9 \/ 4;[^}]*height:\s*auto;[^}]*max-height:\s*680px;/,
+      /\.fearless-hero-grid\s*\{[^}]*aspect-ratio:\s*auto;[^}]*height:\s*auto;[^}]*max-height:\s*680px;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-history\s*\{[^}]*align-self:\s*stretch;[^}]*contain:\s*size;/,
     );
     expect(interactions).toMatch(
       /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;/,
@@ -202,12 +208,14 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("opens an ordered history drawer from the fullscreen right wall", () => {
-    expect(activeDraft).toContain('className="fearless-history-toggle"');
-    expect(activeDraft).toContain("isHistoryOpen");
-    expect(interactions).toContain(".fearless-history.drawer-open");
+  it("keeps ordered history visible in the fullscreen right column", () => {
+    expect(activeDraft).not.toContain('className="fearless-history-toggle"');
+    expect(activeDraft).not.toContain("isHistoryOpen");
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-history-toggle\s*\{[^}]*bottom:\s*112px;/,
+      /:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1540px\) 260px;/,
+    );
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
     );
     expect(history).not.toContain("[...actions].reverse()");
     expect(history).toContain("actions.map((action)");
@@ -255,7 +263,16 @@ describe("Fearless Draft board interface", () => {
     expect(coinToss).not.toContain("50 / 50");
     expect(coinToss).toContain("coinTossAngleDegrees(segment)");
     expect(draftBase).not.toContain(".fearless-wheel-spinner b::before");
+    expect(draftBase).toMatch(
+      /\.fearless-wheel-spinner b\s*\{[^}]*clip-path:\s*polygon\(50% 0, 78% 8%, 100% 100%, 0 100%, 22% 8%\);/,
+    );
     expect(draftBase).toContain("var(--fearless-spinner-angle)");
     expect(draftBase).toContain("height: 88px");
+  });
+
+  it("preloads every vertical hero portrait while the toss screen is visible", () => {
+    expect(choices).toContain("<HeroPortraitPreloader />");
+    expect(heroPortraitPreloader).toContain("FEARLESS_DRAFT_HERO_PORTRAIT_URLS");
+    expect(heroPortraitPreloader).toContain('startMode="immediate"');
   });
 });

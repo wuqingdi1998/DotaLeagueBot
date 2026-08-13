@@ -315,6 +315,7 @@
   top: 4px;
   left: 10px;
   border-radius: 999px;
+  clip-path: polygon(50% 0, 78% 8%, 100% 100%, 0 100%, 22% 8%);
   background: linear-gradient(#fff9cf, #e9bd43 78%, #734916);
   box-shadow: 0 0 8px rgba(255, 240, 168, 0.72);
 }
