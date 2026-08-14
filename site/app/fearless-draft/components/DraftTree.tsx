@@ -47,13 +47,12 @@ export function DraftTree({
         const sideName = isRadiant ? "Свет" : "Тьма";
         const slot = (
           <div
-            className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${action ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
+            className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${hero ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
             aria-label={`${treeStep.number}. ${actionName}, ${sideName}${displayedHero ? `: ${displayedHero.name}` : ""}`}
           >
             {displayedHero && (
               <Image src={displayedHero.imageUrl} alt="" fill sizes="76px" unoptimized />
             )}
-            {action && !hero && <i>—</i>}
           </div>
         );
 

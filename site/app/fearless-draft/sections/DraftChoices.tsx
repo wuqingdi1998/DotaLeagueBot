@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { FiCheckCircle } from "react-icons/fi";
 import { DraftCoinToss, type CoinTossStage } from "../components/DraftCoinToss";
+import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { HeroPortraitPreloader } from "../components/HeroPortraitPreloader";
 import { PlayerAvatar } from "../components/PlayerAvatar";
 import { useServerNow } from "../hooks/useServerNow";
@@ -37,12 +38,18 @@ export function DraftChoices({
   serverNow,
   isSending,
   send,
+  isFullscreen,
+  isFullscreenSupported,
+  toggleFullscreen,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
   serverNow: string;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
+  isFullscreen: boolean;
+  isFullscreenSupported: boolean;
+  toggleFullscreen: () => Promise<void>;
 }) {
   const { map } = series;
   const synchronizedNow = useServerNow(serverNow, 50);
@@ -70,9 +77,16 @@ export function DraftChoices({
   return (
     <section className="fearless-choice-screen">
       <HeroPortraitPreloader />
-      <div className="fearless-series-meta">
-        <span>MAP {map.number} / {series.format}</span>
-        <strong>Определение сторон и очередности</strong>
+      <div className="fearless-choice-header">
+        <div className="fearless-series-meta">
+          <span>MAP {map.number} / {series.format}</span>
+          <strong>Определение сторон и очередности</strong>
+        </div>
+        <DraftFullscreenToggle
+          isFullscreen={isFullscreen}
+          isFullscreenSupported={isFullscreenSupported}
+          toggleFullscreen={toggleFullscreen}
+        />
       </div>
 
       {hasCoinToss && map.coinTossWinnerId && (

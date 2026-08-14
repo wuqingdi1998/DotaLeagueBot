@@ -1,19 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import {
-  FiArrowRight,
-  FiCheck,
-  FiMaximize2,
-  FiMinimize2,
-} from "react-icons/fi";
+import { FiArrowRight, FiCheck } from "react-icons/fi";
 import type {
   DraftPlayer,
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
 import { formatDraftSeconds, useDraftClock } from "../hooks/useDraftClock";
-import { useDraftFullscreen } from "../hooks/useDraftFullscreen";
+import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { DraftTeamPanel } from "../components/DraftTeamPanel";
 import { HeroGrid } from "../components/HeroGrid";
 import { DraftHistory } from "./DraftHistory";
@@ -37,12 +32,18 @@ export function ActiveDraft({
   serverNow,
   isSending,
   send,
+  isFullscreen,
+  isFullscreenSupported,
+  toggleFullscreen,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
   serverNow: string;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
+  isFullscreen: boolean;
+  isFullscreenSupported: boolean;
+  toggleFullscreen: () => Promise<void>;
 }) {
   const [localPreview, setLocalPreview] = useState<{
     heroId: number;
@@ -76,13 +77,6 @@ export function ActiveDraft({
     : map.player2ReserveSeconds;
   const isComplete = map.status === "COMPLETE";
   const isOwnTurn = map.currentActorId === userId;
-  const {
-    draftRef,
-    isFullscreen,
-    isFullscreenSupported,
-    toggleFullscreen,
-  } = useDraftFullscreen();
-
   const ownReady = userId === series.player1.id
     ? series.player1ReadyForNextMap
     : series.player2ReadyForNextMap;
@@ -91,7 +85,7 @@ export function ActiveDraft({
     : series.player1ReadyForNextMap;
 
   return (
-    <section className="fearless-active-draft" ref={draftRef}>
+    <section className="fearless-active-draft">
       <header className="fearless-draft-status">
         <div>
           <span>MAP {map.number} / {series.format}</span>
@@ -145,19 +139,11 @@ export function ActiveDraft({
                   : "--:--"}
             </strong>
           </div>
-          {isFullscreenSupported && (
-            <button
-              className="fearless-fullscreen-toggle"
-              type="button"
-              role="switch"
-              aria-checked={isFullscreen}
-              onClick={() => void toggleFullscreen()}
-            >
-              {isFullscreen ? <FiMinimize2 /> : <FiMaximize2 />}
-              <span aria-hidden="true"><i /></span>
-              <em>На полный экран</em>
-            </button>
-          )}
+          <DraftFullscreenToggle
+            isFullscreen={isFullscreen}
+            isFullscreenSupported={isFullscreenSupported}
+            toggleFullscreen={toggleFullscreen}
+          />
         </div>
       </header>
 

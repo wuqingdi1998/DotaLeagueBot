@@ -8,6 +8,7 @@ import {
 } from "@/app/fearless-draft/server/queue-service";
 import {
   dismissCompletedSeries,
+  highlightDraftHero,
   makeDraftChoice,
   selectDraftHero,
 } from "@/app/fearless-draft/server/series-service";
@@ -100,6 +101,16 @@ export async function POST(request: Request) {
           Number(command.expectedVersion),
         );
         await advanceBotDraft(user.discordId);
+        break;
+      case "HIGHLIGHT_HERO":
+        if (!("heroId" in command) || !("expectedVersion" in command)) {
+          throw new DraftRequestError("Герой не указан");
+        }
+        await highlightDraftHero(
+          user.discordId,
+          Number(command.heroId),
+          Number(command.expectedVersion),
+        );
         break;
       case "READY_FOR_NEXT_MAP":
         await markReadyForNextDraftMap(user.discordId);

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
 import {
@@ -78,7 +78,8 @@ export function HeroGrid({
     : null;
   const selectedHero = selectedHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(selectedHeroId) : null;
   const isOwnTurn = map.currentActorId === userId;
-  useHeroSearchHotkeys(searchInputRef, setSearch);
+  const hideHeroPreview = useCallback(() => setHeroPreview(null), []);
+  useHeroSearchHotkeys(searchInputRef, setSearch, hideHeroPreview);
 
   useEffect(() => {
     if (latestActionSignature === previousActionSignature.current) return;
@@ -158,7 +159,10 @@ export function HeroGrid({
           <input
             ref={searchInputRef}
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
+            onChange={(event) => {
+              setHeroPreview(null);
+              setSearch(event.target.value);
+            }}
             placeholder="Найти героя…"
           />
         </label>
@@ -197,6 +201,11 @@ export function HeroGrid({
                       if (canSelect) {
                         setSelection({ heroId: hero.id, version: map.version });
                         onPreviewHeroIdChange(hero.id);
+                        void send({
+                          action: "HIGHLIGHT_HERO",
+                          heroId: hero.id,
+                          expectedVersion: map.version,
+                        });
                       }
                     }}
                   >

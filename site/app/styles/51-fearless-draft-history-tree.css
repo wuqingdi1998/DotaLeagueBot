@@ -1,11 +1,11 @@
-.fearless-active-draft:fullscreen .fearless-history-tabs {
+.fearless-draft-stage:fullscreen .fearless-history-tabs {
   display: grid;
   width: 100%;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 8px;
 }
 
-.fearless-active-draft:fullscreen .fearless-history-tabs button {
+.fearless-draft-stage:fullscreen .fearless-history-tabs button {
   min-width: 0;
   border: 0;
   border-radius: 7px;
@@ -19,8 +19,8 @@
   text-align: left;
   text-transform: uppercase;
 }
-.fearless-active-draft:fullscreen .fearless-history-tabs button:last-child { text-align: right; }
-.fearless-active-draft:fullscreen .fearless-history-tabs button.active {
+.fearless-draft-stage:fullscreen .fearless-history-tabs button:last-child { text-align: right; }
+.fearless-draft-stage:fullscreen .fearless-history-tabs button.active {
   background: var(--surface-blue);
   color: var(--blue);
 }

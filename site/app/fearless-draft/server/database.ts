@@ -29,6 +29,7 @@ export type DraftMapRow = {
   step_started_at: Date | null;
   player1_reserve_seconds: number;
   player2_reserve_seconds: number;
+  preview_hero_id: number | null;
   version: number;
 };
 
@@ -103,6 +104,7 @@ export async function loadLockedDraftSeries(
             first_choice, radiant_player_id::text, first_pick_player_id::text,
             current_step::int, step_started_at,
             player1_reserve_seconds::float8, player2_reserve_seconds::float8,
+            preview_hero_id::int,
             version::int
      FROM draft_maps
      WHERE series_id = $1 AND map_number = $2

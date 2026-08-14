@@ -101,6 +101,7 @@ export type FearlessDraftCommand =
   | { action: "DECLINE_INVITATION"; invitationId: number }
   | { action: "CANCEL_INVITATION"; invitationId: number }
   | { action: "MAKE_CHOICE"; choice: DraftChoice }
+  | { action: "HIGHLIGHT_HERO"; heroId: number; expectedVersion: number }
   | { action: "SELECT_HERO"; heroId: number; expectedVersion: number }
   | { action: "READY_FOR_NEXT_MAP" }
   | { action: "REQUEST_SERIES_END" }

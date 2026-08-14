@@ -23,6 +23,9 @@ const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
 const heroSearchHotkeys = source("app/fearless-draft/hooks/useHeroSearchHotkeys.ts");
 const playerAvatar = source("app/fearless-draft/components/PlayerAvatar.tsx");
+const fullscreenToggle = source(
+  "app/fearless-draft/components/DraftFullscreenToggle.tsx",
+);
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const draftBase = source("app/styles/50-fearless-draft.css");
 const board = source("app/styles/51-fearless-draft-board.css");
@@ -70,7 +73,7 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-attribute-group button\s*\{[^}]*padding:\s*0;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
     );
     expect(interactions).toContain("aspect-ratio: 25 / 44");
   });
@@ -99,9 +102,11 @@ describe("Fearless Draft board interface", () => {
   });
 
   it("offers desktop fullscreen and highlights the latest pick or ban", () => {
-    expect(activeDraft).toContain('role="switch"');
-    expect(activeDraft).toContain("На полный экран");
-    expect(interactions).toContain(".fearless-active-draft:fullscreen");
+    expect(fullscreenToggle).toContain('role="switch"');
+    expect(draftScreen).toContain("useDraftFullscreen");
+    expect(draftScreen).toContain('className="fearless-draft-stage"');
+    expect(interactions).toContain(".fearless-draft-stage:fullscreen");
+    expect(choices).toContain("<DraftFullscreenToggle");
     expect(interactions).toContain("@media (max-width: 980px)");
     expect(heroGrid).toContain("just-${flashingAction.type.toLowerCase()}");
     expect(interactions).toContain("fearless-ban-flash");
@@ -127,13 +132,13 @@ describe("Fearless Draft board interface", () => {
 
   it("keeps picked hero images at their landscape ratio in fullscreen", () => {
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-pick-slots > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-pick-slots > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-pick-slots img\s*\{[^}]*object-fit:\s*contain;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-pick-slots img\s*\{[^}]*object-fit:\s*contain;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-ban-list > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*height:\s*auto;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-ban-list > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*height:\s*auto;/,
     );
   });
 
@@ -154,7 +159,7 @@ describe("Fearless Draft board interface", () => {
   it("matches reserve typography to the upper clock and keeps player headers aligned", () => {
     expect(teamPanel).toContain('isConnected ? "В сети" : "Соперник отключился"');
     expect(teamPanel).toContain('className={isConnected ? undefined : "disconnected"}');
-    expect(interactions).toContain("font-size: 13px");
+    expect(interactions).toContain("font-size: 28px");
     expect(interactions).toMatch(
       /:fullscreen \.fearless-team-reserve\s*\{[^}]*gap:\s*10px;/,
     );
@@ -168,13 +173,13 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-team-reserve\s*\{[^}]*flex-direction:\s*row;[^}]*gap:\s*10px;[^}]*margin-right:\s*12px;/,
     );
     expect(board).toMatch(
-      /\.fearless-team-panel > header \.fearless-team-reserve span\s*\{[^}]*font-size:\s*13px;/,
+      /\.fearless-team-panel > header \.fearless-team-reserve span\s*\{[^}]*font-size:\s*28px;/,
     );
     expect(board).toMatch(
       /\.fearless-team-panel > header \.fearless-team-reserve strong\s*\{[^}]*font-size:\s*28px;/,
     );
     expect(board).toMatch(
-      /\.fearless-turn span,\s*\.fearless-turn strong\s*\{[^}]*font-size:\s*18px;/,
+      /\.fearless-turn span,\s*\.fearless-turn strong\s*\{[^}]*font-size:\s*22px;/,
     );
   });
 
@@ -186,7 +191,7 @@ describe("Fearless Draft board interface", () => {
       /\.fearless-history\s*\{[^}]*align-self:\s*stretch;[^}]*contain:\s*size;/,
     );
     expect(interactions).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;/,
     );
   });
 
@@ -243,7 +248,7 @@ describe("Fearless Draft board interface", () => {
   it("shows the selected hero only in the selecting player's current gray slot", () => {
     expect(activeDraft).toContain("localPreviewHeroId");
     expect(activeDraft).toContain("onPreviewHeroIdChange");
-    expect(heroGrid).not.toContain('action: "PREVIEW_HERO"');
+    expect(heroGrid).toContain('action: "HIGHLIGHT_HERO"');
     expect(teamPanel).toContain("previewHeroId");
     expect(teamPanel).toContain('"previewing"');
     expect(interactions).toContain(".previewing img");
@@ -293,6 +298,13 @@ describe("Fearless Draft board interface", () => {
     expect(heroSearchHotkeys).toContain('event.code.match(/^Key([A-Z])$/)');
     expect(heroSearchHotkeys).toContain("event.preventDefault()");
     expect(heroSearchHotkeys).toContain("searchInputRef.current?.focus()");
+    expect(heroSearchHotkeys).toContain("onSearchLetter()");
+    expect(heroGrid).toContain("setHeroPreview(null)");
+  });
+
+  it("keeps skipped bans blank outside the ordered history", () => {
+    expect(teamPanel).not.toContain("<b>—</b>");
+    expect(history).toContain("<i>—</i>");
   });
 
   it("shows a large player avatar in fullscreen team headers", () => {

@@ -86,9 +86,11 @@ describe("Fearless Draft server safety contract", () => {
     expect(footer).toContain('href="/fearless-draft"');
   });
 
-  it("keeps unconfirmed hero previews out of shared server state", () => {
-    expect(route).not.toContain('case "PREVIEW_HERO"');
-    expect(service).not.toContain("previewDraftHero");
+  it("stores the current player's highlight privately for pick timeout fallback", () => {
+    expect(route).toContain('case "HIGHLIGHT_HERO"');
+    expect(service).toContain("highlightDraftHero");
+    expect(service).toContain("map.preview_hero_id");
+    expect(database).toContain("preview_hero_id::int");
   });
 
   it("uses one cryptographically random thousand-segment toss for maps one and three", () => {

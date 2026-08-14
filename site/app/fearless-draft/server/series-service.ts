@@ -5,6 +5,7 @@ import { completeDraftAssignments, applyFirstChoice } from "../model/choices";
 import { DRAFT_SEQUENCE } from "../model/config";
 import { isDraftChoice } from "../model/choices";
 import { ENABLED_FEARLESS_DRAFT_HEROES } from "../model/heroes";
+import { selectTimedOutPickHero } from "../model/timeout-selection";
 import {
   draftOpponentId,
   loadLockedDraftSeries,
@@ -211,7 +212,11 @@ async function resolveExpiredStep(
     const used = await currentMapHeroIds(client, map.id);
     const available = [...heroIds].filter((id) => !unavailable.has(id) && !used.has(id));
     if (!available.length) throw new DraftRequestError("В пуле не осталось доступных героев", 409);
-    heroId = available[randomInt(available.length)];
+    heroId = selectTimedOutPickHero(
+      available,
+      map.preview_hero_id,
+      randomInt(available.length),
+    ) ?? null;
   }
   await commitHeroAction(client, series, map, heroId, true, now);
   return true;
@@ -269,6 +274,26 @@ export async function settleExpiredDraft(playerId: string): Promise<void> {
     const { series, map } = await loadLockedDraftSeries(client, playerId);
     const now = await databaseNow(client);
     await resolveExpiredStep(client, series, map, now);
+  });
+}
+
+export async function highlightDraftHero(
+  playerId: string,
+  heroId: number,
+  expectedVersion: number,
+): Promise<void> {
+  validateHeroCommand(heroId, expectedVersion);
+  await transaction(async (client) => {
+    const { map } = await loadSelectableHeroTurn(
+      client,
+      playerId,
+      heroId,
+      expectedVersion,
+    );
+    await client.query(
+      "UPDATE draft_maps SET preview_hero_id = $1 WHERE id = $2",
+      [heroId, map.id],
+    );
   });
 }
 

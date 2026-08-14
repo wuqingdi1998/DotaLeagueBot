@@ -213,6 +213,15 @@
   gap: 20px;
 }
 
+.fearless-choice-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 24px;
+}
+
+.fearless-choice-header .fearless-series-meta { min-width: 0; }
+
 .fearless-series-meta span { color: var(--blue); font-weight: 700; }
 .fearless-series-meta strong { font-size: 14px; text-transform: uppercase; }
 

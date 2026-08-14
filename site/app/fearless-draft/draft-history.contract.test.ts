@@ -106,6 +106,7 @@ describe("Fearless Draft history", () => {
     expect(treeStyles).toMatch(
       /\.fearless-draft-tree-slot\.previewing img\s*\{[^}]*grayscale\(1\)/,
     );
+    expect(draftTree).not.toContain("<i>—</i>");
   });
 
   it("loads the isolated tree styles after the existing Fearless modules", () => {

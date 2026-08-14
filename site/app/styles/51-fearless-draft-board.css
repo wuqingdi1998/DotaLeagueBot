@@ -91,18 +91,18 @@
 
 .fearless-turn {
   display: flex;
-  min-width: 230px;
+  min-width: 300px; min-height: 52px;
   align-items: center;
   justify-content: center;
   gap: 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 10px 16px;
+  padding: 12px 22px;
   background: var(--surface-soft);
 }
 
 .fearless-turn span,
-.fearless-turn strong { font-size: 18px; font-weight: 700; line-height: 1; }
+.fearless-turn strong { font-size: 22px; font-weight: 700; line-height: 1; }
 .fearless-turn span { color: var(--muted); }
 .fearless-turn strong { color: var(--blue); }
 .fearless-turn.own { border-color: var(--line-strong); background: var(--surface-blue); }
@@ -171,7 +171,7 @@
   text-align: right;
   white-space: nowrap;
 }
-.fearless-team-panel > header .fearless-team-reserve span { font-size: 13px; }
+.fearless-team-panel > header .fearless-team-reserve span { font-size: 28px; }
 .fearless-team-panel > header .fearless-team-reserve strong { font-variant-numeric: tabular-nums; font-size: 28px; line-height: 1; }
 .fearless-pick-slots {
   display: grid;

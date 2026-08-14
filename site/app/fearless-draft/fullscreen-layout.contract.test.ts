@@ -35,25 +35,34 @@ describe("Fearless Draft fullscreen layout", () => {
 
   it("fills the fullscreen width while keeping the upper board capped and centered", () => {
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0;/,
+      /\.fearless-draft-stage:fullscreen\s*\{[^}]*width:\s*100%;[^}]*margin:\s*0;/,
     );
     expect(fullscreenStyles).toMatch(
       /:fullscreen \.fearless-draft-status,[\s\S]*:fullscreen \.fearless-team-columns\s*\{[^}]*width:\s*min\(1812px, calc\(100% - 18px\)\);[^}]*align-self:\s*center;/,
     );
   });
 
+  it("keeps the fullscreen owner mounted around both draft and choice stages", () => {
+    expect(fullscreenStyles).toMatch(
+      /\.fearless-draft-stage:fullscreen \.fearless-active-draft\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*100%;/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /\.fearless-draft-stage:fullscreen \.fearless-choice-screen\s*\{[^}]*min-height:\s*min\(800px, calc\(100dvh - 48px\)\);/,
+    );
+  });
+
   it("uses the full fullscreen frame for larger portraits", () => {
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-fullscreen-grid-width:\s*min\(100%, 1540px\);/,
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-fullscreen-grid-width:\s*min\(100%, 1540px\);/,
     );
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-hero-grid\s*\{[^}]*width:\s*var\(--fearless-fullscreen-grid-width\);[^}]*aspect-ratio:\s*auto;[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;[^}]*align-self:\s*start;[^}]*align-items:\s*start;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-grid\s*\{[^}]*width:\s*var\(--fearless-fullscreen-grid-width\);[^}]*aspect-ratio:\s*auto;[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;[^}]*align-self:\s*start;[^}]*align-items:\s*start;/,
     );
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
     );
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-hero-image\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;[^}]*aspect-ratio:\s*25 \/ 44;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-image\s*\{[^}]*width:\s*100%;[^}]*height:\s*auto;[^}]*aspect-ratio:\s*25 \/ 44;/,
     );
   });
 
@@ -86,7 +95,7 @@ describe("Fearless Draft fullscreen layout", () => {
       /\.fearless-hero-image\s*\{[^}]*aspect-ratio:\s*25 \/ 44;[^}]*overflow:\s*hidden;/,
     );
     expect(fullscreenStyles).toMatch(
-      /\.fearless-active-draft:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
     );
   });
 });

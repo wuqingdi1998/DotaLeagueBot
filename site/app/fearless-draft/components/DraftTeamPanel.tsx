@@ -66,14 +66,14 @@ export function DraftTeamPanel({
           return (
             <div
               key={step}
-              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""}`}
+              className={`${hero ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""}`}
             >
               {displayedHero ? (
                 <>
                   <Image src={displayedHero.imageUrl} alt="" fill sizes="160px" unoptimized />
                   <span>{displayedHero.name}</span>
                 </>
-              ) : action ? <b>—</b> : null}
+              ) : null}
               <small className="fearless-slot-step">{step + 1}</small>
             </div>
           );
@@ -93,12 +93,12 @@ export function DraftTeamPanel({
           return (
             <div
               key={step}
-              className={`${action ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""} ${isPhaseStart ? "phase-start" : ""}`}
+              className={`${hero ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""} ${isPhaseStart ? "phase-start" : ""}`}
               title={displayedHero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
             >
               {displayedHero ? (
                 <Image src={displayedHero.imageUrl} alt={displayedHero.name} fill sizes="48px" unoptimized />
-              ) : action ? <b>—</b> : null}
+              ) : null}
               <small className="fearless-slot-step">{step + 1}</small>
             </div>
           );
