@@ -27,6 +27,9 @@
 
 .fearless-draft-tree {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   padding: 7px 8px 8px;
 }
 .fearless-history > .fearless-draft-tree {
@@ -47,6 +50,7 @@
   position: relative;
   z-index: 1;
   display: grid;
+  flex: 0 0 auto;
   grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr);
   align-items: center;
 }
@@ -60,13 +64,20 @@
 }
 .fearless-draft-tree-sides span:last-child { grid-column: 3; color: #ed6575; }
 
-.fearless-draft-tree-row { min-height: 29px; gap: 0; }
-.fearless-draft-tree-row.has-pick { min-height: 45px; }
+.fearless-draft-tree-row {
+  --tree-number-offset: 9px;
+  min-height: 37px;
+  gap: 0;
+}
+.fearless-draft-tree-row.has-pick {
+  --tree-number-offset: 16px;
+  min-height: 52px;
+}
 .fearless-draft-tree-numbers {
   position: relative;
   width: 30px;
   height: 100%;
-  min-height: 29px;
+  min-height: 37px;
   justify-self: center;
 }
 .fearless-draft-tree-number {
@@ -83,8 +94,8 @@
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
-.fearless-draft-tree-number.radiant { top: 0; }
-.fearless-draft-tree-number.dire { bottom: 0; }
+.fearless-draft-tree-number.upper { top: 0; }
+.fearless-draft-tree-number.lower { bottom: 0; }
 
 .fearless-draft-tree-branch {
   display: flex;
@@ -100,6 +111,14 @@
   background: var(--line-strong);
   content: "";
 }
+.fearless-draft-tree-branch.radiant.upper::after,
+.fearless-draft-tree-branch.dire.upper::before {
+  transform: translateY(calc(-1 * var(--tree-number-offset)));
+}
+.fearless-draft-tree-branch.radiant.lower::after,
+.fearless-draft-tree-branch.dire.lower::before {
+  transform: translateY(var(--tree-number-offset));
+}
 
 .fearless-draft-tree-slot {
   position: relative;
@@ -109,8 +128,8 @@
   border-radius: 5px;
   background: #06131e;
 }
-.fearless-draft-tree-slot.ban { width: 48px; aspect-ratio: 16 / 9; }
-.fearless-draft-tree-slot.pick { width: 76px; aspect-ratio: 16 / 9; }
+.fearless-draft-tree-slot.ban { width: 64px; aspect-ratio: 16 / 9; }
+.fearless-draft-tree-slot.pick { width: 88px; aspect-ratio: 16 / 9; }
 .fearless-draft-tree-slot img { object-fit: contain; }
 .fearless-draft-tree-branch.radiant .filled { border-color: rgba(67, 201, 142, 0.62); }
 .fearless-draft-tree-branch.dire .filled { border-color: rgba(237, 101, 117, 0.62); }

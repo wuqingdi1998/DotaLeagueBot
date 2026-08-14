@@ -40,7 +40,7 @@ export function DraftTree({
         aria-label={`${treeStep.number}. ${actionName}, ${sideName}${displayedHero ? `: ${displayedHero.name}` : ""}`}
       >
         {displayedHero && (
-          <Image src={displayedHero.imageUrl} alt="" fill sizes="76px" unoptimized />
+          <Image src={displayedHero.imageUrl} alt="" fill sizes="88px" unoptimized />
         )}
       </div>
     );
@@ -59,19 +59,22 @@ export function DraftTree({
       </div>
       {draftTreeRows.map(({ radiant, dire }) => {
         const hasPick = radiant.type === "PICK" || dire.type === "PICK";
+        const isRadiantEarlier = radiant.number < dire.number;
+        const earlierStep = isRadiantEarlier ? radiant : dire;
+        const laterStep = isRadiantEarlier ? dire : radiant;
         return (
           <div
             className={`fearless-draft-tree-row ${hasPick ? "has-pick" : ""}`}
             key={`${radiant.number}-${dire.number}`}
           >
-            <div className="fearless-draft-tree-branch radiant active">
+            <div className={`fearless-draft-tree-branch radiant active ${isRadiantEarlier ? "upper" : "lower"}`}>
               {renderSlot(radiant, "Свет")}
             </div>
             <div className="fearless-draft-tree-numbers" aria-hidden="true">
-              <b className="fearless-draft-tree-number radiant">{radiant.number}</b>
-              <b className="fearless-draft-tree-number dire">{dire.number}</b>
+              <b className="fearless-draft-tree-number upper">{earlierStep.number}</b>
+              <b className="fearless-draft-tree-number lower">{laterStep.number}</b>
             </div>
-            <div className="fearless-draft-tree-branch dire active">
+            <div className={`fearless-draft-tree-branch dire active ${isRadiantEarlier ? "lower" : "upper"}`}>
               {renderSlot(dire, "Тьма")}
             </div>
           </div>

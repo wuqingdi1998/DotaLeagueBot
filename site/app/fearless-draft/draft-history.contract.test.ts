@@ -58,10 +58,10 @@ describe("Fearless Draft history", () => {
     expect(draftTreeModel).toContain("action.actorId === radiantPlayerId");
     expect(draftTree).toContain('treeStep.type.toLowerCase()');
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*48px;[^}]*aspect-ratio:\s*16 \/ 9;/,
+      /\.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*64px;[^}]*aspect-ratio:\s*16 \/ 9;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*76px;[^}]*aspect-ratio:\s*16 \/ 9;/,
+      /\.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*88px;[^}]*aspect-ratio:\s*16 \/ 9;/,
     );
   });
 
@@ -73,7 +73,7 @@ describe("Fearless Draft history", () => {
     "fits both tree branches inside the history column at $viewportWidth px",
     ({ historyColumnWidth }) => {
       const treeInnerWidth = historyColumnWidth - 16;
-      expect((76 * 2) + 30 + (18 * 2)).toBeLessThan(treeInnerWidth);
+      expect((88 * 2) + 30 + (18 * 2)).toBeLessThan(treeInnerWidth);
       expect(treeStyles).toContain(
         "grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr)",
       );
@@ -103,7 +103,27 @@ describe("Fearless Draft history", () => {
       /\.fearless-history > \.fearless-draft-tree\s*\{[^}]*overflow-y:\s*hidden;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*45px;/,
+      /\.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*52px;/,
+    );
+  });
+
+  it("keeps step numbers chronological and connects each slot to its own level", () => {
+    expect(draftTree).toContain("radiant.number < dire.number");
+    expect(draftTree).toContain("earlierStep.number");
+    expect(draftTree).toContain("laterStep.number");
+    expect(draftTree).toContain('isRadiantEarlier ? "upper" : "lower"');
+    expect(treeStyles).toContain("--tree-number-offset: 9px");
+    expect(treeStyles).toContain("--tree-number-offset: 16px");
+    expect(treeStyles).toContain("translateY(calc(-1 * var(--tree-number-offset)))");
+    expect(treeStyles).toContain("translateY(var(--tree-number-offset))");
+  });
+
+  it("uses the full tree height while keeping every row inside the panel", () => {
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree\s*\{[^}]*display:\s*flex;[^}]*justify-content:\s*space-between;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-row\s*\{[^}]*min-height:\s*37px;/,
     );
   });
 
