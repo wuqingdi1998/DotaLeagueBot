@@ -418,6 +418,46 @@
   right: 24px;
   left: 24px;
 }
+.fearless-draft-stage:fullscreen .fearless-map-two-choice {
+  width: min(760px, calc(100% - 48px));
+  max-width: none;
+  padding: 20px 28px;
+  font-size: 18px;
+}
+.fearless-draft-stage:fullscreen .fearless-decision-card {
+  width: min(720px, calc(100% - 48px));
+  max-width: none;
+  border-radius: 22px;
+  padding: 32px;
+}
+.fearless-draft-stage:fullscreen .fearless-decision-player { gap: 20px; }
+.fearless-draft-stage:fullscreen .fearless-decision-player .fearless-player-avatar {
+  width: 76px;
+  height: 76px;
+  flex-basis: 76px;
+  border-radius: 18px;
+}
+.fearless-draft-stage:fullscreen .fearless-decision-player span { font-size: 15px; }
+.fearless-draft-stage:fullscreen .fearless-decision-player strong { font-size: 24px; }
+.fearless-draft-stage:fullscreen .fearless-decision-card > p {
+  font-size: 18px;
+  line-height: 1.5;
+}
+.fearless-draft-stage:fullscreen .fearless-choice-buttons {
+  gap: 14px;
+  margin-top: 24px;
+}
+.fearless-draft-stage:fullscreen .fearless-choice-buttons button {
+  min-width: 0;
+  min-height: 72px;
+  padding: 0 20px;
+  font-size: 20px;
+  white-space: nowrap;
+}
+.fearless-draft-stage:fullscreen .fearless-waiting-choice {
+  padding: 20px;
+  font-size: 18px;
+}
 
 @media (min-width: 1831px) {
   .fearless-draft-stage:fullscreen .fearless-draft-workspace {

@@ -51,6 +51,18 @@ describe("Fearless Draft fullscreen layout", () => {
     );
   });
 
+  it("scales the side and pick-order controls for fullscreen", () => {
+    expect(fullscreenStyles).toMatch(
+      /:fullscreen \.fearless-decision-card\s*\{[^}]*width:\s*min\(720px, calc\(100% - 48px\)\);[^}]*max-width:\s*none;[^}]*padding:\s*32px;/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /:fullscreen \.fearless-choice-buttons button\s*\{[^}]*min-height:\s*72px;[^}]*font-size:\s*20px;[^}]*white-space:\s*nowrap;/,
+    );
+    expect(fullscreenStyles).toMatch(
+      /:fullscreen \.fearless-decision-player \.fearless-player-avatar\s*\{[^}]*width:\s*76px;[^}]*height:\s*76px;/,
+    );
+  });
+
   it("uses the full fullscreen frame for larger portraits", () => {
     expect(fullscreenStyles).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-fullscreen-grid-width:\s*min\(100%, 1540px\);/,
