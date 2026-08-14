@@ -67,12 +67,14 @@ export function DraftTree({
         const hasPick = rowSteps.some((treeStep) => treeStep.type === "PICK");
         const radiantLevel = radiant?.number === earlierStep.number ? earlierLevel : "lower";
         const direLevel = dire?.number === earlierStep.number ? earlierLevel : "lower";
+        const radiantDigits = radiant && radiant.number >= 10 ? "double-digit" : "single-digit";
+        const direDigits = dire && dire.number >= 10 ? "double-digit" : "single-digit";
         return (
           <div
             className={`fearless-draft-tree-row ${hasPick ? "has-pick" : ""}`}
             key={rowSteps.map((treeStep) => treeStep.number).join("-")}
           >
-            <div className={`fearless-draft-tree-branch radiant ${radiant ? `active ${radiantLevel}` : ""}`}>
+            <div className={`fearless-draft-tree-branch radiant ${radiant ? `active ${radiantLevel} ${radiantDigits}` : ""}`}>
               {radiant && renderSlot(radiant, "Свет")}
             </div>
             <div className="fearless-draft-tree-numbers" aria-hidden="true">
@@ -81,7 +83,7 @@ export function DraftTree({
                 <b className="fearless-draft-tree-number lower">{laterStep.number}</b>
               )}
             </div>
-            <div className={`fearless-draft-tree-branch dire ${dire ? `active ${direLevel}` : ""}`}>
+            <div className={`fearless-draft-tree-branch dire ${dire ? `active ${direLevel} ${direDigits}` : ""}`}>
               {dire && renderSlot(dire, "Тьма")}
             </div>
           </div>

@@ -1,28 +1,34 @@
 .fearless-draft-stage:fullscreen .fearless-history-tabs {
   display: grid;
   width: 100%;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  padding: 2px;
+  background: var(--surface-soft);
 }
 
 .fearless-draft-stage:fullscreen .fearless-history-tabs button {
   min-width: 0;
   border: 0;
-  border-radius: 7px;
-  padding: 5px 7px;
+  border-radius: 6px;
+  padding: 7px 4px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  text-align: left;
+  text-align: center;
   text-transform: uppercase;
+  white-space: nowrap;
 }
-.fearless-draft-stage:fullscreen .fearless-history-tabs button:last-child { text-align: right; }
 .fearless-draft-stage:fullscreen .fearless-history-tabs button.active {
   background: var(--surface-blue);
   color: var(--blue);
+  box-shadow: inset 0 -2px var(--blue);
 }
 
 .fearless-draft-tree {
@@ -54,10 +60,10 @@
   grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr);
   align-items: center;
 }
-.fearless-draft-tree-sides { min-height: 25px; }
+.fearless-draft-tree-sides { min-height: 30px; }
 .fearless-draft-tree-sides span {
   color: #43c98e;
-  font-size: 10px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-align: center;
@@ -84,10 +90,12 @@
   position: absolute;
   z-index: 2;
   display: grid;
-  width: 24px;
+  width: max-content;
+  min-width: 1ch;
   height: 18px;
   place-items: center;
-  left: 3px;
+  left: 50%;
+  transform: translateX(-50%);
   background: var(--surface);
   color: var(--quiet);
   font-size: 13px;
@@ -98,22 +106,32 @@
 .fearless-draft-tree-number.lower { bottom: 0; }
 .fearless-draft-tree-number.middle {
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .fearless-draft-tree-branch {
+  --tree-line-number-gap: 2px;
+  --tree-number-half-width: 0.5ch;
+  --tree-line-overlap: calc(15px - var(--tree-number-half-width) - var(--tree-line-number-gap));
   display: flex;
   min-width: 0;
   align-items: center;
 }
+.fearless-draft-tree-branch.double-digit { --tree-number-half-width: 1ch; }
 .fearless-draft-tree-branch.radiant { justify-content: flex-end; }
 .fearless-draft-tree-branch.dire { justify-content: flex-start; }
 .fearless-draft-tree-branch.radiant.active::after,
 .fearless-draft-tree-branch.dire.active::before {
   height: 1px;
-  flex: 0 0 12px;
+  flex: 0 0 calc(12px + var(--tree-line-overlap));
   background: var(--line-strong);
   content: "";
+}
+.fearless-draft-tree-branch.radiant.active::after {
+  margin-right: calc(-1 * var(--tree-line-overlap));
+}
+.fearless-draft-tree-branch.dire.active::before {
+  margin-left: calc(-1 * var(--tree-line-overlap));
 }
 .fearless-draft-tree-branch.radiant.upper::after,
 .fearless-draft-tree-branch.dire.upper::before {

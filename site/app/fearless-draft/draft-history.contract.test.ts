@@ -47,6 +47,18 @@ describe("Fearless Draft history", () => {
     expect(history).toContain("{actions.length} / 24");
     expect(history).toContain("isFullscreen && activeView === \"tree\"");
     expect(treeStyles).toContain(":fullscreen .fearless-history-tabs");
+    expect(treeStyles).toContain(
+      "grid-template-columns: repeat(2, minmax(0, 1fr))",
+    );
+    expect(treeStyles).toMatch(
+      /:fullscreen \.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
+    );
+    expect(treeStyles).toMatch(
+      /:fullscreen \.fearless-history-tabs button\s*\{[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-history-tabs button\.active\s*\{[^}]*box-shadow:\s*inset 0 -2px var\(--blue\);/,
+    );
   });
 
   it("builds all 24 tree steps from the current draft sequence", () => {
@@ -85,7 +97,7 @@ describe("Fearless Draft history", () => {
       /\.fearless-draft-tree-branch\.radiant\s*\{[^}]*justify-content:\s*flex-end;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-branch\.radiant\.active::after,[\s\S]*\.fearless-draft-tree-branch\.dire\.active::before\s*\{[^}]*flex:\s*0 0 12px;/,
+      /\.fearless-draft-tree-branch\.radiant\.active::after,[\s\S]*\.fearless-draft-tree-branch\.dire\.active::before\s*\{[^}]*flex:\s*0 0 calc\(12px \+ var\(--tree-line-overlap\)\);/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-draft-tree-slot img\s*\{[^}]*object-fit:\s*contain;/,
@@ -117,6 +129,22 @@ describe("Fearless Draft history", () => {
     expect(treeStyles).toContain("--tree-number-offset: 16px");
     expect(treeStyles).toContain("translateY(calc(-1 * var(--tree-number-offset)))");
     expect(treeStyles).toContain("translateY(var(--tree-number-offset))");
+  });
+
+  it("leaves exactly two pixels between every connector and its number", () => {
+    expect(draftTree).toContain('number >= 10 ? "double-digit" : "single-digit"');
+    expect(treeStyles).toContain("--tree-line-number-gap: 2px");
+    expect(treeStyles).toContain("--tree-number-half-width: 0.5ch");
+    expect(treeStyles).toContain("--tree-number-half-width: 1ch");
+    expect(treeStyles).toContain(
+      "--tree-line-overlap: calc(15px - var(--tree-number-half-width) - var(--tree-line-number-gap))",
+    );
+  });
+
+  it("uses larger one-line side headings", () => {
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-sides span\s*\{[^}]*font-size:\s*13px;/,
+    );
   });
 
   it("uses the full tree height while keeping every row inside the panel", () => {
