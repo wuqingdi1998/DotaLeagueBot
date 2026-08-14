@@ -254,7 +254,7 @@ class Profile(commands.Cog):
         webhook = await interaction.channel.create_webhook(name="League Registration")
 
         await webhook.send(
-            content="# 🏆 Регистрация в Лиге\nНажмите кнопку ниже, чтобы заполнить анкету и получить доступ к каналам.",
+            content="# 🏆 Регистрация на сервере Linken's Sphere Esports\nНажмите кнопку ниже, чтобы заполнить анкету и получить доступ к каналам.",
             view=RegistrationView(),
             username=self.bot.user.name,
             avatar_url=self.bot.user.display_avatar.url
