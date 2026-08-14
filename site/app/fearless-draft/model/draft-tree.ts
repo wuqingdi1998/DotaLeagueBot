@@ -8,6 +8,11 @@ export type DraftTreeStep = {
   isRadiant: boolean;
 };
 
+export type DraftTreeRow = {
+  radiant?: DraftTreeStep;
+  dire?: DraftTreeStep;
+};
+
 export function buildDraftTreeSteps(
   actions: DraftActionSnapshot[],
   radiantPlayerId: string,
@@ -32,18 +37,31 @@ export function buildDraftTreeSteps(
   });
 }
 
-/** Pairs each side's actions by position while preserving every original step number. */
+/** Keeps steps chronological and only pairs consecutive actions from opposing sides. */
 export function buildDraftTreeRows(
   actions: DraftActionSnapshot[],
   radiantPlayerId: string,
   firstPickPlayerId: string,
 ) {
   const steps = buildDraftTreeSteps(actions, radiantPlayerId, firstPickPlayerId);
-  const radiantSteps = steps.filter((step) => step.isRadiant);
-  const direSteps = steps.filter((step) => !step.isRadiant);
+  const rows: DraftTreeRow[] = [];
 
-  return radiantSteps.map((radiant, index) => ({
-    radiant,
-    dire: direSteps[index],
-  }));
+  for (let index = 0; index < steps.length;) {
+    const currentStep = steps[index];
+    const nextStep = steps[index + 1];
+    const canPair = currentStep.isRadiant !== nextStep?.isRadiant;
+
+    if (nextStep && canPair) {
+      rows.push({
+        radiant: currentStep.isRadiant ? currentStep : nextStep,
+        dire: currentStep.isRadiant ? nextStep : currentStep,
+      });
+      index += 2;
+    } else {
+      rows.push(currentStep.isRadiant ? { radiant: currentStep } : { dire: currentStep });
+      index += 1;
+    }
+  }
+
+  return rows;
 }

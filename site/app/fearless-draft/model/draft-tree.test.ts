@@ -44,16 +44,17 @@ describe("Fearless Draft tree", () => {
     expect(step.action?.actorId).toBe("dire");
   });
 
-  it("pairs each side by its draft order so all 24 steps fit into 12 rows", () => {
+  it("keeps all steps chronological while pairing consecutive opposing sides", () => {
     const rows = buildDraftTreeRows([], "radiant", "radiant");
 
-    expect(rows).toHaveLength(12);
+    expect(rows).toHaveLength(13);
     expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
       [1, 2],
       [4, 3],
-      [7, 5],
-      [8, 6],
-      [10, 9],
+      [undefined, 5],
+      [7, 6],
+      [8, 9],
+      [10, undefined],
       [11, 12],
       [14, 13],
       [15, 16],
@@ -62,5 +63,11 @@ describe("Fearless Draft tree", () => {
       [22, 21],
       [23, 24],
     ]);
+    expect(rows.flatMap(({ radiant, dire }) => [radiant, dire]
+      .filter((step) => step !== undefined)
+      .sort((left, right) => left.number - right.number)
+      .map((step) => step.number))).toEqual(
+      Array.from({ length: 24 }, (_, index) => index + 1),
+    );
   });
 });

@@ -284,11 +284,17 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toMatch(
       /button\.pick \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#159b65;/,
     );
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-hero-confirm-action\s*\{[^}]*padding:\s*7px 12px;[^}]*font-size:\s*16px;/,
+    );
   });
 
   it("halves the fullscreen draft step badge area", () => {
     expect(interactions).toMatch(
       /:fullscreen \.fearless-slot-step\s*\{[^}]*min-width:\s*30px;[^}]*height:\s*30px;[^}]*font-size:\s*14px;/,
+    );
+    expect(interactions).toMatch(
+      /:fullscreen \.fearless-ban-list \.fearless-slot-step\s*\{[^}]*min-width:\s*24px;[^}]*height:\s*24px;[^}]*font-size:\s*12px;/,
     );
   });
 

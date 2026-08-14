@@ -96,6 +96,10 @@
 }
 .fearless-draft-tree-number.upper { top: 0; }
 .fearless-draft-tree-number.lower { bottom: 0; }
+.fearless-draft-tree-number.middle {
+  top: 50%;
+  transform: translateY(-50%);
+}
 
 .fearless-draft-tree-branch {
   display: flex;
@@ -107,7 +111,7 @@
 .fearless-draft-tree-branch.radiant.active::after,
 .fearless-draft-tree-branch.dire.active::before {
   height: 1px;
-  flex: 0 0 18px;
+  flex: 0 0 12px;
   background: var(--line-strong);
   content: "";
 }

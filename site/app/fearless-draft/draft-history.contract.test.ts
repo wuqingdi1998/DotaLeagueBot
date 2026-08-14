@@ -42,7 +42,7 @@ describe("Fearless Draft history", () => {
     expect(activeDraft).toContain("firstPickPlayerId={firstPick.id}");
     expect(history).toContain('useState<"history" | "tree">("history")');
     expect(history).toContain("История драфта");
-    expect(history).toContain("Древо");
+    expect(history).toContain("Древо драфта");
     expect(history).toContain("isFullscreen ? (");
     expect(history).toContain("{actions.length} / 24");
     expect(history).toContain("isFullscreen && activeView === \"tree\"");
@@ -52,7 +52,7 @@ describe("Fearless Draft history", () => {
   it("builds all 24 tree steps from the current draft sequence", () => {
     expect(draftTree).toContain("buildDraftTreeRows");
     expect(draftTreeModel).toContain("DRAFT_SEQUENCE.map((sequenceStep, index)");
-    expect(draftTreeModel).toContain("radiantSteps.map((radiant, index)");
+    expect(draftTreeModel).toContain("currentStep.isRadiant !== nextStep?.isRadiant");
     expect(draftTreeModel).toContain('sequenceStep.actor === "FIRST"');
     expect(draftTreeModel).toContain("firstPickPlayerId === radiantPlayerId");
     expect(draftTreeModel).toContain("action.actorId === radiantPlayerId");
@@ -73,7 +73,7 @@ describe("Fearless Draft history", () => {
     "fits both tree branches inside the history column at $viewportWidth px",
     ({ historyColumnWidth }) => {
       const treeInnerWidth = historyColumnWidth - 16;
-      expect((88 * 2) + 30 + (18 * 2)).toBeLessThan(treeInnerWidth);
+      expect((88 * 2) + 30 + (12 * 2)).toBeLessThan(treeInnerWidth);
       expect(treeStyles).toContain(
         "grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr)",
       );
@@ -85,7 +85,7 @@ describe("Fearless Draft history", () => {
       /\.fearless-draft-tree-branch\.radiant\s*\{[^}]*justify-content:\s*flex-end;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-branch\.radiant\.active::after,[\s\S]*\.fearless-draft-tree-branch\.dire\.active::before\s*\{[^}]*flex:\s*0 0 18px;/,
+      /\.fearless-draft-tree-branch\.radiant\.active::after,[\s\S]*\.fearless-draft-tree-branch\.dire\.active::before\s*\{[^}]*flex:\s*0 0 12px;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-draft-tree-slot img\s*\{[^}]*object-fit:\s*contain;/,
@@ -95,9 +95,10 @@ describe("Fearless Draft history", () => {
     );
   });
 
-  it("renders all actions as 12 paired rows without a tree scrollbar", () => {
+  it("renders all actions as compact ordered rows without a tree scrollbar", () => {
     expect(draftTree).toContain("draftTreeRows.map");
     expect(draftTree).toContain("fearless-draft-tree-numbers");
+    expect(draftTree).toContain('laterStep ? "upper" : "middle"');
     expect(treeStyles).toContain(".fearless-history > .fearless-draft-tree");
     expect(treeStyles).toMatch(
       /\.fearless-history > \.fearless-draft-tree\s*\{[^}]*overflow-y:\s*hidden;/,
@@ -108,10 +109,10 @@ describe("Fearless Draft history", () => {
   });
 
   it("keeps step numbers chronological and connects each slot to its own level", () => {
-    expect(draftTree).toContain("radiant.number < dire.number");
+    expect(draftTree).toContain("rowSteps.sort");
     expect(draftTree).toContain("earlierStep.number");
     expect(draftTree).toContain("laterStep.number");
-    expect(draftTree).toContain('isRadiantEarlier ? "upper" : "lower"');
+    expect(treeStyles).toContain(".fearless-draft-tree-number.middle");
     expect(treeStyles).toContain("--tree-number-offset: 9px");
     expect(treeStyles).toContain("--tree-number-offset: 16px");
     expect(treeStyles).toContain("translateY(calc(-1 * var(--tree-number-offset)))");

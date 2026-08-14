@@ -58,24 +58,31 @@ export function DraftTree({
         <span>ТЬМА</span>
       </div>
       {draftTreeRows.map(({ radiant, dire }) => {
-        const hasPick = radiant.type === "PICK" || dire.type === "PICK";
-        const isRadiantEarlier = radiant.number < dire.number;
-        const earlierStep = isRadiantEarlier ? radiant : dire;
-        const laterStep = isRadiantEarlier ? dire : radiant;
+        const rowSteps = [radiant, dire].filter(
+          (treeStep): treeStep is DraftTreeStep => treeStep !== undefined,
+        );
+        rowSteps.sort((left, right) => left.number - right.number);
+        const [earlierStep, laterStep] = rowSteps;
+        const earlierLevel = laterStep ? "upper" : "middle";
+        const hasPick = rowSteps.some((treeStep) => treeStep.type === "PICK");
+        const radiantLevel = radiant?.number === earlierStep.number ? earlierLevel : "lower";
+        const direLevel = dire?.number === earlierStep.number ? earlierLevel : "lower";
         return (
           <div
             className={`fearless-draft-tree-row ${hasPick ? "has-pick" : ""}`}
-            key={`${radiant.number}-${dire.number}`}
+            key={rowSteps.map((treeStep) => treeStep.number).join("-")}
           >
-            <div className={`fearless-draft-tree-branch radiant active ${isRadiantEarlier ? "upper" : "lower"}`}>
-              {renderSlot(radiant, "Свет")}
+            <div className={`fearless-draft-tree-branch radiant ${radiant ? `active ${radiantLevel}` : ""}`}>
+              {radiant && renderSlot(radiant, "Свет")}
             </div>
             <div className="fearless-draft-tree-numbers" aria-hidden="true">
-              <b className="fearless-draft-tree-number upper">{earlierStep.number}</b>
-              <b className="fearless-draft-tree-number lower">{laterStep.number}</b>
+              <b className={`fearless-draft-tree-number ${earlierLevel}`}>{earlierStep.number}</b>
+              {laterStep && (
+                <b className="fearless-draft-tree-number lower">{laterStep.number}</b>
+              )}
             </div>
-            <div className={`fearless-draft-tree-branch dire active ${isRadiantEarlier ? "lower" : "upper"}`}>
-              {renderSlot(dire, "Тьма")}
+            <div className={`fearless-draft-tree-branch dire ${dire ? `active ${direLevel}` : ""}`}>
+              {dire && renderSlot(dire, "Тьма")}
             </div>
           </div>
         );

@@ -57,7 +57,7 @@ export function DraftHistory({
               aria-selected={activeView === "tree"}
               onClick={() => setActiveView("tree")}
             >
-              Древо
+              Древо драфта
             </button>
           </nav>
         ) : (
