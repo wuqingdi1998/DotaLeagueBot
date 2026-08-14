@@ -27,13 +27,16 @@
 
 .fearless-draft-tree {
   position: relative;
-  padding: 9px 8px 12px;
+  padding: 7px 8px 8px;
+}
+.fearless-history > .fearless-draft-tree {
+  overflow-y: hidden;
 }
 .fearless-draft-tree::before {
   position: absolute;
   width: 1px;
-  top: 39px;
-  bottom: 12px;
+  top: 35px;
+  bottom: 8px;
   left: 50%;
   background: var(--line);
   content: "";
@@ -47,7 +50,7 @@
   grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr);
   align-items: center;
 }
-.fearless-draft-tree-sides { min-height: 25px; margin-bottom: 3px; }
+.fearless-draft-tree-sides { min-height: 25px; }
 .fearless-draft-tree-sides span {
   color: #43c98e;
   font-size: 10px;
@@ -57,21 +60,31 @@
 }
 .fearless-draft-tree-sides span:last-child { grid-column: 3; color: #ed6575; }
 
-.fearless-draft-tree-row { gap: 0; }
-.fearless-draft-tree-row.ban { min-height: 29px; }
-.fearless-draft-tree-row.pick { min-height: 45px; }
-.fearless-draft-tree-row > b {
-  display: grid;
-  width: 28px;
-  height: 24px;
-  place-items: center;
+.fearless-draft-tree-row { min-height: 29px; gap: 0; }
+.fearless-draft-tree-row.has-pick { min-height: 45px; }
+.fearless-draft-tree-numbers {
+  position: relative;
+  width: 30px;
+  height: 100%;
+  min-height: 29px;
   justify-self: center;
-  border-radius: 5px;
+}
+.fearless-draft-tree-number {
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 24px;
+  height: 18px;
+  place-items: center;
+  left: 3px;
   background: var(--surface);
   color: var(--quiet);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
+  line-height: 1;
 }
+.fearless-draft-tree-number.radiant { top: 0; }
+.fearless-draft-tree-number.dire { bottom: 0; }
 
 .fearless-draft-tree-branch {
   display: flex;

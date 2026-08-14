@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DraftActionSnapshot } from "./snapshot";
-import { buildDraftTreeSteps } from "./draft-tree";
+import { buildDraftTreeRows, buildDraftTreeSteps } from "./draft-tree";
 
 function action(step: number, actorId: string): DraftActionSnapshot {
   return {
@@ -42,5 +42,25 @@ describe("Fearless Draft tree", () => {
     const [step] = buildDraftTreeSteps([action(0, "dire")], "radiant", "radiant");
     expect(step.isRadiant).toBe(false);
     expect(step.action?.actorId).toBe("dire");
+  });
+
+  it("pairs each side by its draft order so all 24 steps fit into 12 rows", () => {
+    const rows = buildDraftTreeRows([], "radiant", "radiant");
+
+    expect(rows).toHaveLength(12);
+    expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
+      [1, 2],
+      [4, 3],
+      [7, 5],
+      [8, 6],
+      [10, 9],
+      [11, 12],
+      [14, 13],
+      [15, 16],
+      [18, 17],
+      [19, 20],
+      [22, 21],
+      [23, 24],
+    ]);
   });
 });

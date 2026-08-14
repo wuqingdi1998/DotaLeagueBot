@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { buildDraftTreeSteps } from "../model/draft-tree";
+import { buildDraftTreeRows, type DraftTreeStep } from "../model/draft-tree";
 import { FEARLESS_DRAFT_HEROES_BY_ID } from "../model/heroes";
 import type { DraftActionSnapshot } from "../model/snapshot";
 
@@ -16,11 +16,35 @@ export function DraftTree({
   currentStep: number;
   previewHeroId: number | null;
 }) {
-  const draftTreeSteps = buildDraftTreeSteps(
+  const draftTreeRows = buildDraftTreeRows(
     actions,
     radiantPlayerId,
     firstPickPlayerId,
   );
+
+  function renderSlot(treeStep: DraftTreeStep, sideName: "Свет" | "Тьма") {
+    const { action } = treeStep;
+    const hero = action?.heroId
+      ? FEARLESS_DRAFT_HEROES_BY_ID.get(action.heroId)
+      : null;
+    const isCurrent = !action && treeStep.number === currentStep + 1;
+    const previewHero = isCurrent && previewHeroId
+      ? FEARLESS_DRAFT_HEROES_BY_ID.get(previewHeroId)
+      : null;
+    const displayedHero = hero ?? previewHero;
+    const actionName = treeStep.type === "BAN" ? "Бан" : "Пик";
+
+    return (
+      <div
+        className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${hero ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
+        aria-label={`${treeStep.number}. ${actionName}, ${sideName}${displayedHero ? `: ${displayedHero.name}` : ""}`}
+      >
+        {displayedHero && (
+          <Image src={displayedHero.imageUrl} alt="" fill sizes="76px" unoptimized />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -33,40 +57,22 @@ export function DraftTree({
         <span>СВЕТ</span>
         <span>ТЬМА</span>
       </div>
-      {draftTreeSteps.map((treeStep) => {
-        const { action, isRadiant } = treeStep;
-        const hero = action?.heroId
-          ? FEARLESS_DRAFT_HEROES_BY_ID.get(action.heroId)
-          : null;
-        const isCurrent = !action && treeStep.number === currentStep + 1;
-        const previewHero = isCurrent && previewHeroId
-          ? FEARLESS_DRAFT_HEROES_BY_ID.get(previewHeroId)
-          : null;
-        const displayedHero = hero ?? previewHero;
-        const actionName = treeStep.type === "BAN" ? "Бан" : "Пик";
-        const sideName = isRadiant ? "Свет" : "Тьма";
-        const slot = (
-          <div
-            className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${hero ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
-            aria-label={`${treeStep.number}. ${actionName}, ${sideName}${displayedHero ? `: ${displayedHero.name}` : ""}`}
-          >
-            {displayedHero && (
-              <Image src={displayedHero.imageUrl} alt="" fill sizes="76px" unoptimized />
-            )}
-          </div>
-        );
-
+      {draftTreeRows.map(({ radiant, dire }) => {
+        const hasPick = radiant.type === "PICK" || dire.type === "PICK";
         return (
           <div
-            className={`fearless-draft-tree-row ${treeStep.type.toLowerCase()}`}
-            key={treeStep.number}
+            className={`fearless-draft-tree-row ${hasPick ? "has-pick" : ""}`}
+            key={`${radiant.number}-${dire.number}`}
           >
-            <div className={`fearless-draft-tree-branch radiant ${isRadiant ? "active" : ""}`}>
-              {isRadiant && slot}
+            <div className="fearless-draft-tree-branch radiant active">
+              {renderSlot(radiant, "Свет")}
             </div>
-            <b>{treeStep.number}</b>
-            <div className={`fearless-draft-tree-branch dire ${isRadiant ? "" : "active"}`}>
-              {!isRadiant && slot}
+            <div className="fearless-draft-tree-numbers" aria-hidden="true">
+              <b className="fearless-draft-tree-number radiant">{radiant.number}</b>
+              <b className="fearless-draft-tree-number dire">{dire.number}</b>
+            </div>
+            <div className="fearless-draft-tree-branch dire active">
+              {renderSlot(dire, "Тьма")}
             </div>
           </div>
         );

@@ -50,8 +50,9 @@ describe("Fearless Draft history", () => {
   });
 
   it("builds all 24 tree steps from the current draft sequence", () => {
-    expect(draftTree).toContain("buildDraftTreeSteps");
+    expect(draftTree).toContain("buildDraftTreeRows");
     expect(draftTreeModel).toContain("DRAFT_SEQUENCE.map((sequenceStep, index)");
+    expect(draftTreeModel).toContain("radiantSteps.map((radiant, index)");
     expect(draftTreeModel).toContain('sequenceStep.actor === "FIRST"');
     expect(draftTreeModel).toContain("firstPickPlayerId === radiantPlayerId");
     expect(draftTreeModel).toContain("action.actorId === radiantPlayerId");
@@ -90,7 +91,19 @@ describe("Fearless Draft history", () => {
       /\.fearless-draft-tree-slot img\s*\{[^}]*object-fit:\s*contain;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-row > b\s*\{[^}]*font-size:\s*13px;/,
+      /\.fearless-draft-tree-number\s*\{[^}]*font-size:\s*13px;/,
+    );
+  });
+
+  it("renders all actions as 12 paired rows without a tree scrollbar", () => {
+    expect(draftTree).toContain("draftTreeRows.map");
+    expect(draftTree).toContain("fearless-draft-tree-numbers");
+    expect(treeStyles).toContain(".fearless-history > .fearless-draft-tree");
+    expect(treeStyles).toMatch(
+      /\.fearless-history > \.fearless-draft-tree\s*\{[^}]*overflow-y:\s*hidden;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*45px;/,
     );
   });
 
