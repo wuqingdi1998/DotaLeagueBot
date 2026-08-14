@@ -57,10 +57,10 @@ describe("Fearless Draft history", () => {
     expect(draftTreeModel).toContain("action.actorId === radiantPlayerId");
     expect(draftTree).toContain('treeStep.type.toLowerCase()');
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*48px;[^}]*height:\s*23px;/,
+      /\.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*48px;[^}]*aspect-ratio:\s*16 \/ 9;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*76px;[^}]*height:\s*36px;/,
+      /\.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*76px;[^}]*aspect-ratio:\s*16 \/ 9;/,
     );
   });
 
@@ -72,12 +72,41 @@ describe("Fearless Draft history", () => {
     "fits both tree branches inside the history column at $viewportWidth px",
     ({ historyColumnWidth }) => {
       const treeInnerWidth = historyColumnWidth - 16;
-      expect((76 * 2) + 24).toBeLessThan(treeInnerWidth);
+      expect((76 * 2) + 30 + (18 * 2)).toBeLessThan(treeInnerWidth);
       expect(treeStyles).toContain(
-        "grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr)",
+        "grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr)",
       );
     },
   );
+
+  it("aligns both slot columns by their inner edges and preserves full portraits", () => {
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-branch\.radiant\s*\{[^}]*justify-content:\s*flex-end;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-branch\.radiant\.active::after,[\s\S]*\.fearless-draft-tree-branch\.dire\.active::before\s*\{[^}]*flex:\s*0 0 18px;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-slot img\s*\{[^}]*object-fit:\s*contain;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-row > b\s*\{[^}]*font-size:\s*13px;/,
+    );
+  });
+
+  it("shows the local gray preview and current-stage shimmer in the tree", () => {
+    expect(activeDraft).toContain("currentStep={map.currentStep}");
+    expect(activeDraft).toContain("previewHeroId={localPreviewHeroId}");
+    expect(history).toContain("currentStep={currentStep}");
+    expect(history).toContain("previewHeroId={previewHeroId}");
+    expect(draftTree).toContain('isCurrent ? "current-action"');
+    expect(draftTree).toContain('previewHero ? "previewing"');
+    expect(treeStyles).toContain("animation: fearless-current-slot-pulse");
+    expect(treeStyles).toContain("animation: fearless-current-slot-shimmer");
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-slot\.previewing img\s*\{[^}]*grayscale\(1\)/,
+    );
+  });
 
   it("loads the isolated tree styles after the existing Fearless modules", () => {
     const interactionsImport = '@import "./styles/51-fearless-draft-interactions.css";';

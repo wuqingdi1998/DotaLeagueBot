@@ -10,11 +10,15 @@ export function DraftHistory({
   actions,
   radiantPlayerId,
   firstPickPlayerId,
+  currentStep,
+  previewHeroId,
   isFullscreen,
 }: {
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
   firstPickPlayerId: string;
+  currentStep: number;
+  previewHeroId: number | null;
   isFullscreen: boolean;
 }) {
   const historyListRef = useRef<HTMLDivElement>(null);
@@ -68,6 +72,8 @@ export function DraftHistory({
           actions={actions}
           radiantPlayerId={radiantPlayerId}
           firstPickPlayerId={firstPickPlayerId}
+          currentStep={currentStep}
+          previewHeroId={previewHeroId}
         />
       ) : (
         <div

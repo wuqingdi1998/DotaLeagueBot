@@ -7,10 +7,14 @@ export function DraftTree({
   actions,
   radiantPlayerId,
   firstPickPlayerId,
+  currentStep,
+  previewHeroId,
 }: {
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
   firstPickPlayerId: string;
+  currentStep: number;
+  previewHeroId: number | null;
 }) {
   const draftTreeSteps = buildDraftTreeSteps(
     actions,
@@ -34,15 +38,20 @@ export function DraftTree({
         const hero = action?.heroId
           ? FEARLESS_DRAFT_HEROES_BY_ID.get(action.heroId)
           : null;
+        const isCurrent = !action && treeStep.number === currentStep + 1;
+        const previewHero = isCurrent && previewHeroId
+          ? FEARLESS_DRAFT_HEROES_BY_ID.get(previewHeroId)
+          : null;
+        const displayedHero = hero ?? previewHero;
         const actionName = treeStep.type === "BAN" ? "Бан" : "Пик";
         const sideName = isRadiant ? "Свет" : "Тьма";
         const slot = (
           <div
-            className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${action ? "filled" : ""}`}
-            aria-label={`${treeStep.number}. ${actionName}, ${sideName}${hero ? `: ${hero.name}` : ""}`}
+            className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${action ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
+            aria-label={`${treeStep.number}. ${actionName}, ${sideName}${displayedHero ? `: ${displayedHero.name}` : ""}`}
           >
-            {hero && (
-              <Image src={hero.imageUrl} alt="" fill sizes="76px" unoptimized />
+            {displayedHero && (
+              <Image src={displayedHero.imageUrl} alt="" fill sizes="76px" unoptimized />
             )}
             {action && !hero && <i>—</i>}
           </div>

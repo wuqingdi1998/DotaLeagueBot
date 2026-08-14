@@ -201,6 +201,8 @@ export function ActiveDraft({
           actions={map.actions}
           radiantPlayerId={radiant.id}
           firstPickPlayerId={firstPick.id}
+          currentStep={map.currentStep}
+          previewHeroId={localPreviewHeroId}
           isFullscreen={isFullscreen}
         />
       </div>
