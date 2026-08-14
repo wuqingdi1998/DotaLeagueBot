@@ -1,13 +1,11 @@
 import Image from "next/image";
 import { DRAFT_SEQUENCE } from "../model/config";
-import { FEARLESS_DRAFT_HEROES } from "../model/heroes";
+import { FEARLESS_DRAFT_HEROES_BY_ID } from "../model/heroes";
 import type {
   DraftActionSnapshot,
   DraftPlayer,
 } from "../model/snapshot";
 import { PlayerAvatar } from "./PlayerAvatar";
-
-const heroesById = new Map(FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]));
 
 function draftSlots(priority: "FIRST" | "SECOND", type: "PICK" | "BAN") {
   return DRAFT_SEQUENCE.flatMap((sequenceStep, step) =>
@@ -39,7 +37,7 @@ export function DraftTeamPanel({
   const actionsByStep = new Map(actions.map((action) => [action.step, action]));
   const pickSteps = draftSlots(priority, "PICK");
   const banSteps = draftSlots(priority, "BAN");
-  const previewHero = previewHeroId ? heroesById.get(previewHeroId) : null;
+  const previewHero = previewHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(previewHeroId) : null;
   return (
     <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
       <header>
@@ -61,7 +59,7 @@ export function DraftTeamPanel({
           const action = actionsByStep.get(step);
           const isCurrentAction = isCurrent && step === currentStep;
           const hero = action?.heroId
-            ? heroesById.get(action.heroId)
+            ? FEARLESS_DRAFT_HEROES_BY_ID.get(action.heroId)
             : null;
           const isPreviewing = !action && isCurrentAction && Boolean(previewHero);
           const displayedHero = hero ?? (isPreviewing ? previewHero : null);
@@ -89,7 +87,7 @@ export function DraftTeamPanel({
           const previousBanStep = banSteps[banIndex - 1];
           const isPhaseStart = previousBanStep !== undefined &&
             DRAFT_SEQUENCE[previousBanStep].phase !== DRAFT_SEQUENCE[step].phase;
-          const hero = action?.heroId ? heroesById.get(action.heroId) : null;
+          const hero = action?.heroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(action.heroId) : null;
           const isPreviewing = !action && isCurrentAction && Boolean(previewHero);
           const displayedHero = hero ?? (isPreviewing ? previewHero : null);
           return (

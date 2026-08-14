@@ -24,6 +24,10 @@ export const FEARLESS_DRAFT_HEROES = COMPENDIUM_HEROES.map((hero) => ({
   isCaptainModeEnabled: !disabledCaptainModeHeroIds.has(hero.id),
 }));
 
+export const FEARLESS_DRAFT_HEROES_BY_ID = new Map(
+  FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]),
+);
+
 export const FEARLESS_DRAFT_HERO_PORTRAIT_URLS = FEARLESS_DRAFT_HEROES.map(
   (hero) => hero.portraitUrl,
 );

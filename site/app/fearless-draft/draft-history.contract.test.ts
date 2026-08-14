@@ -8,7 +8,11 @@ function source(path: string) {
 
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const history = source("app/fearless-draft/sections/DraftHistory.tsx");
+const draftTree = source("app/fearless-draft/components/DraftTree.tsx");
+const draftTreeModel = source("app/fearless-draft/model/draft-tree.ts");
 const board = source("app/styles/51-fearless-draft-board.css");
+const treeStyles = source("app/styles/51-fearless-draft-history-tree.css");
+const globalStyles = source("app/globals.css");
 
 describe("Fearless Draft history", () => {
   it("matches the hero pool height and scrolls without stretching the board", () => {
@@ -31,5 +35,56 @@ describe("Fearless Draft history", () => {
     expect(history).toContain("historyList.scrollHeight > historyList.clientHeight");
     expect(history).toContain("historyList.scrollTop = historyList.scrollHeight");
     expect(history).toContain("[actions.length]");
+  });
+
+  it("replaces the fullscreen counter with History and Tree tabs", () => {
+    expect(activeDraft).toContain("isFullscreen={isFullscreen}");
+    expect(activeDraft).toContain("firstPickPlayerId={firstPick.id}");
+    expect(history).toContain('useState<"history" | "tree">("history")');
+    expect(history).toContain("История драфта");
+    expect(history).toContain("Древо");
+    expect(history).toContain("isFullscreen ? (");
+    expect(history).toContain("{actions.length} / 24");
+    expect(history).toContain("isFullscreen && activeView === \"tree\"");
+    expect(treeStyles).toContain(":fullscreen .fearless-history-tabs");
+  });
+
+  it("builds all 24 tree steps from the current draft sequence", () => {
+    expect(draftTree).toContain("buildDraftTreeSteps");
+    expect(draftTreeModel).toContain("DRAFT_SEQUENCE.map((sequenceStep, index)");
+    expect(draftTreeModel).toContain('sequenceStep.actor === "FIRST"');
+    expect(draftTreeModel).toContain("firstPickPlayerId === radiantPlayerId");
+    expect(draftTreeModel).toContain("action.actorId === radiantPlayerId");
+    expect(draftTree).toContain('treeStep.type.toLowerCase()');
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*48px;[^}]*height:\s*23px;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*76px;[^}]*height:\s*36px;/,
+    );
+  });
+
+  it.each([
+    { viewportWidth: 1280, historyColumnWidth: 260 },
+    { viewportWidth: 1920, historyColumnWidth: 260 },
+    { viewportWidth: 3440, historyColumnWidth: 260 },
+  ])(
+    "fits both tree branches inside the history column at $viewportWidth px",
+    ({ historyColumnWidth }) => {
+      const treeInnerWidth = historyColumnWidth - 16;
+      expect((76 * 2) + 24).toBeLessThan(treeInnerWidth);
+      expect(treeStyles).toContain(
+        "grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr)",
+      );
+    },
+  );
+
+  it("loads the isolated tree styles after the existing Fearless modules", () => {
+    const interactionsImport = '@import "./styles/51-fearless-draft-interactions.css";';
+    const treeImport = '@import "./styles/51-fearless-draft-history-tree.css";';
+    expect(globalStyles).toContain(treeImport);
+    expect(globalStyles.indexOf(treeImport)).toBeGreaterThan(
+      globalStyles.indexOf(interactionsImport),
+    );
   });
 });

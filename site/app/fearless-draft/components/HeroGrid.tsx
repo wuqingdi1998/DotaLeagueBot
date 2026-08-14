@@ -6,6 +6,7 @@ import type { MouseEvent } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
 import {
   FEARLESS_DRAFT_HEROES,
+  FEARLESS_DRAFT_HEROES_BY_ID,
   HERO_ATTRIBUTE_GROUPS,
   sortHeroesAlphabetically,
 } from "../model/heroes";
@@ -75,7 +76,7 @@ export function HeroGrid({
   const selectedHeroId = selection?.version === map.version
     ? selection.heroId
     : null;
-  const selectedHero = FEARLESS_DRAFT_HEROES.find((hero) => hero.id === selectedHeroId);
+  const selectedHero = selectedHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(selectedHeroId) : null;
   const isOwnTurn = map.currentActorId === userId;
   useHeroSearchHotkeys(searchInputRef, setSearch);
 
@@ -121,7 +122,7 @@ export function HeroGrid({
   );
 
   function heroState(heroId: number): HeroState {
-    const hero = FEARLESS_DRAFT_HEROES.find((candidate) => candidate.id === heroId);
+    const hero = FEARLESS_DRAFT_HEROES_BY_ID.get(heroId);
     if (!hero?.isCaptainModeEnabled) return "captains-disabled";
     if (unavailable.has(heroId)) return "fearless-locked";
     const action = actionByHero.get(heroId);

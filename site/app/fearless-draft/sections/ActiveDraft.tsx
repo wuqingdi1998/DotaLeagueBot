@@ -200,6 +200,8 @@ export function ActiveDraft({
         <DraftHistory
           actions={map.actions}
           radiantPlayerId={radiant.id}
+          firstPickPlayerId={firstPick.id}
+          isFullscreen={isFullscreen}
         />
       </div>
     </section>
