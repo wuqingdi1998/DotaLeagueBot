@@ -336,6 +336,15 @@ describe("Fearless Draft board interface", () => {
     expect(draftBase).toContain("height: 88px");
   });
 
+  it("keeps the spinner's central mounting hub stationary", () => {
+    expect(coinToss).toContain('className="fearless-wheel-spinner-hub"');
+    expect(draftBase).not.toContain(".fearless-wheel-spinner::after");
+    expect(draftBase).toContain(".fearless-wheel-spinner-hub");
+    expect(draftBase).toMatch(
+      /\.fearless-wheel-spinner-hub\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*3;/,
+    );
+  });
+
   it("preloads every vertical hero portrait while the toss screen is visible", () => {
     expect(choices).toContain("<HeroPortraitPreloader />");
     expect(heroPortraitPreloader).toContain("FEARLESS_DRAFT_HERO_PORTRAIT_URLS");

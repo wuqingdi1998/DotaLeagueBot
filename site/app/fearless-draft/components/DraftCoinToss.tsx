@@ -41,6 +41,7 @@ export function DraftCoinToss({
       >
         <b />
       </i>
+      <i className="fearless-wheel-spinner-hub" aria-hidden="true" />
     </div>
   );
 }
