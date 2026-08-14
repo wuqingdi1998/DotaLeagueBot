@@ -224,7 +224,10 @@ export function CommunityHome() {
 
       <section className="platform-purpose">
         <div>
-          <h2>Сайт сообщества Linken&apos;s Sphere Esports</h2>
+          <h2 className="platform-purpose-title">
+            <span>Сайт сообщества</span>
+            <span>Linken&apos;s Sphere Esports</span>
+          </h2>
         </div>
         <div className="purpose-grid">
           <article>

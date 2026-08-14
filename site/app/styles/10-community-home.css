@@ -336,7 +336,7 @@
 .platform-purpose > div:first-child {
   display: grid;
   max-width: 1030px;
-  grid-template-columns: 0.55fr 1.45fr;
+  grid-template-columns: 1fr;
   gap: 40px;
   align-items: start;
 }
@@ -345,6 +345,11 @@
   margin-top: 0;
   font-size: clamp(38px, 5vw, 70px);
   line-height: 1.02;
+}
+
+.platform-purpose-title span {
+  display: block;
+  white-space: nowrap;
 }
 
 .purpose-grid {

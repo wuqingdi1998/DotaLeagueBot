@@ -297,6 +297,10 @@
     gap: 14px;
   }
 
+  .platform-purpose-title {
+    font-size: clamp(24px, 7.75vw, 38px);
+  }
+
   .purpose-grid {
     margin-top: 38px;
   }
