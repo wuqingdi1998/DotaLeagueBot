@@ -39,6 +39,21 @@ RANK_BRACKETS_RU = [
     ("Титан (Immortal)", 8),
 ]
 
+POSITION_ROLE_NAMES = {
+    "1": "Керри",
+    "2": "Мид",
+    "3": "Оффлэйнер",
+    "4": "Поддержка",
+    "5": "Полная поддержка",
+}
+
+
+def _position_select_options() -> list[discord.SelectOption]:
+    return [
+        discord.SelectOption(label=f"{position} — {role_name}", value=position)
+        for position, role_name in POSITION_ROLE_NAMES.items()
+    ]
+
 
 async def fetch_opendota_rank(steam_id32: int) -> int:
     """Return rank_tier, or 0 when OpenDota has no rank data."""
@@ -49,30 +64,50 @@ async def fetch_opendota_rank(steam_id32: int) -> int:
     return data.get('rank_tier') or 0
 
 class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
-    real_name = ui.TextInput(label='Ваше настоящее имя', placeholder=' Например: Даня', min_length=2, max_length=15)
-    nickname = ui.TextInput(label='Ваш никнейм в лиге', placeholder='Например: Dendi', min_length=2, max_length=20)
-    pos = ui.TextInput(label='Ваши позиции (через дробь)', placeholder='Например: 1/2', min_length=3, max_length=3)
-    steam = ui.TextInput(label='Steam ID или ссылка', placeholder='Вставьте ID32 или ссылку')
+    real_name = ui.Label(
+        text='Ваше настоящее имя',
+        component=ui.TextInput(placeholder=' Например: Даня', min_length=2, max_length=15),
+    )
+    nickname = ui.Label(
+        text='Ваш никнейм в лиге',
+        component=ui.TextInput(placeholder='Например: Dendi', min_length=2, max_length=20),
+    )
+    primary_position = ui.Label(
+        text='Основная позиция',
+        component=ui.Select(
+            placeholder='Выберите основную позицию',
+            options=_position_select_options(),
+        ),
+    )
+    secondary_position = ui.Label(
+        text='Дополнительная позиция',
+        component=ui.Select(
+            placeholder='Выберите дополнительную позицию',
+            options=_position_select_options(),
+        ),
+    )
+    steam = ui.Label(
+        text='Steam ID или ссылка',
+        component=ui.TextInput(placeholder='Вставьте ID32 или ссылку'),
+    )
 
     async def on_submit(self, interaction: discord.Interaction):
         # --- 1. ВАЛИДАЦИЯ НИКА ---
-        ok, err = validate_nickname(self.nickname.value)
+        nickname = self.nickname.component.value
+        ok, err = validate_nickname(nickname)
         if not ok:
             return await interaction.response.send_message(f"❌ {err}", ephemeral=True)
 
-        # --- 2. ВАЛИДАЦИЯ ПОЗИЦИЙ (Формат 1/2) ---
-        match = re.match(r"^([1-5])/([1-5])$", self.pos.value)
-        if not match:
-            return await interaction.response.send_message("❌ **Ошибка:** Укажите позиции в формате `1/2`.",
-                                                           ephemeral=True)
-
-        pos1, pos2 = match.groups()
-        if pos1 == pos2:
+        # --- 2. ВАЛИДАЦИЯ ПОЗИЦИЙ ---
+        primary_position = self.primary_position.component.values[0]
+        secondary_position = self.secondary_position.component.values[0]
+        if primary_position == secondary_position:
             return await interaction.response.send_message("❌ **Ошибка:** Позиции не могут быть одинаковыми.",
                                                            ephemeral=True)
+        positions = f"{primary_position}/{secondary_position}"
 
         # --- 3. ФОРМАТИРОВАНИЕ ИМЕНИ ---
-        formatted_real_name = self.real_name.value.strip().title()
+        formatted_real_name = self.real_name.component.value.strip().title()
 
         # --- 3.1 ВАЛИДАЦИЯ ИМЕНИ (Только кириллица) ---
         if not re.match(r'^[а-яА-ЯёЁ\s\-]+$', formatted_real_name):
@@ -83,7 +118,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
         await interaction.response.defer(ephemeral=True)
 
-        sid32 = await resolve_steam_id(self.steam.value)
+        sid32 = await resolve_steam_id(self.steam.component.value)
         if not sid32:
             return await interaction.followup.send("❌ **Ошибка:** Неверный формат Steam ID.", ephemeral=True)
 
@@ -98,8 +133,8 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
                     discord_id=interaction.user.id,
                     steam_id32=sid32,
                     real_name=formatted_real_name,
-                    ingame_name=self.nickname.value,
-                    positions=self.pos.value,
+                    ingame_name=nickname,
+                    positions=positions,
                     rank_tier=rank,
                     avatar_url=str(interaction.user.display_avatar.url),
                 )
@@ -113,7 +148,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
             action = "reactivated" if registration.was_reactivated else "registered"
             print(
-                f"[DB] Player {action}: {self.nickname.value} "
+                f"[DB] Player {action}: {nickname} "
                 f"(ID: {interaction.user.id})"
             )
 
@@ -141,7 +176,7 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
         # --- 7. ЛОГИРОВАНИЕ ---
         await send_log(
             title="🆕 Новая регистрация",
-            description=f"Игрок: {interaction.user.mention}\nНик: `{self.nickname.value}`\nИмя: `{formatted_real_name}`\nSteam: `{sid32}`",
+            description=f"Игрок: {interaction.user.mention}\nНик: `{nickname}`\nИмя: `{formatted_real_name}`\nSteam: `{sid32}`",
             color=discord.Color.green()
         )
 
@@ -181,19 +216,12 @@ class Profile(commands.Cog):
 
             # 2. Roles
 
-            pos_roles_map = {
-                "1": "Керри",
-                "2": "Мид",
-                "3": "Оффлэйнер",
-                "4": "Поддержка",
-                "5": "Полная поддержка"
-            }
             primary_pos = player_data.positions.split('/')[0]
             second_pos = player_data.positions.split('/')[1]
             target_pos_names = []
             if primary_pos:
-                name = pos_roles_map[primary_pos]
-                name2 = pos_roles_map[second_pos]
+                name = POSITION_ROLE_NAMES[primary_pos]
+                name2 = POSITION_ROLE_NAMES[second_pos]
                 if name:
                     target_pos_names.append(name)
                 if name2:
@@ -207,7 +235,7 @@ class Profile(commands.Cog):
             }
             target_rank_name = rank_names.get((player_data.rank_tier // 10) if player_data.rank_tier else 0)
 
-            all_managed_roles = list(rank_names.values()) + list(pos_roles_map.values())
+            all_managed_roles = list(rank_names.values()) + list(POSITION_ROLE_NAMES.values())
             roles_to_remove = []
             roles_to_add = []
 
