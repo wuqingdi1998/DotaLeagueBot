@@ -33,10 +33,11 @@ export function DraftTree({
       : null;
     const displayedHero = hero ?? previewHero;
     const actionName = treeStep.type === "BAN" ? "Бан" : "Пик";
+    const openingBanSpacing = treeStep.number === 4 ? "opening-ban-spacing" : "";
 
     return (
       <div
-        className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${hero ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
+        className={`fearless-draft-tree-slot ${treeStep.type.toLowerCase()} ${openingBanSpacing} ${hero ? "filled" : ""} ${isCurrent ? "current-action" : ""} ${previewHero ? "previewing" : ""}`}
         aria-label={`${treeStep.number}. ${actionName}, ${sideName}${displayedHero ? `: ${displayedHero.name}` : ""}`}
       >
         {displayedHero && (

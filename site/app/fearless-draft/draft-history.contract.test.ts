@@ -131,6 +131,13 @@ describe("Fearless Draft history", () => {
     expect(treeStyles).toContain("translateY(var(--tree-number-offset))");
   });
 
+  it("keeps the three opening bans of the first-pick side evenly spaced", () => {
+    expect(draftTree).toContain('treeStep.number === 4 ? "opening-ban-spacing" : ""');
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-slot\.opening-ban-spacing\s*\{[^}]*transform:\s*translateY\(20px\);/,
+    );
+  });
+
   it("leaves exactly two pixels between every connector and its number", () => {
     expect(draftTree).toContain('number >= 10 ? "double-digit" : "single-digit"');
     expect(treeStyles).toContain("--tree-line-number-gap: 2px");
