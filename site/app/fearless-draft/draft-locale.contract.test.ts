@@ -44,6 +44,12 @@ describe("Fearless Draft language switch", () => {
       /\.fearless-display-toggles\s*\{[^}]*flex-direction:\s*column;/,
     );
     expect(viewToggles).toMatch(
+      /\.fearless-display-toggles\s*\{[^}]*width:\s*148px;/,
+    );
+    expect(viewToggles).toMatch(
+      /\.fearless-fullscreen-toggle,[\s\S]*?\.fearless-language-toggle\s*\{[^}]*grid-template-columns:\s*15px 34px minmax\(0, 1fr\);/,
+    );
+    expect(viewToggles).toMatch(
       /\.fearless-language-toggle em \.active\s*\{[^}]*text-decoration:\s*underline;/,
     );
   });

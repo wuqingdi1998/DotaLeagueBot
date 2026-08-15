@@ -1,15 +1,18 @@
 .fearless-display-toggles {
   display: flex;
-  align-items: flex-end;
+  width: 148px;
+  align-items: stretch;
   flex-direction: column;
   gap: 4px;
 }
 
 .fearless-fullscreen-toggle,
 .fearless-language-toggle {
-  display: inline-flex;
+  display: grid;
+  width: 100%;
   align-items: center;
-  gap: 7px;
+  grid-template-columns: 15px 34px minmax(0, 1fr);
+  column-gap: 7px;
   border: 0;
   padding: 0;
   background: transparent;
@@ -20,7 +23,10 @@
 }
 
 .fearless-fullscreen-toggle > svg,
-.fearless-language-toggle > svg { font-size: 15px; }
+.fearless-language-toggle > svg {
+  width: 15px;
+  font-size: 15px;
+}
 .fearless-fullscreen-toggle > span,
 .fearless-language-toggle > span {
   position: relative;
@@ -45,11 +51,15 @@
 }
 
 .fearless-fullscreen-toggle em,
-.fearless-language-toggle em { font-style: normal; white-space: nowrap; }
+.fearless-language-toggle em {
+  min-width: 0;
+  font-style: normal;
+  text-align: left;
+  white-space: nowrap;
+}
 .fearless-language-toggle em {
   display: inline-flex;
-  min-width: 45px;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 2px;
 }
 .fearless-language-toggle em b { font-weight: 600; }
