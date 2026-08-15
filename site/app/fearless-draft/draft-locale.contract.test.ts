@@ -10,6 +10,7 @@ const localeHook = source("app/fearless-draft/hooks/useDraftLocale.tsx");
 const translations = source("app/fearless-draft/model/i18n.ts");
 const screen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const fullscreenToggle = source("app/fearless-draft/components/DraftFullscreenToggle.tsx");
+const board = source("app/styles/51-fearless-draft-board.css");
 const viewToggles = source("app/styles/51-fearless-draft-view-toggles.css");
 
 const localizedScreens = [
@@ -78,5 +79,11 @@ describe("Fearless Draft language switch", () => {
     expect(queue).toContain("invitation.format");
     expect(queue).toContain('["BO2", "BO3"]');
     expect(choices).toContain("decisionPlayer.name");
+  });
+
+  it("reserves the same space for the Bans label in both languages", () => {
+    expect(board).toMatch(
+      /\.fearless-ban-list > span\s*\{[^}]*width:\s*27px;[^}]*flex:\s*0 0 27px;/,
+    );
   });
 });

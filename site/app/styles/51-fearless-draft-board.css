@@ -216,7 +216,7 @@
   padding: 0 9px 9px;
 }
 
-.fearless-ban-list > span { margin-right: 4px; color: var(--muted); font-size: 10px; text-transform: uppercase; }
+.fearless-ban-list > span { width: 27px; flex: 0 0 27px; margin-right: 4px; color: var(--muted); font-size: 10px; text-transform: uppercase; }
 .fearless-ban-list > div {
   position: relative;
   width: 72px;

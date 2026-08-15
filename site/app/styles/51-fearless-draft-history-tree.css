@@ -68,6 +68,11 @@
   letter-spacing: 0.08em;
   text-align: center;
 }
+.fearless-draft-tree-sides span:first-child {
+  width: calc(64px + 12px);
+  justify-self: end;
+  text-align: left;
+}
 .fearless-draft-tree-sides span:last-child { grid-column: 3; color: #ed6575; }
 
 .fearless-draft-tree-row {

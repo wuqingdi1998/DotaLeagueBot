@@ -152,6 +152,9 @@ describe("Fearless Draft history", () => {
     expect(treeStyles).toMatch(
       /\.fearless-draft-tree-sides span\s*\{[^}]*font-size:\s*13px;/,
     );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-tree-sides span:first-child\s*\{[^}]*width:\s*calc\(64px \+ 12px\);[^}]*justify-self:\s*end;[^}]*text-align:\s*left;/,
+    );
   });
 
   it("uses the full tree height while keeping every row inside the panel", () => {
