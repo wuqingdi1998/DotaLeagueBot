@@ -34,6 +34,14 @@ describe("Fearless Draft language switch", () => {
     expect(screen).toContain("</DraftLocaleProvider>");
   });
 
+  it("keeps Ukrainian hidden behind twenty rapid language toggles", () => {
+    expect(localeHook).toContain("registerDraftLanguageToggle");
+    expect(localeHook).toContain("recentToggleTimesRef");
+    expect(localeHook).toContain("toggleLocale");
+    expect(fullscreenToggle).toContain("onClick={toggleLocale}");
+    expect(fullscreenToggle).not.toContain(">UK<");
+  });
+
   it("shows an RU/ENG switch directly below the fullscreen switch", () => {
     expect(fullscreenToggle).toContain("fearless-display-toggles");
     expect(fullscreenToggle).toContain("fearless-language-toggle");
@@ -59,10 +67,12 @@ describe("Fearless Draft language switch", () => {
     expect(translations).toContain("DRAFT_TRANSLATIONS");
     expect(translations).toContain('fullscreen: "На полный экран"');
     expect(translations).toContain('fullscreen: "Fullscreen"');
+    expect(translations).toContain('fullscreen: "На весь екран"');
     expect(translations).toContain('history: "История драфта"');
     expect(translations).toContain('history: "Draft history"');
     expect(translations).toContain('heroPool: "ПУЛ ГЕРОЕВ"');
     expect(translations).toContain('heroPool: "HERO POOL"');
+    expect(translations).toContain('heroPool: "ПУЛ ГЕРОЇВ"');
     expect(translations).toContain("translateDraftError");
   });
 
@@ -84,6 +94,12 @@ describe("Fearless Draft language switch", () => {
   it("reserves the same space for the Bans label in both languages", () => {
     expect(board).toMatch(
       /\.fearless-ban-list > span\s*\{[^}]*width:\s*27px;[^}]*flex:\s*0 0 27px;/,
+    );
+  });
+
+  it("keeps Ukrainian team headings on the same single line", () => {
+    expect(board).toMatch(
+      /\.fearless-team-panel > header span\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;[^}]*white-space:\s*nowrap;/,
     );
   });
 });

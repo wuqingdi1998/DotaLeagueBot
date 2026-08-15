@@ -10,7 +10,7 @@ export function DraftFullscreenToggle({
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
 }) {
-  const { locale, setLocale, text } = useDraftLocale();
+  const { locale, toggleLocale, text } = useDraftLocale();
 
   return (
     <div className="fearless-display-toggles">
@@ -33,7 +33,7 @@ export function DraftFullscreenToggle({
         role="switch"
         aria-label={text.language}
         aria-checked={locale === "en"}
-        onClick={() => setLocale(locale === "ru" ? "en" : "ru")}
+        onClick={toggleLocale}
       >
         <FiGlobe />
         <span aria-hidden="true"><i /></span>

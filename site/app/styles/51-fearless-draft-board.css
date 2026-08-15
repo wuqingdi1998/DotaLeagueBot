@@ -149,7 +149,7 @@
   gap: 2px;
 }
 
-.fearless-team-panel > header span { color: var(--team-accent); font-size: 12px; font-weight: 700; }
+.fearless-team-panel > header span { overflow: hidden; color: var(--team-accent); font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .fearless-team-panel > header strong { overflow: hidden; font-size: 16px; text-overflow: ellipsis; white-space: nowrap; }
 .fearless-team-panel > header small { color: var(--muted); font-size: 10px; }
 .fearless-team-panel > header small i {
