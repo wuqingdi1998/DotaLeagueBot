@@ -7,6 +7,7 @@ import { getTeamNameError } from "../model/formatters";
 import { buildMatchResultPayload } from "../model/match-result-payload";
 import { startDiscordLogin } from "../services/discord-login";
 import { useSeasonController } from "./useSeasonController";
+import { useTournamentCheckIn } from "./useTournamentCheckIn";
 import type { MatchDraft, RegistrationForm, TeamApplication } from "../model/types";
 import type { TournamentMatch, TournamentSiteData, TournamentTab } from "../model/types";
 
@@ -128,21 +129,11 @@ export function useTournamentController() {
       })),
     [data],
   );
-  const captainApplicationIds = useMemo(
-    () =>
-      new Set(
-        (data?.applications ?? [])
-          .filter((application) =>
-            application.members.some(
-              (member) =>
-                member.discord_id === data?.user?.discordId &&
-                member.is_captain,
-            ),
-          )
-          .map((application) => application.id),
-      ),
-    [data],
-  );
+  const tournamentCheckIn = useTournamentCheckIn({
+    data,
+    onMessage: setToast,
+    onReload: loadData,
+  });
 
   const teamNameError = getTeamNameError(registration.team_name);
   const registrationReady =
@@ -281,21 +272,6 @@ export function useTournamentController() {
         : "Вы отклонили приглашение",
     );
     await loadData();
-  }
-
-  async function checkIn(matchId: number) {
-    const response = await fetch("/api/check-in", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ matchId }),
-    });
-    const result = (await response.json()) as { error?: string };
-    setToast(
-      response.ok
-        ? "Check-in подтверждён"
-        : result.error ?? "Не удалось подтвердить готовность",
-    );
-    if (response.ok) await loadData();
   }
 
   async function generateGroups(action: "form" | "shuffle" = "form") {
@@ -447,9 +423,10 @@ export function useTournamentController() {
     adminMode,
     answerInvitation,
     approvedTeams,
-    captainApplicationIds,
+    captainApplications: tournamentCheckIn.captainApplications,
     captainChoices,
-    checkIn,
+    checkIn: tournamentCheckIn.checkIn,
+    checkInWindow: tournamentCheckIn.checkInWindow,
     createMatch,
     data,
     daysLeft,

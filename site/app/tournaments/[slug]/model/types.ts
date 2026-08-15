@@ -22,6 +22,7 @@ export type Tournament = {
   description: string;
   about: string;
   start_at: string;
+  first_match_at: string | null;
   end_at: string;
   registration_deadline: string;
   status_label: string;
@@ -65,6 +66,7 @@ export type TeamApplication = {
   placement: number | null;
   result_label: string | null;
   status: "approved" | "pending" | "awaiting_members" | "declined" | "withdrawn";
+  is_checked_in: boolean;
   created_at: string;
   members: Array<{
     discord_id: string | null;
@@ -109,8 +111,6 @@ export type TournamentMatch = {
   best_of: number;
   sort_order: number;
   status: "scheduled" | "ready" | "live" | "finished" | "cancelled";
-  team_a_checked_in: boolean;
-  team_b_checked_in: boolean;
 };
 
 export type Standing = {

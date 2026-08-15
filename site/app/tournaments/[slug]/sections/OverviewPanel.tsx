@@ -8,6 +8,7 @@ import {
   formatScheduleDate,
   formatTimelineMoment,
 } from "../model/formatters";
+import { TournamentCheckInCard } from "./TournamentCheckInCard";
 
 export function OverviewPanel() {
   const { activeTab, data } = useTournament();
@@ -21,12 +22,13 @@ export function OverviewPanel() {
 
   const timeline = tournamentTimeline({
     registrationDeadline: data.tournament.registration_deadline,
-    startAt: data.tournament.start_at,
+    startAt: data.tournament.first_match_at ?? data.tournament.start_at,
     checkInMinutes: data.tournament.check_in_minutes,
   });
 
   return (
     <div className="overview-grid tab-panel">
+      <TournamentCheckInCard />
       <article className="content-card about-card">
         <p className="card-kicker">О турнире</p>
         <h3>{data.tournament.headline}</h3>

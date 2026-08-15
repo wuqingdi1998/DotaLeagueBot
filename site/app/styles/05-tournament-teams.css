@@ -146,6 +146,65 @@
   color: #df5369;
 }
 
+.team-checkin-badge,
+.tournament-checkin-complete {
+  display: inline-flex;
+  width: max-content;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(36, 183, 118, 0.3);
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: rgba(36, 183, 118, 0.11);
+  color: #148b59;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .team-checkin-badge,
+[data-theme="dark"] .tournament-checkin-complete {
+  color: #5ed79b;
+}
+
+.team-checkin-badge {
+  margin-top: 18px;
+}
+
+.tournament-checkin-card {
+  display: flex;
+  min-height: 130px;
+  grid-column: 1 / -1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.tournament-checkin-copy {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.tournament-checkin-copy > svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 34px;
+}
+
+.tournament-checkin-copy h3,
+.tournament-checkin-copy p {
+  margin: 0;
+}
+
+.tournament-checkin-copy h3 {
+  margin: 3px 0 5px;
+  font-size: 23px;
+}
+
+.tournament-checkin-copy p:last-child {
+  color: var(--muted);
+}
+
 .team-tag {
   margin: 28px 0 5px;
   color: var(--blue-deep);

@@ -57,6 +57,13 @@ FEARLESS_DRAFT_PREVIEW_MIGRATION = (
     / "0068_fearless_draft_preview.sql"
 ).read_text(encoding="utf-8")
 
+TOURNAMENT_TEAM_CHECKIN_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0071_tournament_team_checkins.sql"
+).read_text(encoding="utf-8")
+
 BRACKET_LAYOUT_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -218,6 +225,15 @@ def test_team_names_are_unique_inside_tournament() -> None:
 
 def test_checkin_is_idempotent() -> None:
     assert "PRIMARY KEY (match_id, application_id)" in MIGRATION
+
+
+def test_tournament_checkin_replaces_match_checkin_without_losing_confirmations() -> None:
+    assert "tournament_team_checkins" in TOURNAMENT_TEAM_CHECKIN_MIGRATION
+    assert "PRIMARY KEY (tournament_id, application_id)" in (
+        TOURNAMENT_TEAM_CHECKIN_MIGRATION
+    )
+    assert "FROM tournament_match_checkins" in TOURNAMENT_TEAM_CHECKIN_MIGRATION
+    assert "tournament_check_in" in TOURNAMENT_TEAM_CHECKIN_MIGRATION
 
 
 def test_notification_outbox_supports_retries() -> None:

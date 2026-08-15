@@ -90,7 +90,10 @@ export async function GET(request: Request) {
     : "WHERE status NOT IN ('draft', 'archived')";
   const tournament = await one<TournamentRow>(
     `SELECT id::int, slug, name, eyebrow, headline, headline_accent,
-       description, about, start_at, end_at, registration_deadline,
+       description, about, start_at,
+       (SELECT MIN(match.scheduled_at) FROM tournament_matches match
+        WHERE match.tournament_id = tournaments.id) AS first_match_at,
+       end_at, registration_deadline,
        status_label, format, team_size, max_teams, region, server,
        check_in_minutes, group_format, playoff_format, final_format,
        max_team_tier::int, show_tiers,
@@ -167,6 +170,11 @@ export async function GET(request: Request) {
         `SELECT a.id::int, a.tournament_id::int, a.team_name, a.tag,
            a.captain_discord_id::text, a.contact, a.logo_key, a.status, a.created_at,
            a.selection_method, a.team_tier_total_snapshot,
+           EXISTS (
+             SELECT 1 FROM tournament_team_checkins checkin
+             WHERE checkin.tournament_id = a.tournament_id
+               AND checkin.application_id = a.id
+           ) AS is_checked_in,
            EXISTS (
              SELECT 1 FROM tournament_team_members confirmation_member
              WHERE confirmation_member.application_id = a.id
@@ -246,15 +254,7 @@ export async function GET(request: Request) {
            m.bracket_grid_column::int, m.bracket_grid_row::int,
            m.eliminated_team_application_id::int,
            m.winner_to_match_id::int, m.winner_to_slot,
-           m.loser_to_match_id::int, m.loser_to_slot,
-           EXISTS (
-             SELECT 1 FROM tournament_match_checkins c
-             WHERE c.match_id = m.id AND c.application_id = m.team_a_application_id
-           ) AS team_a_checked_in,
-           EXISTS (
-             SELECT 1 FROM tournament_match_checkins c
-             WHERE c.match_id = m.id AND c.application_id = m.team_b_application_id
-           ) AS team_b_checked_in
+           m.loser_to_match_id::int, m.loser_to_slot
          FROM tournament_matches m
          LEFT JOIN tournament_team_applications a
            ON a.id = m.team_a_application_id

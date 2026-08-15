@@ -33,3 +33,11 @@ def test_bridge_stores_sent_message_ids_for_later_cleanup() -> None:
     assert "discord_message_id = :message_id" in BRIDGE
     assert "await message.delete()" in BRIDGE
     assert "status = 'deleted'" in BRIDGE
+
+
+def test_bridge_queues_one_tournament_checkin_message_per_captain() -> None:
+    assert "_queue_tournament_checkins" in BRIDGE
+    assert "MIN(scheduled_at)" in BRIDGE
+    assert "t.check_in_minutes" in BRIDGE
+    assert "tournament_check_in" in BRIDGE
+    assert "ON CONFLICT DO NOTHING" in BRIDGE

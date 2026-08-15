@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FaCrown } from "react-icons/fa";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
 import { isPastTournament } from "@/lib/tournaments";
 import { RoleIcon } from "../components/RoleField";
 import { TeamEmblemPreview } from "../components/TeamEmblemPreview";
@@ -16,6 +16,7 @@ export function TeamsPanel() {
     data,
     openRegistration,
     registrationAvailable,
+    checkInWindow,
   } = useTournament();
   if (!data || activeTab !== "teams") return null;
 
@@ -65,6 +66,11 @@ export function TeamsPanel() {
                       : "На проверке"}
                 </span>
               </div>
+              {team.is_checked_in && checkInWindow?.shouldShowStatus && (
+                <div className="team-checkin-badge">
+                  <FiCheckCircle aria-hidden="true" /> Прошел чек-ин
+                </div>
+              )}
               <p className="team-tag">{team.tag}</p>
               <h3>{team.team_name}</h3>
               <div className="team-archive-meta">

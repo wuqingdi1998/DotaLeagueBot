@@ -235,6 +235,17 @@
     grid-template-columns: 1fr;
   }
 
+  .tournament-checkin-card {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .tournament-checkin-card .primary-button,
+  .tournament-checkin-complete {
+    width: 100%;
+    justify-content: center;
+  }
+
   .standing-row {
     grid-template-columns: 34px minmax(0, 1fr) 58px 86px;
     padding: 0 9px;

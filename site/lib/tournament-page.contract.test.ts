@@ -45,11 +45,10 @@ describe("tournament page public behavior", () => {
   it("keeps registration, invitations and check-in actions", () => {
     expect(tournamentSource).toContain("/api/applications");
     expect(tournamentSource).toContain("/api/check-in");
-    expect(tournamentSource).toContain(
-      "shouldShowMatchReadiness(match, isPast)",
-    );
-    expect(tournamentSource).toContain('match.status === "scheduled"');
-    expect(tournamentSource).toContain("captainApplicationIds.has");
+    expect(tournamentSource).toContain("TournamentCheckInCard");
+    expect(tournamentSource).toContain("Пройти чек-ин");
+    expect(tournamentSource).toContain("Прошел чек-ин");
+    expect(tournamentSource).not.toContain("shouldShowMatchReadiness");
     expect(tournamentSource).toContain("Вы приняли приглашение в команду");
     expect(tournamentSource).toContain("Зарегистрировать команду");
   });

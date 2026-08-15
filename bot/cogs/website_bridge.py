@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands, tasks
 from sqlalchemy.engine import RowMapping
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.core import async_session
 from utils.website_notifications import notification_embed
@@ -48,9 +49,49 @@ class WebsiteBridge(commands.Cog):
                 await message.delete()
                 return
 
+    async def _queue_tournament_checkins(self, session: AsyncSession) -> None:
+        base_url = (os.getenv("PUBLIC_BASE_URL") or "https://lsesports.ru").rstrip("/")
+        await session.execute(
+            text(
+                """
+                WITH tournament_starts AS (
+                    SELECT tournament_id, MIN(scheduled_at) AS first_match_at
+                    FROM tournament_matches
+                    GROUP BY tournament_id
+                )
+                INSERT INTO notification_outbox (
+                    discord_id, event_type, title, message, action_url,
+                    application_id
+                )
+                SELECT application.captain_discord_id,
+                       'tournament_check_in',
+                       'Чек-ин турнира: ' || tournament.name,
+                       'Капитан, подтвердите участие команды «'
+                           || application.team_name || '» в турнире. '
+                           || 'Одного подтверждения достаточно для всей команды.',
+                       :base_url || '/tournaments/' || tournament.slug,
+                       application.id
+                FROM tournament_team_applications application
+                JOIN tournaments tournament
+                  ON tournament.id = application.tournament_id
+                JOIN tournament_starts start_time
+                  ON start_time.tournament_id = tournament.id
+                WHERE application.status = 'approved'
+                  AND application.captain_discord_id IS NOT NULL
+                  AND tournament.status IN ('registration', 'active')
+                  AND NOW() >= start_time.first_match_at
+                      - (tournament.check_in_minutes || ' minutes')::interval
+                  AND NOW() < start_time.first_match_at
+                ON CONFLICT DO NOTHING
+                """
+            ),
+            {"base_url": base_url},
+        )
+
     @tasks.loop(seconds=15)
     async def deliver_notifications(self) -> None:
         async with async_session() as session:
+            await self._queue_tournament_checkins(session)
             result = await session.execute(
                 text(
                     """

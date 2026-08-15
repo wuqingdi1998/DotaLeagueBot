@@ -7,7 +7,6 @@ import {
   formatTime,
   initials,
 } from "../model/formatters";
-import { shouldShowMatchReadiness } from "../model/match-readiness";
 
 const bracketLabels = {
   group: "Группы",
@@ -17,7 +16,7 @@ const bracketLabels = {
 } as const;
 
 export function MatchesPanel() {
-  const { activeTab, captainApplicationIds, checkIn, data } = useTournament();
+  const { activeTab, data } = useTournament();
   if (!data || activeTab !== "matches") return null;
 
   const isPast = isPastTournament(data.tournament.status);
@@ -65,36 +64,6 @@ export function MatchesPanel() {
               <i>{initials(match.team_b)}</i>
             </div>
             <span className="best-of">BO{match.best_of}</span>
-            <div className="match-actions">
-              {shouldShowMatchReadiness(match, isPast) && (
-                <span className="checkin-state">
-                  {match.team_a_checked_in || match.team_b_checked_in
-                    ? `Готовы: ${[
-                        match.team_a_checked_in ? match.team_a : "",
-                        match.team_b_checked_in ? match.team_b : "",
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}`
-                    : "Готовность ожидается"}
-                </span>
-              )}
-              {data.user &&
-                !isPast &&
-                match.status === "scheduled" &&
-                ((match.team_a_application_id !== null &&
-                  captainApplicationIds.has(match.team_a_application_id)) ||
-                  (match.team_b_application_id !== null &&
-                    captainApplicationIds.has(
-                      match.team_b_application_id,
-                    ))) && (
-                  <button
-                    className="match-checkin"
-                    onClick={() => void checkIn(match.id)}
-                  >
-                    Check-in
-                  </button>
-                )}
-            </div>
             {match.decision_note && (
               <p className="match-decision-note">{match.decision_note}</p>
             )}

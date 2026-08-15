@@ -33,8 +33,6 @@ const match: TournamentMatch = {
   best_of: 5,
   sort_order: 0,
   status: "scheduled",
-  team_a_checked_in: false,
-  team_b_checked_in: false,
 };
 
 function baseForm() {
