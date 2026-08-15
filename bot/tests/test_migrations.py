@@ -64,6 +64,13 @@ TOURNAMENT_TEAM_CHECKIN_MIGRATION = (
     / "0071_tournament_team_checkins.sql"
 ).read_text(encoding="utf-8")
 
+LSERUMSH_CHECKIN_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0072_lserumsh_checkin_hour.sql"
+).read_text(encoding="utf-8")
+
 BRACKET_LAYOUT_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -234,6 +241,11 @@ def test_tournament_checkin_replaces_match_checkin_without_losing_confirmations(
     )
     assert "FROM tournament_match_checkins" in TOURNAMENT_TEAM_CHECKIN_MIGRATION
     assert "tournament_check_in" in TOURNAMENT_TEAM_CHECKIN_MIGRATION
+
+
+def test_lserumsh_checkin_opens_one_hour_before_first_match() -> None:
+    assert "check_in_minutes = 60" in LSERUMSH_CHECKIN_MIGRATION
+    assert "slug = 'lserumsh'" in LSERUMSH_CHECKIN_MIGRATION
 
 
 def test_notification_outbox_supports_retries() -> None:
