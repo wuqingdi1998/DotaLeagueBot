@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { DraftTree } from "../components/DraftTree";
 import { FEARLESS_DRAFT_HEROES_BY_ID } from "../model/heroes";
 import type { DraftActionSnapshot } from "../model/snapshot";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 export function DraftHistory({
   actions,
@@ -21,6 +22,7 @@ export function DraftHistory({
   previewHeroId: number | null;
   isFullscreen: boolean;
 }) {
+  const { text } = useDraftLocale();
   const historyListRef = useRef<HTMLDivElement>(null);
   const [activeView, setActiveView] = useState<"history" | "tree">("history");
 
@@ -36,7 +38,7 @@ export function DraftHistory({
     <aside className="fearless-history" id="fearless-draft-history">
       <header>
         {isFullscreen ? (
-          <nav className="fearless-history-tabs" aria-label="Вид истории драфта" role="tablist">
+          <nav className="fearless-history-tabs" aria-label={text.historyView} role="tablist">
             <button
               className={activeView === "history" ? "active" : ""}
               id="fearless-draft-history-tab"
@@ -46,7 +48,7 @@ export function DraftHistory({
               aria-selected={activeView === "history"}
               onClick={() => setActiveView("history")}
             >
-              История драфта
+              {text.history}
             </button>
             <button
               className={activeView === "tree" ? "active" : ""}
@@ -57,12 +59,12 @@ export function DraftHistory({
               aria-selected={activeView === "tree"}
               onClick={() => setActiveView("tree")}
             >
-              Древо драфта
+              {text.tree}
             </button>
           </nav>
         ) : (
           <>
-            <span>История карты</span>
+            <span>{text.mapHistory}</span>
             <strong>{actions.length} / 24</strong>
           </>
         )}
@@ -90,17 +92,17 @@ export function DraftHistory({
               <article key={action.step}>
                 <b>{action.step + 1}</b>
                 <span className={action.actorId === radiantPlayerId ? "radiant" : "dire"}>
-                  {action.type}
+                  {action.type === "BAN" ? text.ban : text.pick}
                 </span>
                 {hero ? (
                   <Image src={hero.imageUrl} alt="" width={44} height={25} unoptimized />
                 ) : <i>—</i>}
-                <strong>{hero?.name ?? "Пропущено"}</strong>
-                {action.isAutomatic && <small>авто</small>}
+                <strong>{hero?.name ?? text.skipped}</strong>
+                {action.isAutomatic && <small>{text.automatic}</small>}
               </article>
             );
           })}
-          {!actions.length && <p>Первое действие скоро появится здесь.</p>}
+          {!actions.length && <p>{text.firstActionSoon}</p>}
         </div>
       )}
     </aside>

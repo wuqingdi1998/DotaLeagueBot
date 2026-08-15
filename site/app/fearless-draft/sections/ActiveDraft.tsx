@@ -12,15 +12,7 @@ import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { DraftTeamPanel } from "../components/DraftTeamPanel";
 import { HeroGrid } from "../components/HeroGrid";
 import { DraftHistory } from "./DraftHistory";
-
-const phaseLabels = {
-  FIRST_BANS: "Первая стадия банов",
-  FIRST_PICKS: "Первая стадия пиков",
-  SECOND_BANS: "Вторая стадия банов",
-  SECOND_PICKS: "Вторая стадия пиков",
-  FINAL_BANS: "Финальная стадия банов",
-  FINAL_PICKS: "Финальная стадия пиков",
-} as const;
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 function otherPlayer(series: DraftSeriesSnapshot, playerId: string): DraftPlayer {
   return series.player1.id === playerId ? series.player2 : series.player1;
@@ -45,6 +37,7 @@ export function ActiveDraft({
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
 }) {
+  const { text } = useDraftLocale();
   const [localPreview, setLocalPreview] = useState<{
     heroId: number;
     version: number;
@@ -83,13 +76,21 @@ export function ActiveDraft({
   const opponentReady = userId === series.player1.id
     ? series.player2ReadyForNextMap
     : series.player1ReadyForNextMap;
+  const phaseLabels = {
+    FIRST_BANS: text.firstBans,
+    FIRST_PICKS: text.firstPicks,
+    SECOND_BANS: text.secondBans,
+    SECOND_PICKS: text.secondPicks,
+    FINAL_BANS: text.finalBans,
+    FINAL_PICKS: text.finalPicks,
+  } as const;
 
   return (
     <section className="fearless-active-draft">
       <header className="fearless-draft-status">
         <div>
-          <span>MAP {map.number} / {series.format}</span>
-          <strong>{isComplete ? "DRAFT COMPLETE" : map.currentPhase ? phaseLabels[map.currentPhase] : "Драфт"}</strong>
+          <span>{text.map} {map.number} / {series.format}</span>
+          <strong>{isComplete ? text.draftComplete : map.currentPhase ? phaseLabels[map.currentPhase] : text.draft}</strong>
         </div>
         {isComplete ? (
           <div className="fearless-map-ready-control">
@@ -100,7 +101,7 @@ export function ActiveDraft({
                 disabled={isSending}
                 onClick={() => void send({ action: "DISMISS_COMPLETE" })}
               >
-                Вернуться к поиску <FiArrowRight />
+                {text.returnToQueue} <FiArrowRight />
               </button>
             ) : (
               <button
@@ -110,11 +111,11 @@ export function ActiveDraft({
                 onClick={() => void send({ action: "READY_FOR_NEXT_MAP" })}
               >
                 {ownReady ? (
-                  <><FiCheck /> Ожидаем соперника…</>
+                  <><FiCheck /> {text.waitingOpponent}</>
                 ) : (
                   <>
-                    {opponentReady && "Соперник готов · "}
-                    Я готов к карте {map.number + 1} <FiArrowRight />
+                    {opponentReady && text.opponentReady}
+                    {text.readyForMap} {map.number + 1} <FiArrowRight />
                   </>
                 )}
               </button>
@@ -122,13 +123,13 @@ export function ActiveDraft({
           </div>
         ) : currentActor && (
           <div className={`fearless-turn ${isOwnTurn ? "own" : "opponent"}`}>
-            <span>{isOwnTurn ? "ВАШ ХОД" : `ХОД: ${currentActor.name}`}</span>
-            <strong>{map.currentAction}</strong>
+            <span>{isOwnTurn ? text.yourTurn : `${text.turn}: ${currentActor.name}`}</span>
+            <strong>{map.currentAction === "BAN" ? text.ban : text.pick}</strong>
           </div>
         )}
         <div className="fearless-draft-view-controls">
           <div className={`fearless-main-clock ${clock?.isUsingReserve ? "reserve" : ""}`}>
-            <span>{clock?.isUsingReserve ? "RESERVE TIME" : "ВРЕМЯ ХОДА"}</span>
+            <span>{clock?.isUsingReserve ? text.reserveTime : text.turnTime}</span>
             <strong>
               {isComplete
                 ? "00:00"

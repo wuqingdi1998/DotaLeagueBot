@@ -41,8 +41,8 @@ describe("Fearless Draft history", () => {
     expect(activeDraft).toContain("isFullscreen={isFullscreen}");
     expect(activeDraft).toContain("firstPickPlayerId={firstPick.id}");
     expect(history).toContain('useState<"history" | "tree">("history")');
-    expect(history).toContain("История драфта");
-    expect(history).toContain("Древо драфта");
+    expect(history).toContain("{text.history}");
+    expect(history).toContain("{text.tree}");
     expect(history).toContain("isFullscreen ? (");
     expect(history).toContain("{actions.length} / 24");
     expect(history).toContain("isFullscreen && activeView === \"tree\"");

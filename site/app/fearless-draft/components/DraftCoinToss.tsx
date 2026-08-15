@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import { coinTossAngleDegrees } from "../model/coin-toss";
 import type { DraftPlayer } from "../model/snapshot";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 export type CoinTossStage = "FLIPPING" | "SPINNING" | "REVEALED";
 
@@ -17,9 +18,10 @@ export function DraftCoinToss({
   segment: number;
   stage: CoinTossStage;
 }) {
+  const { text } = useDraftLocale();
   if (stage === "FLIPPING") {
     return (
-      <div className="fearless-coin flipping" aria-label="Монетка вращается">
+      <div className="fearless-coin flipping" aria-label={text.coinSpinning}>
         <div><span>LS</span></div>
       </div>
     );

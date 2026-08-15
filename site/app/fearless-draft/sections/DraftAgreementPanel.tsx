@@ -6,6 +6,7 @@ import type {
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 function remainingLabel(expiresAt: string, now: number): string {
   const seconds = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now) / 1000));
@@ -25,6 +26,7 @@ export function DraftAgreementPanel({
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
 }) {
+  const { text } = useDraftLocale();
   const now = useServerNow(serverNow, 1_000);
 
   if (series.status === "COMPLETE") return null;
@@ -36,14 +38,12 @@ export function DraftAgreementPanel({
           type="button"
           disabled={isSending}
           onClick={() => {
-            if (window.confirm(
-              "Предложить сопернику завершить драфт? Если он не ответит за 5 минут, драфт завершится автоматически.",
-            )) {
+            if (window.confirm(text.endDraftConfirm)) {
               void send({ action: "REQUEST_SERIES_END" });
             }
           }}
         >
-          <FiFlag /> Предложить завершить драфт
+          <FiFlag /> {text.offerEndDraft}
         </button>
       </div>
     );
@@ -59,11 +59,11 @@ export function DraftAgreementPanel({
       <div>
         <strong>
           {ownRequest
-            ? "Запрос на завершение отправлен"
-            : `${requester.name} предлагает завершить драфт`}
+            ? text.endRequestSent
+            : `${requester.name} ${text.offersEndDraft}`}
         </strong>
         <span>
-          Без ответа драфт закроется через {remainingLabel(request.expiresAt, now)}
+          {text.closesWithoutResponse} {remainingLabel(request.expiresAt, now)}
         </span>
       </div>
       {ownRequest ? (
@@ -72,7 +72,7 @@ export function DraftAgreementPanel({
           disabled={isSending}
           onClick={() => void send({ action: "CANCEL_SERIES_END" })}
         >
-          Отменить запрос
+          {text.cancelRequest}
         </button>
       ) : (
         <div className="fearless-end-actions">
@@ -82,7 +82,7 @@ export function DraftAgreementPanel({
             disabled={isSending}
             onClick={() => void send({ action: "RESPOND_SERIES_END", response: "DECLINE" })}
           >
-            Продолжить драфт
+            {text.continueDraft}
           </button>
           <button
             className="accept"
@@ -90,7 +90,7 @@ export function DraftAgreementPanel({
             disabled={isSending}
             onClick={() => void send({ action: "RESPOND_SERIES_END", response: "ACCEPT" })}
           >
-            Завершить
+            {text.finish}
           </button>
         </div>
       )}

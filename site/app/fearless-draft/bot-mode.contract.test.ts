@@ -16,7 +16,7 @@ describe("Fearless Draft organizer bot mode", () => {
   it("shows the Bot button only to an organizer", () => {
     expect(queue).toContain("snapshot.isOrganizer");
     expect(queue).toContain('{ action: "START_BOT" }');
-    expect(queue).toContain("<FiCpu /> Bot");
+    expect(queue).toContain("<FiCpu /> {text.bot}");
     expect(snapshot).toContain("isOrganizer: user.isAdmin");
   });
 

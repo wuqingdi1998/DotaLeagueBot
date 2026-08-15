@@ -16,13 +16,7 @@ import type {
   FearlessDraftCommand,
 } from "../model/snapshot";
 import type { DraftChoice } from "../model/types";
-
-const choiceLabels: Record<DraftChoice, string> = {
-  FIRST: "First Pick",
-  SECOND: "Second Pick",
-  RADIANT: "Radiant",
-  DIRE: "Dire",
-};
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 function coinTossStage(elapsedMs: number): CoinTossStage {
   if (elapsedMs < COIN_FLIP_DURATION_MS) return "FLIPPING";
@@ -51,6 +45,7 @@ export function DraftChoices({
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
 }) {
+  const { text } = useDraftLocale();
   const { map } = series;
   const synchronizedNow = useServerNow(serverNow, 50);
   const firstChooser = map.firstChooserId === series.player1.id
@@ -73,14 +68,20 @@ export function DraftChoices({
     synchronizedNow - Date.parse(map.createdAt),
   ));
   const isCoinRevealed = !hasCoinToss || tossStage === "REVEALED";
+  const choiceLabels: Record<DraftChoice, string> = {
+    FIRST: text.choiceFirst,
+    SECOND: text.choiceSecond,
+    RADIANT: text.choiceRadiant,
+    DIRE: text.choiceDire,
+  };
 
   return (
     <section className="fearless-choice-screen">
       <HeroPortraitPreloader />
       <div className="fearless-choice-header">
         <div className="fearless-series-meta">
-          <span>MAP {map.number} / {series.format}</span>
-          <strong>Определение сторон и очередности</strong>
+          <span>{text.map} {map.number} / {series.format}</span>
+          <strong>{text.sidesAndOrder}</strong>
         </div>
         <DraftFullscreenToggle
           isFullscreen={isFullscreen}
@@ -99,10 +100,10 @@ export function DraftChoices({
             stage={tossStage}
           />
           <p className="fearless-coin-result">
-            {tossStage === "FLIPPING" && "Монетка делает несколько оборотов…"}
-            {tossStage === "SPINNING" && "Волчок определяет победителя…"}
+            {tossStage === "FLIPPING" && text.coinFlipping}
+            {tossStage === "SPINNING" && text.spinnerChoosing}
             {tossStage === "REVEALED" && (
-              <><FiCheckCircle /> Монетку выиграл <strong>{firstChooser.name}</strong></>
+              <><FiCheckCircle /> {text.coinWinner} <strong>{firstChooser.name}</strong></>
             )}
           </p>
         </>
@@ -110,9 +111,7 @@ export function DraftChoices({
 
       {!hasCoinToss && (
         <p className="fearless-map-two-choice">
-          На первой карте монетку проиграл <strong>{firstChooser.name}</strong>,
-          поэтому на второй карте право первого выбора стороны или очереди пика
-          досталось ему.
+          {text.mapTwoChoiceBefore} <strong>{firstChooser.name}</strong>, {text.mapTwoChoiceAfter}
         </p>
       )}
 
@@ -121,13 +120,13 @@ export function DraftChoices({
           <div className="fearless-decision-player">
             <PlayerAvatar player={decisionPlayer} freezeAnimation />
             <div>
-              <span>{isFirstDecision ? "Первый выбор" : "Ответный выбор"}</span>
+              <span>{isFirstDecision ? text.firstChoice : text.responseChoice}</span>
               <strong>{decisionPlayer.name}</strong>
             </div>
           </div>
           {!isFirstDecision && map.firstChoice && (
             <p>
-              {firstChooser.name} выбрал: <strong>{choiceLabels[map.firstChoice]}</strong>
+              {firstChooser.name} {text.chose}: <strong>{choiceLabels[map.firstChoice]}</strong>
             </p>
           )}
           {decisionPlayer.id === userId ? (
@@ -145,7 +144,7 @@ export function DraftChoices({
             </div>
           ) : (
             <div className="fearless-waiting-choice">
-              <i /> Ожидаем решение соперника
+              <i /> {text.waitingDecision}
             </div>
           )}
         </div>

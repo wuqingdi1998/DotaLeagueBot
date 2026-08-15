@@ -157,7 +157,7 @@ describe("Fearless Draft board interface", () => {
   });
 
   it("matches reserve typography to the upper clock and keeps player headers aligned", () => {
-    expect(teamPanel).toContain('isConnected ? "В сети" : "Соперник отключился"');
+    expect(teamPanel).toContain("isConnected ? text.online : text.opponentDisconnected");
     expect(teamPanel).toContain('className={isConnected ? undefined : "disconnected"}');
     expect(interactions).toContain("font-size: 28px");
     expect(interactions).toMatch(
@@ -330,7 +330,7 @@ describe("Fearless Draft board interface", () => {
     expect(draftScreen).toContain("serverNow={snapshot.serverNow}");
     expect(choices).toContain("COIN_SPINNER_DURATION_MS");
     expect(choices).toContain("useServerNow(serverNow");
-    expect(choices).toContain("На первой карте монетку проиграл");
+    expect(choices).toContain("text.mapTwoChoiceBefore");
     expect(choices).toContain("hasCoinToss &&");
     expect(coinToss).not.toContain("50 / 50");
     expect(coinToss).toContain("coinTossAngleDegrees(segment)");

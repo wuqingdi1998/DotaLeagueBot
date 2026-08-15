@@ -9,6 +9,7 @@ import type {
 } from "../model/snapshot";
 import type { DraftFormat } from "../model/types";
 import { PlayerAvatar } from "../components/PlayerAvatar";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 type QueueProps = {
   snapshot: FearlessDraftSnapshot;
@@ -25,6 +26,7 @@ function InvitationCard({
   isSending: boolean;
   send: QueueProps["send"];
 }) {
+  const { text } = useDraftLocale();
   const isIncoming = invitation.direction === "INCOMING";
   return (
     <article className={`fearless-invitation ${isIncoming ? "incoming" : "outgoing"}`}>
@@ -32,7 +34,7 @@ function InvitationCard({
       <div>
         <strong>{invitation.opponent.name}</strong>
         <span>
-          {isIncoming ? "приглашает вас сыграть" : "ждём ответа на"} {invitation.format}
+          {isIncoming ? text.invitesYou : text.waitingResponse} {invitation.format}
         </span>
       </div>
       <div className="fearless-invitation-actions">
@@ -43,7 +45,7 @@ function InvitationCard({
             disabled={isSending}
             onClick={() => void send({ action: "ACCEPT_INVITATION", invitationId: invitation.id })}
           >
-            Принять
+            {text.accept}
           </button>
         )}
         <button
@@ -55,7 +57,7 @@ function InvitationCard({
             invitationId: invitation.id,
           })}
         >
-          {isIncoming ? "Отклонить" : "Отменить"}
+          {isIncoming ? text.decline : text.cancel}
         </button>
       </div>
     </article>
@@ -63,16 +65,15 @@ function InvitationCard({
 }
 
 export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
+  const { text } = useDraftLocale();
   const [format, setFormat] = useState<DraftFormat>("BO3");
   return (
     <section className="fearless-queue-panel">
       <div className="fearless-section-heading">
         <div>
-          <span className="section-kicker">Поиск соперника</span>
-          <h2>{snapshot.isWaiting ? "Вы в очереди" : "Начните поиск"}</h2>
-          <p>
-            Оба участника должны быть зарегистрированы и находиться на этой странице.
-          </p>
+          <span className="section-kicker">{text.opponentSearch}</span>
+          <h2>{snapshot.isWaiting ? text.inQueue : text.startSearchTitle}</h2>
+          <p>{text.queueDescription}</p>
         </div>
         <div className="fearless-queue-actions">
           {snapshot.isOrganizer && (
@@ -82,7 +83,7 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
               disabled={isSending}
               onClick={() => void send({ action: "START_BOT" })}
             >
-              <FiCpu /> Bot
+              <FiCpu /> {text.bot}
             </button>
           )}
           {snapshot.isWaiting ? (
@@ -92,7 +93,7 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
               disabled={isSending}
               onClick={() => void send({ action: "LEAVE_QUEUE" })}
             >
-              <FiUserX /> Покинуть поиск
+              <FiUserX /> {text.leaveSearch}
             </button>
           ) : (
             <button
@@ -101,7 +102,7 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
               disabled={isSending}
               onClick={() => void send({ action: "JOIN_QUEUE" })}
             >
-              <FiRadio /> Начать поиск
+              <FiRadio /> {text.startSearch}
             </button>
           )}
         </div>
@@ -122,8 +123,8 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
 
       {snapshot.isWaiting && (
         <>
-          <div className="fearless-format-picker" role="group" aria-label="Формат серии">
-            <span>Пригласить на:</span>
+          <div className="fearless-format-picker" role="group" aria-label={text.seriesFormat}>
+            <span>{text.inviteTo}</span>
             {(["BO2", "BO3"] as const).map((value) => (
               <button
                 key={value}
@@ -142,7 +143,7 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
                 <div>
                   <strong>{player.name}</strong>
                   <span>Discord: {player.discordName}</span>
-                  <small><i /> Ищет соперника</small>
+                  <small><i /> {text.searchingOpponent}</small>
                 </div>
                 <button
                   className="primary-button"
@@ -150,14 +151,14 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
                   disabled={isSending}
                   onClick={() => void send({ action: "INVITE", opponentId: player.id, format })}
                 >
-                  <FiSend /> Пригласить
+                  <FiSend /> {text.invite}
                 </button>
               </article>
             )) : (
               <div className="fearless-empty-state">
                 <FiRadio />
-                <strong>Пока никого нет</strong>
-                <span>Список обновляется автоматически.</span>
+                <strong>{text.nobodyHere}</strong>
+                <span>{text.listUpdates}</span>
               </div>
             )}
           </div>

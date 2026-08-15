@@ -15,6 +15,7 @@ import type {
   FearlessDraftCommand,
 } from "../model/snapshot";
 import { useHeroSearchHotkeys } from "../hooks/useHeroSearchHotkeys";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 type HeroState =
   | "available"
@@ -47,6 +48,7 @@ export function HeroGrid({
   send: (command: FearlessDraftCommand) => Promise<boolean>;
   onPreviewHeroIdChange: (heroId: number) => void;
 }) {
+  const { text } = useDraftLocale();
   const [search, setSearch] = useState("");
   const [selection, setSelection] = useState<{
     heroId: number;
@@ -151,8 +153,8 @@ export function HeroGrid({
     <section className="fearless-hero-pool">
       <div className="fearless-hero-toolbar">
         <div>
-          <span>HERO POOL</span>
-          <strong>{visibleHeroes.length} героев</strong>
+          <span>{text.heroPool}</span>
+          <strong>{visibleHeroes.length} {text.heroes}</strong>
         </div>
         <label>
           <FiSearch />
@@ -163,14 +165,14 @@ export function HeroGrid({
               setHeroPreview(null);
               setSearch(event.target.value);
             }}
-            placeholder="Найти героя…"
+            placeholder={text.searchHero}
           />
         </label>
       </div>
       <div className="fearless-hero-grid">
         {groupedHeroes.map((group) => (
           <section className={`fearless-attribute-group ${group.key}`} key={group.key}>
-            <header><i /> <strong>{group.label}</strong></header>
+            <header><i /> <strong>{text[group.key]}</strong></header>
             <div>
               {group.heroes.map((hero) => {
                 const state = heroState(hero.id);
@@ -188,11 +190,11 @@ export function HeroGrid({
                     tabIndex={canSelect ? 0 : -1}
                     title={
                       state === "fearless-locked"
-                        ? "Использован на предыдущей карте"
+                        ? text.usedPreviousMap
                         : state === "captains-disabled"
-                          ? "Временно недоступен в Captain's Mode"
+                          ? text.unavailableCaptainsMode
                           : state === "banned"
-                            ? "Забанен на текущей карте"
+                            ? text.bannedCurrentMap
                             : hero.name
                     }
                     onMouseEnter={(event) => showHeroPreview(hero, event)}
@@ -229,7 +231,7 @@ export function HeroGrid({
         <div className="fearless-hero-confirm">
           <Image src={selectedHero.portraitUrl} alt="" width={100} height={176} unoptimized />
           <div>
-            <span>Выбран герой</span>
+            <span>{text.selectedHero}</span>
             <strong>{selectedHero.name}</strong>
           </div>
           <button
@@ -251,10 +253,10 @@ export function HeroGrid({
               unoptimized
             />
             <span className="fearless-hero-confirm-label">
-              {map.currentAction === "BAN" ? "BAN HERO" : "PICK HERO"}
+              {map.currentAction === "BAN" ? text.banHero : text.pickHero}
             </span>
             <span className="fearless-hero-confirm-action">
-              {map.currentAction === "BAN" ? "BAN" : "PICK"}
+              {map.currentAction === "BAN" ? text.ban : text.pick}
             </span>
           </button>
         </div>

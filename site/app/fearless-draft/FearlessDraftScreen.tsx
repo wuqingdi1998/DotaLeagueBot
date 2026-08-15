@@ -8,14 +8,29 @@ import { ActiveDraft } from "./sections/ActiveDraft";
 import { DraftChoices } from "./sections/DraftChoices";
 import { DraftQueue } from "./sections/DraftQueue";
 import { DraftAgreementPanel } from "./sections/DraftAgreementPanel";
+import { DraftLocaleProvider, useDraftLocale } from "./hooks/useDraftLocale";
+import { translateDraftError } from "./model/i18n";
 
 export function FearlessDraftScreen({
   initialSnapshot,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
 }) {
+  return (
+    <DraftLocaleProvider>
+      <FearlessDraftContent initialSnapshot={initialSnapshot} />
+    </DraftLocaleProvider>
+  );
+}
+
+function FearlessDraftContent({
+  initialSnapshot,
+}: {
+  initialSnapshot: FearlessDraftSnapshot;
+}) {
   const { snapshot, error, isSending, isConnected, send } =
     useFearlessDraft(initialSnapshot);
+  const { locale, text } = useDraftLocale();
   const {
     draftRef,
     isFullscreen,
@@ -24,23 +39,24 @@ export function FearlessDraftScreen({
   } = useDraftFullscreen();
   const series = snapshot.series;
   return (
-    <div className="fearless-draft-page">
+    <div className="fearless-draft-page" lang={locale}>
       <section className="fearless-draft-hero">
         <div>
           <span className="section-kicker">Linken&apos;s Sphere</span>
           <h1>Fearless Draft</h1>
-          <p>
-            Полный Captain&apos;s Mode для двух участников. Герои, выбранные на
-            прошлой карте, больше не возвращаются в текущую серию.
-          </p>
+          <p>{text.screenDescription}</p>
         </div>
         <div className={`fearless-realtime ${isConnected ? "online" : "reconnecting"}`}>
           {isConnected ? <FiActivity /> : <FiShield />}
-          <span>{isConnected ? "Синхронизация активна" : "Переподключение…"}</span>
+          <span>{isConnected ? text.syncActive : text.reconnecting}</span>
         </div>
       </section>
 
-      {error && <div className="fearless-error" role="alert">{error}</div>}
+      {error && (
+        <div className="fearless-error" role="alert">
+          {translateDraftError(error, locale)}
+        </div>
+      )}
 
       {series && (
         <DraftAgreementPanel

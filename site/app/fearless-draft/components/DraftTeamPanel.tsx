@@ -6,6 +6,7 @@ import type {
   DraftPlayer,
 } from "../model/snapshot";
 import { PlayerAvatar } from "./PlayerAvatar";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 function draftSlots(priority: "FIRST" | "SECOND", type: "PICK" | "BAN") {
   return DRAFT_SEQUENCE.flatMap((sequenceStep, step) =>
@@ -34,24 +35,27 @@ export function DraftTeamPanel({
   isCurrent: boolean;
   isConnected: boolean;
 }) {
+  const { text } = useDraftLocale();
   const actionsByStep = new Map(actions.map((action) => [action.step, action]));
   const pickSteps = draftSlots(priority, "PICK");
   const banSteps = draftSlots(priority, "BAN");
   const previewHero = previewHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(previewHeroId) : null;
+  const sideLabel = side === "RADIANT" ? text.radiant : text.dire;
+  const priorityLabel = priority === "FIRST" ? text.firstPick : text.secondPick;
   return (
     <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
       <header>
         <PlayerAvatar player={player} freezeAnimation />
         <div>
-          <span>{side} · {priority} PICK</span>
+          <span>{sideLabel} · {priorityLabel}</span>
           <strong>{player.name}</strong>
           <small className={isConnected ? undefined : "disconnected"}>
-            <i /> {isConnected ? "В сети" : "Соперник отключился"}
+            <i /> {isConnected ? text.online : text.opponentDisconnected}
           </small>
         </div>
         <div className="fearless-team-reserve">
-          <span>Reserve</span>
-          <strong>{Math.ceil(reserveSeconds)}с</strong>
+          <span>{text.reserve}</span>
+          <strong>{Math.ceil(reserveSeconds)}{text.secondsShort}</strong>
         </div>
       </header>
       <div className="fearless-pick-slots">
@@ -80,7 +84,7 @@ export function DraftTeamPanel({
         })}
       </div>
       <div className="fearless-ban-list">
-        <span>Баны</span>
+        <span>{text.bans}</span>
         {banSteps.map((step, banIndex) => {
           const action = actionsByStep.get(step);
           const isCurrentAction = isCurrent && step === currentStep;
@@ -94,7 +98,7 @@ export function DraftTeamPanel({
             <div
               key={step}
               className={`${hero ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""} ${isPhaseStart ? "phase-start" : ""}`}
-              title={displayedHero?.name ?? (action ? "Бан пропущен по таймеру" : `Шаг ${step + 1}`)}
+              title={displayedHero?.name ?? (action ? text.skippedBan : `${text.step} ${step + 1}`)}
             >
               {displayedHero ? (
                 <Image src={displayedHero.imageUrl} alt={displayedHero.name} fill sizes="48px" unoptimized />

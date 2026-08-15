@@ -2,6 +2,7 @@ import Image from "next/image";
 import { buildDraftTreeRows, type DraftTreeStep } from "../model/draft-tree";
 import { FEARLESS_DRAFT_HEROES_BY_ID } from "../model/heroes";
 import type { DraftActionSnapshot } from "../model/snapshot";
+import { useDraftLocale } from "../hooks/useDraftLocale";
 
 export function DraftTree({
   actions,
@@ -16,13 +17,14 @@ export function DraftTree({
   currentStep: number;
   previewHeroId: number | null;
 }) {
+  const { text } = useDraftLocale();
   const draftTreeRows = buildDraftTreeRows(
     actions,
     radiantPlayerId,
     firstPickPlayerId,
   );
 
-  function renderSlot(treeStep: DraftTreeStep, sideName: "Свет" | "Тьма") {
+  function renderSlot(treeStep: DraftTreeStep, sideName: string) {
     const { action } = treeStep;
     const hero = action?.heroId
       ? FEARLESS_DRAFT_HEROES_BY_ID.get(action.heroId)
@@ -32,7 +34,7 @@ export function DraftTree({
       ? FEARLESS_DRAFT_HEROES_BY_ID.get(previewHeroId)
       : null;
     const displayedHero = hero ?? previewHero;
-    const actionName = treeStep.type === "BAN" ? "Бан" : "Пик";
+    const actionName = treeStep.type === "BAN" ? text.ban : text.pick;
     const openingBanSpacing = treeStep.number === 4 ? "opening-ban-spacing" : "";
 
     return (
@@ -55,8 +57,8 @@ export function DraftTree({
       aria-labelledby="fearless-draft-tree-tab"
     >
       <div className="fearless-draft-tree-sides" aria-hidden="true">
-        <span>СВЕТ</span>
-        <span>ТЬМА</span>
+        <span>{text.radiant}</span>
+        <span>{text.dire}</span>
       </div>
       {draftTreeRows.map(({ radiant, dire }) => {
         const rowSteps = [radiant, dire].filter(
@@ -76,7 +78,7 @@ export function DraftTree({
             key={rowSteps.map((treeStep) => treeStep.number).join("-")}
           >
             <div className={`fearless-draft-tree-branch radiant ${radiant ? `active ${radiantLevel} ${radiantDigits}` : ""}`}>
-              {radiant && renderSlot(radiant, "Свет")}
+              {radiant && renderSlot(radiant, text.radiant)}
             </div>
             <div className="fearless-draft-tree-numbers" aria-hidden="true">
               <b className={`fearless-draft-tree-number ${earlierLevel}`}>{earlierStep.number}</b>
@@ -85,7 +87,7 @@ export function DraftTree({
               )}
             </div>
             <div className={`fearless-draft-tree-branch dire ${dire ? `active ${direLevel} ${direDigits}` : ""}`}>
-              {dire && renderSlot(dire, "Тьма")}
+              {dire && renderSlot(dire, text.dire)}
             </div>
           </div>
         );
