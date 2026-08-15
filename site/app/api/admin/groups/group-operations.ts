@@ -288,10 +288,6 @@ async function replaceableGroupMatches(
          OR match.team_a_result_label IS NOT NULL
          OR match.team_b_result_label IS NOT NULL
          OR match.decision_note IS NOT NULL
-         OR EXISTS (
-           SELECT 1 FROM tournament_match_checkins checkin
-           WHERE checkin.match_id = match.id
-         )
        )`,
     [tournamentId],
   );

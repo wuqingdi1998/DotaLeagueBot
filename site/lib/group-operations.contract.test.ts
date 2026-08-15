@@ -31,4 +31,11 @@ describe("group match creation contract", () => {
     expect(groupMatchCreationSource).toContain("match.teamAPlaceholder");
     expect(groupMatchCreationSource).toContain("match.teamBPlaceholder");
   });
+
+  it("does not treat the retired per-match check-in as a started match", () => {
+    expect(groupOperationsSource).not.toContain("tournament_match_checkins");
+    expect(groupOperationsSource).toContain("match.status <> 'scheduled'");
+    expect(groupOperationsSource).toContain("match.team_a_score IS NOT NULL");
+    expect(groupOperationsSource).toContain("match.decision_note IS NOT NULL");
+  });
 });
