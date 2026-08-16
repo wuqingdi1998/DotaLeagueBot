@@ -189,7 +189,7 @@ describe("compendium star race contract", () => {
     expect(starRaceModel).toContain("pendingVerification");
     expect(starRaceView).toContain("pendingVerification");
     expect(starRaceView).toContain("onCheck(pendingQuest.dateKey)");
-    expect(scheduler).toContain("@tasks.loop(minutes=5)");
+    expect(scheduler).toContain("@tasks.loop(minutes=1)");
     expect(scheduler).toContain("verify-arcana");
   });
 

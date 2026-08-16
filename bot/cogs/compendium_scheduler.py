@@ -179,7 +179,7 @@ class CompendiumScheduler(commands.Cog):
     async def before_gold_role_sync(self) -> None:
         await self.bot.wait_until_ready()
 
-    @tasks.loop(minutes=5)
+    @tasks.loop(minutes=1)
     async def verify_arcana_checks(self) -> None:
         await self.request_arcana_verification()
 
