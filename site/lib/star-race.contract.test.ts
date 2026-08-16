@@ -63,6 +63,9 @@ const archiveStyles = source(
 const arcanaMigration = source(
   "../../bot/database/migrations/0073_compendium_arcana_parse_checks.sql",
 );
+const bonusQuestRaceMigration = source(
+  "../../bot/database/migrations/0075_compendium_star_race_exclude_bonus_quest.sql",
+);
 const arcanaRepository = source(
   "../app/compendium/services/star-race-arcana-repository.ts",
 );
@@ -91,7 +94,7 @@ describe("compendium star race contract", () => {
     expect(repository).toContain("earned_at < $2::timestamptz");
   });
 
-  it("excludes Rune Challenge only from star-race totals", () => {
+  it("excludes Rune Challenge and daily Challenge 4 only from star-race totals", () => {
     expect(raceEventsMigration).toContain(
       "CREATE OR REPLACE VIEW compendium_star_race_events",
     );
@@ -100,6 +103,13 @@ describe("compendium star race contract", () => {
     );
     expect(migration).toContain("compendium_rune_challenge_completions");
     expect(migration).toContain("FROM compendium_star_events event");
+    expect(bonusQuestRaceMigration).toContain(
+      "CREATE OR REPLACE VIEW compendium_star_race_events",
+    );
+    expect(bonusQuestRaceMigration).toContain("daily_quest.position <> 4");
+    expect(bonusQuestRaceMigration).not.toContain(
+      "compendium_rune_challenge_completions",
+    );
   });
 
   it("shows the signed-in player's unique rank from the same standings", () => {
@@ -286,10 +296,14 @@ describe("compendium star race contract", () => {
 
   it("places race rules between the compact counter and right-side prizes", () => {
     expect(starRaceView).toContain("Условия гонки");
-    expect(starRaceView).toContain(
+    expect(starRaceModel).toContain(
       "Звёзды за Испытание Рун в гонке не учитываются, но всё так же",
     );
-    expect(starRaceView).toContain("учитываются в других зачётах.");
+    expect(starRaceModel).toContain("учитываются в других зачётах.");
+    expect(starRaceModel).toContain(
+      "Звёзды за Испытание 4 также не учитываются в гонке",
+    );
+    expect(starRaceView).toContain("STAR_RACE_EXCLUSION_RULES.map");
     expect(summaryStyles).toContain(".compendium-star-race-rules");
     expect(globalStyles).toContain(
       '@import "./styles/48-compendium-star-race-summary.css";',

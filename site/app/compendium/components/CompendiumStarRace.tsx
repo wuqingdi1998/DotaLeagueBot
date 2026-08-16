@@ -17,6 +17,7 @@ import {
 } from "react-icons/fi";
 import {
   keepGroupedNumbersTogether,
+  STAR_RACE_EXCLUSION_RULES,
   starRaceQuestProgressLabel,
   type StarRaceData,
   type StarRaceQuest,
@@ -324,10 +325,9 @@ export function CompendiumStarRace({
                 <strong>Условия гонки</strong>
                 <ul>
                   <li>В зачёт входят звёзды за {race.dateLabel}.</li>
-                  <li>
-                    Звёзды за Испытание Рун в гонке не учитываются, но всё так же
-                    учитываются в других зачётах.
-                  </li>
+                  {STAR_RACE_EXCLUSION_RULES.map((rule) => (
+                    <li key={rule}>{rule}</li>
+                  ))}
                 </ul>
               </div>
             </div>

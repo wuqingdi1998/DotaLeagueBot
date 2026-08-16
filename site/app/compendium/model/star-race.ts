@@ -10,6 +10,11 @@ export type StarRacePrize = {
 
 export const FINAL_PREDICTION_DATE = "2026-08-21";
 
+export const STAR_RACE_EXCLUSION_RULES = [
+  "Звёзды за Испытание Рун в гонке не учитываются, но всё так же учитываются в других зачётах.",
+  "Звёзды за Испытание 4 также не учитываются в гонке, но сохраняются в общем зачёте Компендиума.",
+] as const;
+
 const FIRST_STAR_RACE_PRIZES = [
   {
     place: 1,

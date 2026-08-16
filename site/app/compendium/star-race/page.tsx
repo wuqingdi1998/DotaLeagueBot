@@ -6,6 +6,7 @@ import {
   starRaceForMoment,
   starRacePhase,
   starRacePrizeDescription,
+  STAR_RACE_EXCLUSION_RULES,
 } from "../model/star-race";
 import { CompendiumLeaderboard } from "../sections/CompendiumLeaderboard";
 import { loadStarRaceLeaderboard } from "../services/star-race-repository";
@@ -37,7 +38,7 @@ export default async function StarRaceLeaderboardPage() {
         participants={participants}
         eyebrow={race.dateLabel.toUpperCase()}
         title={race.title}
-        description={`Звёзды за Испытание Рун не учитываются. При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. ${starRacePrizeDescription(race.prizes)}`}
+        description={`${STAR_RACE_EXCLUSION_RULES.join(" ")} При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. ${starRacePrizeDescription(race.prizes)}`}
       />
     </PlatformShell>
   );
