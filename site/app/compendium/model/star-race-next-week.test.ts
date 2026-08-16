@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { evaluateStarRaceRequirement } from "./star-race-evaluation";
-import { starRaceQuestByDate, starRaceQuestPhase } from "./star-race";
+import {
+  CURRENT_STAR_RACE,
+  starRaceQuestByDate,
+  starRaceQuestPhase,
+} from "./star-race";
 import type { OpenDotaMatch } from "./types";
 
 function rankedWin(matchId: number): OpenDotaMatch {
@@ -18,6 +22,21 @@ function rankedWin(matchId: number): OpenDotaMatch {
 }
 
 describe("second star race week", () => {
+  it("shows the requested prizes for first and second place", () => {
+    expect(CURRENT_STAR_RACE.prizes).toEqual([
+      {
+        place: 1,
+        title: "Набор наград «Тёмного карнавала»",
+        imageUrl: "/compendium/star-race/dark-carnival-reward-set.webp",
+      },
+      {
+        place: 2,
+        title: "Treasure of Wonders ×2",
+        imageUrl: "/compendium/star-race/treasure-of-wonders.webp",
+      },
+    ]);
+  });
+
   it("awards three stars for two ranked wins on Monday", () => {
     const quest = starRaceQuestByDate("2026-08-17");
     expect(quest).toMatchObject({

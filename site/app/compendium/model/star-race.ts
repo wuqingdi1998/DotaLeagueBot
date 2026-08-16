@@ -23,6 +23,19 @@ const FIRST_STAR_RACE_PRIZES = [
   },
 ] as const satisfies readonly StarRacePrize[];
 
+const SECOND_STAR_RACE_PRIZES = [
+  {
+    place: 1,
+    title: "Набор наград «Тёмного карнавала»",
+    imageUrl: "/compendium/star-race/dark-carnival-reward-set.webp",
+  },
+  {
+    place: 2,
+    title: "Treasure of Wonders ×2",
+    imageUrl: "/compendium/star-race/treasure-of-wonders.webp",
+  },
+] as const satisfies readonly StarRacePrize[];
+
 export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
 
@@ -288,7 +301,7 @@ export const STAR_RACE_WEEKS: readonly StarRaceWeekDefinition[] = [
     dateLabel: "17–23 августа 2026",
     startsAt: "2026-08-17T00:00:00+03:00",
     endsAt: "2026-08-24T00:00:00+03:00",
-    prizes: [],
+    prizes: SECOND_STAR_RACE_PRIZES,
     quests: SECOND_STAR_RACE_QUESTS,
   },
 ];
