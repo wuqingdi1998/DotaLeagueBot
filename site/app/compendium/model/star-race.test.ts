@@ -36,7 +36,7 @@ describe("star race schedule", () => {
     ]);
   });
 
-  it("prepares an empty scenario for 17 through 23 August 2026", () => {
+  it("prepares the configured scenario for 17 through 23 August 2026", () => {
     expect(new Date(STAR_RACE_START_AT).toISOString()).toBe(
       "2026-08-16T21:00:00.000Z",
     );
@@ -55,7 +55,13 @@ describe("star race schedule", () => {
       "2026-08-22",
       "2026-08-23",
     ]);
-    expect(STAR_RACE_QUESTS.every((quest) =>
+    expect(STAR_RACE_QUESTS.slice(0, 4).every((quest) =>
+      quest.title !== null &&
+      quest.description !== null &&
+      quest.rewardStars === 3 &&
+      quest.requirement !== null
+    )).toBe(true);
+    expect(STAR_RACE_QUESTS.slice(4).every((quest) =>
       quest.title === null &&
       quest.description === null &&
       quest.rewardStars === null &&

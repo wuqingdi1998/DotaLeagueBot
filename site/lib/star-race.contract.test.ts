@@ -60,6 +60,19 @@ const basePerformanceMigration = source(
 const archiveStyles = source(
   "../app/styles/49-compendium-star-race-archive.css",
 );
+const arcanaMigration = source(
+  "../../bot/database/migrations/0073_compendium_arcana_parse_checks.sql",
+);
+const arcanaRepository = source(
+  "../app/compendium/services/star-race-arcana-repository.ts",
+);
+const arcanaService = source(
+  "../app/compendium/services/star-race-arcana.ts",
+);
+const parsedMatchService = source(
+  "../app/compendium/services/opendota-match-details.ts",
+);
+const scheduler = source("../../bot/cogs/compendium_scheduler.py");
 
 describe("compendium star race contract", () => {
   it("counts every current star source inside the race period", () => {
@@ -158,6 +171,26 @@ describe("compendium star race contract", () => {
     expect(reusableWeeksMigration).toContain(
       "DROP CONSTRAINT IF EXISTS compendium_star_race_quest_progress_moscow_date_check",
     );
+  });
+
+  it("queues Arcana matches and checks them after five minutes", () => {
+    expect(arcanaMigration).toContain(
+      "CREATE TABLE IF NOT EXISTS compendium_star_race_arcana_checks",
+    );
+    expect(arcanaMigration).toContain("check_after");
+    expect(arcanaMigration).toContain("UNIQUE (player_id, moscow_date, match_id)");
+    expect(parsedMatchService).toContain("/api/request/");
+    expect(parsedMatchService).toContain("item_rarity");
+    expect(arcanaRepository).toContain("INTERVAL '5 minutes'");
+    expect(arcanaRepository).toContain(
+      "(CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date - 1",
+    );
+    expect(arcanaService).toContain("hasPlayerEquippedArcana");
+    expect(starRaceModel).toContain("pendingVerification");
+    expect(starRaceView).toContain("pendingVerification");
+    expect(starRaceView).toContain("onCheck(pendingQuest.dateKey)");
+    expect(scheduler).toContain("@tasks.loop(minutes=5)");
+    expect(scheduler).toContain("verify-arcana");
   });
 
   it("archives every configured week and its standings in the organizer base", () => {

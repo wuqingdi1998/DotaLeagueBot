@@ -49,6 +49,13 @@ export type StarRaceQuestRequirement =
   | {
       readonly kind: "game-mode-win";
       readonly gameMode: number;
+    }
+  | {
+      readonly kind: "ranked-wins";
+      readonly requiredWins: number;
+    }
+  | {
+      readonly kind: "arcana-equipped-ranked-win";
     };
 
 export type StarRaceQuestDefinition = {
@@ -161,23 +168,74 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   },
 ];
 
+function unconfiguredStarRaceQuest(
+  dateKey: string,
+  weekday: string,
+  dateLabel: string,
+): StarRaceQuestDefinition {
+  return {
+    dateKey,
+    weekday,
+    dateLabel,
+    title: null,
+    description: null,
+    rewardStars: null,
+    requirement: null,
+  };
+}
+
 const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
-  ["2026-08-17", "Понедельник", "17 августа"],
-  ["2026-08-18", "Вторник", "18 августа"],
-  ["2026-08-19", "Среда", "19 августа"],
-  ["2026-08-20", "Четверг", "20 августа"],
-  ["2026-08-21", "Пятница", "21 августа"],
-  ["2026-08-22", "Суббота", "22 августа"],
-  ["2026-08-23", "Воскресенье", "23 августа"],
-].map(([dateKey, weekday, dateLabel]) => ({
-  dateKey,
-  weekday,
-  dateLabel,
-  title: null,
-  description: null,
-  rewardStars: null,
-  requirement: null,
-}));
+  {
+    dateKey: "2026-08-17",
+    weekday: "Понедельник",
+    dateLabel: "17 августа",
+    title: "Легкая прогулка",
+    description: "Выиграйте два рейтинговых матча.",
+    rewardStars: 3,
+    requirement: { kind: "ranked-wins", requiredWins: 2 },
+  },
+  {
+    dateKey: "2026-08-18",
+    weekday: "Вторник",
+    dateLabel: "18 августа",
+    title: "Соколиный зов",
+    description:
+      "Выиграйте рейтинговый матч на одном из пяти героев из пика Team Falcons с последней карты The International 2025.",
+    rewardStars: 3,
+    requirement: {
+      kind: "distinct-hero-wins",
+      requiredDistinctWins: 1,
+      heroIds: [89, 120, 87, 94, 97],
+    },
+  },
+  {
+    dateKey: "2026-08-19",
+    weekday: "Среда",
+    dateLabel: "19 августа",
+    title: "Мета турнира",
+    description:
+      "Выиграйте рейтинговый матч на одном из шести героев, которым чаще всего отдают предпочтение команды текущего The International 2026.",
+    rewardStars: 3,
+    requirement: {
+      kind: "distinct-hero-wins",
+      requiredDistinctWins: 1,
+      heroIds: [123, 9, 96, 107, 85, 112],
+    },
+  },
+  {
+    dateKey: "2026-08-20",
+    weekday: "Четверг",
+    dateLabel: "20 августа",
+    title: "Pay to Win",
+    description:
+      "Выиграйте рейтинговый матч на герое с надетым косметическим Arcana-предметом. После нажатия кнопки «Проверить» матч будет обработан и проверен в течение 5 минут.",
+    rewardStars: 3,
+    requirement: { kind: "arcana-equipped-ranked-win" },
+  },
+  unconfiguredStarRaceQuest("2026-08-21", "Пятница", "21 августа"),
+  unconfiguredStarRaceQuest("2026-08-22", "Суббота", "22 августа"),
+  unconfiguredStarRaceQuest("2026-08-23", "Воскресенье", "23 августа"),
+];
 
 export type StarRaceWeekDefinition = {
   readonly id: string;
@@ -254,6 +312,11 @@ export type StarRaceQuestHeroProgress = {
   target: number;
 };
 
+export type StarRacePendingVerification = {
+  checkAfter: string;
+  matchCount: number;
+};
+
 export type StarRaceQuest = StarRaceQuestDefinition & {
   startsAt: string;
   endsAt: string;
@@ -262,6 +325,7 @@ export type StarRaceQuest = StarRaceQuestDefinition & {
   completion: StarRaceQuestCompletion | null;
   progress: StarRaceQuestProgress | null;
   heroProgress: StarRaceQuestHeroProgress | null;
+  pendingVerification: StarRacePendingVerification | null;
 };
 
 export type StarRaceData = {
@@ -363,6 +427,9 @@ export function starRaceQuestProgressLabel(
   }
   if (requirement?.kind === "cumulative-ranked-win-stat") {
     return requirement.stat === "hero_damage" ? "Урон по героям" : "Убийства";
+  }
+  if (requirement?.kind === "ranked-wins") {
+    return "Рейтинговые победы";
   }
   return null;
 }

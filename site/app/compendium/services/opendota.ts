@@ -1,6 +1,7 @@
 import { OPEN_DOTA_CACHE_TTL_MS } from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import type { OpenDotaMatch } from "../model/types";
+import { openDotaApiUrl } from "./opendota-client";
 
 type MatchCacheEntry = {
   expiresAt: number;
@@ -52,9 +53,8 @@ function isForeignPlayerMatch(value: unknown, requestedDotaId: string): boolean 
 async function requestRecentPlayerMatches(
   dotaId: string,
 ): Promise<OpenDotaMatch[]> {
-  const url = new URL(
+  const url = openDotaApiUrl(
     `/api/players/${encodeURIComponent(dotaId)}/matches`,
-    "https://api.opendota.com",
   );
   url.searchParams.set("date", "1");
   for (const field of [
@@ -67,9 +67,6 @@ async function requestRecentPlayerMatches(
   ]) {
     url.searchParams.append("project", field);
   }
-  const apiKey = process.env.OPENDOTA_API_KEY?.trim();
-  if (apiKey) url.searchParams.set("api_key", apiKey);
-
   try {
     const response = await fetch(url, {
       headers: { Accept: "application/json" },

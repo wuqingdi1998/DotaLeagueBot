@@ -20,6 +20,7 @@ import { CompendiumPredictions } from "../components/CompendiumPredictions";
 import { RuneChallenge } from "../components/RuneChallenge";
 import { CompendiumStarRace } from "../components/CompendiumStarRace";
 import type { PredictionScore } from "../model/predictions";
+import { starRaceQuestProgressLabel } from "../model/star-race";
 
 function countdownLabel(nextResetAt: string, currentTimeMs: number): string {
   const remaining = Math.max(0, new Date(nextResetAt).getTime() - currentTimeMs);
@@ -195,6 +196,7 @@ export function CompendiumDashboard({
         completion?: unknown | null;
         progress?: { current: number; target: number } | null;
         heroProgress?: { wins: unknown[]; target: number } | null;
+        pendingVerification?: { checkAfter: string; matchCount: number } | null;
         rewardStars?: number;
         starRace?: CompendiumData["starRace"];
         totalStars?: number;
@@ -213,13 +215,21 @@ export function CompendiumDashboard({
       setToast(
         result.completion
           ? `Задание выполнено. Вы получили ${result.rewardStars ?? 2} звезды!`
+          : result.pendingVerification
+            ? "Матч отправлен на обработку. Проверим Arcana автоматически через 5 минут."
           : result.heroProgress
             ? `Засчитано героев: ${result.heroProgress.wins.length} из ${result.heroProgress.target}`
-          : `Учтено ${progressNumber.format(
-              result.progress?.current ?? 0,
-            )} из ${progressNumber.format(
-              result.progress?.target ?? 30_000,
-            )} урона по строениям`,
+          : (() => {
+              const checkedQuest = result.starRace?.quests.find(
+                (quest) => quest.dateKey === dateKey,
+              );
+              const label = checkedQuest
+                ? starRaceQuestProgressLabel(checkedQuest)
+                : null;
+              return `${label ?? "Прогресс"}: ${progressNumber.format(
+                result.progress?.current ?? 0,
+              )} из ${progressNumber.format(result.progress?.target ?? 0)}`;
+            })(),
       );
     } catch (error) {
       setToast(

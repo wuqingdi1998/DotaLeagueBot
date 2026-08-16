@@ -11,7 +11,7 @@ export async function POST(
   try {
     const user = await requireSession();
     const { dateKey } = await context.params;
-    if (!/^2026-08-(1[0-6])$/.test(dateKey)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
       return Response.json({ error: "Некорректная дата задания" }, { status: 400 });
     }
     return Response.json({

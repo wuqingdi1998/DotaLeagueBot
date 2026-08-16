@@ -19,11 +19,33 @@ function isQualifyingWin(input: {
 }): boolean {
   return (
     input.allowedHeroes.has(input.match.hero_id) &&
+    isRankedWinInsideWindow(input)
+  );
+}
+
+function isRankedWinInsideWindow(input: {
+  match: OpenDotaMatch;
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): boolean {
+  return (
     RANKED_LOBBY_TYPES.has(input.match.lobby_type) &&
     RANKED_GAME_MODES.has(input.match.game_mode) &&
     isPlayerWin(input.match) &&
     endedInsideWindow(input)
   );
+}
+
+export function scanRankedWins(input: {
+  matches: OpenDotaMatch[];
+  dayStart: Date;
+  dayEnd: Date;
+  now: Date;
+}): MatchingWin[] {
+  return input.matches
+    .filter((match) => isRankedWinInsideWindow({ ...input, match }))
+    .map(matchingWin);
 }
 
 function matchingWin(match: OpenDotaMatch): MatchingWin {

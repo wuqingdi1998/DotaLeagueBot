@@ -13,6 +13,8 @@ const mocks = vi.hoisted(() => ({
   recordStarRaceCompletion: vi.fn(),
   replaceStarRaceHeroProgress: vi.fn(),
   replaceStarRaceProgress: vi.fn(),
+  checkStarRaceArcanaQuest: vi.fn(),
+  loadPendingArcanaVerifications: vi.fn(),
 }));
 
 vi.mock("./repository", () => ({
@@ -34,6 +36,14 @@ vi.mock("./star-race-repository", () => ({
   recordStarRaceCompletion: mocks.recordStarRaceCompletion,
   replaceStarRaceHeroProgress: mocks.replaceStarRaceHeroProgress,
   replaceStarRaceProgress: mocks.replaceStarRaceProgress,
+}));
+
+vi.mock("./star-race-arcana", () => ({
+  checkStarRaceArcanaQuest: mocks.checkStarRaceArcanaQuest,
+}));
+
+vi.mock("./star-race-arcana-repository", () => ({
+  loadPendingArcanaVerifications: mocks.loadPendingArcanaVerifications,
 }));
 
 vi.mock("@/lib/player-profile", () => ({
@@ -115,6 +125,7 @@ beforeEach(() => {
     }
     return Promise.resolve(new Map(entries));
   });
+  mocks.loadPendingArcanaVerifications.mockResolvedValue(new Map());
   mocks.replaceStarRaceProgress.mockImplementation(
     ({ current, dateKey }: { current: number; dateKey: string }) => {
       savedProgress = current;
@@ -354,6 +365,77 @@ describe("hero-list and Turbo star race checks", () => {
       dateKey: "2026-08-16",
       rewardStars: 2,
       wins: [expect.objectContaining({ matchId: "6001" })],
+    });
+  });
+});
+
+describe("second-week star race checks", () => {
+  it("awards three stars after two Monday ranked wins", async () => {
+    const mondayNow = new Date("2026-08-17T12:00:00.000Z");
+    vi.setSystemTime(mondayNow);
+    const completion = { completedAt: mondayNow.toISOString(), wins: [] };
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([
+      {
+        ...winningMatch(7001, 0),
+        start_time: Date.parse("2026-08-17T09:00:00.000Z") / 1_000,
+      },
+      {
+        ...winningMatch(7002, 0),
+        start_time: Date.parse("2026-08-17T10:00:00.000Z") / 1_000,
+      },
+    ]);
+    mocks.recordStarRaceCompletion.mockResolvedValue(completion);
+
+    const result = await checkStarRaceQuest(user, "2026-08-17", mondayNow);
+
+    expect(result.completion).toBe(completion);
+    expect(result.rewardStars).toBe(3);
+    expect(mocks.replaceStarRaceProgress).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      dateKey: "2026-08-17",
+      current: 2,
+    });
+    expect(mocks.recordStarRaceCompletion).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      dateKey: "2026-08-17",
+      rewardStars: 3,
+      wins: [
+        expect.objectContaining({ matchId: "7001" }),
+        expect.objectContaining({ matchId: "7002" }),
+      ],
+    });
+  });
+
+  it("returns the five-minute Arcana verification to the button", async () => {
+    const thursdayNow = new Date("2026-08-20T12:00:00.000Z");
+    vi.setSystemTime(thursdayNow);
+    const pendingVerification = {
+      checkAfter: "2026-08-20T12:05:00.000Z",
+      matchCount: 1,
+    };
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([{
+      ...winningMatch(8001, 0),
+      start_time: Date.parse("2026-08-20T09:00:00.000Z") / 1_000,
+    }]);
+    mocks.checkStarRaceArcanaQuest.mockResolvedValue({
+      completion: null,
+      pendingVerification,
+    });
+
+    const result = await checkStarRaceQuest(
+      user,
+      "2026-08-20",
+      thursdayNow,
+    );
+
+    expect(result.pendingVerification).toEqual(pendingVerification);
+    expect(mocks.checkStarRaceArcanaQuest).toHaveBeenCalledWith({
+      playerId: user.discordId,
+      dotaId: user.dotaId,
+      dateKey: "2026-08-20",
+      rewardStars: 3,
+      wins: [expect.objectContaining({ matchId: "8001" })],
+      now: thursdayNow,
     });
   });
 });

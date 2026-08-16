@@ -8,6 +8,7 @@ import {
   starRaceQuestHeroes,
   starRaceQuestPhase,
   type StarRaceData,
+  type StarRacePendingVerification,
   type StarRaceQuestCompletion,
   type StarRaceQuestHeroProgress,
   type StarRaceQuestProgress,
@@ -30,6 +31,8 @@ import {
   replaceStarRaceHeroProgress,
   replaceStarRaceProgress,
 } from "./star-race-repository";
+import { checkStarRaceArcanaQuest } from "./star-race-arcana";
+import { loadPendingArcanaVerifications } from "./star-race-arcana-repository";
 
 export async function loadStarRace(
   user: AuthUser,
@@ -51,11 +54,18 @@ export async function loadStarRace(
       quests: [],
     };
   }
-  const [personalStars, personalRank, completions, progresses] = await Promise.all([
+  const [
+    personalStars,
+    personalRank,
+    completions,
+    progresses,
+    pendingVerifications,
+  ] = await Promise.all([
     loadPersonalStarRaceStars(user.discordId, race),
     loadStarRaceRank(user.discordId, race),
     loadStarRaceCompletions(user.discordId),
     loadStarRaceProgress(user.discordId),
+    loadPendingArcanaVerifications(user.discordId),
   ]);
   return {
     ...visibility,
@@ -89,7 +99,13 @@ export async function loadStarRace(
                 target: quest.requirement.target,
                 checkedAt: savedProgress?.checkedAt ?? null,
               }
-          : null,
+          : quest.requirement?.kind === "ranked-wins"
+            ? {
+                current: savedProgress?.current ?? 0,
+                target: quest.requirement.requiredWins,
+                checkedAt: savedProgress?.checkedAt ?? null,
+              }
+            : null,
         heroProgress:
           quest.requirement?.kind === "distinct-hero-wins" &&
           quest.requirement.requiredDistinctWins > 1 &&
@@ -100,6 +116,8 @@ export async function loadStarRace(
                 target: quest.requirement.requiredDistinctWins,
               }
             : null,
+        pendingVerification:
+          pendingVerifications.get(quest.dateKey) ?? null,
       };
     }),
   };
@@ -109,6 +127,7 @@ export type CheckStarRaceQuestResult = {
   completion: StarRaceQuestCompletion | null;
   progress: StarRaceQuestProgress | null;
   heroProgress: StarRaceQuestHeroProgress | null;
+  pendingVerification: StarRacePendingVerification | null;
   rewardStars: number;
   starRace: StarRaceData;
   totalStars: number;
@@ -121,6 +140,7 @@ async function starRaceCheckResult(input: {
   now: Date;
   completion: StarRaceQuestCompletion | null;
   rewardStars: number;
+  pendingVerification?: StarRacePendingVerification | null;
 }): Promise<CheckStarRaceQuestResult> {
   const [starRace, totalStars, communityStars] = await Promise.all([
     loadStarRace(input.user, input.now),
@@ -135,6 +155,10 @@ async function starRaceCheckResult(input: {
     heroProgress:
       starRace.quests.find((quest) => quest.dateKey === input.dateKey)
         ?.heroProgress ?? null,
+    pendingVerification:
+      input.pendingVerification ??
+      starRace.quests.find((quest) => quest.dateKey === input.dateKey)
+        ?.pendingVerification ?? null,
     rewardStars: input.rewardStars,
     starRace,
     totalStars,
@@ -201,6 +225,24 @@ export async function checkStarRaceQuest(
     dayEnd: bounds.end,
     now: verificationNow,
   });
+  if (quest.requirement.kind === "arcana-equipped-ranked-win") {
+    const arcana = await checkStarRaceArcanaQuest({
+      playerId: user.discordId,
+      dotaId,
+      dateKey,
+      rewardStars: quest.rewardStars,
+      wins: evaluation.wins,
+      now: verificationNow,
+    });
+    return starRaceCheckResult({
+      user,
+      dateKey,
+      now: verificationNow,
+      completion: arcana.completion,
+      rewardStars: quest.rewardStars,
+      pendingVerification: arcana.pendingVerification,
+    });
+  }
   let completion: StarRaceQuestCompletion | null = null;
   if (quest.requirement.kind === "distinct-hero-wins") {
     if (
@@ -256,6 +298,20 @@ export async function checkStarRaceQuest(
         dateKey,
         rewardStars: quest.rewardStars,
         wins: evaluation.wins,
+      });
+    }
+  } else if (quest.requirement.kind === "ranked-wins") {
+    await replaceStarRaceProgress({
+      playerId: user.discordId,
+      dateKey,
+      current: evaluation.progress,
+    });
+    if (evaluation.isComplete) {
+      completion = await recordStarRaceCompletion({
+        playerId: user.discordId,
+        dateKey,
+        rewardStars: quest.rewardStars,
+        wins: evaluation.wins.slice(0, quest.requirement.requiredWins),
       });
     }
   } else if (quest.requirement.kind === "ranked-win-stat") {

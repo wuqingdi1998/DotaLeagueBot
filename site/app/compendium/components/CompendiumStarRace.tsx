@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -41,12 +41,14 @@ const damageNumber = new Intl.NumberFormat("ru-RU");
 function StarRaceQuestCard({
   quest,
   countdown,
+  verificationCountdown,
   isChecking,
   canCheck,
   onCheck,
 }: {
   quest: StarRaceQuest;
   countdown: string | null;
+  verificationCountdown: string | null;
   isChecking: boolean;
   canCheck: boolean;
   onCheck: (dateKey: string) => void;
@@ -131,12 +133,18 @@ function StarRaceQuestCard({
               )}
               <div className="compendium-star-race-countdown">
                 <FiClock aria-hidden="true" />
-                <span>До конца задания</span>
-                <strong>{countdown}</strong>
+                <span>
+                  {quest.pendingVerification
+                    ? "До проверки Arcana"
+                    : "До конца задания"}
+                </span>
+                <strong>{verificationCountdown ?? countdown}</strong>
               </div>
               <button
                 type="button"
-                disabled={!canCheck || isChecking}
+                disabled={
+                  !canCheck || isChecking || Boolean(quest.pendingVerification)
+                }
                 onClick={() => onCheck(quest.dateKey)}
               >
                 {isChecking ? (
@@ -144,6 +152,8 @@ function StarRaceQuestCard({
                     <FiLoader className="compendium-spinner" aria-hidden="true" />
                     Проверяем…
                   </>
+                ) : quest.pendingVerification ? (
+                  "Матч обрабатывается…"
                 ) : (
                   "Проверить"
                 )}
@@ -207,6 +217,7 @@ export function CompendiumStarRace({
   onCheck: (dateKey: string) => void;
 }) {
   const router = useRouter();
+  const automaticCheckKey = useRef<string | null>(null);
   const activeQuest = race.quests.find((quest) => quest.phase === "active");
   const countdownTarget = race.isDetailsVisible
     ? activeQuest?.endsAt ?? null
@@ -214,10 +225,42 @@ export function CompendiumStarRace({
   const countdown = countdownTarget
     ? countdownLabel(countdownTarget, currentTimeMs)
     : "";
+  const pendingQuest = race.quests.find(
+    (quest) => quest.pendingVerification && !quest.completion,
+  );
+  const verificationCountdown = pendingQuest?.pendingVerification
+    ? countdownLabel(
+        pendingQuest.pendingVerification.checkAfter,
+        currentTimeMs,
+      )
+    : null;
 
   useEffect(() => {
     if (countdownTarget && countdown === "00:00:00") router.refresh();
   }, [countdown, countdownTarget, router]);
+
+  useEffect(() => {
+    const pendingKey = pendingQuest?.pendingVerification
+      ? `${pendingQuest.dateKey}:${pendingQuest.pendingVerification.checkAfter}`
+      : null;
+    if (
+      pendingKey &&
+      automaticCheckKey.current !== pendingKey &&
+      pendingQuest &&
+      verificationCountdown === "00:00:00" &&
+      canCheck &&
+      checkingDateKey === null
+    ) {
+      automaticCheckKey.current = pendingKey;
+      onCheck(pendingQuest.dateKey);
+    }
+  }, [
+    canCheck,
+    checkingDateKey,
+    onCheck,
+    pendingQuest,
+    verificationCountdown,
+  ]);
 
   return (
     <section className="compendium-star-race" id="compendium-star-race">
@@ -312,6 +355,11 @@ export function CompendiumStarRace({
                 key={quest.dateKey}
                 quest={quest}
                 countdown={quest.phase === "active" ? countdown : null}
+                verificationCountdown={
+                  pendingQuest?.dateKey === quest.dateKey
+                    ? verificationCountdown
+                    : null
+                }
                 isChecking={checkingDateKey === quest.dateKey}
                 canCheck={canCheck}
                 onCheck={onCheck}

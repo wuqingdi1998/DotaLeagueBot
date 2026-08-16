@@ -22,12 +22,18 @@ class CompendiumScheduler(commands.Cog):
         self.bot = bot
         self.generate_daily_quests.start()
         self.sync_gold_compendium_role.start()
+        self.verify_arcana_checks.start()
 
     async def cog_unload(self) -> None:
         self.generate_daily_quests.cancel()
         self.sync_gold_compendium_role.cancel()
+        self.verify_arcana_checks.cancel()
 
-    async def request_daily_quests(self) -> None:
+    async def request_compendium_endpoint(
+        self,
+        path: str,
+        failure_label: str,
+    ) -> dict[str, object] | None:
         secret = (
             os.getenv("COMPENDIUM_SCHEDULER_SECRET")
             or os.getenv("DISCORD_TOKEN")
@@ -41,7 +47,7 @@ class CompendiumScheduler(commands.Cog):
         public_origin = (os.getenv("PUBLIC_BASE_URL") or site_url).rstrip("/")
         if len(secret) < 24 or not site_url:
             print("⚠️ Планировщик компендиума не настроен.")
-            return
+            return None
 
         timeout = aiohttp.ClientTimeout(total=15)
         headers = {
@@ -51,22 +57,42 @@ class CompendiumScheduler(commands.Cog):
         try:
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(
-                    f"{site_url}/api/internal/compendium/generate",
+                    f"{site_url}{path}",
                     headers=headers,
                 ) as response:
                     if response.status != 200:
                         print(
-                            "⚠️ Не удалось подготовить задания компендиума: "
+                            f"⚠️ Не удалось {failure_label}: "
                             f"HTTP {response.status}"
                         )
-                        return
-                    payload = await response.json()
-                    print(
-                        "✅ Задания компендиума подготовлены на "
-                        f"{payload.get('moscowDate', 'текущий день')}."
-                    )
+                        return None
+                    return await response.json()
         except (aiohttp.ClientError, TimeoutError) as error:
             print(f"⚠️ Сайт недоступен для планировщика компендиума: {error}")
+            return None
+
+    async def request_daily_quests(self) -> None:
+        payload = await self.request_compendium_endpoint(
+            "/api/internal/compendium/generate",
+            "подготовить задания компендиума",
+        )
+        if payload is not None:
+            print(
+                "✅ Задания компендиума подготовлены на "
+                f"{payload.get('moscowDate', 'текущий день')}."
+            )
+
+    async def request_arcana_verification(self) -> None:
+        payload = await self.request_compendium_endpoint(
+            "/api/internal/compendium/verify-arcana",
+            "проверить Arcana-задания",
+        )
+        if payload and int(payload.get("checked", 0)) > 0:
+            print(
+                "✅ Проверены Arcana-задания: "
+                f"{payload.get('checked', 0)}, выполнены: "
+                f"{payload.get('completed', 0)}."
+            )
 
     @tasks.loop(time=datetime.time(hour=0, minute=0, tzinfo=MOSCOW_TIME_ZONE))
     async def generate_daily_quests(self) -> None:
@@ -151,6 +177,14 @@ class CompendiumScheduler(commands.Cog):
 
     @sync_gold_compendium_role.before_loop
     async def before_gold_role_sync(self) -> None:
+        await self.bot.wait_until_ready()
+
+    @tasks.loop(minutes=5)
+    async def verify_arcana_checks(self) -> None:
+        await self.request_arcana_verification()
+
+    @verify_arcana_checks.before_loop
+    async def before_arcana_verification(self) -> None:
         await self.bot.wait_until_ready()
 
 

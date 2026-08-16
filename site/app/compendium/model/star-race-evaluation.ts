@@ -3,6 +3,7 @@ import {
   findRankedStatWin,
   scanCumulativeRankedWinStat,
   scanDistinctMatchingWins,
+  scanRankedWins,
   scanWinningBuildingDamage,
 } from "./matches";
 import type { StarRaceQuestRequirement } from "./star-race";
@@ -28,6 +29,18 @@ export function evaluateStarRaceRequirement(input: {
     now: input.now,
   };
   const requirement = input.requirement;
+  if (requirement.kind === "ranked-wins") {
+    const wins = scanRankedWins(sharedWindow);
+    return {
+      isComplete: wins.length >= requirement.requiredWins,
+      progress: wins.length,
+      wins,
+    };
+  }
+  if (requirement.kind === "arcana-equipped-ranked-win") {
+    const wins = scanRankedWins(sharedWindow);
+    return { isComplete: false, progress: 0, wins };
+  }
   if (requirement.kind === "distinct-hero-wins") {
     const wins = scanDistinctMatchingWins({
       ...sharedWindow,
