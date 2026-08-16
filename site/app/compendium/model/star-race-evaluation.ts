@@ -85,6 +85,9 @@ export function evaluateStarRaceRequirement(input: {
       wins: win ? [win] : [],
     };
   }
+  if (requirement.kind === "final-winner-prediction") {
+    return { isComplete: false, progress: 0, wins: [] };
+  }
   const win = findGameModeWin({
     ...sharedWindow,
     gameMode: requirement.gameMode,

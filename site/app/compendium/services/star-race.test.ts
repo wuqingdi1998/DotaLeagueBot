@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   replaceStarRaceProgress: vi.fn(),
   checkStarRaceArcanaQuest: vi.fn(),
   loadPendingArcanaVerifications: vi.fn(),
+  loadFinalPrediction: vi.fn(),
 }));
 
 vi.mock("./repository", () => ({
@@ -44,6 +45,10 @@ vi.mock("./star-race-arcana", () => ({
 
 vi.mock("./star-race-arcana-repository", () => ({
   loadPendingArcanaVerifications: mocks.loadPendingArcanaVerifications,
+}));
+
+vi.mock("./star-race-final-prediction-repository", () => ({
+  loadFinalPrediction: mocks.loadFinalPrediction,
 }));
 
 vi.mock("@/lib/player-profile", () => ({
@@ -126,6 +131,11 @@ beforeEach(() => {
     return Promise.resolve(new Map(entries));
   });
   mocks.loadPendingArcanaVerifications.mockResolvedValue(new Map());
+  mocks.loadFinalPrediction.mockResolvedValue({
+    teams: [],
+    selectedPosition: null,
+    winnerPosition: null,
+  });
   mocks.replaceStarRaceProgress.mockImplementation(
     ({ current, dateKey }: { current: number; dateKey: string }) => {
       savedProgress = current;

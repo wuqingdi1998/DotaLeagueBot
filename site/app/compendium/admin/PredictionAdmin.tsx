@@ -14,15 +14,19 @@ import {
   type PredictionMatchDraft,
 } from "./prediction-admin-model";
 import { PredictionScheduleList } from "./PredictionScheduleList";
+import { StarRaceFinalPredictionAdmin } from "./StarRaceFinalPredictionAdmin";
+import type { FinalPredictionRecord } from "../services/star-race-final-prediction-repository";
 
 export function PredictionAdmin({
   initialMatches,
   teams,
   initialDate,
+  initialFinalPrediction,
 }: {
   initialMatches: PredictionAdminMatch[];
   teams: Array<{ key: string; name: string }>;
   initialDate: string;
+  initialFinalPrediction: FinalPredictionRecord;
 }) {
   const initialOpening = predictionOpeningDraftForDate(initialMatches, initialDate);
   const [matches, setMatches] = useState(initialMatches);
@@ -195,6 +199,7 @@ export function PredictionAdmin({
           </button>
         </div>
       </header>
+      <StarRaceFinalPredictionAdmin initialPrediction={initialFinalPrediction} />
       <PredictionDayEditor
         dateKey={dateKey}
         sourceDateKey={sourceDateKey}

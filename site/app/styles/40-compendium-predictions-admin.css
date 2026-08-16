@@ -297,6 +297,25 @@
 .prediction-admin-empty { color: var(--muted); }
 .prediction-admin-message { position: sticky; bottom: 18px; margin: 18px auto 0; padding: 14px 18px; border: 1px solid rgba(81, 224, 199, 0.45); border-radius: 13px; background: #123f45; color: white; text-align: center; }
 
+.final-prediction-team-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.final-prediction-winner {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+.final-prediction-winner label { flex: 1; }
+.prediction-admin-inline-message { margin-top: 14px; color: #70e7cf; font-weight: 700; }
+
 @media (max-width: 900px) {
   .prediction-admin-drafts,
   .prediction-admin-drafts.match-count-2 { grid-template-columns: 1fr; }
@@ -318,4 +337,6 @@
   .prediction-admin-results select,
   .prediction-admin-results button,
   .prediction-admin-save { width: 100%; }
+  .final-prediction-team-grid { grid-template-columns: 1fr; }
+  .final-prediction-winner { align-items: stretch; flex-direction: column; }
 }

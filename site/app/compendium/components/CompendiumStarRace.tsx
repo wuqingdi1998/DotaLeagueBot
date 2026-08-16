@@ -22,6 +22,7 @@ import {
   type StarRaceQuest,
 } from "../model/star-race";
 import { HeroChoice } from "./HeroChoice";
+import { StarRaceFinalPrediction } from "./StarRaceFinalPrediction";
 
 function countdownLabel(targetAt: string, currentTimeMs: number): string {
   const remaining = Math.max(0, new Date(targetAt).getTime() - currentTimeMs);
@@ -45,6 +46,8 @@ function StarRaceQuestCard({
   isChecking,
   canCheck,
   onCheck,
+  isSubmittingPrediction,
+  onSubmitPrediction,
 }: {
   quest: StarRaceQuest;
   countdown: string | null;
@@ -52,6 +55,8 @@ function StarRaceQuestCard({
   isChecking: boolean;
   canCheck: boolean;
   onCheck: (dateKey: string) => void;
+  isSubmittingPrediction: boolean;
+  onSubmitPrediction: (position: number) => void;
 }) {
   const isConfigured = Boolean(quest.title && quest.description);
   const progressLabel = starRaceQuestProgressLabel(quest);
@@ -95,7 +100,14 @@ function StarRaceQuestCard({
               ))}
             </div>
           )}
-          {quest.completion ? (
+          {quest.requirement?.kind === "final-winner-prediction" ? (
+            <StarRaceFinalPrediction
+              quest={quest}
+              isSubmitting={isSubmittingPrediction}
+              canSubmit={canCheck}
+              onSubmit={onSubmitPrediction}
+            />
+          ) : quest.completion ? (
             <>
               {quest.progress && progressLabel && (
                 <StarRaceProgress
@@ -209,12 +221,16 @@ export function CompendiumStarRace({
   checkingDateKey,
   canCheck,
   onCheck,
+  isSubmittingPrediction,
+  onSubmitPrediction,
 }: {
   race: StarRaceData;
   currentTimeMs: number;
   checkingDateKey: string | null;
   canCheck: boolean;
   onCheck: (dateKey: string) => void;
+  isSubmittingPrediction: boolean;
+  onSubmitPrediction: (position: number) => void;
 }) {
   const router = useRouter();
   const automaticCheckKey = useRef<string | null>(null);
@@ -363,6 +379,8 @@ export function CompendiumStarRace({
                 isChecking={checkingDateKey === quest.dateKey}
                 canCheck={canCheck}
                 onCheck={onCheck}
+                isSubmittingPrediction={isSubmittingPrediction}
+                onSubmitPrediction={onSubmitPrediction}
               />
             ))}
           </div>

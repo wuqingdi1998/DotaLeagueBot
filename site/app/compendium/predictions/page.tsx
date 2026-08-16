@@ -6,6 +6,7 @@ import { moscowDateKey } from "../model/time";
 import { compendiumTeams } from "../model/teams";
 import { PredictionAdmin } from "../admin/PredictionAdmin";
 import { loadPredictionAdminMatches } from "../services/prediction-repository";
+import { loadFinalPrediction } from "../services/star-race-final-prediction-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,10 @@ export default async function PredictionAdminPage() {
   const user = await getSession();
   if (!user?.isAdmin) notFound();
   const now = new Date();
-  const matches = await loadPredictionAdminMatches(now);
+  const [matches, finalPrediction] = await Promise.all([
+    loadPredictionAdminMatches(now),
+    loadFinalPrediction(),
+  ]);
   const teams = compendiumTeams.map(({ key, name }) => ({ key, name }));
   return (
     <PlatformShell user={user}>
@@ -25,6 +29,7 @@ export default async function PredictionAdminPage() {
         initialMatches={matches}
         teams={teams}
         initialDate={moscowDateKey(now)}
+        initialFinalPrediction={finalPrediction}
       />
     </PlatformShell>
   );

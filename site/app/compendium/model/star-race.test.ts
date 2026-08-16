@@ -61,11 +61,11 @@ describe("star race schedule", () => {
       quest.rewardStars === 3 &&
       quest.requirement !== null
     )).toBe(true);
-    expect(STAR_RACE_QUESTS.slice(4).every((quest) =>
-      quest.title === null &&
-      quest.description === null &&
-      quest.rewardStars === null &&
-      quest.requirement === null
+    expect(STAR_RACE_QUESTS.every((quest) =>
+      quest.title !== null &&
+      quest.description !== null &&
+      quest.rewardStars !== null &&
+      quest.requirement !== null
     )).toBe(true);
     expect(starRacePrizeDescription(STAR_RACE_PRIZES)).toBe(
       "Призы будут объявлены позже.",

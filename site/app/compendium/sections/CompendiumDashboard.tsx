@@ -46,6 +46,7 @@ export function CompendiumDashboard({
   const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null);
   const [checkingStarRaceDate, setCheckingStarRaceDate] = useState<string | null>(null);
+  const [submittingFinalPrediction, setSubmittingFinalPrediction] = useState(false);
   const [toast, setToast] = useState("");
   const currentTimeMs = useServerClock(data.serverNow);
   const countdown = countdownLabel(data.nextResetAt, currentTimeMs);
@@ -242,6 +243,35 @@ export function CompendiumDashboard({
     }
   }
 
+  async function submitFinalPrediction(position: number) {
+    if (submittingFinalPrediction) return;
+    setSubmittingFinalPrediction(true);
+    try {
+      const response = await fetch("/api/compendium/star-race/final-prediction", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ position }),
+      });
+      const result = (await response.json()) as {
+        error?: string;
+        starRace?: CompendiumData["starRace"];
+      };
+      if (!response.ok || !result.starRace) {
+        throw new Error(result.error ?? "Не удалось сохранить прогноз");
+      }
+      setData((current) => ({ ...current, starRace: result.starRace ?? current.starRace }));
+      const quest = result.starRace.quests.find(
+        (item) => item.requirement?.kind === "final-winner-prediction",
+      );
+      const team = quest?.finalPrediction?.teams[position - 1];
+      setToast(`Прогноз сохранён${team ? `: ${team}` : ""}`);
+    } catch (error) {
+      setToast(error instanceof Error ? error.message : "Не удалось сохранить прогноз");
+    } finally {
+      setSubmittingFinalPrediction(false);
+    }
+  }
+
   return (
     <div className="compendium-page">
       <CompendiumHeroImagePreloader />
@@ -314,6 +344,8 @@ export function CompendiumDashboard({
             rerollingQuestId === null
           }
           onCheck={checkStarRaceQuest}
+          isSubmittingPrediction={submittingFinalPrediction}
+          onSubmitPrediction={submitFinalPrediction}
         />
       </section>
       {data.hasDotaId && (

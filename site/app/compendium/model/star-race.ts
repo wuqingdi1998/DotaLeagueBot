@@ -8,6 +8,8 @@ export type StarRacePrize = {
   readonly imageUrl: string;
 };
 
+export const FINAL_PREDICTION_DATE = "2026-08-21";
+
 const FIRST_STAR_RACE_PRIZES = [
   {
     place: 1,
@@ -56,6 +58,11 @@ export type StarRaceQuestRequirement =
     }
   | {
       readonly kind: "arcana-equipped-ranked-win";
+    }
+  | {
+      readonly kind: "final-winner-prediction";
+      readonly opensAt: string;
+      readonly closesAt: string;
     };
 
 export type StarRaceQuestDefinition = {
@@ -168,22 +175,6 @@ const FIRST_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   },
 ];
 
-function unconfiguredStarRaceQuest(
-  dateKey: string,
-  weekday: string,
-  dateLabel: string,
-): StarRaceQuestDefinition {
-  return {
-    dateKey,
-    weekday,
-    dateLabel,
-    title: null,
-    description: null,
-    rewardStars: null,
-    requirement: null,
-  };
-}
-
 const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   {
     dateKey: "2026-08-17",
@@ -232,9 +223,43 @@ const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     rewardStars: 3,
     requirement: { kind: "arcana-equipped-ranked-win" },
   },
-  unconfiguredStarRaceQuest("2026-08-21", "Пятница", "21 августа"),
-  unconfiguredStarRaceQuest("2026-08-22", "Суббота", "22 августа"),
-  unconfiguredStarRaceQuest("2026-08-23", "Воскресенье", "23 августа"),
+  {
+    dateKey: FINAL_PREDICTION_DATE,
+    weekday: "Пятница",
+    dateLabel: "21 августа",
+    title: "Финальный прогноз",
+    description:
+      "Сделайте прогноз на победителя турнира! Задание считается завершенным в случае успешного прогноза. Доступ к заданию открывается в 18:00 четверга и закрывается в 5:00 пятницы, успейте сделать прогноз!",
+    rewardStars: 10,
+    requirement: {
+      kind: "final-winner-prediction",
+      opensAt: "2026-08-20T18:00:00+03:00",
+      closesAt: "2026-08-21T05:00:00+03:00",
+    },
+  },
+  {
+    dateKey: "2026-08-22",
+    weekday: "Суббота",
+    dateLabel: "22 августа",
+    title: "Мета турнира 2",
+    description:
+      "Выиграйте рейтинговый матч на одном из шести героев, которым чаще всего отдают предпочтение команды текущего The International 2026.",
+    rewardStars: 3,
+    requirement: {
+      kind: "distinct-hero-wins",
+      requiredDistinctWins: 1,
+      heroIds: [119, 25, 21, 106, 36, 145],
+    },
+  },
+  {
+    dateKey: "2026-08-23",
+    weekday: "Воскресенье",
+    dateLabel: "23 августа",
+    title: "Афтерпати",
+    description: "Выиграйте одну игру в режиме Turbo.",
+    rewardStars: 3,
+    requirement: { kind: "game-mode-win", gameMode: 23 },
+  },
 ];
 
 export type StarRaceWeekDefinition = {
@@ -317,6 +342,12 @@ export type StarRacePendingVerification = {
   matchCount: number;
 };
 
+export type StarRaceFinalPrediction = {
+  teams: string[];
+  selectedPosition: number | null;
+  winnerPosition: number | null;
+};
+
 export type StarRaceQuest = StarRaceQuestDefinition & {
   startsAt: string;
   endsAt: string;
@@ -326,6 +357,7 @@ export type StarRaceQuest = StarRaceQuestDefinition & {
   progress: StarRaceQuestProgress | null;
   heroProgress: StarRaceQuestHeroProgress | null;
   pendingVerification: StarRacePendingVerification | null;
+  finalPrediction: StarRaceFinalPrediction | null;
 };
 
 export type StarRaceData = {
@@ -366,9 +398,21 @@ export function starRaceQuestPhase(
   quest: StarRaceQuestDefinition,
   now: Date,
 ): StarRaceQuestPhase {
-  const bounds = moscowDayBounds(quest.dateKey);
+  const bounds = starRaceQuestBounds(quest);
   if (now.getTime() < bounds.start.getTime()) return "upcoming";
   return now.getTime() < bounds.end.getTime() ? "active" : "finished";
+}
+
+export function starRaceQuestBounds(quest: StarRaceQuestDefinition): {
+  start: Date;
+  end: Date;
+} {
+  return quest.requirement?.kind === "final-winner-prediction"
+    ? {
+        start: new Date(quest.requirement.opensAt),
+        end: new Date(quest.requirement.closesAt),
+      }
+    : moscowDayBounds(quest.dateKey);
 }
 
 export function starRaceQuestByDate(

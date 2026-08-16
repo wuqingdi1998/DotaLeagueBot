@@ -16,8 +16,8 @@ type StarRaceCompletionRow = {
   completion_id: string;
   moscow_date: string;
   completed_at: Date;
-  hero_id: number;
-  matched_match_id: string;
+  hero_id: number | null;
+  matched_match_id: string | null;
 };
 
 type StarRaceLeaderboardRow = {
@@ -61,10 +61,12 @@ function completionsFromRows(
       completedAt: row.completed_at.toISOString(),
       wins: [],
     };
-    completion.wins.push({
-      hero: compendiumHeroById(row.hero_id),
-      matchId: row.matched_match_id,
-    });
+    if (row.hero_id !== null && row.matched_match_id !== null) {
+      completion.wins.push({
+        hero: compendiumHeroById(row.hero_id),
+        matchId: row.matched_match_id,
+      });
+    }
     completions.set(row.moscow_date, completion);
   }
   return completions;
@@ -78,7 +80,7 @@ const completionSelect = `
     win.hero_id,
     win.matched_match_id::text
   FROM compendium_star_race_quest_completions completion
-  JOIN compendium_star_race_quest_wins win
+  LEFT JOIN compendium_star_race_quest_wins win
     ON win.completion_id = completion.id
   WHERE completion.player_id = $1
     AND ($2::date IS NULL OR completion.moscow_date = $2::date)

@@ -5,6 +5,7 @@ import {
   starRaceForMoment,
   starRacePhase,
   starRaceQuestByDate,
+  starRaceQuestBounds,
   starRaceQuestHeroes,
   starRaceQuestPhase,
   type StarRaceData,
@@ -13,7 +14,6 @@ import {
   type StarRaceQuestHeroProgress,
   type StarRaceQuestProgress,
 } from "../model/star-race";
-import { moscowDayBounds } from "../model/time";
 import { fetchRecentPlayerMatches } from "./opendota";
 import { requireCompendiumDotaId } from "./participant";
 import {
@@ -33,6 +33,7 @@ import {
 } from "./star-race-repository";
 import { checkStarRaceArcanaQuest } from "./star-race-arcana";
 import { loadPendingArcanaVerifications } from "./star-race-arcana-repository";
+import { loadFinalPrediction } from "./star-race-final-prediction-repository";
 
 export async function loadStarRace(
   user: AuthUser,
@@ -60,12 +61,14 @@ export async function loadStarRace(
     completions,
     progresses,
     pendingVerifications,
+    finalPrediction,
   ] = await Promise.all([
     loadPersonalStarRaceStars(user.discordId, race),
     loadStarRaceRank(user.discordId, race),
     loadStarRaceCompletions(user.discordId),
     loadStarRaceProgress(user.discordId),
     loadPendingArcanaVerifications(user.discordId),
+    loadFinalPrediction(user.discordId),
   ]);
   return {
     ...visibility,
@@ -78,7 +81,7 @@ export async function loadStarRace(
     personalRank,
     prizes: race.prizes,
     quests: race.quests.map((quest) => {
-      const bounds = moscowDayBounds(quest.dateKey);
+      const bounds = starRaceQuestBounds(quest);
       const savedProgress = progresses.get(quest.dateKey);
       return {
         ...quest,
@@ -118,6 +121,10 @@ export async function loadStarRace(
             : null,
         pendingVerification:
           pendingVerifications.get(quest.dateKey) ?? null,
+        finalPrediction:
+          quest.requirement?.kind === "final-winner-prediction"
+            ? finalPrediction
+            : null,
       };
     }),
   };
@@ -190,6 +197,12 @@ export async function checkStarRaceQuest(
       "Задание доступно только в назначенный день по московскому времени.",
     );
   }
+  if (quest.requirement.kind === "final-winner-prediction") {
+    throw new CompendiumError(
+      "PREDICTION_INVALID",
+      "Для этого задания выберите команду в списке.",
+    );
+  }
   const completed = await existingStarRaceCompletion(user.discordId, dateKey);
   if (completed) {
     return starRaceCheckResult({
@@ -217,7 +230,7 @@ export async function checkStarRaceQuest(
       "Время выполнения задания уже закончилось.",
     );
   }
-  const bounds = moscowDayBounds(dateKey);
+  const bounds = starRaceQuestBounds(quest);
   const evaluation = evaluateStarRaceRequirement({
     requirement: quest.requirement,
     matches,
