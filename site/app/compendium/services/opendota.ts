@@ -50,6 +50,40 @@ function isForeignPlayerMatch(value: unknown, requestedDotaId: string): boolean 
   );
 }
 
+function addScopedAccountId(value: unknown, requestedDotaId: string): unknown {
+  if (!value || typeof value !== "object") return value;
+  const match = value as Partial<OpenDotaMatch>;
+  if (match.account_id !== undefined && match.account_id !== null) return value;
+  return { ...match, account_id: requestedDotaId };
+}
+
+function uniqueMatches(matches: OpenDotaMatch[]): OpenDotaMatch[] {
+  return Array.from(
+    new Map(matches.map((match) => [String(match.match_id), match])).values(),
+  );
+}
+
+async function requestMatchList(url: URL): Promise<{
+  payload: unknown[] | null;
+  status: number | null;
+}> {
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(8_000),
+      cache: "no-store",
+    });
+    if (!response.ok) return { payload: null, status: response.status };
+    const payload: unknown = await response.json();
+    return {
+      payload: Array.isArray(payload) ? payload : null,
+      status: response.status,
+    };
+  } catch {
+    return { payload: null, status: null };
+  }
+}
+
 async function requestRecentPlayerMatches(
   dotaId: string,
 ): Promise<OpenDotaMatch[]> {
@@ -67,15 +101,18 @@ async function requestRecentPlayerMatches(
   ]) {
     url.searchParams.append("project", field);
   }
+  const recentMatchesUrl = openDotaApiUrl(
+    `/api/players/${encodeURIComponent(dotaId)}/recentMatches`,
+  );
   try {
-    const response = await fetch(url, {
-      headers: { Accept: "application/json" },
-      signal: AbortSignal.timeout(8_000),
-      cache: "no-store",
-    });
-    if (!response.ok) {
+    const [dayResult, recentResult] = await Promise.all([
+      requestMatchList(url),
+      requestMatchList(recentMatchesUrl),
+    ]);
+    if (!dayResult.payload && !recentResult.payload) {
       console.error("OpenDota match request failed", {
-        status: response.status,
+        dayStatus: dayResult.status,
+        recentStatus: recentResult.status,
         dotaId,
       });
       throw new CompendiumError(
@@ -83,14 +120,16 @@ async function requestRecentPlayerMatches(
         "OpenDota недоступен",
       );
     }
-    const payload: unknown = await response.json();
-    if (!Array.isArray(payload)) {
-      throw new Error("OpenDota returned a non-array match payload");
-    }
+    const recentPayload = (recentResult.payload ?? []).map((match) =>
+      addScopedAccountId(match, dotaId)
+    );
+    const payload = [...(dayResult.payload ?? []), ...recentPayload];
     if (payload.some((match) => isForeignPlayerMatch(match, dotaId))) {
       throw new Error("OpenDota returned matches for another player");
     }
-    const matches = payload.filter((match) => isOpenDotaMatch(match, dotaId));
+    const matches = uniqueMatches(
+      payload.filter((match) => isOpenDotaMatch(match, dotaId)),
+    );
     matchCache.set(dotaId, {
       matches,
       expiresAt: Date.now() + OPEN_DOTA_CACHE_TTL_MS,

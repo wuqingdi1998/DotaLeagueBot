@@ -19,34 +19,77 @@ afterEach(() => {
 });
 
 describe("OpenDota client", () => {
+  it("merges a fresh Turbo match that is only present in recentMatches", async () => {
+    const turboMatch = {
+      ...validMatch,
+      match_id: 8_948_340_857,
+      game_mode: 23,
+      lobby_type: 0,
+      hero_id: 112,
+    };
+    delete (turboMatch as Partial<typeof validMatch>).account_id;
+    const fetchMock = vi.fn().mockImplementation((input: URL | string) => {
+      const url = new URL(String(input));
+      const payload = url.pathname.endsWith("/recentMatches")
+        ? [turboMatch]
+        : [validMatch];
+      return Promise.resolve(
+        new Response(JSON.stringify(payload), { status: 200 }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
+      validMatch,
+      { ...turboMatch, account_id: "301109815" },
+    ]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses the available match list when the other OpenDota list is limited", async () => {
+    const fetchMock = vi.fn().mockImplementation((input: URL | string) => {
+      const url = new URL(String(input));
+      return Promise.resolve(
+        url.pathname.endsWith("/recentMatches")
+          ? new Response("", { status: 429 })
+          : new Response(JSON.stringify([validMatch]), { status: 200 }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
+      validMatch,
+    ]);
+  });
+
   it("uses a short cache for consecutive quest checks", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(
       new Response(JSON.stringify([validMatch]), { status: 200 }),
-    );
+    ));
     vi.stubGlobal("fetch", fetchMock);
     await Promise.all([
       fetchRecentPlayerMatches("301109815"),
       fetchRecentPlayerMatches("301109815"),
       fetchRecentPlayerMatches("301109815"),
     ]);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     await fetchRecentPlayerMatches("301109815");
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("does not accept malformed match fields", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => Promise.resolve(
       new Response(JSON.stringify([{ ...validMatch, radiant_win: "yes" }]), { status: 200 }),
-    ));
+    )));
     await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([]);
   });
 
   it("rejects a match returned for another player", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => Promise.resolve(
       new Response(JSON.stringify([{ ...validMatch, account_id: 999364750 }]), {
         status: 200,
       }),
-    ));
+    )));
 
     await expect(fetchRecentPlayerMatches("301109815")).rejects.toMatchObject({
       code: "OPEN_DOTA_UNAVAILABLE",
@@ -54,11 +97,11 @@ describe("OpenDota client", () => {
   });
 
   it("keeps matches with unavailable building damage for hero quests", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(
+    vi.stubGlobal("fetch", vi.fn().mockImplementation(() => Promise.resolve(
       new Response(JSON.stringify([{ ...validMatch, tower_damage: null }]), {
         status: 200,
       }),
-    ));
+    )));
     await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
       { ...validMatch, tower_damage: null },
     ]);
@@ -73,9 +116,9 @@ describe("OpenDota client", () => {
 
   it("does not leak the API key into returned data", async () => {
     process.env.OPENDOTA_API_KEY = "test-secret";
-    const fetchMock = vi.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(
       new Response(JSON.stringify([validMatch]), { status: 200 }),
-    );
+    ));
     vi.stubGlobal("fetch", fetchMock);
     const matches = await fetchRecentPlayerMatches("301109815");
     expect(JSON.stringify(matches)).not.toContain("test-secret");
@@ -83,14 +126,14 @@ describe("OpenDota client", () => {
   });
 
   it("requests all statistics used by compendium quests", async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
+    const fetchMock = vi.fn().mockImplementation(() => Promise.resolve(
       new Response(JSON.stringify([{
         ...validMatch,
         tower_damage: 12_345,
         hero_damage: 60_000,
         kills: 16,
       }]), { status: 200 }),
-    );
+    ));
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(fetchRecentPlayerMatches("301109815")).resolves.toEqual([
@@ -123,6 +166,6 @@ describe("OpenDota client", () => {
     await fetchRecentPlayerMatches("301109815");
     await fetchRecentPlayerMatches("301109815", { forceRefresh: true });
 
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 });
