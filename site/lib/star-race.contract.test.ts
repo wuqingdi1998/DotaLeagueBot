@@ -325,6 +325,15 @@ describe("compendium star race contract", () => {
     expect(summaryStyles).toMatch(
       /\.compendium-star-race-rules strong\s*\{[^}]*font-size:\s*18px;/,
     );
+    expect(summaryStyles).toMatch(
+      /\.compendium-star-race-rules\s*\{[^}]*padding:\s*10px 18px;/,
+    );
+    expect(styles).toMatch(
+      /\.compendium-star-race-prizes\s*\{[^}]*gap:\s*5px;/,
+    );
+    expect(styles).toMatch(
+      /\.compendium-star-race-prize\s*\{[^}]*padding-block:\s*13px;/,
+    );
     expect(starRaceView).toContain("keepGroupedNumbersTogether");
   });
 });

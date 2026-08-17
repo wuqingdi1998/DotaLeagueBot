@@ -167,12 +167,12 @@
 }
 .compendium-star-race-prizes {
   display: grid;
-  gap: 10px;
+  gap: 5px;
 }
 
 .compendium-star-race-prize {
   min-height: 0;
-  padding-block: 14px;
+  padding-block: 13px;
 }
 
 .compendium-star-race-prize-label {

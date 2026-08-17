@@ -4,7 +4,7 @@
   gap: 13px;
   align-items: start;
   min-height: 92px;
-  padding: 17px 18px;
+  padding: 10px 18px;
   border: 1px solid color-mix(in srgb, var(--star-race-gold) 32%, transparent);
   border-radius: 18px;
   background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
