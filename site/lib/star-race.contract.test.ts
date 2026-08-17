@@ -314,7 +314,7 @@ describe("compendium star race contract", () => {
     expect(starRaceView).toContain("STAR_RACE_EXCLUSION_RULES.map");
     expect(summaryStyles).toContain(".compendium-star-race-rules");
     expect(styles).toContain(
-      "grid-template-columns: minmax(190px, 0.42fr) minmax(360px, 0.88fr) minmax(380px, 1.2fr);",
+      "grid-template-columns: minmax(190px, 0.42fr) minmax(420px, 1.16fr) minmax(380px, 0.92fr);",
     );
     expect(globalStyles).toContain(
       '@import "./styles/48-compendium-star-race-summary.css";',
