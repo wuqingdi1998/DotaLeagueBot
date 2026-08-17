@@ -19,7 +19,7 @@ import {
 import type { SeasonMatch, SeasonRound } from "../model/season-types";
 
 export function SeasonRoundPanel() {
-  const { activeTab, data, season } = useTournament();
+  const { activeTab, data, season, startDiscordLogin } = useTournament();
   const round = useMemo(
     () =>
       season.data?.rounds.find(
@@ -58,6 +58,59 @@ export function SeasonRoundPanel() {
           </p>
         </div>
       </div>
+      {round.round_kind === "regular" && (
+        <section className="season-round-registration">
+          <div>
+            <strong>Регистрация на тур</strong>
+            <span>
+              {round.registration_deadline
+                ? `До ${formatDayMonth(round.registration_deadline)} · ${formatTime(round.registration_deadline)}`
+                : "Откроется после назначения даты тура"}
+            </span>
+            <small>
+              Зарегистрировано: {round.registration_count}. Регистрация и отмена
+              закрываются за 24 часа до начала тура.
+            </small>
+          </div>
+          {!data.user ? (
+            <button
+              className="primary-button compact"
+              type="button"
+              disabled={!round.registration_open}
+              onClick={() => startDiscordLogin()}
+            >
+              Войти, чтобы зарегистрироваться
+            </button>
+          ) : (
+            <button
+              className={
+                round.is_registered
+                  ? "secondary-button compact"
+                  : "primary-button compact"
+              }
+              type="button"
+              disabled={
+                !round.registration_open ||
+                season.registrationRoundId !== null
+              }
+              onClick={() =>
+                void season.updateRoundRegistration(
+                  round.id,
+                  round.is_registered,
+                )
+              }
+            >
+              {!round.registration_open
+                ? "Регистрация закрыта"
+                : season.registrationRoundId === round.id
+                  ? "Сохраняем…"
+                  : round.is_registered
+                    ? "Отменить регистрацию"
+                    : "Зарегистрироваться"}
+            </button>
+          )}
+        </section>
+      )}
       {round.round_kind === "finals" && (
         <SeasonFinalistsSummary round={round} />
       )}

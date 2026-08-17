@@ -13,6 +13,12 @@ function tournamentSlug(body: Record<string, unknown>) {
   return String(body.slug ?? "").trim().toLowerCase();
 }
 
+function seasonRegistrationDeadline(startAt: unknown) {
+  const start = new Date(String(startAt ?? ""));
+  if (!Number.isFinite(start.getTime())) return "";
+  return new Date(start.getTime() - 24 * 60 * 60 * 1_000).toISOString();
+}
+
 export async function POST(request: Request) {
   try {
     const admin = await requireAdmin();
@@ -31,6 +37,9 @@ export async function POST(request: Request) {
         { error: "Выберите обычный, сезонный турнир или Сезонный Кубок" },
         { status: 400 },
       );
+    }
+    if (tournamentType === "seasonal") {
+      body.registration_deadline = seasonRegistrationDeadline(body.start_at);
     }
     const seasonRoundCount =
       tournamentType === "seasonal" ? Number(body.season_round_count) : 0;

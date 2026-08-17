@@ -25,6 +25,9 @@ export function useSeasonController({
   const [data, setData] = useState<SeasonData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [registrationRoundId, setRegistrationRoundId] = useState<number | null>(
+    null,
+  );
   const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
     Number.isInteger(requestedRound) && requestedRound > 0
       ? requestedRound
@@ -150,6 +153,36 @@ export function useSeasonController({
     }
   }
 
+  async function updateRoundRegistration(
+    roundId: number,
+    isRegistered: boolean,
+  ) {
+    if (registrationRoundId !== null) return;
+    setRegistrationRoundId(roundId);
+    try {
+      const response = await fetchSeasonRequest("/api/season/registration", {
+        method: isRegistered ? "DELETE" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ roundId }),
+      });
+      const result = await readSeasonMutationResponse(response);
+      if (!response.ok) {
+        setMessage(result.error ?? "Не удалось изменить регистрацию на тур");
+        return;
+      }
+      setMessage(
+        isRegistered
+          ? "Регистрация на тур отменена"
+          : "Вы зарегистрированы на тур",
+      );
+      await load();
+    } catch {
+      setMessage("Сервер недоступен. Попробуйте ещё раз");
+    } finally {
+      setRegistrationRoundId(null);
+    }
+  }
+
   return {
     activeRoundNumber,
     data,
@@ -159,6 +192,8 @@ export function useSeasonController({
     mutate,
     openRound,
     openTab,
+    registrationRoundId,
     setActiveRoundNumber,
+    updateRoundRegistration,
   };
 }

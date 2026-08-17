@@ -8,6 +8,10 @@ import {
 } from "@/lib/season";
 import { calculateSeasonPenalty } from "@/lib/season-discipline";
 import { deriveSeasonFinalMedals } from "@/lib/season-finals";
+import {
+  seasonRoundRegistrationDeadline,
+  seasonRoundRegistrationIsOpen,
+} from "@/lib/season-round-registration";
 import { loadSeasonExtras } from "./season-extra-query";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +27,8 @@ type RoundRow = {
   round_kind: "regular" | "finals";
   lobby_count: number;
   played_match_count: number;
+  registration_count: number;
+  is_registered: boolean;
 };
 
 type LobbyRow = {
@@ -83,6 +89,14 @@ type SeasonPlayerRow = {
   standings_snapshot: SeasonStandingSnapshot | null;
 };
 
+type RoundRegistrationRow = {
+  round_id: number;
+  player_id: string;
+  dota_id: string;
+  nickname: string;
+  avatar_url: string | null;
+};
+
 export async function GET(request: Request) {
   const user = await getSession();
   const isOrganizer = user?.isAdmin === true;
@@ -99,8 +113,9 @@ export async function GET(request: Request) {
   const tournament = await one<{
     id: number;
     tournament_type: string;
+    status: "draft" | "registration" | "active" | "finished" | "archived";
   }>(
-    `SELECT id::int, tournament_type
+    `SELECT id::int, tournament_type, status
      FROM tournaments
      WHERE slug = $1 ${isOrganizer ? "" : "AND status <> 'draft'"}`,
     [slug],
@@ -124,6 +139,7 @@ export async function GET(request: Request) {
     participants,
     games,
     seasonPlayers,
+    roundRegistrations,
     [pointAdjustments, penaltyEvents, substitutions, finalists],
   ] =
     await Promise.all([
@@ -134,14 +150,19 @@ export async function GET(request: Request) {
            COUNT(DISTINCT lobby.id)::int AS lobby_count,
            COUNT(DISTINCT match.id) FILTER (
              WHERE match.status = 'completed'
-           )::int AS played_match_count
+           )::int AS played_match_count,
+           COUNT(DISTINCT registration.player_id)::int AS registration_count,
+           COALESCE(BOOL_OR(registration.player_id = $2::bigint), FALSE)
+             AS is_registered
          FROM season_rounds round
          LEFT JOIN season_lobbies lobby ON lobby.round_id = round.id
          LEFT JOIN season_matches match ON match.lobby_id = lobby.id
+         LEFT JOIN season_round_registrations registration
+           ON registration.round_id = round.id
          WHERE round.tournament_id = $1 ${visibility}
          GROUP BY round.id
          ORDER BY round.round_number`,
-        [tournament.id],
+        [tournament.id, user?.discordId ?? null],
       ),
       query<LobbyRow>(
         `SELECT lobby.id::int, lobby.round_id::int, lobby.name,
@@ -270,6 +291,28 @@ export async function GET(request: Request) {
          ORDER BY nickname`,
         [tournament.id],
       ),
+      query<RoundRegistrationRow>(
+        `SELECT registration.round_id::int,
+           player.discord_id::text AS player_id,
+           COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
+           COALESCE(NULLIF(current_player.ingame_name, ''), player.ingame_name)
+             AS nickname,
+           COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url)
+             AS avatar_url
+         FROM season_round_registrations registration
+         JOIN season_rounds round ON round.id = registration.round_id
+         JOIN players player ON player.discord_id = registration.player_id
+         LEFT JOIN player_identity_members identity_member
+           ON identity_member.player_id = registration.player_id
+         LEFT JOIN player_identities identity
+           ON identity.id = identity_member.identity_id
+         LEFT JOIN players current_player
+           ON current_player.discord_id = identity.registered_player_id
+          AND current_player.is_archived = FALSE
+         WHERE round.tournament_id = $1 ${visibility}
+         ORDER BY round.round_number, nickname`,
+        [tournament.id],
+      ),
       loadSeasonExtras(tournament.id, isOrganizer),
     ]);
 
@@ -305,8 +348,22 @@ export async function GET(request: Request) {
     ...lobby,
     matches: nestedMatches.filter((match) => match.lobby_id === lobby.id),
   }));
+  const generatedAt = new Date();
   const nestedRounds = rounds.map((round) => ({
     ...round,
+    registration_deadline: seasonRoundRegistrationDeadline(round.scheduled_at),
+    registration_open:
+      round.is_visible &&
+      seasonRoundRegistrationIsOpen({
+        scheduledAt: round.scheduled_at,
+        now: generatedAt,
+        roundKind: round.round_kind,
+        roundStatus: round.status,
+        tournamentStatus: tournament.status,
+      }),
+    registrations: roundRegistrations.filter(
+      (registration) => registration.round_id === round.id,
+    ),
     lobbies: nestedLobbies.filter((lobby) => lobby.round_id === round.id),
   }));
   const finalsRoundIds = new Set(
@@ -422,7 +479,7 @@ export async function GET(request: Request) {
     : null;
 
   return Response.json({
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedAt.toISOString(),
     rounds: nestedRounds,
     standings,
     previewStandings,

@@ -79,6 +79,14 @@ export type SeasonLobby = {
   matches: SeasonMatch[];
 };
 
+export type SeasonRoundRegistration = {
+  round_id: number;
+  player_id: string;
+  dota_id: string;
+  nickname: string;
+  avatar_url: string | null;
+};
+
 export type SeasonRound = {
   id: number;
   tournament_id: number;
@@ -90,6 +98,11 @@ export type SeasonRound = {
   round_kind: "regular" | "finals";
   lobby_count: number;
   played_match_count: number;
+  registration_count: number;
+  registration_deadline: string | null;
+  registration_open: boolean;
+  is_registered: boolean;
+  registrations: SeasonRoundRegistration[];
   lobbies: SeasonLobby[];
 };
 

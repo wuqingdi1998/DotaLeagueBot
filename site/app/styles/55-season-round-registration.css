@@ -1,0 +1,47 @@
+.season-round-registration {
+  align-items: center;
+  background: rgba(9, 28, 39, 0.72);
+  border: 1px solid rgba(69, 198, 226, 0.28);
+  border-radius: 16px;
+  display: flex;
+  gap: 20px;
+  justify-content: space-between;
+  margin: 18px 0;
+  padding: 16px 18px;
+}
+
+.season-round-registration > div {
+  display: grid;
+  gap: 4px;
+}
+
+.season-round-registration strong {
+  color: #f6fbff;
+}
+
+.season-round-registration span {
+  color: #67d8ef;
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.season-round-registration small {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.season-round-registration button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .season-round-registration {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-round-registration button {
+    width: 100%;
+  }
+}

@@ -10,6 +10,7 @@ import {
   seasonTierSnapshots,
   textValue,
 } from "./season-admin-model";
+import { validateSeasonMatchParticipantEligibility } from "./season-match-participant-validation";
 
 const matchStatuses = ["draft", "published", "completed", "cancelled"] as const;
 const matchResults = ["team_a", "draw", "team_b"] as const;
@@ -92,28 +93,7 @@ async function replaceParticipants(
     if (players.rowCount !== selected.length) {
       throw new Response("Один из выбранных игроков не найден", { status: 400 });
     }
-    const finalistSelection = await client.query<{ is_valid: boolean }>(
-      `SELECT (
-         round.round_kind <> 'finals'
-         OR (
-           SELECT COUNT(*)
-           FROM season_finalists finalist
-           WHERE finalist.tournament_id = round.tournament_id
-             AND finalist.player_id = ANY($2::bigint[])
-         ) = $3
-       ) AS is_valid
-       FROM season_matches match
-       JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-       JOIN season_rounds round ON round.id = lobby.round_id
-       WHERE match.id = $1`,
-      [matchId, selected, selected.length],
-    );
-    if (!finalistSelection.rows[0]?.is_valid) {
-      throw new Response(
-        "Сначала добавьте всех выбранных игроков в список участников финалов",
-        { status: 400 },
-      );
-    }
+    await validateSeasonMatchParticipantEligibility(client, matchId, selected);
     const repeatedInRound = await client.query<{ player_id: string }>(
       `SELECT DISTINCT participant.player_id::text
        FROM season_match_participants participant

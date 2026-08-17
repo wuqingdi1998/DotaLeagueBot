@@ -23,12 +23,21 @@ function localDateTime(value: string | null) {
 
 export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   const { season } = useTournament();
+  const round = season.data?.rounds.find((item) => item.id === match.round_id);
+  const selectablePlayers =
+    round?.round_kind === "regular"
+      ? round.registrations.map((player) => ({
+          discord_id: player.player_id,
+          ingame_name: player.nickname,
+          avatar_url: player.avatar_url,
+        }))
+      : (season.data?.participants ?? []).map((player) => ({
+          discord_id: player.discord_id,
+          ingame_name: player.nickname,
+          avatar_url: player.avatar_url,
+        }));
   const availablePlayers = uniquePlayers([
-    ...(season.data?.participants ?? []).map((player) => ({
-      discord_id: player.discord_id,
-      ingame_name: player.nickname,
-      avatar_url: player.avatar_url,
-    })),
+    ...selectablePlayers,
     ...match.participants
       .map((participant) => ({
         discord_id: participant.player_id,

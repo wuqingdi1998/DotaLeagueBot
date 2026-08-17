@@ -61,7 +61,9 @@ export function missingRequiredTournamentFields(
     if (optionalEditableFields.has(field)) return false;
     if (
       body.tournament_type === "seasonal" &&
-      ["group_format", "final_format"].includes(field)
+      ["group_format", "final_format", "registration_deadline"].includes(
+        field,
+      )
     ) {
       return false;
     }

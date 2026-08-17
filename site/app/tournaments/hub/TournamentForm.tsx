@@ -31,16 +31,17 @@ export function TournamentForm({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const start = new Date(toTournamentIso(form.start_at));
+    const end = new Date(toTournamentIso(form.end_at));
     const registrationDeadline = new Date(
       toTournamentIso(form.registration_deadline),
     );
-    const start = new Date(toTournamentIso(form.start_at));
-    const end = new Date(toTournamentIso(form.end_at));
     if (
-      !Number.isFinite(registrationDeadline.getTime()) ||
       !Number.isFinite(start.getTime()) ||
       !Number.isFinite(end.getTime()) ||
-      registrationDeadline > start ||
+      (form.tournament_type !== "seasonal" &&
+        (!Number.isFinite(registrationDeadline.getTime()) ||
+          registrationDeadline > start)) ||
       start >= end
     ) {
       setError(
@@ -172,11 +173,13 @@ export function TournamentForm({
               value={form.end_at}
               onChange={(value) => setField("end_at", value)}
             />
-            <DateField
-              label="Дедлайн регистрации"
-              value={form.registration_deadline}
-              onChange={(value) => setField("registration_deadline", value)}
-            />
+            {form.tournament_type !== "seasonal" && (
+              <DateField
+                label="Дедлайн регистрации"
+                value={form.registration_deadline}
+                onChange={(value) => setField("registration_deadline", value)}
+              />
+            )}
             {form.tournament_type !== "seasonal" && (
               <>
                 <NumberField
