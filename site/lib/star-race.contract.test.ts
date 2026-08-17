@@ -69,6 +69,9 @@ const arcanaMigration = source(
 const bonusQuestRaceMigration = source(
   "../../bot/database/migrations/0075_compendium_star_race_exclude_bonus_quest.sql",
 );
+const manualAwardRaceExclusionMigration = source(
+  "../../bot/database/migrations/0077_exclude_manual_awards_from_star_races.sql",
+);
 const arcanaRepository = source(
   "../app/compendium/services/star-race-arcana-repository.ts",
 );
@@ -113,6 +116,60 @@ describe("compendium star race contract", () => {
     expect(bonusQuestRaceMigration).not.toContain(
       "compendium_rune_challenge_completions",
     );
+  });
+
+  it("keeps corrected manual awards outside every star race", () => {
+    expect(manualAwardRaceExclusionMigration).toContain(
+      "ADD COLUMN IF NOT EXISTS is_star_race_eligible",
+    );
+    expect(manualAwardRaceExclusionMigration).toContain(
+      "SET is_star_race_eligible = FALSE",
+    );
+    expect(manualAwardRaceExclusionMigration).toContain(
+      "WHERE adjustment.is_star_race_eligible = TRUE",
+    );
+    expect(manualAwardRaceExclusionMigration).toContain(
+      "adjustment.id = corrected.id",
+    );
+    expect(manualAwardRaceExclusionMigration).toContain(
+      "adjustment.amount = corrected.amount",
+    );
+    expect(manualAwardRaceExclusionMigration).toContain(
+      "adjustment.administrator_name = 'frokeng'",
+    );
+    expect(
+      manualAwardRaceExclusionMigration.match(/\(\d+::BIGINT,/g),
+    ).toHaveLength(20);
+    expect(manualAwardRaceExclusionMigration).not.toContain(
+      "CREATE OR REPLACE VIEW compendium_star_events",
+    );
+    expect(manualAwardRaceExclusionMigration).not.toContain(
+      "CREATE OR REPLACE VIEW compendium_player_star_totals",
+    );
+    for (const nickname of [
+      "reality",
+      "evo",
+      "Shima~",
+      "Pancake",
+      "jamsfedya",
+      "Ame's bastard",
+      "confuse",
+      "N4ZE",
+      "Sanraizu",
+      "Immersion",
+      "yupiii",
+      ".flowerZ",
+      "Wuqing",
+      "ПОДПИВАС",
+      "Linkovatel",
+      "Mazadox",
+      "DiroJu",
+      "frokeng",
+      "ДЕД_ЕСЕНИН",
+      ".Purvs",
+    ]) {
+      expect(manualAwardRaceExclusionMigration).toContain(`-- ${nickname}`);
+    }
   });
 
   it("shows the signed-in player's unique rank from the same standings", () => {
