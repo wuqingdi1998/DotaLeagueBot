@@ -24,7 +24,7 @@ export function DraftHistory({
 }) {
   const { text } = useDraftLocale();
   const historyListRef = useRef<HTMLDivElement>(null);
-  const [activeView, setActiveView] = useState<"history" | "tree">("history");
+  const [activeView, setActiveView] = useState<"history" | "tree">("tree");
 
   useEffect(() => {
     const historyList = historyListRef.current;
@@ -40,17 +40,6 @@ export function DraftHistory({
         {isFullscreen ? (
           <nav className="fearless-history-tabs" aria-label={text.historyView} role="tablist">
             <button
-              className={activeView === "history" ? "active" : ""}
-              id="fearless-draft-history-tab"
-              type="button"
-              role="tab"
-              aria-controls="fearless-draft-history-panel"
-              aria-selected={activeView === "history"}
-              onClick={() => setActiveView("history")}
-            >
-              {text.history}
-            </button>
-            <button
               className={activeView === "tree" ? "active" : ""}
               id="fearless-draft-tree-tab"
               type="button"
@@ -60,6 +49,17 @@ export function DraftHistory({
               onClick={() => setActiveView("tree")}
             >
               {text.tree}
+            </button>
+            <button
+              className={activeView === "history" ? "active" : ""}
+              id="fearless-draft-history-tab"
+              type="button"
+              role="tab"
+              aria-controls="fearless-draft-history-panel"
+              aria-selected={activeView === "history"}
+              onClick={() => setActiveView("history")}
+            >
+              {text.history}
             </button>
           </nav>
         ) : (

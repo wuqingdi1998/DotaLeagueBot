@@ -4,7 +4,7 @@
   overflow: hidden;
   border: 1px solid var(--line-strong);
   border-radius: 9px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(88px, 2fr) minmax(124px, 3fr);
   gap: 0;
   padding: 2px;
   background: var(--surface-soft);
@@ -12,6 +12,7 @@
 
 .fearless-draft-stage:fullscreen .fearless-history-tabs button {
   min-width: 0;
+  overflow: hidden;
   border: 0;
   border-radius: 6px;
   padding: 7px 4px;

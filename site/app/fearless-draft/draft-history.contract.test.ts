@@ -37,24 +37,27 @@ describe("Fearless Draft history", () => {
     expect(history).toContain("[actions.length]");
   });
 
-  it("replaces the fullscreen counter with History and Tree tabs", () => {
+  it("opens the Tree first and keeps both fullscreen tab labels inside", () => {
     expect(activeDraft).toContain("isFullscreen={isFullscreen}");
     expect(activeDraft).toContain("firstPickPlayerId={firstPick.id}");
-    expect(history).toContain('useState<"history" | "tree">("history")');
+    expect(history).toContain('useState<"history" | "tree">("tree")');
     expect(history).toContain("{text.history}");
     expect(history).toContain("{text.tree}");
+    expect(history.indexOf("{text.tree}")).toBeLessThan(
+      history.indexOf("{text.history}"),
+    );
     expect(history).toContain("isFullscreen ? (");
     expect(history).toContain("{actions.length} / 24");
     expect(history).toContain("isFullscreen && activeView === \"tree\"");
     expect(treeStyles).toContain(":fullscreen .fearless-history-tabs");
     expect(treeStyles).toContain(
-      "grid-template-columns: repeat(2, minmax(0, 1fr))",
+      "grid-template-columns: minmax(88px, 2fr) minmax(124px, 3fr)",
     );
     expect(treeStyles).toMatch(
       /:fullscreen \.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
     );
     expect(treeStyles).toMatch(
-      /:fullscreen \.fearless-history-tabs button\s*\{[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
+      /:fullscreen \.fearless-history-tabs button\s*\{[^}]*overflow:\s*hidden;[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-history-tabs button\.active\s*\{[^}]*box-shadow:\s*inset 0 -2px var\(--blue\);/,
