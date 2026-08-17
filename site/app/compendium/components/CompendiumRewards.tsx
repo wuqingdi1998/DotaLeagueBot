@@ -79,14 +79,16 @@ function RewardTrack({
               className={isUnlocked ? "unlocked" : "locked"}
               key={reward.stars}
             >
-              {isUnlocked && (
-                <span className="compendium-milestone-unlocked">
-                  <FaCheck aria-hidden="true" /> получено
-                </span>
-              )}
-              <div className="compendium-milestone-stars">
-                <FaStar aria-hidden="true" />
-                <strong>{reward.stars}</strong>
+              <div className="compendium-milestone-topline">
+                <div className="compendium-milestone-stars">
+                  <FaStar aria-hidden="true" />
+                  <strong>{reward.stars}</strong>
+                </div>
+                {isUnlocked && (
+                  <span className="compendium-milestone-unlocked">
+                    <FaCheck aria-hidden="true" /> получено
+                  </span>
+                )}
               </div>
               <h3>{reward.title}</h3>
               {badgeTier && <ProfileEventBadge badgeKey={badgeTier} />}

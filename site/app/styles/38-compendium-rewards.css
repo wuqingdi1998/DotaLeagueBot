@@ -275,32 +275,49 @@
   filter: saturate(1.18);
 }
 
-.compendium-milestone-unlocked {
-  position: absolute;
-  z-index: 2;
-  top: 12px;
-  right: 12px;
-  display: inline-flex;
+.compendium-milestone-topline {
+  display: flex;
+  min-width: 0;
   align-items: center;
-  gap: 5px;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.compendium-milestone-unlocked {
+  position: static;
+  z-index: 2;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
   margin: 0;
-  padding: 5px 9px;
+  padding: 4px 7px;
   border: 1px solid color-mix(in srgb, var(--milestone-color) 65%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--milestone-color) 20%, #071f2d);
   color: color-mix(in srgb, var(--milestone-color) 82%, white);
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 900;
-  letter-spacing: 0.05em;
+  line-height: 1;
+  letter-spacing: 0.035em;
+  white-space: nowrap;
   text-transform: uppercase;
+}
+
+.compendium-milestone-unlocked svg {
+  flex: 0 0 auto;
+  width: 9px;
+  height: 9px;
 }
 
 .compendium-milestone-stars {
   display: flex;
+  flex: 0 1 auto;
   align-items: center;
   gap: 6px;
   color: var(--milestone-color);
   font-size: 17px;
+  white-space: nowrap;
 }
 
 .compendium-reward-milestones h3 {

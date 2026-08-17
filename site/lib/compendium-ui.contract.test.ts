@@ -47,7 +47,10 @@ describe("compendium interface contract", () => {
       /\.compendium-reward-milestones article\.locked\s*\{[^}]*filter:[^;}]*brightness\(/,
     );
     expect(rewardsCss).toMatch(
-      /\.compendium-milestone-unlocked\s*\{[^}]*position:\s*absolute;[^}]*top:[^;}]+;[^}]*right:/,
+      /\.compendium-milestone-topline\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;[^}]*justify-content:\s*space-between;[^}]*gap:\s*12px;/,
+    );
+    expect(rewardsCss).toMatch(
+      /\.compendium-milestone-unlocked\s*\{[^}]*position:\s*static;[^}]*flex:\s*0 0 auto;[^}]*padding:\s*4px 7px;[^}]*font-size:\s*9px;/,
     );
   });
 
