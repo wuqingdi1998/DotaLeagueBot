@@ -67,9 +67,12 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
     return (
       <section className="season-lobby-builder season-lobby-builder-empty">
         <div>
-          <p className="card-kicker">Только для организатора</p>
-          <h4>Распределение игроков по лобби</h4>
-          <p>Создайте два начальных лобби и распределите зарегистрированных игроков.</p>
+          <p className="card-kicker">Скрыто от участников</p>
+          <h4>Редактор лобби этого тура</h4>
+          <p>
+            Кнопка создаст «Верхнее лобби» и «Нижнее лобби» с двумя
+            командами по 5 слотов.
+          </p>
         </div>
         <button
           className="primary-button compact"
@@ -88,8 +91,8 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
     <section className="season-lobby-builder">
       <header className="season-lobby-builder-heading">
         <div>
-          <p className="card-kicker">Только для организатора</p>
-          <h4>Распределение игроков по лобби</h4>
+          <p className="card-kicker">Скрыто от участников</p>
+          <h4>Редактор лобби этого тура</h4>
           <p>{configurationStatusText(round.lobby_configuration_status)}</p>
         </div>
         <span className={`season-builder-status ${round.lobby_configuration_status}`}>
@@ -162,7 +165,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
               disabled={round.lobbies.length <= 2 || Boolean(busyAction)}
               onClick={removeOneLobby}
             >
-              <FiMinus /> Убрать одно лобби
+              <FiMinus /> Удалить одно лобби
             </button>
             <button
               className="primary-button"

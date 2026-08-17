@@ -45,10 +45,10 @@ export function SeasonAdminPanel() {
       <div className="editor-heading">
         <div>
           <p className="card-kicker">Сезонный формат</p>
-          <h3>Туры, лобби, матчи и карты</h3>
+          <h3>Настройки туров и финального этапа</h3>
           <p>
-            Скрытые туры видны только организаторам. Финалы вынесены в
-            отдельную последнюю вкладку и не влияют на общую таблицу.
+            Здесь задаются названия, даты, статусы и видимость туров. Финалы
+            вынесены в отдельную последнюю вкладку и не влияют на общую таблицу.
           </p>
         </div>
       </div>
@@ -210,12 +210,7 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
             </button>
           )}
         </div>
-        {round.round_kind === "regular" ? (
-          <p className="season-empty-copy">
-            Распределение зарегистрированных игроков находится непосредственно
-            на странице выбранного тура и видно только организатору.
-          </p>
-        ) : (
+        {round.round_kind === "finals" && (
           <div className="season-lobby-admin-list">
             {round.lobbies.map((lobby) => (
               <SeasonLobbyAdmin lobby={lobby} key={lobby.id} />

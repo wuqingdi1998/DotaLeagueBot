@@ -18,6 +18,9 @@ const builder = source(
 const roundPanel = source(
   "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
 );
+const seasonAdmin = source(
+  "../app/tournaments/[slug]/admin/SeasonAdminPanel.tsx",
+);
 
 describe("season lobby builder contract", () => {
   it("stores configuration status and exact team slots", () => {
@@ -37,9 +40,19 @@ describe("season lobby builder contract", () => {
 
   it("keeps draft lineups private and exposes published lineups", () => {
     expect(seasonRoute).toContain("lobby_configuration_status = 'published'");
-    expect(builder).toContain("Только для организатора");
+    expect(builder).toContain("Скрыто от участников");
     expect(builder).toContain("Зафиксировать лобби");
     expect(builder).toContain("Отменить публикацию");
     expect(roundPanel).toContain("showPublicLobbies");
+  });
+
+  it("places the organizer editor only inside the selected round tab", () => {
+    expect(roundPanel).toContain("<SeasonLobbyBuilder round={round} />");
+    expect(builder).toContain("Редактор лобби этого тура");
+    expect(builder).toContain("Создать лобби");
+    expect(builder).toContain("Добавить ещё одно лобби");
+    expect(builder).toContain("Удалить одно лобби");
+    expect(seasonAdmin).not.toContain("SeasonLobbyBuilder");
+    expect(seasonAdmin).not.toContain("Распределение зарегистрированных игроков");
   });
 });
