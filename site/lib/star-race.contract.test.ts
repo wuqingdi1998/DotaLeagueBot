@@ -30,6 +30,9 @@ const starRaceView = source(
   "../app/compendium/components/CompendiumStarRace.tsx",
 );
 const starRaceModel = source("../app/compendium/model/star-race.ts");
+const starRacePrizesModel = source(
+  "../app/compendium/model/star-race-prizes.ts",
+);
 const starRaceEvaluation = source(
   "../app/compendium/model/star-race-evaluation.ts",
 );
@@ -159,7 +162,7 @@ describe("compendium star race contract", () => {
     );
     expect(leaderboardPage).toContain("общих мест в итоге не будет");
     expect(leaderboardPage).toContain("starRacePrizeDescription(race.prizes)");
-    expect(starRaceModel).toContain("Призы будут объявлены позже");
+    expect(starRacePrizesModel).toContain("Призы будут объявлены позже");
   });
 
   it("stores the two-star reward once and only during its Moscow day", () => {
@@ -256,15 +259,20 @@ describe("compendium star race contract", () => {
     expect(starRaceView).toContain("race.title");
     expect(starRaceView).toContain("Гонка скоро начнётся");
     expect(starRaceView).toContain("isDetailsVisible");
-    expect(starRaceModel).toContain("Primeval Abomination");
-    expect(starRaceModel).toContain("Primal Beast");
+    expect(starRacePrizesModel).toContain("Primeval Abomination");
+    expect(starRacePrizesModel).toContain("Primal Beast");
   });
 
-  it("previews each top-two prize image from its visibly interactive name", () => {
-    expect(starRaceModel).toContain("Beast of Thunder");
+  it("previews prizes with images and leaves the third prize static", () => {
+    expect(starRacePrizesModel).toContain("Beast of Thunder");
     expect(starRaceView).toContain("race.prizes.map");
     expect(starRaceView).toContain("Награда за топ-${prize.place}");
     expect(starRaceView).toContain("src={prize.imageUrl}");
+    expect(starRaceView).toContain("prize.imageUrl ?");
+    expect(starRaceView).toContain("compendium-star-race-prize-static");
+    expect(starRacePrizesModel).toContain("The Lightning Orchid");
+    expect(archiveView).toContain("prize.imageUrl ? (");
+    expect(archiveView).toContain("is-image-free");
     expect(starRaceView).toContain('role="tooltip"');
     expect(starRaceView).toContain("tabIndex={0}");
     expect(starRaceView).not.toContain("href={prize.imageUrl}");
@@ -305,6 +313,9 @@ describe("compendium star race contract", () => {
     );
     expect(starRaceView).toContain("STAR_RACE_EXCLUSION_RULES.map");
     expect(summaryStyles).toContain(".compendium-star-race-rules");
+    expect(styles).toContain(
+      "grid-template-columns: minmax(190px, 0.42fr) minmax(360px, 0.88fr) minmax(380px, 1.2fr);",
+    );
     expect(globalStyles).toContain(
       '@import "./styles/48-compendium-star-race-summary.css";',
     );

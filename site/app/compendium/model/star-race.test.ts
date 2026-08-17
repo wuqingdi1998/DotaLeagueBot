@@ -44,7 +44,7 @@ describe("star race schedule", () => {
       "2026-08-23T21:00:00.000Z",
     );
     expect(CURRENT_STAR_RACE.dateLabel).toBe("17–23 августа 2026");
-    expect(STAR_RACE_PRIZES).toHaveLength(2);
+    expect(STAR_RACE_PRIZES).toHaveLength(3);
     expect(STAR_RACE_QUESTS).toHaveLength(7);
     expect(STAR_RACE_QUESTS.map((quest) => quest.dateKey)).toEqual([
       "2026-08-17",
@@ -69,6 +69,9 @@ describe("star race schedule", () => {
     )).toBe(true);
     expect(starRacePrizeDescription(STAR_RACE_PRIZES)).toContain(
       "Набор наград «Тёмного карнавала»",
+    );
+    expect(starRacePrizeDescription(STAR_RACE_PRIZES)).toContain(
+      "The Lightning Orchid",
     );
   });
 

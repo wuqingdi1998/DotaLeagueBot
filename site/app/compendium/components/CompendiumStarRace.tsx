@@ -341,26 +341,32 @@ export function CompendiumStarRace({
                   <span className="compendium-star-race-prize-label">
                     {`Награда за топ-${prize.place}`}
                   </span>
-                  <span
-                    className="compendium-star-race-prize-name"
-                    tabIndex={0}
-                    aria-label={`${prize.title}. Изображение появится при наведении или фокусе.`}
-                  >
-                    <strong>{prize.title}</strong>
-                    <FiImage aria-hidden="true" />
+                  {prize.imageUrl ? (
                     <span
-                      className="compendium-star-race-prize-preview"
-                      role="tooltip"
+                      className="compendium-star-race-prize-name"
+                      tabIndex={0}
+                      aria-label={`${prize.title}. Изображение появится при наведении или фокусе.`}
                     >
-                      <Image
-                        src={prize.imageUrl}
-                        alt={prize.title}
-                        width={480}
-                        height={436}
-                        unoptimized
-                      />
+                      <strong>{prize.title}</strong>
+                      <FiImage aria-hidden="true" />
+                      <span
+                        className="compendium-star-race-prize-preview"
+                        role="tooltip"
+                      >
+                        <Image
+                          src={prize.imageUrl}
+                          alt={prize.title}
+                          width={480}
+                          height={436}
+                          unoptimized
+                        />
+                      </span>
                     </span>
-                  </span>
+                  ) : (
+                    <strong className="compendium-star-race-prize-static">
+                      {prize.title}
+                    </strong>
+                  )}
                 </div>
               ))}
             </div>

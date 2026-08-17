@@ -16,14 +16,19 @@ function RaceScenario({ race }: { race: ArchivedRace }) {
     <div className="compendium-base-race-scenario">
       <div className="compendium-base-race-prizes">
         {race.prizes.map((prize) => (
-          <article key={prize.place}>
-            <Image
-              src={prize.imageUrl}
-              alt=""
-              width={96}
-              height={54}
-              unoptimized
-            />
+          <article
+            className={prize.imageUrl ? undefined : "is-image-free"}
+            key={prize.place}
+          >
+            {prize.imageUrl ? (
+              <Image
+                src={prize.imageUrl}
+                alt=""
+                width={96}
+                height={54}
+                unoptimized
+              />
+            ) : null}
             <span><FiGift aria-hidden="true" /> Топ-{prize.place}</span>
             <strong>{prize.title}</strong>
           </article>

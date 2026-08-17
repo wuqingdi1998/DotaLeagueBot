@@ -1,12 +1,13 @@
 import { compendiumHeroById } from "./heroes";
 import { moscowDayBounds } from "./time";
 import type { CompendiumHero } from "./types";
+import {
+  FIRST_STAR_RACE_PRIZES,
+  SECOND_STAR_RACE_PRIZES,
+  type StarRacePrize,
+} from "./star-race-prizes";
 
-export type StarRacePrize = {
-  readonly place: number;
-  readonly title: string;
-  readonly imageUrl: string;
-};
+export { starRacePrizeDescription, type StarRacePrize } from "./star-race-prizes";
 
 export const FINAL_PREDICTION_DATE = "2026-08-21";
 
@@ -14,32 +15,6 @@ export const STAR_RACE_EXCLUSION_RULES = [
   "Звёзды за Испытание Рун в гонке не учитываются, но всё так же учитываются в других зачётах.",
   "Звёзды за Испытание 4 также не учитываются в гонке, но сохраняются в общем зачёте Компендиума.",
 ] as const;
-
-const FIRST_STAR_RACE_PRIZES = [
-  {
-    place: 1,
-    title: "Сет Beast of Thunder на Storm Spirit",
-    imageUrl: "/compendium/star-race/beast-of-thunder-storm-spirit.gif",
-  },
-  {
-    place: 2,
-    title: "Сет Primeval Abomination на Primal Beast",
-    imageUrl: "/compendium/star-race/primeval-abomination-primal-beast.jpg",
-  },
-] as const satisfies readonly StarRacePrize[];
-
-const SECOND_STAR_RACE_PRIZES = [
-  {
-    place: 1,
-    title: "Набор наград «Тёмного карнавала»",
-    imageUrl: "/compendium/star-race/dark-carnival-reward-set.webp",
-  },
-  {
-    place: 2,
-    title: "Treasure of Wonders ×2",
-    imageUrl: "/compendium/star-race/treasure-of-wonders.webp",
-  },
-] as const satisfies readonly StarRacePrize[];
 
 export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
@@ -451,16 +426,6 @@ export function starRaceWeekByDate(
 
 export function keepGroupedNumbersTogether(text: string): string {
   return text.replace(/(\d)[ \u00a0\u202f](?=\d{3}(?:\D|$))/g, "$1\u00a0");
-}
-
-export function starRacePrizeDescription(
-  prizes: readonly StarRacePrize[],
-): string {
-  if (prizes.length === 0) return "Призы будут объявлены позже.";
-  if (prizes.length === 1) {
-    return `Награда за первое место — ${prizes[0].title}.`;
-  }
-  return `Награда за первое место — ${prizes[0].title}; за второе — ${prizes[1].title}.`;
 }
 
 export function starRaceQuestHeroes(

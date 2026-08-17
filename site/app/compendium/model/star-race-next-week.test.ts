@@ -22,7 +22,7 @@ function rankedWin(matchId: number): OpenDotaMatch {
 }
 
 describe("second star race week", () => {
-  it("shows the requested prizes for first and second place", () => {
+  it("shows the requested prizes for the first three places", () => {
     expect(CURRENT_STAR_RACE.prizes).toEqual([
       {
         place: 1,
@@ -33,6 +33,11 @@ describe("second star race week", () => {
         place: 2,
         title: "Treasure of Wonders ×2",
         imageUrl: "/compendium/star-race/treasure-of-wonders.webp",
+      },
+      {
+        place: 3,
+        title: "The Lightning Orchid",
+        imageUrl: null,
       },
     ]);
   });
