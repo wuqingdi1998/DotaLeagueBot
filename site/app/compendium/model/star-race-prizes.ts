@@ -31,7 +31,7 @@ export const SECOND_STAR_RACE_PRIZES = [
   {
     place: 3,
     title: "The Lightning Orchid",
-    imageUrl: null,
+    imageUrl: "/compendium/star-race/the-lightning-orchid.webp",
   },
 ] as const satisfies readonly StarRacePrize[];
 

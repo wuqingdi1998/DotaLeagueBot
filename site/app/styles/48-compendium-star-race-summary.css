@@ -44,6 +44,19 @@
   color: #805300;
 }
 
+@media (min-width: 1181px) {
+  .compendium-star-race-prize {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    padding: 9px 18px;
+  }
+
+  .compendium-star-race-prize > svg:first-of-type {
+    width: 36px;
+    height: 36px;
+    padding: 8px;
+  }
+}
+
 @media (min-width: 721px) and (max-width: 1180px) {
   .compendium-star-race-summary {
     grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);

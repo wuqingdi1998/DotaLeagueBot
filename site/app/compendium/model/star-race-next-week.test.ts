@@ -37,7 +37,7 @@ describe("second star race week", () => {
       {
         place: 3,
         title: "The Lightning Orchid",
-        imageUrl: null,
+        imageUrl: "/compendium/star-race/the-lightning-orchid.webp",
       },
     ]);
   });

@@ -263,7 +263,7 @@ describe("compendium star race contract", () => {
     expect(starRacePrizesModel).toContain("Primal Beast");
   });
 
-  it("previews prizes with images and leaves the third prize static", () => {
+  it("previews configured prize images and supports image-free prizes", () => {
     expect(starRacePrizesModel).toContain("Beast of Thunder");
     expect(starRaceView).toContain("race.prizes.map");
     expect(starRaceView).toContain("Награда за топ-${prize.place}");
@@ -271,6 +271,9 @@ describe("compendium star race contract", () => {
     expect(starRaceView).toContain("prize.imageUrl ?");
     expect(starRaceView).toContain("compendium-star-race-prize-static");
     expect(starRacePrizesModel).toContain("The Lightning Orchid");
+    expect(starRacePrizesModel).toContain(
+      'imageUrl: "/compendium/star-race/the-lightning-orchid.webp"',
+    );
     expect(archiveView).toContain("prize.imageUrl ? (");
     expect(archiveView).toContain("is-image-free");
     expect(starRaceView).toContain('role="tooltip"');
@@ -333,6 +336,12 @@ describe("compendium star race contract", () => {
     );
     expect(styles).toMatch(
       /\.compendium-star-race-prize\s*\{[^}]*padding-block:\s*13px;/,
+    );
+    expect(summaryStyles).toMatch(
+      /@media \(min-width: 1181px\)[\s\S]*\.compendium-star-race-prize\s*\{[^}]*grid-template-columns:\s*36px minmax\(0, 1fr\) auto;[^}]*padding:\s*9px 18px;/,
+    );
+    expect(summaryStyles).toMatch(
+      /\.compendium-star-race-prize > svg:first-of-type\s*\{[^}]*width:\s*36px;[^}]*height:\s*36px;[^}]*padding:\s*8px;/,
     );
     expect(starRaceView).toContain("keepGroupedNumbersTogether");
   });
