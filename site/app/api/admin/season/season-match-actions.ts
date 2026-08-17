@@ -143,15 +143,16 @@ async function replaceParticipants(
         ? submittedTiers.get(playerId)
         : previousTiers.get(playerId) ?? null,
     );
+    const slots = ids.map((_, index) => index + 1);
     await client.query(
       `INSERT INTO season_match_participants
-        (match_id, player_id, team_side, is_captain, tier_snapshot)
+        (match_id, player_id, team_side, is_captain, tier_snapshot, slot_number)
        SELECT $1, selected.player_id, $2,
-         selected.player_id::text = COALESCE($5::text, ''),
-         selected.tier_snapshot
-       FROM UNNEST($3::bigint[], $4::smallint[])
-         AS selected(player_id, tier_snapshot)`,
-      [matchId, side, ids, tiers, captainId],
+         selected.player_id::text = COALESCE($6::text, ''),
+         selected.tier_snapshot, selected.slot_number
+       FROM UNNEST($3::bigint[], $4::smallint[], $5::smallint[])
+         AS selected(player_id, tier_snapshot, slot_number)`,
+      [matchId, side, ids, tiers, slots, captainId],
     );
   }
   if (selected.length) {

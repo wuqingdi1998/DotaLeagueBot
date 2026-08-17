@@ -42,13 +42,22 @@ const hallTable = readFileSync(
   new URL("../app/hall-of-fame/HallOfFameTable.tsx", import.meta.url),
   "utf8",
 );
-const seasonRound = readFileSync(
-  new URL(
-    "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
-    import.meta.url,
+const seasonRound = [
+  readFileSync(
+    new URL(
+      "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
+      import.meta.url,
+    ),
+    "utf8",
   ),
-  "utf8",
-);
+  readFileSync(
+    new URL(
+      "../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx",
+      import.meta.url,
+    ),
+    "utf8",
+  ),
+].join("\n");
 const tournamentHistory = readFileSync(
   new URL("./player-tournament-history.ts", import.meta.url),
   "utf8",

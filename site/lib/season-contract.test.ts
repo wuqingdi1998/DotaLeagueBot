@@ -26,9 +26,10 @@ const horizontalDragScroll = source(
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
-const rounds = source(
-  "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
-);
+const rounds = [
+  source("../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx"),
+  source("../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx"),
+].join("\n");
 const matchAdmin = source(
   "../app/tournaments/[slug]/admin/SeasonMatchAdmin.tsx",
 );

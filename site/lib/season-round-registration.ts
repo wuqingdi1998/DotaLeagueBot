@@ -1,5 +1,8 @@
 const registrationLeadMilliseconds = 24 * 60 * 60 * 1_000;
 
+export const seasonTierConfirmationMessage =
+  "Отправьте полный скриншот страницы с MMR и последними матчами организатору — @frokeng";
+
 type SeasonRoundRegistrationState = {
   readonly scheduledAt: string | Date | null;
   readonly now: string | Date;
@@ -19,6 +22,16 @@ function timestamp(value: string | Date | null): number | null {
   return Number.isFinite(result) ? result : null;
 }
 
+function seasonRoundAllowsRegistration(
+  state: SeasonRoundRegistrationState,
+): boolean {
+  return (
+    state.roundKind === "regular" &&
+    ["planned", "active"].includes(state.roundStatus) &&
+    ["registration", "active"].includes(state.tournamentStatus)
+  );
+}
+
 export function seasonRoundRegistrationDeadline(
   scheduledAt: string | Date | null,
 ): string | null {
@@ -31,14 +44,25 @@ export function seasonRoundRegistrationDeadline(
 export function seasonRoundRegistrationIsOpen(
   state: SeasonRoundRegistrationState,
 ): boolean {
+  const start = timestamp(state.scheduledAt);
+  const now = timestamp(state.now);
+  return Boolean(
+    start !== null &&
+      now !== null &&
+      seasonRoundAllowsRegistration(state) &&
+      now < start,
+  );
+}
+
+export function seasonRoundCancellationIsOpen(
+  state: SeasonRoundRegistrationState,
+): boolean {
   const deadline = seasonRoundRegistrationDeadline(state.scheduledAt);
   const now = timestamp(state.now);
   return Boolean(
     deadline &&
       now !== null &&
-      state.roundKind === "regular" &&
-      ["planned", "active"].includes(state.roundStatus) &&
-      ["registration", "active"].includes(state.tournamentStatus) &&
+      seasonRoundAllowsRegistration(state) &&
       now < new Date(deadline).getTime(),
   );
 }

@@ -8,9 +8,13 @@ function source(path: string) {
 const migration = source(
   "../../bot/database/migrations/0076_season_round_registrations.sql",
 );
+const lobbyBuilderMigration = source(
+  "../../bot/database/migrations/0078_season_round_lobby_builder.sql",
+);
 const registrationRoute = source(
   "../app/api/season/registration/route.ts",
 );
+const registrationRules = source("./season-round-registration.ts");
 const seasonRoute = source("../app/api/season/route.ts");
 const seasonTypes = source(
   "../app/tournaments/[slug]/model/season-types.ts",
@@ -20,6 +24,9 @@ const seasonController = source(
 );
 const roundPanel = source(
   "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
+);
+const registrationSection = source(
+  "../app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
 );
 const matchAdmin = source(
   "../app/tournaments/[slug]/admin/SeasonMatchAdmin.tsx",
@@ -46,21 +53,28 @@ describe("season round registration contract", () => {
     expect(migration).toContain("REFERENCES season_rounds(id) ON DELETE CASCADE");
   });
 
-  it("allows registration and cancellation only before the 24 hour cutoff", () => {
+  it("allows registration until start and cancellation before the 24 hour cutoff", () => {
     expect(registrationRoute).toContain("requireSession");
     expect(registrationRoute).toContain("seasonRoundRegistrationIsOpen");
+    expect(registrationRoute).toContain("seasonRoundCancellationIsOpen");
+    expect(registrationRoute).toContain("tier_status !== \"current\"");
+    expect(registrationRules).toContain("@frokeng");
     expect(registrationRoute).toContain("ON CONFLICT (round_id, player_id)");
     expect(registrationRoute).toContain("DELETE FROM season_round_registrations");
+    expect(lobbyBuilderMigration).toContain("tier_snapshot");
   });
 
   it("returns round-specific status and registrations to the tournament page", () => {
     expect(seasonRoute).toContain("registration_count");
     expect(seasonRoute).toContain("is_registered");
     expect(seasonRoute).toContain("roundRegistrations");
+    expect(seasonRoute).toContain("registration.created_at");
+    expect(seasonRoute).toContain("registration.tier_snapshot");
     expect(seasonTypes).toContain("registrations: SeasonRoundRegistration[]");
     expect(seasonController).toContain("updateRoundRegistration");
-    expect(roundPanel).toContain("Зарегистрироваться");
-    expect(roundPanel).toContain("Отменить регистрацию");
+    expect(roundPanel).toContain("SeasonRoundRegistration");
+    expect(registrationSection).toContain("Зарегистрироваться");
+    expect(registrationSection).toContain("Отменить регистрацию");
     expect(matchAdmin).toContain("round.registrations");
     expect(matchActions).toContain("validateSeasonMatchParticipantEligibility");
     expect(matchParticipantValidation).toContain("season_round_registrations");

@@ -204,15 +204,24 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
           >
             Открыть
           </button>
-          <button className="secondary-button" onClick={() => void addLobby()}>
-            <FiPlus /> Добавить лобби
-          </button>
+          {round.round_kind === "finals" && (
+            <button className="secondary-button" onClick={() => void addLobby()}>
+              <FiPlus /> Добавить лобби
+            </button>
+          )}
         </div>
-        <div className="season-lobby-admin-list">
-          {round.lobbies.map((lobby) => (
-            <SeasonLobbyAdmin lobby={lobby} key={lobby.id} />
-          ))}
-        </div>
+        {round.round_kind === "regular" ? (
+          <p className="season-empty-copy">
+            Распределение зарегистрированных игроков находится непосредственно
+            на странице выбранного тура и видно только организатору.
+          </p>
+        ) : (
+          <div className="season-lobby-admin-list">
+            {round.lobbies.map((lobby) => (
+              <SeasonLobbyAdmin lobby={lobby} key={lobby.id} />
+            ))}
+          </div>
+        )}
       </div>
     </details>
   );

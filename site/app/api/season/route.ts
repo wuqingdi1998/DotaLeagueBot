@@ -2,100 +2,28 @@ import { getSession } from "@/lib/auth";
 import { one, query } from "@/lib/db";
 import {
   calculateSeasonStandings,
-  type SeasonStandingSnapshot,
   type SeasonStandingIdentity,
   type SeasonStandingMatch,
 } from "@/lib/season";
 import { calculateSeasonPenalty } from "@/lib/season-discipline";
 import { deriveSeasonFinalMedals } from "@/lib/season-finals";
 import {
+  seasonRoundCancellationIsOpen,
   seasonRoundRegistrationDeadline,
   seasonRoundRegistrationIsOpen,
 } from "@/lib/season-round-registration";
 import { loadSeasonExtras } from "./season-extra-query";
+import type {
+  GameRow,
+  LobbyRow,
+  MatchRow,
+  ParticipantRow,
+  RoundRegistrationRow,
+  RoundRow,
+  SeasonPlayerRow,
+} from "./season-route-model";
 
 export const dynamic = "force-dynamic";
-
-type RoundRow = {
-  id: number;
-  tournament_id: number;
-  round_number: number;
-  name: string | null;
-  status: "planned" | "active" | "completed" | "cancelled";
-  scheduled_at: string | null;
-  is_visible: boolean;
-  round_kind: "regular" | "finals";
-  lobby_count: number;
-  played_match_count: number;
-  registration_count: number;
-  is_registered: boolean;
-};
-
-type LobbyRow = {
-  id: number;
-  round_id: number;
-  name: string;
-  sort_order: number;
-  status: "draft" | "scheduled" | "live" | "completed" | "cancelled";
-  scheduled_at: string | null;
-};
-
-type MatchRow = {
-  id: number;
-  lobby_id: number;
-  round_id: number;
-  round_number: number;
-  lobby_name: string;
-  scheduled_at: string | null;
-  team_a_name: string;
-  team_b_name: string;
-  best_of: number;
-  team_a_score: number | null;
-  team_b_score: number | null;
-  result: "team_a" | "draw" | "team_b" | null;
-  status: "draft" | "published" | "completed" | "cancelled";
-  sort_order: number;
-};
-
-type ParticipantRow = {
-  match_id: number;
-  player_id: string;
-  dota_id: string;
-  nickname: string;
-  avatar_url: string | null;
-  team_side: "a" | "b";
-  is_captain: boolean;
-  tier_snapshot: number | null;
-};
-
-type GameRow = {
-  id: number;
-  match_id: number;
-  game_number: number;
-  dota_match_id: string | null;
-  winner_side: "a" | "draw" | "b" | null;
-  duration_seconds: number | null;
-  status: "draft" | "published" | "completed" | "cancelled";
-};
-
-type SeasonPlayerRow = {
-  discord_id: string;
-  dota_id: string;
-  nickname: string;
-  avatar_url: string | null;
-  standings_section: "active" | "inactive";
-  inactive_reason: string | null;
-  rank_snapshot: number | null;
-  standings_snapshot: SeasonStandingSnapshot | null;
-};
-
-type RoundRegistrationRow = {
-  round_id: number;
-  player_id: string;
-  dota_id: string;
-  nickname: string;
-  avatar_url: string | null;
-};
 
 export async function GET(request: Request) {
   const user = await getSession();
@@ -125,9 +53,18 @@ export async function GET(request: Request) {
   }
 
   const visibility = isOrganizer ? "" : "AND round.is_visible = TRUE";
+  const lobbyVisibility = isOrganizer
+    ? ""
+    : "AND (round.round_kind = 'finals' OR round.lobby_configuration_status = 'published')";
   const matchVisibility = isOrganizer
     ? ""
-    : "AND match.status IN ('published', 'completed')";
+    : `AND (
+        (round.round_kind = 'regular'
+          AND round.lobby_configuration_status = 'published')
+        OR
+        (round.round_kind = 'finals'
+          AND match.status IN ('published', 'completed'))
+      )`;
   const gameVisibility = isOrganizer
     ? ""
     : "AND game.status IN ('published', 'completed')";
@@ -147,6 +84,7 @@ export async function GET(request: Request) {
         `SELECT round.id::int, round.tournament_id::int,
            round.round_number::int, round.name, round.status,
            round.scheduled_at, round.is_visible, round.round_kind,
+           round.lobby_configuration_status,
            COUNT(DISTINCT lobby.id)::int AS lobby_count,
            COUNT(DISTINCT match.id) FILTER (
              WHERE match.status = 'completed'
@@ -169,7 +107,7 @@ export async function GET(request: Request) {
            lobby.sort_order, lobby.status, lobby.scheduled_at
          FROM season_lobbies lobby
          JOIN season_rounds round ON round.id = lobby.round_id
-         WHERE round.tournament_id = $1 ${visibility}
+         WHERE round.tournament_id = $1 ${visibility} ${lobbyVisibility}
          ORDER BY round.round_number, lobby.sort_order, lobby.id`,
         [tournament.id],
       ),
@@ -193,7 +131,8 @@ export async function GET(request: Request) {
            COALESCE(NULLIF(participant.nickname_snapshot, ''), player.ingame_name) AS nickname,
            COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url) AS avatar_url,
            participant.team_side, participant.is_captain,
-           participant.tier_snapshot::int
+           participant.tier_snapshot::int,
+           participant.slot_number::int
          FROM season_match_participants participant
          JOIN players player ON player.discord_id = participant.player_id
          LEFT JOIN player_identity_members identity_member
@@ -208,6 +147,7 @@ export async function GET(request: Request) {
          JOIN season_rounds round ON round.id = lobby.round_id
          WHERE round.tournament_id = $1 ${visibility} ${matchVisibility}
          ORDER BY participant.match_id, participant.team_side,
+           participant.slot_number NULLS LAST,
            participant.tier_snapshot DESC NULLS LAST, nickname`,
         [tournament.id],
       ),
@@ -298,7 +238,9 @@ export async function GET(request: Request) {
            COALESCE(NULLIF(current_player.ingame_name, ''), player.ingame_name)
              AS nickname,
            COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url)
-             AS avatar_url
+             AS avatar_url,
+           registration.tier_snapshot::int,
+           registration.created_at
          FROM season_round_registrations registration
          JOIN season_rounds round ON round.id = registration.round_id
          JOIN players player ON player.discord_id = registration.player_id
@@ -310,7 +252,8 @@ export async function GET(request: Request) {
            ON current_player.discord_id = identity.registered_player_id
           AND current_player.is_archived = FALSE
          WHERE round.tournament_id = $1 ${visibility}
-         ORDER BY round.round_number, nickname`,
+         ORDER BY round.round_number, registration.created_at,
+           registration.player_id`,
         [tournament.id],
       ),
       loadSeasonExtras(tournament.id, isOrganizer),
@@ -351,10 +294,19 @@ export async function GET(request: Request) {
   const generatedAt = new Date();
   const nestedRounds = rounds.map((round) => ({
     ...round,
-    registration_deadline: seasonRoundRegistrationDeadline(round.scheduled_at),
+    cancellation_deadline: seasonRoundRegistrationDeadline(round.scheduled_at),
     registration_open:
       round.is_visible &&
       seasonRoundRegistrationIsOpen({
+        scheduledAt: round.scheduled_at,
+        now: generatedAt,
+        roundKind: round.round_kind,
+        roundStatus: round.status,
+        tournamentStatus: tournament.status,
+      }),
+    cancellation_open:
+      round.is_visible &&
+      seasonRoundCancellationIsOpen({
         scheduledAt: round.scheduled_at,
         now: generatedAt,
         roundKind: round.round_kind,

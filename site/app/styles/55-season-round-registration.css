@@ -35,6 +35,118 @@
   white-space: nowrap;
 }
 
+.season-registration-section {
+  background: rgba(7, 22, 32, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  margin: 20px 0;
+  padding: 0 18px 18px;
+}
+
+.season-registration-list-heading {
+  align-items: flex-end;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin: 20px 0 12px;
+}
+
+.season-registration-list-heading h4,
+.season-registration-list-heading p {
+  margin: 0;
+}
+
+.season-registration-sorts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.season-registration-sorts button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 6px;
+  padding: 7px 11px;
+}
+
+.season-registration-sorts button.active {
+  background: rgba(69, 198, 226, 0.14);
+  border-color: rgba(69, 198, 226, 0.48);
+  color: #76e2f5;
+}
+
+.season-registration-list {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.season-registration-list li {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 34px minmax(140px, 1fr) 74px minmax(190px, auto);
+  min-height: 48px;
+  padding: 8px 12px;
+}
+
+.season-registration-number {
+  align-items: center;
+  background: rgba(69, 198, 226, 0.12);
+  border-radius: 8px;
+  color: #76e2f5;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.season-registration-player,
+.season-registration-list time {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.season-registration-player a {
+  color: var(--text);
+  font-weight: 750;
+}
+
+.season-registration-list li > strong {
+  color: #f4c96b;
+  font-size: 0.84rem;
+}
+
+.season-registration-list time {
+  color: var(--muted);
+  font-size: 0.8rem;
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.season-registration-empty {
+  color: var(--muted);
+  margin: 0;
+  padding: 18px 4px 8px;
+  text-align: center;
+}
+
 @media (max-width: 680px) {
   .season-round-registration {
     align-items: stretch;
@@ -43,5 +155,24 @@
 
   .season-round-registration button {
     width: 100%;
+  }
+
+  .season-registration-list-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-registration-sorts button {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .season-registration-list li {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+  }
+
+  .season-registration-list time {
+    grid-column: 2 / 4;
+    justify-self: start;
   }
 }

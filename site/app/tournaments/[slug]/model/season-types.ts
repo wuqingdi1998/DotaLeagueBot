@@ -47,6 +47,7 @@ export type SeasonMatchParticipant = {
   team_side: "a" | "b";
   is_captain: boolean;
   tier_snapshot: number | null;
+  slot_number: number | null;
 };
 
 export type SeasonMatch = {
@@ -85,6 +86,8 @@ export type SeasonRoundRegistration = {
   dota_id: string;
   nickname: string;
   avatar_url: string | null;
+  tier_snapshot: number | null;
+  created_at: string;
 };
 
 export type SeasonRound = {
@@ -99,9 +102,15 @@ export type SeasonRound = {
   lobby_count: number;
   played_match_count: number;
   registration_count: number;
-  registration_deadline: string | null;
+  cancellation_deadline: string | null;
   registration_open: boolean;
+  cancellation_open: boolean;
   is_registered: boolean;
+  lobby_configuration_status:
+    | "none"
+    | "editing"
+    | "locked"
+    | "published";
   registrations: SeasonRoundRegistration[];
   lobbies: SeasonLobby[];
 };

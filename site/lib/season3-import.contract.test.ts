@@ -48,9 +48,10 @@ const migration = source(
 const standingsPanel = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
-const roundsPanel = source(
-  "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
-);
+const roundsPanel = [
+  source("../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx"),
+  source("../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx"),
+].join("\n");
 const tournamentRoute = source("../app/api/tournament/route.ts");
 const players = taggedJson<Player[]>(migration, "season3_players");
 const finals = taggedJson<Final[]>(migration, "season3_final_matches");

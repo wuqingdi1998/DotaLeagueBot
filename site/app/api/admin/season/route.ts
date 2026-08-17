@@ -31,6 +31,7 @@ import {
   deleteSeasonFinalist,
   saveSeasonFinalist,
 } from "./season-finalist-actions";
+import { updateSeasonLobbyConfiguration } from "./season-lobby-configuration-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,8 @@ type SeasonRequest = Record<string, unknown> & {
     | "adjustment"
     | "penalty"
     | "substitution"
-    | "finalist";
+    | "finalist"
+    | "lobbyConfiguration";
 };
 
 async function seasonErrorResponse(error: unknown) {
@@ -93,6 +95,11 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     const body = (await request.json()) as SeasonRequest;
     if (body.entity === "lobby") return Response.json(await createSeasonLobby(body), { status: 201 });
+    if (body.entity === "lobbyConfiguration") {
+      return Response.json(
+        await updateSeasonLobbyConfiguration(body, admin.discordId),
+      );
+    }
     if (body.entity === "match") {
       return Response.json(
         await createSeasonMatch(body, admin.discordId),
