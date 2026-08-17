@@ -67,6 +67,12 @@ function groupedNumber(value: number): string {
   return value.toLocaleString("ru-RU");
 }
 
+function unsupportedStarRaceRequirement(requirement: never): never {
+  throw new Error(
+    `Unsupported star-race requirement: ${JSON.stringify(requirement)}`,
+  );
+}
+
 function starRaceDetail(
   quest: StarRaceQuestDefinition,
   progress: number,
@@ -74,29 +80,40 @@ function starRaceDetail(
 ): string {
   const requirement = quest.requirement;
   if (!requirement) return "Условие выполнено";
-  if (requirement.kind === "distinct-hero-wins") {
-    const heroes = wins
-      .slice(0, requirement.requiredDistinctWins)
-      .map((win) => compendiumHeroById(win.heroId).name);
-    return `Победы на героях: ${heroes.join(", ")}`;
+  switch (requirement.kind) {
+    case "distinct-hero-wins": {
+      const heroes = wins
+        .slice(0, requirement.requiredDistinctWins)
+        .map((win) => compendiumHeroById(win.heroId).name);
+      return `Победы на героях: ${heroes.join(", ")}`;
+    }
+    case "winning-building-damage":
+      return `${groupedNumber(progress)} / ${groupedNumber(requirement.targetDamage)} ` +
+        "урона по строениям";
+    case "cumulative-ranked-win-stat": {
+      const label = requirement.stat === "hero_damage"
+        ? "урона героям"
+        : "убийств";
+      return `${groupedNumber(progress)} / ${groupedNumber(requirement.target)} ${label}`;
+    }
+    case "ranked-win-stat": {
+      const label = requirement.stat === "hero_damage"
+        ? "урона героям"
+        : "убийств";
+      return `${groupedNumber(requirement.minimum)} ${label}`;
+    }
+    case "ranked-wins":
+      return `${progress} / ${requirement.requiredWins} рейтинговых побед`;
+    case "arcana-equipped-ranked-win":
+      return "Рейтинговая победа с Arcana";
+    case "final-winner-prediction":
+      return "Успешный прогноз на победителя";
+    case "game-mode-win":
+      return requirement.gameMode === 23
+        ? "Победа в режиме Turbo"
+        : `Победа в режиме игры ${requirement.gameMode}`;
   }
-  if (requirement.kind === "winning-building-damage") {
-    return `${groupedNumber(progress)} / ${groupedNumber(requirement.targetDamage)} ` +
-      "урона по строениям";
-  }
-  if (requirement.kind === "cumulative-ranked-win-stat") {
-    const label = requirement.stat === "hero_damage"
-      ? "урона героям"
-      : "убийств";
-    return `${groupedNumber(progress)} / ${groupedNumber(requirement.target)} ${label}`;
-  }
-  if (requirement.kind === "ranked-win-stat") {
-    const label = requirement.stat === "hero_damage"
-      ? "урона героям"
-      : "убийств";
-    return `${groupedNumber(requirement.minimum)} ${label}`;
-  }
-  return "Победа в режиме Turbo";
+  return unsupportedStarRaceRequirement(requirement);
 }
 
 function findDailyChallenges(input: {

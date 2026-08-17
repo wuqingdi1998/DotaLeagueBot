@@ -52,6 +52,40 @@ afterEach(() => {
 });
 
 describe("unclaimed compendium challenge audit", () => {
+  it("describes Monday's two ranked wins as ranked in the report", async () => {
+    mocks.loadCandidates.mockResolvedValue([{
+      playerId: "1",
+      dotaId: "101",
+      playerName: "Ranked winner",
+      dailyQuests: [],
+      isStarRaceCandidate: true,
+    }]);
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([
+      winningMatch({
+        matchId: 8901,
+        heroId: 1,
+        startTime: "2026-08-17T07:00:00.000Z",
+      }),
+      winningMatch({
+        matchId: 8902,
+        heroId: 2,
+        startTime: "2026-08-17T08:00:00.000Z",
+      }),
+    ]);
+
+    const report = await findUnclaimedChallenges(
+      new Date("2026-08-17T12:00:00.000Z"),
+    );
+
+    expect(report.players[0].challenges).toEqual([
+      expect.objectContaining({
+        kind: "star-race",
+        title: "Легкая прогулка",
+        detail: "2 / 2 рейтинговых побед",
+      }),
+    ]);
+  });
+
   it("finds daily quests 1-4 and Tuesday's building-damage race together", async () => {
     mocks.loadCandidates.mockResolvedValue([{
       playerId: "1",
