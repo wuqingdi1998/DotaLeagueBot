@@ -74,9 +74,9 @@
 }
 
 .season-builder-player-pool {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   max-height: 260px;
   overflow: auto;
 }
@@ -90,11 +90,14 @@
   cursor: grab;
   display: grid;
   font: inherit;
-  gap: 12px;
-  grid-template-columns: minmax(120px, 1fr) 56px 76px;
-  min-height: 40px;
-  padding: 5px 8px;
+  gap: 8px;
+  grid-template-columns:
+    var(--season-builder-nickname-width, 14ch) 28px 42px;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 4px 8px;
   text-align: left;
+  width: max-content;
 }
 
 .season-builder-player:disabled {
@@ -108,28 +111,29 @@
 }
 
 .season-builder-player-name,
-.season-builder-player-detail {
-  display: grid;
-  gap: 2px;
+.season-builder-player-tier,
+.season-builder-player-roles {
+  align-items: center;
+  display: flex;
 }
 
-.season-builder-player-detail small {
-  color: var(--muted);
-  font-size: 0.72rem;
-}
-
-.season-builder-player-detail strong,
+.season-builder-player-tier strong,
+.season-builder-player-roles strong,
 .season-builder-player-name strong {
-  font-size: 0.86rem;
+  font-size: 0.9rem;
 }
 
-.season-builder-player-detail strong {
+.season-builder-player-tier strong {
+  color: #a28f63;
+}
+
+.season-builder-player-roles strong {
   color: #f4c96b;
 }
 
 .season-builder-pool-empty {
   color: var(--muted);
-  grid-column: 1 / -1;
+  flex: 1 0 100%;
   padding: 8px 2px;
 }
 
@@ -280,10 +284,6 @@
   .season-lobby-builder-empty,
   .season-lobby-builder-heading {
     flex-direction: column;
-  }
-
-  .season-builder-player-pool {
-    grid-template-columns: 1fr;
   }
 
   .season-builder-pool-heading {

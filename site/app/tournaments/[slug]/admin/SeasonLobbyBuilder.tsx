@@ -1,6 +1,11 @@
 "use client";
 
-import { useMemo, useState, type DragEvent } from "react";
+import {
+  useMemo,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+} from "react";
 import {
   FiArrowDown,
   FiEdit3,
@@ -48,6 +53,18 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
   const unassignedRegistrations = orderedRegistrations.filter(
     (registration) => !assignedPlayerIds.has(registration.player_id),
   );
+  const longestNicknameLength = Math.max(
+    10,
+    ...round.registrations.map((registration) =>
+      Array.from(registration.nickname).length,
+    ),
+  );
+  const playerPoolStyle = {
+    "--season-builder-nickname-width": `${Math.min(
+      28,
+      longestNicknameLength + 2,
+    )}ch`,
+  } as CSSProperties;
   if (!season.data?.isOrganizer || round.round_kind !== "regular") return null;
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -152,7 +169,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
         </div>
       </div>
 
-      <div className="season-builder-player-pool">
+      <div className="season-builder-player-pool" style={playerPoolStyle}>
         {unassignedRegistrations.map((registration) => {
           const isSelected = registration.player_id === selectedPlayerId;
           return (
@@ -162,6 +179,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
               draggable={isEditing}
               disabled={!isEditing || Boolean(busyAction)}
               key={registration.player_id}
+              aria-label={`${registration.nickname}, тир ${registration.tier_snapshot ?? "—"}, роли ${registration.positions ?? "—"}`}
               onClick={() => setSelectedPlayerId(registration.player_id)}
               onDragStart={(event) => {
                 event.dataTransfer.setData("text/plain", registration.player_id);
@@ -171,12 +189,10 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
               <span className="season-builder-player-name">
                 <strong>{registration.nickname}</strong>
               </span>
-              <span className="season-builder-player-detail">
-                <small>Тир</small>
+              <span className="season-builder-player-tier">
                 <strong>{registration.tier_snapshot ?? "—"}</strong>
               </span>
-              <span className="season-builder-player-detail">
-                <small>Роли</small>
+              <span className="season-builder-player-roles">
                 <strong>{registration.positions ?? "—"}</strong>
               </span>
             </button>

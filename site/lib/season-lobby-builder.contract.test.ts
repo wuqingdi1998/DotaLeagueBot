@@ -43,6 +43,9 @@ describe("season lobby builder contract", () => {
     expect(builder).toContain("unassignedRegistrations.map");
     expect(builder).toContain("Свободные игроки");
     expect(builder).not.toContain("Не распределён");
+    expect(builder).not.toContain("<small>Тир</small>");
+    expect(builder).not.toContain("<small>Роли</small>");
+    expect(builder).toContain("--season-builder-nickname-width");
   });
 
   it("creates two to four named lobbies and validates complete 5 by 5 teams", () => {
