@@ -77,7 +77,7 @@
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  max-height: 360px;
+  max-height: 260px;
   overflow: auto;
 }
 
@@ -92,8 +92,8 @@
   font: inherit;
   gap: 12px;
   grid-template-columns: minmax(120px, 1fr) 56px 76px;
-  min-height: 58px;
-  padding: 9px 11px;
+  min-height: 40px;
+  padding: 5px 8px;
   text-align: left;
 }
 
@@ -113,25 +113,24 @@
   gap: 2px;
 }
 
-.season-builder-player-detail small,
-.season-builder-player em {
+.season-builder-player-detail small {
   color: var(--muted);
   font-size: 0.72rem;
-  font-style: normal;
 }
 
 .season-builder-player-detail strong,
 .season-builder-player-name strong {
-  font-size: 0.95rem;
+  font-size: 0.86rem;
 }
 
 .season-builder-player-detail strong {
   color: #f4c96b;
 }
 
-.season-builder-player-assignment {
+.season-builder-pool-empty {
+  color: var(--muted);
   grid-column: 1 / -1;
-  text-align: left;
+  padding: 8px 2px;
 }
 
 .season-builder-lobbies {

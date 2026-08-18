@@ -38,6 +38,13 @@ describe("season lobby builder contract", () => {
     expect(builder).toContain('sortSeasonRegistrations(round.registrations, "tier", "descending")');
   });
 
+  it("keeps only unassigned players in the compact pool", () => {
+    expect(builder).toContain("assignedPlayerIds.has(registration.player_id)");
+    expect(builder).toContain("unassignedRegistrations.map");
+    expect(builder).toContain("Свободные игроки");
+    expect(builder).not.toContain("Не распределён");
+  });
+
   it("creates two to four named lobbies and validates complete 5 by 5 teams", () => {
     expect(actions).toContain("Верхнее лобби");
     expect(actions).toContain("Среднее лобби");

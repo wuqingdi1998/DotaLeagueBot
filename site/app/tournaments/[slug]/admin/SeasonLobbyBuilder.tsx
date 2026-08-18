@@ -27,13 +27,26 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
   const [playerOrder, setPlayerOrder] = useState<"registration" | "tier">(
     "registration",
   );
-  const assignments = useMemo(() => buildAssignments(round.lobbies), [round.lobbies]);
+  const assignedPlayerIds = useMemo(
+    () =>
+      new Set(
+        round.lobbies.flatMap((lobby) =>
+          lobby.matches.flatMap((match) =>
+            match.participants.map((player) => player.player_id),
+          ),
+        ),
+      ),
+    [round.lobbies],
+  );
   const orderedRegistrations = useMemo(
     () =>
       playerOrder === "tier"
         ? sortSeasonRegistrations(round.registrations, "tier", "descending")
         : round.registrations,
     [playerOrder, round.registrations],
+  );
+  const unassignedRegistrations = orderedRegistrations.filter(
+    (registration) => !assignedPlayerIds.has(registration.player_id),
   );
   if (!season.data?.isOrganizer || round.round_kind !== "regular") return null;
 
@@ -120,7 +133,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       </header>
 
       <div className="season-builder-pool-heading">
-        <strong>Зарегистрированные игроки</strong>
+        <strong>Свободные игроки</strong>
         <div>
           <button
             className={playerOrder === "registration" ? "active" : ""}
@@ -140,8 +153,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       </div>
 
       <div className="season-builder-player-pool">
-        {orderedRegistrations.map((registration) => {
-          const assignment = assignments.get(registration.player_id);
+        {unassignedRegistrations.map((registration) => {
           const isSelected = registration.player_id === selectedPlayerId;
           return (
             <button
@@ -167,14 +179,14 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
                 <small>Роли</small>
                 <strong>{registration.positions ?? "—"}</strong>
               </span>
-              <em className="season-builder-player-assignment">
-                {assignment
-                  ? `${assignment.lobbyName}, ${assignment.teamName}, слот ${assignment.slotNumber}`
-                  : "Не распределён"}
-              </em>
             </button>
           );
         })}
+        {!unassignedRegistrations.length && (
+          <p className="season-builder-pool-empty">
+            Все зарегистрированные игроки распределены по лобби.
+          </p>
+        )}
       </div>
 
       <div className="season-builder-lobbies">
@@ -417,25 +429,6 @@ function BuilderTeam({
       })}
     </section>
   );
-}
-
-function buildAssignments(lobbies: SeasonLobby[]) {
-  const assignments = new Map<
-    string,
-    { lobbyName: string; teamName: string; slotNumber: number }
-  >();
-  for (const lobby of lobbies) {
-    for (const match of lobby.matches) {
-      for (const player of match.participants) {
-        assignments.set(player.player_id, {
-          lobbyName: lobby.name,
-          teamName: player.team_side === "a" ? "левая команда" : "правая команда",
-          slotNumber: player.slot_number ?? 0,
-        });
-      }
-    }
-  }
-  return assignments;
 }
 
 function configurationStatusLabel(status: SeasonRound["lobby_configuration_status"]) {
