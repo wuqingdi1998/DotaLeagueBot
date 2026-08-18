@@ -98,7 +98,8 @@
   border-radius: 12px;
   display: grid;
   gap: 12px;
-  grid-template-columns: 34px minmax(140px, 1fr) 74px minmax(190px, auto);
+  grid-template-columns:
+    34px minmax(140px, 1fr) 74px minmax(90px, auto) minmax(190px, auto);
   min-height: 48px;
   padding: 8px 12px;
 }
@@ -131,6 +132,12 @@
 .season-registration-list li > strong {
   color: #f4c96b;
   font-size: 0.84rem;
+}
+
+.season-registration-roles {
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 700;
 }
 
 .season-registration-list time {
@@ -174,5 +181,9 @@
   .season-registration-list time {
     grid-column: 2 / 4;
     justify-self: start;
+  }
+
+  .season-registration-roles {
+    grid-column: 2 / 4;
   }
 }

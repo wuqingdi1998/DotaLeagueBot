@@ -1,8 +1,17 @@
 "use client";
 
 import { useMemo, useState, type DragEvent } from "react";
-import { FiEdit3, FiLock, FiMinus, FiPlus, FiSend, FiX } from "react-icons/fi";
+import {
+  FiArrowDown,
+  FiEdit3,
+  FiLock,
+  FiMinus,
+  FiPlus,
+  FiSend,
+  FiX,
+} from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
+import { sortSeasonRegistrations } from "../model/season-registration";
 import type {
   SeasonLobby,
   SeasonMatchParticipant,
@@ -15,7 +24,17 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
   const { season } = useTournament();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState("");
+  const [playerOrder, setPlayerOrder] = useState<"registration" | "tier">(
+    "registration",
+  );
   const assignments = useMemo(() => buildAssignments(round.lobbies), [round.lobbies]);
+  const orderedRegistrations = useMemo(
+    () =>
+      playerOrder === "tier"
+        ? sortSeasonRegistrations(round.registrations, "tier", "descending")
+        : round.registrations,
+    [playerOrder, round.registrations],
+  );
   if (!season.data?.isOrganizer || round.round_kind !== "regular") return null;
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -100,8 +119,28 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
         </span>
       </header>
 
+      <div className="season-builder-pool-heading">
+        <strong>Зарегистрированные игроки</strong>
+        <div>
+          <button
+            className={playerOrder === "registration" ? "active" : ""}
+            type="button"
+            onClick={() => setPlayerOrder("registration")}
+          >
+            По регистрации
+          </button>
+          <button
+            className={playerOrder === "tier" ? "active" : ""}
+            type="button"
+            onClick={() => setPlayerOrder("tier")}
+          >
+            Тир <FiArrowDown aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
       <div className="season-builder-player-pool">
-        {round.registrations.map((registration) => {
+        {orderedRegistrations.map((registration) => {
           const assignment = assignments.get(registration.player_id);
           const isSelected = registration.player_id === selectedPlayerId;
           return (
@@ -117,11 +156,18 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
                 setSelectedPlayerId(registration.player_id);
               }}
             >
-              <span>
+              <span className="season-builder-player-name">
                 <strong>{registration.nickname}</strong>
-                <small>Тир {registration.tier_snapshot ?? "—"}</small>
               </span>
-              <em>
+              <span className="season-builder-player-detail">
+                <small>Тир</small>
+                <strong>{registration.tier_snapshot ?? "—"}</strong>
+              </span>
+              <span className="season-builder-player-detail">
+                <small>Роли</small>
+                <strong>{registration.positions ?? "—"}</strong>
+              </span>
+              <em className="season-builder-player-assignment">
                 {assignment
                   ? `${assignment.lobbyName}, ${assignment.teamName}, слот ${assignment.slotNumber}`
                   : "Не распределён"}
@@ -287,6 +333,7 @@ function BuilderTeam({
   selectedPlayerId: string | null;
   side: TeamSide;
 }) {
+  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const playerBySlot = new Map(players.map((player) => [player.slot_number, player]));
   const tierTotal = players.reduce((total, player) => total + (player.tier_snapshot ?? 0), 0);
   return (
@@ -296,16 +343,49 @@ function BuilderTeam({
         const player = playerBySlot.get(slotNumber);
         return (
           <div
-            className={`season-builder-slot${player ? " filled" : ""}`}
+            className={`season-builder-slot${player ? " filled" : ""}${
+              dragOverSlot === slotNumber ? " drag-over" : ""
+            }`}
+            draggable={isEditing && Boolean(player)}
             key={slotNumber}
             onClick={() => {
               if (!isEditing || busy) return;
               if (selectedPlayerId) onAssign(selectedPlayerId, matchId, side, slotNumber);
               else if (player) onSelect(player.player_id);
             }}
-            onDragOver={(event) => isEditing && event.preventDefault()}
+            onDragStart={(event) => {
+              if (!isEditing || !player) return;
+              event.dataTransfer.setData("text/plain", player.player_id);
+              event.dataTransfer.effectAllowed = "move";
+              onSelect(player.player_id);
+            }}
+            onDragEnter={(event) => {
+              if (!isEditing) return;
+              event.preventDefault();
+              setDragOverSlot(slotNumber);
+            }}
+            onDragLeave={(event) => {
+              const bounds = event.currentTarget.getBoundingClientRect();
+              const isOutside =
+                event.clientX <= bounds.left ||
+                event.clientX >= bounds.right ||
+                event.clientY <= bounds.top ||
+                event.clientY >= bounds.bottom;
+              if (isOutside) {
+                setDragOverSlot((current) =>
+                  current === slotNumber ? null : current,
+                );
+              }
+            }}
+            onDragOver={(event) => {
+              if (!isEditing) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "move";
+              setDragOverSlot(slotNumber);
+            }}
             onDrop={(event: DragEvent<HTMLDivElement>) => {
               event.preventDefault();
+              setDragOverSlot(null);
               const playerId = event.dataTransfer.getData("text/plain");
               if (isEditing && playerId) onAssign(playerId, matchId, side, slotNumber);
             }}
@@ -313,8 +393,9 @@ function BuilderTeam({
             <span>{slotNumber}</span>
             {player ? (
               <>
-                <strong draggable={isEditing}>{player.nickname}</strong>
+                <strong>{player.nickname}</strong>
                 <small>Тир {player.tier_snapshot ?? "—"}</small>
+                <small>Роли {player.positions ?? "—"}</small>
                 {isEditing && (
                   <button
                     type="button"

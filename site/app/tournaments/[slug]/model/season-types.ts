@@ -44,6 +44,7 @@ export type SeasonMatchParticipant = {
   dota_id: string;
   nickname: string;
   avatar_url: string | null;
+  positions: string | null;
   team_side: "a" | "b";
   is_captain: boolean;
   tier_snapshot: number | null;
@@ -86,6 +87,7 @@ export type SeasonRoundRegistration = {
   dota_id: string;
   nickname: string;
   avatar_url: string | null;
+  positions: string | null;
   tier_snapshot: number | null;
   created_at: string;
 };

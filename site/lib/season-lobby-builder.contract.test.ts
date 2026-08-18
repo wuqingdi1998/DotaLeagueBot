@@ -11,6 +11,7 @@ const migration = source(
 const actions = source(
   "../app/api/admin/season/season-lobby-configuration-actions.ts",
 );
+const assignmentRules = source("./season-lobby-assignment.ts");
 const seasonRoute = source("../app/api/season/route.ts");
 const builder = source(
   "../app/tournaments/[slug]/admin/SeasonLobbyBuilder.tsx",
@@ -27,6 +28,14 @@ describe("season lobby builder contract", () => {
     expect(migration).toContain("lobby_configuration_status");
     expect(migration).toContain("slot_number");
     expect(migration).toContain("season_match_participants_slot_idx");
+  });
+
+  it("shows tier and roles and highlights the current drop slot", () => {
+    expect(seasonRoute).toContain("AS positions");
+    expect(builder).toContain("registration.positions");
+    expect(builder).toContain("player.positions");
+    expect(builder).toContain('" drag-over"');
+    expect(builder).toContain('sortSeasonRegistrations(round.registrations, "tier", "descending")');
   });
 
   it("creates two to four named lobbies and validates complete 5 by 5 teams", () => {
@@ -54,5 +63,10 @@ describe("season lobby builder contract", () => {
     expect(builder).toContain("Удалить одно лобби");
     expect(seasonAdmin).not.toContain("SeasonLobbyBuilder");
     expect(seasonAdmin).not.toContain("Распределение зарегистрированных игроков");
+  });
+
+  it("swaps an occupied target into the dragged player's previous slot", () => {
+    expect(actions).toContain("planSeasonLobbySlotDrop");
+    expect(assignmentRules).toContain("placements.push({ ...source, ...occupiedPlayer })");
   });
 });

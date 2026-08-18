@@ -130,6 +130,8 @@ export async function GET(request: Request) {
            COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
            COALESCE(NULLIF(participant.nickname_snapshot, ''), player.ingame_name) AS nickname,
            COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url) AS avatar_url,
+           COALESCE(NULLIF(current_player.positions, ''), player.positions)
+             AS positions,
            participant.team_side, participant.is_captain,
            participant.tier_snapshot::int,
            participant.slot_number::int
@@ -239,6 +241,8 @@ export async function GET(request: Request) {
              AS nickname,
            COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url)
              AS avatar_url,
+           COALESCE(NULLIF(current_player.positions, ''), player.positions)
+             AS positions,
            registration.tier_snapshot::int,
            registration.created_at
          FROM season_round_registrations registration

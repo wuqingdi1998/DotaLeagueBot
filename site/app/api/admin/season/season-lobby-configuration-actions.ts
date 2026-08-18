@@ -1,6 +1,12 @@
 import type { PoolClient } from "pg";
 import { transaction } from "@/lib/db";
 import { isSeasonPlayerDatabaseId } from "@/lib/season";
+import {
+  planSeasonLobbySlotDrop,
+  seasonLobbySlotsAreEqual,
+  type SeasonLobbySlot,
+  type SeasonLobbyTeamSide,
+} from "@/lib/season-lobby-assignment";
 import { enumValue, requiredId } from "./season-admin-model";
 
 const configurationActions = [
@@ -26,6 +32,14 @@ type RoundConfiguration = {
 type LobbyReference = {
   id: number;
   match_id: number | null;
+};
+
+type ParticipantAssignment = {
+  match_id: number;
+  player_id: string;
+  team_side: SeasonLobbyTeamSide;
+  tier_snapshot: number | null;
+  slot_number: number | null;
 };
 
 const lobbyNamesByCount: Record<number, string[]> = {
@@ -187,16 +201,22 @@ async function assignPlayer(
     throw new Response("Игрок не зарегистрирован на этот тур", { status: 400 });
   }
 
-  await client.query(
-    `DELETE FROM season_match_participants participant
-     USING season_matches match, season_lobbies lobby
-     WHERE participant.match_id = match.id
-       AND match.lobby_id = lobby.id
-       AND lobby.round_id = $1
-       AND participant.player_id = $2`,
+  const sourceResult = await client.query<ParticipantAssignment>(
+    `SELECT participant.match_id::int, participant.player_id::text,
+       participant.team_side, participant.tier_snapshot::int,
+       participant.slot_number::int
+     FROM season_match_participants participant
+     JOIN season_matches match ON match.id = participant.match_id
+     JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+     WHERE lobby.round_id = $1 AND participant.player_id = $2`,
     [roundId, playerId],
   );
-  if (body.matchId === null || body.matchId === undefined) return;
+  const sourceAssignment = sourceResult.rows[0] ?? null;
+
+  if (body.matchId === null || body.matchId === undefined) {
+    await deletePlayerAssignment(client, roundId, playerId);
+    return;
+  }
 
   const matchId = requiredId(body.matchId, "матч");
   const teamSide = enumValue(body.teamSide, ["a", "b"] as const, "команда");
@@ -214,22 +234,79 @@ async function assignPlayer(
   if (!target.rowCount) {
     throw new Response("Матч не относится к выбранному туру", { status: 400 });
   }
+
+  const destination: SeasonLobbySlot = { matchId, teamSide, slotNumber };
+  const source = sourceAssignment?.slot_number
+    ? {
+        matchId: sourceAssignment.match_id,
+        teamSide: sourceAssignment.team_side,
+        slotNumber: sourceAssignment.slot_number,
+      }
+    : null;
+  if (source && seasonLobbySlotsAreEqual(source, destination)) return;
+
+  const occupiedResult = await client.query<ParticipantAssignment>(
+    `SELECT participant.match_id::int, participant.player_id::text,
+       participant.team_side, participant.tier_snapshot::int,
+       participant.slot_number::int
+     FROM season_match_participants participant
+     JOIN season_matches match ON match.id = participant.match_id
+     JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+     WHERE lobby.round_id = $1 AND participant.match_id = $2
+       AND participant.team_side = $3 AND participant.slot_number = $4`,
+    [roundId, matchId, teamSide, slotNumber],
+  );
+  const occupiedPlayer = occupiedResult.rows[0] ?? null;
+
+  await deletePlayerAssignment(client, roundId, playerId);
   await client.query(
     `DELETE FROM season_match_participants
      WHERE match_id = $1 AND team_side = $2 AND slot_number = $3`,
     [matchId, teamSide, slotNumber],
   );
-  await client.query(
-    `INSERT INTO season_match_participants
-       (match_id, player_id, team_side, tier_snapshot, slot_number)
-     VALUES ($1, $2, $3, $4, $5)`,
-    [
-      matchId,
+  const placements = planSeasonLobbySlotDrop({
+    destination,
+    draggedPlayer: {
       playerId,
-      teamSide,
-      registration.rows[0].tier_snapshot,
-      slotNumber,
-    ],
+      tierSnapshot: registration.rows[0].tier_snapshot,
+    },
+    occupiedPlayer: occupiedPlayer
+      ? {
+          playerId: occupiedPlayer.player_id,
+          tierSnapshot: occupiedPlayer.tier_snapshot,
+        }
+      : null,
+    source,
+  });
+  for (const placement of placements) {
+    await client.query(
+      `INSERT INTO season_match_participants
+         (match_id, player_id, team_side, tier_snapshot, slot_number)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        placement.matchId,
+        placement.playerId,
+        placement.teamSide,
+        placement.tierSnapshot,
+        placement.slotNumber,
+      ],
+    );
+  }
+}
+
+async function deletePlayerAssignment(
+  client: PoolClient,
+  roundId: number,
+  playerId: string,
+) {
+  await client.query(
+    `DELETE FROM season_match_participants participant
+     USING season_matches match, season_lobbies lobby
+     WHERE participant.match_id = match.id
+       AND match.lobby_id = lobby.id
+       AND lobby.round_id = $1
+       AND participant.player_id = $2`,
+    [roundId, playerId],
   );
 }
 

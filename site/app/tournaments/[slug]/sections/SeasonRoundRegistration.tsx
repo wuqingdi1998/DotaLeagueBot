@@ -135,6 +135,9 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                 />
               </span>
               <strong>Тир {registration.tier_snapshot ?? "—"}</strong>
+              <span className="season-registration-roles">
+                Роли {registration.positions ?? "—"}
+              </span>
               <time dateTime={registration.created_at}>
                 <FiClock aria-hidden="true" />
                 {formatSeasonRegistrationMoment(registration.created_at)} МСК
