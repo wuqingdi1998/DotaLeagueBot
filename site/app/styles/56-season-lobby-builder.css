@@ -115,6 +115,8 @@
 .season-builder-player-roles {
   align-items: center;
   display: flex;
+  justify-content: flex-end;
+  text-align: right;
 }
 
 .season-builder-player-tier strong,
@@ -124,11 +126,11 @@
 }
 
 .season-builder-player-tier strong {
-  color: #a28f63;
+  color: #f4c96b;
 }
 
 .season-builder-player-roles strong {
-  color: #f4c96b;
+  color: #a28f63;
 }
 
 .season-builder-pool-empty {
