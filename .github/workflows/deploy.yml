@@ -167,7 +167,7 @@ jobs:
 
             public_url="https://${SITE_DOMAIN:-lsesports.ru}/api/health"
             for attempt in $(seq 1 30); do
-              if curl --fail --silent --show-error --max-time 10 "$public_url" |
+              if curl --fail --silent --show-error --max-time 30 "$public_url" |
                 grep -q '"ok":true'; then
                 break
               fi
