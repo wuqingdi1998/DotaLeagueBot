@@ -5,12 +5,14 @@ import {
 } from "./arcana-item-ids";
 
 describe("Arcana item catalog", () => {
-  it("contains every equippable Arcana item from the current Dota 2 catalog", () => {
+  it("contains one primary Arcana item for every Arcana hero", () => {
     expect(ARCANA_WEARABLE_ITEMS.map(({ itemId }) => itemId)).toEqual([
       4794, 5810, 5957, 6879, 6914, 6996, 7247, 7385, 7756, 9050,
       9059, 9235, 9662, 12451, 12692, 12930, 13456, 13670, 13806,
-      18033, 18539, 19090, 22718, 23095, 35989,
+      18033, 18539, 19090, 22718, 23095,
     ]);
+
+    expect(new Set(ARCANA_WEARABLE_ITEMS.map(({ hero }) => hero)).size).toBe(24);
 
     for (const { itemId } of ARCANA_WEARABLE_ITEMS) {
       expect(isArcanaItemId(itemId)).toBe(true);

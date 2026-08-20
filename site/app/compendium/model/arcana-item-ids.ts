@@ -1,9 +1,10 @@
 /**
- * Equippable items marked with `item_rarity = arcana` in Dota 2's
- * `scripts/items/items_game.txt` (catalog checked on 2026-08-20).
+ * The primary Arcana item for every hero that has an Arcana in Dota 2
+ * (catalog checked on 2026-08-20).
  *
- * Bundles, gems and service tools are intentionally excluded because they are
- * not emitted as CDOTAWearableItem entities in a match replay.
+ * Bundles, gems, service tools and separate ability-effect wearables are
+ * intentionally excluded: equipping the primary item is what proves that the
+ * player used the Arcana in the match.
  */
 export const ARCANA_WEARABLE_ITEMS = [
   { itemId: 4794, hero: "Lina", name: "Fiery Soul of the Slayer" },
@@ -30,7 +31,6 @@ export const ARCANA_WEARABLE_ITEMS = [
   { itemId: 19090, hero: "Drow Ranger", name: "Dread Retribution" },
   { itemId: 22718, hero: "Vengeful Spirit", name: "The Resurrection of Shen - Wings" },
   { itemId: 23095, hero: "Razor", name: "Voidstorm Asylum Tormentor" },
-  { itemId: 35989, hero: "Techies", name: "Swine Proximity Mine" },
 ] as const;
 
 const ARCANA_ITEM_IDS = new Set<number>(
