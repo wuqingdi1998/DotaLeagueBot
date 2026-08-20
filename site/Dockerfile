@@ -3,6 +3,14 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+FROM golang:1.24-alpine AS replay-parser-builder
+WORKDIR /src
+COPY tools/arcana-replay-parser/go.mod tools/arcana-replay-parser/go.sum ./
+RUN go mod download
+COPY tools/arcana-replay-parser ./
+RUN go test ./... \
+    && CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/arcana-replay-parser .
+
 FROM node:22-alpine AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -23,6 +31,7 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=replay-parser-builder /out/arcana-replay-parser /usr/local/bin/arcana-replay-parser
 USER nextjs
 EXPOSE 3000
 CMD ["node", "server.js"]

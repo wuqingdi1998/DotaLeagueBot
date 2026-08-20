@@ -27,6 +27,10 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: site/package-lock.json
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: site/tools/arcana-replay-parser/go.sum
       - name: Check bot
         working-directory: bot
         run: |
@@ -39,6 +43,9 @@ jobs:
       - name: Check site
         working-directory: site
         run: |
+          cd tools/arcana-replay-parser
+          go test ./...
+          cd ../..
           npm ci
           npm audit
           npm run check

@@ -4,15 +4,24 @@ const mocks = vi.hoisted(() => ({
   fetchOpenDotaMatchDetails: vi.fn(),
   hasPlayerEquippedArcana: vi.fn(),
   requestOpenDotaMatchParse: vi.fn(),
+  hasPlayerEquippedArcanaInReplay: vi.fn(),
+  fetchStratzReplayUrl: vi.fn(),
   attachArcanaParseJob: vi.fn(),
   finishArcanaCheck: vi.fn(),
   loadArcanaChecks: vi.fn(),
   loadDueArcanaChecks: vi.fn(),
   postponeArcanaCheck: vi.fn(),
-  releaseArcanaCheck: vi.fn(),
   reserveArcanaCheck: vi.fn(),
   saveFinishedArcanaCheck: vi.fn(),
   recordStarRaceCompletion: vi.fn(),
+}));
+
+vi.mock("./replay-arcana", () => ({
+  hasPlayerEquippedArcanaInReplay: mocks.hasPlayerEquippedArcanaInReplay,
+}));
+
+vi.mock("./stratz-replay", () => ({
+  fetchStratzReplayUrl: mocks.fetchStratzReplayUrl,
 }));
 
 vi.mock("./opendota-match-details", () => ({
@@ -27,7 +36,6 @@ vi.mock("./star-race-arcana-repository", () => ({
   loadArcanaChecks: mocks.loadArcanaChecks,
   loadDueArcanaChecks: mocks.loadDueArcanaChecks,
   postponeArcanaCheck: mocks.postponeArcanaCheck,
-  releaseArcanaCheck: mocks.releaseArcanaCheck,
   reserveArcanaCheck: mocks.reserveArcanaCheck,
   saveFinishedArcanaCheck: mocks.saveFinishedArcanaCheck,
 }));
@@ -52,6 +60,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   mocks.loadArcanaChecks.mockResolvedValue(new Map());
   mocks.loadDueArcanaChecks.mockResolvedValue([]);
+  mocks.fetchStratzReplayUrl.mockResolvedValue(null);
 });
 
 describe("Arcana star-race verification", () => {
@@ -60,6 +69,8 @@ describe("Arcana star-race verification", () => {
     mocks.fetchOpenDotaMatchDetails.mockResolvedValue({
       matchId: win.matchId,
       hasParsed: false,
+      hasCosmeticData: false,
+      replayUrl: null,
       players: [],
     });
     mocks.reserveArcanaCheck.mockResolvedValue({
@@ -94,6 +105,8 @@ describe("Arcana star-race verification", () => {
     const details = {
       matchId: win.matchId,
       hasParsed: true,
+      hasCosmeticData: true,
+      replayUrl: "http://replay123.valve.net/570/8946503036_456.dem.bz2",
       players: [{ accountId: "301109815", cosmetics: [] }],
     };
     const completion = { completedAt: now.toISOString(), wins: [] };
@@ -142,6 +155,8 @@ describe("Arcana star-race verification", () => {
     mocks.fetchOpenDotaMatchDetails.mockResolvedValue({
       matchId: win.matchId,
       hasParsed: true,
+      hasCosmeticData: true,
+      replayUrl: null,
       players: [{ accountId: "someone-else", cosmetics: [] }],
     });
 
@@ -156,5 +171,47 @@ describe("Arcana star-race verification", () => {
       matchId: win.matchId,
     });
     expect(mocks.finishArcanaCheck).not.toHaveBeenCalled();
+  });
+
+  it("awards a background check from replay wearables when OpenDota has no cosmetics", async () => {
+    const dueCheck = {
+      playerId: "100",
+      dotaId: "301109815",
+      dateKey: "2026-08-20",
+      matchId: win.matchId,
+      heroId: win.heroId,
+      jobId: null,
+      checkAfter: now.toISOString(),
+      finishedAt: null,
+      hasArcana: null,
+    };
+    const replayUrl = "http://replay123.valve.net/570/8946503036_456.dem.bz2";
+    mocks.loadDueArcanaChecks.mockResolvedValue([dueCheck]);
+    mocks.fetchOpenDotaMatchDetails.mockResolvedValue({
+      matchId: win.matchId,
+      hasParsed: true,
+      hasCosmeticData: false,
+      replayUrl,
+      players: [{ accountId: "301109815", cosmetics: [] }],
+    });
+    mocks.hasPlayerEquippedArcanaInReplay.mockResolvedValue(true);
+    mocks.recordStarRaceCompletion.mockResolvedValue({ completedAt: now.toISOString() });
+
+    await expect(processDueArcanaChecks()).resolves.toEqual({
+      checked: 1,
+      completed: 1,
+      postponed: 0,
+    });
+    expect(mocks.hasPlayerEquippedArcanaInReplay).toHaveBeenCalledWith({
+      matchId: win.matchId,
+      replayUrl,
+      dotaId: "301109815",
+    });
+    expect(mocks.finishArcanaCheck).toHaveBeenCalledWith({
+      playerId: "100",
+      dateKey: "2026-08-20",
+      matchId: win.matchId,
+      hasArcana: true,
+    });
   });
 });

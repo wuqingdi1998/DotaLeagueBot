@@ -10,18 +10,19 @@ import {
   hasPlayerEquippedArcana,
   requestOpenDotaMatchParse,
 } from "./opendota-match-details";
+import { hasPlayerEquippedArcanaInReplay } from "./replay-arcana";
 import {
   attachArcanaParseJob,
   finishArcanaCheck,
   loadArcanaChecks,
   loadDueArcanaChecks,
   postponeArcanaCheck,
-  releaseArcanaCheck,
   reserveArcanaCheck,
   saveFinishedArcanaCheck,
   type ArcanaCheck,
 } from "./star-race-arcana-repository";
 import { recordStarRaceCompletion } from "./star-race-repository";
+import { fetchStratzReplayUrl } from "./stratz-replay";
 
 export type StarRaceArcanaOutcome = {
   completion: StarRaceQuestCompletion | null;
@@ -54,23 +55,45 @@ async function recordArcanaCompletion(input: {
   });
 }
 
+type ArcanaInspection = {
+  completion: StarRaceQuestCompletion | null;
+  needsBackgroundCheck: boolean;
+  shouldRequestOpenDotaParse: boolean;
+};
+
 async function inspectParsedWin(input: {
   playerId: string;
   dotaId: string;
   dateKey: string;
   rewardStars: number;
   win: MatchingWin;
-}): Promise<StarRaceQuestCompletion | null | undefined> {
-  const details = await fetchOpenDotaMatchDetails(input.win.matchId);
-  if (!details.hasParsed) return undefined;
+}): Promise<ArcanaInspection> {
+  let details;
+  try {
+    details = await fetchOpenDotaMatchDetails(input.win.matchId);
+  } catch {
+    return {
+      completion: null,
+      needsBackgroundCheck: true,
+      shouldRequestOpenDotaParse: false,
+    };
+  }
+  if (!details.hasParsed || !details.hasCosmeticData) {
+    return {
+      completion: null,
+      needsBackgroundCheck: true,
+      shouldRequestOpenDotaParse: !details.hasParsed,
+    };
+  }
   const hasPlayer = details.players.some(
     (player) => player.accountId === input.dotaId,
   );
   if (!hasPlayer) {
-    throw new CompendiumError(
-      "OPEN_DOTA_UNAVAILABLE",
-      "OpenDota не смог определить игрока в обработанном матче.",
-    );
+    return {
+      completion: null,
+      needsBackgroundCheck: true,
+      shouldRequestOpenDotaParse: false,
+    };
   }
   const hasArcana = hasPlayerEquippedArcana(details, input.dotaId);
   await saveFinishedArcanaCheck({
@@ -79,16 +102,23 @@ async function inspectParsedWin(input: {
     win: input.win,
     hasArcana,
   });
-  return hasArcana ? recordArcanaCompletion(input) : null;
+  return {
+    completion: hasArcana ? await recordArcanaCompletion(input) : null,
+    needsBackgroundCheck: false,
+    shouldRequestOpenDotaParse: false,
+  };
 }
 
-async function submitUnparsedWin(input: {
+async function submitPendingWin(input: {
   playerId: string;
   dateKey: string;
   win: MatchingWin;
+  shouldRequestOpenDotaParse: boolean;
 }): Promise<ArcanaCheck> {
   const reservation = await reserveArcanaCheck(input);
-  if (!reservation.isNew) return reservation.check;
+  if (!reservation.isNew || !input.shouldRequestOpenDotaParse) {
+    return reservation.check;
+  }
   try {
     const jobId = await requestOpenDotaMatchParse(input.win.matchId);
     await attachArcanaParseJob({
@@ -98,13 +128,8 @@ async function submitUnparsedWin(input: {
       jobId,
     });
     return { ...reservation.check, jobId };
-  } catch (error) {
-    await releaseArcanaCheck({
-      playerId: input.playerId,
-      dateKey: input.dateKey,
-      matchId: input.win.matchId,
-    });
-    throw error;
+  } catch {
+    return reservation.check;
   }
 }
 
@@ -139,9 +164,11 @@ export async function checkStarRaceArcanaQuest(input: {
       pending.push(saved);
       continue;
     }
-    const completion = await inspectParsedWin({ ...input, win });
-    if (completion) return { completion, pendingVerification: null };
-    if (completion === null) continue;
+    const inspection = await inspectParsedWin({ ...input, win });
+    if (inspection.completion) {
+      return { completion: inspection.completion, pendingVerification: null };
+    }
+    if (!inspection.needsBackgroundCheck) continue;
     if (saved) {
       pending.push(await postponeArcanaCheck({
         playerId: input.playerId,
@@ -149,10 +176,11 @@ export async function checkStarRaceArcanaQuest(input: {
         matchId: win.matchId,
       }));
     } else {
-      pending.push(await submitUnparsedWin({
+      pending.push(await submitPendingWin({
         playerId: input.playerId,
         dateKey: input.dateKey,
         win,
+        shouldRequestOpenDotaParse: inspection.shouldRequestOpenDotaParse,
       }));
     }
   }
@@ -188,29 +216,30 @@ export async function processDueArcanaChecks(): Promise<{
       continue;
     }
     try {
-      const details = await fetchOpenDotaMatchDetails(check.matchId);
-      if (!details.hasParsed) {
-        await postponeArcanaCheck({
-          playerId: check.playerId,
-          dateKey: check.dateKey,
-          matchId: check.matchId,
-        });
-        postponed += 1;
-        continue;
+      let details = null;
+      try {
+        details = await fetchOpenDotaMatchDetails(check.matchId, 30_000);
+      } catch {
+        details = null;
       }
-      const hasPlayer = details.players.some(
-        (player) => player.accountId === check.dotaId,
+      let hasArcana: boolean;
+      const hasReliableOpenDotaCosmetics = Boolean(
+        details?.hasParsed &&
+        details.hasCosmeticData &&
+        details.players.some((player) => player.accountId === check.dotaId),
       );
-      if (!hasPlayer) {
-        await postponeArcanaCheck({
-          playerId: check.playerId,
-          dateKey: check.dateKey,
+      if (hasReliableOpenDotaCosmetics && details) {
+        hasArcana = hasPlayerEquippedArcana(details, check.dotaId);
+      } else {
+        const replayUrl = details?.replayUrl ??
+          await fetchStratzReplayUrl(check.matchId);
+        if (!replayUrl) throw new Error("Replay is not available yet");
+        hasArcana = await hasPlayerEquippedArcanaInReplay({
           matchId: check.matchId,
+          replayUrl,
+          dotaId: check.dotaId,
         });
-        postponed += 1;
-        continue;
       }
-      const hasArcana = hasPlayerEquippedArcana(details, check.dotaId);
       if (hasArcana) {
         await recordArcanaCompletion({
           playerId: check.playerId,

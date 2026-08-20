@@ -11,6 +11,8 @@ export type OpenDotaCosmetic = {
 export type OpenDotaParsedMatch = {
   matchId: string;
   hasParsed: boolean;
+  hasCosmeticData: boolean;
+  replayUrl: string | null;
   players: Array<{
     accountId: string | null;
     playerSlot: number;
@@ -47,6 +49,15 @@ function parseCosmetics(value: unknown): OpenDotaCosmetic[] {
   });
 }
 
+function hasRootCosmeticData(value: unknown): boolean {
+  return Boolean(
+    value &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.keys(value).length > 0,
+  );
+}
+
 function parseMatchDetails(value: unknown): OpenDotaParsedMatch {
   if (!value || typeof value !== "object") throw openDotaUnavailable();
   const payload = value as Record<string, unknown>;
@@ -57,6 +68,7 @@ function parseMatchDetails(value: unknown): OpenDotaParsedMatch {
   ) {
     throw openDotaUnavailable();
   }
+  const hasCosmeticData = hasRootCosmeticData(payload.cosmetics);
   const players = payload.players.flatMap((entry) => {
     if (!entry || typeof entry !== "object") return [];
     const player = entry as Record<string, unknown>;
@@ -79,18 +91,25 @@ function parseMatchDetails(value: unknown): OpenDotaParsedMatch {
     typeof openDotaData === "object" &&
     (openDotaData as Record<string, unknown>).has_parsed === true,
   );
-  return { matchId: String(payload.match_id), hasParsed, players };
+  return {
+    matchId: String(payload.match_id),
+    hasParsed,
+    hasCosmeticData,
+    replayUrl: typeof payload.replay_url === "string" ? payload.replay_url : null,
+    players,
+  };
 }
 
 export async function fetchOpenDotaMatchDetails(
   matchId: string,
+  timeoutMs = 8_000,
 ): Promise<OpenDotaParsedMatch> {
   try {
     const response = await fetch(
       openDotaApiUrl(`/api/matches/${encodeURIComponent(matchId)}`),
       {
         headers: { Accept: "application/json" },
-        signal: AbortSignal.timeout(8_000),
+        signal: AbortSignal.timeout(timeoutMs),
         cache: "no-store",
       },
     );

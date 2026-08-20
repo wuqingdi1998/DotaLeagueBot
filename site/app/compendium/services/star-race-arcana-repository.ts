@@ -204,7 +204,7 @@ export async function loadDueArcanaChecks(): Promise<ArcanaCheck[]> {
        AND check_row.moscow_date <=
          (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
      ORDER BY check_row.check_after
-     LIMIT 50`,
+     LIMIT 1`,
   );
   return rows.map(arcanaCheckFromRow);
 }

@@ -33,6 +33,7 @@ class CompendiumScheduler(commands.Cog):
         self,
         path: str,
         failure_label: str,
+        timeout_seconds: int = 15,
     ) -> dict[str, object] | None:
         secret = (
             os.getenv("COMPENDIUM_SCHEDULER_SECRET")
@@ -49,7 +50,7 @@ class CompendiumScheduler(commands.Cog):
             print("⚠️ Планировщик компендиума не настроен.")
             return None
 
-        timeout = aiohttp.ClientTimeout(total=15)
+        timeout = aiohttp.ClientTimeout(total=timeout_seconds)
         headers = {
             "Authorization": f"Bearer {secret}",
             "Origin": public_origin,
@@ -86,6 +87,7 @@ class CompendiumScheduler(commands.Cog):
         payload = await self.request_compendium_endpoint(
             "/api/internal/compendium/verify-arcana",
             "проверить Arcana-задания",
+            timeout_seconds=300,
         )
         if payload and int(payload.get("checked", 0)) > 0:
             print(

@@ -15,6 +15,8 @@ describe("OpenDota parsed match client", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
       match_id: 8946503036,
       od_data: { has_parsed: true },
+      replay_url: "http://replay123.valve.net/570/8946503036_456.dem.bz2",
+      cosmetics: { "123": 0 },
       players: [
         {
           account_id: 301109815,
@@ -33,7 +35,23 @@ describe("OpenDota parsed match client", () => {
     const match = await fetchOpenDotaMatchDetails("8946503036");
 
     expect(match.hasParsed).toBe(true);
+    expect(match.hasCosmeticData).toBe(true);
+    expect(match.replayUrl).toContain("8946503036_456.dem.bz2");
     expect(hasPlayerEquippedArcana(match, "301109815")).toBe(true);
+  });
+
+  it("marks an empty parsed cosmetics map as unreliable", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      match_id: 8946503036,
+      od_data: { has_parsed: true },
+      cosmetics: {},
+      players: [{ account_id: 301109815, player_slot: 0, hero_id: 1 }],
+    }), { status: 200 })));
+
+    const match = await fetchOpenDotaMatchDetails("8946503036");
+
+    expect(match.hasCosmeticData).toBe(false);
+    expect(match.replayUrl).toBeNull();
   });
 
   it("submits an unparsed match and returns its job ID", async () => {
