@@ -1,8 +1,41 @@
-const ARCANA_ITEM_IDS = new Set([
-  4794, 5810, 5957, 6879, 6914, 6996, 7247, 7385, 7756, 9050,
-  9059, 9235, 9662, 12451, 12692, 12930, 13456, 13670, 13806,
-  18033, 18539, 19090, 22718, 23095, 35989,
-]);
+/**
+ * Equippable items marked with `item_rarity = arcana` in Dota 2's
+ * `scripts/items/items_game.txt` (catalog checked on 2026-08-20).
+ *
+ * Bundles, gems and service tools are intentionally excluded because they are
+ * not emitted as CDOTAWearableItem entities in a match replay.
+ */
+export const ARCANA_WEARABLE_ITEMS = [
+  { itemId: 4794, hero: "Lina", name: "Fiery Soul of the Slayer" },
+  { itemId: 5810, hero: "Legion Commander", name: "Blades of Voth Domosh" },
+  { itemId: 5957, hero: "Terrorblade", name: "Fractal Horns of Inner Abysm" },
+  { itemId: 6879, hero: "Techies", name: "Swine of the Sunken Galley" },
+  { itemId: 6914, hero: "Zeus", name: "Tempest Helm of the Thundergod" },
+  { itemId: 6996, hero: "Shadow Fiend", name: "Demon Eater" },
+  { itemId: 7247, hero: "Phantom Assassin", name: "Manifold Paradox" },
+  { itemId: 7385, hero: "Crystal Maiden", name: "Frost Avalanche" },
+  { itemId: 7756, hero: "Pudge", name: "Feast of Abscession" },
+  { itemId: 9050, hero: "Monkey King", name: "Great Sage's Reckoning" },
+  { itemId: 9059, hero: "Juggernaut", name: "Bladeform Legacy" },
+  { itemId: 9235, hero: "Io", name: "Benevolent Companion" },
+  { itemId: 9662, hero: "Spectre", name: "Phantom Advent" },
+  { itemId: 12451, hero: "Rubick", name: "The Magus Cypher" },
+  { itemId: 12692, hero: "Earthshaker", name: "Planetfall" },
+  { itemId: 12930, hero: "Queen of Pain", name: "Eminence of Ristul" },
+  { itemId: 13456, hero: "Wraith King", name: "Crown of the One True King" },
+  { itemId: 13670, hero: "Ogre Magi", name: "Flockheart's Gamble" },
+  { itemId: 13806, hero: "Windranger", name: "Compass of the Rising Gale" },
+  { itemId: 18033, hero: "Faceless Void", name: "Claszian Apostasy Head" },
+  { itemId: 18539, hero: "Skywrath Mage", name: "The Devotions of Dragonus - Wings" },
+  { itemId: 19090, hero: "Drow Ranger", name: "Dread Retribution" },
+  { itemId: 22718, hero: "Vengeful Spirit", name: "The Resurrection of Shen - Wings" },
+  { itemId: 23095, hero: "Razor", name: "Voidstorm Asylum Tormentor" },
+  { itemId: 35989, hero: "Techies", name: "Swine Proximity Mine" },
+] as const;
+
+const ARCANA_ITEM_IDS = new Set<number>(
+  ARCANA_WEARABLE_ITEMS.map(({ itemId }) => itemId),
+);
 
 export function isArcanaItemId(itemId: number): boolean {
   return ARCANA_ITEM_IDS.has(itemId);
