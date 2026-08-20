@@ -1,11 +1,17 @@
 import { query } from "@/lib/db";
+import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
+import { compendiumHeroById } from "../model/heroes";
+import { CURRENT_STAR_RACE, starRaceQuestPhase } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
+import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import {
   buildCompendiumAdminParticipantSummaries,
   buildCompendiumAdminParticipants,
 } from "./model";
 import type {
   CompendiumAdminCurrentQuestSourceRow,
+  CompendiumAdminCurrentStarRaceCompletionRow,
+  CompendiumAdminCurrentStarRaceQuest,
   CompendiumAdminParticipantSummary,
   CompendiumAdminParticipantSummaryRow,
   CompendiumAdminSourceRow,
@@ -16,8 +22,36 @@ export async function loadCompendiumAdminParticipants(): Promise<
   CompendiumAdminParticipantSummary[]
 > {
   const dateKey = currentMoscowDay().dateKey;
-  const [rows, currentQuestRows] = await Promise.all([
-    query<CompendiumAdminParticipantSummaryRow>(
+  const now = new Date();
+  const currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[] =
+    CURRENT_STAR_RACE.quests
+      .filter(
+        (quest) =>
+          quest.title &&
+          quest.description &&
+          quest.rewardStars !== null &&
+          starRaceQuestPhase(quest, now) === "active",
+      )
+      .map((quest) => {
+        const requirement = quest.requirement;
+        const heroIds =
+          requirement && "heroIds" in requirement && requirement.heroIds
+            ? requirement.heroIds
+            : [];
+        return {
+          dateKey: quest.dateKey,
+          title: quest.title!,
+          description: quest.description!,
+          rewardStars: quest.rewardStars!,
+          isCompleted: false,
+          isManual: false,
+          heroes: heroIds.map(compendiumHeroById),
+        };
+      });
+  const currentRaceDates = currentStarRaceQuests.map((quest) => quest.dateKey);
+  const [rows, currentQuestRows, currentStarRaceCompletionRows] =
+    await Promise.all([
+      query<CompendiumAdminParticipantSummaryRow>(
       `WITH latest_avatars AS (
          SELECT DISTINCT ON (session.discord_id)
            session.discord_id,
@@ -58,21 +92,23 @@ export async function loadCompendiumAdminParticipants(): Promise<
          ON reward_count.player_id = player.discord_id
        WHERE player.is_archived = FALSE
        ORDER BY total_stars DESC, LOWER(player.ingame_name), player.discord_id`,
-    ),
-    query<CompendiumAdminCurrentQuestSourceRow>(
+      ),
+      query<CompendiumAdminCurrentQuestSourceRow>(
       `SELECT
          player.discord_id::text AS player_id,
          quest.id::text AS quest_id,
          quest.position AS quest_position,
          hero.hero_id,
-         hero.position AS hero_position
+         hero.position AS hero_position,
+         $2::int AS reward_stars,
+         completion.id IS NOT NULL AS is_completed,
+         completion.completed_manually_by IS NOT NULL AS is_manual
        FROM players player
        JOIN compendium_daily_quest_sets quest_set
          ON quest_set.moscow_date = $1::date
        JOIN compendium_daily_quests quest
          ON quest.quest_set_id = quest_set.id
         AND quest.player_id = player.discord_id
-        AND quest.position <= 3
        LEFT JOIN LATERAL (
          SELECT reroll.id
          FROM compendium_user_quest_rerolls reroll
@@ -91,12 +127,42 @@ export async function loadCompendiumAdminParticipants(): Promise<
          WHERE original_hero.daily_quest_id = quest.id
            AND latest_reroll.id IS NULL
        ) hero ON TRUE
+       LEFT JOIN compendium_user_quest_completions completion
+         ON completion.daily_quest_id = quest.id
+        AND completion.player_id = player.discord_id
        WHERE player.is_archived = FALSE
+         AND (
+           quest.position <= 3
+           OR COALESCE((
+             SELECT total_stars
+             FROM compendium_player_star_totals player_total
+             WHERE player_total.player_id = player.discord_id
+           ), 0) >= $3
+         )
        ORDER BY player.discord_id, quest.position, hero.position`,
-      [dateKey],
-    ),
-  ]);
-  return buildCompendiumAdminParticipantSummaries(rows, currentQuestRows);
+      [
+        dateKey,
+        dailyChallengeRewardStars(dateKey),
+        BONUS_QUEST_STAR_THRESHOLD,
+      ],
+      ),
+      currentRaceDates.length
+        ? query<CompendiumAdminCurrentStarRaceCompletionRow>(
+          `SELECT completion.player_id::text,
+             completion.moscow_date::text,
+             completion.completed_manually_by IS NOT NULL AS is_manual
+           FROM compendium_star_race_quest_completions completion
+           WHERE completion.moscow_date = ANY($1::date[])`,
+          [currentRaceDates],
+        )
+        : Promise.resolve([]),
+    ]);
+  return buildCompendiumAdminParticipantSummaries(
+    rows,
+    currentQuestRows,
+    currentStarRaceQuests,
+    currentStarRaceCompletionRows,
+  );
 }
 
 export async function loadCompendiumAdminParticipantHistory(
@@ -133,7 +199,7 @@ export async function loadCompendiumAdminParticipantHistory(
          completion.reward_amount,
          quest_hero.hero_id AS quest_hero_id,
          quest_hero.position AS hero_position,
-         NULL::text AS administrator_name,
+         manual_administrator.ingame_name AS administrator_name,
          NULL::text AS team_a_name,
          NULL::text AS team_b_name,
          NULL::text AS predicted_score,
@@ -142,6 +208,8 @@ export async function loadCompendiumAdminParticipantHistory(
        LEFT JOIN compendium_user_quest_completions completion
          ON completion.player_id = participant.discord_id
        LEFT JOIN compendium_daily_quests quest ON quest.id = completion.daily_quest_id
+       LEFT JOIN players manual_administrator
+         ON manual_administrator.discord_id = completion.completed_manually_by
        LEFT JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
        LEFT JOIN LATERAL (
          SELECT reroll.id
@@ -200,12 +268,14 @@ export async function loadCompendiumAdminParticipantHistory(
          'star_race', completion.id::text, completion.moscow_date::text,
          win.position, win.hero_id, win.matched_match_id::text,
          completion.completed_at, completion.reward_amount,
-         NULL::smallint, NULL::smallint, NULL::text,
+         NULL::smallint, NULL::smallint, manual_administrator.ingame_name,
          NULL::text, NULL::text, NULL::text, NULL::text
        FROM participant
        JOIN compendium_star_race_quest_completions completion
          ON completion.player_id = participant.discord_id
-       JOIN compendium_star_race_quest_wins win ON win.completion_id = completion.id
+       LEFT JOIN compendium_star_race_quest_wins win ON win.completion_id = completion.id
+       LEFT JOIN players manual_administrator
+         ON manual_administrator.discord_id = completion.completed_manually_by
      ) history
      ORDER BY completed_at DESC NULLS LAST, quest_position, hero_position`,
     [playerId],

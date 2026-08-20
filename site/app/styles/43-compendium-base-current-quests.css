@@ -25,7 +25,7 @@
 
 .compendium-base-current-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -37,11 +37,26 @@
   background: var(--surface);
 }
 
-.compendium-base-current-card > strong {
-  display: block;
+.compendium-base-current-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.compendium-base-current-card-heading strong {
   color: var(--muted);
   font-size: 11px;
+}
+
+.compendium-base-current-card-heading span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #dcae36;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .compendium-base-current-heroes {
@@ -56,6 +71,60 @@
   aspect-ratio: 16 / 9;
   border-radius: 5px;
   object-fit: cover;
+}
+
+.compendium-base-race-card {
+  grid-column: 1 / -1;
+  border-color: rgba(220, 174, 54, 0.38);
+  background: linear-gradient(135deg, rgba(220, 174, 54, 0.1), var(--surface));
+}
+
+.compendium-base-race-card > p {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.compendium-base-race-card .compendium-base-current-heroes {
+  grid-template-columns: repeat(6, minmax(0, 88px));
+  margin-bottom: 10px;
+}
+
+.compendium-base-manual-complete,
+.compendium-base-current-completed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 34px;
+  margin-top: 10px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.compendium-base-manual-complete {
+  border: 1px solid rgba(54, 185, 204, 0.42);
+  background: rgba(54, 185, 204, 0.12);
+  color: var(--blue-strong);
+  cursor: pointer;
+}
+
+.compendium-base-manual-complete:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.compendium-base-current-completed {
+  color: #4f9f69;
+}
+
+.compendium-base-manual-message {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .compendium-base-empty-current {

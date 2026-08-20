@@ -92,13 +92,17 @@ export function QuestCard({
           <div>
             <strong>Задание выполнено</strong>
             {matchedHero && <span>Победа на герое {matchedHero.name}</span>}
-            <a
-              href={`https://www.opendota.com/matches/${quest.completion.matchedMatchId}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Матч {quest.completion.matchedMatchId} <FiExternalLink aria-hidden="true" />
-            </a>
+            {quest.completion.matchedMatchId ? (
+              <a
+                href={`https://www.opendota.com/matches/${quest.completion.matchedMatchId}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Матч {quest.completion.matchedMatchId} <FiExternalLink aria-hidden="true" />
+              </a>
+            ) : (
+              <span>Засчитано организатором</span>
+            )}
           </div>
         </div>
       ) : (

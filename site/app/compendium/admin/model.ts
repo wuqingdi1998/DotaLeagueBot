@@ -3,6 +3,8 @@ import { moscowDateLabel } from "../model/time";
 import type {
   CompendiumAdminCurrentQuest,
   CompendiumAdminCurrentQuestSourceRow,
+  CompendiumAdminCurrentStarRaceCompletionRow,
+  CompendiumAdminCurrentStarRaceQuest,
   CompendiumAdminParticipant,
   CompendiumAdminParticipantSummary,
   CompendiumAdminParticipantSummaryRow,
@@ -13,7 +15,15 @@ import type {
 export function buildCompendiumAdminParticipantSummaries(
   rows: CompendiumAdminParticipantSummaryRow[],
   currentQuestRows: CompendiumAdminCurrentQuestSourceRow[] = [],
+  currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[] = [],
+  currentStarRaceCompletionRows: CompendiumAdminCurrentStarRaceCompletionRow[] = [],
 ): CompendiumAdminParticipantSummary[] {
+  const raceCompletions = new Map(
+    currentStarRaceCompletionRows.map((row) => [
+      `${row.player_id}:${row.moscow_date}`,
+      row,
+    ]),
+  );
   const participants = new Map<string, CompendiumAdminParticipantSummary>(
     rows.map((row) => [row.player_id, {
       discordId: row.player_id,
@@ -23,6 +33,16 @@ export function buildCompendiumAdminParticipantSummaries(
       totalStars: row.total_stars,
       rewardCount: row.reward_count,
       currentQuests: [],
+      currentStarRaceQuests: currentStarRaceQuests.map((quest) => {
+        const completion = raceCompletions.get(
+          `${row.player_id}:${quest.dateKey}`,
+        );
+        return {
+          ...quest,
+          isCompleted: Boolean(completion),
+          isManual: completion?.is_manual ?? false,
+        };
+      }),
     }]),
   );
   const questsByParticipant = new Map<
@@ -36,6 +56,9 @@ export function buildCompendiumAdminParticipantSummaries(
     const quest = participantQuests.get(row.quest_id) ?? {
       id: row.quest_id,
       position: row.quest_position,
+      rewardStars: row.reward_stars,
+      isCompleted: row.is_completed,
+      isManual: row.is_manual,
       heroes: [],
     };
     quest.heroes.push(compendiumHeroById(row.hero_id));
@@ -72,6 +95,7 @@ export function buildCompendiumAdminParticipants(
       avatarUrl: row.avatar_url,
       totalStars: row.total_stars,
       currentQuests: [],
+      currentStarRaceQuests: [],
       rewards: [],
     };
     participants.set(row.player_id, participant);
@@ -88,11 +112,7 @@ export function buildCompendiumAdminParticipants(
     const participantRewards = rewardsByParticipant.get(row.player_id) ?? new Map();
     rewardsByParticipant.set(row.player_id, participantRewards);
     const historyId = `${row.history_kind}:${row.completion_id}`;
-    if (
-      row.history_kind === "star_race" &&
-      row.matched_hero_id !== null &&
-      row.matched_match_id
-    ) {
+    if (row.history_kind === "star_race") {
       const existingReward = participantRewards.get(historyId);
       const reward = existingReward?.kind === "star_race" ? existingReward : {
         kind: "star_race" as const,
@@ -101,12 +121,16 @@ export function buildCompendiumAdminParticipants(
         dateLabel: moscowDateLabel(row.moscow_date),
         completedAt: row.completed_at.toISOString(),
         rewardAmount: row.reward_amount,
+        isManual: Boolean(row.administrator_name),
+        administratorName: row.administrator_name,
         wins: [],
       };
-      reward.wins.push({
-        hero: compendiumHeroById(row.matched_hero_id),
-        matchedMatchId: row.matched_match_id,
-      });
+      if (row.matched_hero_id !== null && row.matched_match_id) {
+        reward.wins.push({
+          hero: compendiumHeroById(row.matched_hero_id),
+          matchedMatchId: row.matched_match_id,
+        });
+      }
       if (!participantRewards.has(historyId)) {
         participant.rewards.push(reward);
         participantRewards.set(historyId, reward);
@@ -177,9 +201,7 @@ export function buildCompendiumAdminParticipants(
     }
     if (
       row.history_kind !== "quest" ||
-      row.quest_position === null ||
-      row.matched_hero_id === null ||
-      !row.matched_match_id
+      row.quest_position === null
     ) {
       continue;
     }
@@ -194,6 +216,8 @@ export function buildCompendiumAdminParticipants(
       matchedMatchId: row.matched_match_id,
       completedAt: row.completed_at.toISOString(),
       rewardAmount: row.reward_amount,
+      isManual: Boolean(row.administrator_name),
+      administratorName: row.administrator_name,
       heroes: [],
     };
 
@@ -218,6 +242,9 @@ export function buildCompendiumAdminParticipants(
     const quest = participantQuests.get(row.quest_id) ?? {
       id: row.quest_id,
       position: row.quest_position,
+      rewardStars: row.reward_stars,
+      isCompleted: row.is_completed,
+      isManual: row.is_manual,
       heroes: [],
     };
     quest.heroes.push(compendiumHeroById(row.hero_id));

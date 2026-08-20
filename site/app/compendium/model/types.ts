@@ -13,9 +13,10 @@ export type CompendiumHero = {
 };
 
 export type QuestCompletion = {
-  matchedHeroId: number;
-  matchedMatchId: string;
+  matchedHeroId: number | null;
+  matchedMatchId: string | null;
   completedAt: string;
+  isManual: boolean;
 };
 
 export type DailyQuest = {

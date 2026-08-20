@@ -45,6 +45,7 @@ function completionFromRow(row: CompletionRow): QuestCompletion {
     matchedHeroId: row.hero_id,
     matchedMatchId: row.matched_match_id,
     completedAt: row.completed_at.toISOString(),
+    isManual: false,
   };
 }
 

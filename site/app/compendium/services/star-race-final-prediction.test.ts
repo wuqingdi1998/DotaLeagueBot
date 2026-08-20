@@ -53,11 +53,11 @@ describe("star race final prediction", () => {
     await configureFinalPrediction({
       administrator: user,
       teams,
-      now: new Date("2026-08-20T14:00:00Z"),
+      now: new Date("2026-08-21T14:00:00Z"),
     });
     expect(mocks.saveTeams).toHaveBeenCalledWith(expect.objectContaining({
       teams,
-      opensAt: new Date("2026-08-20T15:00:00Z"),
+      opensAt: new Date("2026-08-21T15:00:00Z"),
     }));
   });
 
@@ -65,12 +65,12 @@ describe("star race final prediction", () => {
     await submitFinalPrediction({
       user,
       position: 4,
-      now: new Date("2026-08-20T18:00:00Z"),
+      now: new Date("2026-08-21T18:00:00Z"),
     });
     expect(mocks.savePick).toHaveBeenCalledWith(expect.objectContaining({
       playerId: "100",
       position: 4,
-      closesAt: new Date("2026-08-21T02:00:00Z"),
+      closesAt: new Date("2026-08-22T02:00:00Z"),
     }));
   });
 
@@ -79,7 +79,7 @@ describe("star race final prediction", () => {
     await expect(finishFinalPrediction({
       administrator: user,
       position: 2,
-      now: new Date("2026-08-21T03:00:00Z"),
+      now: new Date("2026-08-22T03:00:00Z"),
     })).resolves.toBe(7);
     expect(mocks.recordWinner).toHaveBeenCalledWith(expect.objectContaining({
       position: 2,

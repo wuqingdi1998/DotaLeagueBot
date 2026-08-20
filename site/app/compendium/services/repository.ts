@@ -19,12 +19,14 @@ type QuestDataRow = {
   completion_hero_id: number | null;
   matched_match_id: string | null;
   completed_at: Date | null;
+  completion_source: "automatic" | "manual" | null;
 };
 
 type CompletionRow = {
-  matched_hero_id: number;
-  matched_match_id: string;
+  matched_hero_id: number | null;
+  matched_match_id: string | null;
   completed_at: Date;
+  completion_source: "automatic" | "manual";
 };
 
 export type QuestForCheck = {
@@ -37,6 +39,7 @@ function completionFromRow(row: CompletionRow): QuestCompletion {
     matchedHeroId: row.matched_hero_id,
     matchedMatchId: row.matched_match_id,
     completedAt: row.completed_at.toISOString(),
+    isManual: row.completion_source === "manual",
   };
 }
 
@@ -83,7 +86,8 @@ export async function loadDailyQuests(
        hero.hero_id,
        completion.matched_hero_id AS completion_hero_id,
        completion.matched_match_id::text,
-       completion.completed_at
+       completion.completed_at,
+       completion.completion_source
      FROM compendium_daily_quest_sets quest_set
      JOIN compendium_daily_quests quest ON quest.quest_set_id = quest_set.id
      LEFT JOIN LATERAL (
@@ -126,9 +130,10 @@ export async function loadDailyQuests(
       heroes: [],
       completion: row.completed_at
         ? {
-            matchedHeroId: Number(row.completion_hero_id),
-            matchedMatchId: String(row.matched_match_id),
+            matchedHeroId: row.completion_hero_id,
+            matchedMatchId: row.matched_match_id,
             completedAt: row.completed_at.toISOString(),
+            isManual: row.completion_source === "manual",
           }
         : null,
     };
@@ -202,7 +207,8 @@ export async function existingCompletion(
   questId: string,
 ): Promise<QuestCompletion | null> {
   const row = await one<CompletionRow>(
-    `SELECT matched_hero_id, matched_match_id::text, completed_at
+    `SELECT matched_hero_id, matched_match_id::text, completed_at,
+       completion_source
      FROM compendium_user_quest_completions
      WHERE player_id = $1 AND daily_quest_id = $2`,
     [playerId, questId],
@@ -259,7 +265,8 @@ async function currentCompletion(
   questId: string,
 ): Promise<QuestCompletion | null> {
   const row = await client.query<CompletionRow>(
-    `SELECT matched_hero_id, matched_match_id::text, completed_at
+    `SELECT matched_hero_id, matched_match_id::text, completed_at,
+       completion_source
      FROM compendium_user_quest_completions
      WHERE player_id = $1 AND daily_quest_id = $2`,
     [playerId, questId],
@@ -336,7 +343,8 @@ export async function recordQuestCompletion(input: {
         (player_id, daily_quest_id, matched_hero_id, matched_match_id, reward_amount)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (player_id, daily_quest_id) DO NOTHING
-       RETURNING matched_hero_id, matched_match_id::text, completed_at`,
+       RETURNING matched_hero_id, matched_match_id::text, completed_at,
+         completion_source`,
       [
         input.playerId,
         input.questId,

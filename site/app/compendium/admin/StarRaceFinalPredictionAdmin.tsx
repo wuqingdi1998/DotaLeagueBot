@@ -35,7 +35,7 @@ export function StarRaceFinalPredictionAdmin({
       setTeams(result.prediction.teams);
       setWinner(result.prediction.winnerPosition ?? 0);
       setMessage(method === "PUT"
-        ? "Шесть команд сохранены. Игроки увидят их в пятничном задании."
+        ? "Шесть команд сохранены. Игроки увидят их в субботнем задании."
         : `Победитель сохранён. Звёзды получили игроков: ${result.rewardedPlayers ?? 0}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось сохранить данные");
@@ -48,12 +48,12 @@ export function StarRaceFinalPredictionAdmin({
     <section className="prediction-admin-panel final-prediction-admin">
       <div className="prediction-admin-panel-heading">
         <div>
-          <span>Гонка · пятница, 21 августа</span>
+          <span>Гонка · суббота, 22 августа</span>
           <h2>Финальный прогноз</h2>
         </div>
       </div>
       <p className="prediction-admin-help">
-        До четверга 18:00 укажите ровно шесть команд. После закрытия приёма прогнозов в пятницу 05:00 выберите победителя — 10 звёзд будут выданы автоматически.
+        До пятницы 18:00 укажите ровно шесть команд. После закрытия приёма прогнозов в субботу 05:00 выберите победителя — 10 звёзд будут выданы автоматически.
       </p>
       <div className="final-prediction-team-grid">
         {teams.map((team, index) => (

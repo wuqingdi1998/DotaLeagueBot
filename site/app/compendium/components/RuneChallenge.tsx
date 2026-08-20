@@ -87,7 +87,7 @@ export function RuneChallenge({
   const [isChecking, setIsChecking] = useState(false);
   const [message, setMessage] = useState("");
   const completionHero = useMemo(
-    () => challenge.completion
+    () => challenge.completion?.matchedHeroId
       ? compendiumHeroById(challenge.completion.matchedHeroId)
       : null,
     [challenge.completion],

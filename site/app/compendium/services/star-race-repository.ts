@@ -16,6 +16,7 @@ type StarRaceCompletionRow = {
   completion_id: string;
   moscow_date: string;
   completed_at: Date;
+  is_manual: boolean;
   hero_id: number | null;
   matched_match_id: string | null;
 };
@@ -60,6 +61,7 @@ function completionsFromRows(
     const completion = completions.get(row.moscow_date) ?? {
       completedAt: row.completed_at.toISOString(),
       wins: [],
+      isManual: row.is_manual,
     };
     if (row.hero_id !== null && row.matched_match_id !== null) {
       completion.wins.push({
@@ -77,6 +79,7 @@ const completionSelect = `
     completion.id::text AS completion_id,
     completion.moscow_date::text,
     completion.completed_at,
+    completion.completed_manually_by IS NOT NULL AS is_manual,
     win.hero_id,
     win.matched_match_id::text
   FROM compendium_star_race_quest_completions completion

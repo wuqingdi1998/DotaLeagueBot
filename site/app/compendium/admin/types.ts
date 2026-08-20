@@ -62,11 +62,33 @@ export type CompendiumAdminCurrentQuestSourceRow = {
   quest_position: number;
   hero_id: number;
   hero_position: number;
+  reward_stars: number;
+  is_completed: boolean;
+  is_manual: boolean;
 };
 
 export type CompendiumAdminCurrentQuest = {
   id: string;
   position: number;
+  rewardStars: number;
+  isCompleted: boolean;
+  isManual: boolean;
+  heroes: CompendiumHero[];
+};
+
+export type CompendiumAdminCurrentStarRaceCompletionRow = {
+  player_id: string;
+  moscow_date: string;
+  is_manual: boolean;
+};
+
+export type CompendiumAdminCurrentStarRaceQuest = {
+  dateKey: string;
+  title: string;
+  description: string;
+  rewardStars: number;
+  isCompleted: boolean;
+  isManual: boolean;
   heroes: CompendiumHero[];
 };
 
@@ -76,10 +98,12 @@ export type CompendiumQuestRewardHistory = {
   dateKey: string;
   dateLabel: string;
   questPosition: number;
-  matchedHeroId: number;
-  matchedMatchId: string;
+  matchedHeroId: number | null;
+  matchedMatchId: string | null;
   completedAt: string;
   rewardAmount: number;
+  isManual: boolean;
+  administratorName: string | null;
   heroes: CompendiumHero[];
 };
 
@@ -124,6 +148,8 @@ export type CompendiumStarRaceRewardHistory = {
   dateLabel: string;
   completedAt: string;
   rewardAmount: number;
+  isManual: boolean;
+  administratorName: string | null;
   wins: Array<{
     hero: CompendiumHero;
     matchedMatchId: string;
@@ -144,6 +170,7 @@ export type CompendiumAdminParticipant = {
   avatarUrl: string | null;
   totalStars: number;
   currentQuests: CompendiumAdminCurrentQuest[];
+  currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[];
   rewards: CompendiumRewardHistory[];
 };
 

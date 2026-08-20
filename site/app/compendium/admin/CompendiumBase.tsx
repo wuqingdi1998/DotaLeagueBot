@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type SyntheticEvent } from "react";
 import { FaStar } from "react-icons/fa";
 import {
@@ -21,47 +22,7 @@ import type {
   CompendiumStarRaceArchive as ArchivedRace,
 } from "./types";
 import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
-
-function CurrentQuestCards({
-  participant,
-}: {
-  participant: CompendiumAdminParticipantSummary;
-}) {
-  return (
-    <section className="compendium-base-current-quests">
-      <div className="compendium-base-current-heading">
-        <strong>Герои на сегодня</strong>
-        <span>Текущий набор участника с учётом замен</span>
-      </div>
-      {participant.currentQuests.length ? (
-        <div className="compendium-base-current-grid">
-          {participant.currentQuests.map((quest) => (
-            <article className="compendium-base-current-card" key={quest.id}>
-              <strong>Испытание {quest.position}</strong>
-              <div className="compendium-base-current-heroes">
-                {quest.heroes.map((hero) => (
-                  <Image
-                    key={hero.id}
-                    src={hero.imageUrl}
-                    alt={hero.name}
-                    title={hero.name}
-                    width={64}
-                    height={36}
-                    unoptimized
-                  />
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p className="compendium-base-empty-current">
-          Задания на сегодня ещё не подготовлены.
-        </p>
-      )}
-    </section>
-  );
-}
+import { CurrentQuestCards } from "./CurrentQuestCards";
 
 function RuneRewardHistoryItem({
   reward,
@@ -129,6 +90,9 @@ function StarRaceRewardHistoryItem({
           <FaStar aria-hidden="true" /> +{reward.rewardAmount}
         </span>
       </div>
+      {reward.isManual && (
+        <small>Засчитано вручную: {reward.administratorName}</small>
+      )}
       <div className="compendium-base-heroes" aria-label="Победы в задании гонки">
         {reward.wins.map((win) => (
           <a
@@ -177,15 +141,19 @@ function QuestRewardHistoryItem({
           );
         })}
       </div>
-      <a
-        className="compendium-base-match-link"
-        href={`https://www.opendota.com/matches/${reward.matchedMatchId}`}
-        target="_blank"
-        rel="noreferrer"
-      >
-        Победа в матче {reward.matchedMatchId}
-        <FiExternalLink aria-hidden="true" />
-      </a>
+      {reward.matchedMatchId ? (
+        <a
+          className="compendium-base-match-link"
+          href={`https://www.opendota.com/matches/${reward.matchedMatchId}`}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Победа в матче {reward.matchedMatchId}
+          <FiExternalLink aria-hidden="true" />
+        </a>
+      ) : (
+        <small>Засчитано вручную: {reward.administratorName}</small>
+      )}
     </article>
   );
 }
@@ -243,9 +211,12 @@ function ParticipantHistory({
   const [rewards, setRewards] = useState<CompendiumRewardHistory[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [totalStars, setTotalStars] = useState(participant.totalStars);
+  const [rewardCount, setRewardCount] = useState(participant.rewardCount);
+  const router = useRouter();
 
-  async function loadHistory() {
-    if (rewards || isLoading) return;
+  async function loadHistory(shouldReload = false) {
+    if ((!shouldReload && rewards) || isLoading) return;
     setIsLoading(true);
     setLoadError(null);
     try {
@@ -302,15 +273,23 @@ function ParticipantHistory({
           </small>
         </span>
         <span className="compendium-base-stars">
-          <FaStar aria-hidden="true" /> {participant.totalStars}
+          <FaStar aria-hidden="true" /> {totalStars}
         </span>
         <span className="compendium-base-history-count">
-          {participant.rewardCount} операций
+          {rewardCount} операций
         </span>
         <FiChevronDown className="compendium-base-chevron" aria-hidden="true" />
       </summary>
       <div className="compendium-base-history">
-        <CurrentQuestCards participant={participant} />
+        <CurrentQuestCards
+          participant={participant}
+          onReward={async (rewardStars) => {
+            setTotalStars((total) => total + rewardStars);
+            setRewardCount((count) => count + 1);
+            if (rewards) await loadHistory(true);
+            router.refresh();
+          }}
+        />
         {isLoading ? (
           <p className="compendium-base-history-message" role="status">
             Загружаем историю…

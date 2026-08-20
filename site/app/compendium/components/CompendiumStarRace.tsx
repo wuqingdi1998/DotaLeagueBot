@@ -101,14 +101,7 @@ function StarRaceQuestCard({
               ))}
             </div>
           )}
-          {quest.requirement?.kind === "final-winner-prediction" ? (
-            <StarRaceFinalPrediction
-              quest={quest}
-              isSubmitting={isSubmittingPrediction}
-              canSubmit={canCheck}
-              onSubmit={onSubmitPrediction}
-            />
-          ) : quest.completion ? (
+          {quest.completion ? (
             <>
               {quest.progress && progressLabel && (
                 <StarRaceProgress
@@ -121,6 +114,9 @@ function StarRaceQuestCard({
                 <FiCheck aria-hidden="true" />
                 <div>
                   <strong>Задание выполнено</strong>
+                  {quest.completion.isManual && (
+                    <span>Засчитано организатором</span>
+                  )}
                   {quest.completion.wins.map((win) => (
                     <a
                       href={`https://www.opendota.com/matches/${win.matchId}`}
@@ -135,6 +131,13 @@ function StarRaceQuestCard({
                 </div>
               </div>
             </>
+          ) : quest.requirement?.kind === "final-winner-prediction" ? (
+            <StarRaceFinalPrediction
+              quest={quest}
+              isSubmitting={isSubmittingPrediction}
+              canSubmit={canCheck}
+              onSubmit={onSubmitPrediction}
+            />
           ) : quest.phase === "active" ? (
             <div className="compendium-star-race-action">
               {quest.progress && progressLabel && (

@@ -60,10 +60,10 @@ describe("compendium organizer base", () => {
 
   it("groups each participant's current heroes into three quest cards", () => {
     const currentQuestRows: CompendiumAdminCurrentQuestSourceRow[] = [
-      { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 1, hero_position: 1 },
-      { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 2, hero_position: 2 },
-      { player_id: "100", quest_id: "902", quest_position: 2, hero_id: 3, hero_position: 1 },
-      { player_id: "100", quest_id: "903", quest_position: 3, hero_id: 4, hero_position: 1 },
+      { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 1, hero_position: 1, reward_stars: 1, is_completed: false, is_manual: false },
+      { player_id: "100", quest_id: "901", quest_position: 1, hero_id: 2, hero_position: 2, reward_stars: 1, is_completed: false, is_manual: false },
+      { player_id: "100", quest_id: "902", quest_position: 2, hero_id: 3, hero_position: 1, reward_stars: 1, is_completed: false, is_manual: false },
+      { player_id: "100", quest_id: "903", quest_position: 3, hero_id: 4, hero_position: 1, reward_stars: 1, is_completed: false, is_manual: false },
     ];
     const participants = buildCompendiumAdminParticipants(
       [row()],

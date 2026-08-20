@@ -92,24 +92,8 @@ describe("second star race week", () => {
     expect(starRaceQuestByDate("2026-08-20")?.description).toContain("5 минут");
   });
 
-  it("opens the Friday final prediction from Thursday 18:00 to Friday 05:00", () => {
-    const quest = starRaceQuestByDate("2026-08-21")!;
-    expect(quest).toMatchObject({
-      title: "Финальный прогноз",
-      rewardStars: 10,
-      requirement: {
-        kind: "final-winner-prediction",
-        opensAt: "2026-08-20T18:00:00+03:00",
-        closesAt: "2026-08-21T05:00:00+03:00",
-      },
-    });
-    expect(starRaceQuestPhase(quest, new Date("2026-08-20T14:59:59Z"))).toBe("upcoming");
-    expect(starRaceQuestPhase(quest, new Date("2026-08-20T15:00:00Z"))).toBe("active");
-    expect(starRaceQuestPhase(quest, new Date("2026-08-21T02:00:00Z"))).toBe("finished");
-  });
-
-  it("uses the requested tournament meta heroes on Saturday", () => {
-    expect(starRaceQuestByDate("2026-08-22")).toMatchObject({
+  it("uses the requested tournament meta heroes on Friday", () => {
+    expect(starRaceQuestByDate("2026-08-21")).toMatchObject({
       title: "Мета турнира 2",
       rewardStars: 3,
       requirement: {
@@ -118,6 +102,22 @@ describe("second star race week", () => {
         heroIds: [119, 25, 21, 106, 36, 145],
       },
     });
+  });
+
+  it("opens the Saturday final prediction from Friday 18:00 to Saturday 05:00", () => {
+    const quest = starRaceQuestByDate("2026-08-22")!;
+    expect(quest).toMatchObject({
+      title: "Финальный прогноз",
+      rewardStars: 10,
+      requirement: {
+        kind: "final-winner-prediction",
+        opensAt: "2026-08-21T18:00:00+03:00",
+        closesAt: "2026-08-22T05:00:00+03:00",
+      },
+    });
+    expect(starRaceQuestPhase(quest, new Date("2026-08-21T14:59:59Z"))).toBe("upcoming");
+    expect(starRaceQuestPhase(quest, new Date("2026-08-21T15:00:00Z"))).toBe("active");
+    expect(starRaceQuestPhase(quest, new Date("2026-08-22T02:00:00Z"))).toBe("finished");
   });
 
   it("configures one Turbo win on Sunday", () => {

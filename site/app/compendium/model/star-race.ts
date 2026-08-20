@@ -9,7 +9,7 @@ import {
 
 export { starRacePrizeDescription, type StarRacePrize } from "./star-race-prizes";
 
-export const FINAL_PREDICTION_DATE = "2026-08-21";
+export const FINAL_PREDICTION_DATE = "2026-08-22";
 
 export const STAR_RACE_EXCLUSION_RULES = [
   "Звёзды за Испытание Рун в гонке не учитываются, но всё так же учитываются в других зачётах.",
@@ -217,23 +217,9 @@ const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     requirement: { kind: "arcana-equipped-ranked-win" },
   },
   {
-    dateKey: FINAL_PREDICTION_DATE,
+    dateKey: "2026-08-21",
     weekday: "Пятница",
     dateLabel: "21 августа",
-    title: "Финальный прогноз",
-    description:
-      "Сделайте прогноз на победителя турнира! Задание считается завершенным в случае успешного прогноза. Доступ к заданию открывается в 18:00 четверга и закрывается в 5:00 пятницы, успейте сделать прогноз!",
-    rewardStars: 10,
-    requirement: {
-      kind: "final-winner-prediction",
-      opensAt: "2026-08-20T18:00:00+03:00",
-      closesAt: "2026-08-21T05:00:00+03:00",
-    },
-  },
-  {
-    dateKey: "2026-08-22",
-    weekday: "Суббота",
-    dateLabel: "22 августа",
     title: "Мета турнира 2",
     description:
       "Выиграйте рейтинговый матч на одном из шести героев, которым чаще всего отдают предпочтение команды текущего The International 2026.",
@@ -242,6 +228,20 @@ const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
       kind: "distinct-hero-wins",
       requiredDistinctWins: 1,
       heroIds: [119, 25, 21, 106, 36, 145],
+    },
+  },
+  {
+    dateKey: FINAL_PREDICTION_DATE,
+    weekday: "Суббота",
+    dateLabel: "22 августа",
+    title: "Финальный прогноз",
+    description:
+      "Сделайте прогноз на победителя турнира! Задание считается завершенным в случае успешного прогноза. Доступ к заданию открывается в 18:00 пятницы и закрывается в 5:00 субботы, успейте сделать прогноз!",
+    rewardStars: 10,
+    requirement: {
+      kind: "final-winner-prediction",
+      opensAt: "2026-08-21T18:00:00+03:00",
+      closesAt: "2026-08-22T05:00:00+03:00",
     },
   },
   {
@@ -316,6 +316,7 @@ export type StarRaceQuestWin = {
 export type StarRaceQuestCompletion = {
   completedAt: string;
   wins: StarRaceQuestWin[];
+  isManual: boolean;
 };
 
 export type StarRaceQuestProgress = {
