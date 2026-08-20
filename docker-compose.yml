@@ -28,6 +28,7 @@ services:
     logging: *default-logging
 
   migrate:
+    image: dotaleaguebot-bot:deploy
     build:
       context: ./bot
     env_file:
@@ -43,6 +44,7 @@ services:
     logging: *default-logging
 
   bot:
+    image: dotaleaguebot-bot:deploy
     build:
       context: ./bot
     container_name: linkens_sphere_bot
@@ -62,6 +64,7 @@ services:
     logging: *default-logging
 
   site:
+    image: dotaleaguebot-site:deploy
     build:
       context: ./site
       args:
