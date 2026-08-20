@@ -54,6 +54,27 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          cache-dependency-path: site/tools/arcana-replay-parser/go.sum
+      - name: Build replay parser for the production server
+        working-directory: site/tools/arcana-replay-parser
+        run: |
+          mkdir -p bin
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+            go build -trimpath -ldflags="-s -w" -o bin/arcana-replay-parser .
+      - name: Transfer the prebuilt replay parser
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          source: site/tools/arcana-replay-parser/bin/arcana-replay-parser
+          target: /tmp/dotaleaguebot-${{ github.sha }}
+          strip_components: 4
       - name: Deploy bot, site and database migrations
         uses: appleboy/ssh-action@v1.2.4
         with:
@@ -67,6 +88,8 @@ jobs:
 
             APP_DIR=/root/DotaLeagueBot
             REPO=git@github.com:wuqingdi1998/DotaLeagueBot.git
+            PARSER_ARTIFACT_DIR=/tmp/dotaleaguebot-${{ github.sha }}
+            PARSER_BUILD_DIR="$APP_DIR/site/tools/arcana-replay-parser/bin"
 
             if [ ! -d "$APP_DIR/.git" ]; then
               git clone --branch main "$REPO" "$APP_DIR"
@@ -76,6 +99,18 @@ jobs:
             git fetch origin main
             git checkout main
             git reset --hard origin/main
+
+            if [ ! -x "$PARSER_ARTIFACT_DIR/arcana-replay-parser" ]; then
+              echo "Missing prebuilt Arcana replay parser." >&2
+              exit 1
+            fi
+            install -d "$PARSER_BUILD_DIR"
+            install -m 0755 \
+              "$PARSER_ARTIFACT_DIR/arcana-replay-parser" \
+              "$PARSER_BUILD_DIR/arcana-replay-parser"
+            rm -f "$PARSER_ARTIFACT_DIR/arcana-replay-parser"
+            rmdir "$PARSER_ARTIFACT_DIR"
+            export ARCANA_REPLAY_PARSER_STAGE=replay-parser-prebuilt
 
             if [ ! -f .env ]; then
               echo "Missing $APP_DIR/.env. Copy .env.example and fill secrets." >&2

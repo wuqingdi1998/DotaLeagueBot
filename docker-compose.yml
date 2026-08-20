@@ -64,6 +64,8 @@ services:
   site:
     build:
       context: ./site
+      args:
+        REPLAY_PARSER_STAGE: ${ARCANA_REPLAY_PARSER_STAGE:-replay-parser-builder}
     container_name: linkens_sphere_site
     restart: unless-stopped
     env_file:

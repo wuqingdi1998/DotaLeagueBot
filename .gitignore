@@ -20,6 +20,7 @@ site/.data/
 site/.next/
 site/node_modules/
 site/coverage/
+site/tools/arcana-replay-parser/bin/
 *.tsbuildinfo
 bot/.mypy_cache/
 bot/.pytest_cache/
