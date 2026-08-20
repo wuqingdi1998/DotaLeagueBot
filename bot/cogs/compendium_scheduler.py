@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import datetime
 import os
 from zoneinfo import ZoneInfo
@@ -188,6 +189,7 @@ class CompendiumScheduler(commands.Cog):
     @verify_arcana_checks.before_loop
     async def before_arcana_verification(self) -> None:
         await self.bot.wait_until_ready()
+        await asyncio.sleep(120)
 
 
 async def setup(bot: commands.Bot) -> None:

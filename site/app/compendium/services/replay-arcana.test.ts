@@ -10,7 +10,10 @@ vi.mock("./replay-arcana-repository", () => ({
   saveReplayWearables: mocks.saveReplayWearables,
 }));
 
-import { hasPlayerEquippedArcanaInReplay } from "./replay-arcana";
+import {
+  hasPlayerEquippedArcanaInReplay,
+  replayParserInvocation,
+} from "./replay-arcana";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -35,5 +38,23 @@ describe("cached replay Arcana verification", () => {
       dotaId: "157658130",
     })).resolves.toBe(true);
     expect(mocks.saveReplayWearables).not.toHaveBeenCalled();
+  });
+});
+
+describe("replay parser process", () => {
+  it("runs below the web server priority on Linux", () => {
+    expect(replayParserInvocation(
+      "/usr/local/bin/arcana-replay-parser",
+      "http://replay123.valve.net/570/8955030491_456.dem.bz2",
+      "linux",
+    )).toEqual({
+      file: "/bin/nice",
+      arguments: [
+        "-n",
+        "19",
+        "/usr/local/bin/arcana-replay-parser",
+        "http://replay123.valve.net/570/8955030491_456.dem.bz2",
+      ],
+    });
   });
 });

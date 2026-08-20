@@ -14,6 +14,20 @@ type ReplayParserResult = {
   wearables: ReplayWearable[];
 };
 
+export function replayParserInvocation(
+  parserPath: string,
+  replayUrl: string,
+  platform = process.platform,
+): { file: string; arguments: string[] } {
+  if (platform === "linux") {
+    return {
+      file: "/bin/nice",
+      arguments: ["-n", "19", parserPath, replayUrl],
+    };
+  }
+  return { file: parserPath, arguments: [replayUrl] };
+}
+
 function parseResult(value: unknown): ReplayParserResult {
   if (!value || typeof value !== "object") {
     throw new Error("Replay parser returned an invalid result");
@@ -40,7 +54,8 @@ function parseResult(value: unknown): ReplayParserResult {
 async function extractReplayWearables(replayUrl: string): Promise<ReplayWearable[]> {
   const parserPath = process.env.ARCANA_REPLAY_PARSER_PATH?.trim() ||
     "/usr/local/bin/arcana-replay-parser";
-  const { stdout } = await execFileAsync(parserPath, [replayUrl], {
+  const invocation = replayParserInvocation(parserPath, replayUrl);
+  const { stdout } = await execFileAsync(invocation.file, invocation.arguments, {
     timeout: 210_000,
     maxBuffer: 128 * 1024,
     windowsHide: true,
