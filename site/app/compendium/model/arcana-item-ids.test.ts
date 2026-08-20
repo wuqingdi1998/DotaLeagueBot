@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   ARCANA_WEARABLE_ITEMS,
+  isArcanaHeroId,
   isArcanaItemId,
 } from "./arcana-item-ids";
 
@@ -13,11 +14,14 @@ describe("Arcana item catalog", () => {
     ]);
 
     expect(new Set(ARCANA_WEARABLE_ITEMS.map(({ hero }) => hero)).size).toBe(24);
+    expect(new Set(ARCANA_WEARABLE_ITEMS.map(({ heroId }) => heroId)).size).toBe(24);
 
     for (const { itemId } of ARCANA_WEARABLE_ITEMS) {
       expect(isArcanaItemId(itemId)).toBe(true);
     }
 
     expect(isArcanaItemId(1)).toBe(false);
+    expect(isArcanaHeroId(86)).toBe(true);
+    expect(isArcanaHeroId(19)).toBe(false);
   });
 });

@@ -51,7 +51,7 @@ import {
 
 const now = new Date("2026-08-20T12:00:00.000Z");
 const win = {
-  heroId: 1,
+  heroId: 86,
   matchId: "8946503036",
   endedAt: new Date("2026-08-20T11:00:00.000Z"),
 };
@@ -64,6 +64,21 @@ beforeEach(() => {
 });
 
 describe("Arcana star-race verification", () => {
+  it("does not schedule replay checks for heroes without an Arcana", async () => {
+    await expect(checkStarRaceArcanaQuest({
+      playerId: "100",
+      dotaId: "301109815",
+      dateKey: "2026-08-20",
+      rewardStars: 3,
+      wins: [{ ...win, heroId: 19 }],
+      now,
+    })).rejects.toMatchObject({ code: "NO_MATCH" });
+
+    expect(mocks.loadArcanaChecks).not.toHaveBeenCalled();
+    expect(mocks.fetchOpenDotaMatchDetails).not.toHaveBeenCalled();
+    expect(mocks.reserveArcanaCheck).not.toHaveBeenCalled();
+  });
+
   it("submits an unparsed match and schedules a five-minute check", async () => {
     const checkAfter = new Date("2026-08-20T12:05:00.000Z").toISOString();
     mocks.fetchOpenDotaMatchDetails.mockResolvedValue({
@@ -213,5 +228,34 @@ describe("Arcana star-race verification", () => {
       matchId: win.matchId,
       hasArcana: true,
     });
+  });
+
+  it("finishes an old queued check without downloading a replay for a non-Arcana hero", async () => {
+    const dueCheck = {
+      playerId: "100",
+      dotaId: "301109815",
+      dateKey: "2026-08-20",
+      matchId: "8955080675",
+      heroId: 19,
+      jobId: null,
+      checkAfter: now.toISOString(),
+      finishedAt: null,
+      hasArcana: null,
+    };
+    mocks.loadDueArcanaChecks.mockResolvedValue([dueCheck]);
+
+    await expect(processDueArcanaChecks()).resolves.toEqual({
+      checked: 1,
+      completed: 0,
+      postponed: 0,
+    });
+    expect(mocks.finishArcanaCheck).toHaveBeenCalledWith({
+      playerId: "100",
+      dateKey: "2026-08-20",
+      matchId: "8955080675",
+      hasArcana: false,
+    });
+    expect(mocks.fetchOpenDotaMatchDetails).not.toHaveBeenCalled();
+    expect(mocks.hasPlayerEquippedArcanaInReplay).not.toHaveBeenCalled();
   });
 });

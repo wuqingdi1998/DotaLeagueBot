@@ -1,4 +1,5 @@
 import { one, query } from "@/lib/db";
+import { isArcanaHeroId } from "../model/arcana-item-ids";
 import type { MatchingWin } from "../model/types";
 import type { StarRacePendingVerification } from "../model/star-race";
 
@@ -68,21 +69,27 @@ export async function loadPendingArcanaVerifications(
 ): Promise<Map<string, StarRacePendingVerification>> {
   const rows = await query<{
     moscow_date: string;
+    hero_id: number;
     check_after: Date;
-    match_count: number;
   }>(
     `SELECT moscow_date::text,
-       MIN(check_after) AS check_after,
-       COUNT(*)::int AS match_count
+       hero_id,
+       check_after
      FROM compendium_star_race_arcana_checks
      WHERE player_id = $1 AND finished_at IS NULL
-     GROUP BY moscow_date`,
+     ORDER BY moscow_date, check_after`,
     [playerId],
   );
-  return new Map(rows.map((row) => [row.moscow_date, {
-    checkAfter: row.check_after.toISOString(),
-    matchCount: Number(row.match_count),
-  }]));
+  const pendingByDate = new Map<string, StarRacePendingVerification>();
+  for (const row of rows) {
+    if (!isArcanaHeroId(Number(row.hero_id))) continue;
+    const pending = pendingByDate.get(row.moscow_date);
+    pendingByDate.set(row.moscow_date, {
+      checkAfter: pending?.checkAfter ?? row.check_after.toISOString(),
+      matchCount: (pending?.matchCount ?? 0) + 1,
+    });
+  }
+  return pendingByDate;
 }
 
 export async function reserveArcanaCheck(input: {

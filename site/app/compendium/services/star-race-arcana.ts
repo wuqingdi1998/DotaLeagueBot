@@ -1,4 +1,5 @@
 import { CompendiumError } from "../model/errors";
+import { isArcanaHeroId } from "../model/arcana-item-ids";
 import {
   starRaceQuestByDate,
   type StarRacePendingVerification,
@@ -147,9 +148,16 @@ export async function checkStarRaceArcanaQuest(input: {
       "За текущие сутки пока не найдена победа в рейтинговом матче.",
     );
   }
+  const eligibleWins = input.wins.filter((win) => isArcanaHeroId(win.heroId));
+  if (eligibleWins.length === 0) {
+    throw new CompendiumError(
+      "NO_MATCH",
+      "За текущие сутки пока не найдена победа на герое с Arcana.",
+    );
+  }
   const checks = await loadArcanaChecks(input.playerId, input.dateKey);
   const pending: ArcanaCheck[] = [];
-  for (const win of input.wins) {
+  for (const win of eligibleWins) {
     const saved = checks.get(win.matchId);
     if (saved?.finishedAt) {
       if (saved.hasArcana) {
@@ -204,6 +212,7 @@ export async function processDueArcanaChecks(): Promise<{
     const quest = starRaceQuestByDate(check.dateKey);
     if (
       !check.dotaId ||
+      !isArcanaHeroId(check.heroId) ||
       quest?.requirement?.kind !== "arcana-equipped-ranked-win" ||
       quest.rewardStars === null
     ) {
