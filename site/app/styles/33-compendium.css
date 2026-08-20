@@ -423,7 +423,8 @@
 }
 
 @media (max-width: 720px) {
-  .compendium-hero-section { min-height: auto; padding: 62px 20px 28px; }
+  .compendium-hero-section { min-height: auto; padding: 28px 20px; }
+  .compendium-hero-section.has-organizer-link { padding-top: 62px; }
   .compendium-title-block h1 { font-size: clamp(52px, 17vw, 76px); }
   .compendium-summary { grid-template-columns: 1fr; }
   .compendium-summary > div:first-child { grid-column: auto; }

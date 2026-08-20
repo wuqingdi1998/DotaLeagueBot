@@ -30,7 +30,7 @@ import {
   currentMoscowDay,
   moscowDateKey,
   serverTimeFromAnchor,
-  tournamentCountdownLabel,
+  tournamentStatusForMoment,
 } from "./time";
 import type { OpenDotaMatch } from "./types";
 
@@ -203,20 +203,32 @@ describe("The International countdown", () => {
       "2026-08-13T04:00:00.000Z",
     );
     expect(
-      tournamentCountdownLabel(
+      tournamentStatusForMoment(
         COMPENDIUM_TOURNAMENT_START_AT,
         new Date("2026-08-12T04:00:00.000Z"),
       ),
-    ).toBe("1 дн. 00:00:00");
+    ).toEqual({ caption: "ДО ТУРНИРА", value: "1 дн. 00:00:00" });
   });
 
-  it("shows a finished state after the tournament starts", () => {
+  it.each([
+    ["2026-08-19T21:00:00.000Z", "1-й день плей-офф"],
+    ["2026-08-20T21:00:00.000Z", "2-й день плей-офф"],
+    ["2026-08-21T21:00:00.000Z", "Предфинальный день плей-офф"],
+    ["2026-08-22T21:00:00.000Z", "Финальный день плей-офф"],
+  ])("switches the playoff stage at Moscow midnight %s", (now, value) => {
+    expect(tournamentStatusForMoment(COMPENDIUM_TOURNAMENT_START_AT, new Date(now))).toEqual({
+      caption: "СТАДИЯ ТУРНИРА",
+      value,
+    });
+  });
+
+  it("keeps the first playoff day until Moscow midnight", () => {
     expect(
-      tournamentCountdownLabel(
+      tournamentStatusForMoment(
         COMPENDIUM_TOURNAMENT_START_AT,
-        new Date("2026-08-13T04:00:00.000Z"),
-      ),
-    ).toBe("Турнир начался");
+        new Date("2026-08-20T20:59:59.999Z"),
+      ).value,
+    ).toBe("1-й день плей-офф");
   });
 });
 

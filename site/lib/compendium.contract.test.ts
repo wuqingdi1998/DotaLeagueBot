@@ -173,9 +173,9 @@ describe("compendium persistence and security contract", () => {
     );
   });
 
-  it("shows the tournament countdown in place of today's Moscow date", () => {
-    expect(dashboard).toContain("ДО ТУРНИРА");
-    expect(dashboard).toContain("tournamentCountdown");
+  it("shows the current tournament status in place of today's Moscow date", () => {
+    expect(dashboard).toContain("tournamentStatus.caption");
+    expect(dashboard).toContain("tournamentStatus.value");
     expect(dashboard).not.toContain("Сегодня по Москве");
   });
 
@@ -385,6 +385,15 @@ describe("compendium persistence and security contract", () => {
     );
     expect(predictionsCss).toContain("@media (max-width: 1050px)");
     expect(predictionsCss).toContain("grid-template-columns: 1fr");
+  });
+
+  it("keeps the mobile compendium heading compact and wraps long stage names", () => {
+    expect(compendiumCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-hero-section\s*\{[^}]*padding:\s*28px 20px/,
+    );
+    expect(headingCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-tournament-countdown strong\s*\{[^}]*white-space:\s*normal/,
+    );
   });
 
   it("renders permanent profile badges as Aegis shields", () => {

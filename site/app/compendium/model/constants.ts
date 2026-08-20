@@ -1,5 +1,11 @@
 export const COMPENDIUM_TIME_ZONE = "Europe/Moscow";
 export const COMPENDIUM_TOURNAMENT_START_AT = "2026-08-13T07:00:00+03:00";
+export const COMPENDIUM_PLAYOFF_STAGES = [
+  { dateKey: "2026-08-20", label: "1-й день плей-офф" },
+  { dateKey: "2026-08-21", label: "2-й день плей-офф" },
+  { dateKey: "2026-08-22", label: "Предфинальный день плей-офф" },
+  { dateKey: "2026-08-23", label: "Финальный день плей-офф" },
+] as const;
 export const DAILY_QUEST_COUNT = 3;
 export const HEROES_PER_QUEST = 6;
 export const DAILY_HERO_COUNT = DAILY_QUEST_COUNT * HEROES_PER_QUEST;

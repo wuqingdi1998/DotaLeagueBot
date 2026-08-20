@@ -8,7 +8,7 @@ import { FaDiscord } from "react-icons/fa";
 import { FiArrowRight, FiClock, FiDatabase } from "react-icons/fi";
 import { useServerClock } from "../hooks/useServerClock";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
-import { tournamentCountdownLabel } from "../model/time";
+import { tournamentStatusForMoment } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
 import {
   CompendiumHeroImagePreloader,
@@ -50,7 +50,7 @@ export function CompendiumDashboard({
   const [toast, setToast] = useState("");
   const currentTimeMs = useServerClock(data.serverNow);
   const countdown = countdownLabel(data.nextResetAt, currentTimeMs);
-  const tournamentCountdown = tournamentCountdownLabel(
+  const tournamentStatus = tournamentStatusForMoment(
     data.tournamentStartsAt,
     new Date(currentTimeMs),
   );
@@ -275,7 +275,9 @@ export function CompendiumDashboard({
   return (
     <div className="compendium-page">
       <CompendiumHeroImagePreloader />
-      <section className="compendium-hero-section">
+      <section
+        className={`compendium-hero-section${isOrganizer ? " has-organizer-link" : ""}`}
+      >
         <div className="compendium-orb compendium-orb-one" />
         <div className="compendium-orb compendium-orb-two" />
         {isOrganizer && (
@@ -308,8 +310,8 @@ export function CompendiumDashboard({
         <div className="compendium-summary">
           <div className="compendium-tournament-countdown">
             <FiClock aria-hidden="true" />
-            <span>ДО ТУРНИРА</span>
-            <strong>{tournamentCountdown}</strong>
+            <span>{tournamentStatus.caption}</span>
+            <strong>{tournamentStatus.value}</strong>
           </div>
         </div>
       </section>

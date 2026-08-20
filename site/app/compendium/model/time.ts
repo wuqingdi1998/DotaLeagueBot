@@ -1,4 +1,7 @@
-import { COMPENDIUM_TIME_ZONE } from "./constants";
+import {
+  COMPENDIUM_PLAYOFF_STAGES,
+  COMPENDIUM_TIME_ZONE,
+} from "./constants";
 
 const dateFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: COMPENDIUM_TIME_ZONE,
@@ -89,12 +92,11 @@ export function serverTimeFromAnchor(
   return Date.parse(serverNow) + Math.max(0, monotonicNowMs - monotonicAnchorMs);
 }
 
-export function tournamentCountdownLabel(
+function tournamentCountdownLabel(
   targetAt: string,
   now: Date = new Date(),
 ): string {
   const remaining = Math.max(0, new Date(targetAt).getTime() - now.getTime());
-  if (remaining === 0) return "Турнир начался";
 
   const totalSeconds = Math.floor(remaining / 1_000);
   const days = Math.floor(totalSeconds / 86_400);
@@ -105,4 +107,37 @@ export function tournamentCountdownLabel(
     .map((part) => String(part).padStart(2, "0"))
     .join(":");
   return days > 0 ? `${days} дн. ${clock}` : clock;
+}
+
+export type TournamentStatus = {
+  caption: "ДО ТУРНИРА" | "СТАДИЯ ТУРНИРА" | "СТАТУС ТУРНИРА";
+  value: string;
+};
+
+/** Возвращает обратный отсчёт или стадию турнира по московской календарной дате. */
+export function tournamentStatusForMoment(
+  targetAt: string,
+  now: Date = new Date(),
+): TournamentStatus {
+  if (now.getTime() < new Date(targetAt).getTime()) {
+    return {
+      caption: "ДО ТУРНИРА",
+      value: tournamentCountdownLabel(targetAt, now),
+    };
+  }
+
+  const currentDateKey = moscowDateKey(now);
+  const playoffStage = COMPENDIUM_PLAYOFF_STAGES.find(
+    (stage) => stage.dateKey === currentDateKey,
+  );
+  if (playoffStage) {
+    return { caption: "СТАДИЯ ТУРНИРА", value: playoffStage.label };
+  }
+
+  const finalStage = COMPENDIUM_PLAYOFF_STAGES.at(-1);
+  if (finalStage && currentDateKey > finalStage.dateKey) {
+    return { caption: "СТАТУС ТУРНИРА", value: "Турнир завершён" };
+  }
+
+  return { caption: "СТАТУС ТУРНИРА", value: "Турнир начался" };
 }
