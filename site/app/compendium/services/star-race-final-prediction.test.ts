@@ -39,7 +39,16 @@ const user = {
 describe("star race final prediction", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.load.mockResolvedValue({ teams: [], selectedPosition: null, winnerPosition: null });
+    mocks.load.mockResolvedValue({
+      teams: [],
+      selectedPosition: null,
+      winnerPosition: null,
+      openedAt: null,
+    });
+    mocks.saveTeams.mockResolvedValue({
+      isOpened: true,
+      notifiedPlayers: 4,
+    });
   });
 
   it("requires six distinct team names", async () => {
@@ -48,17 +57,18 @@ describe("star race final prediction", () => {
     expect(mocks.saveTeams).not.toHaveBeenCalled();
   });
 
-  it("saves six teams before the prediction opens", async () => {
+  it("lets the organizer save teams after the old 18:00 restriction", async () => {
     const teams = ["A", "B", "C", "D", "E", "F"];
-    await configureFinalPrediction({
+    const result = await configureFinalPrediction({
       administrator: user,
       teams,
-      now: new Date("2026-08-21T14:00:00Z"),
+      now: new Date("2026-08-21T19:00:00Z"),
     });
     expect(mocks.saveTeams).toHaveBeenCalledWith(expect.objectContaining({
       teams,
-      opensAt: new Date("2026-08-21T15:00:00Z"),
+      now: new Date("2026-08-21T19:00:00Z"),
     }));
+    expect(result).toMatchObject({ isOpened: true, notifiedPlayers: 4 });
   });
 
   it("stores a player's selected team inside the special window", async () => {

@@ -4,6 +4,7 @@ import { compendiumHeroById } from "../model/heroes";
 import { CURRENT_STAR_RACE, starRaceQuestPhase } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
+import { loadFinalPrediction } from "../services/star-race-final-prediction-repository";
 import {
   buildCompendiumAdminParticipantSummaries,
   buildCompendiumAdminParticipants,
@@ -23,6 +24,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
 > {
   const dateKey = currentMoscowDay().dateKey;
   const now = new Date();
+  const finalPrediction = await loadFinalPrediction();
   const currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[] =
     CURRENT_STAR_RACE.quests
       .filter(
@@ -30,7 +32,13 @@ export async function loadCompendiumAdminParticipants(): Promise<
           quest.title &&
           quest.description &&
           quest.rewardStars !== null &&
-          starRaceQuestPhase(quest, now) === "active",
+          starRaceQuestPhase(
+            quest,
+            now,
+            quest.requirement?.kind === "final-winner-prediction"
+              ? finalPrediction.openedAt
+              : null,
+          ) === "active",
       )
       .map((quest) => {
         const requirement = quest.requirement;

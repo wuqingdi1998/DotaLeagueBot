@@ -54,7 +54,6 @@ export type StarRaceQuestRequirement =
     }
   | {
       readonly kind: "final-winner-prediction";
-      readonly opensAt: string;
       readonly closesAt: string;
     };
 
@@ -236,11 +235,10 @@ const SECOND_STAR_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
     dateLabel: "22 августа",
     title: "Финальный прогноз",
     description:
-      "Сделайте прогноз на победителя турнира! Задание считается завершенным в случае успешного прогноза. Доступ к заданию открывается в 18:00 пятницы и закрывается в 5:00 субботы, успейте сделать прогноз!",
+      "Сделайте прогноз на победителя турнира! Задание считается завершенным в случае успешного прогноза. Доступ откроется после публикации списка команд и закроется в 5:00 субботы.",
     rewardStars: 10,
     requirement: {
       kind: "final-winner-prediction",
-      opensAt: "2026-08-21T18:00:00+03:00",
       closesAt: "2026-08-22T05:00:00+03:00",
     },
   },
@@ -340,6 +338,7 @@ export type StarRaceFinalPrediction = {
   teams: string[];
   selectedPosition: number | null;
   winnerPosition: number | null;
+  openedAt: string | null;
 };
 
 export type StarRaceQuest = StarRaceQuestDefinition & {
@@ -391,19 +390,25 @@ export function starRacePhase(
 export function starRaceQuestPhase(
   quest: StarRaceQuestDefinition,
   now: Date,
+  finalPredictionOpenedAt: string | null = null,
 ): StarRaceQuestPhase {
-  const bounds = starRaceQuestBounds(quest);
+  const bounds = starRaceQuestBounds(quest, finalPredictionOpenedAt);
   if (now.getTime() < bounds.start.getTime()) return "upcoming";
   return now.getTime() < bounds.end.getTime() ? "active" : "finished";
 }
 
-export function starRaceQuestBounds(quest: StarRaceQuestDefinition): {
+export function starRaceQuestBounds(
+  quest: StarRaceQuestDefinition,
+  finalPredictionOpenedAt: string | null = null,
+): {
   start: Date;
   end: Date;
 } {
   return quest.requirement?.kind === "final-winner-prediction"
     ? {
-        start: new Date(quest.requirement.opensAt),
+        start: finalPredictionOpenedAt
+          ? new Date(finalPredictionOpenedAt)
+          : new Date(quest.requirement.closesAt),
         end: new Date(quest.requirement.closesAt),
       }
     : moscowDayBounds(quest.dateKey);

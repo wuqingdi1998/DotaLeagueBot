@@ -81,13 +81,17 @@ export async function loadStarRace(
     personalRank,
     prizes: race.prizes,
     quests: race.quests.map((quest) => {
-      const bounds = starRaceQuestBounds(quest);
+      const finalPredictionOpenedAt =
+        quest.requirement?.kind === "final-winner-prediction"
+          ? finalPrediction.openedAt
+          : null;
+      const bounds = starRaceQuestBounds(quest, finalPredictionOpenedAt);
       const savedProgress = progresses.get(quest.dateKey);
       return {
         ...quest,
         startsAt: bounds.start.toISOString(),
         endsAt: bounds.end.toISOString(),
-        phase: starRaceQuestPhase(quest, now),
+        phase: starRaceQuestPhase(quest, now, finalPredictionOpenedAt),
         heroes: starRaceQuestHeroes(quest),
         completion: completions.get(quest.dateKey) ?? null,
         progress: quest.requirement?.kind === "winning-building-damage"

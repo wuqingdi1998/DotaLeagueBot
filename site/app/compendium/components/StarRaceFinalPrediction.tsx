@@ -18,7 +18,7 @@ export function StarRaceFinalPrediction({
   const prediction = quest.finalPrediction;
   const [position, setPosition] = useState(prediction?.selectedPosition ?? 0);
   if (!prediction?.teams.length) {
-    return <span className="compendium-star-race-status">Организатор ещё не добавил команды</span>;
+    return <span className="compendium-star-race-status">Организатор ещё не запустил приём прогнозов</span>;
   }
   const selectedTeam = prediction.selectedPosition
     ? prediction.teams[prediction.selectedPosition - 1]
@@ -46,7 +46,7 @@ export function StarRaceFinalPrediction({
     return (
       <span className="compendium-star-race-status">
         {quest.phase === "upcoming"
-          ? "Приём прогнозов откроется в четверг в 18:00 МСК"
+          ? "Приём прогнозов ещё не открыт"
           : selectedTeam
             ? `Ваш прогноз: ${selectedTeam}. Ожидаем результат.`
             : "Приём прогнозов завершён"}

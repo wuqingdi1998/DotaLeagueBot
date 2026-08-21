@@ -104,20 +104,27 @@ describe("second star race week", () => {
     });
   });
 
-  it("opens the Saturday final prediction from Friday 18:00 to Saturday 05:00", () => {
+  it("opens the Saturday final prediction when teams are saved and closes at 05:00", () => {
     const quest = starRaceQuestByDate("2026-08-22")!;
     expect(quest).toMatchObject({
       title: "Финальный прогноз",
       rewardStars: 10,
       requirement: {
         kind: "final-winner-prediction",
-        opensAt: "2026-08-21T18:00:00+03:00",
         closesAt: "2026-08-22T05:00:00+03:00",
       },
     });
-    expect(starRaceQuestPhase(quest, new Date("2026-08-21T14:59:59Z"))).toBe("upcoming");
-    expect(starRaceQuestPhase(quest, new Date("2026-08-21T15:00:00Z"))).toBe("active");
-    expect(starRaceQuestPhase(quest, new Date("2026-08-22T02:00:00Z"))).toBe("finished");
+    expect(starRaceQuestPhase(quest, new Date("2026-08-21T19:00:00Z"))).toBe("upcoming");
+    expect(starRaceQuestPhase(
+      quest,
+      new Date("2026-08-21T19:00:00Z"),
+      "2026-08-21T18:30:00.000Z",
+    )).toBe("active");
+    expect(starRaceQuestPhase(
+      quest,
+      new Date("2026-08-22T02:00:00Z"),
+      "2026-08-21T18:30:00.000Z",
+    )).toBe("finished");
   });
 
   it("configures one Turbo win on Sunday", () => {

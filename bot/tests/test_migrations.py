@@ -71,6 +71,13 @@ LSERUMSH_CHECKIN_MIGRATION = (
     / "0072_lserumsh_checkin_hour.sql"
 ).read_text(encoding="utf-8")
 
+FINAL_PREDICTION_OPENING_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0081_compendium_final_prediction_opening.sql"
+).read_text(encoding="utf-8")
+
 BRACKET_LAYOUT_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -246,6 +253,16 @@ def test_tournament_checkin_replaces_match_checkin_without_losing_confirmations(
 def test_lserumsh_checkin_opens_one_hour_before_first_match() -> None:
     assert "check_in_minutes = 60" in LSERUMSH_CHECKIN_MIGRATION
     assert "slug = 'lserumsh'" in LSERUMSH_CHECKIN_MIGRATION
+
+
+def test_final_prediction_records_its_actual_opening_moment() -> None:
+    assert "ADD COLUMN opened_at TIMESTAMPTZ" in (
+        FINAL_PREDICTION_OPENING_MIGRATION
+    )
+    assert "SET opened_at = created_at" in FINAL_PREDICTION_OPENING_MIGRATION
+    assert "ALTER COLUMN opened_at SET NOT NULL" in (
+        FINAL_PREDICTION_OPENING_MIGRATION
+    )
 
 
 def test_notification_outbox_supports_retries() -> None:

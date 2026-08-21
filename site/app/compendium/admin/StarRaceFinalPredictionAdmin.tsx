@@ -26,6 +26,8 @@ export function StarRaceFinalPredictionAdmin({
       const result = (await response.json()) as {
         error?: string;
         rewardedPlayers?: number;
+        isOpened?: boolean;
+        notifiedPlayers?: number;
         prediction?: FinalPredictionRecord;
       };
       if (!response.ok || !result.prediction) {
@@ -35,7 +37,9 @@ export function StarRaceFinalPredictionAdmin({
       setTeams(result.prediction.teams);
       setWinner(result.prediction.winnerPosition ?? 0);
       setMessage(method === "PUT"
-        ? "Шесть команд сохранены. Игроки увидят их в субботнем задании."
+        ? result.isOpened
+          ? `Команды сохранены, прогноз открыт до 05:00. Бот отправит уведомление участникам: ${result.notifiedPlayers ?? 0}.`
+          : "Команды обновлены. Прогноз остаётся открытым до 05:00."
         : `Победитель сохранён. Звёзды получили игроков: ${result.rewardedPlayers ?? 0}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось сохранить данные");
@@ -53,7 +57,7 @@ export function StarRaceFinalPredictionAdmin({
         </div>
       </div>
       <p className="prediction-admin-help">
-        До пятницы 18:00 укажите ровно шесть команд. После закрытия приёма прогнозов в субботу 05:00 выберите победителя — 10 звёзд будут выданы автоматически.
+        Укажите ровно шесть команд. Первое сохранение сразу откроет прогноз игрокам и запустит уведомления в Discord. Приём прогнозов завершится в субботу в 05:00, после чего выберите победителя — 10 звёзд будут выданы автоматически.
       </p>
       <div className="final-prediction-team-grid">
         {teams.map((team, index) => (

@@ -12,9 +12,13 @@ export async function PUT(request: Request) {
   try {
     const administrator = await requireAdmin();
     const body = (await request.json()) as { teams?: unknown };
+    const result = await configureFinalPrediction({
+      administrator,
+      teams: body.teams,
+    });
     return Response.json({
       ok: true,
-      prediction: await configureFinalPrediction({ administrator, teams: body.teams }),
+      ...result,
     });
   } catch (error) {
     return responseFromCompendiumError(error);

@@ -9,6 +9,18 @@ import {
   saveFinalPredictionTeams,
 } from "./star-race-final-prediction-repository";
 
+const finalPredictionNotification = {
+  title: "Открылся финальный прогноз",
+  message:
+    "Финальное испытание «Гонки за звёздами» открыто. Выберите победителя турнира до 05:00 МСК 22 августа.",
+};
+
+function compendiumUrl(): string {
+  const baseUrl = (process.env.PUBLIC_BASE_URL ?? "https://lsesports.ru")
+    .replace(/\/+$/, "");
+  return `${baseUrl}/compendium`;
+}
+
 function definition() {
   const quest = starRaceQuestByDate(FINAL_PREDICTION_DATE);
   if (
@@ -45,15 +57,20 @@ export async function configureFinalPrediction(input: {
   if (teams.length !== 6 || teams.some((team) => !team) || new Set(teams.map((team) => team.toLocaleLowerCase("ru"))).size !== 6) {
     throw new CompendiumError("PREDICTION_INVALID", "Укажите шесть разных команд");
   }
-  const { requirement } = definition();
+  definition();
   try {
-    await saveFinalPredictionTeams({
+    const opening = await saveFinalPredictionTeams({
       teams,
       administratorId: input.administrator.discordId,
-      opensAt: new Date(requirement.opensAt),
+      notificationTitle: finalPredictionNotification.title,
+      notificationMessage: finalPredictionNotification.message,
+      actionUrl: compendiumUrl(),
       now: input.now ?? new Date(),
     });
-    return loadFinalPrediction();
+    return {
+      ...opening,
+      prediction: await loadFinalPrediction(),
+    };
   } catch (error) {
     predictionError(error);
   }
@@ -73,7 +90,6 @@ export async function submitFinalPrediction(input: {
     await saveFinalPredictionPick({
       playerId: input.user.discordId,
       position: Number(input.position),
-      opensAt: new Date(requirement.opensAt),
       closesAt: new Date(requirement.closesAt),
       now: input.now ?? new Date(),
     });

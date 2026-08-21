@@ -7,6 +7,7 @@ import {
 } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
+import { loadFinalPrediction } from "../services/star-race-final-prediction-repository";
 
 export type ManualCompletionResult = {
   rewardStars: number;
@@ -74,11 +75,15 @@ export async function completeStarRaceQuestManually(input: {
   const now = input.now ?? new Date();
   const quest = starRaceQuestByDate(input.dateKey);
   const rewardStars = quest?.rewardStars ?? null;
+  const finalPredictionOpenedAt =
+    quest?.requirement?.kind === "final-winner-prediction"
+      ? (await loadFinalPrediction()).openedAt
+      : null;
   if (
     !quest ||
     rewardStars === null ||
     !quest.requirement ||
-    starRaceQuestPhase(quest, now) !== "active"
+    starRaceQuestPhase(quest, now, finalPredictionOpenedAt) !== "active"
   ) {
     throw new CompendiumError(
       "STAR_RACE_NOT_ACTIVE",

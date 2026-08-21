@@ -56,7 +56,7 @@ vi.mock("@/lib/player-profile", () => ({
     /^\d+$/.test(value) ? value : null,
 }));
 
-import { checkStarRaceQuest } from "./star-race";
+import { checkStarRaceQuest, loadStarRace } from "./star-race";
 import { compendiumHeroById } from "../model/heroes";
 
 const user = {
@@ -135,6 +135,7 @@ beforeEach(() => {
     teams: [],
     selectedPosition: null,
     winnerPosition: null,
+    openedAt: null,
   });
   mocks.replaceStarRaceProgress.mockImplementation(
     ({ current, dateKey }: { current: number; dateKey: string }) => {
@@ -446,6 +447,43 @@ describe("second-week star race checks", () => {
       rewardStars: 3,
       wins: [expect.objectContaining({ matchId: "8001" })],
       now: thursdayNow,
+    });
+  });
+});
+
+describe("final prediction opening", () => {
+  it("keeps the quest upcoming until the organizer saves teams", async () => {
+    const now = new Date("2026-08-21T19:00:00.000Z");
+
+    const race = await loadStarRace(user, now);
+    const prediction = race.quests.find(
+      (quest) => quest.dateKey === "2026-08-22",
+    );
+
+    expect(prediction).toMatchObject({
+      phase: "upcoming",
+      finalPrediction: { openedAt: null },
+    });
+  });
+
+  it("uses the first team save as the quest opening moment", async () => {
+    const openedAt = "2026-08-21T18:30:00.000Z";
+    mocks.loadFinalPrediction.mockResolvedValue({
+      teams: ["A", "B", "C", "D", "E", "F"],
+      selectedPosition: null,
+      winnerPosition: null,
+      openedAt,
+    });
+
+    const race = await loadStarRace(user, new Date("2026-08-21T19:00:00.000Z"));
+    const prediction = race.quests.find(
+      (quest) => quest.dateKey === "2026-08-22",
+    );
+
+    expect(prediction).toMatchObject({
+      phase: "active",
+      startsAt: openedAt,
+      endsAt: "2026-08-22T02:00:00.000Z",
     });
   });
 });
