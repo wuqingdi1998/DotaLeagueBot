@@ -18,6 +18,11 @@ describe("predictionPickState", () => {
     expect(predictionPickState("1:2", "2:0")).toBe("incorrect");
   });
 
+  it("recognizes the winner in a best-of-five score", () => {
+    expect(predictionPickState("3:0", "3:2")).toBe("outcome");
+    expect(predictionPickState("2:3", "3:2")).toBe("incorrect");
+  });
+
   it("does not color a missing pick", () => {
     expect(predictionPickState(null, "2:0")).toBe("missing");
   });
@@ -27,8 +32,8 @@ describe("buildPredictionHistory", () => {
   it("keeps newest source day first and groups player picks", () => {
     const days = buildPredictionHistory(
       [
-        { id: "2", dateKey: "2026-08-12", position: 1, teamAName: "A", teamBName: "B", actualScore: "2:0" },
-        { id: "1", dateKey: "2026-08-11", position: 1, teamAName: "C", teamBName: "D", actualScore: null },
+        { id: "2", dateKey: "2026-08-12", position: 1, teamAName: "A", teamBName: "B", scoreOptions: ["2:0", "2:1", "1:2", "0:2"], actualScore: "2:0" },
+        { id: "1", dateKey: "2026-08-11", position: 1, teamAName: "C", teamBName: "D", scoreOptions: ["2:0", "2:1", "1:2", "0:2"], actualScore: null },
       ],
       [
         { dateKey: "2026-08-12", matchId: "2", playerId: "7", dotaId: "70", playerName: "Player", predictedScore: "2:1", rewardStars: 1 },
@@ -46,7 +51,7 @@ describe("buildPredictionHistory", () => {
 
   it("shows zero earned stars after a result even without a reward row", () => {
     const days = buildPredictionHistory(
-      [{ id: "1", dateKey: "2026-08-12", position: 1, teamAName: "A", teamBName: "B", actualScore: "2:0" }],
+      [{ id: "1", dateKey: "2026-08-12", position: 1, teamAName: "A", teamBName: "B", scoreOptions: ["2:0", "2:1", "1:2", "0:2"], actualScore: "2:0" }],
       [{ dateKey: "2026-08-12", matchId: "1", playerId: "7", dotaId: "70", playerName: "Player", predictedScore: "0:2", rewardStars: null }],
     );
 

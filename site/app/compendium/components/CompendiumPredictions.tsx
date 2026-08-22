@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiArchive, FiClock, FiSettings } from "react-icons/fi";
-import { predictionScores, type PredictionScore } from "../model/predictions";
+import type { PredictionScore } from "../model/predictions";
 import type { DailyPredictionMatch } from "../model/types";
 
 function matchTimeLabel(startsAt: string): string {
@@ -29,6 +29,15 @@ function predictionOpeningLabel(opensAt: string): string {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(opensAt));
+}
+
+function starLabel(amount: number): string {
+  const lastTwoDigits = amount % 100;
+  const lastDigit = amount % 10;
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "звёзд";
+  if (lastDigit === 1) return "звезда";
+  if (lastDigit >= 2 && lastDigit <= 4) return "звезды";
+  return "звёзд";
 }
 
 function PredictionTeam({ team }: { team: DailyPredictionMatch["teamA"] }) {
@@ -70,7 +79,7 @@ function PredictionCard({
         <PredictionTeam team={match.teamB} />
       </div>
       <div className="compendium-score-picks" aria-label="Выберите счёт матча">
-        {predictionScores.map((score) => (
+        {match.scoreOptions.map((score) => (
           <button
             type="button"
             className={match.predictedScore === score ? "selected" : undefined}
@@ -82,6 +91,10 @@ function PredictionCard({
           </button>
         ))}
       </div>
+      <p className="compendium-prediction-note">
+        Точный счёт — {match.exactScoreRewardStars} {starLabel(match.exactScoreRewardStars)},
+        {" "}верный победитель — {match.outcomeRewardStars} {starLabel(match.outcomeRewardStars)}.
+      </p>
       {match.actualScore ? (
         <p className="compendium-prediction-result">
           Итог: <strong>{match.actualScore}</strong>
@@ -126,7 +139,7 @@ export function CompendiumPredictions({
               : "Ежедневные матчи TI 2026"}
           </span>
           <h2>Прогнозы</h2>
-          <p>Точный счёт — 2 звезды, верный победитель — 1 звезда.</p>
+          <p>Выберите точный счёт каждого матча. Награда указана в карточке.</p>
         </div>
         {isOrganizer && (
           <div className="compendium-predictions-admin-actions">

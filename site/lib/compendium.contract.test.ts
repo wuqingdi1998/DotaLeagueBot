@@ -371,7 +371,9 @@ describe("compendium persistence and security contract", () => {
 
   it("hides empty match cards and explains prediction rewards", () => {
     expect(predictionsView).toContain("Матчи скоро появятся");
-    expect(predictionsView).toContain("Точный счёт — 2 звезды");
+    expect(predictionsView).toContain("match.exactScoreRewardStars");
+    expect(predictionsView).toContain("match.outcomeRewardStars");
+    expect(predictionsView).toContain("Награда указана в карточке");
     expect(predictionsView).toContain("matches.length ?");
   });
 

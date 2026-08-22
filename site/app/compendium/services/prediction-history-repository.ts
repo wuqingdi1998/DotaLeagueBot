@@ -5,7 +5,11 @@ import type {
   PredictionHistoryPickSource,
 } from "../model/prediction-history";
 import { buildPredictionHistory } from "../model/prediction-history";
-import type { PredictionScore } from "../model/predictions";
+import {
+  predictionScoresForWinsRequired,
+  type PredictionScore,
+  type PredictionWinsRequired,
+} from "../model/predictions";
 
 type HistoryMatchRow = {
   id: string;
@@ -13,6 +17,7 @@ type HistoryMatchRow = {
   position: number;
   team_a_name: string;
   team_b_name: string;
+  wins_required: PredictionWinsRequired;
   actual_score: PredictionScore | null;
 };
 
@@ -30,7 +35,8 @@ export async function loadPredictionHistory(): Promise<PredictionHistoryDay[]> {
   const [matchRows, pickRows] = await Promise.all([
     query<HistoryMatchRow>(
       `SELECT match.id::text, match.moscow_date::text, match.position,
-         match.team_a_name, match.team_b_name, match.actual_score
+         match.team_a_name, match.team_b_name, match.wins_required,
+         match.actual_score
        FROM compendium_prediction_matches match
        ORDER BY match.moscow_date DESC, match.position`,
     ),
@@ -54,6 +60,7 @@ export async function loadPredictionHistory(): Promise<PredictionHistoryDay[]> {
       position: row.position,
       teamAName: row.team_a_name,
       teamBName: row.team_b_name,
+      scoreOptions: predictionScoresForWinsRequired(row.wins_required),
       actualScore: row.actual_score,
   }));
   const picks: PredictionHistoryPickSource[] = pickRows.map((row) => ({

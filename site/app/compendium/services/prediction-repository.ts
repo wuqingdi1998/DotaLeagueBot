@@ -1,6 +1,12 @@
 import type { PoolClient } from "pg";
 import { query, transaction } from "@/lib/db";
-import { predictionRewardStars, type PredictionScore } from "../model/predictions";
+import {
+  isPredictionScoreForWinsRequired,
+  predictionRewardStars,
+  predictionScoresForWinsRequired,
+  type PredictionScore,
+  type PredictionWinsRequired,
+} from "../model/predictions";
 import { compendiumTeamLogoUrl } from "../model/teams";
 import type { DailyPredictionMatch } from "../model/types";
 
@@ -15,6 +21,9 @@ type PredictionRow = {
   team_a_name: string;
   team_b_key: string;
   team_b_name: string;
+  wins_required: PredictionWinsRequired;
+  exact_score_reward: number;
+  outcome_reward: number;
   predicted_score: PredictionScore | null;
   actual_score: PredictionScore | null;
   reward_amount: number | null;
@@ -41,6 +50,9 @@ function mapPrediction(row: PredictionRow, now: Date): DailyPredictionMatch {
     opensAt: row.opens_at.toISOString(),
     teamA: { key: row.team_a_key, name: row.team_a_name, logoUrl: compendiumTeamLogoUrl(row.team_a_key) },
     teamB: { key: row.team_b_key, name: row.team_b_name, logoUrl: compendiumTeamLogoUrl(row.team_b_key) },
+    scoreOptions: predictionScoresForWinsRequired(row.wins_required),
+    exactScoreRewardStars: row.exact_score_reward,
+    outcomeRewardStars: row.outcome_reward,
     predictedScore: row.predicted_score,
     actualScore: row.actual_score,
     rewardStars: row.reward_amount,
@@ -60,7 +72,8 @@ const predictionSelect = `SELECT match.id::text, match.moscow_date::text,
   match.position, match.starts_at, ${predictionLockSelect} AS locks_at,
   day.opens_at,
   match.team_a_key, match.team_a_name,
-  match.team_b_key, match.team_b_name, pick.predicted_score,
+  match.team_b_key, match.team_b_name, match.wins_required,
+  match.exact_score_reward, match.outcome_reward, pick.predicted_score,
   match.actual_score, reward.reward_amount
  FROM compendium_prediction_matches match
  JOIN compendium_prediction_days day ON day.moscow_date = match.moscow_date
@@ -121,9 +134,10 @@ export async function recordPredictionPick(input: {
       locks_at: Date;
       opens_at: Date;
       actual_score: string | null;
+      wins_required: PredictionWinsRequired;
     }>(
       `SELECT ${predictionLockSelect} AS locks_at,
-         day.opens_at, match.actual_score
+         day.opens_at, match.actual_score, match.wins_required
        FROM compendium_prediction_matches match
        JOIN compendium_prediction_days day
          ON day.moscow_date = match.moscow_date
@@ -136,6 +150,9 @@ export async function recordPredictionPick(input: {
     if (row.opens_at > input.now) throw new Error("PREDICTION_NOT_OPEN");
     if (row.actual_score || row.locks_at <= input.now) {
       throw new Error("PREDICTION_LOCKED");
+    }
+    if (!isPredictionScoreForWinsRequired(input.score, row.wins_required)) {
+      throw new Error("PREDICTION_SCORE_INVALID");
     }
     await client.query(
       `INSERT INTO compendium_prediction_picks(match_id, player_id, predicted_score)
@@ -281,7 +298,9 @@ export async function loadPredictionAdminMatches(now: Date): Promise<PredictionA
     `SELECT match.id::text, match.moscow_date::text, match.position,
        match.starts_at, ${predictionLockSelect} AS locks_at,
        day.opens_at, match.team_a_key, match.team_a_name,
-       match.team_b_key, match.team_b_name, NULL::varchar AS predicted_score,
+       match.team_b_key, match.team_b_name, match.wins_required,
+       match.exact_score_reward, match.outcome_reward,
+       NULL::varchar AS predicted_score,
        match.actual_score, NULL::smallint AS reward_amount
      FROM compendium_prediction_matches match
      JOIN compendium_prediction_days day ON day.moscow_date = match.moscow_date
@@ -297,6 +316,9 @@ export async function loadPredictionAdminMatches(now: Date): Promise<PredictionA
       moscowDate: match.moscowDate,
       teamA: match.teamA,
       teamB: match.teamB,
+      scoreOptions: match.scoreOptions,
+      exactScoreRewardStars: match.exactScoreRewardStars,
+      outcomeRewardStars: match.outcomeRewardStars,
       actualScore: match.actualScore,
     };
   });
@@ -345,14 +367,23 @@ export async function recordPredictionResult(input: {
   administratorId: string;
 }): Promise<number> {
   return transaction(async (client) => {
-    const match = await client.query<{ actual_score: PredictionScore | null }>(
-      `SELECT actual_score FROM compendium_prediction_matches
+    const match = await client.query<{
+      actual_score: PredictionScore | null;
+      wins_required: PredictionWinsRequired;
+      exact_score_reward: number;
+      outcome_reward: number;
+    }>(
+      `SELECT actual_score, wins_required, exact_score_reward, outcome_reward
+       FROM compendium_prediction_matches
        WHERE id = $1 FOR UPDATE`,
       [input.matchId],
     );
     const row = match.rows[0];
     if (!row) throw new Error("PREDICTION_NOT_FOUND");
     if (row.actual_score) throw new Error("PREDICTION_RESULT_LOCKED");
+    if (!isPredictionScoreForWinsRequired(input.score, row.wins_required)) {
+      throw new Error("PREDICTION_SCORE_INVALID");
+    }
     await client.query(
       `UPDATE compendium_prediction_matches SET actual_score = $2,
          result_recorded_by = $3, updated_at = NOW() WHERE id = $1`,
@@ -367,7 +398,14 @@ export async function recordPredictionResult(input: {
       await client.query(
         `INSERT INTO compendium_prediction_rewards(match_id, player_id, reward_amount)
          VALUES ($1, $2, $3) ON CONFLICT (match_id, player_id) DO NOTHING`,
-        [input.matchId, pick.player_id, predictionRewardStars(pick.predicted_score, input.score)],
+        [input.matchId, pick.player_id, predictionRewardStars(
+          pick.predicted_score,
+          input.score,
+          {
+            exactScore: row.exact_score_reward,
+            correctOutcome: row.outcome_reward,
+          },
+        )],
       );
     }
     return picks.rowCount ?? 0;

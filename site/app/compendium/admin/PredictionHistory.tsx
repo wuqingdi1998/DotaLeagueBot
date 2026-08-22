@@ -7,7 +7,7 @@ import {
   type PredictionHistoryDay,
   type PredictionHistoryMatch,
 } from "../model/prediction-history";
-import { predictionScores, type PredictionScore } from "../model/predictions";
+import type { PredictionScore } from "../model/predictions";
 
 function historyDateLabel(dateKey: string): string {
   return new Intl.DateTimeFormat("ru-RU", {
@@ -40,7 +40,7 @@ function PlayerMatchPrediction({
   return (
     <div className="prediction-history-pick" role="cell">
       <div className="prediction-history-options" aria-label={`Прогноз: ${predictedScore ?? "не выбран"}`}>
-        {predictionScores.map((score) => {
+        {match.scoreOptions.map((score) => {
           const isChosen = predictedScore === score;
           const isCorrect = match.actualScore === score;
           const classes = [

@@ -41,7 +41,7 @@ export function PredictionAdmin({
   const [drafts, setDrafts] = useState(() => predictionDraftsForDate(initialMatches, initialDate));
   const [matchCount, setMatchCount] = useState<2 | 3>(() => predictionMatchCountForDate(initialMatches, initialDate));
   const [results, setResults] = useState<Record<string, PredictionScore>>(() => Object.fromEntries(
-    initialMatches.map((match) => [match.id, match.actualScore ?? "2:0"]),
+    initialMatches.map((match) => [match.id, match.actualScore ?? match.scoreOptions[0]]),
   ));
   const [activeResultMatchId, setActiveResultMatchId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -111,7 +111,14 @@ export function PredictionAdmin({
         setOpeningDateKey(opening.dateKey);
         setOpeningTime(opening.time);
         setResults((current) => ({
-          ...Object.fromEntries(refreshedMatches.map((match) => [match.id, current[match.id] ?? match.actualScore ?? "2:0"])),
+          ...Object.fromEntries(refreshedMatches.map((match) => [
+            match.id,
+            match.actualScore ?? (
+              match.scoreOptions.includes(current[match.id])
+                ? current[match.id]
+                : match.scoreOptions[0]
+            ),
+          ])),
         }));
       }
       setMessage(`${matchCount} матча сохранены на ${dateKey}.`);

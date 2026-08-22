@@ -1,4 +1,4 @@
-import type { PredictionScore } from "./predictions";
+import { predictionWinner, type PredictionScore } from "./predictions";
 
 export type PredictionPickState =
   | "missing"
@@ -12,6 +12,7 @@ export type PredictionHistoryMatch = {
   position: number;
   teamAName: string;
   teamBName: string;
+  scoreOptions: readonly PredictionScore[];
   actualScore: PredictionScore | null;
 };
 
@@ -45,10 +46,6 @@ export type PredictionHistoryPickSource = PredictionHistoryPick & {
   dotaId: string;
   playerName: string;
 };
-
-function predictionWinner(score: PredictionScore): "team-a" | "team-b" {
-  return score.startsWith("2") ? "team-a" : "team-b";
-}
 
 export function predictionPickState(
   predictedScore: PredictionScore | null,
@@ -99,6 +96,7 @@ export function buildPredictionHistory(
       position: match.position,
       teamAName: match.teamAName,
       teamBName: match.teamBName,
+      scoreOptions: match.scoreOptions,
       actualScore: match.actualScore,
     });
     days.set(match.dateKey, day);

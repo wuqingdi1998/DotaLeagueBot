@@ -54,6 +54,9 @@ export type DailyPredictionMatch = {
   opensAt: string;
   teamA: PredictionTeam;
   teamB: PredictionTeam;
+  scoreOptions: readonly import("./predictions").PredictionScore[];
+  exactScoreRewardStars: number;
+  outcomeRewardStars: number;
   predictedScore: import("./predictions").PredictionScore | null;
   actualScore: import("./predictions").PredictionScore | null;
   rewardStars: number | null;

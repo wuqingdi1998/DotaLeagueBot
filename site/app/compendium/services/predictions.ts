@@ -38,6 +38,9 @@ export async function submitPrediction(
     if (error instanceof Error && error.message === "PREDICTION_LOCKED") {
       throw new CompendiumError("PREDICTION_LOCKED", "Приём прогнозов на этот матч уже завершён");
     }
+    if (error instanceof Error && error.message === "PREDICTION_SCORE_INVALID") {
+      throw new CompendiumError("PREDICTION_INVALID", "Выберите один из вариантов счёта этого матча");
+    }
     if (error instanceof Error && error.message === "PREDICTION_NOT_FOUND") {
       throw new CompendiumError("PREDICTION_NOT_FOUND", "Матч для прогноза не найден");
     }
@@ -183,6 +186,9 @@ export async function finishPredictionMatch(input: {
   } catch (error) {
     if (error instanceof Error && error.message === "PREDICTION_RESULT_LOCKED") {
       throw new CompendiumError("PREDICTION_LOCKED", "Результат этого матча уже был сохранён");
+    }
+    if (error instanceof Error && error.message === "PREDICTION_SCORE_INVALID") {
+      throw new CompendiumError("PREDICTION_INVALID", "Выберите один из вариантов счёта этого матча");
     }
     if (error instanceof Error && error.message === "PREDICTION_NOT_FOUND") {
       throw new CompendiumError("PREDICTION_NOT_FOUND", "Матч не найден");

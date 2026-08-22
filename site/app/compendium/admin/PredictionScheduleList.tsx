@@ -1,5 +1,5 @@
 import { FiEdit3, FiList, FiStar, FiTrash2 } from "react-icons/fi";
-import { predictionScores, type PredictionScore } from "../model/predictions";
+import type { PredictionScore } from "../model/predictions";
 import type { PredictionAdminMatch } from "../services/prediction-repository";
 import { groupPredictionMatchesByDate, predictionTimeValue } from "./prediction-admin-model";
 
@@ -82,7 +82,7 @@ export function PredictionScheduleList({
                   ) : activeResultMatchId === match.id ? (
                     <div className="prediction-admin-result-editor">
                       <select value={results[match.id]} onChange={(event) => onResultChange(match.id, event.target.value as PredictionScore)}>
-                        {predictionScores.map((score) => <option key={score}>{score}</option>)}
+                        {match.scoreOptions.map((score) => <option key={score}>{score}</option>)}
                       </select>
                       <button type="button" disabled={isSaving} onClick={() => onSaveResult(match.id)}>
                         <FiStar aria-hidden="true" /> Сохранить и раздать звёзды
