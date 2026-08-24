@@ -50,10 +50,12 @@ const questCard = source("../app/compendium/components/QuestCard.tsx");
 const rewards = source("../app/compendium/components/CompendiumRewards.tsx");
 const rerollNotice = source("../app/compendium/components/DailyRerollNotice.tsx");
 const profilePage = source("../app/players/[dotaId]/page.tsx");
+const profileBadgesCard = source(
+  "../app/players/[dotaId]/ProfileBadgesCard.tsx",
+);
 const playerProfileRepository = source("./player-profile.ts");
 const profileBadge = source("../app/components/ProfileEventBadge.tsx");
 const profileCustomizationCss = source("../app/styles/18-profile-customization.css");
-const playerProfileCss = source("../app/styles/12-player-profile.css");
 const rewardsCss = source("../app/styles/38-compendium-rewards.css");
 const leaderboardPage = source("../app/compendium/leaderboard/page.tsx");
 const leaderboardRepository = source(
@@ -255,8 +257,8 @@ describe("compendium persistence and security contract", () => {
     expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 4)");
     expect(rewardsMigration).toContain("CHECK (position BETWEEN 1 AND 6)");
     expect(repository).toContain("BONUS_QUEST_STAR_THRESHOLD");
-    expect(profilePage).toContain("profile.profileBadge");
-    expect(profilePage).toContain("ProfileEventBadge");
+    expect(profilePage).toContain("profile.profileBadges");
+    expect(profileBadgesCard).toContain("ProfileEventBadge");
   });
 
   it("expands today's existing quest cards to six heroes without resetting them", () => {
@@ -290,22 +292,22 @@ describe("compendium persistence and security contract", () => {
     );
   });
 
-  it("renders the stored badge to the right of the profile nickname", () => {
-    const nicknameStart = profilePage.indexOf(
-      'className="public-profile-nickname-line"',
+  it("renders event badges in a wrapping card below medals", () => {
+    const medalsStart = profilePage.indexOf("<h2>Медали</h2>");
+    const badgesStart = profilePage.indexOf("<ProfileBadgesCard");
+    const lastTournamentStart = profilePage.indexOf(
+      'className="profile-side-card last-tournament-card"',
     );
-    const nicknameEnd = profilePage.indexOf("</div>", nicknameStart);
-    const nicknameLine = profilePage.slice(nicknameStart, nicknameEnd);
-    expect(nicknameLine.indexOf("<h1")).toBeLessThan(
-      nicknameLine.indexOf("<ProfileEventBadge"),
+    expect(medalsStart).toBeGreaterThan(-1);
+    expect(badgesStart).toBeGreaterThan(medalsStart);
+    expect(lastTournamentStart).toBeGreaterThan(badgesStart);
+    expect(profilePage).not.toMatch(
+      /public-profile-nickname-line[\s\S]*?<ProfileEventBadge/,
     );
     expect(profileBadge).toContain("profile-event-badge");
     expect(profileCustomizationCss).toContain(".profile-event-badge");
-    expect(playerProfileCss).toMatch(
-      /\.public-profile-nickname-line\s*\{[^}]*display:\s*flex;/,
-    );
     expect(profileCustomizationCss).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.public-profile-nickname-line \.profile-event-badge/,
+      /\.profile-badges-list\s*\{[^}]*flex-wrap:\s*wrap;/,
     );
   });
 

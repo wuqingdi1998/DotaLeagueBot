@@ -8,7 +8,7 @@ import {
   type PlayerTournamentMapStatistics,
 } from "./player-map-statistics";
 import {
-  profileBadgeDefinition,
+  selectProfileBadgesForDisplay,
   type ProfileBadgeKey,
 } from "./profile-badges";
 import {
@@ -95,7 +95,7 @@ export type PublicPlayerProfile = {
   };
   mapStatisticsByTournament: PlayerTournamentMapStatistics[];
   medals: PlayerMedals;
-  profileBadge: ProfileBadgeKey | null;
+  profileBadges: ProfileBadgeKey[];
   lastTournament: PlayerTournamentHistory | null;
   tournamentHistory: PlayerTournamentHistory[];
 };
@@ -215,7 +215,7 @@ export async function loadPublicPlayerProfile(
     ? identityMembers.map((member) => member.player_id)
     : [player.discord_id];
 
-  const [tournamentHistory, mapStatistics, medalCounts, storedProfileBadge] = await Promise.all([
+  const [tournamentHistory, mapStatistics, medalCounts, storedProfileBadges] = await Promise.all([
     loadPlayerTournamentHistory(playerIds, player.nickname),
     loadPlayerMapStatistics(playerIds),
     one<PlayerMedals>(
@@ -227,21 +227,11 @@ export async function loadPublicPlayerProfile(
        WHERE player_id = ANY($1::bigint[])`,
       [playerIds],
     ),
-    one<{ badge_key: string }>(
-      `SELECT badge_key
+    query<{ badge_key: string }>(
+       `SELECT badge_key
        FROM player_profile_badges
        WHERE player_id = ANY($1::bigint[])
-         AND badge_key IN (
-           'ti-2026-bronze',
-           'ti-2026-silver',
-           'ti-2026-gold'
-         )
-       ORDER BY CASE badge_key
-         WHEN 'ti-2026-gold' THEN 1
-         WHEN 'ti-2026-silver' THEN 2
-         ELSE 3
-       END
-       LIMIT 1`,
+       ORDER BY awarded_at DESC, badge_key`,
       [playerIds],
     ),
   ]);
@@ -295,9 +285,9 @@ export async function loadPublicPlayerProfile(
     },
     mapStatisticsByTournament: mapStatistics.tournaments,
     medals: medalCounts ?? { gold: 0, silver: 0, bronze: 0 },
-    profileBadge: profileBadgeDefinition(
-      storedProfileBadge?.badge_key ?? null,
-    )?.key ?? null,
+    profileBadges: selectProfileBadgesForDisplay(
+      storedProfileBadges.map((badge) => badge.badge_key),
+    ),
     lastTournament: tournamentHistory[0] ?? null,
     tournamentHistory,
   };

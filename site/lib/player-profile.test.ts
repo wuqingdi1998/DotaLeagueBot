@@ -10,6 +10,7 @@ import {
 } from "./player-profile";
 import {
   profileBadgeDefinition,
+  selectProfileBadgesForDisplay,
   ti2026ProfileBadgeForStars,
 } from "./profile-badges";
 
@@ -73,5 +74,16 @@ describe("public player profile", () => {
       tier: "gold",
     });
     expect(profileBadgeDefinition("unknown-badge")).toBeNull();
+  });
+
+  it("shows only the highest earned badge from the same event", () => {
+    expect(
+      selectProfileBadgesForDisplay([
+        "ti-2026-bronze",
+        "unknown-badge",
+        "ti-2026-gold",
+        "ti-2026-silver",
+      ]),
+    ).toEqual(["ti-2026-gold"]);
   });
 });

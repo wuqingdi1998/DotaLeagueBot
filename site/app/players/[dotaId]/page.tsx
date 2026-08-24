@@ -24,8 +24,8 @@ import {
 } from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
-import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
 import { LinkedArchiveProfilesCard } from "./LinkedArchiveProfilesCard";
+import { ProfileBadgesCard } from "./ProfileBadgesCard";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
 import { PlayerMapStatisticsDialog } from "./PlayerMapStatisticsDialog";
 
@@ -231,9 +231,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 }
               >
                 <h1 title={profile.nickname}>{profile.nickname}</h1>
-                {profile.profileBadge && (
-                  <ProfileEventBadge badgeKey={profile.profileBadge} />
-                )}
                 <PlayerPositionsBadge
                   positions={profile.positions}
                   className="mobile-profile-positions"
@@ -416,6 +413,8 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
               Открыть полный медальный зачёт <FiArrowRight aria-hidden="true" />
             </Link>
           </section>
+
+          <ProfileBadgesCard badgeKeys={profile.profileBadges} />
 
           <section className="profile-side-card last-tournament-card">
             <p className="section-kicker">Последнее участие</p>

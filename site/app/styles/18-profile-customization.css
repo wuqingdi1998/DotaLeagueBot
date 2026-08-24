@@ -85,6 +85,33 @@
   --badge-light: #ffe28a;
 }
 
+.profile-badges-card {
+  min-width: 0;
+}
+
+.profile-badges-list {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-badges-list > li,
+.profile-badges-list .profile-event-badge {
+  max-width: 100%;
+}
+
+.profile-badges-empty {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .profile-subscription-role {
   display: inline-flex;
   min-height: 38px;
@@ -433,15 +460,4 @@
     width: 100%;
   }
 
-  .public-profile-nickname-line .profile-event-badge {
-    min-height: 34px;
-    gap: 5px;
-    padding: 3px 8px 3px 4px;
-    font-size: 10px;
-  }
-
-  .public-profile-nickname-line .profile-event-badge-aegis {
-    width: 34px;
-    height: 31px;
-  }
 }
