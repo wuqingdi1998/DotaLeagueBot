@@ -13,6 +13,7 @@ export type RoundRow = {
   played_match_count: number;
   registration_count: number;
   is_registered: boolean;
+  is_checked_in: boolean;
   lobby_configuration_status: "none" | "editing" | "locked" | "published";
 };
 
@@ -85,4 +86,5 @@ export type RoundRegistrationRow = {
   positions: string | null;
   tier_snapshot: number | null;
   created_at: string;
+  is_checked_in: boolean;
 };

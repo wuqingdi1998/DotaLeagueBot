@@ -90,6 +90,7 @@ export type SeasonRoundRegistration = {
   positions: string | null;
   tier_snapshot: number | null;
   created_at: string;
+  is_checked_in: boolean;
 };
 
 export type SeasonRound = {
@@ -104,10 +105,16 @@ export type SeasonRound = {
   lobby_count: number;
   played_match_count: number;
   registration_count: number;
+  registration_deadline: string | null;
   cancellation_deadline: string | null;
   registration_open: boolean;
   cancellation_open: boolean;
   is_registered: boolean;
+  is_checked_in: boolean;
+  check_in_available: boolean;
+  check_in_open: boolean;
+  check_in_opens_at: string | null;
+  check_in_closes_at: string | null;
   lobby_configuration_status:
     | "none"
     | "editing"

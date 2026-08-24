@@ -88,10 +88,101 @@ class WebsiteBridge(commands.Cog):
             {"base_url": base_url},
         )
 
+    async def _queue_season_round_checkins(self, session: AsyncSession) -> None:
+        base_url = (os.getenv("PUBLIC_BASE_URL") or "https://lsesports.ru").rstrip("/")
+        await session.execute(
+            text(
+                """
+                INSERT INTO notification_outbox (
+                    discord_id, event_type, title, message, action_url,
+                    season_round_id
+                )
+                SELECT registration.player_id,
+                       'season_round_check_in_open',
+                       'Чек-ин стартовал!',
+                       'Подтвердите участие в туре «'
+                           || COALESCE(round.name, 'Тур ' || round.round_number)
+                           || '». Чек-ин закроется за 10 минут до начала.',
+                       :base_url || '/tournaments/' || tournament.slug
+                           || '?round=' || round.round_number,
+                       round.id
+                FROM season_round_registrations registration
+                JOIN season_rounds round ON round.id = registration.round_id
+                JOIN tournaments tournament
+                  ON tournament.id = round.tournament_id
+                WHERE round.round_kind = 'regular'
+                  AND round.is_visible = TRUE
+                  AND round.status IN ('planned', 'active')
+                  AND tournament.status IN ('registration', 'active')
+                  AND NOW() >= round.scheduled_at - INTERVAL '2 hours'
+                  AND NOW() < round.scheduled_at - INTERVAL '10 minutes'
+                ON CONFLICT (discord_id, season_round_id, event_type)
+                  WHERE season_round_id IS NOT NULL
+                DO NOTHING
+                """
+            ),
+            {"base_url": base_url},
+        )
+
+    async def _queue_season_round_missing_checkins(
+        self, session: AsyncSession
+    ) -> None:
+        base_url = (os.getenv("PUBLIC_BASE_URL") or "https://lsesports.ru").rstrip("/")
+        await session.execute(
+            text(
+                """
+                INSERT INTO notification_outbox (
+                    discord_id, event_type, title, message, action_url,
+                    season_round_id
+                )
+                SELECT organizer.discord_id,
+                       'season_round_check_in_missing',
+                       'Чек-ин закрыт: '
+                           || COALESCE(round.name, 'Тур ' || round.round_number),
+                       CASE
+                         WHEN missing.players IS NULL
+                           THEN 'Все зарегистрированные участники прошли чек-ин.'
+                         ELSE 'Не прошли чек-ин:' || E'\n' || missing.players
+                       END,
+                       :base_url || '/tournaments/' || tournament.slug
+                           || '?round=' || round.round_number,
+                       round.id
+                FROM season_rounds round
+                JOIN tournaments tournament
+                  ON tournament.id = round.tournament_id
+                JOIN tournament_organizers organizer
+                  ON organizer.tournament_id = tournament.id
+                LEFT JOIN LATERAL (
+                    SELECT STRING_AGG('• ' || player.ingame_name, E'\n'
+                                      ORDER BY LOWER(player.ingame_name)) AS players
+                    FROM season_round_registrations registration
+                    JOIN players player ON player.discord_id = registration.player_id
+                    LEFT JOIN season_round_checkins checkin
+                      ON checkin.round_id = registration.round_id
+                     AND checkin.player_id = registration.player_id
+                    WHERE registration.round_id = round.id
+                      AND checkin.player_id IS NULL
+                ) missing ON TRUE
+                WHERE round.round_kind = 'regular'
+                  AND round.is_visible = TRUE
+                  AND round.status IN ('planned', 'active')
+                  AND tournament.status IN ('registration', 'active')
+                  AND NOW() >= round.scheduled_at - INTERVAL '10 minutes'
+                  AND NOW() < round.scheduled_at + INTERVAL '6 hours'
+                ON CONFLICT (discord_id, season_round_id, event_type)
+                  WHERE season_round_id IS NOT NULL
+                DO NOTHING
+                """
+            ),
+            {"base_url": base_url},
+        )
+
     @tasks.loop(seconds=15)
     async def deliver_notifications(self) -> None:
         async with async_session() as session:
             await self._queue_tournament_checkins(session)
+            await self._queue_season_round_checkins(session)
+            await self._queue_season_round_missing_checkins(session)
             result = await session.execute(
                 text(
                     """

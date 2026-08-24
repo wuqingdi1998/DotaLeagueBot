@@ -4,14 +4,20 @@ import { useState } from "react";
 import { FiTrash2 } from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonMatch } from "../model/season-types";
+import {
+  SeasonAdminPlayerPicker,
+  type SeasonAdminPlayerOption,
+} from "./SeasonAdminPlayerPicker";
 
 export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
   const { season } = useTournament();
   const [gameId, setGameId] = useState("");
   const [outgoingPlayerId, setOutgoingPlayerId] = useState("");
-  const [incomingPlayerId, setIncomingPlayerId] = useState("");
+  const [incomingPlayer, setIncomingPlayer] =
+    useState<SeasonAdminPlayerOption | null>(null);
   const [technicalLoss, setTechnicalLoss] = useState(true);
   const [note, setNote] = useState("");
+  const [pickerRevision, setPickerRevision] = useState(0);
 
   async function addSubstitution() {
     const result = await season.mutate("POST", {
@@ -19,12 +25,13 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
       matchId: match.id,
       gameId: gameId || null,
       outgoingPlayerId,
-      incomingPlayerId,
+      incomingPlayerId: incomingPlayer?.discord_id,
       technicalLoss,
       note,
     });
     if (result.ok) {
-      setIncomingPlayerId("");
+      setIncomingPlayer(null);
+      setPickerRevision((current) => current + 1);
       setNote("");
     }
   }
@@ -64,14 +71,11 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
             ))}
           </select>
         </label>
-        <label>
-          <span>ID игрока замены</span>
-          <input
-            inputMode="numeric"
-            value={incomingPlayerId}
-            onChange={(event) => setIncomingPlayerId(event.target.value)}
-          />
-        </label>
+        <SeasonAdminPlayerPicker
+          key={pickerRevision}
+          label="Кто выходит на замену"
+          onSelect={setIncomingPlayer}
+        />
         <label>
           <span>Комментарий</span>
           <input
@@ -88,7 +92,12 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
           />
           <span>Выбывшему игроку — техническое поражение и 0 очков</span>
         </label>
-        <button className="secondary-button" type="button" onClick={() => void addSubstitution()}>
+        <button
+          className="secondary-button"
+          type="button"
+          disabled={!outgoingPlayerId || !incomingPlayer}
+          onClick={() => void addSubstitution()}
+        >
           Добавить замену
         </button>
       </div>

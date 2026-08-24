@@ -40,4 +40,14 @@ def test_bridge_queues_one_tournament_checkin_message_per_captain() -> None:
     assert "MIN(scheduled_at)" in BRIDGE
     assert "t.check_in_minutes" in BRIDGE
     assert "tournament_check_in" in BRIDGE
+
+
+def test_bridge_queues_season_round_checkin_messages_and_missing_report() -> None:
+    assert "_queue_season_round_checkins" in BRIDGE
+    assert "_queue_season_round_missing_checkins" in BRIDGE
+    assert "season_round_check_in_open" in BRIDGE
+    assert "season_round_check_in_missing" in BRIDGE
+    assert "INTERVAL '2 hours'" in BRIDGE
+    assert "INTERVAL '10 minutes'" in BRIDGE
+    assert "Не прошли чек-ин:" in BRIDGE
     assert "ON CONFLICT DO NOTHING" in BRIDGE

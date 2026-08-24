@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiArrowDown, FiArrowUp, FiClock, FiUser } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useTournament } from "../hooks/TournamentContext";
@@ -12,17 +12,36 @@ import {
   type SeasonRegistrationSort,
 } from "../model/season-registration";
 import type { SeasonRound } from "../model/season-types";
+import { SeasonRoundCheckIn } from "./SeasonRoundCheckIn";
 
 export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   const { data, season, startDiscordLogin } = useTournament();
   const [sort, setSort] = useState<SeasonRegistrationSort>("createdAt");
   const [direction, setDirection] =
     useState<SeasonRegistrationDirection>("ascending");
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
   const registrations = useMemo(
     () => sortSeasonRegistrations(round.registrations, sort, direction),
     [direction, round.registrations, sort],
   );
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setCurrentTime(Date.now()), 1_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
   if (!data) return null;
+
+  const registrationOpen = Boolean(
+    round.registration_open &&
+      round.registration_deadline &&
+      currentTime < new Date(round.registration_deadline).getTime(),
+  );
+  const cancellationOpen = Boolean(
+    round.cancellation_open &&
+      round.cancellation_deadline &&
+      currentTime < new Date(round.cancellation_deadline).getTime(),
+  );
 
   function changeSort(nextSort: SeasonRegistrationSort) {
     if (nextSort === sort) {
@@ -36,13 +55,13 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   }
 
   const actionDisabled = round.is_registered
-    ? !round.cancellation_open
-    : !round.registration_open;
+    ? !cancellationOpen
+    : !registrationOpen;
   const actionLabel = !round.is_registered
-    ? round.registration_open
+    ? registrationOpen
       ? "Зарегистрироваться"
       : "Регистрация закрыта"
-    : round.cancellation_open
+    : cancellationOpen
       ? "Отменить регистрацию"
       : "Отмена регистрации закрыта";
 
@@ -52,8 +71,8 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
         <div>
           <strong>Регистрация на тур</strong>
           <span>
-            {round.scheduled_at
-              ? `Регистрация до ${formatDayMonth(round.scheduled_at)} · ${formatTime(round.scheduled_at)}`
+            {round.registration_deadline
+              ? `Регистрация до ${formatDayMonth(round.registration_deadline)} · ${formatTime(round.registration_deadline)}`
               : "Откроется после назначения даты тура"}
           </span>
           <small>
@@ -67,7 +86,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
           <button
             className="primary-button compact"
             type="button"
-            disabled={!round.registration_open}
+            disabled={!registrationOpen}
             onClick={() => startDiscordLogin()}
           >
             Войти, чтобы зарегистрироваться
@@ -94,6 +113,8 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
           </button>
         )}
       </div>
+
+      <SeasonRoundCheckIn currentTime={currentTime} round={round} />
 
       <div className="season-registration-list-heading">
         <div>

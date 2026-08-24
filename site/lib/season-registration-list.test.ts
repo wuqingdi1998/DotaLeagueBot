@@ -15,6 +15,7 @@ const registrations: SeasonRoundRegistration[] = [
     positions: "1/2",
     tier_snapshot: 5,
     created_at: "2026-08-17T10:00:02.000Z",
+    is_checked_in: false,
   },
   {
     round_id: 1,
@@ -25,6 +26,7 @@ const registrations: SeasonRoundRegistration[] = [
     positions: "4/5",
     tier_snapshot: 10,
     created_at: "2026-08-17T10:00:01.000Z",
+    is_checked_in: false,
   },
 ];
 

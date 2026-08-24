@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  seasonRoundCancellationDeadline,
   seasonRoundCancellationIsOpen,
+  seasonRoundCheckInIsOpen,
+  seasonRoundCheckInWindow,
   seasonRoundRegistrationDeadline,
   seasonRoundRegistrationIsOpen,
 } from "./season-round-registration";
@@ -8,9 +11,9 @@ import {
 describe("season round registration", () => {
   const scheduledAt = "2026-09-20T17:00:00.000Z";
 
-  it("keeps registration open until the round starts", () => {
+  it("keeps registration open until ten minutes before the round starts", () => {
     expect(seasonRoundRegistrationDeadline(scheduledAt)).toBe(
-      "2026-09-19T17:00:00.000Z",
+      "2026-09-20T16:50:00.000Z",
     );
     expect(
       seasonRoundRegistrationIsOpen({
@@ -24,7 +27,7 @@ describe("season round registration", () => {
     expect(
       seasonRoundRegistrationIsOpen({
         scheduledAt,
-        now: "2026-09-19T17:00:00.000Z",
+        now: "2026-09-20T16:49:59.999Z",
         roundKind: "regular",
         roundStatus: "planned",
         tournamentStatus: "active",
@@ -33,7 +36,7 @@ describe("season round registration", () => {
     expect(
       seasonRoundRegistrationIsOpen({
         scheduledAt,
-        now: "2026-09-20T17:00:00.000Z",
+        now: "2026-09-20T16:50:00.000Z",
         roundKind: "regular",
         roundStatus: "planned",
         tournamentStatus: "active",
@@ -42,6 +45,9 @@ describe("season round registration", () => {
   });
 
   it("closes cancellation exactly 24 hours before the round starts", () => {
+    expect(seasonRoundCancellationDeadline(scheduledAt)).toBe(
+      "2026-09-19T17:00:00.000Z",
+    );
     const base = {
       scheduledAt,
       roundKind: "regular" as const,
@@ -58,6 +64,37 @@ describe("season round registration", () => {
       seasonRoundCancellationIsOpen({
         ...base,
         now: "2026-09-19T17:00:00.000Z",
+      }),
+    ).toBe(false);
+  });
+
+  it("opens check-in two hours before start and closes it ten minutes before", () => {
+    expect(seasonRoundCheckInWindow(scheduledAt)).toEqual({
+      opensAt: "2026-09-20T15:00:00.000Z",
+      closesAt: "2026-09-20T16:50:00.000Z",
+    });
+    const base = {
+      scheduledAt,
+      roundKind: "regular" as const,
+      roundStatus: "planned" as const,
+      tournamentStatus: "active" as const,
+    };
+    expect(
+      seasonRoundCheckInIsOpen({
+        ...base,
+        now: "2026-09-20T14:59:59.999Z",
+      }),
+    ).toBe(false);
+    expect(
+      seasonRoundCheckInIsOpen({
+        ...base,
+        now: "2026-09-20T15:00:00.000Z",
+      }),
+    ).toBe(true);
+    expect(
+      seasonRoundCheckInIsOpen({
+        ...base,
+        now: "2026-09-20T16:50:00.000Z",
       }),
     ).toBe(false);
   });

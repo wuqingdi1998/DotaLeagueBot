@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 import { SeasonLobbyBuilder } from "../admin/SeasonLobbyBuilder";
+import { SeasonRegistrationAdmin } from "../admin/SeasonRegistrationAdmin";
+import { SeasonPublishedLobbyTools } from "../admin/SeasonPublishedLobbyTools";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
@@ -55,10 +57,12 @@ export function SeasonRoundPanel() {
         <SeasonLobbyList
           round={round}
           isArchived={data.tournament.status === "archived"}
+          lobbyFooter={(lobby) => <SeasonPublishedLobbyTools lobby={lobby} />}
         />
       )}
 
       {isRegularRound && <SeasonRoundRegistration round={round} />}
+      {isRegularRound && <SeasonRegistrationAdmin round={round} />}
       {isRegularRound && <SeasonLobbyBuilder round={round} />}
 
       {!isRegularRound && (
@@ -67,6 +71,13 @@ export function SeasonRoundPanel() {
           <SeasonLobbyList
             round={round}
             isArchived={data.tournament.status === "archived"}
+            lobbyFooter={(lobby) =>
+              lobby.matches.some((match) =>
+                ["published", "completed"].includes(match.status),
+              ) ? (
+                <SeasonPublishedLobbyTools lobby={lobby} />
+              ) : null
+            }
           />
         </>
       )}

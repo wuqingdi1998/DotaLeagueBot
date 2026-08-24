@@ -71,6 +71,13 @@ LSERUMSH_CHECKIN_MIGRATION = (
     / "0072_lserumsh_checkin_hour.sql"
 ).read_text(encoding="utf-8")
 
+SEASON_ROUND_CHECKIN_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0086_season_round_checkins.sql"
+).read_text(encoding="utf-8")
+
 FINAL_PREDICTION_OPENING_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -253,6 +260,18 @@ def test_tournament_checkin_replaces_match_checkin_without_losing_confirmations(
 def test_lserumsh_checkin_opens_one_hour_before_first_match() -> None:
     assert "check_in_minutes = 60" in LSERUMSH_CHECKIN_MIGRATION
     assert "slug = 'lserumsh'" in LSERUMSH_CHECKIN_MIGRATION
+
+
+def test_season_round_checkin_is_tied_to_registration() -> None:
+    assert "CREATE TABLE IF NOT EXISTS season_round_checkins" in (
+        SEASON_ROUND_CHECKIN_MIGRATION
+    )
+    assert "REFERENCES season_round_registrations" in (
+        SEASON_ROUND_CHECKIN_MIGRATION
+    )
+    assert "notification_outbox_season_round_unique" in (
+        SEASON_ROUND_CHECKIN_MIGRATION
+    )
 
 
 def test_final_prediction_records_its_actual_opening_moment() -> None:

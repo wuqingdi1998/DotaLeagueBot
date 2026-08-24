@@ -8,7 +8,11 @@ import {
 import { calculateSeasonPenalty } from "@/lib/season-discipline";
 import { deriveSeasonFinalMedals } from "@/lib/season-finals";
 import {
+  seasonRoundCancellationDeadline,
   seasonRoundCancellationIsOpen,
+  seasonRoundCheckInIsAvailable,
+  seasonRoundCheckInIsOpen,
+  seasonRoundCheckInWindow,
   seasonRoundRegistrationDeadline,
   seasonRoundRegistrationIsOpen,
 } from "@/lib/season-round-registration";
@@ -91,7 +95,12 @@ export async function GET(request: Request) {
            )::int AS played_match_count,
            COUNT(DISTINCT registration.player_id)::int AS registration_count,
            COALESCE(BOOL_OR(registration.player_id = $2::bigint), FALSE)
-             AS is_registered
+             AS is_registered,
+           EXISTS (
+             SELECT 1 FROM season_round_checkins checkin
+             WHERE checkin.round_id = round.id
+               AND checkin.player_id = $2::bigint
+           ) AS is_checked_in
          FROM season_rounds round
          LEFT JOIN season_lobbies lobby ON lobby.round_id = round.id
          LEFT JOIN season_matches match ON match.lobby_id = lobby.id
@@ -244,7 +253,8 @@ export async function GET(request: Request) {
            COALESCE(NULLIF(current_player.positions, ''), player.positions)
              AS positions,
            registration.tier_snapshot::int,
-           registration.created_at
+           registration.created_at,
+           checkin.player_id IS NOT NULL AS is_checked_in
          FROM season_round_registrations registration
          JOIN season_rounds round ON round.id = registration.round_id
          JOIN players player ON player.discord_id = registration.player_id
@@ -255,6 +265,9 @@ export async function GET(request: Request) {
          LEFT JOIN players current_player
            ON current_player.discord_id = identity.registered_player_id
           AND current_player.is_archived = FALSE
+         LEFT JOIN season_round_checkins checkin
+           ON checkin.round_id = registration.round_id
+          AND checkin.player_id = registration.player_id
          WHERE round.tournament_id = $1 ${visibility}
          ORDER BY round.round_number, registration.created_at,
            registration.player_id`,
@@ -296,32 +309,41 @@ export async function GET(request: Request) {
     matches: nestedMatches.filter((match) => match.lobby_id === lobby.id),
   }));
   const generatedAt = new Date();
-  const nestedRounds = rounds.map((round) => ({
-    ...round,
-    cancellation_deadline: seasonRoundRegistrationDeadline(round.scheduled_at),
-    registration_open:
-      round.is_visible &&
-      seasonRoundRegistrationIsOpen({
-        scheduledAt: round.scheduled_at,
-        now: generatedAt,
-        roundKind: round.round_kind,
-        roundStatus: round.status,
-        tournamentStatus: tournament.status,
-      }),
-    cancellation_open:
-      round.is_visible &&
-      seasonRoundCancellationIsOpen({
-        scheduledAt: round.scheduled_at,
-        now: generatedAt,
-        roundKind: round.round_kind,
-        roundStatus: round.status,
-        tournamentStatus: tournament.status,
-      }),
-    registrations: roundRegistrations.filter(
-      (registration) => registration.round_id === round.id,
-    ),
-    lobbies: nestedLobbies.filter((lobby) => lobby.round_id === round.id),
-  }));
+  const nestedRounds = rounds.map((round) => {
+    const checkInWindow = seasonRoundCheckInWindow(round.scheduled_at);
+    const registrationState = {
+      scheduledAt: round.scheduled_at,
+      now: generatedAt,
+      roundKind: round.round_kind,
+      roundStatus: round.status,
+      tournamentStatus: tournament.status,
+    };
+    return {
+      ...round,
+      registration_deadline: seasonRoundRegistrationDeadline(
+        round.scheduled_at,
+      ),
+      cancellation_deadline: seasonRoundCancellationDeadline(
+        round.scheduled_at,
+      ),
+      registration_open:
+        round.is_visible &&
+        seasonRoundRegistrationIsOpen(registrationState),
+      cancellation_open:
+        round.is_visible &&
+        seasonRoundCancellationIsOpen(registrationState),
+      check_in_available:
+        round.is_visible && seasonRoundCheckInIsAvailable(registrationState),
+      check_in_open:
+        round.is_visible && seasonRoundCheckInIsOpen(registrationState),
+      check_in_opens_at: checkInWindow?.opensAt ?? null,
+      check_in_closes_at: checkInWindow?.closesAt ?? null,
+      registrations: roundRegistrations.filter(
+        (registration) => registration.round_id === round.id,
+      ),
+      lobbies: nestedLobbies.filter((lobby) => lobby.round_id === round.id),
+    };
+  });
   const finalsRoundIds = new Set(
     rounds
       .filter((round) => round.round_kind === "finals")

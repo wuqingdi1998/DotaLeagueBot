@@ -1,0 +1,273 @@
+.season-round-check-in {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--blue) 42%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--blue) 8%, var(--surface));
+}
+
+.season-round-check-in > div,
+.season-round-check-in > div > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.season-round-check-in > div > svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 22px;
+}
+
+.season-round-check-in > div > span {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.season-round-check-in small,
+.season-check-in-unavailable {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.season-registration-admin,
+.season-published-lobby-tools {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.season-registration-admin > summary,
+.season-published-lobby-tools > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 9px 12px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.season-registration-admin > summary::-webkit-details-marker,
+.season-published-lobby-tools > summary::-webkit-details-marker {
+  display: none;
+}
+
+.season-registration-admin[open] > summary,
+.season-published-lobby-tools[open] > summary {
+  color: var(--blue);
+}
+
+.season-registration-admin > form,
+.season-published-match-ids > div,
+.season-published-lobby-tools .season-inline-admin-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 140px auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.season-registration-admin > form,
+.season-registration-admin > ul,
+.season-published-match-ids,
+.season-published-lobby-tools > .season-substitution-admin {
+  margin: 0;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.season-published-lobby-tools > .season-substitution-admin {
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.season-registration-admin label,
+.season-published-lobby-tools label,
+.season-registration-remove-dialog label {
+  display: grid;
+  gap: 6px;
+}
+
+.season-registration-admin label > span,
+.season-published-lobby-tools label > span,
+.season-registration-remove-dialog label > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.season-registration-admin input,
+.season-published-lobby-tools input,
+.season-published-lobby-tools select,
+.season-registration-remove-dialog input {
+  min-height: 40px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.season-registration-admin > ul {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.season-registration-admin > ul > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.season-registration-admin > ul > li:last-child {
+  border-bottom: 0;
+}
+
+.season-registration-admin > ul span {
+  display: grid;
+  gap: 2px;
+}
+
+.season-registration-admin > ul small,
+.season-published-match-ids p {
+  color: var(--muted);
+}
+
+.season-registration-admin .danger-button {
+  min-width: 38px;
+  padding: 8px;
+}
+
+.season-admin-player-picker {
+  position: relative;
+}
+
+.season-admin-player-picker > ul {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  max-height: 220px;
+  margin: 0;
+  padding: 5px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  list-style: none;
+}
+
+.season-admin-player-picker li button {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 9px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.season-admin-player-picker li button:hover {
+  background: color-mix(in srgb, var(--blue) 12%, transparent);
+}
+
+.season-admin-player-picker li span,
+.season-admin-player-picker .empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.season-admin-player-picker .empty {
+  padding: 9px;
+}
+
+.season-registration-remove-dialog {
+  width: min(460px, calc(100vw - 28px));
+}
+
+.season-registration-remove-dialog > p {
+  color: var(--muted);
+}
+
+.season-registration-remove-error {
+  margin: 0;
+  color: #d92d20;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.season-registration-remove-dialog form,
+.season-registration-remove-dialog form > div {
+  display: flex;
+  gap: 10px;
+}
+
+.season-registration-remove-dialog form {
+  flex-direction: column;
+}
+
+.season-published-lobby-tools {
+  margin: 0 16px 16px;
+}
+
+.season-published-match-ids h5,
+.season-published-match-ids p {
+  margin: 0;
+}
+
+.season-published-match-ids p {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.season-published-lobby-tools .season-inline-admin-form {
+  grid-template-columns: repeat(2, minmax(160px, 1fr));
+}
+
+.season-published-lobby-tools .season-technical-loss-field,
+.season-published-lobby-tools .season-inline-admin-form > button {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .season-round-check-in {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-registration-admin > form,
+  .season-published-match-ids > div,
+  .season-published-lobby-tools .season-inline-admin-form {
+    grid-template-columns: 1fr;
+  }
+
+  .season-published-lobby-tools {
+    margin: 0 10px 12px;
+  }
+
+  .season-registration-remove-dialog form > div {
+    flex-direction: column;
+  }
+}

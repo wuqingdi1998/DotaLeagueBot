@@ -76,7 +76,7 @@ async function updateRegistration(
       if (!target.is_visible || !actionIsOpen) {
         throw new Response(
           action === "register"
-            ? "Регистрация закрывается с началом тура"
+            ? "Регистрация закрывается за 10 минут до начала тура"
             : "Отмена регистрации закрывается за 24 часа до начала тура",
           { status: 409 },
         );

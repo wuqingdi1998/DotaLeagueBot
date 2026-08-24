@@ -5,7 +5,6 @@ import { FiPlus, FiTrash2 } from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonGame, SeasonMatch } from "../model/season-types";
 import { seasonMatchStatusLabel } from "../model/season-labels";
-import { SeasonSubstitutionAdmin } from "./SeasonSubstitutionAdmin";
 import {
   SeasonCaptainPicker,
   SeasonTeamPicker,
@@ -311,7 +310,6 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
             <SeasonGameAdmin game={game} key={game.id} />
           ))}
         </div>
-        <SeasonSubstitutionAdmin match={match} />
       </div>
     </details>
   );

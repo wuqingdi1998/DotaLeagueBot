@@ -1,4 +1,6 @@
-const registrationLeadMilliseconds = 24 * 60 * 60 * 1_000;
+const registrationLeadMilliseconds = 10 * 60 * 1_000;
+const cancellationLeadMilliseconds = 24 * 60 * 60 * 1_000;
+const checkInLeadMilliseconds = 2 * 60 * 60 * 1_000;
 
 export const seasonTierConfirmationMessage =
   "Отправьте полный скриншот страницы с MMR и последними матчами организатору — @frokeng";
@@ -32,6 +34,15 @@ function seasonRoundAllowsRegistration(
   );
 }
 
+export function seasonRoundCheckInIsAvailable(
+  state: SeasonRoundRegistrationState,
+): boolean {
+  return (
+    seasonRoundAllowsRegistration(state) &&
+    timestamp(state.scheduledAt) !== null
+  );
+}
+
 export function seasonRoundRegistrationDeadline(
   scheduledAt: string | Date | null,
 ): string | null {
@@ -41,20 +52,27 @@ export function seasonRoundRegistrationDeadline(
     : new Date(start - registrationLeadMilliseconds).toISOString();
 }
 
-export function seasonRoundRegistrationIsOpen(
-  state: SeasonRoundRegistrationState,
-): boolean {
-  const start = timestamp(state.scheduledAt);
-  const now = timestamp(state.now);
-  return Boolean(
-    start !== null &&
-      now !== null &&
-      seasonRoundAllowsRegistration(state) &&
-      now < start,
-  );
+export function seasonRoundCancellationDeadline(
+  scheduledAt: string | Date | null,
+): string | null {
+  const start = timestamp(scheduledAt);
+  return start === null
+    ? null
+    : new Date(start - cancellationLeadMilliseconds).toISOString();
 }
 
-export function seasonRoundCancellationIsOpen(
+export function seasonRoundCheckInWindow(
+  scheduledAt: string | Date | null,
+): { opensAt: string; closesAt: string } | null {
+  const start = timestamp(scheduledAt);
+  if (start === null) return null;
+  return {
+    opensAt: new Date(start - checkInLeadMilliseconds).toISOString(),
+    closesAt: new Date(start - registrationLeadMilliseconds).toISOString(),
+  };
+}
+
+export function seasonRoundRegistrationIsOpen(
   state: SeasonRoundRegistrationState,
 ): boolean {
   const deadline = seasonRoundRegistrationDeadline(state.scheduledAt);
@@ -64,5 +82,32 @@ export function seasonRoundCancellationIsOpen(
       now !== null &&
       seasonRoundAllowsRegistration(state) &&
       now < new Date(deadline).getTime(),
+  );
+}
+
+export function seasonRoundCancellationIsOpen(
+  state: SeasonRoundRegistrationState,
+): boolean {
+  const deadline = seasonRoundCancellationDeadline(state.scheduledAt);
+  const now = timestamp(state.now);
+  return Boolean(
+    deadline &&
+      now !== null &&
+      seasonRoundAllowsRegistration(state) &&
+      now < new Date(deadline).getTime(),
+  );
+}
+
+export function seasonRoundCheckInIsOpen(
+  state: SeasonRoundRegistrationState,
+): boolean {
+  const window = seasonRoundCheckInWindow(state.scheduledAt);
+  const now = timestamp(state.now);
+  return Boolean(
+    window &&
+      now !== null &&
+      seasonRoundCheckInIsAvailable(state) &&
+      now >= new Date(window.opensAt).getTime() &&
+      now < new Date(window.closesAt).getTime(),
   );
 }

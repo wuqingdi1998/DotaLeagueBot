@@ -8,11 +8,14 @@ import { groupSeasonFinalMedalists } from "@/lib/season-finals";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import { seasonLobbyStatusLabel } from "../model/season-labels";
 import type { SeasonMatch, SeasonRound } from "../model/season-types";
+import type { ReactNode } from "react";
 
 export function SeasonLobbyList({
+  lobbyFooter,
   round,
   isArchived,
 }: {
+  lobbyFooter?: (lobby: SeasonRound["lobbies"][number]) => ReactNode;
   round: SeasonRound;
   isArchived: boolean;
 }) {
@@ -50,6 +53,7 @@ export function SeasonLobbyList({
               ))}
             </div>
           )}
+          {lobbyFooter?.(lobby)}
         </section>
       ))}
     </div>

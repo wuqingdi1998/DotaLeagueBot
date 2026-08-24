@@ -1,4 +1,4 @@
-import { requireAdmin } from "@/lib/auth";
+import { confirmOrganizerPassword, requireAdmin } from "@/lib/auth";
 import {
   createSeasonGame,
   createSeasonMatch,
@@ -32,6 +32,11 @@ import {
   saveSeasonFinalist,
 } from "./season-finalist-actions";
 import { updateSeasonLobbyConfiguration } from "./season-lobby-configuration-actions";
+import {
+  addSeasonRoundRegistration,
+  deleteSeasonRoundRegistration,
+} from "./season-registration-actions";
+import { savePublishedLobbyMatchIds } from "./season-published-lobby-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +52,10 @@ type SeasonRequest = Record<string, unknown> & {
     | "penalty"
     | "substitution"
     | "finalist"
-    | "lobbyConfiguration";
+    | "lobbyConfiguration"
+    | "registration"
+    | "publishedLobby";
+  password?: string;
 };
 
 async function seasonErrorResponse(error: unknown) {
@@ -119,6 +127,12 @@ export async function POST(request: Request) {
     if (body.entity === "finalist") {
       return Response.json(await saveSeasonFinalist(body), { status: 201 });
     }
+    if (body.entity === "registration") {
+      return Response.json(
+        await addSeasonRoundRegistration(body, admin.discordId),
+        { status: 201 },
+      );
+    }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {
     return seasonErrorResponse(error);
@@ -155,6 +169,11 @@ export async function PATCH(request: Request) {
     if (body.entity === "finalist") {
       return Response.json(await saveSeasonFinalist(body));
     }
+    if (body.entity === "publishedLobby") {
+      return Response.json(
+        await savePublishedLobbyMatchIds(body, admin.discordId),
+      );
+    }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {
     return seasonErrorResponse(error);
@@ -163,8 +182,11 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const admin = await requireAdmin();
     const body = (await request.json()) as SeasonRequest;
+    const admin =
+      body.entity === "registration"
+        ? await confirmOrganizerPassword(body.password ?? "")
+        : await requireAdmin();
     if (body.entity === "lobby") return Response.json(await deleteSeasonLobby(body));
     if (body.entity === "match") {
       return Response.json(await deleteSeasonMatch(body, admin.discordId));
@@ -181,6 +203,11 @@ export async function DELETE(request: Request) {
     }
     if (body.entity === "finalist") {
       return Response.json(await deleteSeasonFinalist(body));
+    }
+    if (body.entity === "registration") {
+      return Response.json(
+        await deleteSeasonRoundRegistration(body, admin.discordId),
+      );
     }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {

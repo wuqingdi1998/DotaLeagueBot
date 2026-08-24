@@ -28,6 +28,7 @@ export function useSeasonController({
   const [registrationRoundId, setRegistrationRoundId] = useState<number | null>(
     null,
   );
+  const [checkInRoundId, setCheckInRoundId] = useState<number | null>(null);
   const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
     Number.isInteger(requestedRound) && requestedRound > 0
       ? requestedRound
@@ -183,8 +184,33 @@ export function useSeasonController({
     }
   }
 
+  async function checkIn(roundId: number) {
+    if (checkInRoundId !== null) return;
+    setCheckInRoundId(roundId);
+    try {
+      const response = await fetchSeasonRequest("/api/season/check-in", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ roundId }),
+      });
+      const result = await readSeasonMutationResponse(response);
+      if (!response.ok) {
+        setMessage(result.error ?? "Не удалось пройти чек-ин тура");
+        return;
+      }
+      setMessage("Чек-ин тура пройден");
+      await load();
+    } catch {
+      setMessage("Сервер недоступен. Попробуйте ещё раз");
+    } finally {
+      setCheckInRoundId(null);
+    }
+  }
+
   return {
     activeRoundNumber,
+    checkIn,
+    checkInRoundId,
     data,
     error,
     load,
