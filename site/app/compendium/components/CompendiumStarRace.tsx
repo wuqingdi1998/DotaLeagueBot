@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaStar } from "react-icons/fa";
@@ -11,7 +10,6 @@ import {
   FiClock,
   FiExternalLink,
   FiGift,
-  FiImage,
   FiInfo,
   FiLoader,
 } from "react-icons/fi";
@@ -23,6 +21,7 @@ import {
   type StarRaceQuest,
 } from "../model/star-race";
 import { HeroChoice } from "./HeroChoice";
+import { StarRacePrizePreview } from "./StarRacePrizePreview";
 import { StarRaceFinalPrediction } from "./StarRaceFinalPrediction";
 
 function countdownLabel(targetAt: string, currentTimeMs: number): string {
@@ -344,32 +343,7 @@ export function CompendiumStarRace({
                   <span className="compendium-star-race-prize-label">
                     {`Награда за топ-${prize.place}`}
                   </span>
-                  {prize.imageUrl ? (
-                    <span
-                      className="compendium-star-race-prize-name"
-                      tabIndex={0}
-                      aria-label={`${prize.title}. Изображение появится при наведении или фокусе.`}
-                    >
-                      <strong>{prize.title}</strong>
-                      <FiImage aria-hidden="true" />
-                      <span
-                        className="compendium-star-race-prize-preview"
-                        role="tooltip"
-                      >
-                        <Image
-                          src={prize.imageUrl}
-                          alt={prize.title}
-                          width={480}
-                          height={436}
-                          unoptimized
-                        />
-                      </span>
-                    </span>
-                  ) : (
-                    <strong className="compendium-star-race-prize-static">
-                      {prize.title}
-                    </strong>
-                  )}
+                  <StarRacePrizePreview prize={prize} />
                 </div>
               ))}
             </div>

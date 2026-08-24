@@ -16,7 +16,14 @@ const resultsModel = source("../app/compendium/model/results.ts");
 const resultsView = source(
   "../app/compendium/sections/CompendiumResults.tsx",
 );
+const prizePreview = source(
+  "../app/compendium/components/StarRacePrizePreview.tsx",
+);
 const resultsCss = source("../app/styles/57-compendium-results.css");
+const resultsPrizeCss = source(
+  "../app/styles/58-compendium-results-prizes.css",
+);
+const globalStyles = source("../app/globals.css");
 const styleRules = source("../../.codex/rules/04-styles.md");
 
 describe("finished compendium results contract", () => {
@@ -97,6 +104,27 @@ describe("finished compendium results contract", () => {
   it("adapts the result layout for phones", () => {
     expect(resultsCss).toContain("@media (max-width: 720px)");
     expect(resultsCss).toContain(".compendium-results-races");
+  });
+
+  it("shows each weekly prize on the matching winner", () => {
+    expect(resultsModel).toContain("prizes: readonly StarRacePrize[]");
+    expect(resultsRepository).toContain("prizes: race.prizes");
+    expect(resultsView).toContain("prizes={race.prizes}");
+    expect(resultsView).toContain(
+      "prizes?.find((prize) => prize.place === player.rank)",
+    );
+    expect(resultsView).toContain('variant="thumbnail"');
+    expect(prizePreview).toContain('role="tooltip"');
+    expect(prizePreview).toContain("compendium-results-prize-image");
+    expect(resultsPrizeCss).toMatch(
+      /\.compendium-results-prize-image\s*\{[^}]*border-radius:\s*50%;/,
+    );
+    expect(resultsPrizeCss).toMatch(
+      /@media \(max-width: 720px\)[\s\S]*\.compendium-results-prize-image \.compendium-star-race-prize-preview\s*\{[^}]*left:\s*50%;[^}]*width:\s*min\(300px, 70vw\);[^}]*transform:\s*translate\(-50%, -4px\);/,
+    );
+    expect(globalStyles).toContain(
+      '@import "./styles/58-compendium-results-prizes.css"',
+    );
   });
 
   it("centers result metrics but left-aligns participant names", () => {

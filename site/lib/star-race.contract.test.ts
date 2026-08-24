@@ -29,6 +29,9 @@ const dashboard = source(
 const starRaceView = source(
   "../app/compendium/components/CompendiumStarRace.tsx",
 );
+const starRacePrizePreview = source(
+  "../app/compendium/components/StarRacePrizePreview.tsx",
+);
 const starRaceModel = source("../app/compendium/model/star-race.ts");
 const starRacePrizesModel = source(
   "../app/compendium/model/star-race-prizes.ts",
@@ -324,18 +327,19 @@ describe("compendium star race contract", () => {
     expect(starRacePrizesModel).toContain("Beast of Thunder");
     expect(starRaceView).toContain("race.prizes.map");
     expect(starRaceView).toContain("Награда за топ-${prize.place}");
-    expect(starRaceView).toContain("src={prize.imageUrl}");
-    expect(starRaceView).toContain("prize.imageUrl ?");
-    expect(starRaceView).toContain("compendium-star-race-prize-static");
+    expect(starRaceView).toContain("<StarRacePrizePreview prize={prize} />");
+    expect(starRacePrizePreview).toContain("src={prize.imageUrl}");
+    expect(starRacePrizePreview).toContain("if (!prize.imageUrl)");
+    expect(starRacePrizePreview).toContain("compendium-star-race-prize-static");
     expect(starRacePrizesModel).toContain("The Lightning Orchid");
     expect(starRacePrizesModel).toContain(
       'imageUrl: "/compendium/star-race/the-lightning-orchid.webp"',
     );
     expect(archiveView).toContain("prize.imageUrl ? (");
     expect(archiveView).toContain("is-image-free");
-    expect(starRaceView).toContain('role="tooltip"');
-    expect(starRaceView).toContain("tabIndex={0}");
-    expect(starRaceView).not.toContain("href={prize.imageUrl}");
+    expect(starRacePrizePreview).toContain('role="tooltip"');
+    expect(starRacePrizePreview).toContain("tabIndex={0}");
+    expect(starRacePrizePreview).not.toContain("href={prize.imageUrl}");
     expect(styles).toContain(
       ".compendium-star-race-prize-name:hover .compendium-star-race-prize-preview",
     );

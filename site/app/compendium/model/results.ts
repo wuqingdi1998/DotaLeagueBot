@@ -1,4 +1,5 @@
 import type { CompendiumLeaderboardEntry } from "./leaderboard";
+import type { StarRacePrize } from "./star-race";
 
 export const finishedCompendiumCommunityOutcome = {
   finalsPrize: "12 000 ₽",
@@ -18,6 +19,7 @@ export type CompendiumRaceResult = {
   id: string;
   dateLabel: string;
   leaders: CompendiumLeaderboardEntry[];
+  prizes: readonly StarRacePrize[];
 };
 
 export type CompendiumResultsData = {

@@ -1,0 +1,62 @@
+.compendium-race-result .compendium-results-table {
+  overflow: visible;
+}
+
+.compendium-race-result .compendium-results-participant {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.compendium-race-result .compendium-results-player {
+  flex: 1 1 auto;
+}
+
+.compendium-results-prize-image {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  grid-column: auto;
+  grid-row: auto;
+  place-items: center;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--star-race-gold) 60%, transparent);
+  border-radius: 50%;
+  padding: 2px;
+  background: var(--surface);
+  box-shadow: 0 4px 14px rgba(174, 117, 15, 0.2);
+}
+
+.compendium-results-prize-image > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.compendium-results-prize-image .compendium-star-race-prize-preview {
+  right: 0;
+  width: min(320px, 74vw);
+}
+
+@media (max-width: 720px) {
+  .compendium-results-prize-image {
+    width: 28px;
+    height: 28px;
+    flex-basis: 28px;
+  }
+
+  .compendium-results-prize-image .compendium-star-race-prize-preview {
+    right: auto;
+    left: 50%;
+    width: min(300px, 70vw);
+    transform: translate(-50%, -4px);
+  }
+
+  .compendium-results-prize-image:hover .compendium-star-race-prize-preview,
+  .compendium-results-prize-image:focus-visible .compendium-star-race-prize-preview {
+    transform: translate(-50%, 0);
+  }
+}

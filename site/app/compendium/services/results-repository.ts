@@ -101,6 +101,7 @@ export async function loadCompendiumResults(
       id: race.id,
       dateLabel: race.dateLabel,
       leaders: raceLeaderboards[index].slice(0, 5),
+      prizes: race.prizes,
     })),
   };
 }

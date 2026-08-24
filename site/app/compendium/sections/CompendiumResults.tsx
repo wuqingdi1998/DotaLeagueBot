@@ -4,10 +4,12 @@ import { FaStar } from "react-icons/fa";
 import { FiAward, FiCheck, FiFlag, FiTarget, FiUser } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
+import type { StarRacePrize } from "../model/star-race";
 import {
   finishedCompendiumCommunityOutcome,
   type CompendiumResultsData,
 } from "../model/results";
+import { StarRacePrizePreview } from "../components/StarRacePrizePreview";
 
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
@@ -31,10 +33,12 @@ function ResultsTable({
   participants,
   currentPlayerId,
   ariaLabel,
+  prizes,
 }: {
   participants: CompendiumLeaderboardEntry[];
   currentPlayerId?: string;
   ariaLabel: string;
+  prizes?: readonly StarRacePrize[];
 }) {
   return (
     <div className="compendium-results-table" role="table" aria-label={ariaLabel}>
@@ -48,6 +52,7 @@ function ResultsTable({
       <div role="rowgroup">
         {participants.map((player) => {
           const isCurrentPlayer = player.playerId === currentPlayerId;
+          const prize = prizes?.find((prize) => prize.place === player.rank);
           return (
             <div
               className={`compendium-results-row${isCurrentPlayer ? " is-current-player" : ""}`}
@@ -69,6 +74,9 @@ function ResultsTable({
                     {isCurrentPlayer && <small>Это вы</small>}
                   </span>
                 </PlayerProfileLink>
+                {prize && (
+                  <StarRacePrizePreview prize={prize} variant="thumbnail" />
+                )}
               </span>
               <span className="compendium-results-stars" role="cell">
                 <FaStar aria-hidden="true" /> {player.totalStars}
@@ -218,6 +226,7 @@ export function CompendiumResults({
                 participants={race.leaders}
                 currentPlayerId={currentPlayerId}
                 ariaLabel={`Топ-5 гонки за ${race.dateLabel}`}
+                prizes={race.prizes}
               />
             </article>
           ))}
