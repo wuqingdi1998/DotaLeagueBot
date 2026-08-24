@@ -37,6 +37,8 @@ type SiteHeaderProps = {
   discordUrl?: string;
 };
 
+const longProfileNameLength = 24;
+
 function AuthErrorBanner() {
   const pathname = usePathname();
   const router = useRouter();
@@ -90,6 +92,8 @@ export function SiteHeader({
   const hallActive = pathname.startsWith("/hall-of-fame");
   const participantsActive = pathname.startsWith("/participants");
   const compendiumActive = pathname.startsWith("/compendium");
+  const hasLongProfileName =
+    (user?.serverName.length ?? 0) > longProfileNameLength;
 
   return (
     <header ref={headerRef} className="site-header platform-header">
@@ -189,7 +193,11 @@ export function SiteHeader({
         {user ? (
           <div className="player-profile-control">
             <button
-              className="player-profile-button"
+              className={
+                hasLongProfileName
+                  ? "player-profile-button has-long-name"
+                  : "player-profile-button"
+              }
               type="button"
               onClick={() => setProfileOpen((current) => !current)}
               aria-label={`Открыть меню профиля ${user.serverName}`}

@@ -8,7 +8,7 @@ from discord import ui
 # Импортируем сервис и модели
 from services.league_service import LeagueService
 from database.models import Player
-from utils.nickname_validator import validate_nickname
+from utils.nickname_validator import NICKNAME_MAX_LENGTH, validate_nickname
 
 # Логгер (заглушка, если нет модуля)
 try:
@@ -28,7 +28,7 @@ class ChangeNickModal(ui.Modal, title="Смена никнейма"):
         label="Новый никнейм",
         placeholder="Введите новый ник...",
         min_length=2,
-        max_length=20,
+        max_length=NICKNAME_MAX_LENGTH,
         required=True
     )
 

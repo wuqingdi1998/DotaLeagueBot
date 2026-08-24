@@ -1,7 +1,7 @@
 import re
 
 NICKNAME_MIN_LENGTH = 2
-NICKNAME_MAX_LENGTH = 20
+NICKNAME_MAX_LENGTH = 15
 NICKNAME_SPECIAL_POOL = "~`!@#$:;%^&*(){}[]/<>.?_-"
 
 _ALLOWED_PATTERN = re.compile(

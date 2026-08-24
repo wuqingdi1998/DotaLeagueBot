@@ -4,6 +4,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Player
+from utils.nickname_validator import validate_nickname
 
 
 class PlayerRegistrationError(Exception):
@@ -73,6 +74,12 @@ async def register_or_reactivate_player(
     rank_tier: int,
     avatar_url: str,
 ) -> PlayerRegistrationResult:
+    nickname_is_valid, nickname_error = validate_nickname(ingame_name)
+    if not nickname_is_valid:
+        raise PlayerRegistrationError(
+            nickname_error or "Указан недопустимый никнейм."
+        )
+
     existing_player = (
         await session.execute(
             select(Player)

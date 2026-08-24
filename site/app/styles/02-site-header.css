@@ -266,6 +266,10 @@
   white-space: nowrap;
 }
 
+.player-profile-button.has-long-name .player-profile-copy strong {
+  font-size: 13px;
+}
+
 .player-profile-copy small {
   color: var(--muted);
   font-size: 13.5px;

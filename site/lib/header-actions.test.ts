@@ -90,4 +90,12 @@ describe("site header actions", () => {
     );
     expect(component).toContain("Открыть меню профиля");
   });
+
+  it("reduces the full server-name text for long profile names", () => {
+    expect(component).toContain("longProfileNameLength");
+    expect(component).toContain("has-long-name");
+    expect(headerCss).toMatch(
+      /\.player-profile-button\.has-long-name \.player-profile-copy strong\s*\{[^}]*font-size:\s*13px;/,
+    );
+  });
 });

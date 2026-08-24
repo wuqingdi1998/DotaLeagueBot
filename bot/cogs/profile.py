@@ -15,7 +15,7 @@ from database.core import async_session
 from database.models import Player, Team
 from utils.logger import send_log
 from utils.steam_tools import resolve_steam_id
-from utils.nickname_validator import validate_nickname
+from utils.nickname_validator import NICKNAME_MAX_LENGTH, validate_nickname
 from services.discord_avatar_sync import collect_discord_avatar_updates
 from services.player_registration import (
     PlayerRegistrationError,
@@ -70,7 +70,11 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     )
     nickname = ui.Label(
         text='Ваш никнейм в лиге',
-        component=ui.TextInput(placeholder='Например: Dendi', min_length=2, max_length=20),
+        component=ui.TextInput(
+            placeholder='Например: Dendi',
+            min_length=2,
+            max_length=NICKNAME_MAX_LENGTH,
+        ),
     )
     primary_position = ui.Label(
         text='Основная позиция',
