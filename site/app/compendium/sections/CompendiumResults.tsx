@@ -189,7 +189,7 @@ export function CompendiumResults({
             {data.personal.otherStars !== 0 && (
               <p className="compendium-personal-note">
                 В общей сумме также учтено {data.personal.otherStars} звёзд за
-                ручные начисления или корректировки.
+                победы на картах клоз матчей, ручные начисления или корректировки.
               </p>
             )}
           </>
