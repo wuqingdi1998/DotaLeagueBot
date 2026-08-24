@@ -65,9 +65,13 @@ describe("finished compendium results contract", () => {
     expect(resultsCss).toContain(".compendium-results-races");
   });
 
-  it("centers result columns and keeps centered tables as the default", () => {
+  it("centers result metrics but left-aligns participant names", () => {
     expect(resultsCss).toMatch(
       /\.compendium-results-table-heading,\s*\.compendium-results-row\s*\{[^}]*text-align:\s*center;/,
+    );
+    expect(resultsView).toContain('className="compendium-results-participant"');
+    expect(resultsCss).toMatch(
+      /\.compendium-results-participant\s*\{[^}]*text-align:\s*left;/,
     );
     expect(resultsCss).toMatch(
       /\.compendium-results-stars\s*\{[^}]*justify-content:\s*center;/,
@@ -78,5 +82,10 @@ describe("finished compendium results contract", () => {
     expect(styleRules).toContain(
       "Явное указание владельца проекта имеет приоритет",
     );
+    expect(styleRules).toContain(
+      "Для столбцов с участниками, игроками или командами",
+    );
+    expect(styleRules).toContain("заголовок по центру");
+    expect(styleRules).toContain("выравнивай по левому краю столбца");
   });
 });

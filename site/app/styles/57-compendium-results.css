@@ -223,6 +223,10 @@
   font-size: 19px;
 }
 
+.compendium-results-participant {
+  text-align: left;
+}
+
 .compendium-results-player {
   display: inline-flex;
   min-width: 0;

@@ -55,7 +55,7 @@ function ResultsTable({
               <strong className="compendium-results-rank" role="cell">
                 {player.rank}
               </strong>
-              <span role="cell">
+              <span className="compendium-results-participant" role="cell">
                 <PlayerProfileLink
                   className="compendium-results-player"
                   dotaId={player.dotaId}
