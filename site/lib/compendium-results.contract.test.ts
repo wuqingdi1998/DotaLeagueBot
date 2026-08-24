@@ -12,6 +12,7 @@ const resultsPage = source("../app/compendium/results/page.tsx");
 const resultsRepository = source(
   "../app/compendium/services/results-repository.ts",
 );
+const resultsModel = source("../app/compendium/model/results.ts");
 const resultsView = source(
   "../app/compendium/sections/CompendiumResults.tsx",
 );
@@ -41,6 +42,14 @@ describe("finished compendium results contract", () => {
 
   it("shows the requested community, personal, and race summaries", () => {
     expect(resultsView).toContain("Итоги сообщества");
+    expect(resultsView).toMatch(
+      /Благодаря результатам сообщества Linken&apos;s Sphere 5x5 League\s+остаётся бесплатной/,
+    );
+    expect(resultsModel).toContain('finalsPrize: "12 000 ₽"');
+    expect(resultsModel).toContain('leagueCupPrize: "7 500 ₽"');
+    expect(resultsView).not.toContain("data.community.unlocked");
+    expect(resultsView).not.toContain("data.community.next");
+    expect(resultsView).not.toContain("Следующая цель");
     expect(resultsView).toContain("Топ-10 Компендиума");
     expect(resultsView).toContain("Ваш личный результат");
     expect(resultsView).toContain("Ежедневные испытания");

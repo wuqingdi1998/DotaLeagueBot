@@ -3,7 +3,6 @@ import type {
   CompendiumResultsData,
   PersonalCompendiumResult,
 } from "../model/results";
-import { communityResultForStars } from "../model/results";
 import { STAR_RACE_WEEKS } from "../model/star-race";
 import { loadCompendiumLeaderboard } from "./leaderboard-repository";
 import { totalCommunityCompendiumStars } from "./repository";
@@ -74,7 +73,6 @@ export async function loadCompendiumResults(
 
   return {
     communityStars,
-    community: communityResultForStars(communityStars),
     leaders: leaderboard.slice(0, 10),
     personal,
     races: STAR_RACE_WEEKS.map((race, index) => ({

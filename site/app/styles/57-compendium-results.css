@@ -143,50 +143,44 @@
   line-height: 1.55;
 }
 
-.compendium-achievements-grid {
+.compendium-community-outcome > p {
+  max-width: 980px;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(22px, 2.2vw, 32px);
+  font-weight: 750;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+
+.compendium-community-prizes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+  margin-top: 26px;
 }
 
-.compendium-achievement {
-  min-height: 175px;
-  border: 1px solid var(--line);
+.compendium-community-prizes article {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(226, 174, 55, 0.36);
   border-radius: 20px;
-  padding: 23px;
+  padding: 24px;
   background: var(--surface-soft);
 }
 
-.compendium-achievement > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #c88b18;
-  font-size: 13px;
-  font-weight: 850;
-  text-transform: uppercase;
+.compendium-community-prizes strong {
+  color: #d99b22;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(34px, 4vw, 50px);
+  font-weight: 600;
+  line-height: 1;
 }
 
-.compendium-achievement h3 {
-  margin: 14px 0 8px;
-  font-size: 20px;
-  line-height: 1.25;
-}
-
-.compendium-achievement p {
-  margin: 0;
+.compendium-community-prizes span {
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.55;
-}
-
-.compendium-achievement.is-unlocked {
-  border-color: rgba(226, 174, 55, 0.36);
-}
-
-.compendium-achievement.is-next {
-  border-style: dashed;
-  opacity: 0.82;
+  font-size: 15px;
+  font-weight: 750;
 }
 
 .compendium-results-table {
@@ -432,12 +426,11 @@
     padding: 22px 14px;
   }
 
-  .compendium-achievements-grid,
+  .compendium-community-prizes,
   .compendium-personal-results {
     grid-template-columns: 1fr;
   }
 
-  .compendium-achievement,
   .compendium-personal-results article {
     min-height: 145px;
   }

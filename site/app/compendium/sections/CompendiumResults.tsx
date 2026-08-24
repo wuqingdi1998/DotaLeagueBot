@@ -4,7 +4,10 @@ import { FaStar } from "react-icons/fa";
 import { FiAward, FiCheck, FiFlag, FiTarget, FiUser } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
-import type { CompendiumResultsData } from "../model/results";
+import {
+  finishedCompendiumCommunityOutcome,
+  type CompendiumResultsData,
+} from "../model/results";
 
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
@@ -83,7 +86,6 @@ export function CompendiumResults({
   data: CompendiumResultsData;
   currentPlayerId?: string;
 }) {
-  const highestAchievement = data.community.unlocked.at(-1);
   return (
     <main className="compendium-results-page">
       <section className="compendium-results-hero">
@@ -105,24 +107,23 @@ export function CompendiumResults({
       <section className="compendium-results-section compendium-community-result">
         <header className="compendium-results-section-heading">
           <span><FiAward aria-hidden="true" /> Итоги сообщества</span>
-          <h2>Чего мы достигли вместе</h2>
-          {highestAchievement && <p>Главный достигнутый итог: {highestAchievement.title}</p>}
+          <h2>Итог Компендиума</h2>
         </header>
-        <div className="compendium-achievements-grid">
-          {data.community.unlocked.map((reward) => (
-            <article className="compendium-achievement is-unlocked" key={reward.stars}>
-              <span><FiCheck aria-hidden="true" /> {reward.stars} звёзд</span>
-              <h3>{reward.title}</h3>
-              <p>{reward.description}</p>
+        <div className="compendium-community-outcome">
+          <p>
+            Благодаря результатам сообщества Linken&apos;s Sphere 5x5 League
+            остаётся бесплатной.
+          </p>
+          <div className="compendium-community-prizes">
+            <article>
+              <strong>{finishedCompendiumCommunityOutcome.finalsPrize}</strong>
+              <span>Призовой фонд финалов лиги</span>
             </article>
-          ))}
-          {data.community.next && (
-            <article className="compendium-achievement is-next">
-              <span><FiTarget aria-hidden="true" /> Следующая цель — {data.community.next.stars}</span>
-              <h3>{data.community.next.title}</h3>
-              <p>До неё не хватило {data.community.starsToNext} звёзд.</p>
+            <article>
+              <strong>{finishedCompendiumCommunityOutcome.leagueCupPrize}</strong>
+              <span>Призовой фонд Кубка лиги</span>
             </article>
-          )}
+          </div>
         </div>
       </section>
 
