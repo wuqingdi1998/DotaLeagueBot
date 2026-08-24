@@ -20,6 +20,13 @@
   animation: compendium-gold-shimmer 3.6s ease-in-out infinite;
 }
 
+.compendium-navigation-label {
+  display: block;
+  line-height: 1.05;
+  text-align: center;
+  white-space: normal;
+}
+
 .platform-navigation a.compendium-navigation-link:hover,
 .platform-navigation a.compendium-navigation-link.active,
 .platform-navigation a.compendium-navigation-link[aria-current="page"],

@@ -1,0 +1,488 @@
+.compendium-results-page {
+  min-height: 100vh;
+  padding-bottom: 100px;
+  background:
+    radial-gradient(circle at 15% 7%, rgba(236, 179, 57, 0.14), transparent 25%),
+    radial-gradient(circle at 88% 20%, rgba(0, 195, 255, 0.1), transparent 24%),
+    var(--bg);
+}
+
+.compendium-results-hero {
+  display: grid;
+  min-height: 390px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 440px);
+  align-items: center;
+  gap: clamp(32px, 6vw, 90px);
+  padding: 58px clamp(24px, 7vw, 110px);
+  border-bottom: 1px solid rgba(226, 174, 55, 0.28);
+}
+
+.compendium-results-hero-copy {
+  max-width: 850px;
+}
+
+.compendium-results-eyebrow,
+.compendium-results-section-heading > span,
+.compendium-race-result > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #c88b18;
+  font-size: 13px;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.compendium-results-hero h1 {
+  margin: 14px 0 20px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(48px, 6vw, 88px);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 0.94;
+  text-wrap: balance;
+}
+
+.compendium-results-hero-copy > p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: clamp(17px, 1.5vw, 21px);
+  line-height: 1.65;
+}
+
+.compendium-results-community-total {
+  position: relative;
+  display: grid;
+  min-height: 270px;
+  place-items: center;
+  align-content: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 217, 111, 0.62);
+  border-radius: 30px;
+  padding: 30px;
+  background:
+    linear-gradient(140deg, rgba(255, 231, 153, 0.2), transparent 50%),
+    var(--surface);
+  box-shadow: 0 24px 70px rgba(174, 117, 15, 0.18);
+  text-align: center;
+}
+
+.compendium-results-community-total::after {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(240, 178, 43, 0.11);
+  content: "";
+  filter: blur(8px);
+}
+
+.compendium-results-community-total > * {
+  position: relative;
+  z-index: 1;
+}
+
+.compendium-results-community-total > svg {
+  color: #efb532;
+  font-size: 30px;
+}
+
+.compendium-results-community-total strong {
+  margin-top: 6px;
+  color: #d99b22;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(76px, 8vw, 118px);
+  font-weight: 600;
+  line-height: 0.9;
+}
+
+.compendium-results-community-total span {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.compendium-results-section {
+  width: min(1320px, calc(100% - 48px));
+  margin: 32px auto 0;
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  padding: clamp(26px, 4vw, 46px);
+  background: var(--surface);
+  box-shadow: 0 18px 60px rgba(14, 77, 112, 0.08);
+}
+
+.compendium-community-result {
+  border-color: rgba(226, 174, 55, 0.4);
+  background:
+    linear-gradient(145deg, rgba(244, 190, 62, 0.09), transparent 42%),
+    var(--surface);
+}
+
+.compendium-results-section-heading {
+  max-width: 840px;
+  margin-bottom: 28px;
+}
+
+.compendium-results-section-heading h2 {
+  margin: 10px 0 8px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(34px, 4vw, 54px);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.compendium-results-section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.compendium-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.compendium-achievement {
+  min-height: 175px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 23px;
+  background: var(--surface-soft);
+}
+
+.compendium-achievement > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #c88b18;
+  font-size: 13px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.compendium-achievement h3 {
+  margin: 14px 0 8px;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.compendium-achievement p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.compendium-achievement.is-unlocked {
+  border-color: rgba(226, 174, 55, 0.36);
+}
+
+.compendium-achievement.is-next {
+  border-style: dashed;
+  opacity: 0.82;
+}
+
+.compendium-results-table {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.compendium-results-table-heading,
+.compendium-results-row {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr) 100px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+}
+
+.compendium-results-table-heading {
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.compendium-results-table-heading span:last-child {
+  text-align: right;
+}
+
+.compendium-results-row {
+  min-height: 66px;
+  border-top: 1px solid var(--line);
+}
+
+.compendium-results-row.is-current-player {
+  background: linear-gradient(90deg, rgba(0, 195, 255, 0.13), rgba(237, 182, 49, 0.11));
+  box-shadow: inset 4px 0 0 var(--blue);
+}
+
+.compendium-results-rank {
+  color: var(--muted);
+  font-size: 19px;
+}
+
+.compendium-results-player {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+}
+
+.compendium-results-player > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.compendium-results-player strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compendium-results-player small {
+  color: var(--blue-strong);
+  font-size: 11px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.compendium-results-avatar {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid rgba(0, 195, 255, 0.34);
+  border-radius: 50%;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-weight: 850;
+}
+
+.compendium-results-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.compendium-results-stars {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  color: #d99b22;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.compendium-personal-results {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.compendium-personal-results article {
+  display: grid;
+  min-height: 165px;
+  align-content: space-between;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px;
+  background: var(--surface-soft);
+}
+
+.compendium-personal-results article.is-total {
+  border-color: rgba(226, 174, 55, 0.5);
+  background: linear-gradient(145deg, rgba(245, 191, 62, 0.16), transparent), var(--surface-soft);
+}
+
+.compendium-personal-results svg {
+  color: #d99b22;
+  font-size: 24px;
+}
+
+.compendium-personal-results span {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.compendium-personal-results strong {
+  margin-top: 8px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 46px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.compendium-personal-note,
+.compendium-personal-login {
+  margin: 18px 0 0;
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.compendium-personal-login {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.compendium-personal-login p {
+  margin: 0;
+}
+
+.compendium-personal-login a {
+  flex: 0 0 auto;
+  border-radius: 12px;
+  padding: 12px 16px;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-weight: 800;
+}
+
+.compendium-results-races {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.compendium-race-result {
+  min-width: 0;
+  border-radius: 20px;
+  padding: 22px;
+  background: var(--surface-soft);
+}
+
+.compendium-race-result h3 {
+  margin: 8px 0 18px;
+  font-size: 22px;
+}
+
+.compendium-race-result .compendium-results-table-heading,
+.compendium-race-result .compendium-results-row {
+  grid-template-columns: 52px minmax(0, 1fr) 76px;
+  padding-inline: 13px;
+}
+
+@media (max-width: 980px) {
+  .compendium-results-hero,
+  .compendium-results-races {
+    grid-template-columns: 1fr;
+  }
+
+  .compendium-results-community-total {
+    width: min(520px, 100%);
+  }
+
+  .compendium-personal-results {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .compendium-results-page {
+    padding-bottom: 70px;
+  }
+
+  .compendium-results-hero {
+    min-height: auto;
+    gap: 28px;
+    padding: 42px 18px 34px;
+  }
+
+  .compendium-results-hero h1 {
+    font-size: clamp(46px, 14vw, 64px);
+  }
+
+  .compendium-results-community-total {
+    min-height: 225px;
+    border-radius: 23px;
+  }
+
+  .compendium-results-community-total strong {
+    font-size: 82px;
+  }
+
+  .compendium-results-section {
+    width: calc(100% - 24px);
+    margin-top: 18px;
+    border-radius: 21px;
+    padding: 22px 14px;
+  }
+
+  .compendium-achievements-grid,
+  .compendium-personal-results {
+    grid-template-columns: 1fr;
+  }
+
+  .compendium-achievement,
+  .compendium-personal-results article {
+    min-height: 145px;
+  }
+
+  .compendium-results-table-heading,
+  .compendium-results-row,
+  .compendium-race-result .compendium-results-table-heading,
+  .compendium-race-result .compendium-results-row {
+    grid-template-columns: 42px minmax(0, 1fr) 62px;
+    gap: 8px;
+    padding-inline: 10px;
+  }
+
+  .compendium-results-table-heading {
+    font-size: 10px;
+  }
+
+  .compendium-results-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+
+  .compendium-results-player {
+    gap: 8px;
+  }
+
+  .compendium-results-player strong {
+    font-size: 13px;
+  }
+
+  .compendium-results-stars {
+    font-size: 15px;
+  }
+
+  .compendium-personal-login {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .compendium-personal-login a {
+    text-align: center;
+  }
+
+  .compendium-race-result {
+    padding: 14px;
+  }
+}

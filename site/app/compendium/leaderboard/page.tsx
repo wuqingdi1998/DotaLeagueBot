@@ -14,9 +14,7 @@ export const metadata: Metadata = {
 
 export default async function CompendiumLeaderboardPage() {
   const user = await getSession();
-  if (!user) {
-    redirect("/api/auth/discord?returnTo=%2Fcompendium%2Fleaderboard");
-  }
+  if (!user?.isAdmin) redirect("/compendium/results");
   const participants = await loadCompendiumLeaderboard();
   return (
     <PlatformShell user={user}>

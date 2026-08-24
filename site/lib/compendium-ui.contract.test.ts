@@ -6,29 +6,14 @@ function source(path: string) {
 }
 
 const compendiumPage = source("../app/compendium/page.tsx");
-const accessGate = source(
-  "../app/compendium/components/CompendiumAccessGate.tsx",
-);
-const accessGateCss = source("../app/styles/45-compendium-access-gate.css");
 const compendiumCss = source("../app/styles/33-compendium.css");
 const rewards = source("../app/compendium/components/CompendiumRewards.tsx");
 const rewardsModel = source("../app/compendium/model/rewards.ts");
 const rewardsCss = source("../app/styles/38-compendium-rewards.css");
 
 describe("compendium interface contract", () => {
-  it("opens a blurred compendium preview with Discord access steps for guests", () => {
-    expect(compendiumPage).not.toContain("redirect(");
-    expect(compendiumPage).toContain("<CompendiumAccessGate />");
-    expect(accessGate).toContain("Зарегистрироваться на сервере");
-    expect(accessGate).toContain("Linken&apos;s Sphere Esports");
-    expect(accessGate).toContain("#регистрация");
-    expect(accessGate).toContain("Авторизоваться на сайте через Discord");
-    expect(accessGate).toContain(
-      "/api/auth/discord?returnTo=%2Fcompendium",
-    );
-    expect(accessGate).toContain("https://discord.gg/lsesports");
-    expect(accessGateCss).toContain("backdrop-filter: blur(");
-    expect(accessGateCss).toContain("pointer-events: none");
+  it("opens the finished compendium results for every visitor", () => {
+    expect(compendiumPage).toContain('redirect("/compendium/results")');
   });
 
   it("dims pending rewards and labels received ones", () => {

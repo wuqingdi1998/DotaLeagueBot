@@ -56,16 +56,22 @@ describe("site header actions", () => {
     );
   });
 
-  it("compacts Boosty before the profile only when desktop actions overlap navigation", () => {
+  it("compacts organizer, Boosty, and profile actions in that order on desktop", () => {
     expect(actionCompaction).toContain(
       'const desktopNavigationQuery = "(min-width: 1051px)"',
     );
     expect(actionCompaction).toContain(
       "window.matchMedia(desktopNavigationQuery)",
     );
-    expect(actionCompaction).toContain("navigationRect.right > boostyRect.left");
+    expect(actionCompaction).toContain("navigationRect.right > actionRect.left");
+    expect(actionCompaction.indexOf("compactOrganizer")).toBeLessThan(
+      actionCompaction.indexOf("compactBoosty"),
+    );
     expect(actionCompaction.indexOf("compactBoosty")).toBeLessThan(
       actionCompaction.indexOf("compactProfile"),
+    );
+    expect(headerCss).toMatch(
+      /\[data-compact-organizer="true"\][\s\S]*\.organizer-menu-button\s*\{[^}]*width:\s*46px;[^}]*padding:\s*0;/,
     );
     expect(headerCss).toMatch(
       /\[data-compact-boosty="true"\][\s\S]*\.boosty-button\s*\{[^}]*width:\s*46px;[^}]*padding:\s*0;/,

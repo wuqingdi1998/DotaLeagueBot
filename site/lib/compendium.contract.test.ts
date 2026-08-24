@@ -132,9 +132,11 @@ describe("compendium persistence and security contract", () => {
     expect(migration).toContain("CHECK (reward_amount = 1)");
   });
 
-  it("adds the compendium to desktop and mobile navigation", () => {
-    expect(header.match(/href="\/compendium"/g)).toHaveLength(2);
+  it("adds the compendium results to desktop and mobile navigation", () => {
+    expect(header.match(/href="\/compendium\/results"/g)).toHaveLength(2);
     expect(header.match(/compendium-navigation-link/g)).toHaveLength(2);
+    expect(header.match(/Результаты/g)).toHaveLength(2);
+    expect(header.match(/компендиума/g)).toHaveLength(2);
   });
 
   it("highlights the compendium navigation with an accessible gold shimmer", () => {

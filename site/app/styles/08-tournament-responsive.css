@@ -32,6 +32,10 @@
 }
 
 @media (max-width: 760px) {
+  .organizer-menu-button {
+    display: none;
+  }
+
   .site-header {
     min-height: 74px;
     grid-template-columns: minmax(0, 1fr) auto;

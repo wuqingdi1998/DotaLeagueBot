@@ -142,6 +142,33 @@
     color 160ms ease;
 }
 
+.organizer-menu-button {
+  display: inline-flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: 15px;
+  padding: 0 17px;
+  background: var(--surface-blue);
+  color: var(--blue-deep);
+  font-size: 14px;
+  font-weight: 800;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.organizer-menu-button:hover,
+.organizer-menu-button.active {
+  border-color: var(--blue);
+  background: var(--blue-gradient);
+  color: #fff;
+}
+
+.organizer-menu-button svg {
+  font-size: 20px;
+}
+
 .boosty-button svg {
   font-size: 21px;
 }
@@ -330,6 +357,19 @@
 }
 
 @media (min-width: 1051px) {
+  .header-actions[data-compact-organizer="true"] .organizer-menu-button {
+    width: 46px;
+    min-width: 46px;
+    min-height: 46px;
+    height: 46px;
+    border-radius: 12px;
+    padding: 0;
+  }
+
+  .header-actions[data-compact-organizer="true"] .organizer-menu-button span {
+    display: none;
+  }
+
   .header-actions[data-compact-boosty="true"] .boosty-button {
     width: 46px;
     min-width: 46px;
@@ -380,6 +420,10 @@
 @media (min-width: 761px) and (max-width: 1050px) {
   .header-actions {
     gap: 10px;
+  }
+
+  .organizer-menu-button {
+    display: none;
   }
 
   .boosty-button,

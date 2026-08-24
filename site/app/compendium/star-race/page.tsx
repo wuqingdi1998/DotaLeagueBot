@@ -23,9 +23,7 @@ export function generateMetadata(): Metadata {
 
 export default async function StarRaceLeaderboardPage() {
   const user = await getSession();
-  if (!user) {
-    redirect("/api/auth/discord?returnTo=%2Fcompendium%2Fstar-race");
-  }
+  if (!user?.isAdmin) redirect("/compendium/results");
   const now = new Date();
   const race = starRaceForMoment(now);
   if (!starRacePhase(now, user.isAdmin, race).isDetailsVisible) {
