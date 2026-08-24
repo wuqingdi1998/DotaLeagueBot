@@ -196,6 +196,7 @@
   align-items: center;
   gap: 14px;
   padding: 12px 18px;
+  text-align: center;
 }
 
 .compendium-results-table-heading {
@@ -205,10 +206,6 @@
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
-}
-
-.compendium-results-table-heading span:last-child {
-  text-align: right;
 }
 
 .compendium-results-row {
@@ -276,7 +273,7 @@
 .compendium-results-stars {
   display: inline-flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 7px;
   color: #d99b22;
   font-size: 18px;

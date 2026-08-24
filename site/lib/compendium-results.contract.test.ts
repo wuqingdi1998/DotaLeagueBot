@@ -17,6 +17,7 @@ const resultsView = source(
   "../app/compendium/sections/CompendiumResults.tsx",
 );
 const resultsCss = source("../app/styles/57-compendium-results.css");
+const styleRules = source("../../.codex/rules/04-styles.md");
 
 describe("finished compendium results contract", () => {
   it("keeps the full compendium behind the organizer menu", () => {
@@ -62,5 +63,20 @@ describe("finished compendium results contract", () => {
   it("adapts the result layout for phones", () => {
     expect(resultsCss).toContain("@media (max-width: 720px)");
     expect(resultsCss).toContain(".compendium-results-races");
+  });
+
+  it("centers result columns and keeps centered tables as the default", () => {
+    expect(resultsCss).toMatch(
+      /\.compendium-results-table-heading,\s*\.compendium-results-row\s*\{[^}]*text-align:\s*center;/,
+    );
+    expect(resultsCss).toMatch(
+      /\.compendium-results-stars\s*\{[^}]*justify-content:\s*center;/,
+    );
+    expect(styleRules).toContain(
+      "По умолчанию выравнивай по центру заголовок и содержимое каждого столбца",
+    );
+    expect(styleRules).toContain(
+      "Явное указание владельца проекта имеет приоритет",
+    );
   });
 });
