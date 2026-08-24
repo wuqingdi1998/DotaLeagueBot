@@ -62,7 +62,7 @@ describe("finished compendium results contract", () => {
 
   it("shows earned stars instead of completed activity counts", () => {
     expect(resultsRepository).toMatch(
-      /SELECT SUM\(completion\.reward_amount\)[\s\S]*AS daily_quest_stars/,
+      /SELECT SUM\(completion\.reward_amount\)[\s\S]*FROM compendium_user_quest_completions[\s\S]*SELECT SUM\(rune_completion\.reward_amount\)[\s\S]*FROM compendium_rune_challenge_completions[\s\S]*AS daily_quest_stars/,
     );
     expect(resultsRepository).toMatch(
       /SELECT SUM\(completion\.reward_amount\)[\s\S]*AS star_race_stars/,
@@ -78,6 +78,8 @@ describe("finished compendium results contract", () => {
     expect(resultsView).toContain("Звёзд за задания гонки");
     expect(resultsView).toContain("Звёзд за прогнозы матчей");
     expect(resultsView).toContain("Звёзд за участие в турнире");
+    expect(resultsView).not.toContain("Испытание Рун и ручные начисления");
+    expect(resultsView).toMatch(/за\s+ручные начисления или корректировки/);
     expect(resultsModel).toContain("tournamentParticipationStars: number");
     expect(resultsRepository).toMatch(
       /totalStars\s+- dailyQuestStars\s+- starRaceStars\s+- predictionStars\s+- tournamentParticipationStars/,

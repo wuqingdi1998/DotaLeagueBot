@@ -26,11 +26,18 @@ async function loadPersonalResult(
          FROM compendium_player_star_totals total
          WHERE total.player_id = $1
        ), 0)::int AS total_stars,
-       COALESCE((
-         SELECT SUM(completion.reward_amount)
-         FROM compendium_user_quest_completions completion
-         WHERE completion.player_id = $1
-       ), 0)::int AS daily_quest_stars,
+       (
+         COALESCE((
+           SELECT SUM(completion.reward_amount)
+           FROM compendium_user_quest_completions completion
+           WHERE completion.player_id = $1
+         ), 0)
+         + COALESCE((
+           SELECT SUM(rune_completion.reward_amount)
+           FROM compendium_rune_challenge_completions rune_completion
+           WHERE rune_completion.player_id = $1
+         ), 0)
+       )::int AS daily_quest_stars,
        COALESCE((
          SELECT SUM(completion.reward_amount)
          FROM compendium_star_race_quest_completions completion
