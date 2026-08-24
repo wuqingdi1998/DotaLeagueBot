@@ -89,6 +89,15 @@ describe("finished compendium results contract", () => {
       /\.compendium-results-table-heading,\s*\.compendium-results-row\s*\{[^}]*text-align:\s*center;/,
     );
     expect(resultsView).toContain('className="compendium-results-participant"');
+    expect(resultsView).toContain(
+      'className="compendium-results-participant-heading"',
+    );
+    expect(resultsCss).toMatch(
+      /\.compendium-results-participant-heading,\s*\.compendium-results-participant\s*\{[^}]*justify-self:\s*start;[^}]*width:\s*min\(100%, 300px\);/,
+    );
+    expect(resultsCss).toMatch(
+      /\.compendium-results-participant-heading\s*\{[^}]*text-align:\s*center;/,
+    );
     expect(resultsCss).toMatch(
       /\.compendium-results-participant\s*\{[^}]*text-align:\s*left;/,
     );
@@ -106,5 +115,9 @@ describe("finished compendium results contract", () => {
     );
     expect(styleRules).toContain("заголовок по центру");
     expect(styleRules).toContain("выравнивай по левому краю столбца");
+    expect(styleRules).toMatch(
+      /центрируй над областью, которую занимают аватары и ники\s+или названия/,
+    );
+    expect(styleRules).toContain("а не относительно всей таблицы");
   });
 });

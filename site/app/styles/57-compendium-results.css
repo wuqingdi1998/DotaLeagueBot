@@ -223,12 +223,23 @@
   font-size: 19px;
 }
 
+.compendium-results-participant-heading,
+.compendium-results-participant {
+  justify-self: start;
+  width: min(100%, 300px);
+}
+
+.compendium-results-participant-heading {
+  text-align: center;
+}
+
 .compendium-results-participant {
   text-align: left;
 }
 
 .compendium-results-player {
   display: inline-flex;
+  max-width: 100%;
   min-width: 0;
   align-items: center;
   gap: 12px;

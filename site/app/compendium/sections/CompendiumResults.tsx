@@ -40,7 +40,9 @@ function ResultsTable({
     <div className="compendium-results-table" role="table" aria-label={ariaLabel}>
       <div className="compendium-results-table-heading" role="row">
         <span role="columnheader">Место</span>
-        <span role="columnheader">Участник</span>
+        <span className="compendium-results-participant-heading" role="columnheader">
+          Участник
+        </span>
         <span role="columnheader">Звёзды</span>
       </div>
       <div role="rowgroup">
