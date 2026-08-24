@@ -18,6 +18,12 @@ STAR_RESET_MIGRATION = (
 SHORTENED_GOALS_MIGRATION = (
     ROOT / "database" / "migrations" / "0047_shorten_compendium_goals.sql"
 ).read_text(encoding="utf-8")
+FROKENG_BADGE_CORRECTION_MIGRATION = (
+    ROOT
+    / "database"
+    / "migrations"
+    / "0084_recalculate_frokeng_profile_badge.sql"
+).read_text(encoding="utf-8")
 ADMIN_COG = (ROOT / "cogs" / "compendium_admin.py").read_text(encoding="utf-8")
 ADMIN_SERVICE = (
     ROOT / "services" / "compendium_star_service.py"
@@ -87,3 +93,13 @@ def test_shortened_badge_goals_are_persistent_and_backfilled() -> None:
     assert "('ti-2026-silver'::varchar, 30)" in SHORTENED_GOALS_MIGRATION
     assert "('ti-2026-gold'::varchar, 60)" in SHORTENED_GOALS_MIGRATION
     assert "grant_ti_2026_profile_badges(discord_id)" in SHORTENED_GOALS_MIGRATION
+
+
+def test_frokeng_badge_is_recalculated_from_his_current_star_total() -> None:
+    assert "steam_id32 = 301109815" in FROKENG_BADGE_CORRECTION_MIGRATION
+    assert "DELETE FROM player_profile_badges" in FROKENG_BADGE_CORRECTION_MIGRATION
+    assert (
+        "PERFORM grant_ti_2026_profile_badges(target_player_id)"
+        in FROKENG_BADGE_CORRECTION_MIGRATION
+    )
+    assert "INSERT INTO player_profile_badges" not in FROKENG_BADGE_CORRECTION_MIGRATION
