@@ -326,6 +326,12 @@
   line-height: 1;
 }
 
+.compendium-personal-results .compendium-personal-star-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .compendium-personal-note,
 .compendium-personal-login {
   margin: 18px 0 0;

@@ -53,11 +53,30 @@ describe("finished compendium results contract", () => {
     expect(resultsView).not.toContain("Следующая цель");
     expect(resultsView).toContain("Топ-10 Компендиума");
     expect(resultsView).toContain("Ваш личный результат");
-    expect(resultsView).toContain("Ежедневные испытания");
-    expect(resultsView).toContain("Задания гонки");
-    expect(resultsView).toContain("Прогнозы матчей");
+    expect(resultsView).toContain("Звёзд за ежедневные испытания");
+    expect(resultsView).toContain("Звёзд за задания гонки");
+    expect(resultsView).toContain("Звёзд за прогнозы матчей");
     expect(resultsView).toContain("Топ-5");
     expect(resultsView).toContain("is-current-player");
+  });
+
+  it("shows earned stars instead of completed activity counts", () => {
+    expect(resultsRepository).toMatch(
+      /SELECT SUM\(completion\.reward_amount\)[\s\S]*AS daily_quest_stars/,
+    );
+    expect(resultsRepository).toMatch(
+      /SELECT SUM\(completion\.reward_amount\)[\s\S]*AS star_race_stars/,
+    );
+    expect(resultsRepository).toMatch(
+      /SELECT SUM\(reward\.reward_amount\)[\s\S]*AS prediction_stars/,
+    );
+    expect(resultsRepository).not.toContain("COUNT(");
+    expect(resultsView).toContain("Звёзд за ежедневные испытания");
+    expect(resultsView).toContain("Звёзд за задания гонки");
+    expect(resultsView).toContain("Звёзд за прогнозы матчей");
+    expect(
+      resultsView.match(/className="compendium-personal-star-value"/g),
+    ).toHaveLength(4);
   });
 
   it("adapts the result layout for phones", () => {

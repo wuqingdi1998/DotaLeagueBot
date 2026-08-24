@@ -148,10 +148,34 @@ export function CompendiumResults({
         {data.personal ? (
           <>
             <div className="compendium-personal-results">
-              <article className="is-total"><FaStar /><span>Звёзд заработано всего</span><strong>{data.personal.totalStars}</strong></article>
-              <article><FiCheck /><span>Ежедневные испытания</span><strong>{data.personal.dailyQuestStars}</strong></article>
-              <article><FiFlag /><span>Задания гонки</span><strong>{data.personal.starRaceStars}</strong></article>
-              <article><FiTarget /><span>Прогнозы матчей</span><strong>{data.personal.predictionStars}</strong></article>
+              <article className="is-total">
+                <FaStar />
+                <span>Звёзд заработано всего</span>
+                <strong className="compendium-personal-star-value">
+                  <FaStar aria-hidden="true" /> {data.personal.totalStars}
+                </strong>
+              </article>
+              <article>
+                <FiCheck />
+                <span>Звёзд за ежедневные испытания</span>
+                <strong className="compendium-personal-star-value">
+                  <FaStar aria-hidden="true" /> {data.personal.dailyQuestStars}
+                </strong>
+              </article>
+              <article>
+                <FiFlag />
+                <span>Звёзд за задания гонки</span>
+                <strong className="compendium-personal-star-value">
+                  <FaStar aria-hidden="true" /> {data.personal.starRaceStars}
+                </strong>
+              </article>
+              <article>
+                <FiTarget />
+                <span>Звёзд за прогнозы матчей</span>
+                <strong className="compendium-personal-star-value">
+                  <FaStar aria-hidden="true" /> {data.personal.predictionStars}
+                </strong>
+              </article>
             </div>
             {data.personal.otherStars !== 0 && (
               <p className="compendium-personal-note">
