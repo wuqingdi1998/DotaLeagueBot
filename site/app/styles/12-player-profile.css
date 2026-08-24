@@ -1,5 +1,4 @@
 /* Public player profiles */
-
 .player-profile-hero {
   display: grid;
   gap: 42px;
@@ -12,11 +11,12 @@
 
 .player-profile-identity {
   display: flex;
+  max-width: var(--site-content-max);
   align-items: center;
   gap: clamp(24px, 4vw, 46px);
+  margin-inline: auto;
   min-width: 0;
 }
-
 .player-profile-identity > div:last-child {
   min-width: 0;
   flex: 1;
@@ -203,14 +203,15 @@
 
 .profile-stat-grid {
   display: grid;
+  max-width: var(--site-content-max);
   grid-template-columns: repeat(6, minmax(0, 1fr));
   border: 1px solid var(--line-strong);
   border-radius: 22px;
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow);
+  margin-inline: auto;
 }
-
 .profile-stat-grid article {
   display: grid;
   min-height: 118px;
@@ -238,16 +239,16 @@
 
 .player-profile-content {
   display: grid;
+  max-width: var(--site-padded-content-max);
   grid-template-columns: minmax(0, 1.55fr) minmax(320px, 0.65fr);
   gap: 28px;
+  margin-inline: auto;
   padding: clamp(60px, 6vw, 90px) clamp(24px, 7vw, 110px) 110px;
 }
-
 .profile-primary-column,
 .profile-side-column {
   min-width: 0;
 }
-
 .profile-side-column {
   display: grid;
   align-content: start;

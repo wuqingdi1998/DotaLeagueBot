@@ -1,7 +1,9 @@
 /* Hall of fame */
 
 .hall-hero {
-  padding: 30px clamp(24px, 7vw, 110px) 34px;
+  padding: 30px
+    max(clamp(24px, 7vw, 110px), calc((100% - var(--site-content-max)) / 2))
+    34px;
   background:
     radial-gradient(circle at 82% 15%, rgba(255, 202, 57, 0.16), transparent 32%),
     var(--surface-soft);
@@ -24,6 +26,9 @@
 }
 
 .hall-content {
+  width: 100%;
+  max-width: var(--site-padded-content-max);
+  margin-inline: auto;
   padding: 24px clamp(24px, 7vw, 110px) 100px;
 }
 

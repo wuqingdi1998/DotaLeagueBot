@@ -35,6 +35,8 @@
   --scrollbar-track: #081a28;
   --scrollbar-thumb: #287896;
   --scrollbar-thumb-hover: #00a9d9;
+  --site-content-max: 1540px;
+  --site-padded-content-max: 1760px;
 }
 
 * {

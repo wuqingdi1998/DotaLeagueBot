@@ -9,12 +9,13 @@ const component = readFileSync(
 const styles = loadSiteStyles();
 
 describe("community home heading", () => {
-  it("keeps the title on two explicit lines", () => {
+  it("keeps the title split into readable blocks without forbidding wrapping", () => {
     expect(component).toMatch(
       /platform-purpose-title[\s\S]*<span>Сайт сообщества<\/span>[\s\S]*<span>Linken&apos;s Sphere Esports<\/span>/,
     );
-    expect(styles).toMatch(
-      /\.platform-purpose-title span\s*\{[^}]*display:\s*block;[^}]*white-space:\s*nowrap;/,
+    expect(styles).toMatch(/\.platform-purpose-title span\s*\{[^}]*display:\s*block;/);
+    expect(styles).not.toMatch(
+      /\.platform-purpose-title span\s*\{[^}]*white-space:\s*nowrap;/,
     );
   });
 

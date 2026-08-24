@@ -194,6 +194,17 @@
   }
 }
 
+@media (max-width: 370px) {
+  .public-profile-nickname-line {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .public-profile-name-row h1 {
+    flex-basis: 100%;
+  }
+}
+
 .playoff-bracket {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));

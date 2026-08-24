@@ -6,7 +6,8 @@
 .compendium-hero-section {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(390px, 0.6fr);
+  grid-template-columns: minmax(0, 900px) minmax(390px, 560px);
+  justify-content: center;
   gap: 56px;
   min-height: 300px;
   padding: 44px max(5vw, 32px) 38px;

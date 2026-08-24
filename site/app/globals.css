@@ -5,6 +5,7 @@
 @import "./styles/04-tournament-overview.css";
 @import "./styles/05-tournament-teams.css";
 @import "./styles/06-tournament-standings.css";
+@import "./styles/06-tournament-standings-responsive.css";
 @import "./styles/07-tournament-dialogs.css";
 @import "./styles/08-tournament-responsive.css";
 @import "./styles/09-tournament-management.css";

@@ -246,21 +246,6 @@
     justify-content: center;
   }
 
-  .standing-row {
-    grid-template-columns: 34px minmax(0, 1fr) 58px 86px;
-    padding: 0 9px;
-    font-size: 14px;
-  }
-
-  .standings-groups {
-    grid-template-columns: 1fr;
-  }
-
-  .standing-group .standing-row {
-    grid-template-columns: 32px minmax(0, 1fr) 44px 44px 82px;
-    padding: 0 9px;
-  }
-
   .boosty-button {
     width: 46px;
     min-height: 46px;
@@ -280,12 +265,6 @@
     display: block;
   }
 
-  .standing-outcome {
-    min-height: 28px;
-    padding: 3px 5px;
-    font-size: 10px;
-  }
-
   .group-settings-grid {
     grid-template-columns: 1fr;
   }
@@ -297,10 +276,6 @@
   .group-settings-actions {
     align-items: stretch;
     flex-direction: column-reverse;
-  }
-
-  .standing-team i {
-    display: none;
   }
 
   .admin-summary {
