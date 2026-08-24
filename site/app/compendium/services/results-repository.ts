@@ -13,6 +13,7 @@ type PersonalResultRow = {
   daily_quest_stars: number;
   star_race_stars: number;
   prediction_stars: number;
+  tournament_participation_stars: number;
 };
 
 async function loadPersonalResult(
@@ -39,20 +40,34 @@ async function loadPersonalResult(
          SELECT SUM(reward.reward_amount)
          FROM compendium_prediction_rewards reward
          WHERE reward.player_id = $1
-       ), 0)::int AS prediction_stars`,
+       ), 0)::int AS prediction_stars,
+       COALESCE((
+         SELECT SUM(adjustment.amount)
+         FROM compendium_admin_star_adjustments adjustment
+         WHERE adjustment.player_id = $1
+           AND adjustment.is_star_race_eligible = FALSE
+       ), 0)::int AS tournament_participation_stars`,
     [playerId],
   );
   const totalStars = Number(row?.total_stars ?? 0);
   const dailyQuestStars = Number(row?.daily_quest_stars ?? 0);
   const starRaceStars = Number(row?.star_race_stars ?? 0);
   const predictionStars = Number(row?.prediction_stars ?? 0);
+  const tournamentParticipationStars = Number(
+    row?.tournament_participation_stars ?? 0,
+  );
   return {
     totalStars,
     dailyQuestStars,
     starRaceStars,
     predictionStars,
+    tournamentParticipationStars,
     otherStars:
-      totalStars - dailyQuestStars - starRaceStars - predictionStars,
+      totalStars
+      - dailyQuestStars
+      - starRaceStars
+      - predictionStars
+      - tournamentParticipationStars,
   };
 }
 

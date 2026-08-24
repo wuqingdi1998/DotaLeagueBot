@@ -10,6 +10,7 @@ export type PersonalCompendiumResult = {
   dailyQuestStars: number;
   starRaceStars: number;
   predictionStars: number;
+  tournamentParticipationStars: number;
   otherStars: number;
 };
 

@@ -70,13 +70,24 @@ describe("finished compendium results contract", () => {
     expect(resultsRepository).toMatch(
       /SELECT SUM\(reward\.reward_amount\)[\s\S]*AS prediction_stars/,
     );
+    expect(resultsRepository).toMatch(
+      /SELECT SUM\(adjustment\.amount\)[\s\S]*is_star_race_eligible = FALSE[\s\S]*AS tournament_participation_stars/,
+    );
     expect(resultsRepository).not.toContain("COUNT(");
     expect(resultsView).toContain("Звёзд за ежедневные испытания");
     expect(resultsView).toContain("Звёзд за задания гонки");
     expect(resultsView).toContain("Звёзд за прогнозы матчей");
+    expect(resultsView).toContain("Звёзд за участие в турнире");
+    expect(resultsModel).toContain("tournamentParticipationStars: number");
+    expect(resultsRepository).toMatch(
+      /totalStars\s+- dailyQuestStars\s+- starRaceStars\s+- predictionStars\s+- tournamentParticipationStars/,
+    );
     expect(
       resultsView.match(/className="compendium-personal-star-value"/g),
-    ).toHaveLength(4);
+    ).toHaveLength(5);
+    expect(resultsCss).toContain(
+      "grid-template-columns: repeat(5, minmax(0, 1fr))",
+    );
   });
 
   it("adapts the result layout for phones", () => {
@@ -93,13 +104,7 @@ describe("finished compendium results contract", () => {
       'className="compendium-results-participant-heading"',
     );
     expect(resultsCss).toMatch(
-      /\.compendium-results-participant-heading,\s*\.compendium-results-participant\s*\{[^}]*justify-self:\s*start;[^}]*width:\s*min\(100%, 300px\);/,
-    );
-    expect(resultsCss).toMatch(
-      /\.compendium-results-participant-heading\s*\{[^}]*text-align:\s*center;/,
-    );
-    expect(resultsCss).toMatch(
-      /\.compendium-results-participant\s*\{[^}]*text-align:\s*left;/,
+      /\.compendium-results-participant-heading,\s*\.compendium-results-participant\s*\{[^}]*text-align:\s*left;/,
     );
     expect(resultsCss).toMatch(
       /\.compendium-results-stars\s*\{[^}]*justify-content:\s*center;/,
@@ -113,11 +118,11 @@ describe("finished compendium results contract", () => {
     expect(styleRules).toContain(
       "Для столбцов с участниками, игроками или командами",
     );
-    expect(styleRules).toContain("заголовок по центру");
-    expect(styleRules).toContain("выравнивай по левому краю столбца");
     expect(styleRules).toMatch(
-      /центрируй над областью, которую занимают аватары и ники\s+или названия/,
+      /заголовок, аватар и ник или название\s+выравнивай по левому краю столбца/,
     );
-    expect(styleRules).toContain("а не относительно всей таблицы");
+    expect(styleRules).toContain(
+      "Первая буква заголовка должна находиться непосредственно над аватаром",
+    );
   });
 });

@@ -178,6 +178,13 @@ export function CompendiumResults({
                   <FaStar aria-hidden="true" /> {data.personal.predictionStars}
                 </strong>
               </article>
+              <article>
+                <FiAward />
+                <span>Звёзд за участие в турнире</span>
+                <strong className="compendium-personal-star-value">
+                  <FaStar aria-hidden="true" /> {data.personal.tournamentParticipationStars}
+                </strong>
+              </article>
             </div>
             {data.personal.otherStars !== 0 && (
               <p className="compendium-personal-note">

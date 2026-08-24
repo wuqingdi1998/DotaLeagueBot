@@ -225,15 +225,6 @@
 
 .compendium-results-participant-heading,
 .compendium-results-participant {
-  justify-self: start;
-  width: min(100%, 300px);
-}
-
-.compendium-results-participant-heading {
-  text-align: center;
-}
-
-.compendium-results-participant {
   text-align: left;
 }
 
@@ -297,7 +288,7 @@
 
 .compendium-personal-results {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 14px;
 }
 
