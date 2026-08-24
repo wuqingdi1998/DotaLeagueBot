@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import { PreventSpaceScroll } from "./components/PreventSpaceScroll";
 import { SiteBreakWatcher } from "./components/SiteBreakWatcher";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -51,6 +52,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
+        <PreventSpaceScroll />
         <SiteBreakWatcher />
         {children}
       </body>
