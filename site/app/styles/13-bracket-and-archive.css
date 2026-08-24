@@ -131,33 +131,23 @@
   }
 
   .profile-stat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .profile-stat-grid article,
-  .profile-stat-grid article:nth-child(3) {
+  .profile-stat-grid article {
     min-height: 82px;
-    border-right: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
     gap: 5px;
-    padding: 12px;
+    padding: 12px 8px;
   }
 
   .profile-stat-grid span {
-    font-size: 11px;
-    line-height: 1.25;
+    font-size: clamp(9px, 2.45vw, 11px);
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
   .profile-stat-grid strong {
-    font-size: 29px;
-  }
-
-  .profile-stat-grid article:nth-child(even) {
-    border-right: 0;
-  }
-
-  .profile-stat-grid article:nth-last-child(-n + 2) {
-    border-bottom: 0;
+    font-size: clamp(25px, 7vw, 29px);
   }
 
   .player-profile-content {
@@ -202,6 +192,26 @@
 
   .public-profile-name-row h1 {
     flex-basis: 100%;
+  }
+}
+
+@media (max-width: 359px) {
+  .profile-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-stat-grid article,
+  .profile-stat-grid article:nth-child(3) {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .profile-stat-grid article:nth-child(even) {
+    border-right: 0;
+  }
+
+  .profile-stat-grid article:nth-last-child(-n + 2) {
+    border-bottom: 0;
   }
 }
 

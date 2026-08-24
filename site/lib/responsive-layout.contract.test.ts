@@ -50,4 +50,22 @@ describe("responsive tournament layouts", () => {
       /@media \(max-width: 370px\)[\s\S]*\.public-profile-name-row h1\s*\{[^}]*flex-basis:\s*100%;/,
     );
   });
+
+  it("uses three result columns on phones and foldable screens", () => {
+    expect(profileStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*\.profile-stat-grid\s*\{[^}]*grid-template-columns:\s*repeat\(3, minmax\(0, 1fr\)\);/,
+    );
+    expect(profileStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*\.profile-stat-grid span\s*\{[^}]*white-space:\s*nowrap;/,
+    );
+    expect(profileStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*\.profile-stat-grid span\s*\{[^}]*font-size:\s*clamp\(9px, 2\.45vw, 11px\);/,
+    );
+  });
+
+  it("falls back to two result columns only on truly compact screens", () => {
+    expect(profileStyles).toMatch(
+      /@media \(max-width: 359px\)[\s\S]*\.profile-stat-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
+    );
+  });
 });

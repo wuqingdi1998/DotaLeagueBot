@@ -25,18 +25,23 @@ describe("ultrawide layout limits", () => {
     );
   });
 
-  it("limits wide tables and public profile content", () => {
+  it("limits wide tables while the public profile fills its page", () => {
     expect(style("19-hall-of-fame.css")).toMatch(
       /\.hall-content\s*\{[^}]*max-width:\s*var\(--site-padded-content-max\);/,
     );
 
     const profile = style("12-player-profile.css");
-    expect(profile).toMatch(
-      /\.profile-stat-grid\s*\{[^}]*max-width:\s*var\(--site-content-max\);/,
-    );
-    expect(profile).toMatch(
-      /\.player-profile-content\s*\{[^}]*max-width:\s*var\(--site-padded-content-max\);/,
-    );
+    for (const selector of [
+      "player-profile-identity",
+      "profile-stat-grid",
+      "player-profile-content",
+    ]) {
+      const block = profile.match(new RegExp(`\\.${selector}\\s*\\{[^}]*\\}`))?.[0];
+
+      expect(block).toBeDefined();
+      expect(block).not.toMatch(/max-width:|margin-inline:\s*auto/);
+    }
+    expect(profile).toMatch(/\.profile-stat-grid\s*\{[^}]*width:\s*100%;/);
   });
 
   it("limits archive and compendium columns", () => {
