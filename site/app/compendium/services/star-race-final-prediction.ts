@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
+import { assertCompendiumActive } from "../model/lifecycle";
 import { FINAL_PREDICTION_DATE, starRaceQuestByDate } from "../model/star-race";
 import { requireCompendiumDotaId } from "./participant";
 import {
@@ -50,6 +51,7 @@ export async function configureFinalPrediction(input: {
   teams: unknown;
   now?: Date;
 }) {
+  assertCompendiumActive(input.now);
   if (!Array.isArray(input.teams)) {
     throw new CompendiumError("PREDICTION_INVALID", "Укажите шесть команд");
   }
@@ -81,6 +83,7 @@ export async function submitFinalPrediction(input: {
   position: unknown;
   now?: Date;
 }) {
+  assertCompendiumActive(input.now);
   requireCompendiumDotaId(input.user);
   if (!Number.isInteger(input.position) || Number(input.position) < 1 || Number(input.position) > 6) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите команду");
@@ -104,6 +107,7 @@ export async function finishFinalPrediction(input: {
   position: unknown;
   now?: Date;
 }) {
+  assertCompendiumActive(input.now);
   if (!Number.isInteger(input.position) || Number(input.position) < 1 || Number(input.position) > 6) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите команду-победителя");
   }

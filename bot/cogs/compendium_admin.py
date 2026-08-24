@@ -9,6 +9,10 @@ from services.compendium_star_service import (
     CompendiumStarService,
 )
 from services.compendium_announcement import broadcast_compendium_announcement
+from services.compendium_lifecycle import (
+    TI_2026_COMPENDIUM_FINISHED_MESSAGE,
+    is_ti_2026_compendium_finished,
+)
 from services.compendium_unclaimed_stars import (
     CompendiumUnclaimedStarsError,
     format_unclaimed_challenges_report,
@@ -92,6 +96,12 @@ class CompendiumAdmin(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def announce_compendium(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
+        if is_ti_2026_compendium_finished():
+            await interaction.followup.send(
+                f"❌ {TI_2026_COMPENDIUM_FINISHED_MESSAGE}",
+                ephemeral=True,
+            )
+            return
         if interaction.guild is None:
             await interaction.followup.send(
                 "❌ Команду можно использовать только на сервере.",
@@ -123,6 +133,11 @@ class CompendiumAdmin(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def complete_stars(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(ephemeral=False)
+        if is_ti_2026_compendium_finished():
+            await interaction.followup.send(
+                f"❌ {TI_2026_COMPENDIUM_FINISHED_MESSAGE}",
+            )
+            return
         try:
             report = await request_unclaimed_challenges_report()
         except CompendiumUnclaimedStarsError as error:

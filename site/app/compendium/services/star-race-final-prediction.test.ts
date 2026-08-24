@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   load: vi.fn(),
@@ -38,6 +38,8 @@ const user = {
 
 describe("star race final prediction", () => {
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-21T18:00:00.000Z"));
     vi.clearAllMocks();
     mocks.load.mockResolvedValue({
       teams: [],
@@ -49,6 +51,10 @@ describe("star race final prediction", () => {
       isOpened: true,
       notifiedPlayers: 4,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("requires six distinct team names", async () => {

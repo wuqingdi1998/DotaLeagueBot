@@ -3,6 +3,7 @@ import {
   OPEN_DOTA_ERROR_MESSAGE,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
+import { assertCompendiumActive } from "../model/lifecycle";
 import { COMPENDIUM_HEROES, compendiumHeroById } from "../model/heroes";
 import { findMatchingWin } from "../model/matches";
 import { currentMoscowDay } from "../model/time";
@@ -61,6 +62,7 @@ export async function selectRuneChallengeHero(
   heroId: number,
   now: Date = new Date(),
 ): Promise<RuneChallengeData> {
+  assertCompendiumActive(now);
   requireCompendiumDotaId(user);
   if (!COMPENDIUM_HEROES.some((hero) => hero.id === heroId)) {
     throw new CompendiumError("RUNE_HERO_INVALID", "Выберите героя из списка");
@@ -73,6 +75,7 @@ export async function checkRuneChallenge(
   user: AuthUser,
   now: Date = new Date(),
 ): Promise<RuneChallengeCheckResult> {
+  assertCompendiumActive(now);
   const dotaId = requireCompendiumDotaId(user);
   const day = currentMoscowDay(now);
   let state = await loadRuneChallengeStateRecord(user.discordId, day.dateKey);
@@ -111,6 +114,7 @@ export async function checkRuneChallenge(
       throw error;
     }
     const verificationNow = new Date();
+    assertCompendiumActive(verificationNow);
     const currentDayAfterRequest = currentMoscowDay(verificationNow);
     if (currentDayAfterRequest.dateKey !== day.dateKey) {
       throw new CompendiumError("STALE_QUEST", "Задание больше не действует");

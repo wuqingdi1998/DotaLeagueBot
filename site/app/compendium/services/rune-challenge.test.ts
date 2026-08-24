@@ -58,6 +58,8 @@ function state(selectedAt: Date) {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-08-10T12:00:00.000Z"));
   vi.resetAllMocks();
   mocks.consumeAllowance.mockResolvedValue(true);
   mocks.totalStars.mockResolvedValue(8);

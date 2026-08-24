@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   deletePredictionDay: vi.fn(),
@@ -37,12 +37,18 @@ const administrator = {
 };
 
 beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-08-10T12:00:00.000Z"));
   vi.clearAllMocks();
   mocks.replacePredictionMatches.mockResolvedValue(undefined);
   mocks.relocatePredictionMatches.mockResolvedValue(undefined);
   mocks.recordPredictionResult.mockResolvedValue(4);
   mocks.deletePredictionDay.mockResolvedValue(3);
   mocks.deletePredictionMatch.mockResolvedValue(undefined);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("prediction schedule configuration", () => {

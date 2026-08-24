@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
+import { assertCompendiumActive } from "../model/lifecycle";
 import { isPredictionScore, type PredictionScore } from "../model/predictions";
 import { compendiumTeamByKey } from "../model/teams";
 import { moscowDateKey } from "../model/time";
@@ -23,6 +24,7 @@ export async function submitPrediction(
   score: unknown,
   now: Date = new Date(),
 ) {
+  assertCompendiumActive(now);
   if (!/^\d{1,19}$/.test(matchId) || !isPredictionScore(score)) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите допустимый счёт матча");
   }
@@ -54,7 +56,9 @@ export async function configurePredictionMatches(input: {
   dateKey: string;
   opensAt: unknown;
   matches: Array<{ teamAKey?: unknown; teamBKey?: unknown; startsAt?: unknown }>;
+  now?: Date;
 }): Promise<void> {
+  assertCompendiumActive(input.now);
   if (!isPredictionDateKey(input.dateKey)) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите дату матчей");
   }
@@ -151,7 +155,9 @@ export async function configurePredictionMatches(input: {
 export async function removePredictionSchedule(input: {
   matchId?: unknown;
   dateKey?: unknown;
+  now?: Date;
 }): Promise<{ deletedMatches: number }> {
+  assertCompendiumActive(input.now);
   try {
     if (typeof input.matchId === "string" && /^\d{1,19}$/.test(input.matchId)) {
       await deletePredictionMatch(input.matchId);
@@ -173,7 +179,9 @@ export async function finishPredictionMatch(input: {
   administrator: AuthUser;
   matchId: string;
   score: unknown;
+  now?: Date;
 }): Promise<number> {
+  assertCompendiumActive(input.now);
   if (!/^\d{1,19}$/.test(input.matchId) || !isPredictionScore(input.score)) {
     throw new CompendiumError("PREDICTION_INVALID", "Выберите итоговый счёт матча");
   }

@@ -1,6 +1,7 @@
 import { transaction } from "@/lib/db";
 import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
 import { CompendiumError } from "../model/errors";
+import { assertCompendiumActive } from "../model/lifecycle";
 import {
   starRaceQuestByDate,
   starRaceQuestPhase,
@@ -20,6 +21,7 @@ export async function completeDailyQuestManually(input: {
   administratorId: string;
   now?: Date;
 }): Promise<ManualCompletionResult> {
+  assertCompendiumActive(input.now);
   const { dateKey } = currentMoscowDay(input.now);
   const rewardStars = dailyChallengeRewardStars(dateKey);
   return transaction(async (client) => {
@@ -73,6 +75,7 @@ export async function completeStarRaceQuestManually(input: {
   now?: Date;
 }): Promise<ManualCompletionResult> {
   const now = input.now ?? new Date();
+  assertCompendiumActive(now);
   const quest = starRaceQuestByDate(input.dateKey);
   const rewardStars = quest?.rewardStars ?? null;
   const finalPredictionOpenedAt =

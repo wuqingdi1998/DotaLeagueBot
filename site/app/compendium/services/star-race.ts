@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
+import { assertCompendiumActive } from "../model/lifecycle";
 import { evaluateStarRaceRequirement } from "../model/star-race-evaluation";
 import {
   starRaceForMoment,
@@ -182,6 +183,7 @@ export async function checkStarRaceQuest(
   dateKey: string,
   now: Date = new Date(),
 ): Promise<CheckStarRaceQuestResult> {
+  assertCompendiumActive(now);
   const dotaId = requireCompendiumDotaId(user);
   const quest = starRaceQuestByDate(dateKey);
   if (
@@ -228,6 +230,7 @@ export async function checkStarRaceQuest(
     forceRefresh: true,
   });
   const verificationNow = new Date();
+  assertCompendiumActive(verificationNow);
   if (starRaceQuestPhase(quest, verificationNow) !== "active") {
     throw new CompendiumError(
       "STAR_RACE_NOT_ACTIVE",

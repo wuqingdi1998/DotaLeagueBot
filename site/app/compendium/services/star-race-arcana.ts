@@ -1,4 +1,8 @@
 import { CompendiumError } from "../model/errors";
+import {
+  assertCompendiumActive,
+  isCompendiumFinished,
+} from "../model/lifecycle";
 import { isArcanaHeroId } from "../model/arcana-item-ids";
 import {
   starRaceQuestByDate,
@@ -142,6 +146,7 @@ export async function checkStarRaceArcanaQuest(input: {
   wins: MatchingWin[];
   now: Date;
 }): Promise<StarRaceArcanaOutcome> {
+  assertCompendiumActive(input.now);
   if (input.wins.length === 0) {
     throw new CompendiumError(
       "NO_MATCH",
@@ -200,11 +205,14 @@ export async function checkStarRaceArcanaQuest(input: {
   );
 }
 
-export async function processDueArcanaChecks(): Promise<{
+export async function processDueArcanaChecks(now: Date = new Date()): Promise<{
   checked: number;
   completed: number;
   postponed: number;
 }> {
+  if (isCompendiumFinished(now)) {
+    return { checked: 0, completed: 0, postponed: 0 };
+  }
   const dueChecks = await loadDueArcanaChecks();
   let completed = 0;
   let postponed = 0;

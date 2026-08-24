@@ -2,6 +2,7 @@ import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
 import { CompendiumError } from "../model/errors";
+import { isCompendiumFinished } from "../model/lifecycle";
 import type { MatchingWin } from "../model/types";
 import {
   CURRENT_STAR_RACE,
@@ -213,6 +214,7 @@ async function ensureStarRaceTiebreakRolls(
   race: StarRaceWeekDefinition,
   includeArchivedPlayers: boolean,
 ): Promise<void> {
+  if (isCompendiumFinished()) return;
   await query(
     `${eligibleStarRaceTotalsCte}
      INSERT INTO compendium_star_race_tiebreak_rolls

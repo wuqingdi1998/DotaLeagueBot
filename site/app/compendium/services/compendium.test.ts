@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CompendiumError } from "../model/errors";
 
 const mocks = vi.hoisted(() => ({
@@ -76,6 +76,8 @@ const completion = {
 };
 
 beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-08-10T12:00:00.000Z"));
   vi.clearAllMocks();
   mocks.questForCurrentDay.mockResolvedValue({
     id: "1",
@@ -90,6 +92,10 @@ beforeEach(() => {
   mocks.loadDailyPredictions.mockResolvedValue([]);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("compendium clock", () => {
   it("sends the server time used to calculate the current Moscow day", async () => {
     const now = new Date("2026-08-09T21:02:23.000Z");
@@ -98,6 +104,16 @@ describe("compendium clock", () => {
 
     expect(result.serverNow).toBe("2026-08-09T21:02:23.000Z");
     expect(result.moscowDate).toBe("2026-08-10");
+  });
+
+  it("loads the final day without creating new quests after the end", async () => {
+    const now = new Date("2026-08-24T09:00:00.000Z");
+
+    const result = await loadCompendium(user, now);
+
+    expect(result.moscowDate).toBe("2026-08-23");
+    expect(mocks.ensureDailyQuestSet).not.toHaveBeenCalled();
+    expect(mocks.loadDailyQuests).toHaveBeenCalledWith("2026-08-23", "100");
   });
 });
 

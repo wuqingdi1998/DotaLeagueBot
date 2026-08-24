@@ -10,6 +10,7 @@ import { currentMoscowDay } from "../model/time";
 import type { MatchingWin, OpenDotaMatch } from "../model/types";
 import { fetchRecentPlayerMatches } from "./opendota";
 import { ensureDailyQuestSet } from "./repository";
+import { isCompendiumFinished } from "../model/lifecycle";
 import {
   loadClaimedChallengeKeys,
   loadUnclaimedChallengeCandidates,
@@ -208,6 +209,14 @@ export async function findUnclaimedChallenges(
   now: Date = new Date(),
 ): Promise<UnclaimedChallengesReport> {
   const day = currentMoscowDay(now);
+  if (isCompendiumFinished(now)) {
+    return {
+      dateKey: day.dateKey,
+      checkedCount: 0,
+      failedCount: 0,
+      players: [],
+    };
+  }
   await ensureDailyQuestSet(day.dateKey);
   const configuredQuest = starRaceQuestByDate(day.dateKey);
   const activeStarRaceQuest = configuredQuest &&

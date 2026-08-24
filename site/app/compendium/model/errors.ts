@@ -1,4 +1,5 @@
 export type CompendiumErrorCode =
+  | "COMPENDIUM_FINISHED"
   | "MISSING_DOTA_ID"
   | "QUEST_NOT_FOUND"
   | "STALE_QUEST"

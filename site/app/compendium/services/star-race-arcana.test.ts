@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   fetchOpenDotaMatchDetails: vi.fn(),
@@ -57,13 +57,26 @@ const win = {
 };
 
 beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(now);
   vi.clearAllMocks();
   mocks.loadArcanaChecks.mockResolvedValue(new Map());
   mocks.loadDueArcanaChecks.mockResolvedValue([]);
   mocks.fetchStratzReplayUrl.mockResolvedValue(null);
 });
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe("Arcana star-race verification", () => {
+  it("does not read queued checks after the compendium ends", async () => {
+    await expect(processDueArcanaChecks(
+      new Date("2026-08-24T00:00:00+03:00"),
+    )).resolves.toEqual({ checked: 0, completed: 0, postponed: 0 });
+    expect(mocks.loadDueArcanaChecks).not.toHaveBeenCalled();
+  });
+
   it("does not schedule replay checks for heroes without an Arcana", async () => {
     await expect(checkStarRaceArcanaQuest({
       playerId: "100",

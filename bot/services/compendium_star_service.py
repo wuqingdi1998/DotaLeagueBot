@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from sqlalchemy import text
 
 from database.core import async_session
+from services.compendium_lifecycle import (
+    TI_2026_COMPENDIUM_FINISHED_MESSAGE,
+    is_ti_2026_compendium_finished,
+)
 
 
 class CompendiumStarAdjustmentError(ValueError):
@@ -45,6 +49,10 @@ class CompendiumStarService:
         administrator_id: int,
         administrator_name: str,
     ) -> CompendiumStarAdjustmentResult:
+        if is_ti_2026_compendium_finished():
+            raise CompendiumStarAdjustmentError(
+                TI_2026_COMPENDIUM_FINISHED_MESSAGE
+            )
         if amount == 0 or abs(amount) > 10000:
             raise CompendiumStarAdjustmentError(
                 "Количество должно быть от 1 до 10 000 звёзд."

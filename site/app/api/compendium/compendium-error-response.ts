@@ -2,6 +2,7 @@ import { CompendiumError } from "@/app/compendium/model/errors";
 import { responseFromAuthError } from "@/lib/auth";
 
 const compendiumErrorStatuses = {
+  COMPENDIUM_FINISHED: 409,
   MISSING_DOTA_ID: 409,
   QUEST_NOT_FOUND: 404,
   STALE_QUEST: 409,

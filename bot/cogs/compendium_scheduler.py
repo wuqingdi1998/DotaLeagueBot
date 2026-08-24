@@ -11,6 +11,7 @@ from discord.ext import commands, tasks
 from sqlalchemy import text
 
 from database.core import async_session
+from services.compendium_lifecycle import is_ti_2026_compendium_finished
 
 MOSCOW_TIME_ZONE = ZoneInfo("Europe/Moscow")
 COMPENDIUM_GOLD_ROLE_NAME = "TI 2026 — Золотой компендиум"
@@ -21,14 +22,20 @@ AUTUMN_SEASON_NUMBER = 9
 class CompendiumScheduler(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
+        if is_ti_2026_compendium_finished():
+            return
         self.generate_daily_quests.start()
         self.sync_gold_compendium_role.start()
         self.verify_arcana_checks.start()
 
     async def cog_unload(self) -> None:
-        self.generate_daily_quests.cancel()
-        self.sync_gold_compendium_role.cancel()
-        self.verify_arcana_checks.cancel()
+        for loop in (
+            self.generate_daily_quests,
+            self.sync_gold_compendium_role,
+            self.verify_arcana_checks,
+        ):
+            if loop.is_running():
+                loop.cancel()
 
     async def request_compendium_endpoint(
         self,
@@ -90,7 +97,12 @@ class CompendiumScheduler(commands.Cog):
             "проверить Arcana-задания",
             timeout_seconds=300,
         )
-        if payload and int(payload.get("checked", 0)) > 0:
+        checked = payload.get("checked", 0) if payload else 0
+        if (
+            payload
+            and isinstance(checked, (int, str))
+            and int(checked) > 0
+        ):
             print(
                 "✅ Проверены Arcana-задания: "
                 f"{payload.get('checked', 0)}, выполнены: "
@@ -99,11 +111,17 @@ class CompendiumScheduler(commands.Cog):
 
     @tasks.loop(time=datetime.time(hour=0, minute=0, tzinfo=MOSCOW_TIME_ZONE))
     async def generate_daily_quests(self) -> None:
+        if is_ti_2026_compendium_finished():
+            self.generate_daily_quests.cancel()
+            return
         await self.request_daily_quests()
 
     @generate_daily_quests.before_loop
     async def before_daily_generation(self) -> None:
         await self.bot.wait_until_ready()
+        if is_ti_2026_compendium_finished():
+            self.generate_daily_quests.cancel()
+            return
         await self.request_daily_quests()
 
     async def eligible_gold_role_members(self) -> tuple[set[int], bool]:
@@ -168,6 +186,9 @@ class CompendiumScheduler(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def sync_gold_compendium_role(self) -> None:
+        if is_ti_2026_compendium_finished():
+            self.sync_gold_compendium_role.cancel()
+            return
         guild_id = int(os.getenv("GUILD_ID") or 0)
         guilds = [self.bot.get_guild(guild_id)] if guild_id else self.bot.guilds
         for guild in guilds:
@@ -184,6 +205,9 @@ class CompendiumScheduler(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def verify_arcana_checks(self) -> None:
+        if is_ti_2026_compendium_finished():
+            self.verify_arcana_checks.cancel()
+            return
         await self.request_arcana_verification()
 
     @verify_arcana_checks.before_loop

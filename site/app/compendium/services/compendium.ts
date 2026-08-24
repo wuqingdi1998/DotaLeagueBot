@@ -6,8 +6,13 @@ import {
   OPEN_DOTA_ERROR_MESSAGE,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
+import {
+  assertCompendiumActive,
+  compendiumDisplayDateKey,
+  isCompendiumFinished,
+} from "../model/lifecycle";
 import { findMatchingWin } from "../model/matches";
-import { currentMoscowDay, moscowDateLabel } from "../model/time";
+import { currentMoscowDay, moscowDateLabel, moscowDayBounds } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import { fetchRecentPlayerMatches } from "./opendota";
@@ -47,24 +52,27 @@ export async function loadCompendium(
   user: AuthUser,
   now: Date = new Date(),
 ): Promise<CompendiumData> {
-  const day = currentMoscowDay(now);
-  await ensureDailyQuestSet(day.dateKey, user.discordId);
+  const dateKey = compendiumDisplayDateKey(now);
+  const day = moscowDayBounds(dateKey);
+  if (!isCompendiumFinished(now)) {
+    await ensureDailyQuestSet(dateKey, user.discordId);
+  }
   const [quests, totalStars, communityStars, rerollsRemaining, runeChallenge, predictions, starRace] = await Promise.all([
-    loadDailyQuests(day.dateKey, user.discordId),
+    loadDailyQuests(dateKey, user.discordId),
     totalCompendiumStars(user.discordId),
     totalCommunityCompendiumStars(),
-    dailyRerollsRemaining(day.dateKey, user.discordId),
-    loadRuneChallenge(user.discordId, day.dateKey),
-    loadDailyPredictions(day.dateKey, user.discordId, now),
+    dailyRerollsRemaining(dateKey, user.discordId),
+    loadRuneChallenge(user.discordId, dateKey),
+    loadDailyPredictions(dateKey, user.discordId, now),
     loadStarRace(user, now),
   ]);
   return {
     serverNow: now.toISOString(),
-    moscowDate: day.dateKey,
-    moscowDateLabel: moscowDateLabel(day.dateKey),
+    moscowDate: dateKey,
+    moscowDateLabel: moscowDateLabel(dateKey),
     nextResetAt: day.end.toISOString(),
     tournamentStartsAt: COMPENDIUM_TOURNAMENT_START_AT,
-    dailyChallengeRewardStars: dailyChallengeRewardStars(day.dateKey),
+    dailyChallengeRewardStars: dailyChallengeRewardStars(dateKey),
     rerollsRemaining,
     totalStars,
     communityStars,
@@ -81,6 +89,7 @@ export async function checkDailyQuest(
   questId: string,
   now: Date = new Date(),
 ): Promise<CheckQuestResult> {
+  assertCompendiumActive(now);
   const dotaId = requireCompendiumDotaId(user);
 
   const day = currentMoscowDay(now);
@@ -136,6 +145,7 @@ export async function checkDailyQuest(
   }
 
   const verificationNow = new Date();
+  assertCompendiumActive(verificationNow);
   const currentDayAfterRequest = currentMoscowDay(verificationNow);
   if (currentDayAfterRequest.dateKey !== day.dateKey) {
     throw new CompendiumError("STALE_QUEST", "Задание больше не действует");
@@ -179,6 +189,7 @@ export async function rerollDailyQuest(
   questId: string,
   now: Date = new Date(),
 ): Promise<RerollQuestResult> {
+  assertCompendiumActive(now);
   requireCompendiumDotaId(user);
   const day = currentMoscowDay(now);
   await ensureDailyQuestSet(day.dateKey, user.discordId);

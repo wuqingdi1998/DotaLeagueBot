@@ -1,5 +1,7 @@
 export const COMPENDIUM_TIME_ZONE = "Europe/Moscow";
 export const COMPENDIUM_TOURNAMENT_START_AT = "2026-08-13T07:00:00+03:00";
+export const COMPENDIUM_END_AT = "2026-08-24T00:00:00+03:00";
+export const COMPENDIUM_FINAL_DATE = "2026-08-23";
 export const COMPENDIUM_PLAYOFF_STAGES = [
   { dateKey: "2026-08-20", label: "1-й день плей-офф" },
   { dateKey: "2026-08-21", label: "2-й день плей-офф" },
