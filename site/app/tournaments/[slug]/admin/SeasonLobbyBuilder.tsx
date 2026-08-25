@@ -3,25 +3,28 @@
 import {
   useMemo,
   useState,
-  type CSSProperties,
   type DragEvent,
 } from "react";
 import {
-  FiArrowDown,
   FiEdit3,
   FiLock,
   FiMinus,
   FiPlus,
   FiSend,
+  FiZap,
   FiX,
 } from "react-icons/fi";
+import {
+  MAX_SEASON_LOBBY_COUNT,
+  SEASON_LOBBY_SIZE,
+} from "@/lib/season-lobby-optimization";
 import { useTournament } from "../hooks/TournamentContext";
-import { sortSeasonRegistrations } from "../model/season-registration";
 import type {
   SeasonLobby,
   SeasonMatchParticipant,
   SeasonRound,
 } from "../model/season-types";
+import { SeasonLobbyReserve } from "./SeasonLobbyReserve";
 
 type TeamSide = "a" | "b";
 
@@ -29,9 +32,6 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
   const { season } = useTournament();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState("");
-  const [playerOrder, setPlayerOrder] = useState<"registration" | "tier">(
-    "registration",
-  );
   const assignedPlayerIds = useMemo(
     () =>
       new Set(
@@ -43,28 +43,9 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       ),
     [round.lobbies],
   );
-  const orderedRegistrations = useMemo(
-    () =>
-      playerOrder === "tier"
-        ? sortSeasonRegistrations(round.registrations, "tier", "descending")
-        : round.registrations,
-    [playerOrder, round.registrations],
-  );
-  const unassignedRegistrations = orderedRegistrations.filter(
+  const unassignedRegistrations = round.registrations.filter(
     (registration) => !assignedPlayerIds.has(registration.player_id),
   );
-  const longestNicknameLength = Math.max(
-    10,
-    ...round.registrations.map((registration) =>
-      Array.from(registration.nickname).length,
-    ),
-  );
-  const playerPoolStyle = {
-    "--season-builder-nickname-width": `${Math.min(
-      28,
-      longestNicknameLength + 2,
-    )}ch`,
-  } as CSSProperties;
   if (!season.data?.isOrganizer || round.round_kind !== "regular") return null;
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -88,7 +69,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
   }
 
   function removeOneLobby() {
-    if (round.lobbies.length <= 2) return;
+    if (round.lobbies.length <= 1) return;
     const targetIndex = round.lobbies.length === 3 ? 1 : round.lobbies.length - 1;
     const target = round.lobbies[targetIndex];
     const playerCount = target.matches.flatMap((match) => match.participants).length;
@@ -149,61 +130,33 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
         </span>
       </header>
 
-      <div className="season-builder-pool-heading">
-        <strong>Свободные игроки</strong>
-        <div>
+      {isEditing && (
+        <div className="season-builder-optimization">
+          <span>
+            Полные десятки распределяются сверху вниз, остальные остаются в
+            запасе.
+          </span>
           <button
-            className={playerOrder === "registration" ? "active" : ""}
+            className="secondary-button compact"
             type="button"
-            onClick={() => setPlayerOrder("registration")}
+            disabled={
+              round.registrations.length < SEASON_LOBBY_SIZE ||
+              Boolean(busyAction)
+            }
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Заменить текущую ручную расстановку оптимальным составом?",
+                )
+              ) {
+                void mutate("optimize");
+              }
+            }}
           >
-            По регистрации
-          </button>
-          <button
-            className={playerOrder === "tier" ? "active" : ""}
-            type="button"
-            onClick={() => setPlayerOrder("tier")}
-          >
-            Тир <FiArrowDown aria-hidden="true" />
+            <FiZap aria-hidden="true" /> Оптимальный состав
           </button>
         </div>
-      </div>
-
-      <div className="season-builder-player-pool" style={playerPoolStyle}>
-        {unassignedRegistrations.map((registration) => {
-          const isSelected = registration.player_id === selectedPlayerId;
-          return (
-            <button
-              className={`season-builder-player${isSelected ? " selected" : ""}`}
-              type="button"
-              draggable={isEditing}
-              disabled={!isEditing || Boolean(busyAction)}
-              key={registration.player_id}
-              aria-label={`${registration.nickname}, тир ${registration.tier_snapshot ?? "—"}, роли ${registration.positions ?? "—"}`}
-              onClick={() => setSelectedPlayerId(registration.player_id)}
-              onDragStart={(event) => {
-                event.dataTransfer.setData("text/plain", registration.player_id);
-                setSelectedPlayerId(registration.player_id);
-              }}
-            >
-              <span className="season-builder-player-name">
-                <strong>{registration.nickname}</strong>
-              </span>
-              <span className="season-builder-player-tier">
-                <strong>{registration.tier_snapshot ?? "—"}</strong>
-              </span>
-              <span className="season-builder-player-roles">
-                <strong>{registration.positions ?? "—"}</strong>
-              </span>
-            </button>
-          );
-        })}
-        {!unassignedRegistrations.length && (
-          <p className="season-builder-pool-empty">
-            Все зарегистрированные игроки распределены по лобби.
-          </p>
-        )}
-      </div>
+      )}
 
       <div className="season-builder-lobbies">
         {round.lobbies.map((lobby) => (
@@ -222,13 +175,24 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
         ))}
       </div>
 
+      <SeasonLobbyReserve
+        busy={Boolean(busyAction)}
+        isEditing={isEditing}
+        onSelect={setSelectedPlayerId}
+        registrations={unassignedRegistrations}
+        selectedPlayerId={selectedPlayerId}
+      />
+
       <div className="season-builder-actions">
         {isEditing && (
           <>
             <button
               className="secondary-button"
               type="button"
-              disabled={round.lobbies.length >= 4 || Boolean(busyAction)}
+              disabled={
+                round.lobbies.length >= MAX_SEASON_LOBBY_COUNT ||
+                Boolean(busyAction)
+              }
               onClick={() => void mutate("add")}
             >
               <FiPlus /> Добавить ещё одно лобби
@@ -236,7 +200,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
             <button
               className="secondary-button"
               type="button"
-              disabled={round.lobbies.length <= 2 || Boolean(busyAction)}
+              disabled={round.lobbies.length <= 1 || Boolean(busyAction)}
               onClick={removeOneLobby}
             >
               <FiMinus /> Удалить одно лобби
@@ -422,8 +386,8 @@ function BuilderTeam({
             {player ? (
               <>
                 <strong>{player.nickname}</strong>
-                <small className="season-builder-slot-tier">
-                  Тир {player.tier_snapshot ?? "—"}
+                <small className="season-builder-slot-tier season-builder-tier-badge">
+                  {player.tier_snapshot ?? "—"}
                 </small>
                 <small className="season-builder-slot-roles">
                   Роли {player.positions ?? "—"}
@@ -469,6 +433,7 @@ function lobbyActionMessage(action: string) {
     add: "Лобби добавлено",
     remove: "Лобби удалено",
     assign: "Распределение обновлено",
+    optimize: "Оптимальный состав сохранён, остальные игроки перенесены в запас",
     lock: "Лобби зафиксированы",
     edit: "Редактирование лобби включено",
     publish: "Лобби опубликованы",

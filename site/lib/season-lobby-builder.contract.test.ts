@@ -16,6 +16,9 @@ const seasonRoute = source("../app/api/season/route.ts");
 const builder = source(
   "../app/tournaments/[slug]/admin/SeasonLobbyBuilder.tsx",
 );
+const reserve = source(
+  "../app/tournaments/[slug]/admin/SeasonLobbyReserve.tsx",
+);
 const roundPanel = source(
   "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
 );
@@ -24,6 +27,12 @@ const seasonAdmin = source(
 );
 const builderStyles = source(
   "../app/styles/56-season-lobby-builder.css",
+);
+const optimizationActions = source(
+  "../app/api/admin/season/season-lobby-optimization-actions.ts",
+);
+const configurationStore = source(
+  "../app/api/admin/season/season-lobby-configuration-store.ts",
 );
 
 describe("season lobby builder contract", () => {
@@ -35,27 +44,29 @@ describe("season lobby builder contract", () => {
 
   it("shows tier and roles and highlights the current drop slot", () => {
     expect(seasonRoute).toContain("AS positions");
-    expect(builder).toContain("registration.positions");
+    expect(reserve).toContain("registration.positions");
     expect(builder).toContain("player.positions");
     expect(builder).toContain('" drag-over"');
-    expect(builder).toContain('sortSeasonRegistrations(round.registrations, "tier", "descending")');
+    expect(reserve).toContain(
+      'sortSeasonRegistrations(registrations, "tier", "descending")',
+    );
   });
 
   it("keeps only unassigned players in the compact pool", () => {
     expect(builder).toContain("assignedPlayerIds.has(registration.player_id)");
-    expect(builder).toContain("unassignedRegistrations.map");
-    expect(builder).toContain("Свободные игроки");
-    expect(builder).not.toContain("Не распределён");
-    expect(builder).not.toContain("<small>Тир</small>");
-    expect(builder).not.toContain("<small>Роли</small>");
-    expect(builder).toContain("--season-builder-nickname-width");
+    expect(builder).toContain("unassignedRegistrations");
+    expect(reserve).toContain("Запас");
+    expect(reserve).not.toContain("Не распределён");
+    expect(reserve).not.toContain("<small>Тир</small>");
+    expect(reserve).not.toContain("<small>Роли</small>");
+    expect(reserve).toContain("--season-builder-nickname-width");
   });
 
-  it("creates two to four named lobbies and validates complete 5 by 5 teams", () => {
-    expect(actions).toContain("Верхнее лобби");
-    expect(actions).toContain("Среднее лобби");
-    expect(actions).toContain("Нижнее лобби");
-    expect(actions).toContain("Самое нижнее лобби");
+  it("creates one to four named lobbies and validates complete 5 by 5 teams", () => {
+    expect(configurationStore).toContain("Верхнее лобби");
+    expect(configurationStore).toContain("Среднее лобби");
+    expect(configurationStore).toContain("Нижнее лобби");
+    expect(configurationStore).toContain("Самое нижнее лобби");
     expect(actions).toContain("team_a_count = 5");
     expect(actions).toContain("team_b_count = 5");
   });
@@ -84,7 +95,9 @@ describe("season lobby builder contract", () => {
   });
 
   it("keeps player labels aligned and uses the shared player colors", () => {
-    expect(builder).toContain('className="season-builder-slot-tier"');
+    expect(builder).toContain(
+      'className="season-builder-slot-tier season-builder-tier-badge"',
+    );
     expect(builder).toContain('className="season-builder-slot-roles"');
     expect(builderStyles).toContain("padding: 4px 12px");
     expect(builderStyles).toMatch(
@@ -96,5 +109,30 @@ describe("season lobby builder contract", () => {
     expect(builderStyles).toContain("color: var(--season-player-name-color)");
     expect(builderStyles).toContain("color: var(--season-player-tier-color)");
     expect(builderStyles).toContain("color: var(--season-player-roles-color)");
+  });
+
+  it("optimizes complete lobbies and leaves the remaining players in reserve", () => {
+    const lobbies = builder.indexOf('className="season-builder-lobbies"');
+    const reserveComponent = builder.indexOf("<SeasonLobbyReserve", lobbies);
+
+    expect(builder).toContain("Оптимальный состав");
+    expect(builder).toContain('mutate("optimize")');
+    expect(reserveComponent).toBeGreaterThan(lobbies);
+    expect(reserve).toContain("Запас");
+    expect(optimizationActions).toContain("optimizeSeasonLobbyPlayers");
+    expect(optimizationActions).toContain("registration.created_at");
+    expect(optimizationActions).toContain("reservePlayerIds");
+  });
+
+  it("shows circular tier badges in reserve and assigned lobby slots", () => {
+    expect(reserve).toContain(
+      'className="season-builder-player-tier season-builder-tier-badge"',
+    );
+    expect(builder).toContain(
+      'className="season-builder-slot-tier season-builder-tier-badge"',
+    );
+    expect(builderStyles).toMatch(
+      /\.season-builder-tier-badge \{[\s\S]*?border-radius: 50%;/,
+    );
   });
 });

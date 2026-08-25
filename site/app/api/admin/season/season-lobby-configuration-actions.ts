@@ -7,13 +7,22 @@ import {
   type SeasonLobbySlot,
   type SeasonLobbyTeamSide,
 } from "@/lib/season-lobby-assignment";
+import { MAX_SEASON_LOBBY_COUNT } from "@/lib/season-lobby-optimization";
 import { enumValue, requiredId } from "./season-admin-model";
+import {
+  insertSeasonLobby,
+  loadSeasonLobbyReferences,
+  renameAndOrderSeasonLobbies,
+  seasonLobbyNames,
+} from "./season-lobby-configuration-store";
+import { optimizeSeasonLobbyConfiguration } from "./season-lobby-optimization-actions";
 
 const configurationActions = [
   "create",
   "add",
   "remove",
   "assign",
+  "optimize",
   "lock",
   "edit",
   "publish",
@@ -29,28 +38,12 @@ type RoundConfiguration = {
   lobby_configuration_status: ConfigurationStatus;
 };
 
-type LobbyReference = {
-  id: number;
-  match_id: number | null;
-};
-
 type ParticipantAssignment = {
   match_id: number;
   player_id: string;
   team_side: SeasonLobbyTeamSide;
   tier_snapshot: number | null;
   slot_number: number | null;
-};
-
-const lobbyNamesByCount: Record<number, string[]> = {
-  2: ["Верхнее лобби", "Нижнее лобби"],
-  3: ["Верхнее лобби", "Среднее лобби", "Нижнее лобби"],
-  4: [
-    "Верхнее лобби",
-    "Среднее лобби",
-    "Нижнее лобби",
-    "Самое нижнее лобби",
-  ],
 };
 
 async function lockRoundConfiguration(client: PoolClient, roundId: number) {
@@ -73,73 +66,14 @@ async function lockRoundConfiguration(client: PoolClient, roundId: number) {
   return round;
 }
 
-async function loadLobbies(client: PoolClient, roundId: number) {
-  const result = await client.query<LobbyReference>(
-    `SELECT lobby.id::int, MIN(match.id)::int AS match_id
-     FROM season_lobbies lobby
-     LEFT JOIN season_matches match ON match.lobby_id = lobby.id
-     WHERE lobby.round_id = $1
-     GROUP BY lobby.id
-     ORDER BY lobby.sort_order, lobby.id`,
-    [roundId],
-  );
-  return result.rows;
-}
-
-async function insertLobby(
-  client: PoolClient,
-  roundId: number,
-  name: string,
-  sortOrder: number,
-) {
-  const lobby = await client.query<{ id: number }>(
-    `INSERT INTO season_lobbies (round_id, name, sort_order, status)
-     VALUES ($1, $2, $3, 'draft')
-     RETURNING id::int`,
-    [roundId, name, sortOrder],
-  );
-  await client.query(
-    `INSERT INTO season_matches
-       (lobby_id, team_a_name, team_b_name, best_of, status, sort_order)
-     VALUES ($1, 'Левая команда', 'Правая команда', 2, 'draft', 1)`,
-    [lobby.rows[0].id],
-  );
-  return lobby.rows[0].id;
-}
-
-async function renameAndOrderLobbies(
-  client: PoolClient,
-  orderedLobbyIds: number[],
-) {
-  const names = lobbyNamesByCount[orderedLobbyIds.length];
-  if (!names) {
-    throw new Response("В туре должно быть от двух до четырёх лобби", {
-      status: 400,
-    });
-  }
-  await client.query(
-    `UPDATE season_lobbies
-     SET sort_order = sort_order + 100
-     WHERE id = ANY($1::bigint[])`,
-    [orderedLobbyIds],
-  );
-  for (const [index, lobbyId] of orderedLobbyIds.entries()) {
-    await client.query(
-      `UPDATE season_lobbies
-       SET name = $2, sort_order = $3, updated_at = NOW()
-       WHERE id = $1`,
-      [lobbyId, names[index], index + 1],
-    );
-  }
-}
-
 async function createConfiguration(client: PoolClient, roundId: number) {
-  const existing = await loadLobbies(client, roundId);
+  const existing = await loadSeasonLobbyReferences(client, roundId);
   if (existing.length) {
     throw new Response("В этом туре уже есть лобби", { status: 409 });
   }
-  await insertLobby(client, roundId, lobbyNamesByCount[2][0], 1);
-  await insertLobby(client, roundId, lobbyNamesByCount[2][1], 2);
+  const names = seasonLobbyNames(2);
+  await insertSeasonLobby(client, roundId, names[0], 1);
+  await insertSeasonLobby(client, roundId, names[1], 2);
   await client.query(
     `UPDATE season_rounds
      SET lobby_configuration_status = 'editing', updated_at = NOW()
@@ -149,13 +83,13 @@ async function createConfiguration(client: PoolClient, roundId: number) {
 }
 
 async function addLobby(client: PoolClient, roundId: number) {
-  const lobbies = await loadLobbies(client, roundId);
-  if (lobbies.length < 2 || lobbies.length >= 4) {
-    throw new Response("Можно создать от двух до четырёх лобби", {
+  const lobbies = await loadSeasonLobbyReferences(client, roundId);
+  if (lobbies.length < 1 || lobbies.length >= MAX_SEASON_LOBBY_COUNT) {
+    throw new Response("Можно создать от одного до четырёх лобби", {
       status: 409,
     });
   }
-  const newLobbyId = await insertLobby(
+  const newLobbyId = await insertSeasonLobby(
     client,
     roundId,
     "Новое лобби",
@@ -164,13 +98,13 @@ async function addLobby(client: PoolClient, roundId: number) {
   const orderedIds = lobbies.map((lobby) => lobby.id);
   if (lobbies.length === 2) orderedIds.splice(1, 0, newLobbyId);
   else orderedIds.push(newLobbyId);
-  await renameAndOrderLobbies(client, orderedIds);
+  await renameAndOrderSeasonLobbies(client, orderedIds);
 }
 
 async function removeLobby(client: PoolClient, roundId: number) {
-  const lobbies = await loadLobbies(client, roundId);
-  if (lobbies.length <= 2) {
-    throw new Response("Два лобби — минимальное количество", { status: 409 });
+  const lobbies = await loadSeasonLobbyReferences(client, roundId);
+  if (lobbies.length <= 1) {
+    throw new Response("Одно лобби — минимальное количество", { status: 409 });
   }
   const removalIndex = lobbies.length === 3 ? 1 : lobbies.length - 1;
   await client.query("DELETE FROM season_lobbies WHERE id = $1", [
@@ -179,7 +113,7 @@ async function removeLobby(client: PoolClient, roundId: number) {
   const remainingIds = lobbies
     .filter((_, index) => index !== removalIndex)
     .map((lobby) => lobby.id);
-  await renameAndOrderLobbies(client, remainingIds);
+  await renameAndOrderSeasonLobbies(client, remainingIds);
 }
 
 async function assignPlayer(
@@ -340,8 +274,8 @@ async function lockConfiguration(client: PoolClient, roundId: number) {
   const state = validation.rows[0];
   if (
     !state ||
-    state.lobby_count < 2 ||
-    state.lobby_count > 4 ||
+    state.lobby_count < 1 ||
+    state.lobby_count > MAX_SEASON_LOBBY_COUNT ||
     state.complete_lobby_count !== state.lobby_count
   ) {
     throw new Response(
@@ -384,7 +318,7 @@ export async function updateSeasonLobbyConfiguration(
         throw new Response("Конструктор лобби уже создан", { status: 409 });
       }
       await createConfiguration(client, roundId);
-    } else if (["add", "remove", "assign"].includes(action)) {
+    } else if (["add", "remove", "assign", "optimize"].includes(action)) {
       if (status !== "editing") {
         throw new Response("Сначала включите редактирование лобби", {
           status: 409,
@@ -393,6 +327,9 @@ export async function updateSeasonLobbyConfiguration(
       if (action === "add") await addLobby(client, roundId);
       if (action === "remove") await removeLobby(client, roundId);
       if (action === "assign") await assignPlayer(client, roundId, body);
+      if (action === "optimize") {
+        await optimizeSeasonLobbyConfiguration(client, roundId);
+      }
     } else if (action === "lock") {
       if (status !== "editing") {
         throw new Response("Лобби уже зафиксированы", { status: 409 });
