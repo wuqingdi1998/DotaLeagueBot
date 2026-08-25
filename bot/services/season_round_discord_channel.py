@@ -21,6 +21,7 @@ class SeasonRoundDiscordChannelTarget:
     scheduled_at: datetime
     discord_channel_id: int | None
     participant_ids: tuple[int, ...]
+    managed_participant_ids: tuple[int, ...]
 
 
 def season_round_channel_name(round_name: str | None, round_number: int) -> str:
@@ -136,16 +137,34 @@ def _channel_with_round_topic(
     )
 
 
+def _category_member_overwrite(
+    category: discord.CategoryChannel, member_id: int
+) -> discord.PermissionOverwrite | None:
+    for overwrite_target, overwrite in category.overwrites.items():
+        if (
+            isinstance(overwrite_target, discord.Member)
+            and overwrite_target.id == member_id
+        ):
+            return _copy_overwrite(overwrite)
+    return None
+
+
 async def ensure_season_round_discord_channel(
     category: discord.CategoryChannel,
     target: SeasonRoundDiscordChannelTarget,
-) -> discord.TextChannel:
+) -> discord.TextChannel | None:
     guild = category.guild
     members = await _registered_members(guild, target.participant_ids)
+    removed_participant_ids = tuple(
+        sorted(set(target.managed_participant_ids) - set(target.participant_ids))
+    )
+    removed_members = await _registered_members(guild, removed_participant_ids)
     channel = await _text_channel(guild, target.discord_channel_id)
     if channel is None:
         channel = _channel_with_round_topic(category, target.round_id)
     if channel is None:
+        if not target.participant_ids:
+            return None
         channel = await guild.create_text_channel(
             season_round_channel_name(target.round_name, target.round_number),
             category=category,
@@ -169,6 +188,12 @@ async def ensure_season_round_discord_channel(
             member,
             overwrite=_participant_overwrite(current_overwrite),
             reason=f"Участник зарегистрировался на тур {target.round_number}",
+        )
+    for member in removed_members:
+        await channel.set_permissions(
+            member,
+            overwrite=_category_member_overwrite(category, member.id),
+            reason=f"Участник удалён из регистрации на тур {target.round_number}",
         )
     return channel
 

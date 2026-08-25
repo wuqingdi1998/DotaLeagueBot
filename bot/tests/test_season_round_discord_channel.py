@@ -21,7 +21,16 @@ ROOT = Path(__file__).parents[1]
 MIGRATION = (
     ROOT / "database" / "migrations" / "0090_season_round_discord_channels.sql"
 ).read_text(encoding="utf-8")
+MEMBERSHIP_MIGRATION = (
+    ROOT
+    / "database"
+    / "migrations"
+    / "0091_season_round_discord_channel_members.sql"
+).read_text(encoding="utf-8")
 BRIDGE = (ROOT / "cogs" / "website_bridge.py").read_text(encoding="utf-8")
+SYNC = (
+    ROOT / "services" / "season_round_channel_sync.py"
+).read_text(encoding="utf-8")
 
 
 def test_round_channel_name_keeps_the_round_name_and_discord_limits() -> None:
@@ -68,10 +77,13 @@ def test_private_overwrites_hide_the_channel_and_admit_participants() -> None:
 
 def test_round_channel_id_is_persistent_and_bridge_manages_lifecycle() -> None:
     assert "discord_channel_id BIGINT" in MIGRATION
-    assert "_sync_season_round_discord_channels" in BRIDGE
-    assert "INTERVAL '3 hours'" in BRIDGE
-    assert "ensure_season_round_discord_channel" in BRIDGE
-    assert "delete_season_round_discord_channel" in BRIDGE
+    assert "season_round_discord_channel_members" in MEMBERSHIP_MIGRATION
+    assert "PRIMARY KEY (round_id, player_id)" in MEMBERSHIP_MIGRATION
+    assert "sync_season_round_discord_channels(self.bot, session)" in BRIDGE
+    assert "INTERVAL '3 hours'" in SYNC
+    assert "ensure_season_round_discord_channel" in SYNC
+    assert "delete_season_round_discord_channel" in SYNC
+    assert "season_round_discord_channel_members" in SYNC
 
 
 @pytest.mark.asyncio
@@ -102,10 +114,13 @@ async def test_first_registration_creates_one_private_round_channel(
         scheduled_at=datetime(2026, 8, 25, 19, 0, tzinfo=UTC),
         discord_channel_id=None,
         participant_ids=(2,),
+        managed_participant_ids=(),
     )
 
-    async def registered_members(*_args: object) -> list[discord.Object]:
-        return [participant]
+    async def registered_members(
+        _guild: object, participant_ids: tuple[int, ...]
+    ) -> list[discord.Object]:
+        return [participant] if participant_ids == (2,) else []
 
     async def missing_channel(*_args: object) -> None:
         return None
@@ -140,15 +155,17 @@ async def test_later_registration_gets_access_without_a_second_channel(
         async def set_permissions(self, member: object, **_options: object) -> None:
             granted.append(member)
 
-    async def registered_members(*_args: object) -> list[discord.Object]:
-        return [participant]
+    async def registered_members(
+        _guild: object, participant_ids: tuple[int, ...]
+    ) -> list[discord.Object]:
+        return [participant] if participant_ids == (3,) else []
 
     async def existing_channel(*_args: object) -> ExistingChannel:
         return ExistingChannel()
 
     monkeypatch.setattr(channel_service, "_registered_members", registered_members)
     monkeypatch.setattr(channel_service, "_text_channel", existing_channel)
-    category = SimpleNamespace(guild=object(), text_channels=[])
+    category = SimpleNamespace(guild=object(), text_channels=[], overwrites={})
     target = SeasonRoundDiscordChannelTarget(
         round_id=42,
         round_number=1,
@@ -156,12 +173,55 @@ async def test_later_registration_gets_access_without_a_second_channel(
         scheduled_at=datetime(2026, 8, 25, 19, 0, tzinfo=UTC),
         discord_channel_id=99,
         participant_ids=(3,),
+        managed_participant_ids=(),
     )
 
     channel = await ensure_season_round_discord_channel(category, target)
 
     assert channel.id == 99
     assert granted == [participant]
+
+
+@pytest.mark.asyncio
+async def test_removed_registration_loses_only_bot_managed_access(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    removed_participant = discord.Object(id=3)
+    permission_changes: list[tuple[object, object]] = []
+
+    class ExistingChannel:
+        id = 99
+
+        def overwrites_for(self, _member: object) -> discord.PermissionOverwrite:
+            return discord.PermissionOverwrite(view_channel=True)
+
+        async def set_permissions(self, member: object, **options: object) -> None:
+            permission_changes.append((member, options["overwrite"]))
+
+    async def registered_members(
+        _guild: object, participant_ids: tuple[int, ...]
+    ) -> list[discord.Object]:
+        return [removed_participant] if participant_ids == (3,) else []
+
+    async def existing_channel(*_args: object) -> ExistingChannel:
+        return ExistingChannel()
+
+    monkeypatch.setattr(channel_service, "_registered_members", registered_members)
+    monkeypatch.setattr(channel_service, "_text_channel", existing_channel)
+    category = SimpleNamespace(guild=object(), text_channels=[], overwrites={})
+    target = SeasonRoundDiscordChannelTarget(
+        round_id=42,
+        round_number=1,
+        round_name="Тестовый тур",
+        scheduled_at=datetime(2026, 8, 25, 19, 0, tzinfo=UTC),
+        discord_channel_id=99,
+        participant_ids=(),
+        managed_participant_ids=(3,),
+    )
+
+    await ensure_season_round_discord_channel(category, target)
+
+    assert permission_changes == [(removed_participant, None)]
 
 
 @pytest.mark.asyncio
