@@ -1,6 +1,7 @@
 .season-room-chat {
   display: grid;
-  min-height: 0;
+  height: 0;
+  min-height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto auto;
   overflow: hidden;
 }
@@ -159,6 +160,7 @@
 @media (max-width: 1050px) {
   .season-room-chat {
     height: 360px;
+    min-height: 0;
   }
 }
 

@@ -73,6 +73,12 @@ describe("season lobby room contract", () => {
       "grid-template-rows: auto minmax(0, 1fr) auto auto",
     );
     expect(lobbyRoomStyles).toContain("min-height: 0");
+    expect(lobbyRoomStyles).toMatch(
+      /\.season-room-chat\s*\{[\s\S]*?height: 0;[\s\S]*?min-height: 100%;/,
+    );
+    expect(lobbyRoomStyles).toMatch(
+      /\.season-room-messages\s*\{[\s\S]*?overflow-y: auto;/,
+    );
   });
 
   it("uses the compact lobby chat and synchronization labels", () => {
