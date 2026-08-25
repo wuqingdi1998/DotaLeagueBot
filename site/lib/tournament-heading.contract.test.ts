@@ -10,8 +10,8 @@ const tournamentHero = readFileSync(
 );
 
 describe("tournament heading status", () => {
-  it("shows an active label instead of a zero-day countdown", () => {
-    expect(tournamentHero).toContain('tournament.status === "active"');
-    expect(tournamentHero).toContain("Турнир идёт");
+  it("shows the countdown only before the exact tournament start", () => {
+    expect(tournamentHero).toContain("hasTournamentStarted");
+    expect(tournamentHero).not.toContain("Турнир идёт");
   });
 });

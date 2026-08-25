@@ -217,17 +217,11 @@ export function TournamentHero() {
 }
 
 export function TournamentHeading() {
-  const { data, daysLeft } = useTournament();
+  const { data, daysLeft, hasTournamentStarted } = useTournament();
   if (!data) return null;
 
   const { tournament } = data;
   const isPast = isPastTournament(tournament.status);
-  const isActive = tournament.status === "active";
-  const headingStatusClassName = isPast
-    ? "tournament-status archived"
-    : isActive
-      ? "tournament-status active"
-      : "countdown";
 
   return (
     <div className="section-heading">
@@ -241,23 +235,17 @@ export function TournamentHeading() {
           )}
         </p>
       </div>
-      <div className={headingStatusClassName}>
-        {isPast ? (
-          tournament.status === "archived" ? (
-            "Архив"
-          ) : (
-            "Завершён"
-          )
-        ) : isActive ? (
-          "Турнир идёт"
-        ) : (
-          <>
-            <span>До начала</span>
-            <strong>{daysLeft}</strong>
-            <span>{dayCountLabel(daysLeft)}</span>
-          </>
-        )}
-      </div>
+      {isPast ? (
+        <div className="tournament-status archived">
+          {tournament.status === "archived" ? "Архив" : "Завершён"}
+        </div>
+      ) : !hasTournamentStarted ? (
+        <div className="countdown">
+          <span>До начала</span>
+          <strong>{daysLeft}</strong>
+          <span>{dayCountLabel(daysLeft)}</span>
+        </div>
+      ) : null}
     </div>
   );
 }

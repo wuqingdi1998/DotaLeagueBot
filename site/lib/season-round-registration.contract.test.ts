@@ -28,6 +28,9 @@ const roundPanel = source(
 const registrationSection = source(
   "../app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
 );
+const registrationStyles = source(
+  "../app/styles/55-season-round-registration.css",
+);
 const matchAdmin = source(
   "../app/tournaments/[slug]/admin/SeasonMatchAdmin.tsx",
 );
@@ -87,5 +90,35 @@ describe("season round registration contract", () => {
     expect(tournamentCreate).toContain(
       "setSeasonTournamentRegistrationDeadline",
     );
+  });
+
+  it("shows compact player identity, tier and positions in that order", () => {
+    const playerColumn = registrationSection.indexOf(
+      'className="season-registration-player"',
+    );
+    const tierColumn = registrationSection.indexOf(
+      'registration.tier_snapshot ?? "—"',
+      playerColumn,
+    );
+    const positionsColumn = registrationSection.indexOf(
+      'registration.positions ?? "—"',
+      tierColumn,
+    );
+
+    expect(registrationSection).toContain("registration.avatar_url");
+    expect(registrationSection).toContain("<Image");
+    expect(registrationSection).not.toContain("<FiUser");
+    expect(registrationSection).not.toContain(
+      "Тир {registration.tier_snapshot",
+    );
+    expect(registrationSection).not.toContain(
+      "Роли {registration.positions",
+    );
+    expect(registrationStyles).toContain(
+      ".season-registration-player-avatar",
+    );
+    expect(playerColumn).toBeGreaterThan(-1);
+    expect(tierColumn).toBeGreaterThan(playerColumn);
+    expect(positionsColumn).toBeGreaterThan(tierColumn);
   });
 });

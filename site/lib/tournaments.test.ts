@@ -4,6 +4,7 @@ import {
   isPastTournament,
   isPublicTournament,
   isUpcomingTournament,
+  tournamentHasStarted,
 } from "./tournaments";
 
 describe("tournament lifecycle", () => {
@@ -20,6 +21,12 @@ describe("tournament lifecycle", () => {
     expect(isPublicTournament("draft")).toBe(false);
     expect(isPublicTournament("planned")).toBe(true);
     expect(isPublicTournament("archived")).toBe(true);
+  });
+
+  it("reaches the tournament start at the exact configured moment", () => {
+    const start = "2026-08-25T19:00:00.000Z";
+    expect(tournamentHasStarted(start, Date.parse(start) - 1)).toBe(false);
+    expect(tournamentHasStarted(start, Date.parse(start))).toBe(true);
   });
 
   it("accepts registrations only before the configured deadline", () => {

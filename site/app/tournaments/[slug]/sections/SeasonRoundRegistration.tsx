@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import { useMemo, useState } from "react";
-import { FiArrowDown, FiArrowUp, FiClock, FiUser } from "react-icons/fi";
+import { FiArrowDown, FiArrowUp, FiClock } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useServerClock } from "@/hooks/useServerClock";
 import { useTournament } from "../hooks/TournamentContext";
@@ -154,15 +155,28 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
             <li key={registration.player_id}>
               <span className="season-registration-number">{index + 1}</span>
               <span className="season-registration-player">
-                <FiUser aria-hidden="true" />
+                {registration.avatar_url ? (
+                  <Image
+                    className="season-registration-player-avatar"
+                    src={registration.avatar_url}
+                    width={30}
+                    height={30}
+                    alt=""
+                    unoptimized
+                  />
+                ) : (
+                  <i className="season-registration-player-avatar">
+                    {registration.nickname.slice(0, 1).toUpperCase()}
+                  </i>
+                )}
                 <PlayerProfileLink
                   dotaId={registration.dota_id}
                   nickname={registration.nickname}
                 />
               </span>
-              <strong>Тир {registration.tier_snapshot ?? "—"}</strong>
+              <strong>{registration.tier_snapshot ?? "—"}</strong>
               <span className="season-registration-roles">
-                Роли {registration.positions ?? "—"}
+                {registration.positions ?? "—"}
               </span>
               <time dateTime={registration.created_at}>
                 <FiClock aria-hidden="true" />

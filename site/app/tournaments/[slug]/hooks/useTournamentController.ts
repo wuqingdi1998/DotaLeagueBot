@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useServerClock } from "@/hooks/useServerClock";
 import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
+import { tournamentHasStarted } from "@/lib/tournaments";
 import { emptyMatchDraft, emptyRegistration, roleOptions } from "../model/constants";
 import { getTeamNameError } from "../model/formatters";
 import { buildMatchResultPayload } from "../model/match-result-payload";
@@ -53,6 +54,11 @@ export function useTournamentController() {
           ),
         )
       : 0;
+  const hasTournamentStarted = Boolean(
+    data &&
+      Number.isFinite(currentTimeMs) &&
+      tournamentHasStarted(data.tournament.start_at, currentTimeMs),
+  );
   const registrationAvailable = Boolean(
     data &&
       Number.isFinite(currentTimeMs) &&
@@ -438,6 +444,7 @@ export function useTournamentController() {
     deleteMatch,
     generateGroups,
     groupCount,
+    hasTournamentStarted,
     loadData,
     loadingError,
     loginOpen,

@@ -30,6 +30,11 @@ export function isPublicTournament(status: TournamentStatus) {
   return status !== "draft";
 }
 
+export function tournamentHasStarted(startAt: string, now: number) {
+  const start = new Date(startAt).getTime();
+  return Number.isFinite(start) && Number.isFinite(now) && now >= start;
+}
+
 export function canAcceptTournamentRegistration(
   status: TournamentStatus,
   registrationDeadline: string,
