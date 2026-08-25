@@ -4,6 +4,7 @@ import {
   validSeasonRoundCount,
   validateSeasonTeams,
 } from "@/lib/season";
+import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
 
 export type SeasonEntity = "season" | "round" | "lobby" | "match" | "game";
 
@@ -17,11 +18,11 @@ export function requiredId(value: unknown, label: string) {
 
 export function optionalDate(value: unknown) {
   if (!value) return null;
-  const date = new Date(String(value));
-  if (!Number.isFinite(date.getTime())) {
+  const date = moscowDateTimeInputToIso(value);
+  if (!date) {
     throw new Response("Некорректная дата и время", { status: 400 });
   }
-  return date.toISOString();
+  return date;
 }
 
 export function textValue(value: unknown, fallback: string, maxLength = 160) {

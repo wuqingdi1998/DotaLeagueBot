@@ -85,6 +85,13 @@ SEASON_LOBBY_ROOM_MIGRATION = (
     / "0087_season_lobby_rooms.sql"
 ).read_text(encoding="utf-8")
 
+TEST_SEASON_ROUND_TIME_FIX = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0088_fix_test_season_round_one_time.sql"
+).read_text(encoding="utf-8")
+
 FINAL_PREDICTION_OPENING_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -419,6 +426,13 @@ def test_season_lobby_rooms_keep_host_presence_chat_and_votes() -> None:
     assert "season_match_id BIGINT" in SEASON_LOBBY_ROOM_MIGRATION
     assert "season_match_room_players" in SEASON_LOBBY_ROOM_MIGRATION
     assert "REFERENCES players(discord_id)" in SEASON_LOBBY_ROOM_MIGRATION
+
+
+def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> None:
+    assert "tournament.slug = 'league-season-9-copy'" in TEST_SEASON_ROUND_TIME_FIX
+    assert "round.round_number = 1" in TEST_SEASON_ROUND_TIME_FIX
+    assert "2026-08-25 22:00:00+00" in TEST_SEASON_ROUND_TIME_FIX
+    assert "2026-08-25 19:00:00+00" in TEST_SEASON_ROUND_TIME_FIX
 
 
 def test_finished_lower_bracket_losses_are_backfilled_as_eliminations() -> None:

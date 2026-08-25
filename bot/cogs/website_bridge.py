@@ -110,12 +110,16 @@ class WebsiteBridge(commands.Cog):
                 JOIN season_rounds round ON round.id = registration.round_id
                 JOIN tournaments tournament
                   ON tournament.id = round.tournament_id
+                LEFT JOIN season_round_checkins checkin
+                  ON checkin.round_id = registration.round_id
+                 AND checkin.player_id = registration.player_id
                 WHERE round.round_kind = 'regular'
                   AND round.is_visible = TRUE
                   AND round.status IN ('planned', 'active')
                   AND tournament.status IN ('registration', 'active')
                   AND NOW() >= round.scheduled_at - INTERVAL '2 hours'
                   AND NOW() < round.scheduled_at - INTERVAL '10 minutes'
+                  AND checkin.player_id IS NULL
                 ON CONFLICT (discord_id, season_round_id, event_type)
                   WHERE season_round_id IS NOT NULL
                 DO NOTHING

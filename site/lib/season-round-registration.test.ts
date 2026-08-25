@@ -5,6 +5,7 @@ import {
   seasonRoundCheckInIsOpen,
   seasonRoundCheckInWindow,
   seasonRoundRegistrationDeadline,
+  seasonRoundRegistrationGetsAutomaticCheckIn,
   seasonRoundRegistrationIsOpen,
 } from "./season-round-registration";
 
@@ -96,6 +97,33 @@ describe("season round registration", () => {
         ...base,
         now: "2026-09-20T16:50:00.000Z",
       }),
+    ).toBe(false);
+  });
+
+  it("automatically checks in registrations made during the final two hours", () => {
+    expect(
+      seasonRoundRegistrationGetsAutomaticCheckIn(
+        scheduledAt,
+        "2026-09-20T14:59:59.999Z",
+      ),
+    ).toBe(false);
+    expect(
+      seasonRoundRegistrationGetsAutomaticCheckIn(
+        scheduledAt,
+        "2026-09-20T15:00:00.000Z",
+      ),
+    ).toBe(true);
+    expect(
+      seasonRoundRegistrationGetsAutomaticCheckIn(
+        scheduledAt,
+        "2026-09-20T16:55:00.000Z",
+      ),
+    ).toBe(true);
+    expect(
+      seasonRoundRegistrationGetsAutomaticCheckIn(
+        scheduledAt,
+        "2026-09-20T17:00:00.000Z",
+      ),
     ).toBe(false);
   });
 

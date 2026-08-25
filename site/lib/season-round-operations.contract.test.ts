@@ -9,6 +9,9 @@ const checkInMigration = source(
   "../../bot/database/migrations/0086_season_round_checkins.sql",
 );
 const checkInRoute = source("../app/api/season/check-in/route.ts");
+const publicRegistrationRoute = source(
+  "../app/api/season/registration/route.ts",
+);
 const registrationRules = source("./season-round-registration.ts");
 const seasonRoute = source("../app/api/season/route.ts");
 const adminRoute = source("../app/api/admin/season/route.ts");
@@ -41,6 +44,19 @@ describe("season round operations", () => {
     expect(registrationRules).toContain("2 * 60 * 60 * 1_000");
     expect(registrationRules).toContain("10 * 60 * 1_000");
     expect(registrationRules).toContain("seasonRoundCheckInWindow");
+  });
+
+  it("automatically checks in late public and organizer registrations", () => {
+    expect(publicRegistrationRoute).toContain(
+      "seasonRoundRegistrationGetsAutomaticCheckIn",
+    );
+    expect(publicRegistrationRoute).toContain(
+      "INSERT INTO season_round_checkins",
+    );
+    expect(registrationActions).toContain(
+      "seasonRoundRegistrationGetsAutomaticCheckIn",
+    );
+    expect(registrationActions).toContain("INSERT INTO season_round_checkins");
   });
 
   it("requires a fresh organizer password only for manual registration removal", () => {

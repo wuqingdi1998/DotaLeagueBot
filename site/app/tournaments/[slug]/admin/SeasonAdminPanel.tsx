@@ -2,17 +2,10 @@
 
 import { useState } from "react";
 import { FiEye, FiEyeOff, FiPlus, FiTrash2 } from "react-icons/fi";
+import { toMoscowDateTimeInput } from "@/lib/moscow-date-time";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonLobby, SeasonRound } from "../model/season-types";
 import { SeasonMatchAdmin } from "./SeasonMatchAdmin";
-
-function localDateTime(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 16);
-}
 
 export function SeasonAdminPanel() {
   const { data, loadData, season } = useTournament();
@@ -90,7 +83,7 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
   const { season } = useTournament();
   const [name, setName] = useState(round.name ?? "");
   const [scheduledAt, setScheduledAt] = useState(
-    localDateTime(round.scheduled_at),
+    toMoscowDateTimeInput(round.scheduled_at),
   );
   const [status, setStatus] = useState(round.status);
   const [isVisible, setIsVisible] = useState(round.is_visible);
@@ -227,7 +220,7 @@ function SeasonLobbyAdmin({ lobby }: { lobby: SeasonLobby }) {
   const [name, setName] = useState(lobby.name);
   const [status, setStatus] = useState(lobby.status);
   const [scheduledAt, setScheduledAt] = useState(
-    localDateTime(lobby.scheduled_at),
+    toMoscowDateTimeInput(lobby.scheduled_at),
   );
 
   async function save() {

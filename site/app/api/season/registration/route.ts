@@ -2,6 +2,7 @@ import { requireSession, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
 import {
   seasonRoundCancellationIsOpen,
+  seasonRoundRegistrationGetsAutomaticCheckIn,
   seasonRoundRegistrationIsOpen,
   seasonTierConfirmationMessage,
 } from "@/lib/season-round-registration";
@@ -62,9 +63,10 @@ async function updateRegistration(
         throw new Response("Тур не найден", { status: 404 });
       }
 
+      const now = new Date();
       const registrationState = {
         scheduledAt: target.scheduled_at,
-        now: new Date(),
+        now,
         roundKind: target.round_kind,
         roundStatus: target.round_status,
         tournamentStatus: target.tournament_status,
@@ -123,6 +125,16 @@ async function updateRegistration(
            SET tier_snapshot = EXCLUDED.tier_snapshot`,
           [target.id, user.discordId, player.tier],
         );
+        if (
+          seasonRoundRegistrationGetsAutomaticCheckIn(target.scheduled_at, now)
+        ) {
+          await client.query(
+            `INSERT INTO season_round_checkins (round_id, player_id)
+             VALUES ($1, $2)
+             ON CONFLICT (round_id, player_id) DO NOTHING`,
+            [target.id, user.discordId],
+          );
+        }
       } else {
         await client.query(
           `DELETE FROM season_round_registrations
@@ -134,6 +146,9 @@ async function updateRegistration(
       return Response.json({
         ok: true,
         isRegistered: action === "register",
+        isCheckedIn:
+          action === "register" &&
+          seasonRoundRegistrationGetsAutomaticCheckIn(target.scheduled_at, now),
       });
     });
   } catch (error) {

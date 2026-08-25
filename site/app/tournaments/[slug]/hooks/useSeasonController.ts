@@ -174,7 +174,9 @@ export function useSeasonController({
       setMessage(
         isRegistered
           ? "Регистрация на тур отменена"
-          : "Вы зарегистрированы на тур",
+          : result.isCheckedIn
+            ? "Вы зарегистрированы на тур и автоматически прошли чек-ин"
+            : "Вы зарегистрированы на тур",
       );
       await load();
     } catch {

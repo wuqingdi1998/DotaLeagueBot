@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FiPlus, FiTrash2 } from "react-icons/fi";
+import { toMoscowDateTimeInput } from "@/lib/moscow-date-time";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonGame, SeasonMatch } from "../model/season-types";
 import { seasonMatchStatusLabel } from "../model/season-labels";
@@ -11,14 +12,6 @@ import {
   SeasonTierEditor,
   type SeasonTeamPlayerOption,
 } from "./SeasonTeamSelection";
-
-function localDateTime(value: string | null) {
-  if (!value) return "";
-  const date = new Date(value);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000)
-    .toISOString()
-    .slice(0, 16);
-}
 
 export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
   const { season } = useTournament();
@@ -75,7 +68,7 @@ export function SeasonMatchAdmin({ match }: { match: SeasonMatch }) {
     )?.player_id ?? "",
   );
   const [scheduledAt, setScheduledAt] = useState(
-    localDateTime(match.scheduled_at),
+    toMoscowDateTimeInput(match.scheduled_at),
   );
   const [bestOf, setBestOf] = useState(match.best_of);
   const [teamAScore, setTeamAScore] = useState(

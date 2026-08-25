@@ -72,6 +72,20 @@ export function seasonRoundCheckInWindow(
   };
 }
 
+export function seasonRoundRegistrationGetsAutomaticCheckIn(
+  scheduledAt: string | Date | null,
+  now: string | Date,
+): boolean {
+  const start = timestamp(scheduledAt);
+  const current = timestamp(now);
+  return Boolean(
+    start !== null &&
+      current !== null &&
+      current >= start - checkInLeadMilliseconds &&
+      current < start,
+  );
+}
+
 export function seasonRoundRegistrationIsOpen(
   state: SeasonRoundRegistrationState,
 ): boolean {

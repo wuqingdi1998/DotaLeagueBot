@@ -1,4 +1,5 @@
 import { transaction } from "@/lib/db";
+import { seasonRoundRegistrationGetsAutomaticCheckIn } from "@/lib/season-round-registration";
 import { requiredId } from "./season-admin-model";
 import {
   addSeasonParticipant,
@@ -20,8 +21,13 @@ export async function addSeasonRoundRegistration(
   const roundId = requiredId(body.roundId, "тур");
   const tierSnapshot = registrationTier(body.tierSnapshot);
   return transaction(async (client) => {
-    const round = await client.query<{ tournament_id: number }>(
-      `SELECT round.tournament_id::int
+    const round = await client.query<{
+      tournament_id: number;
+      scheduled_at: Date | null;
+      current_time: Date;
+    }>(
+      `SELECT round.tournament_id::int, round.scheduled_at,
+         NOW() AS current_time
        FROM season_rounds round
        JOIN tournaments tournament ON tournament.id = round.tournament_id
        WHERE round.id = $1 AND round.round_kind = 'regular'
@@ -43,6 +49,19 @@ export async function addSeasonRoundRegistration(
        DO UPDATE SET tier_snapshot = EXCLUDED.tier_snapshot`,
       [roundId, player.discord_id, tierSnapshot],
     );
+    const isAutomaticallyCheckedIn =
+      seasonRoundRegistrationGetsAutomaticCheckIn(
+        round.rows[0].scheduled_at,
+        round.rows[0].current_time,
+      );
+    if (isAutomaticallyCheckedIn) {
+      await client.query(
+        `INSERT INTO season_round_checkins (round_id, player_id)
+         VALUES ($1, $2)
+         ON CONFLICT (round_id, player_id) DO NOTHING`,
+        [roundId, player.discord_id],
+      );
+    }
     await client.query(
       `INSERT INTO tournament_audit_log
         (tournament_id, actor_discord_id, action, entity_type, entity_id,
@@ -56,7 +75,7 @@ export async function addSeasonRoundRegistration(
         JSON.stringify({ roundId, playerId: player.discord_id, tierSnapshot }),
       ],
     );
-    return { ok: true };
+    return { ok: true, isCheckedIn: isAutomaticallyCheckedIn };
   });
 }
 
