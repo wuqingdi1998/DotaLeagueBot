@@ -84,11 +84,13 @@
 }
 
 .season-registration-list {
+  column-gap: 12px;
   display: grid;
-  gap: 8px;
+  grid-template-columns: 34px max-content 30px max-content minmax(190px, 1fr);
   list-style: none;
   margin: 0;
   padding: 0;
+  row-gap: 8px;
 }
 
 .season-registration-list li {
@@ -97,9 +99,8 @@
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 12px;
   display: grid;
-  gap: 12px;
-  grid-template-columns:
-    34px minmax(140px, 280px) 44px minmax(44px, auto) minmax(190px, 1fr);
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   min-height: 48px;
   padding: 8px 12px;
 }
@@ -129,7 +130,7 @@
 }
 
 .season-registration-player a {
-  color: var(--text);
+  color: var(--season-player-name-color);
   font-weight: 750;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -154,16 +155,24 @@
   width: 30px;
 }
 
-.season-registration-list li > strong {
-  color: #f4c96b;
+.season-registration-tier {
+  align-items: center;
+  background: rgba(244, 201, 107, 0.12);
+  border: 1px solid rgba(244, 201, 107, 0.28);
+  border-radius: 50%;
+  color: var(--season-player-tier-color);
+  display: flex;
   font-size: 0.84rem;
-  text-align: center;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
 }
 
 .season-registration-roles {
-  color: var(--text);
+  color: var(--season-player-roles-color);
   font-size: 0.84rem;
   font-weight: 700;
+  margin-left: 3px;
 }
 
 .season-registration-list time {
@@ -200,7 +209,8 @@
     justify-content: center;
   }
 
-  .season-registration-list li {
+  .season-registration-list {
+    column-gap: 10px;
     grid-template-columns: 30px minmax(0, 1fr) 36px auto;
   }
 

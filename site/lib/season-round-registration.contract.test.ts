@@ -121,4 +121,17 @@ describe("season round registration contract", () => {
     expect(tierColumn).toBeGreaterThan(playerColumn);
     expect(positionsColumn).toBeGreaterThan(tierColumn);
   });
+
+  it("aligns circular tier badges after the longest nickname", () => {
+    expect(registrationSection).toContain(
+      'className="season-registration-tier"',
+    );
+    expect(registrationStyles).toContain(
+      "grid-template-columns: 34px max-content 30px max-content minmax(190px, 1fr)",
+    );
+    expect(registrationStyles).toContain("grid-template-columns: subgrid");
+    expect(registrationStyles).toMatch(
+      /\.season-registration-tier \{[\s\S]*?border-radius: 50%;[\s\S]*?height: 30px;[\s\S]*?width: 30px;/,
+    );
+  });
 });

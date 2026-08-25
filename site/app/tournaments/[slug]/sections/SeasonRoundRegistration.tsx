@@ -174,7 +174,9 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                   nickname={registration.nickname}
                 />
               </span>
-              <strong>{registration.tier_snapshot ?? "—"}</strong>
+              <strong className="season-registration-tier">
+                {registration.tier_snapshot ?? "—"}
+              </strong>
               <span className="season-registration-roles">
                 {registration.positions ?? "—"}
               </span>

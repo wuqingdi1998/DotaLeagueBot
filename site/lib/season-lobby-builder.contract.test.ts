@@ -22,6 +22,9 @@ const roundPanel = source(
 const seasonAdmin = source(
   "../app/tournaments/[slug]/admin/SeasonAdminPanel.tsx",
 );
+const builderStyles = source(
+  "../app/styles/56-season-lobby-builder.css",
+);
 
 describe("season lobby builder contract", () => {
   it("stores configuration status and exact team slots", () => {
@@ -78,5 +81,20 @@ describe("season lobby builder contract", () => {
   it("swaps an occupied target into the dragged player's previous slot", () => {
     expect(actions).toContain("planSeasonLobbySlotDrop");
     expect(assignmentRules).toContain("placements.push({ ...source, ...occupiedPlayer })");
+  });
+
+  it("keeps player labels aligned and uses the shared player colors", () => {
+    expect(builder).toContain('className="season-builder-slot-tier"');
+    expect(builder).toContain('className="season-builder-slot-roles"');
+    expect(builderStyles).toContain("padding: 4px 12px");
+    expect(builderStyles).toMatch(
+      /\.season-builder-player-name[^}]*justify-content: flex-start;/,
+    );
+    expect(builderStyles).toMatch(
+      /\.season-builder-player-roles[^}]*justify-content: flex-end;/,
+    );
+    expect(builderStyles).toContain("color: var(--season-player-name-color)");
+    expect(builderStyles).toContain("color: var(--season-player-tier-color)");
+    expect(builderStyles).toContain("color: var(--season-player-roles-color)");
   });
 });

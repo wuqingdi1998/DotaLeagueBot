@@ -121,6 +121,9 @@ a {
   --blue-deep: #064f7d;
   --blue-solid: #064f7d;
   --text: #071f2f;
+  --season-player-name-color: var(--text);
+  --season-player-roles-color: var(--text);
+  --season-player-tier-color: #f4c96b;
   --muted: #294c61;
   --quiet: #456578;
   --line: rgba(20, 91, 132, 0.15);

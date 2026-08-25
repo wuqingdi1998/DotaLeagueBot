@@ -422,8 +422,12 @@ function BuilderTeam({
             {player ? (
               <>
                 <strong>{player.nickname}</strong>
-                <small>Тир {player.tier_snapshot ?? "—"}</small>
-                <small>Роли {player.positions ?? "—"}</small>
+                <small className="season-builder-slot-tier">
+                  Тир {player.tier_snapshot ?? "—"}
+                </small>
+                <small className="season-builder-slot-roles">
+                  Роли {player.positions ?? "—"}
+                </small>
                 {isEditing && (
                   <button
                     type="button"
