@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { FiCalendar, FiExternalLink, FiLayers, FiUsers } from "react-icons/fi";
+import Link from "next/link";
+import { FiCalendar, FiExternalLink, FiLayers, FiLogIn, FiUsers } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { seasonMatchLinks } from "@/lib/season";
 import { groupSeasonFinalMedalists } from "@/lib/season-finals";
@@ -12,10 +13,15 @@ import type { ReactNode } from "react";
 
 export function SeasonLobbyList({
   lobbyFooter,
+  participantAction,
   round,
   isArchived,
 }: {
   lobbyFooter?: (lobby: SeasonRound["lobbies"][number]) => ReactNode;
+  participantAction?: (
+    match: SeasonMatch,
+    player: SeasonMatch["participants"][number],
+  ) => ReactNode;
   round: SeasonRound;
   isArchived: boolean;
 }) {
@@ -49,7 +55,11 @@ export function SeasonLobbyList({
           ) : (
             <div className="season-match-list">
               {lobby.matches.map((match) => (
-                <SeasonMatchCard match={match} key={match.id} />
+                <SeasonMatchCard
+                  match={match}
+                  participantAction={participantAction}
+                  key={match.id}
+                />
               ))}
             </div>
           )}
@@ -60,7 +70,16 @@ export function SeasonLobbyList({
   );
 }
 
-function SeasonMatchCard({ match }: { match: SeasonMatch }) {
+function SeasonMatchCard({
+  match,
+  participantAction,
+}: {
+  match: SeasonMatch;
+  participantAction?: (
+    match: SeasonMatch,
+    player: SeasonMatch["participants"][number],
+  ) => ReactNode;
+}) {
   const teamA = match.participants.filter((player) => player.team_side === "a");
   const teamB = match.participants.filter((player) => player.team_side === "b");
   return (
@@ -79,7 +98,12 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
         </div>
       </div>
       <div className="season-match-scoreboard">
-        <SeasonTemporaryTeam name={match.team_a_name} players={teamA} />
+        <SeasonTemporaryTeam
+          match={match}
+          name={match.team_a_name}
+          players={teamA}
+          participantAction={participantAction}
+        />
         <div className="season-match-score">
           <span>Счёт матча</span>
           <strong>
@@ -93,8 +117,18 @@ function SeasonMatchCard({ match }: { match: SeasonMatch }) {
           </strong>
           <small>BO{match.best_of}</small>
         </div>
-        <SeasonTemporaryTeam name={match.team_b_name} players={teamB} />
+        <SeasonTemporaryTeam
+          match={match}
+          name={match.team_b_name}
+          players={teamB}
+          participantAction={participantAction}
+        />
       </div>
+      {match.can_enter_lobby && (
+        <Link className="season-enter-lobby-button" href={`/season-lobby/${match.id}`}>
+          <FiLogIn aria-hidden="true" /> Войти в лобби
+        </Link>
+      )}
       {match.result && (
         <p className={`season-match-outcome ${match.result}`}>
           {match.result === "draw"
@@ -240,11 +274,18 @@ export function SeasonFinalistsSummary({ round }: { round: SeasonRound }) {
 }
 
 function SeasonTemporaryTeam({
+  match,
   name,
   players,
+  participantAction,
 }: {
+  match: SeasonMatch;
   name: string;
   players: SeasonMatch["participants"];
+  participantAction?: (
+    match: SeasonMatch,
+    player: SeasonMatch["participants"][number],
+  ) => ReactNode;
 }) {
   const recordedTiers = players
     .map((player) => player.tier_snapshot)
@@ -278,7 +319,10 @@ function SeasonTemporaryTeam({
               </PlayerProfileLink>
               {player.is_captain && <small>Капитан</small>}
             </span>
-            <small className="player-tier">тир {player.tier_snapshot ?? "—"}</small>
+            <span className="season-player-row-actions">
+              <small className="player-tier">тир {player.tier_snapshot ?? "—"}</small>
+              {participantAction?.(match, player)}
+            </span>
           </li>
         ))}
       </ul>

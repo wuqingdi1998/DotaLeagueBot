@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { SeasonLobbyBuilder } from "../admin/SeasonLobbyBuilder";
 import { SeasonRegistrationAdmin } from "../admin/SeasonRegistrationAdmin";
 import { SeasonPublishedLobbyTools } from "../admin/SeasonPublishedLobbyTools";
+import { SeasonLobbyHostButton } from "../admin/SeasonLobbyHostButton";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
@@ -58,6 +59,9 @@ export function SeasonRoundPanel() {
           round={round}
           isArchived={data.tournament.status === "archived"}
           lobbyFooter={(lobby) => <SeasonPublishedLobbyTools lobby={lobby} />}
+          participantAction={(match, player) => (
+            <SeasonLobbyHostButton match={match} player={player} />
+          )}
         />
       )}
 
@@ -78,6 +82,9 @@ export function SeasonRoundPanel() {
                 <SeasonPublishedLobbyTools lobby={lobby} />
               ) : null
             }
+            participantAction={(match, player) => (
+              <SeasonLobbyHostButton match={match} player={player} />
+            )}
           />
         </>
       )}

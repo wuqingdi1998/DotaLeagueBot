@@ -29,14 +29,18 @@ import {
   advanceBotDraft,
   startBotDraft,
 } from "@/app/fearless-draft/server/bot-service";
+import { fearlessSeasonMatchId } from
+  "@/app/fearless-draft/server/season-match-context";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await requireSession();
-    return Response.json(await loadFearlessDraftSnapshot(user));
+    return Response.json(await loadFearlessDraftSnapshot(user, {
+      seasonMatchId: fearlessSeasonMatchId(request),
+    }));
   } catch (error) {
     return draftErrorResponse(error) ?? responseFromAuthError(error);
   }

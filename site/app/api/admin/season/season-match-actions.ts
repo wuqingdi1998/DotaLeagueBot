@@ -164,6 +164,13 @@ async function replaceParticipants(
       [tournamentId, selected],
     );
   }
+  await client.query(
+    `UPDATE season_matches SET host_player_id = NULL
+     WHERE id = $1
+       AND host_player_id IS NOT NULL
+       AND NOT (host_player_id = ANY($2::bigint[]))`,
+    [matchId, selected],
+  );
 }
 
 export async function createSeasonMatch(

@@ -13,23 +13,30 @@ import { translateDraftError } from "./model/i18n";
 
 export function FearlessDraftScreen({
   initialSnapshot,
+  seasonMatchId,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
+  seasonMatchId?: number;
 }) {
   return (
     <DraftLocaleProvider>
-      <FearlessDraftContent initialSnapshot={initialSnapshot} />
+      <FearlessDraftContent
+        initialSnapshot={initialSnapshot}
+        seasonMatchId={seasonMatchId}
+      />
     </DraftLocaleProvider>
   );
 }
 
 function FearlessDraftContent({
   initialSnapshot,
+  seasonMatchId,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
+  seasonMatchId?: number;
 }) {
   const { snapshot, error, isSending, isConnected, send } =
-    useFearlessDraft(initialSnapshot);
+    useFearlessDraft(initialSnapshot, seasonMatchId);
   const { locale, text } = useDraftLocale();
   const {
     draftRef,
@@ -38,6 +45,9 @@ function FearlessDraftContent({
     toggleFullscreen,
   } = useDraftFullscreen();
   const series = snapshot.series;
+  const canControlSeries = Boolean(
+    series && [series.player1.id, series.player2.id].includes(snapshot.user.id),
+  );
   return (
     <div className="fearless-draft-page" lang={locale}>
       <section className="fearless-draft-hero">
@@ -58,7 +68,7 @@ function FearlessDraftContent({
         </div>
       )}
 
-      {series && (
+      {series && canControlSeries && (
         <DraftAgreementPanel
           series={series}
           userId={snapshot.user.id}
@@ -94,6 +104,7 @@ function FearlessDraftContent({
               isFullscreen={isFullscreen}
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
+              canControlSeries={canControlSeries}
             />
           )}
         </section>

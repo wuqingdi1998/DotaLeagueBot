@@ -37,6 +37,7 @@ import {
   deleteSeasonRoundRegistration,
 } from "./season-registration-actions";
 import { savePublishedLobbyMatchIds } from "./season-published-lobby-actions";
+import { setSeasonLobbyHost } from "./season-lobby-host-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -54,7 +55,8 @@ type SeasonRequest = Record<string, unknown> & {
     | "finalist"
     | "lobbyConfiguration"
     | "registration"
-    | "publishedLobby";
+    | "publishedLobby"
+    | "lobbyHost";
   password?: string;
 };
 
@@ -173,6 +175,9 @@ export async function PATCH(request: Request) {
       return Response.json(
         await savePublishedLobbyMatchIds(body, admin.discordId),
       );
+    }
+    if (body.entity === "lobbyHost") {
+      return Response.json(await setSeasonLobbyHost(body, admin.discordId));
     }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {

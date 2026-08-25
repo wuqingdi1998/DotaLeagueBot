@@ -9,6 +9,7 @@ import { selectTimedOutPickHero } from "../model/timeout-selection";
 import {
   draftOpponentId,
   loadLockedDraftSeries,
+  loadLockedDraftSeriesById,
   type DraftMapRow,
   type DraftSeriesRow,
 } from "./database";
@@ -262,16 +263,33 @@ async function loadSelectableHeroTurn(
   return { series, map, now };
 }
 
-export async function settleExpiredDraft(playerId: string): Promise<void> {
+export async function settleExpiredDraft(
+  playerId: string,
+  seasonMatchId?: number,
+): Promise<void> {
   await transaction(async (client) => {
     const active = await client.query<{ id: number }>(
       `SELECT id::int FROM draft_series
-       WHERE (player1_id = $1 OR player2_id = $1) AND status = 'DRAFTING'
+       WHERE status = 'DRAFTING'
+         AND (
+           (player1_id = $1 OR player2_id = $1)
+           OR (
+             season_match_id = $2
+             AND EXISTS (
+               SELECT 1 FROM season_match_room_players participant
+               WHERE participant.match_id = season_match_id
+                 AND participant.player_id = $1
+             )
+           )
+         )
        ORDER BY updated_at DESC LIMIT 1`,
-      [playerId],
+      [playerId, seasonMatchId ?? null],
     );
     if (!active.rows[0]) return;
-    const { series, map } = await loadLockedDraftSeries(client, playerId);
+    const { series, map } = await loadLockedDraftSeriesById(
+      client,
+      active.rows[0].id,
+    );
     const now = await databaseNow(client);
     await resolveExpiredStep(client, series, map, now);
   });

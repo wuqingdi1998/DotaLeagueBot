@@ -8,6 +8,7 @@ import {
   SeasonAdminPlayerPicker,
   type SeasonAdminPlayerOption,
 } from "./SeasonAdminPlayerPicker";
+import { SeasonLobbyHostButton } from "./SeasonLobbyHostButton";
 
 export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
   const { season } = useTournament();
@@ -130,6 +131,17 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
               >
                 <FiTrash2 />
               </button>
+              {!substitution.game_number && (
+                <SeasonLobbyHostButton
+                  match={match}
+                  player={{
+                    player_id: substitution.incoming_player_id,
+                    nickname: substitution.incoming_nickname,
+                    is_host:
+                      match.host_player_id === substitution.incoming_player_id,
+                  }}
+                />
+              )}
             </article>
           ))}
         </div>

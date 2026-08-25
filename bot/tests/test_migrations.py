@@ -78,6 +78,13 @@ SEASON_ROUND_CHECKIN_MIGRATION = (
     / "0086_season_round_checkins.sql"
 ).read_text(encoding="utf-8")
 
+SEASON_LOBBY_ROOM_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0087_season_lobby_rooms.sql"
+).read_text(encoding="utf-8")
+
 FINAL_PREDICTION_OPENING_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -401,6 +408,17 @@ def test_group_advancement_and_notes_are_persistent() -> None:
     assert "advance_to_upper" in GROUP_SETTINGS_MIGRATION
     assert "advance_to_lower" in GROUP_SETTINGS_MIGRATION
     assert "Итоговое распределение команд" in GROUP_SETTINGS_MIGRATION
+
+
+def test_season_lobby_rooms_keep_host_presence_chat_and_votes() -> None:
+    assert "host_player_id BIGINT" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "season_match_rooms" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "season_match_room_presence" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "season_match_room_messages" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "season_match_captain_votes" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "season_match_id BIGINT" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "season_match_room_players" in SEASON_LOBBY_ROOM_MIGRATION
+    assert "REFERENCES players(discord_id)" in SEASON_LOBBY_ROOM_MIGRATION
 
 
 def test_finished_lower_bracket_losses_are_backfilled_as_eliminations() -> None:

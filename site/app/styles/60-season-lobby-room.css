@@ -1,0 +1,494 @@
+.season-room-teams {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.season-room-teams > section,
+.season-room-chat,
+.season-room-start-controls,
+.season-room-waiting,
+.season-room-voting,
+.season-room-captain-transfer {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.season-room-teams > section {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.season-room-teams > section > header {
+  display: grid;
+  gap: 3px;
+  border-bottom: 1px solid var(--line);
+  padding: 16px 18px;
+  background: var(--surface-soft);
+}
+
+.season-room-teams header span,
+.season-room-chat header span,
+.season-room-start-controls span,
+.season-room-voting header span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.season-room-teams h2,
+.season-room-voting h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.season-room-teams ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.season-room-teams li {
+  display: grid;
+  grid-template-columns: 10px 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border-bottom: 1px solid var(--line);
+  padding: 11px 14px;
+}
+
+.season-room-teams li:last-child {
+  border-bottom: 0;
+}
+
+.season-room-presence {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #a5adba;
+  box-shadow: 0 0 0 4px rgba(165, 173, 186, 0.13);
+}
+
+.season-room-presence.online {
+  background: #2fc579;
+  box-shadow: 0 0 0 4px rgba(47, 197, 121, 0.15),
+    0 0 13px rgba(47, 197, 121, 0.5);
+}
+
+.season-room-teams li img,
+.season-room-teams li > i {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border-radius: 11px;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-style: normal;
+  object-fit: cover;
+}
+
+.season-room-player-name {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.season-room-player-name strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-room-player-name small {
+  color: var(--muted);
+}
+
+.season-room-host-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--blue) 13%, var(--surface));
+  color: var(--blue-strong);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.season-room-chat {
+  display: grid;
+  min-height: 420px;
+  grid-template-rows: auto minmax(210px, 1fr) auto auto;
+  overflow: hidden;
+}
+
+.season-room-chat > header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--line);
+  padding: 15px 17px;
+}
+
+.season-room-chat > header > svg {
+  color: var(--blue);
+  font-size: 22px;
+}
+
+.season-room-chat > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.season-room-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  max-height: 390px;
+  padding: 13px;
+  overflow-y: auto;
+}
+
+.season-room-messages > p {
+  margin: auto;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.season-room-messages article {
+  width: fit-content;
+  max-width: 88%;
+  border-radius: 12px 12px 12px 4px;
+  padding: 8px 10px;
+  background: var(--surface-soft);
+}
+
+.season-room-messages article.own {
+  align-self: flex-end;
+  border-radius: 12px 12px 4px;
+  background: color-mix(in srgb, var(--blue) 13%, var(--surface));
+}
+
+.season-room-messages strong {
+  color: var(--blue-strong);
+  font-size: 11px;
+}
+
+.season-room-messages p {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.season-room-emoji {
+  display: flex;
+  gap: 4px;
+  border-top: 1px solid var(--line);
+  padding: 7px 10px;
+}
+
+.season-room-emoji button {
+  border: 0;
+  border-radius: 7px;
+  padding: 5px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.season-room-emoji button:hover {
+  background: var(--surface-soft);
+}
+
+.season-room-chat form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+
+.season-room-chat input,
+.season-room-captain-transfer select {
+  min-width: 0;
+  min-height: 42px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.season-room-chat form button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 10px;
+  padding: 0 13px;
+  background: var(--blue-gradient);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.season-room-start-controls,
+.season-room-waiting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px;
+}
+
+.season-room-start-controls > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
+.season-room-start-controls p,
+.season-room-waiting p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.season-room-start-controls > div:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.season-room-start-controls button {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  gap: 7px;
+}
+
+.season-room-force-start {
+  border: 1px solid rgba(214, 91, 110, 0.42);
+  border-radius: 11px;
+  padding: 10px 14px;
+  background: rgba(189, 78, 94, 0.09);
+  color: #d65b6e;
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.season-room-waiting > span {
+  color: var(--blue-strong);
+  font-weight: 900;
+}
+
+.season-room-voting {
+  overflow: hidden;
+}
+
+.season-room-voting > header {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 19px 21px;
+  background: var(--surface-soft);
+}
+
+.season-room-voting > header > svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 24px;
+}
+
+.season-room-voting header p {
+  margin: 5px 0 0;
+  color: var(--muted);
+}
+
+.season-room-candidate-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  padding: 16px 20px;
+}
+
+.season-room-candidate-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.season-room-candidate-list label:has(input:checked) {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 10%, var(--surface));
+}
+
+.season-room-candidate-list label > span {
+  display: grid;
+  min-width: 0;
+}
+
+.season-room-candidate-list strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-room-candidate-list small {
+  color: var(--muted);
+}
+
+.season-room-voting footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding: 14px 20px;
+}
+
+.season-room-voting footer > span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.season-room-captain-transfer {
+  width: fit-content;
+  padding: 0;
+}
+
+.season-room-captain-transfer summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 13px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.season-room-captain-transfer summary::-webkit-details-marker {
+  display: none;
+}
+
+.season-room-captain-transfer > div {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding: 12px;
+}
+
+.season-room-captain-transfer label {
+  display: grid;
+  gap: 5px;
+}
+
+.season-room-captain-transfer label > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.season-room-draft {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.season-room-draft-perspective {
+  margin: 0;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+  padding: 11px 15px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-room-draft-perspective strong {
+  color: var(--text);
+}
+
+.season-room-draft .fearless-draft-page {
+  width: 100%;
+  margin: 0;
+}
+
+.season-room-draft-loading {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px;
+  background: var(--surface);
+  color: var(--muted);
+  text-align: center;
+}
+
+@media (max-width: 1050px) {
+  .season-room-chat {
+    min-height: 360px;
+  }
+}
+
+@media (max-width: 720px) {
+  .season-room-start-controls,
+  .season-room-waiting,
+  .season-room-voting footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-room-teams {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-room-candidate-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-room-start-controls > div:last-child {
+    justify-content: stretch;
+  }
+
+  .season-room-start-controls button,
+  .season-room-voting footer button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .season-room-captain-transfer,
+  .season-room-captain-transfer > div {
+    width: 100%;
+  }
+
+  .season-room-captain-transfer > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+}
+
+@media (max-width: 480px) {
+  .season-room-teams li {
+    grid-template-columns: 10px 42px minmax(0, 1fr);
+  }
+
+  .season-room-host-badge {
+    grid-column: 2 / -1;
+    justify-self: start;
+  }
+
+  .season-room-chat form button span {
+    display: none;
+  }
+}

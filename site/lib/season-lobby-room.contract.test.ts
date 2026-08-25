@@ -1,0 +1,64 @@
+import { readFileSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+function source(path: string) {
+  return readFileSync(new URL(path, import.meta.url), "utf8");
+}
+
+const migration = source(
+  "../../bot/database/migrations/0087_season_lobby_rooms.sql",
+);
+const roomCommands = source(
+  "../app/season-lobby/[matchId]/server/room-commands.ts",
+);
+const roomQuery = source(
+  "../app/season-lobby/[matchId]/server/room-query.ts",
+);
+const transfer = source(
+  "../app/season-lobby/[matchId]/server/captain-transfer.ts",
+);
+const hostAction = source(
+  "../app/api/admin/season/season-lobby-host-actions.ts",
+);
+const lobbyDisplay = source(
+  "../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx",
+);
+const roomScreen = source(
+  "../app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
+);
+const fearlessSnapshot = source(
+  "../app/fearless-draft/server/snapshot-service.ts",
+);
+
+describe("season lobby room contract", () => {
+  it("limits the room and chat to players of a published match", () => {
+    expect(roomQuery).toContain("JOIN season_match_room_players viewer");
+    expect(roomQuery).toContain("lobby_configuration_status = 'published'");
+    expect(roomCommands).toContain("await participantSide(client, matchId, playerId)");
+    expect(migration).toContain("VARCHAR(500)");
+    expect(migration).toContain("season_match_room_players");
+  });
+
+  it("lets only the assigned host start and checks all ten players", () => {
+    expect(hostAction).toContain("participant.player_id = $2");
+    expect(roomCommands).toContain("room.host_player_id !== playerId");
+    expect(roomCommands).toContain("counts.online_count !== 10");
+    expect(roomCommands).toContain("is_force_started = $2");
+    expect(lobbyDisplay).toContain("Войти в лобби");
+  });
+
+  it("requires every player to vote before creating the linked draft", () => {
+    expect(roomCommands).toContain("counts.vote_count === 10");
+    expect(roomCommands).toContain("chooseSeasonLobbyCaptain");
+    expect(roomCommands).toContain("season_match_id");
+    expect(migration).toContain("PRIMARY KEY (match_id, voter_player_id)");
+  });
+
+  it("keeps team viewers read-only and supports captain transfer", () => {
+    expect(fearlessSnapshot).toContain("season_match_id = $3");
+    expect(roomScreen).toContain("FearlessDraftScreen");
+    expect(transfer).toContain("Передать полномочия может только действующий капитан");
+    expect(transfer).toContain("UPDATE draft_maps SET");
+    expect(transfer).toContain("UPDATE season_match_participants");
+  });
+});

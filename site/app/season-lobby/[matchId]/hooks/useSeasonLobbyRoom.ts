@@ -2,39 +2,35 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
-  FearlessDraftCommand,
-  FearlessDraftSnapshot,
-} from "../model/snapshot";
+  SeasonLobbyRoomCommand,
+  SeasonLobbyRoomSnapshot,
+} from "../model/types";
 
-type CommandResponse = { error?: string };
+type ErrorResponse = { error?: string };
 
-export function useFearlessDraft(
-  initialSnapshot: FearlessDraftSnapshot,
-  seasonMatchId?: number,
-) {
+export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [error, setError] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const fallbackTimer = useRef<number | null>(null);
+  const endpoint = `/api/season/lobby-room/${initialSnapshot.matchId}`;
 
   const reload = useCallback(async () => {
-    const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
-    const response = await fetch(`/api/fearless-draft${suffix}`, {
-      cache: "no-store",
-    });
-    const body = (await response.json()) as FearlessDraftSnapshot & CommandResponse;
-    if (!response.ok) throw new Error(body.error ?? "Не удалось обновить драфт");
+    const response = await fetch(endpoint, { cache: "no-store" });
+    const body = (await response.json()) as SeasonLobbyRoomSnapshot & ErrorResponse;
+    if (!response.ok) {
+      throw new Error(body.error ?? "Не удалось обновить комнату");
+    }
     setSnapshot(body);
-  }, [seasonMatchId]);
+  }, [endpoint]);
 
   useEffect(() => {
-    const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
-    const events = new EventSource(`/api/fearless-draft/events${suffix}`);
+    const events = new EventSource(`${endpoint}/events`);
     const receiveSnapshot = (event: MessageEvent<string>) => {
-      setSnapshot(JSON.parse(event.data) as FearlessDraftSnapshot);
-      setIsConnected(true);
+      setSnapshot(JSON.parse(event.data) as SeasonLobbyRoomSnapshot);
       setError("");
+      setIsConnected(true);
       if (fallbackTimer.current !== null) {
         window.clearInterval(fallbackTimer.current);
         fallbackTimer.current = null;
@@ -57,18 +53,20 @@ export function useFearlessDraft(
         fallbackTimer.current = null;
       }
     };
-  }, [reload, seasonMatchId]);
+  }, [endpoint, reload]);
 
-  const send = useCallback(async (command: FearlessDraftCommand) => {
+  const send = useCallback(async (command: SeasonLobbyRoomCommand) => {
     setIsSending(true);
     try {
-      const response = await fetch("/api/fearless-draft", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(command),
       });
-      const body = (await response.json()) as CommandResponse;
-      if (!response.ok) throw new Error(body.error ?? "Действие не выполнено");
+      const body = (await response.json()) as ErrorResponse;
+      if (!response.ok) {
+        throw new Error(body.error ?? "Действие не выполнено");
+      }
       setError("");
       await reload();
       return true;
@@ -79,7 +77,7 @@ export function useFearlessDraft(
     } finally {
       setIsSending(false);
     }
-  }, [reload]);
+  }, [endpoint, reload]);
 
   return { snapshot, error, isSending, isConnected, send };
 }

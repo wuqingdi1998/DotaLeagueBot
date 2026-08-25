@@ -89,6 +89,13 @@ export async function loadLockedDraftSeries(
   playerId: string,
 ): Promise<{ series: DraftSeriesRow; map: DraftMapRow }> {
   const seriesId = await currentSeriesId(client, playerId);
+  return loadLockedDraftSeriesById(client, seriesId);
+}
+
+export async function loadLockedDraftSeriesById(
+  client: PoolClient,
+  seriesId: number,
+): Promise<{ series: DraftSeriesRow; map: DraftMapRow }> {
   const seriesResult = await client.query<DraftSeriesRow>(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
             current_map::int, map1_coin_toss_winner_id::text,

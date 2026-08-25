@@ -41,6 +41,8 @@ export type MatchRow = {
   result: "team_a" | "draw" | "team_b" | null;
   status: "draft" | "published" | "completed" | "cancelled";
   sort_order: number;
+  can_enter_lobby: boolean;
+  host_player_id: string | null;
 };
 
 export type ParticipantRow = {
@@ -54,6 +56,7 @@ export type ParticipantRow = {
   is_captain: boolean;
   tier_snapshot: number | null;
   slot_number: number | null;
+  is_host: boolean;
 };
 
 export type GameRow = {

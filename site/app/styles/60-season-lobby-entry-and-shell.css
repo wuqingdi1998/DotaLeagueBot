@@ -1,0 +1,171 @@
+.season-player-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.season-host-select {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.season-host-select:hover,
+.season-host-select.selected {
+  border-color: color-mix(in srgb, var(--blue) 55%, var(--line));
+  background: color-mix(in srgb, var(--blue) 13%, var(--surface));
+  color: var(--blue-strong);
+}
+
+.season-host-select.selected {
+  cursor: default;
+}
+
+.season-enter-lobby-button {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 0 22px 20px;
+  border-radius: 15px;
+  background: var(--blue-gradient);
+  box-shadow: 0 12px 28px rgba(47, 111, 237, 0.2);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.season-enter-lobby-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 15px 32px rgba(47, 111, 237, 0.28);
+}
+
+.season-room-page {
+  display: grid;
+  width: min(1500px, calc(100% - 32px));
+  gap: 22px;
+  margin: 0 auto;
+  padding: 34px 0 80px;
+}
+
+.season-room-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 26px 28px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--blue) 13%, var(--surface)),
+    var(--surface) 58%
+  );
+}
+
+.season-room-hero > div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.season-room-hero a,
+.season-room-connection {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.season-room-hero a {
+  width: fit-content;
+  margin-bottom: 11px;
+  color: var(--blue-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.season-room-hero span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.season-room-hero h1,
+.season-room-hero p {
+  margin: 0;
+}
+
+.season-room-hero h1 {
+  font-size: clamp(30px, 4vw, 48px);
+}
+
+.season-room-hero p {
+  color: var(--muted);
+}
+
+.season-room-connection {
+  flex: 0 0 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.season-room-connection.online {
+  color: #2b9a68;
+}
+
+.season-room-error {
+  border: 1px solid rgba(217, 45, 32, 0.35);
+  border-radius: 13px;
+  padding: 12px 15px;
+  background: rgba(217, 45, 32, 0.08);
+  color: #d92d20;
+  font-weight: 800;
+}
+
+.season-room-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.85fr);
+  gap: 22px;
+}
+
+@media (max-width: 1050px) {
+  .season-room-overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .season-room-page {
+    width: min(100% - 20px, 1500px);
+    padding-top: 18px;
+  }
+
+  .season-room-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-enter-lobby-button {
+    margin: 0 12px 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .season-room-hero {
+    padding: 20px;
+  }
+}

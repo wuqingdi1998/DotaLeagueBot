@@ -49,6 +49,7 @@ export type SeasonMatchParticipant = {
   is_captain: boolean;
   tier_snapshot: number | null;
   slot_number: number | null;
+  is_host: boolean;
 };
 
 export type SeasonMatch = {
@@ -66,6 +67,8 @@ export type SeasonMatch = {
   result: "team_a" | "draw" | "team_b" | null;
   status: SeasonMatchStatus;
   sort_order: number;
+  can_enter_lobby: boolean;
+  host_player_id: string | null;
   participants: SeasonMatchParticipant[];
   games: SeasonGame[];
   substitutions: SeasonSubstitution[];

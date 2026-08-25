@@ -126,13 +126,18 @@ export async function GET(request: Request) {
            match.scheduled_at, match.team_a_name, match.team_b_name,
            match.best_of::int, match.team_a_score::int,
            match.team_b_score::int, match.result, match.status,
-           match.sort_order
+           match.sort_order, match.host_player_id::text,
+           EXISTS (
+             SELECT 1 FROM season_match_room_players room_participant
+             WHERE room_participant.match_id = match.id
+               AND room_participant.player_id = $2::bigint
+           ) AS can_enter_lobby
          FROM season_matches match
          JOIN season_lobbies lobby ON lobby.id = match.lobby_id
          JOIN season_rounds round ON round.id = lobby.round_id
          WHERE round.tournament_id = $1 ${visibility} ${matchVisibility}
          ORDER BY round.round_number, lobby.sort_order, match.sort_order`,
-        [tournament.id],
+        [tournament.id, user?.discordId ?? null],
       ),
       query<ParticipantRow>(
       `SELECT participant.match_id::int, participant.player_id::text,
@@ -143,7 +148,8 @@ export async function GET(request: Request) {
              AS positions,
            participant.team_side, participant.is_captain,
            participant.tier_snapshot::int,
-           participant.slot_number::int
+           participant.slot_number::int,
+           participant.player_id = match.host_player_id AS is_host
          FROM season_match_participants participant
          JOIN players player ON player.discord_id = participant.player_id
          LEFT JOIN player_identity_members identity_member

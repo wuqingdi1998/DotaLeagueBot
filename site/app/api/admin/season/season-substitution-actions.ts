@@ -12,6 +12,7 @@ function optionalId(value: unknown, label: string) {
 async function substitutionValues(
   client: import("pg").PoolClient,
   body: Record<string, unknown>,
+  excludedSubstitutionId: number | null = null,
 ) {
   const matchId = requiredId(body.matchId, "матч");
   const gameId = optionalId(body.gameId, "карта");
@@ -58,6 +59,21 @@ async function substitutionValues(
     throw new Response("Игрок замены уже находится в составе этого матча", {
       status: 400,
     });
+  }
+  if (!gameId) {
+    const alreadyReplacing = await client.query(
+      `SELECT 1 FROM season_match_substitutions
+       WHERE match_id = $1 AND incoming_player_id = $2
+         AND game_id IS NULL AND id <> COALESCE($3, 0)
+       LIMIT 1`,
+      [matchId, incoming.discord_id, excludedSubstitutionId],
+    );
+    if (alreadyReplacing.rowCount) {
+      throw new Response(
+        "Этот игрок уже заменяет другого участника всего матча",
+        { status: 409 },
+      );
+    }
   }
   return {
     matchId,
@@ -106,7 +122,7 @@ export async function updateSeasonSubstitution(
 ) {
   const id = requiredId(body.id, "замена");
   return transaction(async (client) => {
-    const values = await substitutionValues(client, body);
+    const values = await substitutionValues(client, body, id);
     await addSeasonParticipant(
       client,
       values.tournamentId,

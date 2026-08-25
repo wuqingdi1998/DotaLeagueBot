@@ -27,6 +27,7 @@ export function ActiveDraft({
   isFullscreen,
   isFullscreenSupported,
   toggleFullscreen,
+  canControlSeries,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
@@ -36,6 +37,7 @@ export function ActiveDraft({
   isFullscreen: boolean;
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
+  canControlSeries: boolean;
 }) {
   const { text } = useDraftLocale();
   const [localPreview, setLocalPreview] = useState<{
@@ -92,7 +94,7 @@ export function ActiveDraft({
           <span>{text.map} {map.number} / {series.format}</span>
           <strong>{isComplete ? text.draftComplete : map.currentPhase ? phaseLabels[map.currentPhase] : text.draft}</strong>
         </div>
-        {isComplete ? (
+        {isComplete && canControlSeries ? (
           <div className="fearless-map-ready-control">
             {series.status === "COMPLETE" ? (
               <button

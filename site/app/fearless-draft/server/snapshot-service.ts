@@ -112,7 +112,10 @@ async function loadPlayers(playerIds: string[]): Promise<Map<string, DraftPlayer
   return new Map(rows.map((row) => [row.id, playerFromRow(row)]));
 }
 
-async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null> {
+async function loadSeries(
+  playerId: string,
+  seasonMatchId?: number,
+): Promise<DraftSeriesSnapshot | null> {
   const series = await one<SeriesRow>(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
             current_map::int, map1_coin_toss_winner_id::text,
@@ -120,17 +123,36 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
             player1_ready_for_next_map, player2_ready_for_next_map,
             created_at, updated_at
      FROM draft_series
-     WHERE (player1_id = $1 OR player2_id = $1)
-       AND (
-         status = ANY($2::text[])
-         OR (status = 'COMPLETE' AND (
-           (player1_id = $1 AND player1_dismissed_at IS NULL)
-           OR (player2_id = $1 AND player2_dismissed_at IS NULL)
-         ))
+     WHERE (
+       (
+         (player1_id = $1 OR player2_id = $1)
+         AND (
+           status = ANY($2::text[])
+           OR (status = 'COMPLETE' AND (
+             (player1_id = $1 AND player1_dismissed_at IS NULL)
+             OR (player2_id = $1 AND player2_dismissed_at IS NULL)
+           ))
+         )
        )
+       OR (
+         $3::bigint IS NOT NULL
+         AND season_match_id = $3
+         AND status = ANY($4::text[])
+         AND EXISTS (
+           SELECT 1 FROM season_match_room_players participant
+           WHERE participant.match_id = season_match_id
+             AND participant.player_id = $1
+         )
+       )
+     )
      ORDER BY CASE WHEN status = 'COMPLETE' THEN 1 ELSE 0 END, updated_at DESC
      LIMIT 1`,
-    [playerId, ["CHOOSING", "DRAFTING", "MAP_COMPLETE"]],
+    [
+      playerId,
+      ["CHOOSING", "DRAFTING", "MAP_COMPLETE"],
+      seasonMatchId ?? null,
+      ["CHOOSING", "DRAFTING", "MAP_COMPLETE", "COMPLETE"],
+    ],
   );
   if (!series) return null;
   const map = await one<MapRow>(
@@ -187,13 +209,15 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
     createdAt: action.created_at.toISOString(),
   }));
 
-  await query(
-    `INSERT INTO draft_presence(player_id, series_id)
-     VALUES ($1, $2)
-     ON CONFLICT (player_id) DO UPDATE
-       SET series_id = EXCLUDED.series_id, heartbeat_at = NOW()`,
-    [playerId, series.id],
-  );
+  if ([series.player1_id, series.player2_id].includes(playerId)) {
+    await query(
+      `INSERT INTO draft_presence(player_id, series_id)
+       VALUES ($1, $2)
+       ON CONFLICT (player_id) DO UPDATE
+         SET series_id = EXCLUDED.series_id, heartbeat_at = NOW()`,
+      [playerId, series.id],
+    );
+  }
   const connectedRows = await query<{ player_id: string }>(
     `SELECT player_id::text FROM draft_presence
      WHERE series_id = $1
@@ -257,9 +281,10 @@ async function loadSeries(playerId: string): Promise<DraftSeriesSnapshot | null>
 
 export async function loadFearlessDraftSnapshot(
   user: AuthUser,
+  options: { seasonMatchId?: number } = {},
 ): Promise<FearlessDraftSnapshot> {
   await settleExpiredDraftEndRequests();
-  await settleExpiredDraft(user.discordId);
+  await settleExpiredDraft(user.discordId, options.seasonMatchId);
   await advanceBotDraft(user.discordId);
   return transaction(async (client) => {
     await client.query(
@@ -325,7 +350,7 @@ export async function loadFearlessDraftSnapshot(
       ...playerFromRow(row),
       joinedAt: row.joined_at.toISOString(),
     }));
-    const series = await loadSeries(user.discordId);
+    const series = await loadSeries(user.discordId, options.seasonMatchId);
     const serverNow = await databaseNow(client);
     return {
       serverNow: serverNow.toISOString(),

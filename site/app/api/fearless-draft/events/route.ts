@@ -1,5 +1,7 @@
 import { requireSession, responseFromAuthError } from "@/lib/auth";
 import { loadFearlessDraftSnapshot } from "@/app/fearless-draft/server/snapshot-service";
+import { fearlessSeasonMatchId } from
+  "@/app/fearless-draft/server/season-match-context";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -9,6 +11,7 @@ const updateIntervalMs = 1_250;
 export async function GET(request: Request) {
   try {
     const user = await requireSession();
+    const seasonMatchId = fearlessSeasonMatchId(request);
     const encoder = new TextEncoder();
     let timer: ReturnType<typeof setInterval> | null = null;
     let isLoading = false;
@@ -20,7 +23,9 @@ export async function GET(request: Request) {
           if (isLoading) return;
           isLoading = true;
           try {
-            const snapshot = await loadFearlessDraftSnapshot(user);
+            const snapshot = await loadFearlessDraftSnapshot(user, {
+              seasonMatchId,
+            });
             if (isClosed) return;
             controller.enqueue(
               encoder.encode(`event: snapshot\ndata: ${JSON.stringify(snapshot)}\n\n`),
