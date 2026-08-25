@@ -210,8 +210,10 @@ describe("compendium persistence and security contract", () => {
 
   it("shows the verification notice beside the half-width reroll strip", () => {
     expect(rerollNotice).toContain(
-      "Учитываются только рейтинговые победы завершенные до 23:59 текущего",
+      "Учитываются только рейтинговые победы завершенные до",
     );
+    expect(rerollNotice).toContain("23:59 текущего дня по московскому времени");
+    expect(rerollNotice).toContain("data-moscow-recurring-time");
     expect(rerollNotice).toContain("по московскому времени");
     expect(rerollNotice).not.toContain("по Московскому времени");
     expect(dashboard).not.toContain('className="compendium-note"');

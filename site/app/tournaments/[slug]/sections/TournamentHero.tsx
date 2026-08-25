@@ -109,7 +109,13 @@ export function TournamentHero() {
                   season.data?.participants.length ?? 0
                 } участников`
               : canRegister
-              ? `Состав из ${tournament.team_size} игроков · участие бесплатное · регистрация до ${formatDayMonth(tournament.registration_deadline)}`
+              ? <>
+                  Состав из {tournament.team_size} игроков · участие бесплатное
+                  · регистрация до{" "}
+                  <time dateTime={tournament.registration_deadline}>
+                    {formatDayMonth(tournament.registration_deadline)}
+                  </time>
+                </>
               : isPast
                 ? "Турнир завершён · результаты и история матчей сохранены"
                 : `Состав из ${tournament.team_size} игроков · ${tournament.status_label}`}

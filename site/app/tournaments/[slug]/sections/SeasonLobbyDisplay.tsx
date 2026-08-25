@@ -89,7 +89,10 @@ function SeasonMatchCard({
           <span>
             <FiCalendar aria-hidden="true" />
             {match.scheduled_at
-              ? `${formatDayMonth(match.scheduled_at)} · ${formatTime(match.scheduled_at)}`
+              ? <time dateTime={match.scheduled_at}>
+                  {formatDayMonth(match.scheduled_at)} ·{" "}
+                  {formatTime(match.scheduled_at)}
+                </time>
               : "Время не назначено"}
           </span>
           <span>

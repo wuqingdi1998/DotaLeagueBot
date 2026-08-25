@@ -48,7 +48,10 @@ export function SeasonRoundPanel() {
           </h3>
           <p className="season-round-meta">
             {round.scheduled_at
-              ? `${formatDayMonth(round.scheduled_at)} · ${formatTime(round.scheduled_at)}`
+              ? <time dateTime={round.scheduled_at}>
+                  {formatDayMonth(round.scheduled_at)} ·{" "}
+                  {formatTime(round.scheduled_at)}
+                </time>
               : "Дата пока не назначена"}
           </p>
         </div>

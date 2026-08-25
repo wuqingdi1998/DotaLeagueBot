@@ -23,7 +23,12 @@ export function CompendiumAccessGate() {
           <section className="compendium-daily-section">
             <div className="compendium-section-heading">
               <div>
-                <span>Обновление ежедневно в 00:00 МСК</span>
+                <span>
+                  Обновление ежедневно в{" "}
+                  <time dateTime="00:00" data-moscow-recurring-time>
+                    00:00 МСК
+                  </time>
+                </span>
                 <h2>Задания дня</h2>
               </div>
             </div>

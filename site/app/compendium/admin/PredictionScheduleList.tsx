@@ -57,7 +57,12 @@ export function PredictionScheduleList({
           <header>
             <div>
               <strong>{predictionDateLabel(group.dateKey)}</strong>
-              <span>{group.matches.length} матча · открытие {predictionOpeningLabel(group.opensAt)} МСК</span>
+              <span>
+                {group.matches.length} матча · открытие{" "}
+                <time dateTime={group.opensAt}>
+                  {predictionOpeningLabel(group.opensAt)} МСК
+                </time>
+              </span>
             </div>
             <button className="prediction-admin-delete" type="button" disabled={isSaving} onClick={() => onDeleteDay(group.dateKey)}>
               <FiTrash2 aria-hidden="true" /> Удалить день
@@ -67,7 +72,12 @@ export function PredictionScheduleList({
             {group.matches.map((match) => (
               <article key={match.id}>
                 <div>
-                  <span>Матч {match.position} · {predictionTimeValue(match.startsAt)} МСК</span>
+                  <span>
+                    Матч {match.position} ·{" "}
+                    <time dateTime={match.startsAt}>
+                      {predictionTimeValue(match.startsAt)} МСК
+                    </time>
+                  </span>
                   <strong>{match.teamA.name} — {match.teamB.name}</strong>
                 </div>
                 <div className="prediction-admin-match-actions">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { ReactNode } from "react";
 import type { FinalPredictionRecord } from "../services/star-race-final-prediction-repository";
 
 export function StarRaceFinalPredictionAdmin({
@@ -12,7 +13,7 @@ export function StarRaceFinalPredictionAdmin({
   const [teams, setTeams] = useState(() => Array.from({ length: 6 }, (_, index) => initialPrediction.teams[index] ?? ""));
   const [winner, setWinner] = useState(initialPrediction.winnerPosition ?? 0);
   const [isSaving, setIsSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<ReactNode>("");
 
   async function request(method: "PUT" | "PATCH", body: object) {
     setIsSaving(true);
@@ -38,8 +39,15 @@ export function StarRaceFinalPredictionAdmin({
       setWinner(result.prediction.winnerPosition ?? 0);
       setMessage(method === "PUT"
         ? result.isOpened
-          ? `Команды сохранены, прогноз открыт до 05:00. Бот отправит уведомление участникам: ${result.notifiedPlayers ?? 0}.`
-          : "Команды обновлены. Прогноз остаётся открытым до 05:00."
+          ? <>
+              Команды сохранены, прогноз открыт до{" "}
+              <time dateTime="05:00" data-moscow-recurring-time>05:00</time>.
+              Бот отправит уведомление участникам: {result.notifiedPlayers ?? 0}.
+            </>
+          : <>
+              Команды обновлены. Прогноз остаётся открытым до{" "}
+              <time dateTime="05:00" data-moscow-recurring-time>05:00</time>.
+            </>
         : `Победитель сохранён. Звёзды получили игроков: ${result.rewardedPlayers ?? 0}.`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось сохранить данные");
@@ -57,7 +65,11 @@ export function StarRaceFinalPredictionAdmin({
         </div>
       </div>
       <p className="prediction-admin-help">
-        Укажите ровно шесть команд. Первое сохранение сразу откроет прогноз игрокам и запустит уведомления в Discord. Приём прогнозов завершится в субботу в 05:00, после чего выберите победителя — 10 звёзд будут выданы автоматически.
+        Укажите ровно шесть команд. Первое сохранение сразу откроет прогноз
+        игрокам и запустит уведомления в Discord. Приём прогнозов завершится в
+        субботу в{" "}
+        <time dateTime="05:00" data-moscow-recurring-time>05:00</time>, после
+        чего выберите победителя — 10 звёзд будут выданы автоматически.
       </p>
       <div className="final-prediction-team-grid">
         {teams.map((team, index) => (

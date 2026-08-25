@@ -230,3 +230,7 @@ html:has(.setup-screen[data-theme="light"]) {
   font-weight: 600;
   box-shadow: 0 12px 30px rgba(0, 121, 201, 0.24);
 }
+
+time[datetime] {
+  cursor: help;
+}

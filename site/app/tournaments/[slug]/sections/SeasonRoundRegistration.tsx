@@ -68,13 +68,22 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
           <strong>Регистрация на тур</strong>
           <span>
             {round.registration_deadline
-              ? `Регистрация до ${formatDayMonth(round.registration_deadline)} · ${formatTime(round.registration_deadline)}`
+              ? <>
+                  Регистрация до{" "}
+                  <time dateTime={round.registration_deadline}>
+                    {formatDayMonth(round.registration_deadline)} ·{" "}
+                    {formatTime(round.registration_deadline)}
+                  </time>
+                </>
               : "Откроется после назначения даты тура"}
           </span>
           <small>
             Зарегистрировано: {round.registration_count}. Отмена доступна до{" "}
             {round.cancellation_deadline
-              ? `${formatDayMonth(round.cancellation_deadline)} · ${formatTime(round.cancellation_deadline)}`
+              ? <time dateTime={round.cancellation_deadline}>
+                  {formatDayMonth(round.cancellation_deadline)} ·{" "}
+                  {formatTime(round.cancellation_deadline)}
+                </time>
               : "назначения даты тура"}.
           </small>
         </div>

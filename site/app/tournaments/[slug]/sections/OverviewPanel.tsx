@@ -45,7 +45,11 @@ export function OverviewPanel() {
               <div>
                 <span>{index + 1}</span>
                 <strong>{stage.label}</strong>
-                <small>{formatTimelineMoment(stage.at)}</small>
+                <small>
+                  <time dateTime={stage.at}>
+                    {formatTimelineMoment(stage.at)}
+                  </time>
+                </small>
               </div>
             </Fragment>
           ))}
@@ -65,7 +69,11 @@ export function OverviewPanel() {
             <div className="tournament-schedule-entries">
               {day.entries.map((entry) => (
                 <div key={entry.id}>
-                  <time>{entry.start_time}</time>
+                  <time
+                    dateTime={`${day.day_date}T${entry.start_time}:00+03:00`}
+                  >
+                    {entry.start_time}
+                  </time>
                   <span>
                     <strong>{entry.stage_name}</strong>
                     <small>

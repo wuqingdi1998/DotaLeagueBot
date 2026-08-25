@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import "./globals.css";
+import { LocalTimeHints } from "./components/LocalTimeHints";
 import { PreventSpaceScroll } from "./components/PreventSpaceScroll";
 import { SiteBreakWatcher } from "./components/SiteBreakWatcher";
 
@@ -52,6 +53,7 @@ export default function RootLayout({
   return (
     <html lang="ru">
       <body>
+        <LocalTimeHints />
         <PreventSpaceScroll />
         <SiteBreakWatcher />
         {children}

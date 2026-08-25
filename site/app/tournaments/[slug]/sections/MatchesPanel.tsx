@@ -34,8 +34,16 @@ export function MatchesPanel() {
         {data.matches.map((match) => (
           <article className="match-row" key={match.id}>
             <div className="match-date">
-              <strong>{formatTime(match.scheduled_at)}</strong>
-              <span>{formatDayMonth(match.scheduled_at)}</span>
+              <strong>
+                <time dateTime={match.scheduled_at}>
+                  {formatTime(match.scheduled_at)}
+                </time>
+              </strong>
+              <span>
+                <time dateTime={match.scheduled_at}>
+                  {formatDayMonth(match.scheduled_at)}
+                </time>
+              </span>
             </div>
             <div className="match-stage">
               {match.stage}

@@ -33,7 +33,13 @@ export function TournamentCheckInCard() {
           </h3>
           <p>
             {checkInWindow.isUpcoming
-              ? `Начало чек-ина — ${formatTimelineMoment(checkInWindow.opensAt)}.`
+              ? <>
+                  Начало чек-ина —{" "}
+                  <time dateTime={checkInWindow.opensAt}>
+                    {formatTimelineMoment(checkInWindow.opensAt)}
+                  </time>
+                  .
+                </>
               : "Одного подтверждения капитана достаточно для всей команды."}
           </p>
         </div>

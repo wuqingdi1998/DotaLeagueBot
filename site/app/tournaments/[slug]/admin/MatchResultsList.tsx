@@ -37,8 +37,12 @@ export function MatchResultsList() {
                   {match.team_a} — {match.team_b}
                 </strong>
                 <small>
-                  {match.stage} · {formatDayMonth(match.scheduled_at)}{" "}
-                  {formatTime(match.scheduled_at)} · BO{match.best_of}
+                  {match.stage} ·{" "}
+                  <time dateTime={match.scheduled_at}>
+                    {formatDayMonth(match.scheduled_at)}{" "}
+                    {formatTime(match.scheduled_at)}
+                  </time>{" "}
+                  · BO{match.best_of}
                 </small>
               </span>
               <b>Редактировать</b>

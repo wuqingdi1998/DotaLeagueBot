@@ -354,7 +354,15 @@ export function CompendiumDashboard({
         <>
           <section className="compendium-daily-section" id="compendium-quests">
           <div className="compendium-section-heading">
-            <div><span>Обновление ежедневно в 00:00 МСК</span><h2>Задания дня</h2></div>
+            <div>
+              <span>
+                Обновление ежедневно в{" "}
+                <time dateTime="00:00" data-moscow-recurring-time>
+                  00:00 МСК
+                </time>
+              </span>
+              <h2>Задания дня</h2>
+            </div>
             <div className="compendium-section-status">
               {data.dailyChallengeRewardStars === 2 && (
                 <div className="compendium-weekend-bonus" role="status">

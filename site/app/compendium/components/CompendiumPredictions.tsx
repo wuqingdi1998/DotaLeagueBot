@@ -102,7 +102,10 @@ function PredictionCard({
         </p>
       ) : !isOpen ? (
         <p className="compendium-prediction-note">
-          Откроется {predictionOpeningLabel(match.opensAt)} МСК
+          Откроется{" "}
+          <time dateTime={match.opensAt}>
+            {predictionOpeningLabel(match.opensAt)} МСК
+          </time>
         </p>
       ) : isLocked ? (
         <p className="compendium-prediction-note">Прогноз принят, ожидаем результат</p>

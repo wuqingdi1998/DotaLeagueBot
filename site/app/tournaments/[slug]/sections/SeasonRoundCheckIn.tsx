@@ -43,8 +43,11 @@ export function SeasonRoundCheckIn({
                 : "Чек-ин завершён"}
           </strong>
           <small>
-            До {formatDayMonth(round.check_in_closes_at)} ·{" "}
-            {formatTime(round.check_in_closes_at)}
+            До{" "}
+            <time dateTime={round.check_in_closes_at}>
+              {formatDayMonth(round.check_in_closes_at)} ·{" "}
+              {formatTime(round.check_in_closes_at)}
+            </time>
           </small>
         </span>
       </div>
