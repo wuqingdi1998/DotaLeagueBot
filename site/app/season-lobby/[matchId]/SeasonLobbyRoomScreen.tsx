@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FiActivity, FiArrowLeft, FiShield } from "react-icons/fi";
 import { FearlessDraftScreen } from "@/app/fearless-draft/FearlessDraftScreen";
@@ -23,22 +23,31 @@ export function SeasonLobbyRoomScreen({
 }) {
   const { snapshot, error, isSending, isConnected, send } =
     useSeasonLobbyRoom(initialRoom);
-  const hasRequestedDraftReload = useRef(false);
+  const [draftSnapshot, setDraftSnapshot] = useState(initialDraft);
   const teamCaptain = snapshot.players.find(
     (player) =>
       player.teamSide === snapshot.currentUserTeamSide && player.isCaptain,
   );
 
   useEffect(() => {
-    if (
-      snapshot.status === "drafting" &&
-      !initialDraft &&
-      !hasRequestedDraftReload.current
-    ) {
-      hasRequestedDraftReload.current = true;
-      window.location.reload();
-    }
-  }, [initialDraft, snapshot.status]);
+    if (snapshot.status !== "drafting" || draftSnapshot?.series) return;
+    let isCancelled = false;
+    const loadDraft = async () => {
+      const response = await fetch(
+        `/api/fearless-draft?seasonMatchId=${snapshot.matchId}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok || isCancelled) return;
+      const nextDraft = (await response.json()) as FearlessDraftSnapshot;
+      if (nextDraft.series && !isCancelled) setDraftSnapshot(nextDraft);
+    };
+    void loadDraft();
+    const timer = window.setInterval(() => void loadDraft(), 1_000);
+    return () => {
+      isCancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [draftSnapshot?.series, snapshot.matchId, snapshot.status]);
 
   return (
     <main className="season-room-page">
@@ -81,19 +90,19 @@ export function SeasonLobbyRoomScreen({
         send={send}
       />
 
-      {snapshot.status === "drafting" && initialDraft?.series && (
+      {snapshot.status === "drafting" && draftSnapshot?.series && (
         <section className="season-room-draft">
           <p className="season-room-draft-perspective">
             Ваша команда участвует в драфте от лица капитана:{" "}
             <strong>{teamCaptain?.nickname ?? "капитан команды"}</strong>
           </p>
           <FearlessDraftScreen
-            initialSnapshot={initialDraft}
+            initialSnapshot={draftSnapshot}
             seasonMatchId={snapshot.matchId}
           />
         </section>
       )}
-      {snapshot.status === "drafting" && !initialDraft?.series && (
+      {snapshot.status === "drafting" && !draftSnapshot?.series && (
         <div className="season-room-draft-loading">Открываем Fearless Draft…</div>
       )}
     </main>
