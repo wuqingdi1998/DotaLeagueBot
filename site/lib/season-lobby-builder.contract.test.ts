@@ -117,11 +117,14 @@ describe("season lobby builder contract", () => {
 
     expect(builder).toContain("Оптимальный состав");
     expect(builder).toContain('mutate("optimize")');
+    expect(builder).toContain("По тиру сверху вниз");
+    expect(builder).toContain('mutate("sortTier")');
     expect(reserveComponent).toBeGreaterThan(lobbies);
     expect(reserve).toContain("Запас");
     expect(optimizationActions).toContain("optimizeSeasonLobbyPlayers");
     expect(optimizationActions).toContain("registration.created_at");
     expect(optimizationActions).toContain("reservePlayerIds");
+    expect(optimizationActions).toContain("sortSeasonLobbyTeamByTier");
   });
 
   it("shows circular tier badges in reserve and assigned lobby slots", () => {

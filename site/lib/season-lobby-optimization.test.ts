@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   optimizeSeasonLobbyPlayers,
+  sortSeasonLobbyTeamByTier,
   type SeasonLobbyOptimizationPlayer,
 } from "./season-lobby-optimization";
 
@@ -92,5 +93,54 @@ describe("season lobby optimization", () => {
     expect(Math.abs(teams[0].secondaryCount - teams[1].secondaryCount)).toBeLessThanOrEqual(1);
     expect(Math.abs(teams[0].coreTier - teams[1].coreTier)).toBeLessThanOrEqual(2);
     expect(Math.abs(teams[0].supportTier - teams[1].supportTier)).toBeLessThanOrEqual(2);
+  });
+
+  it("does not sacrifice available roles for closer opponent tiers", () => {
+    const players = [
+      player(0, 5, 3, 4),
+      player(1, 7, 2, 4),
+      player(2, 11, 3, 2),
+      player(3, 8, 1, 3),
+      player(4, 5, 4, 5),
+      player(5, 10, 1, 2),
+      player(6, 6, 3, 5),
+      player(7, 6, 1, 4),
+      player(8, 9, 3, 4),
+      player(9, 10, 4, 5),
+    ];
+
+    const [lobby] = optimizeSeasonLobbyPlayers(players, 1).lobbies;
+
+    expect(lobby.placements).toHaveLength(10);
+    for (const placement of lobby.placements) {
+      expect([placement.primaryRole, placement.secondaryRole]).toContain(
+        placement.slotNumber,
+      );
+    }
+    for (let role = 1; role <= 5; role += 1) {
+      const primaryRoleCounts = (["a", "b"] as const).map(
+        (teamSide) =>
+          lobby.placements.filter(
+            (placement) =>
+              placement.teamSide === teamSide &&
+              placement.primaryRole === role,
+          ).length,
+      );
+      expect(Math.abs(primaryRoleCounts[0] - primaryRoleCounts[1])).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("sorts only one team by tier from highest to lowest", () => {
+    const sorted = sortSeasonLobbyTeamByTier([
+      { playerId: "one", slotNumber: 1, tierSnapshot: 5 },
+      { playerId: "two", slotNumber: 2, tierSnapshot: 11 },
+      { playerId: "three", slotNumber: 3, tierSnapshot: 8 },
+    ]);
+
+    expect(sorted).toEqual([
+      { playerId: "two", slotNumber: 1, tierSnapshot: 11 },
+      { playerId: "three", slotNumber: 2, tierSnapshot: 8 },
+      { playerId: "one", slotNumber: 3, tierSnapshot: 5 },
+    ]);
   });
 });

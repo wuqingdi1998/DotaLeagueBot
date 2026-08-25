@@ -6,6 +6,7 @@ import {
   type DragEvent,
 } from "react";
 import {
+  FiArrowDown,
   FiEdit3,
   FiLock,
   FiMinus,
@@ -133,28 +134,38 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       {isEditing && (
         <div className="season-builder-optimization">
           <span>
-            Полные десятки распределяются сверху вниз, остальные остаются в
-            запасе.
+            Оптимальный состав показывает предполагаемые позиции 1–5 сверху
+            вниз. Затем можно отдельно упорядочить строки по тиру.
           </span>
-          <button
-            className="secondary-button compact"
-            type="button"
-            disabled={
-              round.registrations.length < SEASON_LOBBY_SIZE ||
-              Boolean(busyAction)
-            }
-            onClick={() => {
-              if (
-                window.confirm(
-                  "Заменить текущую ручную расстановку оптимальным составом?",
-                )
-              ) {
-                void mutate("optimize");
+          <div className="season-builder-optimization-actions">
+            <button
+              className="secondary-button compact"
+              type="button"
+              disabled={
+                round.registrations.length < SEASON_LOBBY_SIZE ||
+                Boolean(busyAction)
               }
-            }}
-          >
-            <FiZap aria-hidden="true" /> Оптимальный состав
-          </button>
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Заменить текущую ручную расстановку оптимальным составом?",
+                  )
+                ) {
+                  void mutate("optimize");
+                }
+              }}
+            >
+              <FiZap aria-hidden="true" /> Оптимальный состав
+            </button>
+            <button
+              className="secondary-button compact"
+              type="button"
+              disabled={assignedPlayerIds.size === 0 || Boolean(busyAction)}
+              onClick={() => void mutate("sortTier")}
+            >
+              <FiArrowDown aria-hidden="true" /> По тиру сверху вниз
+            </button>
+          </div>
         </div>
       )}
 
@@ -434,6 +445,7 @@ function lobbyActionMessage(action: string) {
     remove: "Лобби удалено",
     assign: "Распределение обновлено",
     optimize: "Оптимальный состав сохранён, остальные игроки перенесены в запас",
+    sortTier: "Игроки внутри команд отсортированы по тиру сверху вниз",
     lock: "Лобби зафиксированы",
     edit: "Редактирование лобби включено",
     publish: "Лобби опубликованы",

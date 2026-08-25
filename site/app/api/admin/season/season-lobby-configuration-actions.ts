@@ -15,7 +15,10 @@ import {
   renameAndOrderSeasonLobbies,
   seasonLobbyNames,
 } from "./season-lobby-configuration-store";
-import { optimizeSeasonLobbyConfiguration } from "./season-lobby-optimization-actions";
+import {
+  optimizeSeasonLobbyConfiguration,
+  sortSeasonLobbyConfigurationByTier,
+} from "./season-lobby-optimization-actions";
 
 const configurationActions = [
   "create",
@@ -23,6 +26,7 @@ const configurationActions = [
   "remove",
   "assign",
   "optimize",
+  "sortTier",
   "lock",
   "edit",
   "publish",
@@ -318,7 +322,9 @@ export async function updateSeasonLobbyConfiguration(
         throw new Response("Конструктор лобби уже создан", { status: 409 });
       }
       await createConfiguration(client, roundId);
-    } else if (["add", "remove", "assign", "optimize"].includes(action)) {
+    } else if (
+      ["add", "remove", "assign", "optimize", "sortTier"].includes(action)
+    ) {
       if (status !== "editing") {
         throw new Response("Сначала включите редактирование лобби", {
           status: 409,
@@ -329,6 +335,9 @@ export async function updateSeasonLobbyConfiguration(
       if (action === "assign") await assignPlayer(client, roundId, body);
       if (action === "optimize") {
         await optimizeSeasonLobbyConfiguration(client, roundId);
+      }
+      if (action === "sortTier") {
+        await sortSeasonLobbyConfigurationByTier(client, roundId);
       }
     } else if (action === "lock") {
       if (status !== "editing") {

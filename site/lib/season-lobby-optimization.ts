@@ -16,6 +16,12 @@ export type SeasonLobbyOptimizationPlan = {
   reservePlayerIds: string[];
 };
 
+type SeasonLobbyTierSortablePlacement = {
+  playerId: string;
+  slotNumber: number;
+  tierSnapshot: number;
+};
+
 type PlayerWithRoles = SeasonLobbyOptimizationPlayer & {
   primaryRole: number | null;
   secondaryRole: number | null;
@@ -63,6 +69,22 @@ export function optimizeSeasonLobbyPlayers(
   };
 }
 
+export function sortSeasonLobbyTeamByTier<
+  Placement extends SeasonLobbyTierSortablePlacement,
+>(placements: Placement[]): Placement[] {
+  return [...placements]
+    .sort(
+      (left, right) =>
+        right.tierSnapshot - left.tierSnapshot ||
+        left.slotNumber - right.slotNumber ||
+        left.playerId.localeCompare(right.playerId),
+    )
+    .map((placement, index) => ({
+      ...placement,
+      slotNumber: index + 1,
+    }));
+}
+
 function balanceLobbyPlayers(
   players: SeasonLobbyOptimizationPlayer[],
 ): SeasonLobbyOptimizedPlacement[] {
@@ -88,9 +110,13 @@ function balanceLobbyPlayers(
     );
     const leftAssignments = teamRoleAssignments(leftPlayers);
     const rightAssignments = teamRoleAssignments(rightPlayers);
+    const primaryRoleBalance = primaryRoleBalanceScore(
+      leftPlayers,
+      rightPlayers,
+    );
     for (const left of leftAssignments) {
       for (const right of rightAssignments) {
-        const score = assignmentScore(left, right);
+        const score = assignmentScore(left, right, primaryRoleBalance);
         if (!best || compareScores(score, best.score) < 0) {
           best = { left, right, score };
         }
@@ -167,6 +193,26 @@ function teamRoleAssignments(players: PlayerWithRoles[]) {
   });
 }
 
+function primaryRoleBalanceScore(
+  leftPlayers: PlayerWithRoles[],
+  rightPlayers: PlayerWithRoles[],
+) {
+  const roleGaps = Array.from({ length: TEAM_SIZE }, (_, index) => {
+    const role = index + 1;
+    const leftCount = leftPlayers.filter(
+      ({ primaryRole }) => primaryRole === role,
+    ).length;
+    const rightCount = rightPlayers.filter(
+      ({ primaryRole }) => primaryRole === role,
+    ).length;
+    return Math.abs(leftCount - rightCount);
+  });
+  return [
+    Math.max(...roleGaps),
+    roleGaps.reduce((sum, gap) => sum + gap, 0),
+  ];
+}
+
 function permutations<T>(values: T[]): T[][] {
   if (values.length <= 1) return [values];
   return values.flatMap((value, index) =>
@@ -179,6 +225,7 @@ function permutations<T>(values: T[]): T[][] {
 function assignmentScore(
   left: TeamRoleAssignment,
   right: TeamRoleAssignment,
+  primaryRoleBalance: number[],
 ) {
   const opponentTierGaps = left.placements.map((player, index) =>
     Math.abs(player.tierSnapshot - right.placements[index].tierSnapshot),
@@ -188,12 +235,14 @@ function assignmentScore(
     left.supportTier - right.supportTier,
   );
   return [
+    left.offRoleCount + right.offRoleCount,
+    Math.max(left.offRoleCount, right.offRoleCount),
+    ...primaryRoleBalance,
+    Math.abs(left.secondaryRoleCount - right.secondaryRoleCount),
+    Math.max(left.secondaryRoleCount, right.secondaryRoleCount),
+    left.secondaryRoleCount + right.secondaryRoleCount,
     Math.max(...opponentTierGaps),
     opponentTierGaps.reduce((sum, gap) => sum + gap, 0),
-    Math.max(left.offRoleCount, right.offRoleCount),
-    left.offRoleCount + right.offRoleCount,
-    Math.abs(left.secondaryRoleCount - right.secondaryRoleCount),
-    left.secondaryRoleCount + right.secondaryRoleCount,
     Math.max(coreTierDifference, supportTierDifference),
     coreTierDifference + supportTierDifference,
     Math.abs(left.totalTier - right.totalTier),

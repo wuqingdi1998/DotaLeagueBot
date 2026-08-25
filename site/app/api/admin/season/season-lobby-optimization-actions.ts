@@ -3,6 +3,7 @@ import {
   MAX_SEASON_LOBBY_COUNT,
   optimizeSeasonLobbyPlayers,
   SEASON_LOBBY_SIZE,
+  sortSeasonLobbyTeamByTier,
   type SeasonLobbyOptimizationPlayer,
 } from "@/lib/season-lobby-optimization";
 import {
@@ -15,6 +16,14 @@ type RegistrationRow = {
   player_id: string;
   positions: string | null;
   tier_snapshot: number | null;
+};
+
+type AssignedPlayerRow = {
+  match_id: number;
+  player_id: string;
+  team_side: "a" | "b";
+  tier_snapshot: number | null;
+  slot_number: number | null;
 };
 
 export async function optimizeSeasonLobbyConfiguration(
@@ -75,6 +84,73 @@ export async function optimizeSeasonLobbyConfiguration(
     }
   }
   return { reservePlayerIds: plan.reservePlayerIds };
+}
+
+export async function sortSeasonLobbyConfigurationByTier(
+  client: PoolClient,
+  roundId: number,
+) {
+  const result = await client.query<AssignedPlayerRow>(
+    `SELECT participant.match_id::int, participant.player_id::text,
+       participant.team_side, participant.tier_snapshot::int,
+       participant.slot_number::int
+     FROM season_match_participants participant
+     JOIN season_matches match ON match.id = participant.match_id
+     JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+     WHERE lobby.round_id = $1
+     ORDER BY participant.match_id, participant.team_side,
+       participant.slot_number NULLS LAST, participant.player_id`,
+    [roundId],
+  );
+  if (!result.rows.length) {
+    throw new Response("Сначала распределите игроков по лобби", {
+      status: 409,
+    });
+  }
+  if (
+    result.rows.some(
+      ({ slot_number, tier_snapshot }) =>
+        slot_number === null || tier_snapshot === null,
+    )
+  ) {
+    throw new Response("Не у всех игроков указаны слот и актуальный тир", {
+      status: 409,
+    });
+  }
+
+  const teams = new Map<string, AssignedPlayerRow[]>();
+  for (const player of result.rows) {
+    const key = `${player.match_id}:${player.team_side}`;
+    teams.set(key, [...(teams.get(key) ?? []), player]);
+  }
+  const sortedPlayers = [...teams.values()].flatMap((team) =>
+    sortSeasonLobbyTeamByTier(
+      team.map((player) => ({
+        ...player,
+        playerId: player.player_id,
+        slotNumber: player.slot_number as number,
+        tierSnapshot: player.tier_snapshot as number,
+      })),
+    ),
+  );
+
+  await client.query(
+    `UPDATE season_match_participants participant
+     SET slot_number = NULL
+     FROM season_matches match, season_lobbies lobby
+     WHERE participant.match_id = match.id
+       AND match.lobby_id = lobby.id
+       AND lobby.round_id = $1`,
+    [roundId],
+  );
+  for (const player of sortedPlayers) {
+    await client.query(
+      `UPDATE season_match_participants
+       SET slot_number = $3
+       WHERE match_id = $1 AND player_id = $2`,
+      [player.match_id, player.player_id, player.slotNumber],
+    );
+  }
 }
 
 function registrationHasTier(

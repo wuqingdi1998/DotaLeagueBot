@@ -102,6 +102,12 @@
   gap: 7px;
 }
 
+.season-builder-optimization-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
 .season-builder-reserve {
   background: rgba(0, 0, 0, 0.16);
   border: 1px solid rgba(244, 201, 107, 0.18);
@@ -384,6 +390,11 @@
 
   .season-builder-optimization button {
     justify-content: center;
+    width: 100%;
+  }
+
+  .season-builder-optimization-actions {
+    flex-direction: column;
     width: 100%;
   }
 
