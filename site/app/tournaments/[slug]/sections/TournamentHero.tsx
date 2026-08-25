@@ -222,6 +222,12 @@ export function TournamentHeading() {
 
   const { tournament } = data;
   const isPast = isPastTournament(tournament.status);
+  const isActive = tournament.status === "active";
+  const headingStatusClassName = isPast
+    ? "tournament-status archived"
+    : isActive
+      ? "tournament-status active"
+      : "countdown";
 
   return (
     <div className="section-heading">
@@ -235,13 +241,15 @@ export function TournamentHeading() {
           )}
         </p>
       </div>
-      <div className={isPast ? "tournament-status archived" : "countdown"}>
+      <div className={headingStatusClassName}>
         {isPast ? (
           tournament.status === "archived" ? (
             "Архив"
           ) : (
             "Завершён"
           )
+        ) : isActive ? (
+          "Турнир идёт"
         ) : (
           <>
             <span>До начала</span>
