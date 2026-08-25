@@ -1,17 +1,13 @@
 import { requireSession, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
+import type { TournamentStatus } from "@/lib/tournaments";
 import { seasonRoundCheckInIsOpen } from "@/lib/season-round-registration";
 
 type CheckInTarget = {
   scheduled_at: Date | null;
   round_kind: "regular" | "finals";
   round_status: "planned" | "active" | "completed" | "cancelled";
-  tournament_status:
-    | "draft"
-    | "registration"
-    | "active"
-    | "finished"
-    | "archived";
+  tournament_status: TournamentStatus;
   is_visible: boolean;
   is_registered: boolean;
 };

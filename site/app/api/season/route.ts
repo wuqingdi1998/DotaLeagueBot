@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { one, query } from "@/lib/db";
+import type { TournamentStatus } from "@/lib/tournaments";
 import {
   calculateSeasonStandings,
   type SeasonStandingIdentity,
@@ -45,7 +46,7 @@ export async function GET(request: Request) {
   const tournament = await one<{
     id: number;
     tournament_type: string;
-    status: "draft" | "registration" | "active" | "finished" | "archived";
+    status: TournamentStatus;
   }>(
     `SELECT id::int, tournament_type, status
      FROM tournaments

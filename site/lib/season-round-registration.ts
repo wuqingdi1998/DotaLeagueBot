@@ -10,12 +10,7 @@ type SeasonRoundRegistrationState = {
   readonly now: string | Date;
   readonly roundKind: "regular" | "finals";
   readonly roundStatus: "planned" | "active" | "completed" | "cancelled";
-  readonly tournamentStatus:
-    | "draft"
-    | "registration"
-    | "active"
-    | "finished"
-    | "archived";
+  readonly tournamentStatus: TournamentStatus;
 };
 
 function timestamp(value: string | Date | null): number | null {
@@ -125,3 +120,4 @@ export function seasonRoundCheckInIsOpen(
       now < new Date(window.closesAt).getTime(),
   );
 }
+import type { TournamentStatus } from "@/lib/tournaments";

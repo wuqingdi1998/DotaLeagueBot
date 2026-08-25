@@ -1,6 +1,7 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
 import { parseMaximumTeamTier } from "@/lib/tournament-registration-tier";
+import { setSeasonTournamentRegistrationDeadline } from "@/lib/tournament-settings";
 import {
   editableTournamentFields as editableFields,
   missingFieldsMessage,
@@ -32,6 +33,7 @@ export async function PATCH(request: Request) {
     if (dateError) {
       return Response.json({ error: dateError }, { status: 400 });
     }
+    setSeasonTournamentRegistrationDeadline(body);
     const values = editableFields.map((field) => body[field]);
     const maximumTeamTier = parseMaximumTeamTier(body.max_team_tier);
     if (maximumTeamTier === undefined) {

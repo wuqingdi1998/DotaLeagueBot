@@ -4,6 +4,7 @@ import {
   responseFromAuthError,
 } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
+import { isTournamentStatus } from "@/lib/tournaments";
 
 export const dynamic = "force-dynamic";
 
@@ -45,11 +46,13 @@ export async function GET() {
        CASE t.status
          WHEN 'active' THEN 0
          WHEN 'registration' THEN 1
-         WHEN 'finished' THEN 2
-         WHEN 'archived' THEN 3
-         ELSE 4
+         WHEN 'planned' THEN 2
+         WHEN 'finished' THEN 3
+         WHEN 'archived' THEN 4
+         ELSE 5
        END,
        CASE WHEN t.status IN ('active', 'registration') THEN t.end_at END ASC,
+       CASE WHEN t.status = 'planned' THEN t.start_at END ASC,
        t.end_at DESC`,
   );
 
@@ -61,14 +64,7 @@ export async function PATCH(request: Request) {
     const admin = await requireAdmin();
     const body = (await request.json()) as { id?: number; status?: string };
     const id = Number(body.id);
-    const allowedStatuses = [
-      "draft",
-      "registration",
-      "active",
-      "finished",
-      "archived",
-    ];
-    if (!id || !body.status || !allowedStatuses.includes(body.status)) {
+    if (!id || !isTournamentStatus(body.status)) {
       return Response.json(
         { error: "Не указан турнир или выбран некорректный статус" },
         { status: 400 },

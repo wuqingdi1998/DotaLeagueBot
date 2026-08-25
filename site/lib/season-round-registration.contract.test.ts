@@ -84,6 +84,8 @@ describe("season round registration contract", () => {
     expect(tournamentForm).toContain(
       'form.tournament_type !== "seasonal" && (',
     );
-    expect(tournamentCreate).toContain("seasonRegistrationDeadline");
+    expect(tournamentCreate).toContain(
+      "setSeasonTournamentRegistrationDeadline",
+    );
   });
 });

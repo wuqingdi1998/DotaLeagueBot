@@ -227,6 +227,7 @@ export function TournamentDetailsEditor({
             onChange={(event) => setField("status", event.target.value)}
           >
             <option value="draft">Черновик</option>
+            <option value="planned">Турнир запланирован</option>
             <option value="registration">Регистрация открыта</option>
             <option value="active">Турнир идёт</option>
             <option value="finished">Завершён</option>

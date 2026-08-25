@@ -3,6 +3,7 @@ import { transaction } from "@/lib/db";
 import { validSeasonRoundCount } from "@/lib/season";
 import { defaultSeasonFacts } from "@/lib/season-facts";
 import { parseMaximumTeamTier } from "@/lib/tournament-registration-tier";
+import { setSeasonTournamentRegistrationDeadline } from "@/lib/tournament-settings";
 import {
   editableTournamentFields,
   missingFieldsMessage,
@@ -12,12 +13,6 @@ import {
 
 function tournamentSlug(body: Record<string, unknown>) {
   return String(body.slug ?? "").trim().toLowerCase();
-}
-
-function seasonRegistrationDeadline(startAt: unknown) {
-  const start = new Date(String(startAt ?? ""));
-  if (!Number.isFinite(start.getTime())) return "";
-  return new Date(start.getTime() - 24 * 60 * 60 * 1_000).toISOString();
 }
 
 export async function POST(request: Request) {
@@ -43,9 +38,7 @@ export async function POST(request: Request) {
     if (dateError) {
       return Response.json({ error: dateError }, { status: 400 });
     }
-    if (tournamentType === "seasonal") {
-      body.registration_deadline = seasonRegistrationDeadline(body.start_at);
-    }
+    setSeasonTournamentRegistrationDeadline(body);
     const seasonRoundCount =
       tournamentType === "seasonal" ? Number(body.season_round_count) : 0;
     if (

@@ -1,4 +1,5 @@
 import type { TournamentType } from "@/lib/tournament-type";
+import type { TournamentStatus } from "@/lib/tournaments";
 
 export type PlayerRole =
   | "safe_lane"
@@ -39,7 +40,7 @@ export type Tournament = {
   final_format: string;
   playoff_type: "single_elimination" | "double_elimination";
   discord_url: string;
-  status: "draft" | "registration" | "active" | "finished" | "archived";
+  status: TournamentStatus;
   updated_at: string;
 };
 

@@ -113,6 +113,7 @@ export const statusDetails: Record<
   { label: string; short: string }
 > = {
   draft: { label: "Черновик", short: "Черновик организатора" },
+  planned: { label: "Запланирован", short: "Турнир запланирован" },
   registration: { label: "Регистрация", short: "Регистрация открыта" },
   active: { label: "Идёт сейчас", short: "Турнир идёт" },
   finished: { label: "Завершён", short: "Результаты опубликованы" },

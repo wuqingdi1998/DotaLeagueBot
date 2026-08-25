@@ -128,9 +128,10 @@ export function CommunityHome() {
   const featured =
     data.tournaments.find((item) => item.status === "active") ??
     data.tournaments.find((item) => item.status === "registration") ??
+    data.tournaments.find((item) => item.status === "planned") ??
     data.tournaments.find((item) => item.status === "finished");
   const upcomingCount = data.tournaments.filter((item) =>
-    ["registration", "active"].includes(item.status),
+    ["planned", "registration", "active"].includes(item.status),
   ).length;
   const archiveCount = data.tournaments.filter((item) =>
     isPastTournament(item.status),

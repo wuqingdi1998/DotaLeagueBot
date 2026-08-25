@@ -8,6 +8,7 @@ import {
 
 describe("tournament lifecycle", () => {
   it("separates current and future events from the archive", () => {
+    expect(isUpcomingTournament("planned")).toBe(true);
     expect(isUpcomingTournament("registration")).toBe(true);
     expect(isUpcomingTournament("active")).toBe(true);
     expect(isUpcomingTournament("archived")).toBe(false);
@@ -17,11 +18,19 @@ describe("tournament lifecycle", () => {
 
   it("keeps drafts private while archived tournaments remain public", () => {
     expect(isPublicTournament("draft")).toBe(false);
+    expect(isPublicTournament("planned")).toBe(true);
     expect(isPublicTournament("archived")).toBe(true);
   });
 
   it("accepts registrations only before the configured deadline", () => {
     const deadline = "2026-08-05T20:59:00.000Z";
+    expect(
+      canAcceptTournamentRegistration(
+        "planned",
+        deadline,
+        Date.parse("2026-08-05T20:58:59.000Z"),
+      ),
+    ).toBe(false);
     expect(
       canAcceptTournamentRegistration(
         "registration",
