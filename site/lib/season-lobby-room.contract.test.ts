@@ -100,6 +100,10 @@ describe("season lobby room contract", () => {
 
   it("keeps team viewers read-only and supports captain transfer", () => {
     expect(fearlessSnapshot).toContain("season_match_id = $3");
+    expect(fearlessSnapshot).toContain(
+      "loadSeries(client, user.discordId, options.seasonMatchId)",
+    );
+    expect(fearlessSnapshot).not.toContain("import { one, query, transaction }");
     expect(roomScreen).toContain("FearlessDraftScreen");
     expect(transfer).toContain("Передать полномочия может только действующий капитан");
     expect(transfer).toContain("UPDATE draft_maps SET");

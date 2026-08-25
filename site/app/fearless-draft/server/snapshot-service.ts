@@ -1,5 +1,6 @@
 import type { AuthUser } from "@/lib/auth";
-import { one, query, transaction } from "@/lib/db";
+import type { PoolClient } from "pg";
+import { transaction } from "@/lib/db";
 import {
   DRAFT_QUEUE_TTL_SECONDS,
   DRAFT_SEQUENCE,
@@ -89,9 +90,12 @@ function playerFromRow(row: PlayerRow): DraftPlayer {
   };
 }
 
-async function loadPlayers(playerIds: string[]): Promise<Map<string, DraftPlayer>> {
+async function loadPlayers(
+  client: PoolClient,
+  playerIds: string[],
+): Promise<Map<string, DraftPlayer>> {
   if (!playerIds.length) return new Map();
-  const rows = await query<PlayerRow>(
+  const result = await client.query<PlayerRow>(
     `SELECT player.discord_id::text AS id,
             player.ingame_name AS name,
             COALESCE(latest.discord_username, player.ingame_name) AS discord_name,
@@ -109,14 +113,15 @@ async function loadPlayers(playerIds: string[]): Promise<Map<string, DraftPlayer
      WHERE player.discord_id = ANY($1::bigint[])`,
     [playerIds],
   );
-  return new Map(rows.map((row) => [row.id, playerFromRow(row)]));
+  return new Map(result.rows.map((row) => [row.id, playerFromRow(row)]));
 }
 
 async function loadSeries(
+  client: PoolClient,
   playerId: string,
   seasonMatchId?: number,
 ): Promise<DraftSeriesSnapshot | null> {
-  const series = await one<SeriesRow>(
+  const seriesResult = await client.query<SeriesRow>(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
             current_map::int, map1_coin_toss_winner_id::text,
             end_requested_by::text, end_requested_at,
@@ -154,8 +159,9 @@ async function loadSeries(
       ["CHOOSING", "DRAFTING", "MAP_COMPLETE", "COMPLETE"],
     ],
   );
+  const series = seriesResult.rows[0];
   if (!series) return null;
-  const map = await one<MapRow>(
+  const mapResult = await client.query<MapRow>(
     `SELECT id::int, map_number::int, status, coin_toss_winner_id::text,
             coin_toss_segment::int,
             first_chooser_id::text, first_choice, second_choice,
@@ -166,11 +172,14 @@ async function loadSeries(
      FROM draft_maps WHERE series_id = $1 AND map_number = $2`,
     [series.id, series.current_map],
   );
+  const map = mapResult.rows[0];
   if (!map) return null;
 
-  const [players, actionRows, unavailableRows] = await Promise.all([
-    loadPlayers([series.player1_id, series.player2_id]),
-    query<{
+  const players = await loadPlayers(
+    client,
+    [series.player1_id, series.player2_id],
+  );
+  const actionResult = await client.query<{
       step: number;
       actor_id: string;
       action_type: "PICK" | "BAN";
@@ -182,16 +191,15 @@ async function loadSeries(
               is_automatic, created_at
        FROM draft_actions WHERE map_id = $1 ORDER BY step`,
       [map.id],
-    ),
-    query<{ hero_id: number }>(
+    );
+  const unavailableResult = await client.query<{ hero_id: number }>(
       `SELECT DISTINCT action.hero_id::int
        FROM draft_actions action
        JOIN draft_maps previous_map ON previous_map.id = action.map_id
        WHERE previous_map.series_id = $1 AND previous_map.map_number < $2
          AND action.action_type = 'PICK' AND action.hero_id IS NOT NULL`,
       [series.id, map.map_number],
-    ),
-  ]);
+    );
   const currentStep = DRAFT_SEQUENCE[map.current_step] ?? null;
   const currentActorId = currentStep && map.first_pick_player_id
     ? currentStep.actor === "FIRST"
@@ -200,7 +208,7 @@ async function loadSeries(
         ? series.player2_id
         : series.player1_id
     : null;
-  const actions: DraftActionSnapshot[] = actionRows.map((action) => ({
+  const actions: DraftActionSnapshot[] = actionResult.rows.map((action) => ({
     step: action.step,
     actorId: action.actor_id,
     type: action.action_type,
@@ -210,7 +218,7 @@ async function loadSeries(
   }));
 
   if ([series.player1_id, series.player2_id].includes(playerId)) {
-    await query(
+    await client.query(
       `INSERT INTO draft_presence(player_id, series_id)
        VALUES ($1, $2)
        ON CONFLICT (player_id) DO UPDATE
@@ -218,13 +226,13 @@ async function loadSeries(
       [playerId, series.id],
     );
   }
-  const connectedRows = await query<{ player_id: string }>(
+  const connectedResult = await client.query<{ player_id: string }>(
     `SELECT player_id::text FROM draft_presence
      WHERE series_id = $1
        AND heartbeat_at >= NOW() - ($2::int * INTERVAL '1 second')`,
     [series.id, DRAFT_QUEUE_TTL_SECONDS],
   );
-  const connected = new Set(connectedRows.map((row) => row.player_id));
+  const connected = new Set(connectedResult.rows.map((row) => row.player_id));
   const player1 = players.get(series.player1_id);
   const player2 = players.get(series.player2_id);
   if (!player1 || !player2) return null;
@@ -271,7 +279,7 @@ async function loadSeries(
       player1ReserveSeconds: map.player1_reserve_seconds,
       player2ReserveSeconds: map.player2_reserve_seconds,
       actions,
-      unavailableHeroIds: unavailableRows.map((row) => row.hero_id),
+      unavailableHeroIds: unavailableResult.rows.map((row) => row.hero_id),
       createdAt: map.created_at.toISOString(),
     },
     createdAt: series.created_at.toISOString(),
@@ -331,7 +339,7 @@ export async function loadFearlessDraftSnapshot(
     const opponentIds = invitationRows.rows.map((row) =>
       row.sender_id === user.discordId ? row.recipient_id : row.sender_id,
     );
-    const opponents = await loadPlayers(opponentIds);
+    const opponents = await loadPlayers(client, opponentIds);
     const invitations: DraftInvitationSnapshot[] = invitationRows.rows.flatMap((row) => {
       const opponentId = row.sender_id === user.discordId
         ? row.recipient_id
@@ -350,7 +358,7 @@ export async function loadFearlessDraftSnapshot(
       ...playerFromRow(row),
       joinedAt: row.joined_at.toISOString(),
     }));
-    const series = await loadSeries(user.discordId, options.seasonMatchId);
+    const series = await loadSeries(client, user.discordId, options.seasonMatchId);
     const serverNow = await databaseNow(client);
     return {
       serverNow: serverNow.toISOString(),
