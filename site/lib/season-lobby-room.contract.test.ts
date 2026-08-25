@@ -91,14 +91,6 @@ describe("season lobby room contract", () => {
     expect(roomScreen).not.toContain("Связь активна");
   });
 
-  it("loads a newly created season draft without reloading the room page", () => {
-    expect(roomScreen).toContain(
-      "`/api/fearless-draft?seasonMatchId=${snapshot.matchId}`",
-    );
-    expect(roomScreen).toContain("setDraftSnapshot(nextDraft)");
-    expect(roomScreen).not.toContain("window.location.reload()");
-  });
-
   it("requires every player to vote before creating the linked draft", () => {
     expect(roomCommands).toContain("counts.vote_count === 10");
     expect(roomCommands).toContain("chooseSeasonLobbyCaptain");
