@@ -9,6 +9,7 @@ import {
   filterParticipantDirectory,
   type ParticipantTierOrder,
 } from "@/lib/participant-filter";
+import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 import { ParticipantAdminDialog } from "./ParticipantAdminDialog";
 
@@ -236,7 +237,7 @@ function ParticipantIdentity({
     <>
       {player.avatarUrl ? (
         <Image
-          src={player.avatarUrl}
+          src={compactDiscordAvatarUrl(player.avatarUrl)}
           alt=""
           width={46}
           height={46}

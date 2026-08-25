@@ -69,6 +69,13 @@ describe("hall of fame and participant directory", () => {
     expect(participantsTable).toContain("participant-links");
   });
 
+  it("loads compact static Discord avatars in the participant list", () => {
+    expect(participantsTable).toContain(
+      "compactDiscordAvatarUrl(player.avatarUrl)",
+    );
+    expect(participantsTable).not.toContain("src={player.avatarUrl}");
+  });
+
   it("lets the organizer show only manually assigned tiers", () => {
     expect(participantsLoader).toContain(
       "player.internal_rating <> 0 AS has_manual_tier",
