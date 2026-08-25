@@ -27,6 +27,11 @@ type PlayerWithRoles = SeasonLobbyOptimizationPlayer & {
   secondaryRole: number | null;
 };
 
+type RankedLobbyPlayer = {
+  player: SeasonLobbyOptimizationPlayer;
+  registrationIndex: number;
+};
+
 type TeamRoleAssignment = {
   coreTier: number;
   offRoleCount: number;
@@ -37,13 +42,14 @@ type TeamRoleAssignment = {
 };
 
 const TEAM_SIZE = 5;
+const LOBBY_SUPPORT_COUNT = 4;
 export const SEASON_LOBBY_SIZE = TEAM_SIZE * 2;
 export const MAX_SEASON_LOBBY_COUNT = 4;
 export const MAX_SEASON_TEAM_TIER_DIFFERENCE = 1;
 
 /**
- * Fills complete lobbies in registration order and exhaustively chooses the
- * most balanced teams and role assignment inside every group of ten players.
+ * Keeps the earliest complete registration groups eligible, seeds stronger
+ * and weaker lobbies, then balances teams and roles inside every lobby.
  */
 export function optimizeSeasonLobbyPlayers(
   players: SeasonLobbyOptimizationPlayer[],
@@ -54,13 +60,12 @@ export function optimizeSeasonLobbyPlayers(
     Math.floor(players.length / SEASON_LOBBY_SIZE),
   );
   const assignedCount = lobbyCount * SEASON_LOBBY_SIZE;
-  const lobbies = Array.from({ length: lobbyCount }, (_, lobbyIndex) => ({
-    placements: balanceLobbyPlayers(
-      players.slice(
-        lobbyIndex * SEASON_LOBBY_SIZE,
-        (lobbyIndex + 1) * SEASON_LOBBY_SIZE,
-      ),
-    ),
+  const lobbyGroups = seedSeasonLobbyGroups(
+    players.slice(0, assignedCount),
+    lobbyCount,
+  );
+  const lobbies = lobbyGroups.map((lobbyPlayers) => ({
+    placements: balanceLobbyPlayers(lobbyPlayers),
   }));
   return {
     lobbies,
@@ -68,6 +73,59 @@ export function optimizeSeasonLobbyPlayers(
       .slice(assignedCount)
       .map(({ playerId }) => playerId),
   };
+}
+
+function seedSeasonLobbyGroups(
+  players: SeasonLobbyOptimizationPlayer[],
+  lobbyCount: number,
+) {
+  const rankedPlayers = players
+    .map((player, registrationIndex) => ({ player, registrationIndex }))
+    .sort(compareRankedLobbyPlayers);
+  const supportPlayers = rankedPlayers.filter(({ player }) =>
+    isSupportPlayer(player),
+  );
+  const otherPlayers = rankedPlayers.filter(
+    ({ player }) => !isSupportPlayer(player),
+  );
+
+  return Array.from({ length: lobbyCount }, () => {
+    const lobbyPlayers = [
+      ...supportPlayers.splice(0, LOBBY_SUPPORT_COUNT),
+      ...otherPlayers.splice(0, SEASON_LOBBY_SIZE - LOBBY_SUPPORT_COUNT),
+    ];
+    while (lobbyPlayers.length < SEASON_LOBBY_SIZE) {
+      const strongestRemaining = [supportPlayers[0], otherPlayers[0]]
+        .filter((entry): entry is RankedLobbyPlayer => Boolean(entry))
+        .sort(compareRankedLobbyPlayers)[0];
+      if (!strongestRemaining) break;
+      const source = isSupportPlayer(strongestRemaining.player)
+        ? supportPlayers
+        : otherPlayers;
+      const nextPlayer = source.shift();
+      if (nextPlayer) lobbyPlayers.push(nextPlayer);
+    }
+    return lobbyPlayers
+      .sort(compareRankedLobbyPlayers)
+      .map(({ player }) => player);
+  });
+}
+
+function compareRankedLobbyPlayers(
+  left: RankedLobbyPlayer,
+  right: RankedLobbyPlayer,
+) {
+  return (
+    right.player.tierSnapshot - left.player.tierSnapshot ||
+    left.registrationIndex - right.registrationIndex
+  );
+}
+
+function isSupportPlayer(player: SeasonLobbyOptimizationPlayer) {
+  const { primaryRole, secondaryRole } = parseRoles(player.positions);
+  return [primaryRole, secondaryRole].some(
+    (role) => role !== null && role >= 4,
+  );
 }
 
 export function sortSeasonLobbyTeamByTier<

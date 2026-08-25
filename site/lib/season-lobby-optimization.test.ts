@@ -19,7 +19,7 @@ function player(
 }
 
 describe("season lobby optimization", () => {
-  it("fills complete lobbies by registration order and reserves the remainder", () => {
+  it("keeps the earliest complete lobby groups eligible and reserves the remainder", () => {
     const players = Array.from({ length: 25 }, (_, index) =>
       player(index, 12 - (index % 6), (index % 5) + 1),
     );
@@ -36,6 +36,63 @@ describe("season lobby optimization", () => {
     expect(plan.reservePlayerIds).toEqual(
       players.slice(20).map(({ playerId }) => playerId),
     );
+  });
+
+  it("places stronger tiers in the upper lobby regardless of registration order", () => {
+    const highTierPlayers = Array.from({ length: 10 }, (_, index) =>
+      player(index, 10 - (index % 2), (index % 5) + 1),
+    );
+    const lowTierPlayers = Array.from({ length: 10 }, (_, index) =>
+      player(index + 10, 6 - (index % 2), (index % 5) + 1),
+    );
+    const players = highTierPlayers.flatMap((highTierPlayer, index) => [
+      lowTierPlayers[index],
+      highTierPlayer,
+    ]);
+
+    const plan = optimizeSeasonLobbyPlayers(players, 2);
+    const upperTiers = plan.lobbies[0].placements.map(
+      ({ tierSnapshot }) => tierSnapshot,
+    );
+    const lowerTiers = plan.lobbies[1].placements.map(
+      ({ tierSnapshot }) => tierSnapshot,
+    );
+
+    expect(Math.min(...upperTiers)).toBeGreaterThanOrEqual(9);
+    expect(Math.max(...lowerTiers)).toBeLessThanOrEqual(6);
+  });
+
+  it("promotes low-tier supports when the upper lobby lacks positions four and five", () => {
+    const highTierCores = [1, 1, 2, 2, 3, 3, 1, 2, 3, 1].map(
+      (role, index) => player(index, 10, role),
+    );
+    const lowTierSupports = [4, 4, 5, 5].map((role, index) =>
+      player(index + 10, 6 - Math.floor(index / 2), role),
+    );
+    const lowTierCores = [1, 1, 2, 2, 3, 3].map((role, index) =>
+      player(index + 14, 4, role),
+    );
+
+    const plan = optimizeSeasonLobbyPlayers(
+      [...highTierCores, ...lowTierSupports, ...lowTierCores],
+      2,
+    );
+    const upperPlayers = plan.lobbies[0].placements;
+    const promotedLowTierPlayers = upperPlayers.filter(
+      ({ tierSnapshot }) => tierSnapshot <= 6,
+    );
+
+    expect(promotedLowTierPlayers).toHaveLength(4);
+    expect(
+      promotedLowTierPlayers.every(({ primaryRole }) =>
+        primaryRole === 4 || primaryRole === 5,
+      ),
+    ).toBe(true);
+    expect(
+      upperPlayers.filter(({ primaryRole }) =>
+        primaryRole === 4 || primaryRole === 5,
+      ),
+    ).toHaveLength(4);
   });
 
   it("keeps primary roles when the total team tiers are already balanced", () => {
