@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { FiMessageCircle, FiSend } from "react-icons/fi";
+import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import type {
   SeasonLobbyRoomCommand,
   SeasonLobbyRoomSnapshot,
@@ -39,24 +41,43 @@ export function LobbyChat({
     <section className="season-room-chat">
       <header>
         <FiMessageCircle aria-hidden="true" />
-        <div>
-          <span>Чат лобби</span>
-          <strong>Только для этих 10 игроков</strong>
-        </div>
+        <strong>Чат лобби</strong>
       </header>
       <div className="season-room-messages" ref={messageListRef}>
         {!snapshot.messages.length && (
           <p>Сообщений пока нет. Поздоровайтесь с участниками.</p>
         )}
-        {snapshot.messages.map((item) => (
-          <article
-            className={item.playerId === snapshot.currentUserId ? "own" : ""}
-            key={item.id}
-          >
-            <strong>{item.nickname}</strong>
-            <p>{item.message}</p>
-          </article>
-        ))}
+        {snapshot.messages.map((item, index) => {
+          const previousMessage = snapshot.messages[index - 1];
+          const isContinuation =
+            previousMessage?.playerId === item.playerId;
+          const isOwnMessage = item.playerId === snapshot.currentUserId;
+          return (
+            <article
+              className={`${isOwnMessage ? "own" : ""} ${
+                isContinuation ? "continuation" : ""
+              }`.trim()}
+              key={item.id}
+            >
+              <span className="season-room-message-avatar">
+                {item.avatarUrl ? (
+                  <Image
+                    src={compactDiscordAvatarUrl(item.avatarUrl)}
+                    width={26}
+                    height={26}
+                    alt=""
+                  />
+                ) : (
+                  <i>{item.nickname.slice(0, 1).toUpperCase()}</i>
+                )}
+              </span>
+              <div className="season-room-message-body">
+                {!isContinuation && <strong>{item.nickname}</strong>}
+                <p>{item.message}</p>
+              </div>
+            </article>
+          );
+        })}
       </div>
       <div className="season-room-emoji" aria-label="Смайлики">
         {basicEmoji.map((emoji) => (

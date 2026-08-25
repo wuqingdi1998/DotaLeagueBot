@@ -51,11 +51,10 @@ export function SeasonLobbyRoomScreen({
           </Link>
           <span>Игровое лобби · BO{snapshot.bestOf}</span>
           <h1>{snapshot.lobbyName}</h1>
-          <p>Здесь собираются только десять участников этого матча.</p>
         </div>
         <div className={`season-room-connection ${isConnected ? "online" : "reconnecting"}`}>
           {isConnected ? <FiActivity /> : <FiShield />}
-          {isConnected ? "Связь активна" : "Переподключение…"}
+          {isConnected ? "Синхронизация включена" : "Переподключение…"}
         </div>
       </header>
 

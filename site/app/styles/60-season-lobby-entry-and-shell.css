@@ -126,7 +126,7 @@
 }
 
 .season-room-connection.online {
-  color: #2b9a68;
+  color: color-mix(in srgb, #4ee0a2 76%, var(--text));
 }
 
 .season-room-error {
