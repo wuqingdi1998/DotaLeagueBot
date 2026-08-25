@@ -39,10 +39,11 @@ type TeamRoleAssignment = {
 const TEAM_SIZE = 5;
 export const SEASON_LOBBY_SIZE = TEAM_SIZE * 2;
 export const MAX_SEASON_LOBBY_COUNT = 4;
+export const MAX_SEASON_TEAM_TIER_DIFFERENCE = 1;
 
 /**
  * Fills complete lobbies in registration order and exhaustively chooses the
- * most balanced role assignment inside every group of ten players.
+ * most balanced teams and role assignment inside every group of ten players.
  */
 export function optimizeSeasonLobbyPlayers(
   players: SeasonLobbyOptimizationPlayer[],
@@ -227,25 +228,24 @@ function assignmentScore(
   right: TeamRoleAssignment,
   primaryRoleBalance: number[],
 ) {
-  const opponentTierGaps = left.placements.map((player, index) =>
-    Math.abs(player.tierSnapshot - right.placements[index].tierSnapshot),
-  );
+  const totalTierDifference = Math.abs(left.totalTier - right.totalTier);
   const coreTierDifference = Math.abs(left.coreTier - right.coreTier);
   const supportTierDifference = Math.abs(
     left.supportTier - right.supportTier,
   );
   return [
+    totalTierDifference > MAX_SEASON_TEAM_TIER_DIFFERENCE
+      ? totalTierDifference
+      : 0,
     left.offRoleCount + right.offRoleCount,
     Math.max(left.offRoleCount, right.offRoleCount),
     ...primaryRoleBalance,
     Math.abs(left.secondaryRoleCount - right.secondaryRoleCount),
     Math.max(left.secondaryRoleCount, right.secondaryRoleCount),
     left.secondaryRoleCount + right.secondaryRoleCount,
-    Math.max(...opponentTierGaps),
-    opponentTierGaps.reduce((sum, gap) => sum + gap, 0),
     Math.max(coreTierDifference, supportTierDifference),
     coreTierDifference + supportTierDifference,
-    Math.abs(left.totalTier - right.totalTier),
+    totalTierDifference,
   ];
 }
 

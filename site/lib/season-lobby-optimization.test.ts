@@ -38,7 +38,7 @@ describe("season lobby optimization", () => {
     );
   });
 
-  it("places equal-tier primary roles opposite each other", () => {
+  it("keeps primary roles when the total team tiers are already balanced", () => {
     const players = [
       ...Array.from({ length: 5 }, (_, index) =>
         player(index, 10 - index, index + 1),
@@ -57,8 +57,13 @@ describe("season lobby optimization", () => {
       const rightPlayer = right.find((entry) => entry.slotNumber === slotNumber);
       expect(leftPlayer?.primaryRole).toBe(slotNumber);
       expect(rightPlayer?.primaryRole).toBe(slotNumber);
-      expect(leftPlayer?.tierSnapshot).toBe(rightPlayer?.tierSnapshot);
     }
+    expect(
+      Math.abs(
+        left.reduce((sum, player) => sum + player.tierSnapshot, 0) -
+          right.reduce((sum, player) => sum + player.tierSnapshot, 0),
+      ),
+    ).toBeLessThanOrEqual(1);
   });
 
   it("shares unavoidable secondary roles and balances core and support tiers", () => {
@@ -128,6 +133,48 @@ describe("season lobby optimization", () => {
       );
       expect(Math.abs(primaryRoleCounts[0] - primaryRoleCounts[1])).toBeLessThanOrEqual(1);
     }
+  });
+
+  it("balances total team tiers without limiting opposing player gaps", () => {
+    const players = [
+      player(0, 1, 1),
+      player(1, 4, 2),
+      player(2, 7, 3),
+      player(3, 8, 4),
+      player(4, 9, 5),
+      player(5, 3, 1),
+      player(6, 1, 2),
+      player(7, 8, 3),
+      player(8, 3, 4),
+      player(9, 12, 5),
+    ];
+
+    const [lobby] = optimizeSeasonLobbyPlayers(players, 1).lobbies;
+    const teamTiers = (["a", "b"] as const).map((teamSide) =>
+      lobby.placements
+        .filter((placement) => placement.teamSide === teamSide)
+        .reduce((sum, placement) => sum + placement.tierSnapshot, 0),
+    );
+
+    expect(Math.abs(teamTiers[0] - teamTiers[1])).toBeLessThanOrEqual(1);
+    for (const placement of lobby.placements) {
+      expect(placement.slotNumber).toBe(placement.primaryRole);
+    }
+    const opposingTierGaps = Array.from({ length: 5 }, (_, index) => {
+      const slotNumber = index + 1;
+      const left = lobby.placements.find(
+        (placement) =>
+          placement.teamSide === "a" && placement.slotNumber === slotNumber,
+      );
+      const right = lobby.placements.find(
+        (placement) =>
+          placement.teamSide === "b" && placement.slotNumber === slotNumber,
+      );
+      return Math.abs(
+        (left?.tierSnapshot ?? 0) - (right?.tierSnapshot ?? 0),
+      );
+    });
+    expect(Math.max(...opposingTierGaps)).toBeGreaterThan(1);
   });
 
   it("sorts only one team by tier from highest to lowest", () => {
