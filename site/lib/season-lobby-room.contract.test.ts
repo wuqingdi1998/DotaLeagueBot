@@ -23,6 +23,9 @@ const hostAction = source(
 const lobbyDisplay = source(
   "../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx",
 );
+const lobbyEntryStyles = source(
+  "../app/styles/60-season-lobby-entry-and-shell.css",
+);
 const roomScreen = source(
   "../app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
 );
@@ -45,6 +48,17 @@ describe("season lobby room contract", () => {
     expect(roomCommands).toContain("counts.online_count !== 10");
     expect(roomCommands).toContain("is_force_started = $2");
     expect(lobbyDisplay).toContain("Войти в лобби");
+  });
+
+  it("keeps the organizer host control left of the tier on one row", () => {
+    const hostControl = lobbyDisplay.indexOf("participantAction?.(match, player)");
+    const tier = lobbyDisplay.indexOf('className="player-tier"');
+
+    expect(hostControl).toBeGreaterThan(-1);
+    expect(hostControl).toBeLessThan(tier);
+    expect(lobbyEntryStyles).toMatch(
+      /\.season-temporary-team li > \.season-player-row-actions\s*{[^}]*display: inline-flex;/,
+    );
   });
 
   it("requires every player to vote before creating the linked draft", () => {

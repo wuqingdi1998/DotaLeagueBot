@@ -323,8 +323,8 @@ function SeasonTemporaryTeam({
               {player.is_captain && <small>Капитан</small>}
             </span>
             <span className="season-player-row-actions">
-              <small className="player-tier">тир {player.tier_snapshot ?? "—"}</small>
               {participantAction?.(match, player)}
+              <small className="player-tier">тир {player.tier_snapshot ?? "—"}</small>
             </span>
           </li>
         ))}
