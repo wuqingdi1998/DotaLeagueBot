@@ -1,3 +1,5 @@
+import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
+
 export const editableTournamentFields = [
   "name",
   "eyebrow",
@@ -53,6 +55,27 @@ const editableFieldLabels: Partial<
   discord_url: "Ссылка Discord",
   status: "Рабочий статус",
 };
+
+const tournamentDateFields = [
+  "start_at",
+  "end_at",
+  "registration_deadline",
+] as const;
+
+export function normalizeTournamentDateFields(
+  body: Record<string, unknown>,
+): string {
+  for (const field of tournamentDateFields) {
+    const value = body[field];
+    if (value === undefined || value === null || value === "") continue;
+    const normalized = moscowDateTimeInputToIso(value);
+    if (!normalized) {
+      return `Укажите корректное значение поля «${editableFieldLabels[field]}»`;
+    }
+    body[field] = normalized;
+  }
+  return "";
+}
 
 export function missingRequiredTournamentFields(
   body: Record<string, unknown>,

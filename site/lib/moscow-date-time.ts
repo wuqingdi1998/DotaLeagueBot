@@ -1,4 +1,4 @@
-const moscowTimeZone = "Europe/Moscow";
+export const MOSCOW_TIME_ZONE = "Europe/Moscow";
 const localDateTimePattern =
   /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d{1,3})?)?$/;
 
@@ -8,7 +8,7 @@ export function toMoscowDateTimeInput(value: string | Date | null): string {
   if (!Number.isFinite(date.getTime())) return "";
   const parts = Object.fromEntries(
     new Intl.DateTimeFormat("en-GB", {
-      timeZone: moscowTimeZone,
+      timeZone: MOSCOW_TIME_ZONE,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -20,6 +20,15 @@ export function toMoscowDateTimeInput(value: string | Date | null): string {
       .map((part) => [part.type, part.value]),
   );
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}`;
+}
+
+export function formatMoscowYear(value: string | Date): string {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+  return new Intl.DateTimeFormat("ru-RU", {
+    year: "numeric",
+    timeZone: MOSCOW_TIME_ZONE,
+  }).format(date);
 }
 
 export function moscowDateTimeInputToIso(value: unknown): string | null {

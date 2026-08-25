@@ -53,6 +53,7 @@ describe("match result payload", () => {
     expect(result.error).toBeUndefined();
     expect(result.payload).toMatchObject({
       tournamentId: 3,
+      scheduledAt: "2026-08-01T12:00:00.000Z",
       teamAScore: null,
       teamBScore: null,
       decisionNote: null,

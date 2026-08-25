@@ -163,6 +163,7 @@ export type TournamentSeasonFact = {
 };
 
 export type TournamentSiteData = {
+  generatedAt: string;
   tournament: Tournament;
   applications: TeamApplication[];
   matches: TournamentMatch[];

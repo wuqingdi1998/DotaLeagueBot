@@ -1,3 +1,8 @@
+import {
+  MOSCOW_TIME_ZONE,
+  moscowDateTimeInputToIso,
+  toMoscowDateTimeInput,
+} from "@/lib/moscow-date-time";
 import { roleOptions } from "./constants";
 import type { TeamApplication } from "./types";
 
@@ -30,6 +35,7 @@ export function formatDayMonth(value: string) {
   return new Intl.DateTimeFormat("ru-RU", {
     day: "numeric",
     month: "long",
+    timeZone: MOSCOW_TIME_ZONE,
   }).format(new Date(value));
 }
 
@@ -37,18 +43,16 @@ export function formatTime(value: string) {
   return new Intl.DateTimeFormat("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Moscow",
+    timeZone: MOSCOW_TIME_ZONE,
   }).format(new Date(value));
 }
 
 export function toDateTimeInput(value: string) {
-  const date = new Date(value);
-  const moscow = new Date(date.getTime() + 3 * 60 * 60 * 1000);
-  return moscow.toISOString().slice(0, 16);
+  return toMoscowDateTimeInput(value);
 }
 
 export function fromDateTimeInput(value: string) {
-  return `${value}:00+03:00`;
+  return moscowDateTimeInputToIso(value) ?? "";
 }
 
 export function getTeamPlayers(team: TeamApplication) {
@@ -126,7 +130,7 @@ export function formatScheduleDate(value: string) {
     weekday: "long",
     day: "numeric",
     month: "long",
-    timeZone: "Europe/Moscow",
+    timeZone: MOSCOW_TIME_ZONE,
   }).format(new Date(`${value}T12:00:00+03:00`));
 }
 

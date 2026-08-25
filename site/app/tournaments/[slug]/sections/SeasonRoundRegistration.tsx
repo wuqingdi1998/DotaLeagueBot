@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { FiArrowDown, FiArrowUp, FiClock, FiUser } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
+import { useServerClock } from "@/hooks/useServerClock";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
@@ -19,16 +20,11 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   const [sort, setSort] = useState<SeasonRegistrationSort>("createdAt");
   const [direction, setDirection] =
     useState<SeasonRegistrationDirection>("ascending");
-  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const currentTime = useServerClock(season.data?.generatedAt);
   const registrations = useMemo(
     () => sortSeasonRegistrations(round.registrations, sort, direction),
     [direction, round.registrations, sort],
   );
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setCurrentTime(Date.now()), 1_000);
-    return () => window.clearInterval(timer);
-  }, []);
 
   if (!data) return null;
 

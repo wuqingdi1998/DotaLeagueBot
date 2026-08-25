@@ -1,6 +1,7 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
 import { validateFinishedMatchScore } from "@/lib/match-validation";
+import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
 
 type MatchBody = {
   id?: number;
@@ -30,6 +31,14 @@ type MatchBody = {
   loserToSlot?: "a" | "b" | null;
   eliminatedTeamId?: number | null;
 };
+
+function normalizeScheduledAt(body: MatchBody): boolean {
+  if (body.scheduledAt === undefined) return true;
+  const normalized = moscowDateTimeInputToIso(body.scheduledAt);
+  if (!normalized) return false;
+  body.scheduledAt = normalized;
+  return true;
+}
 
 function validMatch(body: MatchBody): string {
   if (!body.tournamentId || !body.scheduledAt || !body.stage?.trim()) {
@@ -108,6 +117,12 @@ export async function POST(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = (await request.json()) as MatchBody;
+    if (!normalizeScheduledAt(body)) {
+      return Response.json(
+        { error: "Укажите корректные дату и время матча" },
+        { status: 400 },
+      );
+    }
     const validationError = validMatch(body);
     if (validationError) {
       return Response.json({ error: validationError }, { status: 400 });
@@ -206,6 +221,12 @@ export async function PATCH(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = (await request.json()) as MatchBody;
+    if (!normalizeScheduledAt(body)) {
+      return Response.json(
+        { error: "Укажите корректные дату и время матча" },
+        { status: 400 },
+      );
+    }
     if (!body.id || !body.status) {
       return Response.json(
         { error: "Не указан матч или статус" },

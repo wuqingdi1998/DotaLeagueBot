@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   filterTournamentSummaries,
+  toTournamentIso,
   type TournamentSummary,
 } from "./tournament-hub-model";
 
@@ -32,5 +33,11 @@ describe("tournament directory filters", () => {
         "seasonal",
       ),
     ).toEqual([seasonal, seasonalCup]);
+  });
+
+  it("treats organizer form values as Moscow time", () => {
+    expect(toTournamentIso("2026-08-25T22:00")).toBe(
+      "2026-08-25T19:00:00.000Z",
+    );
   });
 });

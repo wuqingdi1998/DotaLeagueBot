@@ -1,33 +1,32 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { tournamentCheckInWindow } from "@/lib/tournament-check-in";
 import type { TournamentSiteData } from "../model/types";
 
 export function useTournamentCheckIn({
+  currentTimeMs,
   data,
   onMessage,
   onReload,
 }: {
+  currentTimeMs: number;
   data: TournamentSiteData | null;
   onMessage: (message: string) => void;
   onReload: () => Promise<void>;
 }) {
-  const [now, setNow] = useState(() => new Date());
-
-  useEffect(() => {
-    const timer = window.setInterval(() => setNow(new Date()), 10_000);
-    return () => window.clearInterval(timer);
-  }, []);
-
   const checkInWindow = useMemo(
     () =>
       tournamentCheckInWindow({
         firstMatchAt: data?.tournament.first_match_at ?? null,
         checkInMinutes: data?.tournament.check_in_minutes ?? 0,
-        now,
+        now: new Date(currentTimeMs),
       }),
-    [data?.tournament.check_in_minutes, data?.tournament.first_match_at, now],
+    [
+      currentTimeMs,
+      data?.tournament.check_in_minutes,
+      data?.tournament.first_match_at,
+    ],
   );
 
   const captainApplications = useMemo(

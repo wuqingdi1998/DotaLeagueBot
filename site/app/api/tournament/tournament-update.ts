@@ -5,6 +5,7 @@ import {
   editableTournamentFields as editableFields,
   missingFieldsMessage,
   missingRequiredTournamentFields,
+  normalizeTournamentDateFields,
 } from "./tournament-validation";
 
 export async function PATCH(request: Request) {
@@ -26,6 +27,10 @@ export async function PATCH(request: Request) {
         },
         { status: 400 },
       );
+    }
+    const dateError = normalizeTournamentDateFields(body);
+    if (dateError) {
+      return Response.json({ error: dateError }, { status: 400 });
     }
     const values = editableFields.map((field) => body[field]);
     const maximumTeamTier = parseMaximumTeamTier(body.max_team_tier);

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatMoscowYear,
   moscowDateTimeInputToIso,
   toMoscowDateTimeInput,
 } from "./moscow-date-time";
@@ -21,5 +22,9 @@ describe("Moscow date-time fields", () => {
     expect(moscowDateTimeInputToIso("2026-08-25T19:00:00.000Z")).toBe(
       "2026-08-25T19:00:00.000Z",
     );
+  });
+
+  it("uses the Moscow year at the UTC year boundary", () => {
+    expect(formatMoscowYear("2025-12-31T22:00:00.000Z")).toBe("2026");
   });
 });

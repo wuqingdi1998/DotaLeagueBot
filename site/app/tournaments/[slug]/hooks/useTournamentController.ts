@@ -2,6 +2,8 @@
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
+import { useServerClock } from "@/hooks/useServerClock";
+import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
 import { emptyMatchDraft, emptyRegistration, roleOptions } from "../model/constants";
 import { getTeamNameError } from "../model/formatters";
 import { buildMatchResultPayload } from "../model/match-result-payload";
@@ -28,8 +30,6 @@ export function useTournamentController() {
   const [teamEmblem, setTeamEmblem] = useState<File | null>(null);
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
-  const [daysLeft, setDaysLeft] = useState(0);
-  const [registrationAvailable, setRegistrationAvailable] = useState(false);
   const [matchDraft, setMatchDraft] = useState<MatchDraft>(emptyMatchDraft);
   const [groupCount, setGroupCount] = useState(2);
   const [teamsPerGroup, setTeamsPerGroup] = useState(4);
@@ -42,6 +42,22 @@ export function useTournamentController() {
     setMessage: setToast,
     slug: tournamentSlug,
   });
+  const currentTimeMs = useServerClock(data?.generatedAt);
+  const daysLeft =
+    data && Number.isFinite(currentTimeMs)
+      ? Math.max(
+          0,
+          Math.ceil(
+            (new Date(data.tournament.start_at).getTime() - currentTimeMs) /
+              86_400_000,
+          ),
+        )
+      : 0;
+  const registrationAvailable = Boolean(
+    data &&
+      Number.isFinite(currentTimeMs) &&
+      new Date(data.tournament.registration_deadline).getTime() > currentTimeMs,
+  );
   const loadData = useCallback(async () => {
     try {
       const response = await fetch(
@@ -70,19 +86,6 @@ export function useTournamentController() {
           contact: current.contact || `@${nextData.user?.username ?? ""}`,
         }));
       }
-      setDaysLeft(
-        Math.max(
-          0,
-          Math.ceil(
-            (new Date(nextData.tournament.start_at).getTime() - Date.now()) /
-              86_400_000,
-          ),
-        ),
-      );
-      setRegistrationAvailable(
-        new Date(nextData.tournament.registration_deadline).getTime() >
-          Date.now(),
-      );
       setLoadingError("");
     } catch (error) {
       setLoadingError(
@@ -130,6 +133,7 @@ export function useTournamentController() {
     [data],
   );
   const tournamentCheckIn = useTournamentCheckIn({
+    currentTimeMs,
     data,
     onMessage: setToast,
     onReload: loadData,
@@ -306,7 +310,7 @@ export function useTournamentController() {
       body: JSON.stringify({
         tournamentId: data.tournament.id,
         groupId: matchDraft.groupId ? Number(matchDraft.groupId) : null,
-        scheduledAt: new Date(matchDraft.scheduledAt).toISOString(),
+        scheduledAt: moscowDateTimeInputToIso(matchDraft.scheduledAt),
         stage: matchDraft.stage,
         teamAId: matchDraft.teamAId ? Number(matchDraft.teamAId) : null,
         teamBId: matchDraft.teamBId ? Number(matchDraft.teamBId) : null,

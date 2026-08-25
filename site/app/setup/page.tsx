@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { FaDiscord } from "react-icons/fa";
+import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
 import { OrganizerAccess } from "../tournaments/OrganizerAccess";
 
 type SessionUser = {
@@ -81,11 +82,11 @@ export default function SetupPage() {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         ...form,
-        start_at: new Date(form.start_at).toISOString(),
-        end_at: new Date(form.end_at).toISOString(),
-        registration_deadline: new Date(
+        start_at: moscowDateTimeInputToIso(form.start_at),
+        end_at: moscowDateTimeInputToIso(form.end_at),
+        registration_deadline: moscowDateTimeInputToIso(
           form.registration_deadline,
-        ).toISOString(),
+        ),
       }),
     });
     const result = (await response.json()) as { error?: string };

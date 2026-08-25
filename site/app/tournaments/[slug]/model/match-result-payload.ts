@@ -1,3 +1,4 @@
+import { moscowDateTimeInputToIso } from "../../../../lib/moscow-date-time";
 import type { TournamentMatch } from "./types";
 
 type MatchResultPayload =
@@ -41,7 +42,7 @@ export function buildMatchResultPayload(
       tournamentId,
       status: text("status"),
       groupId: optionalNumber("groupId"),
-      scheduledAt: new Date(text("scheduledAt")).toISOString(),
+      scheduledAt: moscowDateTimeInputToIso(text("scheduledAt")),
       stage: text("stage"),
       teamAId: teamAId ? Number(teamAId) : null,
       teamBId: teamBId ? Number(teamBId) : null,

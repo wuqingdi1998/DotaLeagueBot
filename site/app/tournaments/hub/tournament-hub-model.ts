@@ -1,4 +1,5 @@
 import type { SessionUser } from "@/app/components/SiteHeader";
+import { moscowDateTimeInputToIso } from "../../../lib/moscow-date-time";
 import {
   isSeasonalTournament,
   type TournamentType,
@@ -119,7 +120,7 @@ export const statusDetails: Record<
 };
 
 export function toTournamentIso(value: string) {
-  return value ? `${value}:00+03:00` : value;
+  return moscowDateTimeInputToIso(value) ?? value;
 }
 
 export function loadSavedTheme() {

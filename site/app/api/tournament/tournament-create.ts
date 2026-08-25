@@ -7,6 +7,7 @@ import {
   editableTournamentFields,
   missingFieldsMessage,
   missingRequiredTournamentFields,
+  normalizeTournamentDateFields,
 } from "./tournament-validation";
 
 function tournamentSlug(body: Record<string, unknown>) {
@@ -37,6 +38,10 @@ export async function POST(request: Request) {
         { error: "Выберите обычный, сезонный турнир или Сезонный Кубок" },
         { status: 400 },
       );
+    }
+    const dateError = normalizeTournamentDateFields(body);
+    if (dateError) {
+      return Response.json({ error: dateError }, { status: 400 });
     }
     if (tournamentType === "seasonal") {
       body.registration_deadline = seasonRegistrationDeadline(body.start_at);

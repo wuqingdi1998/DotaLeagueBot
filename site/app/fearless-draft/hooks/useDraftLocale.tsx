@@ -24,7 +24,7 @@ export function DraftLocaleProvider({ children }: { children: ReactNode }) {
     const nextState = registerDraftLanguageToggle(
       locale,
       recentToggleTimesRef.current,
-      Date.now(),
+      performance.now(),
     );
     recentToggleTimesRef.current = nextState.recentToggleTimes;
     setLocale(nextState.locale);

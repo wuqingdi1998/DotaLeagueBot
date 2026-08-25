@@ -408,6 +408,7 @@ export async function GET(request: Request) {
       : seasonFacts;
 
   return Response.json({
+    generatedAt: new Date().toISOString(),
     tournament,
     applications: applications.map((application) =>
       publicApplication(

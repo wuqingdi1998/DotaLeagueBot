@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { formatMoscowYear } from "@/lib/moscow-date-time";
 import type { CSSProperties } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import { dayCountLabel } from "@/lib/countdown";
@@ -137,7 +138,7 @@ export function TournamentHero() {
                 tournament.end_at,
               )}
             </strong>
-            <span>{new Date(tournament.start_at).getFullYear()}</span>
+            <span>{formatMoscowYear(tournament.start_at)}</span>
           </div>
           <div className="poster-meta">
             <div>

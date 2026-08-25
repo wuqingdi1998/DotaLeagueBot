@@ -84,13 +84,7 @@ export function currentMoscowDay(now: Date = new Date()) {
   return { dateKey, ...bounds };
 }
 
-export function serverTimeFromAnchor(
-  serverNow: string,
-  monotonicAnchorMs: number,
-  monotonicNowMs: number,
-): number {
-  return Date.parse(serverNow) + Math.max(0, monotonicNowMs - monotonicAnchorMs);
-}
+export { serverTimeFromAnchor } from "../../../lib/server-clock";
 
 function tournamentCountdownLabel(
   targetAt: string,
