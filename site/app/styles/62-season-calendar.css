@@ -160,6 +160,11 @@
   opacity: 0.48;
 }
 
+.calendar-day:hover,
+.calendar-day:focus-within {
+  z-index: 40;
+}
+
 .calendar-day-number {
   position: relative;
   z-index: 2;
