@@ -1,12 +1,12 @@
 .calendar-hero {
   position: relative;
   display: flex;
-  min-height: 280px;
+  min-height: 0;
   align-items: center;
   gap: 26px;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
-  padding: 120px clamp(22px, 7vw, 112px) 38px;
+  padding: 106px clamp(22px, 7vw, 112px) 28px;
   background:
     radial-gradient(circle at 78% 8%, rgba(0, 195, 255, 0.2), transparent 32%),
     radial-gradient(circle at 25% 100%, rgba(124, 92, 252, 0.15), transparent 34%),
@@ -263,10 +263,15 @@
   transform: translate(0, 0);
 }
 
+@media (max-width: 1050px) {
+  .calendar-hero {
+    padding: 28px clamp(22px, 7vw, 58px);
+  }
+}
+
 @media (max-width: 800px) {
   .calendar-hero {
-    min-height: 250px;
-    padding-top: 112px;
+    padding-block: 26px;
   }
 
   .calendar-hero-icon {
@@ -290,7 +295,7 @@
   .calendar-hero {
     align-items: flex-start;
     gap: 16px;
-    padding: 110px 18px 28px;
+    padding: 22px 18px 24px;
   }
 
   .calendar-hero-icon {

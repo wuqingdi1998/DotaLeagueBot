@@ -64,13 +64,16 @@ describe("season nine calendar contract", () => {
       /\.calendar-event-fill::after\s*\{[^}]*background:\s*var\(--text\);[^}]*color:\s*var\(--surface\);[^}]*text-align:\s*center;[^}]*text-wrap:\s*balance;/,
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-hero\s*\{[^}]*min-height:\s*280px;[^}]*padding:\s*120px/,
+      /\.calendar-hero\s*\{[^}]*min-height:\s*0;[^}]*padding:\s*106px/,
     );
     expect(calendarStyles).toMatch(
       /\.calendar-hero p\s*\{[^}]*font-size:\s*15px;/,
     );
     expect(calendarStyles).toMatch(
-      /@media \(max-width:\s*560px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*110px 18px 28px;/,
+      /@media \(max-width:\s*1050px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*28px/,
+    );
+    expect(calendarStyles).toMatch(
+      /@media \(max-width:\s*560px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*22px 18px 24px;/,
     );
     expect(headerStyles).toMatch(
       /\.site-header \.brand img\s*\{[^}]*box-shadow:\s*none;/,
