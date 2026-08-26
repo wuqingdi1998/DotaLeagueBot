@@ -40,6 +40,12 @@ describe("season nine calendar contract", () => {
     expect(calendarStyles).toMatch(
       /\.calendar-event-fills\s*\{[^}]*position:\s*absolute;[^}]*height:\s*50%;/,
     );
+    expect(calendarStyles).toMatch(
+      /\.calendar-days\s*\{[^}]*border-top:\s*2px[^}]*border-left:\s*2px/,
+    );
+    expect(calendarStyles).toMatch(
+      /\.calendar-day\s*\{[^}]*border-right:\s*2px[^}]*border-bottom:\s*2px/,
+    );
     expect(calendarStyles).not.toContain("calendar-event-dot");
   });
 

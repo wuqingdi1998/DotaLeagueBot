@@ -6,7 +6,7 @@ import {
 } from "./season-calendar";
 
 describe("season calendar", () => {
-  it("builds equal six-week grids from September through December", () => {
+  it("removes weeks that are completely empty", () => {
     const months = buildSeasonCalendarMonths([]);
     expect(months.map((month) => month.name)).toEqual([
       "Сентябрь",
@@ -14,7 +14,7 @@ describe("season calendar", () => {
       "Ноябрь",
       "Декабрь",
     ]);
-    expect(months.every((month) => month.days.length === 42)).toBe(true);
+    expect(months.map((month) => month.days.length)).toEqual([35, 35, 42, 35]);
     expect(months[0].days.find((day) => day.dayNumber === 1)?.date).toBe(
       "2026-09-01",
     );

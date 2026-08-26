@@ -93,18 +93,22 @@ export function buildSeasonCalendarMonths(
       const daysInMonth = new Date(
         Date.UTC(seasonCalendar.year, monthIndex + 1, 0),
       ).getUTCDate();
-      const days = Array.from({ length: 42 }, (_, cellIndex): CalendarDay => {
-        const dayNumber = cellIndex - mondayOffset + 1;
-        if (dayNumber < 1 || dayNumber > daysInMonth) {
-          return { date: null, dayNumber: null, events: [] };
-        }
-        const date = dateKey(seasonCalendar.year, monthIndex, dayNumber);
-        return {
-          date,
-          dayNumber,
-          events: groupedEvents.get(date) ?? [],
-        };
-      });
+      const visibleWeekCount = Math.ceil((mondayOffset + daysInMonth) / 7);
+      const days = Array.from(
+        { length: visibleWeekCount * 7 },
+        (_, cellIndex): CalendarDay => {
+          const dayNumber = cellIndex - mondayOffset + 1;
+          if (dayNumber < 1 || dayNumber > daysInMonth) {
+            return { date: null, dayNumber: null, events: [] };
+          }
+          const date = dateKey(seasonCalendar.year, monthIndex, dayNumber);
+          return {
+            date,
+            dayNumber,
+            events: groupedEvents.get(date) ?? [],
+          };
+        },
+      );
       return {
         monthIndex,
         name: calendarMonthNames[monthIndex],
