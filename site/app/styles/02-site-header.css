@@ -34,6 +34,10 @@
   box-shadow: 0 8px 25px rgba(0, 195, 255, 0.22);
 }
 
+.site-header .brand img {
+  box-shadow: none;
+}
+
 .brand > span {
   display: flex;
   min-width: 0;

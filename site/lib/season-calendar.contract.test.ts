@@ -9,6 +9,10 @@ const page = readFileSync(
   new URL("../app/calendar/page.tsx", import.meta.url),
   "utf8",
 );
+const calendarSection = readFileSync(
+  new URL("../app/calendar/sections/SeasonCalendarPage.tsx", import.meta.url),
+  "utf8",
+);
 const grid = readFileSync(
   new URL("../app/calendar/components/CalendarGrid.tsx", import.meta.url),
   "utf8",
@@ -23,6 +27,10 @@ const route = readFileSync(
 );
 const calendarStyles = readFileSync(
   new URL("../app/styles/62-season-calendar.css", import.meta.url),
+  "utf8",
+);
+const headerStyles = readFileSync(
+  new URL("../app/styles/02-site-header.css", import.meta.url),
   "utf8",
 );
 
@@ -47,6 +55,26 @@ describe("season nine calendar contract", () => {
       /\.calendar-day\s*\{[^}]*border-right:\s*2px[^}]*border-bottom:\s*2px/,
     );
     expect(calendarStyles).not.toContain("calendar-event-dot");
+  });
+
+  it("keeps calendar callouts balanced and the hero compact in both themes", () => {
+    expect(calendarSection).toContain("Linken&apos;s Sphere Esports");
+    expect(calendarSection).not.toContain("Linken&apos;s Sphere League");
+    expect(calendarStyles).toMatch(
+      /\.calendar-event-fill::after\s*\{[^}]*background:\s*var\(--text\);[^}]*color:\s*var\(--surface\);[^}]*text-align:\s*center;[^}]*text-wrap:\s*balance;/,
+    );
+    expect(calendarStyles).toMatch(
+      /\.calendar-hero\s*\{[^}]*min-height:\s*280px;[^}]*padding:\s*120px/,
+    );
+    expect(calendarStyles).toMatch(
+      /\.calendar-hero p\s*\{[^}]*font-size:\s*15px;/,
+    );
+    expect(calendarStyles).toMatch(
+      /@media \(max-width:\s*560px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*110px 18px 28px;/,
+    );
+    expect(headerStyles).toMatch(
+      /\.site-header \.brand img\s*\{[^}]*box-shadow:\s*none;/,
+    );
   });
 
   it("shows the editor only to organizers and protects all changes", () => {

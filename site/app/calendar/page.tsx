@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Календарь 9-го сезона — Linken's Sphere Esports",
-  description: "События 9-го сезона Linken's Sphere League с сентября по декабрь 2026 года.",
+  description: "События 9-го сезона Linken's Sphere Esports с сентября по декабрь 2026 года.",
 };
 
 export default async function CalendarPage() {

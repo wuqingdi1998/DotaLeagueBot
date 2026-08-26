@@ -22,7 +22,7 @@ export function SeasonCalendarPage({
           <FiCalendar />
         </div>
         <div>
-          <p>Linken&apos;s Sphere League</p>
+          <p>Linken&apos;s Sphere Esports</p>
           <h1>Календарь 9-го сезона</h1>
           <span>Сентябрь — декабрь 2026</span>
         </div>
