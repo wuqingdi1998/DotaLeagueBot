@@ -6,7 +6,8 @@
   gap: 26px;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
-  padding: 106px clamp(22px, 7vw, 112px) 28px;
+  /* Desktop header overlays the page: 106px header + the directory's 36px gap. */
+  padding: 142px clamp(22px, 7vw, 112px) 28px;
   background:
     radial-gradient(circle at 78% 8%, rgba(0, 195, 255, 0.2), transparent 32%),
     radial-gradient(circle at 25% 100%, rgba(124, 92, 252, 0.15), transparent 34%),
@@ -165,6 +166,11 @@
   z-index: 40;
 }
 
+.calendar-day:hover .calendar-event-fills,
+.calendar-day:focus-within .calendar-event-fills {
+  z-index: 3;
+}
+
 .calendar-day-number {
   position: relative;
   z-index: 2;
@@ -270,13 +276,13 @@
 
 @media (max-width: 1050px) {
   .calendar-hero {
-    padding: 28px clamp(22px, 7vw, 58px);
+    padding: 36px clamp(22px, 7vw, 58px) 28px;
   }
 }
 
 @media (max-width: 800px) {
   .calendar-hero {
-    padding-block: 26px;
+    padding-top: 38px;
   }
 
   .calendar-hero-icon {
@@ -300,7 +306,7 @@
   .calendar-hero {
     align-items: flex-start;
     gap: 16px;
-    padding: 22px 18px 24px;
+    padding: 38px 18px 24px;
   }
 
   .calendar-hero-icon {

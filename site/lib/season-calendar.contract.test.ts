@@ -33,6 +33,10 @@ const headerStyles = readFileSync(
   new URL("../app/styles/02-site-header.css", import.meta.url),
   "utf8",
 );
+const tournamentDirectoryStyles = readFileSync(
+  new URL("../app/styles/10-community-home.css", import.meta.url),
+  "utf8",
+);
 
 describe("season nine calendar contract", () => {
   it("adds Calendar to desktop and mobile navigation", () => {
@@ -57,6 +61,9 @@ describe("season nine calendar contract", () => {
     expect(calendarStyles).toMatch(
       /\.calendar-day:hover,\s*\.calendar-day:focus-within\s*\{[^}]*z-index:\s*40;/,
     );
+    expect(calendarStyles).toMatch(
+      /\.calendar-day:hover \.calendar-event-fills,\s*\.calendar-day:focus-within \.calendar-event-fills\s*\{[^}]*z-index:\s*3;/,
+    );
     expect(calendarStyles).not.toContain("calendar-event-dot");
   });
 
@@ -67,16 +74,22 @@ describe("season nine calendar contract", () => {
       /\.calendar-event-fill::after\s*\{[^}]*background:\s*var\(--text\);[^}]*color:\s*var\(--surface\);[^}]*text-align:\s*center;[^}]*text-wrap:\s*balance;/,
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-hero\s*\{[^}]*min-height:\s*0;[^}]*padding:\s*106px/,
+      /\.calendar-hero\s*\{[^}]*min-height:\s*0;[^}]*padding:\s*142px/,
+    );
+    expect(tournamentDirectoryStyles).toMatch(
+      /\.directory-hero\s*\{[^}]*padding:\s*36px/,
     );
     expect(calendarStyles).toMatch(
       /\.calendar-hero p\s*\{[^}]*font-size:\s*15px;/,
     );
     expect(calendarStyles).toMatch(
-      /@media \(max-width:\s*1050px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*28px/,
+      /@media \(max-width:\s*1050px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*36px/,
     );
     expect(calendarStyles).toMatch(
-      /@media \(max-width:\s*560px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*22px 18px 24px;/,
+      /@media \(max-width:\s*800px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding-top:\s*38px;/,
+    );
+    expect(calendarStyles).toMatch(
+      /@media \(max-width:\s*560px\)[\s\S]*\.calendar-hero\s*\{[^}]*padding:\s*38px 18px 24px;/,
     );
     expect(headerStyles).toMatch(
       /\.site-header \.brand img\s*\{[^}]*box-shadow:\s*none;/,
