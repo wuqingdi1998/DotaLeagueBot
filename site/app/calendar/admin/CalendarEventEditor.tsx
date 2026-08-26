@@ -128,7 +128,7 @@ export function CalendarEventEditor({
           />
         </label>
         <fieldset className="calendar-color-field">
-          <legend>Цвет кружочка</legend>
+          <legend>Цвет заливки</legend>
           <div className="calendar-color-options">
             {calendarEventColors.map((option) => (
               <button

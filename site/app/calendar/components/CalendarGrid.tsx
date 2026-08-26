@@ -44,10 +44,10 @@ export function CalendarGrid({ events }: { events: SeasonCalendarEvent[] }) {
                 {day.dayNumber && (
                   <>
                     <span className="calendar-day-number">{day.dayNumber}</span>
-                    <span className="calendar-event-dots">
+                    <span className="calendar-event-fills">
                       {day.events.map((event) => (
                         <button
-                          className="calendar-event-dot"
+                          className="calendar-event-fill"
                           key={event.id}
                           type="button"
                           style={{ backgroundColor: event.color }}

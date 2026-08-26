@@ -21,6 +21,10 @@ const route = readFileSync(
   new URL("../app/api/calendar-events/route.ts", import.meta.url),
   "utf8",
 );
+const calendarStyles = readFileSync(
+  new URL("../app/styles/62-season-calendar.css", import.meta.url),
+  "utf8",
+);
 
 describe("season nine calendar contract", () => {
   it("adds Calendar to desktop and mobile navigation", () => {
@@ -28,16 +32,20 @@ describe("season nine calendar contract", () => {
     expect(header).toContain("calendarActive");
   });
 
-  it("shows public event dots with hover and keyboard labels", () => {
+  it("fills half of event days with hover and keyboard labels", () => {
     expect(page).toContain("listSeasonCalendarEvents");
-    expect(grid).toContain('className="calendar-event-dot"');
+    expect(grid).toContain('className="calendar-event-fill"');
     expect(grid).toContain("data-tooltip={event.title}");
     expect(grid).toContain("aria-label={eventAccessibleLabel(event)}");
+    expect(calendarStyles).toMatch(
+      /\.calendar-event-fills\s*\{[^}]*position:\s*absolute;[^}]*height:\s*50%;/,
+    );
+    expect(calendarStyles).not.toContain("calendar-event-dot");
   });
 
   it("shows the editor only to organizers and protects all changes", () => {
     expect(page).toContain("isOrganizer={Boolean(user?.isAdmin)}");
-    expect(editor).toContain("Цвет кружочка");
+    expect(editor).toContain("Цвет заливки");
     expect(editor).toContain("Название ивента");
     expect(route.match(/requireAdmin\(\)/g)).toHaveLength(3);
     expect(route).toContain("createSeasonCalendarEvent");

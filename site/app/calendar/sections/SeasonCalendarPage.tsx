@@ -31,7 +31,9 @@ export function SeasonCalendarPage({
       <section className="calendar-content">
         <div className="calendar-hint">
           <FiInfo aria-hidden="true" />
-          <span>Наведите на цветной кружочек, чтобы увидеть название события.</span>
+          <span>
+            Наведите на закрашенную половину дня, чтобы увидеть название события.
+          </span>
         </div>
         <CalendarGrid events={events} />
         {isOrganizer && (
