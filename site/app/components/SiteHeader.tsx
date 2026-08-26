@@ -90,6 +90,7 @@ export function SiteHeader({
 
   const homeActive = pathname === "/";
   const tournamentsActive = pathname.startsWith("/tournaments");
+  const calendarActive = pathname.startsWith("/calendar");
   const hallActive = pathname.startsWith("/hall-of-fame");
   const participantsActive = pathname.startsWith("/participants");
   const compendiumActive = pathname.startsWith("/compendium");
@@ -132,6 +133,13 @@ export function SiteHeader({
           aria-current={tournamentsActive ? "page" : undefined}
         >
           Турниры
+        </Link>
+        <Link
+          className={calendarActive ? "active" : undefined}
+          href="/calendar"
+          aria-current={calendarActive ? "page" : undefined}
+        >
+          Календарь
         </Link>
         <Link
           className={hallActive ? "active" : undefined}
@@ -302,6 +310,14 @@ export function SiteHeader({
             onClick={() => setMobileMenuOpen(false)}
           >
             Турниры
+          </Link>
+          <Link
+            className={calendarActive ? "active" : undefined}
+            href="/calendar"
+            aria-current={calendarActive ? "page" : undefined}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Календарь
           </Link>
           <Link
             className={hallActive ? "active" : undefined}
