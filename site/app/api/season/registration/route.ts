@@ -7,6 +7,7 @@ import {
   seasonRoundRegistrationIsOpen,
   seasonTierConfirmationMessage,
 } from "@/lib/season-round-registration";
+import { refreshRoundRegistrationRankedWins } from "@/lib/season-ranked-wins/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,7 @@ async function updateRegistration(
     const body = (await request.json()) as Record<string, unknown>;
     const roundId = registrationRoundId(body.roundId);
 
-    return await transaction(async (client) => {
+    const result = await transaction(async (client) => {
       const result = await client.query<RegistrationTarget>(
         `SELECT round.id::int, round.tournament_id::int,
            round.scheduled_at, round.round_kind,
@@ -139,14 +140,29 @@ async function updateRegistration(
         );
       }
 
-      return Response.json({
-        ok: true,
+      return {
         isRegistered: action === "register",
         isCheckedIn:
           action === "register" &&
           seasonRoundRegistrationGetsAutomaticCheckIn(target.scheduled_at, now),
-      });
+      };
     });
+    let rankedWins = null;
+    if (action === "register") {
+      try {
+        rankedWins = await refreshRoundRegistrationRankedWins(
+          roundId,
+          user.discordId,
+        );
+      } catch (error) {
+        console.error("Ranked wins check after registration failed", {
+          playerId: user.discordId,
+          roundId,
+          reason: error instanceof Error ? error.message : "unknown",
+        });
+      }
+    }
+    return Response.json({ ok: true, ...result, rankedWins });
   } catch (error) {
     return responseFromAuthError(error);
   }

@@ -1,5 +1,6 @@
 import { transaction } from "@/lib/db";
 import { seasonRoundRegistrationGetsAutomaticCheckIn } from "@/lib/season-round-registration";
+import { refreshRoundRegistrationRankedWins } from "@/lib/season-ranked-wins/repository";
 import { requiredId } from "./season-admin-model";
 import {
   addSeasonParticipant,
@@ -20,7 +21,7 @@ export async function addSeasonRoundRegistration(
 ) {
   const roundId = requiredId(body.roundId, "тур");
   const tierSnapshot = registrationTier(body.tierSnapshot);
-  return transaction(async (client) => {
+  const result = await transaction(async (client) => {
     const round = await client.query<{
       tournament_id: number;
       scheduled_at: Date | null;
@@ -75,8 +76,22 @@ export async function addSeasonRoundRegistration(
         JSON.stringify({ roundId, playerId: player.discord_id, tierSnapshot }),
       ],
     );
-    return { ok: true, isCheckedIn: isAutomaticallyCheckedIn };
+    return {
+      ok: true,
+      isCheckedIn: isAutomaticallyCheckedIn,
+      playerId: String(player.discord_id),
+    };
   });
+  try {
+    await refreshRoundRegistrationRankedWins(roundId, result.playerId);
+  } catch (error) {
+    console.error("Ranked wins check after organizer registration failed", {
+      playerId: result.playerId,
+      roundId,
+      reason: error instanceof Error ? error.message : "unknown",
+    });
+  }
+  return result;
 }
 
 export async function deleteSeasonRoundRegistration(

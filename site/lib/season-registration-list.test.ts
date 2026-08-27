@@ -16,6 +16,11 @@ const registrations: SeasonRoundRegistration[] = [
     tier_snapshot: 5,
     created_at: "2026-08-17T10:00:02.000Z",
     is_checked_in: false,
+    primary_role: null,
+    secondary_role: null,
+    primary_wins: null,
+    secondary_wins: null,
+    wins_checked_at: null,
   },
   {
     round_id: 1,
@@ -27,6 +32,11 @@ const registrations: SeasonRoundRegistration[] = [
     tier_snapshot: 10,
     created_at: "2026-08-17T10:00:01.000Z",
     is_checked_in: false,
+    primary_role: 4,
+    secondary_role: 5,
+    primary_wins: 10,
+    secondary_wins: 4,
+    wins_checked_at: "2026-08-17T10:05:00.000Z",
   },
 ];
 

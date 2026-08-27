@@ -29,6 +29,7 @@ export function useSeasonController({
     null,
   );
   const [checkInRoundId, setCheckInRoundId] = useState<number | null>(null);
+  const [checkingRankedWins, setCheckingRankedWins] = useState(false);
   const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
     Number.isInteger(requestedRound) && requestedRound > 0
       ? requestedRound
@@ -209,10 +210,34 @@ export function useSeasonController({
     }
   }
 
+  async function checkMyRankedWins() {
+    if (checkingRankedWins) return;
+    setCheckingRankedWins(true);
+    try {
+      const response = await fetchSeasonRequest("/api/season/ranked-wins", {
+        method: "POST",
+      });
+      const result = await readSeasonMutationResponse(response);
+      if (!response.ok) {
+        setMessage(
+          result.error ?? "Не удалось проверить рейтинговые победы",
+        );
+        return;
+      }
+      await load();
+    } catch {
+      setMessage("Сервер недоступен. Попробуйте проверить победы ещё раз");
+    } finally {
+      setCheckingRankedWins(false);
+    }
+  }
+
   return {
     activeRoundNumber,
     checkIn,
     checkInRoundId,
+    checkMyRankedWins,
+    checkingRankedWins,
     data,
     error,
     load,

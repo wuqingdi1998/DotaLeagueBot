@@ -5,6 +5,11 @@ import { useMemo, useState } from "react";
 import { FiArrowDown, FiArrowUp, FiClock } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useServerClock } from "@/hooks/useServerClock";
+import {
+  SEASON_PRIMARY_ROLE_WINS_REQUIRED,
+  SEASON_SECONDARY_ROLE_WINS_REQUIRED,
+  type RankedWinSnapshot,
+} from "@/lib/season-ranked-wins/model";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
@@ -39,6 +44,10 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
       round.cancellation_deadline &&
       currentTime < new Date(round.cancellation_deadline).getTime(),
   );
+  const myRankedWins = data.user ? season.data?.myRankedWins ?? null : null;
+  const hasFreshRankedWins = Boolean(
+    myRankedWins && currentTime < new Date(myRankedWins.availableUntil).getTime(),
+  );
 
   function changeSort(nextSort: SeasonRegistrationSort) {
     if (nextSort === sort) {
@@ -65,7 +74,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   return (
     <section className="season-registration-section">
       <div className="season-round-registration">
-        <div>
+        <div className="season-round-registration-copy">
           <strong>Регистрация на тур</strong>
           <span>
             {round.registration_deadline
@@ -98,25 +107,40 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
             Войти, чтобы зарегистрироваться
           </button>
         ) : (
-          <button
-            className={
-              round.is_registered
-                ? "secondary-button compact"
-                : "primary-button compact"
-            }
-            type="button"
-            disabled={actionDisabled || season.registrationRoundId !== null}
-            onClick={() =>
-              void season.updateRoundRegistration(
-                round.id,
-                round.is_registered,
-              )
-            }
-          >
-            {season.registrationRoundId === round.id
-              ? "Сохраняем…"
-              : actionLabel}
-          </button>
+          <div className="season-round-registration-actions">
+            <button
+              className={
+                round.is_registered
+                  ? "secondary-button compact"
+                  : "primary-button compact"
+              }
+              type="button"
+              disabled={actionDisabled || season.registrationRoundId !== null}
+              onClick={() =>
+                void season.updateRoundRegistration(
+                  round.id,
+                  round.is_registered,
+                )
+              }
+            >
+              {season.registrationRoundId === round.id
+                ? "Сохраняем…"
+                : actionLabel}
+            </button>
+            {!round.is_registered && (
+              <button
+                className="secondary-button compact season-ranked-wins-button"
+                type="button"
+                disabled={season.checkingRankedWins || hasFreshRankedWins}
+                onClick={() => void season.checkMyRankedWins()}
+              >
+                {rankedWinsButtonLabel(
+                  season.checkingRankedWins,
+                  hasFreshRankedWins ? myRankedWins : null,
+                )}
+              </button>
+            )}
+          </div>
         )}
       </div>
 
@@ -150,43 +174,59 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
       </div>
 
       {registrations.length ? (
-        <ol className="season-registration-list">
-          {registrations.map((registration, index) => (
-            <li key={registration.player_id}>
-              <span className="season-registration-number">{index + 1}</span>
-              <span className="season-registration-player">
-                {registration.avatar_url ? (
-                  <Image
-                    className="season-registration-player-avatar"
-                    src={registration.avatar_url}
-                    width={30}
-                    height={30}
-                    alt=""
-                    unoptimized
+        <div className="season-registration-table">
+          <div className="season-registration-columns">
+            <span />
+            <span>Игрок</span>
+            <span>Тир</span>
+            <span>Роли</span>
+            <span>Рейтинговые победы за 30 дней</span>
+            <span>Регистрация</span>
+          </div>
+          <ol className="season-registration-list">
+            {registrations.map((registration, index) => (
+              <li key={registration.player_id}>
+                <span className="season-registration-number">{index + 1}</span>
+                <span className="season-registration-player">
+                  {registration.avatar_url ? (
+                    <Image
+                      className="season-registration-player-avatar"
+                      src={registration.avatar_url}
+                      width={30}
+                      height={30}
+                      alt=""
+                      unoptimized
+                    />
+                  ) : (
+                    <i className="season-registration-player-avatar">
+                      {registration.nickname.slice(0, 1).toUpperCase()}
+                    </i>
+                  )}
+                  <PlayerProfileLink
+                    dotaId={registration.dota_id}
+                    nickname={registration.nickname}
                   />
-                ) : (
-                  <i className="season-registration-player-avatar">
-                    {registration.nickname.slice(0, 1).toUpperCase()}
-                  </i>
-                )}
-                <PlayerProfileLink
-                  dotaId={registration.dota_id}
-                  nickname={registration.nickname}
-                />
-              </span>
-              <strong className="season-registration-tier">
-                {registration.tier_snapshot ?? "—"}
-              </strong>
-              <span className="season-registration-roles">
-                {registration.positions ?? "—"}
-              </span>
-              <time dateTime={registration.created_at}>
-                <FiClock aria-hidden="true" />
-                {formatSeasonRegistrationMoment(registration.created_at)} МСК
-              </time>
-            </li>
-          ))}
-        </ol>
+                </span>
+                <strong className="season-registration-tier">
+                  {registration.tier_snapshot ?? "—"}
+                </strong>
+                <span className="season-registration-roles">
+                  {registration.positions ?? "—"}
+                </span>
+                <span className="season-registration-wins">
+                  {registration.primary_wins === null ||
+                  registration.secondary_wins === null
+                    ? "Нет данных"
+                    : `Осн. ${registration.primary_wins}/${SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. ${registration.secondary_wins}/${SEASON_SECONDARY_ROLE_WINS_REQUIRED}`}
+                </span>
+                <time dateTime={registration.created_at}>
+                  <FiClock aria-hidden="true" />
+                  {formatSeasonRegistrationMoment(registration.created_at)} МСК
+                </time>
+              </li>
+            ))}
+          </ol>
+        </div>
       ) : (
         <p className="season-registration-empty">
           На этот тур пока никто не зарегистрировался.
@@ -194,6 +234,15 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
       )}
     </section>
   );
+}
+
+function rankedWinsButtonLabel(
+  isLoading: boolean,
+  snapshot: RankedWinSnapshot | null,
+) {
+  if (isLoading) return "Загружаем победы…";
+  if (!snapshot) return "Мои рейтинговые победы за 30 дней";
+  return `Осн. (${snapshot.primaryRole}) ${snapshot.primaryWins}/${SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. (${snapshot.secondaryRole}) ${snapshot.secondaryWins}/${SEASON_SECONDARY_ROLE_WINS_REQUIRED}`;
 }
 
 function SortButton({

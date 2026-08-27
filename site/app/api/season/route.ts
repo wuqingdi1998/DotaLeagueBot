@@ -17,6 +17,7 @@ import {
   seasonRoundRegistrationDeadline,
   seasonRoundRegistrationIsOpen,
 } from "@/lib/season-round-registration";
+import { freshPlayerRankedWins } from "@/lib/season-ranked-wins/repository";
 import { loadSeasonExtras } from "./season-extra-query";
 import type {
   GameRow,
@@ -261,7 +262,12 @@ export async function GET(request: Request) {
              AS positions,
            registration.tier_snapshot::int,
            registration.created_at,
-           checkin.player_id IS NOT NULL AS is_checked_in
+           checkin.player_id IS NOT NULL AS is_checked_in,
+           ranked_wins.primary_role::int,
+           ranked_wins.secondary_role::int,
+           ranked_wins.primary_wins::int,
+           ranked_wins.secondary_wins::int,
+           ranked_wins.checked_at AS wins_checked_at
          FROM season_round_registrations registration
          JOIN season_rounds round ON round.id = registration.round_id
          JOIN players player ON player.discord_id = registration.player_id
@@ -275,6 +281,8 @@ export async function GET(request: Request) {
          LEFT JOIN season_round_checkins checkin
            ON checkin.round_id = registration.round_id
           AND checkin.player_id = registration.player_id
+         LEFT JOIN season_ranked_win_checks ranked_wins
+           ON ranked_wins.player_id = registration.player_id
          WHERE round.tournament_id = $1 ${visibility}
          ORDER BY round.round_number, registration.created_at,
            registration.player_id`,
@@ -462,6 +470,9 @@ export async function GET(request: Request) {
         standingModifiers,
       )
     : null;
+  const myRankedWins = user
+    ? await freshPlayerRankedWins(user.discordId)
+    : null;
 
   return Response.json({
     generatedAt: generatedAt.toISOString(),
@@ -472,6 +483,7 @@ export async function GET(request: Request) {
     pointAdjustments: isOrganizer ? pointAdjustments : [],
     penaltyEvents: isOrganizer ? penaltyEvents : [],
     finalists: finalistsWithMedals,
+    myRankedWins,
     isOrganizer,
   });
 }

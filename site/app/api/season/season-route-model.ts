@@ -90,4 +90,9 @@ export type RoundRegistrationRow = {
   tier_snapshot: number | null;
   created_at: string;
   is_checked_in: boolean;
+  primary_role: number | null;
+  secondary_role: number | null;
+  primary_wins: number | null;
+  secondary_wins: number | null;
+  wins_checked_at: string | null;
 };

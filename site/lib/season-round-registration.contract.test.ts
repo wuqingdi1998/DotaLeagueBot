@@ -127,7 +127,7 @@ describe("season round registration contract", () => {
       'className="season-registration-tier"',
     );
     expect(registrationStyles).toContain(
-      "grid-template-columns: 34px max-content 30px max-content minmax(190px, 1fr)",
+      "34px max-content 30px max-content minmax(250px, 1fr)",
     );
     expect(registrationStyles).toContain("grid-template-columns: subgrid");
     expect(registrationStyles).toMatch(

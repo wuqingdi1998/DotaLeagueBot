@@ -12,6 +12,10 @@ from sqlalchemy import text
 
 from database.core import async_session
 from services.compendium_lifecycle import is_ti_2026_compendium_finished
+from services.site_scheduler_client import (
+    SiteSchedulerConfigurationError,
+    post_site_scheduler_request,
+)
 
 MOSCOW_TIME_ZONE = ZoneInfo("Europe/Moscow")
 COMPENDIUM_GOLD_ROLE_NAME = "TI 2026 — Золотой компендиум"
@@ -43,41 +47,13 @@ class CompendiumScheduler(commands.Cog):
         failure_label: str,
         timeout_seconds: int = 15,
     ) -> dict[str, object] | None:
-        secret = (
-            os.getenv("COMPENDIUM_SCHEDULER_SECRET")
-            or os.getenv("DISCORD_TOKEN")
-            or ""
-        ).strip()
-        site_url = (
-            os.getenv("COMPENDIUM_SITE_URL")
-            or os.getenv("PUBLIC_BASE_URL")
-            or ""
-        ).rstrip("/")
-        public_origin = (os.getenv("PUBLIC_BASE_URL") or site_url).rstrip("/")
-        if len(secret) < 24 or not site_url:
+        try:
+            return await post_site_scheduler_request(path, timeout_seconds)
+        except SiteSchedulerConfigurationError:
             print("⚠️ Планировщик компендиума не настроен.")
             return None
-
-        timeout = aiohttp.ClientTimeout(total=timeout_seconds)
-        headers = {
-            "Authorization": f"Bearer {secret}",
-            "Origin": public_origin,
-        }
-        try:
-            async with aiohttp.ClientSession(timeout=timeout) as session:
-                async with session.post(
-                    f"{site_url}{path}",
-                    headers=headers,
-                ) as response:
-                    if response.status != 200:
-                        print(
-                            f"⚠️ Не удалось {failure_label}: "
-                            f"HTTP {response.status}"
-                        )
-                        return None
-                    return await response.json()
-        except (aiohttp.ClientError, TimeoutError) as error:
-            print(f"⚠️ Сайт недоступен для планировщика компендиума: {error}")
+        except (aiohttp.ClientError, TimeoutError, RuntimeError) as error:
+            print(f"⚠️ Не удалось {failure_label}: {error}")
             return None
 
     async def request_daily_quests(self) -> None:

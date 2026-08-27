@@ -17,7 +17,7 @@ class StratzService:
 
         self.use_wins = _truthy(os.getenv("ACTIVITY_CHECK_USE_WINS", "true"))
         self.main_required = int(os.getenv("ACTIVITY_MAIN_REQUIRED", "10"))
-        self.side_required = int(os.getenv("ACTIVITY_SIDE_REQUIRED", "5"))
+        self.side_required = int(os.getenv("ACTIVITY_SIDE_REQUIRED", "4"))
         self.total_required = int(os.getenv("ACTIVITY_TOTAL_REQUIRED", "20"))
 
     async def get_player_activity(self, steam_id, main_role_char, side_role_char, target_date: datetime):
