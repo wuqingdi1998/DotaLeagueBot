@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildStratzRankedMatchesUrl,
+  formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
   sortSeasonRegistrations,
 } from "../app/tournaments/[slug]/model/season-registration";
@@ -89,5 +90,32 @@ describe("season registration list", () => {
     ).toBe(
       "https://stratz.com/players/301109815/matches?lobbyType=7&startDateTime=1785240000",
     );
+  });
+
+  it("counts down to the next ten-minute refresh from the latest completed check", () => {
+    expect(
+      formatSeasonRankedWinsRefreshCountdown(
+        registrations,
+        new Date("2026-08-17T10:12:00.000Z").getTime(),
+      ),
+    ).toBe("03:00");
+    expect(
+      formatSeasonRankedWinsRefreshCountdown(
+        registrations,
+        new Date("2026-08-17T10:15:01.000Z").getTime(),
+      ),
+    ).toBe("09:59");
+  });
+
+  it("shows that the first refresh is pending when nobody has been checked", () => {
+    expect(
+      formatSeasonRankedWinsRefreshCountdown(
+        registrations.map((registration) => ({
+          ...registration,
+          wins_checked_at: null,
+        })),
+        new Date("2026-08-17T10:12:00.000Z").getTime(),
+      ),
+    ).toBeNull();
   });
 });

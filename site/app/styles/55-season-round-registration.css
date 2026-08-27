@@ -127,6 +127,43 @@
   grid-column: 6;
 }
 
+.season-registration-refresh-timer {
+  cursor: help;
+  display: inline-block;
+  position: relative;
+}
+
+.season-registration-refresh-tooltip {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 700;
+  left: 50%;
+  opacity: 0;
+  padding: 8px 10px;
+  pointer-events: none;
+  position: absolute;
+  text-transform: none;
+  top: calc(100% + 8px);
+  transform: translate(-50%, -4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+  visibility: hidden;
+  white-space: nowrap;
+  z-index: 20;
+}
+
+.season-registration-refresh-timer:hover
+  .season-registration-refresh-tooltip,
+.season-registration-refresh-timer:focus-visible
+  .season-registration-refresh-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  visibility: visible;
+}
+
 .season-registration-column-created {
   grid-column: 7;
 }

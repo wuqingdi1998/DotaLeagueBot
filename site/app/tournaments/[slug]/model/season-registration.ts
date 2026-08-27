@@ -4,6 +4,7 @@ import type { SeasonRoundRegistration } from "./season-types";
 const RANKED_LOBBY_TYPE = 7;
 const RANKED_WIN_WINDOW_MS =
   SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000;
+const RANKED_WINS_REFRESH_INTERVAL_MS = 10 * 60 * 1_000;
 
 export type SeasonRegistrationSort = "createdAt" | "nickname" | "tier";
 export type SeasonRegistrationDirection = "ascending" | "descending";
@@ -64,4 +65,31 @@ export function buildStratzRankedMatchesUrl(
     `https://stratz.com/players/${encodeURIComponent(dotaId)}/matches` +
     `?lobbyType=${RANKED_LOBBY_TYPE}&startDateTime=${startDateTime}`
   );
+}
+
+export function formatSeasonRankedWinsRefreshCountdown(
+  registrations: SeasonRoundRegistration[],
+  currentTime: number,
+): string | null {
+  if (!Number.isFinite(currentTime)) return null;
+  const checkedTimes = registrations
+    .map((registration) => Date.parse(registration.wins_checked_at ?? ""))
+    .filter(Number.isFinite);
+  if (!checkedTimes.length) return null;
+
+  const latestCheckedTime = Math.max(...checkedTimes);
+  const elapsedTime = Math.max(0, currentTime - latestCheckedTime);
+  const completedIntervals = Math.floor(
+    elapsedTime / RANKED_WINS_REFRESH_INTERVAL_MS,
+  );
+  const nextRefreshTime =
+    latestCheckedTime +
+    (completedIntervals + 1) * RANKED_WINS_REFRESH_INTERVAL_MS;
+  const remainingSeconds = Math.max(
+    0,
+    Math.ceil((nextRefreshTime - currentTime) / 1_000),
+  );
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 }

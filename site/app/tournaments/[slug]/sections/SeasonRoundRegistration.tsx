@@ -14,6 +14,7 @@ import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
   buildStratzRankedMatchesUrl,
+  formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
   sortSeasonRegistrations,
   type SeasonRegistrationDirection,
@@ -32,6 +33,8 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
     () => sortSeasonRegistrations(round.registrations, sort, direction),
     [direction, round.registrations, sort],
   );
+  const rankedWinsRefreshCountdown =
+    formatSeasonRankedWinsRefreshCountdown(round.registrations, currentTime);
 
   if (!data) return null;
 
@@ -182,7 +185,17 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
             <span>Тир</span>
             <span>Роли</span>
             <span className="season-registration-column-wins">
-              Рейтинговые победы за 30 дней
+              <span className="season-registration-refresh-timer" tabIndex={0}>
+                Рейтинговые победы за 30 дней
+                <span
+                  className="season-registration-refresh-tooltip"
+                  role="tooltip"
+                >
+                  {rankedWinsRefreshCountdown
+                    ? `До следующей проверки всех участников: ${rankedWinsRefreshCountdown}`
+                    : "Ожидаем первую проверку всех участников"}
+                </span>
+              </span>
             </span>
             <span className="season-registration-column-created">
               Регистрация

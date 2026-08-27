@@ -33,4 +33,17 @@ describe("season registration table layout", () => {
     );
     expect(styles).not.toContain("span:nth-child(2)");
   });
+
+  it("shows the live refresh countdown only in the ranked wins heading", () => {
+    const section = source(
+      "app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
+    );
+    const styles = source("app/styles/55-season-round-registration.css");
+
+    expect(section).toContain('className="season-registration-refresh-timer"');
+    expect(section).toContain('role="tooltip"');
+    expect(section).toContain("До следующей проверки всех участников:");
+    expect(styles).toContain(".season-registration-refresh-timer:hover");
+    expect(styles).toContain(".season-registration-refresh-tooltip");
+  });
 });
