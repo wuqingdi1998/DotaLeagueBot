@@ -1,8 +1,4 @@
-import type {
-  SeasonLobby,
-  SeasonMatch,
-  SeasonRound,
-} from "./season-types";
+import type { SeasonMatch, SeasonRound } from "./season-types";
 
 export function seasonRoundStatusLabel(status: SeasonRound["status"]) {
   return {
@@ -10,16 +6,6 @@ export function seasonRoundStatusLabel(status: SeasonRound["status"]) {
     active: "Идёт",
     completed: "Завершён",
     cancelled: "Отменён",
-  }[status];
-}
-
-export function seasonLobbyStatusLabel(status: SeasonLobby["status"]) {
-  return {
-    draft: "Черновик",
-    scheduled: "Запланировано",
-    live: "Идёт",
-    completed: "Завершено",
-    cancelled: "Отменено",
   }[status];
 }
 

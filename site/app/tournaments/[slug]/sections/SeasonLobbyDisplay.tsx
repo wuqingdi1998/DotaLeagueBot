@@ -7,7 +7,6 @@ import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { seasonMatchLinks } from "@/lib/season";
 import { groupSeasonFinalMedalists } from "@/lib/season-finals";
 import { formatDayMonth, formatTime } from "../model/formatters";
-import { seasonLobbyStatusLabel } from "../model/season-labels";
 import type { SeasonMatch, SeasonRound } from "../model/season-types";
 import type { ReactNode } from "react";
 
@@ -46,9 +45,6 @@ export function SeasonLobbyList({
                 <h4>{lobby.name}</h4>
               </div>
             </div>
-            <b className={`season-status-pill ${lobby.status}`}>
-              {seasonLobbyStatusLabel(lobby.status)}
-            </b>
           </header>
           {!lobby.matches.length ? (
             <p className="season-empty-copy">Матчи лобби ещё не опубликованы.</p>
@@ -56,6 +52,7 @@ export function SeasonLobbyList({
             <div className="season-match-list">
               {lobby.matches.map((match) => (
                 <SeasonMatchCard
+                  lobbyScheduledAt={lobby.scheduled_at}
                   match={match}
                   participantAction={participantAction}
                   key={match.id}
@@ -71,9 +68,11 @@ export function SeasonLobbyList({
 }
 
 function SeasonMatchCard({
+  lobbyScheduledAt,
   match,
   participantAction,
 }: {
+  lobbyScheduledAt: string | null;
   match: SeasonMatch;
   participantAction?: (
     match: SeasonMatch,
@@ -82,16 +81,16 @@ function SeasonMatchCard({
 }) {
   const teamA = match.participants.filter((player) => player.team_side === "a");
   const teamB = match.participants.filter((player) => player.team_side === "b");
+  const scheduledAt = lobbyScheduledAt ?? match.scheduled_at;
   return (
     <article className="season-match-card" id={`season-match-${match.id}`}>
       <div className="season-match-heading">
         <div>
           <span>
             <FiCalendar aria-hidden="true" />
-            {match.scheduled_at
-              ? <time dateTime={match.scheduled_at}>
-                  {formatDayMonth(match.scheduled_at)} ·{" "}
-                  {formatTime(match.scheduled_at)}
+            {scheduledAt
+              ? <time dateTime={scheduledAt}>
+                  {formatDayMonth(scheduledAt)} · {formatTime(scheduledAt)}
                 </time>
               : "Время не назначено"}
           </span>

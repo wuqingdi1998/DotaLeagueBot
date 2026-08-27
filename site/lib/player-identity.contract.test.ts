@@ -158,8 +158,8 @@ describe("player identities and archive safety", () => {
     expect(hallTable).toContain("hall-archive-row");
   });
 
-  it("shows only the upper completed status for a season lobby", () => {
-    expect(seasonRound).toContain("seasonLobbyStatusLabel(lobby.status)");
+  it("does not show internal statuses in a season lobby", () => {
+    expect(seasonRound).not.toContain("seasonLobbyStatusLabel(lobby.status)");
     expect(seasonRound).not.toContain("seasonMatchStatusLabel(match.status)");
   });
 

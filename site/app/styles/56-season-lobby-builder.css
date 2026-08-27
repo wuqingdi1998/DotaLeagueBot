@@ -228,9 +228,45 @@
   padding: 15px;
 }
 
-.season-builder-lobby > h5 {
+.season-builder-lobby-heading {
+  align-items: end;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.season-builder-lobby-heading > h5 {
   color: #f4c96b;
   font-size: 1rem;
+}
+
+.season-builder-lobby-schedule {
+  align-items: end;
+  display: flex;
+  gap: 8px;
+}
+
+.season-builder-lobby-schedule label {
+  display: grid;
+  gap: 5px;
+}
+
+.season-builder-lobby-schedule label > span {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.76rem;
+  font-weight: 750;
+  gap: 5px;
+}
+
+.season-builder-lobby-schedule input {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  color: var(--text);
+  min-height: 38px;
+  padding: 7px 9px;
 }
 
 .season-builder-teams {
@@ -361,6 +397,16 @@
 }
 
 @media (max-width: 680px) {
+  .season-builder-lobby-heading,
+  .season-builder-lobby-schedule {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-builder-lobby-schedule button {
+    justify-content: center;
+  }
+
   .season-lobby-builder,
   .season-lobby-builder-empty,
   .season-lobby-builder-heading {

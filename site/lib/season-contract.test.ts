@@ -321,7 +321,7 @@ describe("season interface contract", () => {
   it("renders lobbies as scoreboards with structured team lineups", () => {
     expect(rounds).toContain("season-match-scoreboard");
     expect(rounds).toContain("season-temporary-team");
-    expect(rounds).toContain("season-status-pill");
+    expect(rounds).not.toContain("season-status-pill");
     expect(styles).toMatch(
       /\.season-match-scoreboard\s*\{[^}]*grid-template-columns:/,
     );

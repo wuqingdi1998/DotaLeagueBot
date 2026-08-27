@@ -22,6 +22,9 @@ const seasonRoute = source("../app/api/season/route.ts");
 const registrationSection = source(
   "../app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
 );
+const registrationStyles = source(
+  "../app/styles/55-season-round-registration.css",
+);
 const rankedWinService = source("./season-ranked-wins/service.ts");
 const rankedWinModel = source("./season-ranked-wins/model.ts");
 
@@ -59,6 +62,17 @@ describe("season ranked wins contract", () => {
     expect(registrationSection).toContain(
       "SEASON_SECONDARY_ROLE_WINS_REQUIRED",
     );
+  });
+
+  it("colors primary and secondary win requirements independently", () => {
+    expect(registrationSection).toMatch(
+      /rankedWinRequirementClass\(\s*registration\.primary_wins,\s*SEASON_PRIMARY_ROLE_WINS_REQUIRED/,
+    );
+    expect(registrationSection).toMatch(
+      /rankedWinRequirementClass\(\s*registration\.secondary_wins,\s*SEASON_SECONDARY_ROLE_WINS_REQUIRED/,
+    );
+    expect(registrationStyles).toContain(".season-registration-win.met");
+    expect(registrationStyles).toContain(".season-registration-win.missing");
   });
 
   it("uses Stratz for the match list and DotaBuff only for missing roles", () => {

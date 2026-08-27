@@ -218,7 +218,6 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
 function SeasonLobbyAdmin({ lobby }: { lobby: SeasonLobby }) {
   const { season } = useTournament();
   const [name, setName] = useState(lobby.name);
-  const [status, setStatus] = useState(lobby.status);
   const [scheduledAt, setScheduledAt] = useState(
     toMoscowDateTimeInput(lobby.scheduled_at),
   );
@@ -228,7 +227,7 @@ function SeasonLobbyAdmin({ lobby }: { lobby: SeasonLobby }) {
       entity: "lobby",
       id: lobby.id,
       name,
-      status,
+      status: lobby.status,
       scheduledAt,
     });
   }
@@ -265,21 +264,6 @@ function SeasonLobbyAdmin({ lobby }: { lobby: SeasonLobby }) {
             value={scheduledAt}
             onChange={(event) => setScheduledAt(event.target.value)}
           />
-        </label>
-        <label>
-          <span>Статус</span>
-          <select
-            value={status}
-            onChange={(event) =>
-              setStatus(event.target.value as SeasonLobby["status"])
-            }
-          >
-            <option value="draft">Черновик</option>
-            <option value="scheduled">Запланировано</option>
-            <option value="live">Идёт</option>
-            <option value="completed">Завершено</option>
-            <option value="cancelled">Отменено</option>
-          </select>
         </label>
       </div>
       <div className="season-admin-actions">

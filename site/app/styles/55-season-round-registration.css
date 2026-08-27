@@ -271,6 +271,22 @@
   text-decoration: none;
 }
 
+.season-registration-win.met {
+  color: #148b59;
+}
+
+.season-registration-win.missing {
+  color: #c53645;
+}
+
+.site-shell[data-theme="dark"] .season-registration-win.met {
+  color: #5ed79b;
+}
+
+.site-shell[data-theme="dark"] .season-registration-win.missing {
+  color: #ff7180;
+}
+
 .season-registration-wins a:hover {
   text-decoration: underline;
   text-underline-offset: 3px;

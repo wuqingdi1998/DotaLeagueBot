@@ -26,6 +26,7 @@ import type {
   SeasonRound,
 } from "../model/season-types";
 import { SeasonLobbyReserve } from "./SeasonLobbyReserve";
+import { SeasonLobbyScheduleEditor } from "./SeasonLobbyScheduleEditor";
 
 type TeamSide = "a" | "b";
 
@@ -282,7 +283,10 @@ function BuilderLobby({
   if (!match) return <article className="season-builder-lobby">{lobby.name}: матч не создан</article>;
   return (
     <article className="season-builder-lobby">
-      <h5>{lobby.name}</h5>
+      <div className="season-builder-lobby-heading">
+        <h5>{lobby.name}</h5>
+        <SeasonLobbyScheduleEditor lobby={lobby} />
+      </div>
       <div className="season-builder-teams">
         <BuilderTeam
           busy={busy}

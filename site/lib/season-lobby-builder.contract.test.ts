@@ -25,6 +25,9 @@ const roundPanel = source(
 const seasonAdmin = source(
   "../app/tournaments/[slug]/admin/SeasonAdminPanel.tsx",
 );
+const lobbyDisplay = source(
+  "../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx",
+);
 const builderStyles = source(
   "../app/styles/56-season-lobby-builder.css",
 );
@@ -87,6 +90,14 @@ describe("season lobby builder contract", () => {
     expect(builder).toContain("Удалить одно лобби");
     expect(seasonAdmin).not.toContain("SeasonLobbyBuilder");
     expect(seasonAdmin).not.toContain("Распределение зарегистрированных игроков");
+  });
+
+  it("lets the organizer set the visible start time without a draft badge", () => {
+    expect(builder).toContain("SeasonLobbyScheduleEditor");
+    expect(builder).toContain("<SeasonLobbyScheduleEditor lobby={lobby} />");
+    expect(lobbyDisplay).toContain("lobbyScheduledAt={lobby.scheduled_at}");
+    expect(lobbyDisplay).toContain("lobbyScheduledAt ?? match.scheduled_at");
+    expect(lobbyDisplay).not.toContain("seasonLobbyStatusLabel");
   });
 
   it("swaps an occupied target into the dragged player's previous slot", () => {

@@ -232,21 +232,32 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                   {registration.positions ?? "—"}
                 </span>
                 <span className="season-registration-wins">
-                  {registration.primary_wins === null ||
-                  registration.secondary_wins === null
-                    ? "Нет данных"
-                    : <a
-                        href={buildStratzRankedMatchesUrl(
-                          registration.dota_id,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="Открыть рейтинговые матчи игрока за 30 дней на STRATZ"
-                      >
-                        Осн. {registration.primary_wins}/
-                        {SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. {registration.secondary_wins}/
-                        {SEASON_SECONDARY_ROLE_WINS_REQUIRED}
-                      </a>}
+                  <a
+                    href={buildStratzRankedMatchesUrl(registration.dota_id)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Открыть рейтинговые матчи игрока за 30 дней на STRATZ"
+                  >
+                    <span
+                      className={`season-registration-win ${rankedWinRequirementClass(
+                        registration.primary_wins,
+                        SEASON_PRIMARY_ROLE_WINS_REQUIRED,
+                      )}`}
+                    >
+                      Осн. {registration.primary_wins ?? "—"}/
+                      {SEASON_PRIMARY_ROLE_WINS_REQUIRED}
+                    </span>
+                    <span aria-hidden="true"> · </span>
+                    <span
+                      className={`season-registration-win ${rankedWinRequirementClass(
+                        registration.secondary_wins,
+                        SEASON_SECONDARY_ROLE_WINS_REQUIRED,
+                      )}`}
+                    >
+                      Доп. {registration.secondary_wins ?? "—"}/
+                      {SEASON_SECONDARY_ROLE_WINS_REQUIRED}
+                    </span>
+                  </a>
                 </span>
                 <time dateTime={registration.created_at}>
                   <FiClock aria-hidden="true" />
@@ -263,6 +274,10 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
       )}
     </section>
   );
+}
+
+function rankedWinRequirementClass(wins: number | null, required: number) {
+  return wins !== null && wins >= required ? "met" : "missing";
 }
 
 function rankedWinsButtonLabel(
