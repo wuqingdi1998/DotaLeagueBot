@@ -61,8 +61,9 @@ describe("season ranked wins contract", () => {
     );
   });
 
-  it("uses only Stratz for ranked wins and roles", () => {
+  it("uses Stratz for the match list and DotaBuff only for missing roles", () => {
     expect(rankedWinService).toContain("fetchStratzRankedMatches");
+    expect(rankedWinService).toContain("fetchDotaBuffRolesForMatches");
     expect(rankedWinService).not.toContain("fetchOpenDotaRankedMatches");
     expect(rankedWinService).not.toContain("fetchDotaBuffRankedMatches");
     expect(rankedWinModel).not.toContain("RankedWinSource");

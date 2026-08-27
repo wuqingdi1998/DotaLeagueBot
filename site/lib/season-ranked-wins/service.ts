@@ -3,6 +3,7 @@ import {
   findRankedWinsWithoutRoles,
   parsePlayerPositions,
 } from "./model";
+import { fetchDotaBuffRolesForMatches } from "./dotabuff";
 import { fetchStratzRankedMatches } from "./stratz";
 
 export class SeasonRankedWinsError extends Error {}
@@ -41,9 +42,21 @@ export async function calculateSeasonRankedWins({
     now: requestStartedAt,
   });
   if (winsWithoutRoles.length) {
-    throw new SeasonRankedWinsError(
-      `Stratz не указал роли в ${winsWithoutRoles.length} победах за последние 30 дней. Неполный результат не сохранён.`,
-    );
+    try {
+      const dotabuffRoles = await fetchDotaBuffRolesForMatches({
+        dotaId,
+        matchIds: winsWithoutRoles,
+      });
+      matches = matches.map((match) => ({
+        ...match,
+        role: match.role ?? dotabuffRoles.get(match.matchId) ?? null,
+      }));
+    } catch (error) {
+      console.warn("DotaBuff missing Stratz roles lookup failed", {
+        matchesWithoutRoles: winsWithoutRoles.length,
+        reason: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
 
   return calculateRankedWinSnapshot({
