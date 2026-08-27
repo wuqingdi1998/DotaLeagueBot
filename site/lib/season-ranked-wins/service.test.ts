@@ -75,6 +75,22 @@ describe("season ranked wins service", () => {
     ).resolves.toMatchObject({ primaryWins: 1, secondaryWins: 0 });
   });
 
+  it("saves zero when DotaBuff cannot find the only Stratz win without a role", async () => {
+    vi.mocked(fetchStratzRankedMatches).mockResolvedValue([
+      {
+        matchId: "101",
+        role: null,
+        startedAt: new Date("2026-08-21T12:00:00.000Z"),
+        won: true,
+      },
+    ]);
+    vi.mocked(fetchDotaBuffRolesForMatches).mockResolvedValue(new Map());
+
+    await expect(
+      calculateSeasonRankedWins({ dotaId: "20", now, positions: "3/4" }),
+    ).resolves.toMatchObject({ primaryWins: 0, secondaryWins: 0 });
+  });
+
   it("returns a controlled error when Stratz is unavailable", async () => {
     vi.mocked(fetchStratzRankedMatches).mockRejectedValue(new Error("timeout"));
 

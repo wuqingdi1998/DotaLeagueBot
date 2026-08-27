@@ -83,15 +83,50 @@ describe("Stratz season ranked wins", () => {
     await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
   });
 
-  it("rejects a response that omits the player's match list", async () => {
+  it("treats an unavailable player history as an empty result like the old bot", async () => {
     vi.stubEnv("STRATZ_TOKEN", "test-token");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ data: { player: null } }), { status: 200 }),
     );
 
-    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
-      "incomplete player response",
+    await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
+  });
+
+  it("keeps matches from completed pages when the next Stratz page fails", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    const recentMatches = Array.from({ length: 50 }, (_, index) => ({
+      id: 200 + index,
+      lobbyType: index === 0 ? "RANKED" : 0,
+      startDateTime: 1_787_313_600,
+      players: [
+        {
+          steamAccountId: 20,
+          position: "POSITION_3",
+          isVictory: true,
+        },
+      ],
+    }));
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ data: { player: { matches: recentMatches } } }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(new Response("unavailable", { status: 503 }));
+
+    await expect(
+      fetchStratzRankedMatches("20", new Date("2026-08-27T12:00:00.000Z")),
+    ).resolves.toMatchObject([{ matchId: "200", role: 3, won: true }]);
+  });
+
+  it("returns an empty result when the first Stratz page is unavailable", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("unavailable", { status: 503 }),
     );
+
+    await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
   });
 
   afterEach(() => {
