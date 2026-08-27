@@ -4,19 +4,11 @@ export const SEASON_RANKED_WIN_WINDOW_DAYS = 30;
 export const SEASON_RANKED_WIN_BUTTON_TTL_MS = 5 * 60 * 1_000;
 
 export type DotaPosition = 1 | 2 | 3 | 4 | 5;
-export type RankedWinSource = "opendota" | "dotabuff" | "stratz";
-export const RANKED_WIN_ROLE_CONFIDENCE: Record<RankedWinSource, number> = {
-  opendota: 1,
-  dotabuff: 2,
-  stratz: 3,
-};
 
 export type RankedMatchCandidate = {
   matchId: string;
   role: DotaPosition | null;
-  roleConfidence: number;
   startedAt: Date;
-  source: RankedWinSource;
   won: boolean;
 };
 
@@ -101,12 +93,7 @@ function mergeRankedWinsInWindow({
     }
     const existing = uniqueMatches.get(match.matchId);
     const hasMoreUsefulRole = existing?.role === null && match.role !== null;
-    const hasMoreReliableRole =
-      existing !== undefined &&
-      match.role !== null &&
-      existing.role !== null &&
-      match.roleConfidence > existing.roleConfidence;
-    if (!existing || hasMoreUsefulRole || hasMoreReliableRole) {
+    if (!existing || hasMoreUsefulRole) {
       uniqueMatches.set(match.matchId, match);
     }
   }

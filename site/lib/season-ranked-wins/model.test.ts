@@ -13,14 +13,11 @@ const now = new Date("2026-08-27T12:00:00.000Z");
 function match(
   matchId: string,
   role: 1 | 2 | 3 | 4 | 5 | null,
-  source: "opendota" | "dotabuff" | "stratz",
   overrides: Partial<RankedMatchCandidate> = {},
 ): RankedMatchCandidate {
   return {
     matchId,
     role,
-    roleConfidence: source === "stratz" ? 3 : source === "dotabuff" ? 2 : 1,
-    source,
     startedAt: new Date("2026-08-20T12:00:00.000Z"),
     won: true,
     ...overrides,
@@ -42,13 +39,9 @@ describe("season ranked wins", () => {
     expect(parsePlayerPositions("1/8")).toBeNull();
   });
 
-  it("deduplicates the same match returned by both platforms", () => {
+  it("counts each Stratz match only once", () => {
     const snapshot = calculateRankedWinSnapshot({
-      matches: [
-        match("100", 1, "opendota"),
-        match("100", 1, "dotabuff"),
-        match("101", 4, "opendota"),
-      ],
+      matches: [match("100", 1), match("100", 1), match("101", 4)],
       now,
       positions: { primaryRole: 1, secondaryRole: 4 },
     });
@@ -58,35 +51,9 @@ describe("season ranked wins", () => {
     expect(snapshot.availableUntil).toBe("2026-08-27T12:05:00.000Z");
   });
 
-  it("uses the more reliable role when platforms disagree", () => {
+  it("keeps a known Stratz role if a duplicate has no role", () => {
     const snapshot = calculateRankedWinSnapshot({
-      matches: [match("100", 1, "opendota"), match("100", 4, "dotabuff")],
-      now,
-      positions: { primaryRole: 1, secondaryRole: 4 },
-    });
-
-    expect(snapshot.primaryWins).toBe(0);
-    expect(snapshot.secondaryWins).toBe(1);
-  });
-
-  it("always prioritizes the position reported by Stratz", () => {
-    const snapshot = calculateRankedWinSnapshot({
-      matches: [
-        match("100", 1, "opendota"),
-        match("100", 4, "dotabuff"),
-        match("100", 5, "stratz"),
-      ],
-      now,
-      positions: { primaryRole: 5, secondaryRole: 4 },
-    });
-
-    expect(snapshot.primaryWins).toBe(1);
-    expect(snapshot.secondaryWins).toBe(0);
-  });
-
-  it("keeps a known role when the other platform has no role", () => {
-    const snapshot = calculateRankedWinSnapshot({
-      matches: [match("100", 1, "opendota"), match("100", null, "dotabuff")],
+      matches: [match("100", null), match("100", 1)],
       now,
       positions: { primaryRole: 1, secondaryRole: 4 },
     });
@@ -97,11 +64,11 @@ describe("season ranked wins", () => {
   it("ignores losses, future matches and matches older than thirty days", () => {
     const snapshot = calculateRankedWinSnapshot({
       matches: [
-        match("loss", 1, "opendota", { won: false }),
-        match("old", 1, "opendota", {
+        match("loss", 1, { won: false }),
+        match("old", 1, {
           startedAt: new Date("2026-07-28T11:59:59.000Z"),
         }),
-        match("future", 1, "opendota", {
+        match("future", 1, {
           startedAt: new Date("2026-08-27T12:00:01.000Z"),
         }),
       ],
@@ -116,10 +83,10 @@ describe("season ranked wins", () => {
   it("uses an exact rolling thirty-day window, including its first instant", () => {
     const snapshot = calculateRankedWinSnapshot({
       matches: [
-        match("boundary", 1, "opendota", {
+        match("boundary", 1, {
           startedAt: new Date("2026-07-28T12:00:00.000Z"),
         }),
-        match("one-second-too-old", 1, "opendota", {
+        match("one-second-too-old", 1, {
           startedAt: new Date("2026-07-28T11:59:59.000Z"),
         }),
       ],
@@ -130,14 +97,13 @@ describe("season ranked wins", () => {
     expect(snapshot.primaryWins).toBe(1);
   });
 
-  it("finds in-window wins whose role is still unknown after merging providers", () => {
+  it("finds in-window Stratz wins whose role is unknown", () => {
     expect(
       findRankedWinsWithoutRoles({
         matches: [
-          match("known", null, "opendota"),
-          match("known", 3, "stratz"),
-          match("unknown", null, "opendota"),
-          match("old", null, "opendota", {
+          match("known", 3),
+          match("unknown", null),
+          match("old", null, {
             startedAt: new Date("2026-07-28T11:59:59.000Z"),
           }),
         ],

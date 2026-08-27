@@ -1,6 +1,5 @@
 import {
   SEASON_RANKED_WIN_WINDOW_DAYS,
-  RANKED_WIN_ROLE_CONFIDENCE,
   isDotaPosition,
   type DotaPosition,
   type RankedMatchCandidate,
@@ -71,8 +70,6 @@ export function stratzMatchesFromPayload(
     candidates.push({
       matchId: String(match.id),
       role: stratzPosition(player.position),
-      roleConfidence: RANKED_WIN_ROLE_CONFIDENCE.stratz,
-      source: "stratz",
       startedAt: new Date(match.startDateTime * 1_000),
       won: player.isVictory,
     });

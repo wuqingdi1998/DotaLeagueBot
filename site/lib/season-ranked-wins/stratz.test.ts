@@ -43,8 +43,6 @@ describe("Stratz season ranked wins", () => {
     expect(matches[0]).toMatchObject({
       matchId: "100",
       role: 4,
-      roleConfidence: 3,
-      source: "stratz",
       won: true,
     });
   });
