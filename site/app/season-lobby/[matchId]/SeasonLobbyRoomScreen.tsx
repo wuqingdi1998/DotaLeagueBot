@@ -11,6 +11,8 @@ import { CaptainVoting } from "./components/CaptainVoting";
 import { LobbyChat } from "./components/LobbyChat";
 import { LobbyPlayerTeams } from "./components/LobbyPlayerTeams";
 import { LobbyStartControls } from "./components/LobbyStartControls";
+import { OrganizerCaptainControls } from
+  "./components/OrganizerCaptainControls";
 import { useSeasonLobbyRoom } from "./hooks/useSeasonLobbyRoom";
 import type { SeasonLobbyRoomSnapshot } from "./model/types";
 
@@ -32,13 +34,14 @@ export function SeasonLobbyRoomScreen({
   useEffect(() => {
     if (
       snapshot.status === "drafting" &&
+      !snapshot.isOrganizer &&
       !initialDraft &&
       !hasRequestedDraftReload.current
     ) {
       hasRequestedDraftReload.current = true;
       window.location.reload();
     }
-  }, [initialDraft, snapshot.status]);
+  }, [initialDraft, snapshot.isOrganizer, snapshot.status]);
 
   return (
     <main className="season-room-page">
@@ -70,18 +73,27 @@ export function SeasonLobbyRoomScreen({
         isSending={isSending}
         send={send}
       />
-      <CaptainVoting
+      <OrganizerCaptainControls
         snapshot={snapshot}
         isSending={isSending}
         send={send}
       />
-      <CaptainTransfer
-        snapshot={snapshot}
-        isSending={isSending}
-        send={send}
-      />
+      {!snapshot.isOrganizer && (
+        <CaptainVoting
+          snapshot={snapshot}
+          isSending={isSending}
+          send={send}
+        />
+      )}
+      {!snapshot.isOrganizer && (
+        <CaptainTransfer
+          snapshot={snapshot}
+          isSending={isSending}
+          send={send}
+        />
+      )}
 
-      {snapshot.status === "drafting" && initialDraft?.series && (
+      {snapshot.status === "drafting" && !snapshot.isOrganizer && initialDraft?.series && (
         <section className="season-room-draft">
           <p className="season-room-draft-perspective">
             Ваша команда участвует в драфте от лица капитана:{" "}
@@ -93,7 +105,7 @@ export function SeasonLobbyRoomScreen({
           />
         </section>
       )}
-      {snapshot.status === "drafting" && !initialDraft?.series && (
+      {snapshot.status === "drafting" && !snapshot.isOrganizer && !initialDraft?.series && (
         <div className="season-room-draft-loading">Открываем Fearless Draft…</div>
       )}
     </main>

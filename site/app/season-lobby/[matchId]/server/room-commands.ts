@@ -17,6 +17,18 @@ type LockedRoom = {
   best_of: number;
 };
 
+type RoomActor = {
+  discordId: string;
+  isAdmin: boolean;
+};
+
+type RoomPresenceCounts = {
+  player_count: number;
+  online_count: number;
+  team_a_count: number;
+  team_b_count: number;
+};
+
 async function lockRoom(
   client: PoolClient,
   matchId: number,
@@ -62,9 +74,68 @@ async function participantSide(
   return side;
 }
 
+async function requireOrganizerLobby(
+  client: PoolClient,
+  matchId: number,
+): Promise<void> {
+  const result = await client.query(
+    `SELECT 1
+     FROM season_matches match
+     JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+     JOIN season_rounds round ON round.id = lobby.round_id
+     JOIN tournaments tournament ON tournament.id = round.tournament_id
+     WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
+       AND match.status <> 'cancelled'`,
+    [matchId],
+  );
+  if (!result.rowCount) {
+    throw new SeasonLobbyRoomError("Лобби не найдено", 404);
+  }
+}
+
+async function requireReadyTeams(
+  client: PoolClient,
+  matchId: number,
+  isForced: boolean,
+): Promise<void> {
+  const presence = await client.query<RoomPresenceCounts>(
+    `SELECT COUNT(*)::int AS player_count,
+       COUNT(presence.player_id) FILTER (
+         WHERE presence.heartbeat_at >= NOW() - INTERVAL '7 seconds'
+       )::int AS online_count,
+       COUNT(*) FILTER (WHERE participant.team_side = 'a')::int
+         AS team_a_count,
+       COUNT(*) FILTER (WHERE participant.team_side = 'b')::int
+         AS team_b_count
+     FROM season_match_room_players participant
+     LEFT JOIN season_match_room_presence presence
+       ON presence.match_id = participant.match_id
+      AND presence.player_id = participant.player_id
+     WHERE participant.match_id = $1`,
+    [matchId],
+  );
+  const counts = presence.rows[0];
+  if (
+    counts.player_count !== 10 ||
+    counts.team_a_count !== 5 ||
+    counts.team_b_count !== 5
+  ) {
+    throw new SeasonLobbyRoomError(
+      "Для запуска в каждой команде должно быть ровно по 5 игроков",
+      409,
+    );
+  }
+  if (!isForced && counts.online_count !== 10) {
+    throw new SeasonLobbyRoomError(
+      "Не все игроки сейчас в комнате. Используйте принудительный старт",
+      409,
+    );
+  }
+}
+
 export async function sendSeasonLobbyMessage(
   matchId: number,
-  playerId: string,
+  actor: RoomActor,
   rawMessage: unknown,
 ): Promise<void> {
   const message = String(rawMessage ?? "").trim();
@@ -78,13 +149,17 @@ export async function sendSeasonLobbyMessage(
     );
   }
   await transaction(async (client) => {
-    await participantSide(client, matchId, playerId);
+    if (actor.isAdmin) {
+      await requireOrganizerLobby(client, matchId);
+    } else {
+      await participantSide(client, matchId, actor.discordId);
+    }
     const recent = await client.query(
       `SELECT 1 FROM season_match_room_messages
        WHERE match_id = $1 AND player_id = $2
          AND created_at > NOW() - INTERVAL '750 milliseconds'
        LIMIT 1`,
-      [matchId, playerId],
+      [matchId, actor.discordId],
     );
     if (recent.rowCount) {
       throw new SeasonLobbyRoomError("Не отправляйте сообщения так быстро", 429);
@@ -92,21 +167,25 @@ export async function sendSeasonLobbyMessage(
     await client.query(
       `INSERT INTO season_match_room_messages(match_id, player_id, message)
        VALUES ($1, $2, $3)`,
-      [matchId, playerId, message],
+      [matchId, actor.discordId, message],
     );
   });
 }
 
 export async function startSeasonLobbyVoting(
   matchId: number,
-  playerId: string,
+  actor: RoomActor,
   isForced: boolean,
 ): Promise<void> {
   await transaction(async (client) => {
     const room = await lockRoom(client, matchId);
-    await participantSide(client, matchId, playerId);
-    if (room.host_player_id !== playerId) {
-      throw new SeasonLobbyRoomError("Начать может только хост лобби", 403);
+    if (actor.isAdmin) {
+      await requireOrganizerLobby(client, matchId);
+    } else {
+      await participantSide(client, matchId, actor.discordId);
+      if (room.host_player_id !== actor.discordId) {
+        throw new SeasonLobbyRoomError("Начать может только хост лобби", 403);
+      }
     }
     if (room.status !== "waiting") {
       throw new SeasonLobbyRoomError("Голосование уже началось", 409);
@@ -117,44 +196,7 @@ export async function startSeasonLobbyVoting(
         409,
       );
     }
-    const presence = await client.query<{
-      player_count: number;
-      online_count: number;
-      team_a_count: number;
-      team_b_count: number;
-    }>(
-      `SELECT COUNT(*)::int AS player_count,
-         COUNT(presence.player_id) FILTER (
-           WHERE presence.heartbeat_at >= NOW() - INTERVAL '7 seconds'
-         )::int AS online_count,
-         COUNT(*) FILTER (WHERE participant.team_side = 'a')::int
-           AS team_a_count,
-         COUNT(*) FILTER (WHERE participant.team_side = 'b')::int
-           AS team_b_count
-       FROM season_match_room_players participant
-       LEFT JOIN season_match_room_presence presence
-         ON presence.match_id = participant.match_id
-        AND presence.player_id = participant.player_id
-       WHERE participant.match_id = $1`,
-      [matchId],
-    );
-    const counts = presence.rows[0];
-    if (
-      counts.player_count !== 10 ||
-      counts.team_a_count !== 5 ||
-      counts.team_b_count !== 5
-    ) {
-      throw new SeasonLobbyRoomError(
-        "Для запуска в каждой команде должно быть ровно по 5 игроков",
-        409,
-      );
-    }
-    if (!isForced && counts.online_count !== 10) {
-      throw new SeasonLobbyRoomError(
-        "Не все игроки сейчас в комнате. Хост может использовать принудительный старт",
-        409,
-      );
-    }
+    await requireReadyTeams(client, matchId, isForced);
     await client.query(
       `UPDATE season_match_rooms
        SET status = 'voting', is_force_started = $2,
@@ -163,6 +205,14 @@ export async function startSeasonLobbyVoting(
       [matchId, isForced],
     );
   });
+}
+
+function captainId(rawCaptainId: unknown): string {
+  const value = String(rawCaptainId ?? "");
+  if (!/^\d{5,20}$/.test(value)) {
+    throw new SeasonLobbyRoomError("Капитан не найден", 404);
+  }
+  return value;
 }
 
 type VoteCandidateRow = {
@@ -200,13 +250,38 @@ async function chosenCaptain(
   return winner.playerId;
 }
 
+async function manualCaptain(
+  client: PoolClient,
+  matchId: number,
+  side: "a" | "b",
+  playerId: string,
+): Promise<string> {
+  const result = await client.query(
+    `SELECT 1 FROM season_match_room_players
+     WHERE match_id = $1 AND team_side = $2 AND player_id = $3`,
+    [matchId, side, playerId],
+  );
+  if (!result.rowCount) {
+    throw new SeasonLobbyRoomError(
+      `Капитан команды ${side.toUpperCase()} должен быть игроком этой команды`,
+      409,
+    );
+  }
+  return playerId;
+}
+
 async function createSeasonLobbyDraft(
   client: PoolClient,
   matchId: number,
   bestOf: number,
+  manualCaptains?: { teamA: string; teamB: string },
 ): Promise<void> {
-  const captainA = await chosenCaptain(client, matchId, "a");
-  const captainB = await chosenCaptain(client, matchId, "b");
+  const captainA = manualCaptains
+    ? await manualCaptain(client, matchId, "a", manualCaptains.teamA)
+    : await chosenCaptain(client, matchId, "a");
+  const captainB = manualCaptains
+    ? await manualCaptain(client, matchId, "b", manualCaptains.teamB)
+    : await chosenCaptain(client, matchId, "b");
   const format = seasonLobbyDraftFormat(bestOf);
   if (!format) throw new SeasonLobbyRoomError("Формат драфта не поддерживается", 409);
   await lockDraftPlayers(client, [captainA, captainB]);
@@ -262,6 +337,49 @@ async function createSeasonLobbyDraft(
     "DELETE FROM draft_queue WHERE player_id = ANY($1::bigint[])",
     [[captainA, captainB]],
   );
+}
+
+export async function startSeasonLobbyWithCaptains(
+  matchId: number,
+  actor: RoomActor,
+  rawTeamACaptainId: unknown,
+  rawTeamBCaptainId: unknown,
+  isForced: boolean,
+): Promise<void> {
+  if (!actor.isAdmin) {
+    throw new SeasonLobbyRoomError(
+      "Назначать капитанов вручную может только организатор",
+      403,
+    );
+  }
+  const teamA = captainId(rawTeamACaptainId);
+  const teamB = captainId(rawTeamBCaptainId);
+  await transaction(async (client) => {
+    const room = await lockRoom(client, matchId);
+    await requireOrganizerLobby(client, matchId);
+    if (room.status === "drafting") {
+      throw new SeasonLobbyRoomError("Драфт уже запущен", 409);
+    }
+    if (!seasonLobbyDraftFormat(room.best_of)) {
+      throw new SeasonLobbyRoomError(
+        "Fearless Draft для этого лобби должен иметь формат BO2 или BO3",
+        409,
+      );
+    }
+    await requireReadyTeams(client, matchId, isForced);
+    await client.query(
+      `UPDATE season_match_rooms
+       SET is_force_started = $2, voting_started_at = COALESCE(
+         voting_started_at, NOW()
+       ), updated_at = NOW()
+       WHERE match_id = $1`,
+      [matchId, isForced],
+    );
+    await createSeasonLobbyDraft(client, matchId, room.best_of, {
+      teamA,
+      teamB,
+    });
+  });
 }
 
 export async function voteForSeasonLobbyCaptain(

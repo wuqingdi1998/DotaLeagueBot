@@ -9,7 +9,8 @@
 .season-room-start-controls,
 .season-room-waiting,
 .season-room-voting,
-.season-room-captain-transfer {
+.season-room-captain-transfer,
+.season-room-organizer-captains {
   border: 1px solid var(--line);
   border-radius: 18px;
   background: var(--surface);
@@ -291,6 +292,89 @@
   font-weight: 800;
 }
 
+.season-room-organizer-captains {
+  overflow: hidden;
+}
+
+.season-room-organizer-captains > header {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 18px 20px;
+  background: color-mix(in srgb, var(--blue) 7%, var(--surface-soft));
+}
+
+.season-room-organizer-captains > header > svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 24px;
+}
+
+.season-room-organizer-captains header span,
+.season-room-organizer-captain-fields label > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.season-room-organizer-captains h2,
+.season-room-organizer-captains p {
+  margin: 0;
+}
+
+.season-room-organizer-captains h2 {
+  font-size: 20px;
+}
+
+.season-room-organizer-captains header p {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.season-room-organizer-captain-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px 20px;
+}
+
+.season-room-organizer-captain-fields label {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.season-room-organizer-captain-fields label > div {
+  display: flex;
+  gap: 8px;
+}
+
+.season-room-organizer-captain-fields select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  padding: 9px 11px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.season-room-organizer-captains > footer {
+  display: flex;
+  justify-content: flex-end;
+  border-top: 1px solid var(--line);
+  padding: 14px 20px;
+}
+
+.season-room-organizer-captains > footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .season-room-draft {
   min-width: 0;
   overflow: hidden;
@@ -360,6 +444,20 @@
   .season-room-captain-transfer > div {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .season-room-organizer-captain-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-room-organizer-captain-fields label > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-room-organizer-captains > footer button {
+    justify-content: center;
+    width: 100%;
   }
 
 }

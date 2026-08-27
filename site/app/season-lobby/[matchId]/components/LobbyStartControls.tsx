@@ -17,7 +17,7 @@ export function LobbyStartControls({
 }) {
   if (snapshot.status !== "waiting") return null;
   const onlineCount = snapshot.players.filter((player) => player.isOnline).length;
-  if (!snapshot.isHost) {
+  if (!snapshot.isHost && !snapshot.isOrganizer) {
     const host = snapshot.players.find((player) => player.isHost);
     return (
       <section className="season-room-waiting">
@@ -37,7 +37,9 @@ export function LobbyStartControls({
         <span>Готовность лобби</span>
         <strong>{onlineCount}/10 игроков в сети</strong>
         <p>
-          Обычный старт доступен, когда все лампочки зелёные.
+          {snapshot.isOrganizer
+            ? "Можно запустить голосование обычным способом или принудительно."
+            : "Обычный старт доступен, когда все лампочки зелёные."}
         </p>
       </div>
       <div>

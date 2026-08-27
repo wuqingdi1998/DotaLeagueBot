@@ -1,11 +1,14 @@
 import { requireSession, responseFromAuthError } from "@/lib/auth";
 import type { SeasonLobbyRoomCommand } from
   "@/app/season-lobby/[matchId]/model/types";
-import { transferSeasonLobbyCaptain } from
-  "@/app/season-lobby/[matchId]/server/captain-transfer";
+import {
+  setSeasonLobbyCaptain,
+  transferSeasonLobbyCaptain,
+} from "@/app/season-lobby/[matchId]/server/captain-transfer";
 import {
   sendSeasonLobbyMessage,
   startSeasonLobbyVoting,
+  startSeasonLobbyWithCaptains,
   voteForSeasonLobbyCaptain,
 } from "@/app/season-lobby/[matchId]/server/room-commands";
 import {
@@ -65,11 +68,19 @@ export async function POST(
     const matchId = roomMatchId(rawMatchId);
     const command = (await request.json()) as Partial<SeasonLobbyRoomCommand>;
     if (command.action === "SEND_MESSAGE") {
-      await sendSeasonLobbyMessage(matchId, user.discordId, command.message);
+      await sendSeasonLobbyMessage(matchId, user, command.message);
     } else if (command.action === "START_VOTING") {
       await startSeasonLobbyVoting(
         matchId,
-        user.discordId,
+        user,
+        command.force === true,
+      );
+    } else if (command.action === "START_WITH_CAPTAINS") {
+      await startSeasonLobbyWithCaptains(
+        matchId,
+        user,
+        command.teamACaptainId,
+        command.teamBCaptainId,
         command.force === true,
       );
     } else if (command.action === "VOTE_CAPTAIN") {
@@ -82,6 +93,13 @@ export async function POST(
       await transferSeasonLobbyCaptain(
         matchId,
         user.discordId,
+        command.newCaptainPlayerId,
+      );
+    } else if (command.action === "SET_CAPTAIN") {
+      await setSeasonLobbyCaptain(
+        matchId,
+        user,
+        command.teamSide,
         command.newCaptainPlayerId,
       );
     } else {

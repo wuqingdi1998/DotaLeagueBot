@@ -34,7 +34,8 @@ export type SeasonLobbyRoomSnapshot = {
   bestOf: number;
   status: SeasonLobbyRoomStatus;
   currentUserId: string;
-  currentUserTeamSide: "a" | "b";
+  currentUserTeamSide: "a" | "b" | null;
+  isOrganizer: boolean;
   hostPlayerId: string | null;
   isHost: boolean;
   isForceStarted: boolean;
@@ -50,5 +51,16 @@ export type SeasonLobbyRoomSnapshot = {
 export type SeasonLobbyRoomCommand =
   | { action: "SEND_MESSAGE"; message: string }
   | { action: "START_VOTING"; force: boolean }
+  | {
+      action: "START_WITH_CAPTAINS";
+      teamACaptainId: string;
+      teamBCaptainId: string;
+      force: boolean;
+    }
   | { action: "VOTE_CAPTAIN"; candidatePlayerId: string }
-  | { action: "TRANSFER_CAPTAIN"; newCaptainPlayerId: string };
+  | { action: "TRANSFER_CAPTAIN"; newCaptainPlayerId: string }
+  | {
+      action: "SET_CAPTAIN";
+      teamSide: "a" | "b";
+      newCaptainPlayerId: string;
+    };

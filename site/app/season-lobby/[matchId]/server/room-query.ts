@@ -21,7 +21,7 @@ type RoomTargetRow = {
   team_b_name: string;
   best_of: number;
   host_player_id: string | null;
-  current_user_team_side: "a" | "b";
+  current_user_team_side: "a" | "b" | null;
 };
 
 type RoomStateRow = {
@@ -38,6 +38,7 @@ async function loadRoomTarget(
   client: import("pg").PoolClient,
   matchId: number,
   playerId: string,
+  isOrganizer: boolean,
 ): Promise<RoomTargetRow> {
   const result = await client.query<RoomTargetRow>(
     `SELECT match.id::int AS match_id, tournament.slug AS tournament_slug,
@@ -49,24 +50,30 @@ async function loadRoomTarget(
      JOIN season_lobbies lobby ON lobby.id = match.lobby_id
      JOIN season_rounds round ON round.id = lobby.round_id
      JOIN tournaments tournament ON tournament.id = round.tournament_id
-     JOIN season_match_room_players viewer
+     LEFT JOIN season_match_room_players viewer
        ON viewer.match_id = match.id AND viewer.player_id = $2
      WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
        AND match.status <> 'cancelled'
-       AND round.is_visible = TRUE
        AND (
-         (round.round_kind = 'regular'
-           AND round.lobby_configuration_status = 'published')
-         OR
-         (round.round_kind = 'finals'
-           AND match.status IN ('published', 'completed'))
+         $3::boolean
+         OR (
+           viewer.player_id IS NOT NULL
+           AND round.is_visible = TRUE
+           AND (
+             (round.round_kind = 'regular'
+               AND round.lobby_configuration_status = 'published')
+             OR
+             (round.round_kind = 'finals'
+               AND match.status IN ('published', 'completed'))
+           )
+         )
        )`,
-    [matchId, playerId],
+    [matchId, playerId, isOrganizer],
   );
   const target = result.rows[0];
   if (!target) {
     throw new SeasonLobbyRoomError(
-      "Комната доступна только участникам опубликованного лобби",
+      "Комната доступна только участникам лобби и организаторам",
       403,
     );
   }
@@ -78,19 +85,26 @@ export async function loadSeasonLobbyRoomSnapshot(
   matchId: number,
 ): Promise<SeasonLobbyRoomSnapshot> {
   return transaction(async (client) => {
-    const target = await loadRoomTarget(client, matchId, user.discordId);
+    const target = await loadRoomTarget(
+      client,
+      matchId,
+      user.discordId,
+      user.isAdmin,
+    );
     await client.query(
       `INSERT INTO season_match_rooms(match_id) VALUES ($1)
        ON CONFLICT (match_id) DO NOTHING`,
       [matchId],
     );
-    await client.query(
-      `INSERT INTO season_match_room_presence(match_id, player_id)
-       VALUES ($1, $2)
-       ON CONFLICT (match_id, player_id) DO UPDATE
-         SET heartbeat_at = NOW()`,
-      [matchId, user.discordId],
-    );
+    if (target.current_user_team_side) {
+      await client.query(
+        `INSERT INTO season_match_room_presence(match_id, player_id)
+         VALUES ($1, $2)
+         ON CONFLICT (match_id, player_id) DO UPDATE
+           SET heartbeat_at = NOW()`,
+        [matchId, user.discordId],
+      );
+    }
 
     const [stateResult, playerResult, messageResult, ownVoteResult] =
       await Promise.all([
@@ -158,9 +172,6 @@ export async function loadSeasonLobbyRoomSnapshot(
              SELECT * FROM season_match_room_messages
              WHERE match_id = $1 ORDER BY id DESC LIMIT $2
            ) message
-           JOIN season_match_room_players room_player
-             ON room_player.match_id = message.match_id
-            AND room_player.player_id = message.player_id
            JOIN players player ON player.discord_id = message.player_id
            ORDER BY message.id`,
           [matchId, SEASON_LOBBY_CHAT_LIMIT],
@@ -190,6 +201,7 @@ export async function loadSeasonLobbyRoomSnapshot(
       status: state.status,
       currentUserId: user.discordId,
       currentUserTeamSide: target.current_user_team_side,
+      isOrganizer: user.isAdmin,
       hostPlayerId: target.host_player_id,
       isHost: target.host_player_id === user.discordId,
       isForceStarted: state.is_force_started,
