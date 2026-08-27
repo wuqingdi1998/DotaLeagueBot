@@ -92,6 +92,13 @@ TEST_SEASON_ROUND_TIME_FIX = (
     / "0088_fix_test_season_round_one_time.sql"
 ).read_text(encoding="utf-8")
 
+TEST_SEASON_ROUND_ONE_CLEANUP = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0094_cleanup_test_season_round_one.sql"
+).read_text(encoding="utf-8")
+
 FINAL_PREDICTION_OPENING_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -433,6 +440,21 @@ def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> Non
     assert "round.round_number = 1" in TEST_SEASON_ROUND_TIME_FIX
     assert "2026-08-25 22:00:00+00" in TEST_SEASON_ROUND_TIME_FIX
     assert "2026-08-25 19:00:00+00" in TEST_SEASON_ROUND_TIME_FIX
+
+
+def test_test_season_round_one_cleanup_is_scoped_and_refuses_played_data() -> None:
+    assert "tournament.slug = 'league-season-9-test'" in (
+        TEST_SEASON_ROUND_ONE_CLEANUP
+    )
+    assert "round.round_number = 1" in TEST_SEASON_ROUND_ONE_CLEANUP
+    assert "match.status = 'completed'" in TEST_SEASON_ROUND_ONE_CLEANUP
+    assert "RAISE EXCEPTION" in TEST_SEASON_ROUND_ONE_CLEANUP
+    assert "DELETE FROM season_round_registrations" in (
+        TEST_SEASON_ROUND_ONE_CLEANUP
+    )
+    assert "DELETE FROM season_lobbies" in TEST_SEASON_ROUND_ONE_CLEANUP
+    assert "DELETE FROM season_participants" in TEST_SEASON_ROUND_ONE_CLEANUP
+    assert "SET status = 'completed'" in TEST_SEASON_ROUND_ONE_CLEANUP
 
 
 def test_finished_lower_bracket_losses_are_backfilled_as_eliminations() -> None:
