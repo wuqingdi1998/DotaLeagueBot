@@ -180,8 +180,12 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
             <span>Игрок</span>
             <span>Тир</span>
             <span>Роли</span>
-            <span>Рейтинговые победы за 30 дней</span>
-            <span>Регистрация</span>
+            <span className="season-registration-column-wins">
+              Рейтинговые победы за 30 дней
+            </span>
+            <span className="season-registration-column-created">
+              Регистрация
+            </span>
           </div>
           <ol className="season-registration-list">
             {registrations.map((registration, index) => (

@@ -101,8 +101,8 @@
   column-gap: 12px;
   display: grid;
   grid-template-columns:
-    34px max-content 30px max-content minmax(250px, 1fr)
-    minmax(190px, auto);
+    34px max-content 30px max-content minmax(24px, 1fr) max-content
+    minmax(190px, max-content);
 }
 
 .season-registration-columns {
@@ -117,8 +117,12 @@
   text-align: center;
 }
 
-.season-registration-columns span:nth-child(2) {
-  text-align: left;
+.season-registration-column-wins {
+  grid-column: 6;
+}
+
+.season-registration-column-created {
+  grid-column: 7;
 }
 
 .season-registration-list {
@@ -207,13 +211,14 @@
   color: var(--season-player-roles-color);
   font-size: 0.84rem;
   font-weight: 700;
-  margin-left: 3px;
+  justify-self: center;
 }
 
 .season-registration-wins {
   color: var(--season-player-name-color);
   font-size: 0.82rem;
   font-weight: 750;
+  grid-column: 6;
   text-align: center;
   white-space: nowrap;
 }
@@ -221,7 +226,8 @@
 .season-registration-list time {
   color: var(--muted);
   font-size: 0.8rem;
-  justify-self: end;
+  grid-column: 7;
+  justify-self: center;
   white-space: nowrap;
 }
 
