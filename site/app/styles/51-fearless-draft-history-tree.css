@@ -206,6 +206,9 @@
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree {
   padding: 5px 6px 6px;
 }
+.fearless-draft-stage:not(:fullscreen) .fearless-history {
+  container-type: size;
+}
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree::before {
   top: 29px;
   bottom: 6px;
@@ -257,11 +260,13 @@
   }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.ban {
     width: auto;
-    height: min(calc(100% - 2px), 32px);
+    height: 28px;
+    height: clamp(24px, 5.2cqh, 32px);
   }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.pick {
     width: auto;
-    height: min(calc(100% - 2px), 42px);
+    height: 36px;
+    height: clamp(30px, 7cqh, 42px);
   }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.opening-ban-spacing {
     transform: translateY(clamp(10px, 45%, 16px));

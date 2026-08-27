@@ -186,6 +186,9 @@ describe("Fearless Draft history", () => {
 
   it("fits every draft step into the non-fullscreen board height", () => {
     expect(treeStyles).toMatch(
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-history\s*\{[^}]*container-type:\s*size;/,
+    );
+    expect(treeStyles).toMatch(
       /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree\s*\{[^}]*padding:\s*5px 6px 6px;/,
     );
     expect(treeStyles).toMatch(
@@ -195,10 +198,10 @@ describe("Fearless Draft history", () => {
       /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*0;[^}]*flex-grow:\s*1\.35;/,
     );
     expect(treeStyles).toMatch(
-      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*auto;[^}]*height:\s*min\(calc\(100% - 2px\), 32px\);/,
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*auto;[^}]*height:\s*28px;[^}]*height:\s*clamp\(24px, 5\.2cqh, 32px\);/,
     );
     expect(treeStyles).toMatch(
-      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*auto;[^}]*height:\s*min\(calc\(100% - 2px\), 42px\);/,
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*auto;[^}]*height:\s*36px;[^}]*height:\s*clamp\(30px, 7cqh, 42px\);/,
     );
     expect(treeStyles).toMatch(
       /@media \(max-width: 980px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\s*\{[^}]*min-height:\s*32px;/,
