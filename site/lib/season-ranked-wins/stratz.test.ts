@@ -71,6 +71,25 @@ describe("Stratz season ranked wins", () => {
     expect(matches[0]).toMatchObject({ role: 5, won: false });
   });
 
+  it("requests only the target player and allows a slow history to load", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    const timeoutSpy = vi
+      .spyOn(AbortSignal, "timeout")
+      .mockReturnValue(new AbortController().signal);
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ data: { player: { matches: [] } } }), {
+        status: 200,
+      }),
+    );
+
+    await fetchStratzRankedMatches("20");
+
+    expect(timeoutSpy).toHaveBeenCalledWith(45_000);
+    const request = fetchSpy.mock.calls[0]?.[1];
+    const body = JSON.parse(String(request?.body)) as { query: string };
+    expect(body.query).toContain("players(steamAccountId: 20)");
+  });
+
   it("accepts a complete empty match history with an empty errors list", async () => {
     vi.stubEnv("STRATZ_TOKEN", "test-token");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(

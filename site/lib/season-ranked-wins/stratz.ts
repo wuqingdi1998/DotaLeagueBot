@@ -8,7 +8,7 @@ import {
 const STRATZ_API_URL = "https://api.stratz.com/graphql";
 const STRATZ_PAGE_SIZE = 50;
 const STRATZ_MAX_PAGES = 10;
-const STRATZ_REQUEST_TIMEOUT_MS = 12_000;
+const STRATZ_REQUEST_TIMEOUT_MS = 45_000;
 
 type StratzMatch = {
   id: number | string;
@@ -94,7 +94,11 @@ function playerMatchesQuery(dotaId: string, skip: number): string {
         id
         lobbyType
         startDateTime
-        players { steamAccountId position isVictory }
+        players(steamAccountId: ${dotaId}) {
+          steamAccountId
+          position
+          isVictory
+        }
       }
     }
   }`;
