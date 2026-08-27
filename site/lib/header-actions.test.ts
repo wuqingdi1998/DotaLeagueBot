@@ -97,6 +97,23 @@ describe("site header actions", () => {
     expect(component).toContain("Открыть меню профиля");
   });
 
+  it("keeps the full desktop navigation at the effective 125 percent width", () => {
+    const scaledDesktopStart = css.indexOf(
+      "@media (min-width: 1351px) and (max-width: 1650px)",
+    );
+    const scaledDesktopEnd = css.indexOf("@media", scaledDesktopStart + 1);
+    const scaledDesktopStyles = css.slice(scaledDesktopStart, scaledDesktopEnd);
+
+    expect(scaledDesktopStart).toBeGreaterThan(-1);
+    expect(css).toMatch(
+      /@media \(min-width:\s*1351px\) and \(max-width:\s*1650px\)[\s\S]*?\.platform-navigation\s*\{[^}]*gap:\s*4px;/,
+    );
+    expect(css).toMatch(
+      /@media \(min-width:\s*1351px\) and \(max-width:\s*1650px\)[\s\S]*?\.platform-navigation a\s*\{[^}]*padding:\s*0 10px;[^}]*font-size:\s*14px;/,
+    );
+    expect(scaledDesktopStyles).not.toContain("display: none");
+  });
+
   it("reduces the full server-name text for long profile names", () => {
     expect(component).toContain("longProfileNameLength");
     expect(component).toContain("has-long-name");

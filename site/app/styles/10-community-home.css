@@ -94,6 +94,15 @@
   color: var(--blue-soft);
 }
 
+@media (min-width: 1351px) and (max-width: 1650px) {
+  .platform-navigation { gap: 4px; }
+
+  .platform-navigation a {
+    padding: 0 10px;
+    font-size: 14px;
+  }
+}
+
 @media (min-width: 1051px) and (max-width: 1350px) {
   .site-header.platform-header {
     gap: 12px;
