@@ -7,6 +7,7 @@ function source(path: string) {
 }
 
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
+const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const draftTree = source("app/fearless-draft/components/DraftTree.tsx");
 const draftTreeModel = source("app/fearless-draft/model/draft-tree.ts");
@@ -37,7 +38,7 @@ describe("Fearless Draft history", () => {
     expect(history).toContain("[actions.length]");
   });
 
-  it("opens the Tree first and keeps both fullscreen tab labels inside", () => {
+  it("opens the Tree first and keeps both expanded tab labels inside", () => {
     expect(activeDraft).toContain("isFullscreen={isFullscreen}");
     expect(activeDraft).toContain("firstPickPlayerId={firstPick.id}");
     expect(history).toContain('useState<"history" | "tree">("tree")');
@@ -46,21 +47,39 @@ describe("Fearless Draft history", () => {
     expect(history.indexOf("{text.tree}")).toBeLessThan(
       history.indexOf("{text.history}"),
     );
-    expect(history).toContain("isFullscreen ? (");
+    expect(history).toContain("isTreeAvailable ? (");
     expect(history).toContain("{actions.length} / 24");
-    expect(history).toContain("isFullscreen && activeView === \"tree\"");
+    expect(history).toContain("isTreeAvailable && activeView === \"tree\"");
     expect(treeStyles).toContain(":fullscreen .fearless-history-tabs");
     expect(treeStyles).toContain(
       "grid-template-columns: minmax(88px, 2fr) minmax(124px, 3fr)",
     );
     expect(treeStyles).toMatch(
-      /:fullscreen \.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
+      /:fullscreen \.fearless-history-tabs,[\s\S]*?\.season-lobby-embedded \.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
     );
     expect(treeStyles).toMatch(
-      /:fullscreen \.fearless-history-tabs button\s*\{[^}]*overflow:\s*hidden;[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
+      /:fullscreen \.fearless-history-tabs button,[\s\S]*?\.season-lobby-embedded \.fearless-history-tabs button\s*\{[^}]*overflow:\s*hidden;[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-history-tabs button\.active\s*\{[^}]*box-shadow:\s*inset 0 -2px var\(--blue\);/,
+    );
+  });
+
+  it("keeps the fullscreen tree in the same right column inside a season lobby", () => {
+    expect(draftScreen).toContain("season-lobby-embedded");
+    expect(draftScreen).toContain("isEmbeddedLobby={Boolean(seasonMatchId)}");
+    expect(activeDraft).toContain(
+      "isTreeAvailable={isFullscreen || isEmbeddedLobby}",
+    );
+    expect(activeDraft.indexOf("<HeroGrid")).toBeLessThan(
+      activeDraft.indexOf("<DraftHistory"),
+    );
+    expect(history).toContain("isTreeAvailable && activeView");
+    expect(treeStyles).toContain(
+      ".fearless-draft-stage.season-lobby-embedded .fearless-history-tabs",
+    );
+    expect(treeStyles).toMatch(
+      /\.season-lobby-embedded[\s\S]*\.fearless-history > \.fearless-draft-tree\s*\{[^}]*max-height:\s*none;/,
     );
   });
 

@@ -104,7 +104,7 @@ describe("Fearless Draft board interface", () => {
   it("offers desktop fullscreen and highlights the latest pick or ban", () => {
     expect(fullscreenToggle).toContain('role="switch"');
     expect(draftScreen).toContain("useDraftFullscreen");
-    expect(draftScreen).toContain('className="fearless-draft-stage"');
+    expect(draftScreen).toContain(': "fearless-draft-stage"');
     expect(interactions).toContain(".fearless-draft-stage:fullscreen");
     expect(choices).toContain("<DraftFullscreenToggle");
     expect(interactions).toContain("@media (max-width: 980px)");
@@ -270,22 +270,43 @@ describe("Fearless Draft board interface", () => {
     expect(heroGrid).toContain('className="fearless-hero-confirm-image"');
     expect(heroGrid).toContain('className="fearless-hero-confirm-action"');
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-hero-confirm button\s*\{[^}]*position:\s*relative;[^}]*overflow:\s*hidden;/,
+      /:fullscreen \.fearless-hero-confirm button,[\s\S]*?\.season-lobby-embedded \.fearless-hero-confirm button\s*\{[^}]*position:\s*relative;[^}]*overflow:\s*hidden;/,
     );
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
+      /:fullscreen \.fearless-hero-confirm,[\s\S]*?\.season-lobby-embedded \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
     );
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-hero-confirm-image\s*\{[^}]*display:\s*block;[^}]*object-fit:\s*contain;/,
+      /:fullscreen \.fearless-hero-confirm-image,[\s\S]*?\.season-lobby-embedded \.fearless-hero-confirm-image\s*\{[^}]*display:\s*block;[^}]*object-fit:\s*contain;/,
     );
     expect(interactions).toMatch(
-      /button\.ban \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#b93e52;/,
+      /\.season-lobby-embedded button\.ban \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#b93e52;/,
     );
     expect(interactions).toMatch(
-      /button\.pick \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#159b65;/,
+      /\.season-lobby-embedded button\.pick \.fearless-hero-confirm-action\s*\{[^}]*background:\s*#159b65;/,
     );
     expect(interactions).toMatch(
-      /:fullscreen \.fearless-hero-confirm-action\s*\{[^}]*padding:\s*7px 12px;[^}]*font-size:\s*16px;/,
+      /:fullscreen \.fearless-hero-confirm-action,[\s\S]*?\.season-lobby-embedded \.fearless-hero-confirm-action\s*\{[^}]*padding:\s*7px 12px;[^}]*font-size:\s*16px;/,
+    );
+  });
+
+  it("reuses the landscape pick and ban button inside a season lobby", () => {
+    expect(interactions).toContain(
+      ".fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm",
+    );
+    expect(interactions).toContain(
+      ".fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm button",
+    );
+    expect(interactions).toContain(
+      ".fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm-image",
+    );
+    expect(interactions).toContain(
+      ".fearless-draft-stage.season-lobby-embedded button.pick .fearless-hero-confirm-action",
+    );
+    expect(interactions).toContain(
+      ".fearless-draft-stage.season-lobby-embedded button.ban .fearless-hero-confirm-action",
+    );
+    expect(interactions).toMatch(
+      /@media \(max-width: 600px\)[\s\S]*\.season-lobby-embedded \.fearless-hero-confirm\s*\{[^}]*position:\s*sticky;/,
     );
   });
 

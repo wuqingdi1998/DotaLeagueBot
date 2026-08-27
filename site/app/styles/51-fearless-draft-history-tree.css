@@ -1,4 +1,5 @@
-.fearless-draft-stage:fullscreen .fearless-history-tabs {
+.fearless-draft-stage:fullscreen .fearless-history-tabs,
+.fearless-draft-stage.season-lobby-embedded .fearless-history-tabs {
   display: grid;
   width: 100%;
   overflow: hidden;
@@ -10,7 +11,8 @@
   background: var(--surface-soft);
 }
 
-.fearless-draft-stage:fullscreen .fearless-history-tabs button {
+.fearless-draft-stage:fullscreen .fearless-history-tabs button,
+.fearless-draft-stage.season-lobby-embedded .fearless-history-tabs button {
   min-width: 0;
   overflow: hidden;
   border: 0;
@@ -26,7 +28,8 @@
   text-transform: uppercase;
   white-space: nowrap;
 }
-.fearless-draft-stage:fullscreen .fearless-history-tabs button.active {
+.fearless-draft-stage:fullscreen .fearless-history-tabs button.active,
+.fearless-draft-stage.season-lobby-embedded .fearless-history-tabs button.active {
   background: var(--surface-blue);
   color: var(--blue);
   box-shadow: inset 0 -2px var(--blue);
@@ -201,4 +204,12 @@
   place-items: center;
   color: var(--muted);
   font-style: normal;
+}
+
+@media (max-width: 980px) {
+  .fearless-draft-stage.season-lobby-embedded
+    .fearless-history > .fearless-draft-tree {
+    max-height: none;
+    flex: 0 0 auto;
+  }
 }

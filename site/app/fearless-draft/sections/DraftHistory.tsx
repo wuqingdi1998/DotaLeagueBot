@@ -13,14 +13,14 @@ export function DraftHistory({
   firstPickPlayerId,
   currentStep,
   previewHeroId,
-  isFullscreen,
+  isTreeAvailable,
 }: {
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
   firstPickPlayerId: string;
   currentStep: number;
   previewHeroId: number | null;
-  isFullscreen: boolean;
+  isTreeAvailable: boolean;
 }) {
   const { text } = useDraftLocale();
   const historyListRef = useRef<HTMLDivElement>(null);
@@ -37,7 +37,7 @@ export function DraftHistory({
   return (
     <aside className="fearless-history" id="fearless-draft-history">
       <header>
-        {isFullscreen ? (
+        {isTreeAvailable ? (
           <nav className="fearless-history-tabs" aria-label={text.historyView} role="tablist">
             <button
               className={activeView === "tree" ? "active" : ""}
@@ -69,7 +69,7 @@ export function DraftHistory({
           </>
         )}
       </header>
-      {isFullscreen && activeView === "tree" ? (
+      {isTreeAvailable && activeView === "tree" ? (
         <DraftTree
           actions={actions}
           radiantPlayerId={radiantPlayerId}
@@ -81,8 +81,8 @@ export function DraftHistory({
         <div
           ref={historyListRef}
           id="fearless-draft-history-panel"
-          role={isFullscreen ? "tabpanel" : undefined}
-          aria-labelledby={isFullscreen ? "fearless-draft-history-tab" : undefined}
+          role={isTreeAvailable ? "tabpanel" : undefined}
+          aria-labelledby={isTreeAvailable ? "fearless-draft-history-tab" : undefined}
         >
           {actions.map((action) => {
             const hero = action.heroId

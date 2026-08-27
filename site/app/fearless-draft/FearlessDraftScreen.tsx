@@ -81,7 +81,12 @@ function FearlessDraftContent({
       {!series ? (
         <DraftQueue snapshot={snapshot} isSending={isSending} send={send} />
       ) : (
-        <section className="fearless-draft-stage" ref={draftRef}>
+        <section
+          className={seasonMatchId
+            ? "fearless-draft-stage season-lobby-embedded"
+            : "fearless-draft-stage"}
+          ref={draftRef}
+        >
           {series.map.status === "FIRST_DECISION" || series.map.status === "SECOND_DECISION" ? (
             <DraftChoices
               key={series.map.id}
@@ -105,6 +110,7 @@ function FearlessDraftContent({
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
               canControlSeries={canControlSeries}
+              isEmbeddedLobby={Boolean(seasonMatchId)}
             />
           )}
         </section>

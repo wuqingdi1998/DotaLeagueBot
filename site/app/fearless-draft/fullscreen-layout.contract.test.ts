@@ -86,7 +86,7 @@ describe("Fearless Draft fullscreen layout", () => {
       /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
     );
     expect(fullscreenStyles).toMatch(
-      /:fullscreen \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
+      /:fullscreen \.fearless-hero-confirm,\s*\.fearless-draft-stage\.season-lobby-embedded \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
     );
     expect(fullscreenStyles).toContain(
       "width: calc(((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px)",
