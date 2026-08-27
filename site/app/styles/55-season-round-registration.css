@@ -96,13 +96,19 @@
   color: #76e2f5;
 }
 
-.season-registration-columns,
-.season-registration-list {
+.season-registration-table {
   column-gap: 12px;
   display: grid;
   grid-template-columns:
     34px max-content 30px max-content minmax(24px, 1fr) max-content
     minmax(190px, max-content);
+}
+
+.season-registration-columns,
+.season-registration-list {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
 }
 
 .season-registration-columns {
@@ -263,7 +269,7 @@
     justify-content: center;
   }
 
-  .season-registration-list {
+  .season-registration-table {
     column-gap: 10px;
     grid-template-columns: 30px minmax(0, 1fr) 36px auto;
   }

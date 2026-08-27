@@ -16,6 +16,12 @@ describe("season registration table layout", () => {
     expect(section.indexOf("season-registration-column-wins")).toBeLessThan(
       section.indexOf("season-registration-column-created"),
     );
+    expect(styles).toMatch(
+      /\.season-registration-table \{[\s\S]*?display: grid;[\s\S]*?grid-template-columns:/,
+    );
+    expect(styles).toMatch(
+      /\.season-registration-columns,[\s\S]*?\.season-registration-list \{[\s\S]*?grid-column: 1 \/ -1;[\s\S]*?grid-template-columns: subgrid;/,
+    );
     expect(styles).toContain(".season-registration-columns span {\n  text-align: center;");
     expect(styles).toContain(".season-registration-column-wins {\n  grid-column: 6;");
     expect(styles).toContain(".season-registration-column-created {\n  grid-column: 7;");
