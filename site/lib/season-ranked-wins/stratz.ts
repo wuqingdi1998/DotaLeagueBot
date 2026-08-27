@@ -9,6 +9,8 @@ const STRATZ_API_URL = "https://api.stratz.com/graphql";
 const STRATZ_PAGE_SIZE = 50;
 const STRATZ_MAX_PAGES = 10;
 const STRATZ_REQUEST_TIMEOUT_MS = 45_000;
+const STRATZ_FORBIDDEN_RETRY_COUNT = 3;
+const STRATZ_FORBIDDEN_RETRY_DELAY_MS = 500;
 
 type StratzMatch = {
   id: number | string;
@@ -104,6 +106,44 @@ function playerMatchesQuery(dotaId: string, skip: number): string {
   }`;
 }
 
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function requestStratzMatchPage({
+  dotaId,
+  skip,
+  token,
+}: {
+  dotaId: string;
+  skip: number;
+  token: string;
+}): Promise<Response> {
+  for (let attempt = 0; attempt < STRATZ_FORBIDDEN_RETRY_COUNT; attempt += 1) {
+    const response = await fetch(STRATZ_API_URL, {
+      method: "POST",
+      cache: "no-store",
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "User-Agent": "DotaLeagueBot/1.0",
+      },
+      body: JSON.stringify({ query: playerMatchesQuery(dotaId, skip) }),
+      signal: AbortSignal.timeout(STRATZ_REQUEST_TIMEOUT_MS),
+    });
+    if (
+      response.status !== 403 ||
+      attempt === STRATZ_FORBIDDEN_RETRY_COUNT - 1
+    ) {
+      return response;
+    }
+    await response.text();
+    await wait(STRATZ_FORBIDDEN_RETRY_DELAY_MS * (attempt + 1));
+  }
+  throw new Error("Stratz retry loop ended unexpectedly");
+}
+
 export async function fetchStratzRankedMatches(
   dotaId: string,
   now = new Date(),
@@ -119,19 +159,10 @@ export async function fetchStratzRankedMatches(
   let hasCompletedPage = false;
 
   for (let page = 0; page < STRATZ_MAX_PAGES; page += 1) {
-    const response = await fetch(STRATZ_API_URL, {
-      method: "POST",
-      cache: "no-store",
-      headers: {
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "User-Agent": "DotaLeagueBot/1.0",
-      },
-      body: JSON.stringify({
-        query: playerMatchesQuery(dotaId, page * STRATZ_PAGE_SIZE),
-      }),
-      signal: AbortSignal.timeout(STRATZ_REQUEST_TIMEOUT_MS),
+    const response = await requestStratzMatchPage({
+      dotaId,
+      skip: page * STRATZ_PAGE_SIZE,
+      token,
     });
     if (!response.ok) {
       if (!hasCompletedPage) {

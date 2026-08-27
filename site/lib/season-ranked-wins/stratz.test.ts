@@ -90,6 +90,28 @@ describe("Stratz season ranked wins", () => {
     expect(body.query).toContain("players(steamAccountId: 20)");
   });
 
+  it("retries a temporary Cloudflare 403 before giving up on the player", async () => {
+    vi.useFakeTimers();
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    const fetchSpy = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response("<title>Just a moment...</title>", { status: 403 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({ data: { player: { matches: [] } } }),
+          { status: 200 },
+        ),
+      );
+
+    const matchesPromise = fetchStratzRankedMatches("20");
+    await vi.runAllTimersAsync();
+
+    await expect(matchesPromise).resolves.toEqual([]);
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
   it("accepts a complete empty match history with an empty errors list", async () => {
     vi.stubEnv("STRATZ_TOKEN", "test-token");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -205,6 +227,7 @@ describe("Stratz season ranked wins", () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
