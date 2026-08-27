@@ -1,9 +1,5 @@
-import { SEASON_RANKED_WIN_WINDOW_DAYS } from "../../../../lib/season-ranked-wins/model";
 import type { SeasonRoundRegistration } from "./season-types";
 
-const RANKED_LOBBY_TYPE = 7;
-const RANKED_WIN_WINDOW_MS =
-  SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000;
 const RANKED_WINS_REFRESH_INTERVAL_MS = 10 * 60 * 1_000;
 
 export type SeasonRegistrationSort = "createdAt" | "nickname" | "tier";
@@ -54,16 +50,10 @@ export function formatSeasonRegistrationMoment(value: string) {
   }).format(new Date(value));
 }
 
-export function buildStratzRankedMatchesUrl(
-  dotaId: string,
-  currentTime: number,
-) {
-  const startDateTime = Math.floor(
-    (currentTime - RANKED_WIN_WINDOW_MS) / 1_000,
-  );
+export function buildStratzRankedMatchesUrl(dotaId: string) {
   return (
-    `https://stratz.com/players/${encodeURIComponent(dotaId)}/matches` +
-    `?lobbyType=${RANKED_LOBBY_TYPE}&startDateTime=${startDateTime}`
+    `https://stratz.com/players/${encodeURIComponent(dotaId)}` +
+    "?duration=MONTH&durationAmount=1&lobbyTypeIds=7"
   );
 }
 

@@ -100,6 +100,41 @@ describe("Stratz season ranked wins", () => {
     );
   });
 
+  it("keeps valid matches when Stratz returns them with a GraphQL warning", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          errors: [{ message: "one optional field was unavailable" }],
+          data: {
+            player: {
+              matches: [
+                {
+                  id: 150,
+                  lobbyType: "RANKED",
+                  startDateTime: 1_787_313_600,
+                  players: [
+                    null,
+                    {
+                      steamAccountId: 20,
+                      position: "POSITION_1",
+                      isVictory: true,
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(
+      fetchStratzRankedMatches("20", new Date("2026-08-27T12:00:00.000Z")),
+    ).resolves.toMatchObject([{ matchId: "150", role: 1, won: true }]);
+  });
+
   it("rejects an unavailable player history so the previous snapshot is kept", async () => {
     vi.stubEnv("STRATZ_TOKEN", "test-token");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(

@@ -82,13 +82,8 @@ describe("season registration list", () => {
   });
 
   it("opens the player's Stratz matches filtered to ranked games for 30 days", () => {
-    expect(
-      buildStratzRankedMatchesUrl(
-        "301109815",
-        new Date("2026-08-27T12:00:00.000Z").getTime(),
-      ),
-    ).toBe(
-      "https://stratz.com/players/301109815/matches?lobbyType=7&startDateTime=1785240000",
+    expect(buildStratzRankedMatchesUrl("301109815")).toBe(
+      "https://stratz.com/players/301109815?duration=MONTH&durationAmount=1&lobbyTypeIds=7",
     );
   });
 

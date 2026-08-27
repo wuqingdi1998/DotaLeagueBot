@@ -238,7 +238,6 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                     : <a
                         href={buildStratzRankedMatchesUrl(
                           registration.dota_id,
-                          currentTime,
                         )}
                         target="_blank"
                         rel="noopener noreferrer"

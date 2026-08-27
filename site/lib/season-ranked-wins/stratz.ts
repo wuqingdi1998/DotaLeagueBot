@@ -14,11 +14,14 @@ type StratzMatch = {
   id: number | string;
   lobbyType: number | string;
   startDateTime: number;
-  players: Array<{
-    steamAccountId: number | string;
-    position: number | string | null;
-    isVictory: boolean;
-  }>;
+  players: Array<
+    | {
+        steamAccountId: number | string;
+        position: number | string | null;
+        isVictory: boolean;
+      }
+    | null
+  >;
 };
 
 function stratzPosition(value: number | string | null): DotaPosition | null {
@@ -70,7 +73,8 @@ export function stratzMatchesFromPayload(
       continue;
     }
     const player = match.players.find(
-      (candidate) => String(candidate.steamAccountId) === dotaId,
+      (candidate) =>
+        candidate !== null && String(candidate.steamAccountId) === dotaId,
     );
     if (!player || typeof player.isVictory !== "boolean") continue;
     candidates.push({
@@ -134,7 +138,11 @@ export async function fetchStratzRankedMatches(
       break;
     }
     const payload: unknown = await response.json();
-    if (hasStratzErrors(payload) || !hasStratzMatchList(payload)) {
+    const rawMatches = rawStratzMatches(payload);
+    const hasUnavailablePage =
+      !hasStratzMatchList(payload) ||
+      (hasStratzErrors(payload) && rawMatches.length === 0);
+    if (hasUnavailablePage) {
       if (!hasCompletedPage) {
         throw new Error("Stratz did not return the first match page");
       }
@@ -142,7 +150,6 @@ export async function fetchStratzRankedMatches(
     }
     hasCompletedPage = true;
     const pageMatches = stratzMatchesFromPayload(payload, dotaId);
-    const rawMatches = rawStratzMatches(payload);
     if (!rawMatches.length) break;
     matches.push(...pageMatches);
     const oldestStartTime = Math.min(
