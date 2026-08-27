@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { dotabuffRolesFromHtml } from "./dotabuff";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+  dotabuffRolesFromHtml,
+  fetchDotaBuffRolesForMatches,
+} from "./dotabuff";
 
 describe("DotaBuff missing-role fallback", () => {
   it("extracts roles only for the requested match rows", () => {
@@ -39,4 +42,21 @@ describe("DotaBuff missing-role fallback", () => {
 
     expect(roles.size).toBe(0);
   });
+
+  it("limits a missing-match lookup to five recent history pages", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      async () =>
+        new Response(
+          `<tr class="role-core"><td><a href="/matches/999">Won Match</a></td><td>Core · Safe Lane</td></tr>`,
+          { status: 200 },
+        ),
+    );
+
+    await expect(
+      fetchDotaBuffRolesForMatches({ dotaId: "20", matchIds: ["100"] }),
+    ).resolves.toEqual(new Map());
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
+
+  afterEach(() => vi.restoreAllMocks());
 });

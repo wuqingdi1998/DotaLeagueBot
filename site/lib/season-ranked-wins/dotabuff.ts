@@ -1,7 +1,7 @@
 import type { DotaPosition } from "./model";
 
 const DOTABUFF_ORIGIN = "https://www.dotabuff.com";
-const MAX_DOTABUFF_PAGES = 10;
+const MAX_DOTABUFF_PAGES = 5;
 
 function textContent(html: string): string {
   return html
@@ -83,7 +83,7 @@ export async function fetchDotaBuffRolesForMatches({
         "Accept-Language": "en-US,en;q=0.9",
         "User-Agent": "Linkens-Sphere-Season-Win-Checker/1.0",
       },
-      signal: AbortSignal.timeout(5_000),
+      signal: AbortSignal.timeout(3_000),
     });
     if (!response.ok) {
       throw new Error(`DotaBuff returned HTTP ${response.status}`);
