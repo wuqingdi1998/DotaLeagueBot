@@ -229,6 +229,22 @@
   white-space: nowrap;
 }
 
+.season-registration-wins a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.season-registration-wins a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.season-registration-wins a:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
 .season-registration-list time {
   color: var(--muted);
   font-size: 0.8rem;

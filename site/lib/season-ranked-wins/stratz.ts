@@ -46,6 +46,12 @@ function hasStratzMatchList(payload: unknown): boolean {
   );
 }
 
+function hasStratzErrors(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") return false;
+  const errors = (payload as { errors?: unknown }).errors;
+  return Array.isArray(errors) && errors.length > 0;
+}
+
 export function stratzMatchesFromPayload(
   payload: unknown,
   dotaId: string,
@@ -102,6 +108,7 @@ export async function fetchStratzRankedMatches(
     now.getTime() - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
   );
   const matches: RankedMatchCandidate[] = [];
+  let hasCompletedPage = false;
 
   for (let page = 0; page < STRATZ_MAX_PAGES; page += 1) {
     const response = await fetch(STRATZ_API_URL, {
@@ -118,9 +125,22 @@ export async function fetchStratzRankedMatches(
       }),
       signal: AbortSignal.timeout(STRATZ_REQUEST_TIMEOUT_MS),
     });
-    if (!response.ok) break;
+    if (!response.ok) {
+      if (!hasCompletedPage) {
+        throw new Error(
+          `Stratz match page ${page + 1} returned HTTP ${response.status}`,
+        );
+      }
+      break;
+    }
     const payload: unknown = await response.json();
-    if (!hasStratzMatchList(payload)) break;
+    if (hasStratzErrors(payload) || !hasStratzMatchList(payload)) {
+      if (!hasCompletedPage) {
+        throw new Error("Stratz did not return the first match page");
+      }
+      break;
+    }
+    hasCompletedPage = true;
     const pageMatches = stratzMatchesFromPayload(payload, dotaId);
     const rawMatches = rawStratzMatches(payload);
     if (!rawMatches.length) break;

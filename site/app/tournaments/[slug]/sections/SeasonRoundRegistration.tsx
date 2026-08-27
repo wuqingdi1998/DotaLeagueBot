@@ -13,6 +13,7 @@ import {
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
+  buildStratzRankedMatchesUrl,
   formatSeasonRegistrationMoment,
   sortSeasonRegistrations,
   type SeasonRegistrationDirection,
@@ -221,7 +222,19 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                   {registration.primary_wins === null ||
                   registration.secondary_wins === null
                     ? "Нет данных"
-                    : `Осн. ${registration.primary_wins}/${SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. ${registration.secondary_wins}/${SEASON_SECONDARY_ROLE_WINS_REQUIRED}`}
+                    : <a
+                        href={buildStratzRankedMatchesUrl(
+                          registration.dota_id,
+                          currentTime,
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Открыть рейтинговые матчи игрока за 30 дней на STRATZ"
+                      >
+                        Осн. {registration.primary_wins}/
+                        {SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. {registration.secondary_wins}/
+                        {SEASON_SECONDARY_ROLE_WINS_REQUIRED}
+                      </a>}
                 </span>
                 <time dateTime={registration.created_at}>
                   <FiClock aria-hidden="true" />

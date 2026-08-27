@@ -83,13 +83,32 @@ describe("Stratz season ranked wins", () => {
     await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
   });
 
-  it("treats an unavailable player history as an empty result like the old bot", async () => {
+  it("does not treat a GraphQL error with an empty list as zero wins", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          errors: [{ message: "rate limit" }],
+          data: { player: { matches: [] } },
+        }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+      "Stratz did not return the first match page",
+    );
+  });
+
+  it("rejects an unavailable player history so the previous snapshot is kept", async () => {
     vi.stubEnv("STRATZ_TOKEN", "test-token");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(JSON.stringify({ data: { player: null } }), { status: 200 }),
     );
 
-    await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
+    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+      "Stratz did not return the first match page",
+    );
   });
 
   it("keeps matches from completed pages when the next Stratz page fails", async () => {
@@ -120,13 +139,15 @@ describe("Stratz season ranked wins", () => {
     ).resolves.toMatchObject([{ matchId: "200", role: 3, won: true }]);
   });
 
-  it("returns an empty result when the first Stratz page is unavailable", async () => {
+  it("rejects an unavailable first page so it cannot replace wins with zero", async () => {
     vi.stubEnv("STRATZ_TOKEN", "test-token");
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response("unavailable", { status: 503 }),
     );
 
-    await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
+    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+      "Stratz match page 1 returned HTTP 503",
+    );
   });
 
   afterEach(() => {
