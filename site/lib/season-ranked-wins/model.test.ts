@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateRankedWinSnapshot,
+  findRankedWinsWithoutRoles,
   parsePlayerPositions,
   SEASON_PRIMARY_ROLE_WINS_REQUIRED,
   SEASON_SECONDARY_ROLE_WINS_REQUIRED,
@@ -110,5 +111,38 @@ describe("season ranked wins", () => {
 
     expect(snapshot.primaryWins).toBe(0);
     expect(snapshot.secondaryWins).toBe(0);
+  });
+
+  it("uses an exact rolling thirty-day window, including its first instant", () => {
+    const snapshot = calculateRankedWinSnapshot({
+      matches: [
+        match("boundary", 1, "opendota", {
+          startedAt: new Date("2026-07-28T12:00:00.000Z"),
+        }),
+        match("one-second-too-old", 1, "opendota", {
+          startedAt: new Date("2026-07-28T11:59:59.000Z"),
+        }),
+      ],
+      now,
+      positions: { primaryRole: 1, secondaryRole: 4 },
+    });
+
+    expect(snapshot.primaryWins).toBe(1);
+  });
+
+  it("finds in-window wins whose role is still unknown after merging providers", () => {
+    expect(
+      findRankedWinsWithoutRoles({
+        matches: [
+          match("known", null, "opendota"),
+          match("known", 3, "stratz"),
+          match("unknown", null, "opendota"),
+          match("old", null, "opendota", {
+            startedAt: new Date("2026-07-28T11:59:59.000Z"),
+          }),
+        ],
+        now,
+      }),
+    ).toEqual(["unknown"]);
   });
 });

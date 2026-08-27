@@ -8,7 +8,8 @@ import {
 
 const STRATZ_API_URL = "https://api.stratz.com/graphql";
 const STRATZ_PAGE_SIZE = 50;
-const STRATZ_MAX_PAGES = 3;
+const STRATZ_MAX_PAGES = 10;
+const STRATZ_REQUEST_TIMEOUT_MS = 12_000;
 
 type StratzMatch = {
   id: number | string;
@@ -36,6 +37,14 @@ function rawStratzMatches(payload: unknown): unknown[] {
   const matches = (payload as { data?: { player?: { matches?: unknown } } })
     .data?.player?.matches;
   return Array.isArray(matches) ? matches : [];
+}
+
+function hasStratzMatchList(payload: unknown): boolean {
+  if (!payload || typeof payload !== "object") return false;
+  return Array.isArray(
+    (payload as { data?: { player?: { matches?: unknown } } }).data?.player
+      ?.matches,
+  );
 }
 
 export function stratzMatchesFromPayload(
@@ -96,6 +105,7 @@ export async function fetchStratzRankedMatches(
     now.getTime() - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
   );
   const matches: RankedMatchCandidate[] = [];
+  let coveredEntireWindow = false;
 
   for (let page = 0; page < STRATZ_MAX_PAGES; page += 1) {
     const response = await fetch(STRATZ_API_URL, {
@@ -110,20 +120,27 @@ export async function fetchStratzRankedMatches(
       body: JSON.stringify({
         query: playerMatchesQuery(dotaId, page * STRATZ_PAGE_SIZE),
       }),
-      signal: AbortSignal.timeout(4_000),
+      signal: AbortSignal.timeout(STRATZ_REQUEST_TIMEOUT_MS),
     });
     if (!response.ok) throw new Error(`Stratz returned HTTP ${response.status}`);
     const payload: unknown = await response.json();
     if (
       payload &&
       typeof payload === "object" &&
-      Array.isArray((payload as { errors?: unknown }).errors)
+      Array.isArray((payload as { errors?: unknown[] }).errors) &&
+      (payload as { errors: unknown[] }).errors.length > 0
     ) {
       throw new Error("Stratz returned a GraphQL error");
     }
+    if (!hasStratzMatchList(payload)) {
+      throw new Error("Stratz returned an incomplete player response");
+    }
     const pageMatches = stratzMatchesFromPayload(payload, dotaId);
     const rawMatches = rawStratzMatches(payload);
-    if (!rawMatches.length) break;
+    if (!rawMatches.length) {
+      coveredEntireWindow = true;
+      break;
+    }
     matches.push(...pageMatches);
     const oldestStartTime = Math.min(
       ...rawMatches.map((match) =>
@@ -135,11 +152,15 @@ export async function fetchStratzRankedMatches(
       ),
     );
     if (
-      oldestStartTime * 1_000 < cutoff.getTime() ||
+      oldestStartTime * 1_000 <= cutoff.getTime() ||
       rawMatches.length < STRATZ_PAGE_SIZE
     ) {
+      coveredEntireWindow = true;
       break;
     }
+  }
+  if (!coveredEntireWindow) {
+    throw new Error("Stratz did not return the entire thirty-day window");
   }
   return matches;
 }

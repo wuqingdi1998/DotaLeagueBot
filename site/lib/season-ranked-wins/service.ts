@@ -1,5 +1,6 @@
 import {
   calculateRankedWinSnapshot,
+  findRankedWinsWithoutRoles,
   parsePlayerPositions,
   RANKED_WIN_ROLE_CONFIDENCE,
 } from "./model";
@@ -96,10 +97,20 @@ export async function calculateSeasonRankedWins({
   }
   const providerMatches = successfulResults.map((result) => result.value);
   await fillMissingDotaBuffRoles(dotaId, providerMatches);
+  const matches = providerMatches.flat();
+  const winsWithoutRoles = findRankedWinsWithoutRoles({
+    matches,
+    now: requestStartedAt,
+  });
+  if (winsWithoutRoles.length) {
+    throw new SeasonRankedWinsError(
+      `Не удалось надёжно определить роли в ${winsWithoutRoles.length} победах за последние 30 дней. Неполный результат не сохранён.`,
+    );
+  }
 
   return calculateRankedWinSnapshot({
-    matches: providerMatches.flat(),
-    now: now ?? new Date(),
+    matches,
+    now: requestStartedAt,
     positions: parsedPositions,
   });
 }

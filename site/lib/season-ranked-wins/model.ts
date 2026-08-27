@@ -51,6 +51,45 @@ export function calculateRankedWinSnapshot({
   now: Date;
   positions: { primaryRole: DotaPosition; secondaryRole: DotaPosition };
 }): RankedWinSnapshot {
+  const uniqueMatches = mergeRankedWinsInWindow({ matches, now });
+
+  let primaryWins = 0;
+  let secondaryWins = 0;
+  for (const match of uniqueMatches.values()) {
+    if (match.role === positions.primaryRole) primaryWins += 1;
+    else if (match.role === positions.secondaryRole) secondaryWins += 1;
+  }
+
+  return {
+    ...positions,
+    primaryWins,
+    secondaryWins,
+    checkedAt: now.toISOString(),
+    availableUntil: new Date(
+      now.getTime() + SEASON_RANKED_WIN_BUTTON_TTL_MS,
+    ).toISOString(),
+  };
+}
+
+export function findRankedWinsWithoutRoles({
+  matches,
+  now,
+}: {
+  matches: RankedMatchCandidate[];
+  now: Date;
+}): string[] {
+  return [...mergeRankedWinsInWindow({ matches, now }).values()]
+    .filter((match) => match.role === null)
+    .map((match) => match.matchId);
+}
+
+function mergeRankedWinsInWindow({
+  matches,
+  now,
+}: {
+  matches: RankedMatchCandidate[];
+  now: Date;
+}): Map<string, RankedMatchCandidate> {
   const cutoff = new Date(
     now.getTime() - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
   );
@@ -72,22 +111,7 @@ export function calculateRankedWinSnapshot({
     }
   }
 
-  let primaryWins = 0;
-  let secondaryWins = 0;
-  for (const match of uniqueMatches.values()) {
-    if (match.role === positions.primaryRole) primaryWins += 1;
-    else if (match.role === positions.secondaryRole) secondaryWins += 1;
-  }
-
-  return {
-    ...positions,
-    primaryWins,
-    secondaryWins,
-    checkedAt: now.toISOString(),
-    availableUntil: new Date(
-      now.getTime() + SEASON_RANKED_WIN_BUTTON_TTL_MS,
-    ).toISOString(),
-  };
+  return uniqueMatches;
 }
 
 export function isDotaPosition(value: number): value is DotaPosition {

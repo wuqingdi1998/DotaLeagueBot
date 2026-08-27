@@ -6,7 +6,7 @@ import {
 } from "./model";
 
 const DOTABUFF_ORIGIN = "https://www.dotabuff.com";
-const MAX_DOTABUFF_PAGES = 3;
+const MAX_DOTABUFF_PAGES = 10;
 
 function textContent(html: string): string {
   return html
@@ -79,10 +79,10 @@ export async function fetchDotaBuffRankedMatches(
     now.getTime() - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
   );
   const matches: RankedMatchCandidate[] = [];
+  let coveredEntireWindow = false;
 
   for (let page = 1; page <= MAX_DOTABUFF_PAGES; page += 1) {
     const url = new URL(`/players/${encodeURIComponent(dotaId)}/matches`, DOTABUFF_ORIGIN);
-    url.searchParams.set("date", "month");
     url.searchParams.set("lobby_type", "ranked_matchmaking");
     url.searchParams.set("page", String(page));
     const response = await fetch(url, {
@@ -102,9 +102,19 @@ export async function fetchDotaBuffRankedMatches(
       throw new Error("DotaBuff returned an anti-bot challenge");
     }
     const pageMatches = dotabuffMatchesFromHtml(html);
-    if (!pageMatches.length) break;
+    if (!pageMatches.length) {
+      coveredEntireWindow = true;
+      break;
+    }
     matches.push(...pageMatches);
-    if (pageMatches.some((match) => match.startedAt < cutoff)) break;
+    if (pageMatches.some((match) => match.startedAt <= cutoff)) {
+      coveredEntireWindow = true;
+      break;
+    }
+  }
+
+  if (!coveredEntireWindow) {
+    throw new Error("DotaBuff did not return the entire thirty-day window");
   }
 
   return matches;

@@ -8,6 +8,9 @@ function source(path: string) {
 const migration = source(
   "../../bot/database/migrations/0093_season_ranked_win_checks.sql",
 );
+const incompleteSnapshotReset = source(
+  "../../bot/database/migrations/0095_reset_season_ranked_win_checks.sql",
+);
 const registrationRoute = source(
   "../app/api/season/registration/route.ts",
 );
@@ -28,6 +31,9 @@ describe("season ranked wins contract", () => {
     expect(migration).toContain("primary_wins SMALLINT NOT NULL");
     expect(migration).toContain("secondary_wins SMALLINT NOT NULL");
     expect(migration).toContain("checked_at TIMESTAMPTZ NOT NULL");
+    expect(incompleteSnapshotReset).toContain(
+      "DELETE FROM season_ranked_win_checks",
+    );
   });
 
   it("refreshes immediately after registration and through the protected scheduler route", () => {
@@ -50,6 +56,7 @@ describe("season ranked wins contract", () => {
     expect(rankedWinService).toContain("fetchDotaBuffRankedMatches");
     expect(rankedWinService).toContain("fetchStratzRankedMatches");
     expect(rankedWinModel).toContain('"opendota" | "dotabuff" | "stratz"');
+    expect(rankedWinService).toContain("findRankedWinsWithoutRoles");
     expect(rankedWinService).toContain(
       "OpenDota, DotaBuff и Stratz сейчас не смогли вернуть матчи",
     );

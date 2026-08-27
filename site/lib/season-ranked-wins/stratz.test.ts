@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { stratzMatchesFromPayload } from "./stratz";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { fetchStratzRankedMatches, stratzMatchesFromPayload } from "./stratz";
 
 describe("Stratz season ranked wins", () => {
   it("uses the exact position and victory reported for the requested player", () => {
@@ -71,5 +71,33 @@ describe("Stratz season ranked wins", () => {
     );
 
     expect(matches[0]).toMatchObject({ role: 5, won: false });
+  });
+
+  it("accepts a complete empty match history with an empty errors list", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({ errors: [], data: { player: { matches: [] } } }),
+        { status: 200 },
+      ),
+    );
+
+    await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
+  });
+
+  it("rejects a response that omits the player's match list", async () => {
+    vi.stubEnv("STRATZ_TOKEN", "test-token");
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ data: { player: null } }), { status: 200 }),
+    );
+
+    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+      "incomplete player response",
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 });
