@@ -18,6 +18,8 @@ const seasonRoute = source("../app/api/season/route.ts");
 const registrationSection = source(
   "../app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
 );
+const rankedWinService = source("./season-ranked-wins/service.ts");
+const rankedWinModel = source("./season-ranked-wins/model.ts");
 
 describe("season ranked wins contract", () => {
   it("stores one freshly recalculated snapshot per player", () => {
@@ -41,5 +43,15 @@ describe("season ranked wins contract", () => {
     expect(registrationSection).toContain("Мои рейтинговые победы за 30 дней");
     expect(registrationSection).toContain("SEASON_PRIMARY_ROLE_WINS_REQUIRED");
     expect(registrationSection).toContain("SEASON_SECONDARY_ROLE_WINS_REQUIRED");
+  });
+
+  it("checks all three platforms and gives Stratz roles the highest priority", () => {
+    expect(rankedWinService).toContain("fetchOpenDotaRankedMatches");
+    expect(rankedWinService).toContain("fetchDotaBuffRankedMatches");
+    expect(rankedWinService).toContain("fetchStratzRankedMatches");
+    expect(rankedWinModel).toContain('"opendota" | "dotabuff" | "stratz"');
+    expect(rankedWinService).toContain(
+      "OpenDota, DotaBuff и Stratz сейчас не смогли вернуть матчи",
+    );
   });
 });

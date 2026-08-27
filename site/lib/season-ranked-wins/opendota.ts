@@ -1,6 +1,7 @@
 import { openDotaApiUrl } from "../../app/compendium/services/opendota-client";
 import {
   SEASON_RANKED_WIN_WINDOW_DAYS,
+  RANKED_WIN_ROLE_CONFIDENCE,
   type DotaPosition,
   type RankedMatchCandidate,
 } from "./model";
@@ -56,7 +57,7 @@ export function openDotaMatchesFromPayload(
     return {
       matchId: String(match.match_id),
       role: estimatedOpenDotaPosition(match),
-      roleConfidence: 1,
+      roleConfidence: RANKED_WIN_ROLE_CONFIDENCE.opendota,
       source: "opendota",
       startedAt: new Date(match.start_time * 1_000),
       won: isRadiant === match.radiant_win,

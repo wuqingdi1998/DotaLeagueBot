@@ -1,9 +1,14 @@
-import { calculateRankedWinSnapshot, parsePlayerPositions } from "./model";
+import {
+  calculateRankedWinSnapshot,
+  parsePlayerPositions,
+  RANKED_WIN_ROLE_CONFIDENCE,
+} from "./model";
 import { fetchDotaBuffRankedMatches } from "./dotabuff";
 import {
   fetchOpenDotaMatchPosition,
   fetchOpenDotaRankedMatches,
 } from "./opendota";
+import { fetchStratzRankedMatches } from "./stratz";
 
 export class SeasonRankedWinsError extends Error {}
 
@@ -11,18 +16,18 @@ async function fillMissingDotaBuffRoles(
   dotaId: string,
   providerMatches: Awaited<ReturnType<typeof fetchOpenDotaRankedMatches>>[],
 ) {
-  const openDotaMatches = providerMatches.find((matches) =>
-    matches.some((match) => match.source === "opendota"),
-  ) ?? [];
-  const openDotaMatchIds = new Set(
-    openDotaMatches.map((match) => match.matchId),
+  const matchesWithKnownRoles = new Set(
+    providerMatches
+      .flat()
+      .filter((match) => match.role !== null)
+      .map((match) => match.matchId),
   );
   const dotabuffMatches = providerMatches.flat().filter(
     (match) =>
       match.source === "dotabuff" &&
       match.won &&
       match.role === null &&
-      !openDotaMatchIds.has(match.matchId),
+      !matchesWithKnownRoles.has(match.matchId),
   );
   const missingMatches = dotabuffMatches.slice(0, 3);
   let nextMatchIndex = 0;
@@ -32,7 +37,7 @@ async function fillMissingDotaBuffRoles(
     if (!match) return;
     try {
       match.role = await fetchOpenDotaMatchPosition(match.matchId, dotaId);
-      match.roleConfidence = 1;
+      match.roleConfidence = RANKED_WIN_ROLE_CONFIDENCE.opendota;
     } catch {
       match.role = null;
     }
@@ -71,6 +76,7 @@ export async function calculateSeasonRankedWins({
   const providerResults = await Promise.allSettled([
     fetchOpenDotaRankedMatches(dotaId),
     fetchDotaBuffRankedMatches(dotaId, requestStartedAt),
+    fetchStratzRankedMatches(dotaId, requestStartedAt),
   ]);
   const successfulResults = providerResults.filter(
     (result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof fetchOpenDotaRankedMatches>>> =>
@@ -78,7 +84,7 @@ export async function calculateSeasonRankedWins({
   );
   if (!successfulResults.length) {
     throw new SeasonRankedWinsError(
-      "OpenDota и DotaBuff сейчас не смогли вернуть матчи",
+      "OpenDota, DotaBuff и Stratz сейчас не смогли вернуть матчи",
     );
   }
   for (const result of providerResults) {

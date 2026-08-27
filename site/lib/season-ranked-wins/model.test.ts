@@ -12,13 +12,13 @@ const now = new Date("2026-08-27T12:00:00.000Z");
 function match(
   matchId: string,
   role: 1 | 2 | 3 | 4 | 5 | null,
-  source: "opendota" | "dotabuff",
+  source: "opendota" | "dotabuff" | "stratz",
   overrides: Partial<RankedMatchCandidate> = {},
 ): RankedMatchCandidate {
   return {
     matchId,
     role,
-    roleConfidence: source === "dotabuff" ? 2 : 1,
+    roleConfidence: source === "stratz" ? 3 : source === "dotabuff" ? 2 : 1,
     source,
     startedAt: new Date("2026-08-20T12:00:00.000Z"),
     won: true,
@@ -66,6 +66,21 @@ describe("season ranked wins", () => {
 
     expect(snapshot.primaryWins).toBe(0);
     expect(snapshot.secondaryWins).toBe(1);
+  });
+
+  it("always prioritizes the position reported by Stratz", () => {
+    const snapshot = calculateRankedWinSnapshot({
+      matches: [
+        match("100", 1, "opendota"),
+        match("100", 4, "dotabuff"),
+        match("100", 5, "stratz"),
+      ],
+      now,
+      positions: { primaryRole: 5, secondaryRole: 4 },
+    });
+
+    expect(snapshot.primaryWins).toBe(1);
+    expect(snapshot.secondaryWins).toBe(0);
   });
 
   it("keeps a known role when the other platform has no role", () => {

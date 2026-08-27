@@ -1,5 +1,6 @@
 import {
   SEASON_RANKED_WIN_WINDOW_DAYS,
+  RANKED_WIN_ROLE_CONFIDENCE,
   type DotaPosition,
   type RankedMatchCandidate,
 } from "./model";
@@ -60,7 +61,8 @@ export function dotabuffMatchesFromHtml(html: string): RankedMatchCandidate[] {
     matches.push({
       matchId,
       role,
-      roleConfidence: role === null ? 0 : 2,
+      roleConfidence:
+        role === null ? 0 : RANKED_WIN_ROLE_CONFIDENCE.dotabuff,
       source: "dotabuff",
       startedAt,
       won,
