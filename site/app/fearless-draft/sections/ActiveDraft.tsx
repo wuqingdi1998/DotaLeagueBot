@@ -28,7 +28,6 @@ export function ActiveDraft({
   isFullscreenSupported,
   toggleFullscreen,
   canControlSeries,
-  isEmbeddedLobby,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
@@ -39,7 +38,6 @@ export function ActiveDraft({
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
   canControlSeries: boolean;
-  isEmbeddedLobby: boolean;
 }) {
   const { text } = useDraftLocale();
   const [localPreview, setLocalPreview] = useState<{
@@ -194,7 +192,6 @@ export function ActiveDraft({
           firstPickPlayerId={firstPick.id}
           currentStep={map.currentStep}
           previewHeroId={localPreviewHeroId}
-          isTreeAvailable={isFullscreen || isEmbeddedLobby}
         />
       </div>
     </section>

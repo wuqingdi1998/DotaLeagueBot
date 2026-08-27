@@ -13,14 +13,12 @@ export function DraftHistory({
   firstPickPlayerId,
   currentStep,
   previewHeroId,
-  isTreeAvailable,
 }: {
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
   firstPickPlayerId: string;
   currentStep: number;
   previewHeroId: number | null;
-  isTreeAvailable: boolean;
 }) {
   const { text } = useDraftLocale();
   const historyListRef = useRef<HTMLDivElement>(null);
@@ -37,39 +35,32 @@ export function DraftHistory({
   return (
     <aside className="fearless-history" id="fearless-draft-history">
       <header>
-        {isTreeAvailable ? (
-          <nav className="fearless-history-tabs" aria-label={text.historyView} role="tablist">
-            <button
-              className={activeView === "tree" ? "active" : ""}
-              id="fearless-draft-tree-tab"
-              type="button"
-              role="tab"
-              aria-controls="fearless-draft-tree-panel"
-              aria-selected={activeView === "tree"}
-              onClick={() => setActiveView("tree")}
-            >
-              {text.tree}
-            </button>
-            <button
-              className={activeView === "history" ? "active" : ""}
-              id="fearless-draft-history-tab"
-              type="button"
-              role="tab"
-              aria-controls="fearless-draft-history-panel"
-              aria-selected={activeView === "history"}
-              onClick={() => setActiveView("history")}
-            >
-              {text.history}
-            </button>
-          </nav>
-        ) : (
-          <>
-            <span>{text.mapHistory}</span>
-            <strong>{actions.length} / 24</strong>
-          </>
-        )}
+        <nav className="fearless-history-tabs" aria-label={text.historyView} role="tablist">
+          <button
+            className={activeView === "tree" ? "active" : ""}
+            id="fearless-draft-tree-tab"
+            type="button"
+            role="tab"
+            aria-controls="fearless-draft-tree-panel"
+            aria-selected={activeView === "tree"}
+            onClick={() => setActiveView("tree")}
+          >
+            {text.tree}
+          </button>
+          <button
+            className={activeView === "history" ? "active" : ""}
+            id="fearless-draft-history-tab"
+            type="button"
+            role="tab"
+            aria-controls="fearless-draft-history-panel"
+            aria-selected={activeView === "history"}
+            onClick={() => setActiveView("history")}
+          >
+            {text.history}
+          </button>
+        </nav>
       </header>
-      {isTreeAvailable && activeView === "tree" ? (
+      {activeView === "tree" ? (
         <DraftTree
           actions={actions}
           radiantPlayerId={radiantPlayerId}
@@ -81,8 +72,8 @@ export function DraftHistory({
         <div
           ref={historyListRef}
           id="fearless-draft-history-panel"
-          role={isTreeAvailable ? "tabpanel" : undefined}
-          aria-labelledby={isTreeAvailable ? "fearless-draft-history-tab" : undefined}
+          role="tabpanel"
+          aria-labelledby="fearless-draft-history-tab"
         >
           {actions.map((action) => {
             const hero = action.heroId

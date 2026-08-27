@@ -65,10 +65,10 @@ describe("Fearless Draft fullscreen layout", () => {
 
   it("uses the full fullscreen frame for larger portraits", () => {
     expect(fullscreenStyles).toMatch(
-      /\.fearless-draft-stage:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-fullscreen-grid-width:\s*min\(100%, 1540px\);/,
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-pool\s*\{[^}]*--fearless-draft-grid-width:\s*min\(100%, 1540px\);/,
     );
     expect(fullscreenStyles).toMatch(
-      /\.fearless-draft-stage:fullscreen \.fearless-hero-grid\s*\{[^}]*width:\s*var\(--fearless-fullscreen-grid-width\);[^}]*aspect-ratio:\s*auto;[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;[^}]*align-self:\s*start;[^}]*align-items:\s*start;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-grid\s*\{[^}]*width:\s*var\(--fearless-draft-grid-width\);[^}]*aspect-ratio:\s*auto;[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;[^}]*align-self:\s*start;[^}]*align-items:\s*start;/,
     );
     expect(fullscreenStyles).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
@@ -86,10 +86,10 @@ describe("Fearless Draft fullscreen layout", () => {
       /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
     );
     expect(fullscreenStyles).toMatch(
-      /:fullscreen \.fearless-hero-confirm,\s*\.fearless-draft-stage\.season-lobby-embedded \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
+      /\.fearless-draft-stage \.fearless-hero-confirm\s*\{[^}]*aspect-ratio:\s*16 \/ 9;[^}]*min-height:\s*0;/,
     );
     expect(fullscreenStyles).toContain(
-      "width: calc(((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px)",
+      "width: calc(((var(--fearless-draft-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px)",
     );
     expect(fullscreenStyles).toMatch(
       /@media \(min-width: 1831px\)[\s\S]*:fullscreen \.fearless-draft-workspace\s*\{[^}]*grid-template-columns:\s*calc\(\(100vw - 1830px\) \/ 2\) 1540px minmax\(260px, 1fr\) calc\(\(100vw - 1830px\) \/ 2\);/,

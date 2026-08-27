@@ -47,39 +47,35 @@ describe("Fearless Draft history", () => {
     expect(history.indexOf("{text.tree}")).toBeLessThan(
       history.indexOf("{text.history}"),
     );
-    expect(history).toContain("isTreeAvailable ? (");
-    expect(history).toContain("{actions.length} / 24");
-    expect(history).toContain("isTreeAvailable && activeView === \"tree\"");
-    expect(treeStyles).toContain(":fullscreen .fearless-history-tabs");
+    expect(history).not.toContain("isTreeAvailable");
+    expect(history).toContain('activeView === "tree" ? (');
+    expect(treeStyles).toContain(".fearless-history-tabs");
     expect(treeStyles).toContain(
       "grid-template-columns: minmax(88px, 2fr) minmax(124px, 3fr)",
     );
     expect(treeStyles).toMatch(
-      /:fullscreen \.fearless-history-tabs,[\s\S]*?\.season-lobby-embedded \.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
+      /\.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
     );
     expect(treeStyles).toMatch(
-      /:fullscreen \.fearless-history-tabs button,[\s\S]*?\.season-lobby-embedded \.fearless-history-tabs button\s*\{[^}]*overflow:\s*hidden;[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
+      /\.fearless-history-tabs button\s*\{[^}]*overflow:\s*hidden;[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-history-tabs button\.active\s*\{[^}]*box-shadow:\s*inset 0 -2px var\(--blue\);/,
     );
   });
 
-  it("keeps the fullscreen tree in the same right column inside a season lobby", () => {
-    expect(draftScreen).toContain("season-lobby-embedded");
-    expect(draftScreen).toContain("isEmbeddedLobby={Boolean(seasonMatchId)}");
-    expect(activeDraft).toContain(
-      "isTreeAvailable={isFullscreen || isEmbeddedLobby}",
-    );
+  it("uses one tree implementation on the standalone page and inside a season lobby", () => {
+    expect(draftScreen).toContain('className="fearless-draft-stage"');
+    expect(draftScreen).not.toContain("season-lobby-embedded");
+    expect(activeDraft).not.toContain("isEmbeddedLobby");
+    expect(activeDraft).not.toContain("isTreeAvailable");
     expect(activeDraft.indexOf("<HeroGrid")).toBeLessThan(
       activeDraft.indexOf("<DraftHistory"),
     );
-    expect(history).toContain("isTreeAvailable && activeView");
-    expect(treeStyles).toContain(
-      ".fearless-draft-stage.season-lobby-embedded .fearless-history-tabs",
-    );
+    expect(history).toContain('activeView === "tree"');
+    expect(history).toContain("<DraftTree");
     expect(treeStyles).toMatch(
-      /\.season-lobby-embedded[\s\S]*\.fearless-history > \.fearless-draft-tree\s*\{[^}]*max-height:\s*none;/,
+      /@media \(max-width: 980px\)[\s\S]*\.fearless-draft-stage \.fearless-history > \.fearless-draft-tree\s*\{[^}]*max-height:\s*none;/,
     );
   });
 

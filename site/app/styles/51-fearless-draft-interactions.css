@@ -273,7 +273,7 @@
   align-self: stretch;
 }
 .fearless-draft-stage:fullscreen .fearless-hero-pool {
-  --fearless-fullscreen-grid-width: min(100%, 1540px);
+  --fearless-draft-grid-width: min(100%, 1540px);
   position: relative;
   display: flex;
   flex-direction: column;
@@ -281,7 +281,7 @@
 .fearless-draft-stage:fullscreen .fearless-hero-toolbar { flex: 0 0 auto; padding: 6px 10px; }
 .fearless-draft-stage:fullscreen .fearless-hero-toolbar input { min-height: 31px; }
 .fearless-draft-stage:fullscreen .fearless-hero-grid {
-  width: var(--fearless-fullscreen-grid-width);
+  width: var(--fearless-draft-grid-width);
   aspect-ratio: auto;
   height: auto;
   max-height: none;
@@ -313,17 +313,16 @@
   height: auto;
   aspect-ratio: 25 / 44;
 }
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-pool {
-  --fearless-fullscreen-grid-width: 100%;
+.fearless-draft-stage .fearless-hero-pool {
+  --fearless-draft-grid-width: 100%;
 }
-.fearless-draft-stage:fullscreen .fearless-hero-confirm,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm {
+.fearless-draft-stage .fearless-hero-confirm {
   position: absolute;
   z-index: 6;
   right: 8px;
   bottom: 10px;
   display: flex;
-  width: calc(((var(--fearless-fullscreen-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px);
+  width: calc(((var(--fearless-draft-grid-width) - 16px - var(--fearless-attribute-gap) - var(--fearless-attribute-gap) - var(--fearless-attribute-gap)) / 4) - 18px);
   aspect-ratio: 16 / 9;
   min-height: 0;
   align-items: stretch;
@@ -332,31 +331,25 @@
   padding: 0;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
 }
-.fearless-draft-stage:fullscreen .fearless-hero-confirm > img,
-.fearless-draft-stage:fullscreen .fearless-hero-confirm > div,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm > img,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm > div {
+.fearless-draft-stage .fearless-hero-confirm > img,
+.fearless-draft-stage .fearless-hero-confirm > div {
   display: none;
 }
-.fearless-draft-stage:fullscreen .fearless-hero-confirm button,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm button {
+.fearless-draft-stage .fearless-hero-confirm button {
   position: relative;
   width: 100%;
   overflow: hidden;
   padding: 0;
 }
-.fearless-draft-stage:fullscreen .fearless-hero-confirm-image,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm-image {
+.fearless-draft-stage .fearless-hero-confirm-image {
   display: block;
   object-fit: contain;
   background: #06131e;
 }
-.fearless-draft-stage:fullscreen .fearless-hero-confirm-label,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm-label {
+.fearless-draft-stage .fearless-hero-confirm-label {
   display: none;
 }
-.fearless-draft-stage:fullscreen .fearless-hero-confirm-action,
-.fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm-action {
+.fearless-draft-stage .fearless-hero-confirm-action {
   position: absolute;
   z-index: 2;
   right: 12px;
@@ -369,12 +362,10 @@
   line-height: 1;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
-.fearless-draft-stage:fullscreen button.ban .fearless-hero-confirm-action,
-.fearless-draft-stage.season-lobby-embedded button.ban .fearless-hero-confirm-action {
+.fearless-draft-stage button.ban .fearless-hero-confirm-action {
   background: #b93e52;
 }
-.fearless-draft-stage:fullscreen button.pick .fearless-hero-confirm-action,
-.fearless-draft-stage.season-lobby-embedded button.pick .fearless-hero-confirm-action {
+.fearless-draft-stage button.pick .fearless-hero-confirm-action {
   background: #159b65;
 }
 
@@ -448,7 +439,7 @@
 }
 
 @media (max-width: 600px) {
-  .fearless-draft-stage.season-lobby-embedded .fearless-hero-confirm {
+  .fearless-draft-stage:not(:fullscreen) .fearless-hero-confirm {
     position: sticky;
     right: auto;
     bottom: 0;
