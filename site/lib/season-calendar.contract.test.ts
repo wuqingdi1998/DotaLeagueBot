@@ -74,10 +74,10 @@ describe("season nine calendar contract", () => {
       /\.calendar-event-fill::after\s*\{[^}]*background:\s*var\(--text\);[^}]*color:\s*var\(--surface\);[^}]*text-align:\s*center;[^}]*text-wrap:\s*balance;/,
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-event-fill::after\s*\{[^}]*width:\s*fit-content;[^}]*max-width:\s*190px;[^}]*padding:\s*7px 8px;/,
+      /\.calendar-event-fill::after\s*\{[^}]*width:\s*max-content;[^}]*max-width:\s*190px;[^}]*padding:\s*7px 8px;/,
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-hero\s*\{[^}]*min-height:\s*0;[^}]*padding:\s*142px/,
+      /\.calendar-hero\s*\{[^}]*min-height:\s*0;[^}]*padding:\s*36px/,
     );
     expect(tournamentDirectoryStyles).toMatch(
       /\.directory-hero\s*\{[^}]*padding:\s*36px/,

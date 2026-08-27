@@ -6,8 +6,7 @@
   gap: 26px;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
-  /* Desktop header overlays the page: 106px header + the directory's 36px gap. */
-  padding: 142px clamp(22px, 7vw, 112px) 28px;
+  padding: 36px clamp(22px, 7vw, 112px) 28px;
   background:
     radial-gradient(circle at 78% 8%, rgba(0, 195, 255, 0.2), transparent 32%),
     radial-gradient(circle at 25% 100%, rgba(124, 92, 252, 0.15), transparent 34%),
@@ -218,7 +217,7 @@
   z-index: 30;
   bottom: calc(100% + 9px);
   left: 50%;
-  width: fit-content;
+  width: max-content;
   max-width: 190px;
   border: 1px solid var(--line-strong);
   border-radius: 9px;
