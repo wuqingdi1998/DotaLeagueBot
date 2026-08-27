@@ -184,6 +184,27 @@ describe("Fearless Draft history", () => {
     );
   });
 
+  it("fits every draft step into the non-fullscreen board height", () => {
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree\s*\{[^}]*padding:\s*5px 6px 6px;/,
+    );
+    expect(treeStyles).toMatch(
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\s*\{[^}]*min-height:\s*0;[^}]*flex:\s*1 1 0;/,
+    );
+    expect(treeStyles).toMatch(
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*0;[^}]*flex-grow:\s*1\.35;/,
+    );
+    expect(treeStyles).toMatch(
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*auto;[^}]*height:\s*min\(calc\(100% - 2px\), 32px\);/,
+    );
+    expect(treeStyles).toMatch(
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*auto;[^}]*height:\s*min\(calc\(100% - 2px\), 42px\);/,
+    );
+    expect(treeStyles).toMatch(
+      /@media \(max-width: 980px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\s*\{[^}]*min-height:\s*32px;/,
+    );
+  });
+
   it("shows the local gray preview and current-stage shimmer in the tree", () => {
     expect(activeDraft).toContain("currentStep={map.currentStep}");
     expect(activeDraft).toContain("previewHeroId={localPreviewHeroId}");
