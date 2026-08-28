@@ -16,7 +16,6 @@ import {
   profileBackgroundForSubscriptionRole,
   tournamentResultLabel,
 } from "@/lib/player-profile";
-import { mapWinRatePercent } from "@/lib/player-map-statistics";
 import {
   loadLinkedArchiveProfiles,
   loadOrganizerPlayerIdentity,
@@ -157,7 +156,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
       ])
     : [[], null];
 
-  const winRate = mapWinRatePercent(profile.statistics);
   const mobileNicknameWidth = 270;
   const mobileNicknameSize = Math.max(
     15,
@@ -316,7 +314,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             <strong>{profile.statistics.mapWins}</strong>
           </article>
           <PlayerMapStatisticsDialog
-            winRate={winRate}
+            winRate={profile.statistics.winRate}
             tournaments={profile.mapStatisticsByTournament}
           />
         </div>

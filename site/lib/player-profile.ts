@@ -5,6 +5,7 @@ import {
 } from "./player-tournament-history";
 import {
   loadPlayerMapStatistics,
+  mapWinRatePercent,
   type PlayerTournamentMapStatistics,
 } from "./player-map-statistics";
 import {
@@ -92,6 +93,7 @@ export type PublicPlayerProfile = {
     podiums: number;
     maps: number;
     mapWins: number;
+    winRate: number;
   };
   mapStatisticsByTournament: PlayerTournamentMapStatistics[];
   medals: PlayerMedals;
@@ -265,6 +267,7 @@ export async function loadPublicPlayerProfile(
       podiums,
       maps: mapStatistics.maps,
       mapWins: mapStatistics.mapWins,
+      winRate: mapWinRatePercent(mapStatistics),
     },
     mapStatisticsByTournament: mapStatistics.tournaments,
     medals: medalCounts ?? { gold: 0, silver: 0, bronze: 0 },

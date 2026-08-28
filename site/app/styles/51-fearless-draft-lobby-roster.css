@@ -82,8 +82,8 @@
 }
 
 .fearless-lobby-player {
-  --roster-avatar-size: clamp(40px, 3.45vw, 58px);
-  --roster-ear-width: clamp(20px, 1.8vw, 29px);
+  --roster-avatar-size: clamp(46px, 3.8vw, 64px);
+  --roster-ear-width: clamp(23px, 2vw, 32px);
   display: flex;
   min-width: 0;
   align-items: center;
@@ -98,10 +98,13 @@
   height: var(--roster-avatar-size);
   flex: 0 0 var(--roster-avatar-size);
   overflow: visible;
+  padding: 0;
   border: 1px solid color-mix(in srgb, var(--team-accent) 58%, var(--line));
   border-radius: 11px;
   background: var(--surface-soft);
   box-shadow: 0 5px 13px rgba(0, 0, 0, 0.28);
+  color: inherit;
+  cursor: help;
 }
 
 .fearless-team-panel > header.fearless-lobby-team-header .fearless-player-avatar {
@@ -146,22 +149,27 @@
   height: 100%;
 }
 
+.fearless-lobby-service-logo.stratz {
+  width: min(20px, calc(var(--roster-ear-width) - 5px));
+  height: min(20px, calc(var(--roster-ear-width) - 5px));
+}
+
 .fearless-lobby-profile-ear.left {
-  margin-right: -8px;
+  margin-right: -12px;
   border-radius: 10px;
 }
 
 .fearless-lobby-profile-ear.right {
-  margin-left: -8px;
+  margin-left: -12px;
   border-radius: 10px;
 }
 
 .fearless-lobby-profile-ear.left .fearless-lobby-service-logo {
-  transform: translateX(-3px);
+  transform: translateX(-5px);
 }
 
 .fearless-lobby-profile-ear.right .fearless-lobby-service-logo {
-  transform: translateX(3px);
+  transform: translateX(5px);
 }
 
 .fearless-lobby-profile-ear:hover,
@@ -187,6 +195,91 @@
 .fearless-lobby-player-presence.online {
   background: #39d398;
   box-shadow: 0 0 7px rgba(57, 211, 152, 0.72);
+}
+
+.fearless-lobby-statistics-popover {
+  position: fixed;
+  z-index: 1000;
+  width: min(390px, calc(100vw - 16px));
+  min-height: 174px;
+  border: 1px solid color-mix(in srgb, var(--blue) 55%, var(--line));
+  border-radius: 14px;
+  padding: 11px;
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.48);
+  color: var(--text);
+  pointer-events: none;
+}
+
+.fearless-lobby-statistics-popover > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 9px;
+}
+
+.fearless-lobby-statistics-popover > header strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fearless-lobby-statistics-popover > header span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fearless-lobby-statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.fearless-lobby-statistics-grid article {
+  display: flex;
+  min-width: 0;
+  min-height: 58px;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 7px 8px;
+  background: var(--surface-soft);
+}
+
+.fearless-lobby-statistics-grid span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+
+.fearless-lobby-statistics-grid strong {
+  color: var(--text);
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.fearless-lobby-statistics-popover > p {
+  display: grid;
+  min-height: 116px;
+  margin: 0;
+  place-items: center;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.fearless-lobby-statistics-popover > p.error {
+  color: #ed6575;
 }
 
 .fearless-draft-stage:fullscreen .fearless-team-panel > header.fearless-lobby-team-header {
@@ -249,6 +342,22 @@
   .fearless-lobby-player {
     --roster-avatar-size: clamp(32px, 9.5vw, 40px);
     --roster-ear-width: clamp(13px, 3.7vw, 17px);
+  }
+
+  .fearless-lobby-profile-ear.left {
+    margin-right: -7px;
+  }
+
+  .fearless-lobby-profile-ear.right {
+    margin-left: -7px;
+  }
+
+  .fearless-lobby-profile-ear.left .fearless-lobby-service-logo {
+    transform: translateX(-3px);
+  }
+
+  .fearless-lobby-profile-ear.right .fearless-lobby-service-logo {
+    transform: translateX(3px);
   }
 
   .fearless-lobby-player-presence {

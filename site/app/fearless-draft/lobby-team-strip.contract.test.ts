@@ -20,6 +20,13 @@ const serviceLogo = source(
 const avatarPreloader = source(
   "app/fearless-draft/components/DraftAvatarPreloader.tsx",
 );
+const statisticsPopover = source(
+  "app/fearless-draft/components/DraftPlayerStatisticsPopover.tsx",
+);
+const statisticsService = source(
+  "app/fearless-draft/services/player-statistics.ts",
+);
+const playerProfile = source("lib/player-profile.ts");
 const stratzLogo = source("public/fearless-draft/stratz-logo.svg");
 const styles = source("app/styles/51-fearless-draft-lobby-roster.css");
 const globals = source("app/globals.css");
@@ -48,7 +55,7 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(roster).toContain("players.slice(0, 5)");
     expect(roster).toContain('aria-label={`STRATZ: ${player.name}`}');
     expect(roster).toContain('aria-label={`DotaBuff: ${player.name}`}');
-    expect(roster).toContain('className={`fearless-lobby-player-presence ${player.isOnline ? "online" : "offline"}`}');
+    expect(statisticsPopover).toContain('className={`fearless-lobby-player-presence ${player.isOnline ? "online" : "offline"}`}');
     expect(roster).not.toContain("В сети");
     expect(styles).toContain(".fearless-lobby-profile-ear.left");
     expect(styles).toContain(".fearless-lobby-profile-ear.right");
@@ -84,13 +91,36 @@ describe("Fearless Draft season lobby team strip", () => {
       /\.fearless-lobby-profile-ear\s*\{[^}]*height:\s*var\(--roster-avatar-size\);/,
     );
     expect(styles).toMatch(
-      /\.fearless-lobby-profile-ear\.left\s*\{[^}]*margin-right:\s*-8px;/,
+      /\.fearless-lobby-profile-ear\.left\s*\{[^}]*margin-right:\s*-12px;/,
     );
     expect(styles).toMatch(
-      /\.fearless-lobby-profile-ear\.right\s*\{[^}]*margin-left:\s*-8px;/,
+      /\.fearless-lobby-profile-ear\.right\s*\{[^}]*margin-left:\s*-12px;/,
     );
     expect(styles).toMatch(
       /\.fearless-lobby-player-presence\s*\{[^}]*z-index:\s*6;[^}]*right:\s*2px;[^}]*bottom:\s*2px;/,
+    );
+  });
+
+  it("shows the same six profile statistics when an avatar is hovered", () => {
+    expect(roster).toContain("<DraftPlayerStatisticsPopover player={player} />");
+    expect(statisticsPopover).toContain("createPortal");
+    expect(statisticsPopover).toContain("onMouseEnter={showStatistics}");
+    expect(statisticsPopover).toContain("Турниров");
+    expect(statisticsPopover).toContain("Побед в турнирах");
+    expect(statisticsPopover).toContain("Призовых мест");
+    expect(statisticsPopover).toContain("Карт");
+    expect(statisticsPopover).toContain("Побед на картах");
+    expect(statisticsPopover).toContain("Победный процент");
+    expect(statisticsService).toContain("/api/players/");
+    expect(playerProfile).toContain("winRate: mapWinRatePercent(mapStatistics)");
+    expect(styles).toContain(".fearless-lobby-statistics-popover");
+  });
+
+  it("enlarges the roster controls without making their header taller", () => {
+    expect(styles).toContain("--roster-avatar-size: clamp(46px, 3.8vw, 64px)");
+    expect(styles).toContain("--roster-ear-width: clamp(23px, 2vw, 32px)");
+    expect(styles).toMatch(
+      /header\.fearless-lobby-team-header\s*\{[^}]*min-height:\s*84px;/,
     );
   });
 
