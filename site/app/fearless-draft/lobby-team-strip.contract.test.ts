@@ -13,6 +13,9 @@ const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const roster = source("app/fearless-draft/components/DraftLobbyTeamStrip.tsx");
+const serviceLogo = source(
+  "app/fearless-draft/components/DraftProfileServiceLogo.tsx",
+);
 const styles = source("app/styles/51-fearless-draft-lobby-roster.css");
 const globals = source("app/globals.css");
 
@@ -45,6 +48,23 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(styles).toContain(".fearless-lobby-profile-ear.left");
     expect(styles).toContain(".fearless-lobby-profile-ear.right");
     expect(styles).toContain(".fearless-lobby-player-presence");
+  });
+
+  it("uses branded service logos and lets presence overlap the avatar frame", () => {
+    expect(roster).toContain('<DraftProfileServiceLogo service="stratz" />');
+    expect(roster).toContain('<DraftProfileServiceLogo service="dotabuff" />');
+    expect(roster).toContain("fearless-lobby-profile-ear left stratz");
+    expect(roster).toContain("fearless-lobby-profile-ear right dotabuff");
+    expect(serviceLogo).toContain('service === "stratz"');
+    expect(serviceLogo).toContain('aria-hidden="true"');
+    expect(styles).toContain(".fearless-lobby-profile-ear.stratz");
+    expect(styles).toContain(".fearless-lobby-profile-ear.dotabuff");
+    expect(styles).toMatch(
+      /\.fearless-lobby-player-avatar\s*\{[^}]*overflow:\s*visible;/,
+    );
+    expect(styles).toMatch(
+      /\.fearless-lobby-player-presence\s*\{[^}]*z-index:\s*6;[^}]*right:\s*-5px;[^}]*bottom:\s*-5px;/,
+    );
   });
 
   it("loads the roster styling after the shared board styles", () => {

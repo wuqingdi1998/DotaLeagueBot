@@ -1,5 +1,6 @@
 import { buildPlayerLinks } from "@/lib/player-links";
 import type { DraftLobbyPlayer, DraftPlayer } from "../model/snapshot";
+import { DraftProfileServiceLogo } from "./DraftProfileServiceLogo";
 import { PlayerAvatar } from "./PlayerAvatar";
 
 function avatarPlayer(player: DraftLobbyPlayer): DraftPlayer {
@@ -23,14 +24,14 @@ export function DraftLobbyTeamStrip({
         return (
           <div className="fearless-lobby-player" key={player.id} title={player.name}>
             <a
-              className="fearless-lobby-profile-ear left"
+              className="fearless-lobby-profile-ear left stratz"
               href={links.stratz}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`STRATZ: ${player.name}`}
               title={`Открыть STRATZ — ${player.name}`}
             >
-              S
+              <DraftProfileServiceLogo service="stratz" />
             </a>
             <span className="fearless-lobby-player-avatar">
               <PlayerAvatar player={avatarPlayer(player)} freezeAnimation />
@@ -41,14 +42,14 @@ export function DraftLobbyTeamStrip({
               />
             </span>
             <a
-              className="fearless-lobby-profile-ear right"
+              className="fearless-lobby-profile-ear right dotabuff"
               href={links.dotabuff}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`DotaBuff: ${player.name}`}
               title={`Открыть DotaBuff — ${player.name}`}
             >
-              DB
+              <DraftProfileServiceLogo service="dotabuff" />
             </a>
           </div>
         );

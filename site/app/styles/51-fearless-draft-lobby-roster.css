@@ -97,6 +97,7 @@
   width: var(--roster-avatar-size);
   height: var(--roster-avatar-size);
   flex: 0 0 var(--roster-avatar-size);
+  overflow: visible;
   border: 1px solid color-mix(in srgb, var(--team-accent) 58%, var(--line));
   border-radius: 11px;
   background: var(--surface-soft);
@@ -117,13 +118,26 @@
   height: calc(var(--roster-avatar-size) * 0.68);
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--team-accent) 42%, var(--line));
-  background: color-mix(in srgb, var(--team-accent) 9%, var(--surface-soft));
-  color: color-mix(in srgb, var(--team-accent) 82%, white);
-  font-size: clamp(7px, 0.65vw, 10px);
-  font-weight: 900;
-  line-height: 1;
+  background: var(--surface-soft);
   text-decoration: none;
-  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+  transition: filter 150ms ease, transform 150ms ease;
+}
+
+.fearless-lobby-profile-ear.stratz {
+  border-color: #18bdd6;
+  background: #08a7c2;
+}
+
+.fearless-lobby-profile-ear.dotabuff {
+  border-color: #f76b5f;
+  background: #d9382d;
+}
+
+.fearless-lobby-service-logo {
+  display: block;
+  width: min(18px, calc(var(--roster-ear-width) - 3px));
+  height: min(18px, calc(var(--roster-ear-width) - 3px));
+  flex: 0 0 auto;
 }
 
 .fearless-lobby-profile-ear.left {
@@ -140,18 +154,17 @@
 .fearless-lobby-profile-ear:focus-visible {
   z-index: 3;
   outline: none;
-  background: var(--team-accent);
-  color: #041019;
+  filter: brightness(1.15) saturate(1.08);
   transform: translateY(-1px);
 }
 
 .fearless-lobby-player-presence {
   position: absolute;
-  z-index: 3;
-  right: -2px;
-  bottom: -2px;
-  width: 11px;
-  height: 11px;
+  z-index: 6;
+  right: -5px;
+  bottom: -5px;
+  width: 12px;
+  height: 12px;
   border: 2px solid var(--surface);
   border-radius: 50%;
   background: #e78663;
