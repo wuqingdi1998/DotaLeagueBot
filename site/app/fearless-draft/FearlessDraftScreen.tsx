@@ -53,6 +53,7 @@ function FearlessDraftContent({
     toggleFullscreen,
   } = useDraftFullscreen();
   const series = snapshot.series;
+  const activeLobbyPlayers = lobbyPlayers ?? snapshot.lobbyPlayers;
   const canControlSeries = Boolean(
     series && [series.player1.id, series.player2.id].includes(snapshot.user.id),
   );
@@ -113,7 +114,7 @@ function FearlessDraftContent({
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
               canControlSeries={canControlSeries}
-              lobbyPlayers={lobbyPlayers}
+              lobbyPlayers={activeLobbyPlayers}
             />
           )}
         </section>

@@ -28,6 +28,7 @@ type BotSeriesState = {
 
 const heroIds = ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id);
 const formats: DraftFormat[] = ["BO2", "BO3"];
+type BotDraftMode = "single" | "lobby-preview";
 
 function randomItem<T>(items: readonly T[]): T {
   return items[randomInt(items.length)];
@@ -104,6 +105,7 @@ async function randomAvailableHeroId(state: BotSeriesState): Promise<number> {
 export async function startBotDraft(
   playerId: string,
   format: DraftFormat = "BO3",
+  mode: BotDraftMode = "single",
 ): Promise<void> {
   if (!formats.includes(format)) throw new DraftRequestError("Некорректный формат");
   await transaction(async (client) => {
@@ -121,10 +123,17 @@ export async function startBotDraft(
     const toss = randomCoinTossResult(players);
     const seriesResult = await client.query<{ id: number }>(
       `INSERT INTO draft_series
-        (player1_id, player2_id, format, map1_coin_toss_winner_id)
-       VALUES ($1, $2, $3, $4)
+        (player1_id, player2_id, format, map1_coin_toss_winner_id,
+         is_lobby_preview)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id::int`,
-      [playerId, FEARLESS_DRAFT_BOT_PLAYER_ID, format, toss.winnerId],
+      [
+        playerId,
+        FEARLESS_DRAFT_BOT_PLAYER_ID,
+        format,
+        toss.winnerId,
+        mode === "lobby-preview",
+      ],
     );
     await client.query(
       `INSERT INTO draft_maps

@@ -57,6 +57,12 @@ export async function POST(request: Request) {
         }
         await startBotDraft(user.discordId);
         break;
+      case "START_BOT2":
+        if (!user.isAdmin) {
+          throw new DraftRequestError("Режим с ботом доступен только организатору", 403);
+        }
+        await startBotDraft(user.discordId, "BO3", "lobby-preview");
+        break;
       case "JOIN_QUEUE":
         await joinDraftQueue(user.discordId);
         break;

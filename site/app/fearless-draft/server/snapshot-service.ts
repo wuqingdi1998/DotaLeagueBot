@@ -8,6 +8,7 @@ import {
 import type {
   DraftActionSnapshot,
   DraftInvitationSnapshot,
+  DraftLobbyPlayer,
   DraftMapSnapshot,
   DraftPlayer,
   DraftSeriesSnapshot,
@@ -21,6 +22,8 @@ import { settleExpiredDraftEndRequests } from "./agreement-service";
 import { draftEndRequestExpiresAt } from "../model/agreement";
 import { databaseNow } from "./database-clock";
 import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
+import { buildLobbyPreviewBotCaptain } from "../model/lobby-preview";
+import { loadLobbyPreviewPlayers } from "./lobby-preview-service";
 
 type PlayerRow = {
   id: string;
@@ -44,6 +47,7 @@ type SeriesRow = {
   format: DraftFormat;
   status: DraftSeriesSnapshot["status"];
   current_map: number;
+  is_lobby_preview: boolean;
   map1_coin_toss_winner_id: string;
   end_requested_by: string | null;
   end_requested_at: Date | null;
@@ -123,7 +127,7 @@ async function loadSeries(
 ): Promise<DraftSeriesSnapshot | null> {
   const seriesResult = await client.query<SeriesRow>(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
-            current_map::int, map1_coin_toss_winner_id::text,
+            current_map::int, is_lobby_preview, map1_coin_toss_winner_id::text,
             end_requested_by::text, end_requested_at,
             player1_ready_for_next_map, player2_ready_for_next_map,
             created_at, updated_at
@@ -242,6 +246,7 @@ async function loadSeries(
     format: series.format,
     status: series.status,
     currentMap: series.current_map,
+    isLobbyPreview: series.is_lobby_preview,
     map1CoinTossWinnerId: series.map1_coin_toss_winner_id,
     player1,
     player2,
@@ -359,6 +364,23 @@ export async function loadFearlessDraftSnapshot(
       joinedAt: row.joined_at.toISOString(),
     }));
     const series = await loadSeries(client, user.discordId, options.seasonMatchId);
+    const lobbyPlayers: DraftLobbyPlayer[] | undefined = series?.isLobbyPreview
+      ? await loadLobbyPreviewPlayers(client, user, series.id)
+      : undefined;
+    const previewBotCaptain = lobbyPlayers
+      ? buildLobbyPreviewBotCaptain(lobbyPlayers, FEARLESS_DRAFT_BOT_PLAYER_ID)
+      : null;
+    const displayedSeries = series && previewBotCaptain
+      ? {
+          ...series,
+          player1: series.player1.id === FEARLESS_DRAFT_BOT_PLAYER_ID
+            ? previewBotCaptain
+            : series.player1,
+          player2: series.player2.id === FEARLESS_DRAFT_BOT_PLAYER_ID
+            ? previewBotCaptain
+            : series.player2,
+        }
+      : series;
     const serverNow = await databaseNow(client);
     return {
       serverNow: serverNow.toISOString(),
@@ -367,7 +389,8 @@ export async function loadFearlessDraftSnapshot(
       isWaiting,
       waitingPlayers,
       invitations,
-      series,
+      lobbyPlayers,
+      series: displayedSeries,
     };
   });
 }

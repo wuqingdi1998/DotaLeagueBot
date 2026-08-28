@@ -1,0 +1,2 @@
+ALTER TABLE draft_series
+    ADD COLUMN IF NOT EXISTS is_lobby_preview BOOLEAN NOT NULL DEFAULT FALSE;

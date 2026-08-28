@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiCpu, FiRadio, FiSend, FiUserX } from "react-icons/fi";
+import { FiCpu, FiRadio, FiSend, FiUsers, FiUserX } from "react-icons/fi";
 import type {
   DraftInvitationSnapshot,
   FearlessDraftCommand,
@@ -77,14 +77,24 @@ export function DraftQueue({ snapshot, isSending, send }: QueueProps) {
         </div>
         <div className="fearless-queue-actions">
           {snapshot.isOrganizer && (
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={isSending}
-              onClick={() => void send({ action: "START_BOT" })}
-            >
-              <FiCpu /> {text.bot}
-            </button>
+            <>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={isSending}
+                onClick={() => void send({ action: "START_BOT" })}
+              >
+                <FiCpu /> {text.bot}
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={isSending}
+                onClick={() => void send({ action: "START_BOT2" })}
+              >
+                <FiUsers /> {text.bot2}
+              </button>
+            </>
           )}
           {snapshot.isWaiting ? (
             <button

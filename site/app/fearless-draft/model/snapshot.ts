@@ -74,6 +74,7 @@ export type DraftSeriesSnapshot = {
   format: DraftFormat;
   status: "CHOOSING" | "DRAFTING" | "MAP_COMPLETE" | "COMPLETE" | "ABANDONED";
   currentMap: number;
+  isLobbyPreview: boolean;
   map1CoinTossWinnerId: string;
   player1: DraftPlayer;
   player2: DraftPlayer;
@@ -98,11 +99,13 @@ export type FearlessDraftSnapshot = {
   isWaiting: boolean;
   waitingPlayers: WaitingDraftPlayer[];
   invitations: DraftInvitationSnapshot[];
+  lobbyPlayers?: DraftLobbyPlayer[];
   series: DraftSeriesSnapshot | null;
 };
 
 export type FearlessDraftCommand =
   | { action: "START_BOT" }
+  | { action: "START_BOT2" }
   | { action: "JOIN_QUEUE" }
   | { action: "LEAVE_QUEUE" }
   | { action: "INVITE"; opponentId: string; format: DraftFormat }
