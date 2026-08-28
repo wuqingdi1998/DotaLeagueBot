@@ -50,12 +50,14 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(styles).toContain(".fearless-lobby-player-presence");
   });
 
-  it("uses branded service logos and lets presence overlap the avatar frame", () => {
+  it("uses the original service marks and keeps presence inside the avatar", () => {
     expect(roster).toContain('<DraftProfileServiceLogo service="stratz" />');
     expect(roster).toContain('<DraftProfileServiceLogo service="dotabuff" />');
     expect(roster).toContain("fearless-lobby-profile-ear left stratz");
     expect(roster).toContain("fearless-lobby-profile-ear right dotabuff");
     expect(serviceLogo).toContain('service === "stratz"');
+    expect(serviceLogo).toContain('viewBox="0 0 300 300"');
+    expect(serviceLogo).toContain('viewBox="0 0 450 448"');
     expect(serviceLogo).toContain('aria-hidden="true"');
     expect(styles).toContain(".fearless-lobby-profile-ear.stratz");
     expect(styles).toContain(".fearless-lobby-profile-ear.dotabuff");
@@ -63,7 +65,10 @@ describe("Fearless Draft season lobby team strip", () => {
       /\.fearless-lobby-player-avatar\s*\{[^}]*overflow:\s*visible;/,
     );
     expect(styles).toMatch(
-      /\.fearless-lobby-player-presence\s*\{[^}]*z-index:\s*6;[^}]*right:\s*-5px;[^}]*bottom:\s*-5px;/,
+      /\.fearless-lobby-profile-ear\s*\{[^}]*height:\s*var\(--roster-avatar-size\);/,
+    );
+    expect(styles).toMatch(
+      /\.fearless-lobby-player-presence\s*\{[^}]*z-index:\s*6;[^}]*right:\s*2px;[^}]*bottom:\s*2px;/,
     );
   });
 
