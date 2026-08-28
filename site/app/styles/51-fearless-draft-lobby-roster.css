@@ -84,6 +84,7 @@
 .fearless-lobby-player {
   --roster-avatar-size: clamp(46px, 3.8vw, 64px);
   --roster-ear-width: clamp(23px, 2vw, 32px);
+  --roster-frame-line: color-mix(in srgb, var(--team-accent) 58%, var(--line));
   display: flex;
   min-width: 0;
   align-items: center;
@@ -99,7 +100,7 @@
   flex: 0 0 var(--roster-avatar-size);
   overflow: visible;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--team-accent) 58%, var(--line));
+  border: 1px solid var(--roster-frame-line);
   border-radius: 11px;
   background: var(--surface-soft);
   box-shadow: 0 5px 13px rgba(0, 0, 0, 0.28);
@@ -121,19 +122,23 @@
   height: var(--roster-avatar-size);
   place-items: center;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--team-accent) 42%, var(--line));
+  border: 1px solid var(--roster-frame-line);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
   background: var(--surface-soft);
   text-decoration: none;
-  transition: filter 150ms ease, transform 150ms ease;
+  transition: filter 150ms ease, outline-color 150ms ease, box-shadow 150ms ease;
 }
 
 .fearless-lobby-profile-ear.stratz {
-  border-color: #18bdd6;
+  --profile-ear-highlight: #8beeff;
+  border-left-color: #18bdd6;
   background: #09a9c5;
 }
 
 .fearless-lobby-profile-ear.dotabuff {
-  border-color: #f76b5f;
+  --profile-ear-highlight: #ff9b91;
+  border-right-color: #f76b5f;
   background: #f23a1f;
 }
 
@@ -156,12 +161,12 @@
 
 .fearless-lobby-profile-ear.left {
   margin-right: -12px;
-  border-radius: 10px;
+  border-radius: 10px 0 0 10px;
 }
 
 .fearless-lobby-profile-ear.right {
   margin-left: -12px;
-  border-radius: 10px;
+  border-radius: 0 10px 10px 0;
 }
 
 .fearless-lobby-profile-ear.left .fearless-lobby-service-logo {
@@ -174,9 +179,9 @@
 
 .fearless-lobby-profile-ear:hover,
 .fearless-lobby-profile-ear:focus-visible {
-  outline: none;
+  outline: 2px solid var(--profile-ear-highlight);
   filter: brightness(1.15) saturate(1.08);
-  transform: translateY(-1px);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--profile-ear-highlight) 72%, transparent);
 }
 
 .fearless-lobby-player-presence {

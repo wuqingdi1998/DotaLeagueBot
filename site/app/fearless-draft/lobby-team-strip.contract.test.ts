@@ -124,6 +124,24 @@ describe("Fearless Draft season lobby team strip", () => {
     );
   });
 
+  it("runs each ear edge under the avatar and highlights it without moving", () => {
+    expect(styles).toMatch(
+      /\.fearless-lobby-profile-ear\.left\s*\{[^}]*border-radius:\s*10px 0 0 10px;/,
+    );
+    expect(styles).toMatch(
+      /\.fearless-lobby-profile-ear\.right\s*\{[^}]*border-radius:\s*0 10px 10px 0;/,
+    );
+    expect(styles).toMatch(
+      /\.fearless-lobby-profile-ear:hover,[\s\S]*?outline:\s*2px solid var\(--profile-ear-highlight\);/,
+    );
+    const hoverRule = styles.match(
+      /\.fearless-lobby-profile-ear:hover,[\s\S]*?\}/,
+    )?.[0] ?? "";
+    expect(hoverRule).not.toContain("transform:");
+    expect(styles).toContain("--profile-ear-highlight: #8beeff");
+    expect(styles).toContain("--profile-ear-highlight: #ff9b91");
+  });
+
   it("loads the roster styling after the shared board styles", () => {
     const boardImport = '@import "./styles/51-fearless-draft-board.css";';
     const rosterImport = '@import "./styles/51-fearless-draft-lobby-roster.css";';
