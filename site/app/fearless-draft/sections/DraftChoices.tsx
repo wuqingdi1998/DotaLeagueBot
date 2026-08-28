@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { FiCheckCircle } from "react-icons/fi";
 import { DraftCoinToss, type CoinTossStage } from "../components/DraftCoinToss";
+import { DraftAvatarPreloader } from "../components/DraftAvatarPreloader";
 import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { HeroPortraitPreloader } from "../components/HeroPortraitPreloader";
 import { PlayerAvatar } from "../components/PlayerAvatar";
@@ -12,6 +13,7 @@ import {
   COIN_SPINNER_DURATION_MS,
 } from "../model/config";
 import type {
+  DraftLobbyPlayer,
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
@@ -35,6 +37,7 @@ export function DraftChoices({
   isFullscreen,
   isFullscreenSupported,
   toggleFullscreen,
+  lobbyPlayers,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
@@ -44,6 +47,7 @@ export function DraftChoices({
   isFullscreen: boolean;
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
+  lobbyPlayers?: readonly DraftLobbyPlayer[];
 }) {
   const { text } = useDraftLocale();
   const { map } = series;
@@ -78,6 +82,11 @@ export function DraftChoices({
   return (
     <section className="fearless-choice-screen">
       <HeroPortraitPreloader />
+      <DraftAvatarPreloader
+        firstCaptainAvatarUrl={series.player1.avatarUrl}
+        secondCaptainAvatarUrl={series.player2.avatarUrl}
+        lobbyPlayers={lobbyPlayers}
+      />
       <div className="fearless-choice-header">
         <div className="fearless-series-meta">
           <span>{text.map} {map.number} / {series.format}</span>

@@ -102,6 +102,7 @@ function FearlessDraftContent({
               isFullscreen={isFullscreen}
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
+              lobbyPlayers={activeLobbyPlayers}
             />
           ) : (
             <ActiveDraft

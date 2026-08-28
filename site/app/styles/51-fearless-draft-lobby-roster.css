@@ -147,18 +147,25 @@
 }
 
 .fearless-lobby-profile-ear.left {
-  border-right: 0;
-  border-radius: 10px 0 0 10px;
+  margin-right: -8px;
+  border-radius: 10px;
 }
 
 .fearless-lobby-profile-ear.right {
-  border-left: 0;
-  border-radius: 0 10px 10px 0;
+  margin-left: -8px;
+  border-radius: 10px;
+}
+
+.fearless-lobby-profile-ear.left .fearless-lobby-service-logo {
+  transform: translateX(-3px);
+}
+
+.fearless-lobby-profile-ear.right .fearless-lobby-service-logo {
+  transform: translateX(3px);
 }
 
 .fearless-lobby-profile-ear:hover,
 .fearless-lobby-profile-ear:focus-visible {
-  z-index: 3;
   outline: none;
   filter: brightness(1.15) saturate(1.08);
   transform: translateY(-1px);

@@ -10,12 +10,17 @@ const roomScreen = source(
   "app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
 );
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
+const draftChoices = source("app/fearless-draft/sections/DraftChoices.tsx");
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const roster = source("app/fearless-draft/components/DraftLobbyTeamStrip.tsx");
 const serviceLogo = source(
   "app/fearless-draft/components/DraftProfileServiceLogo.tsx",
 );
+const avatarPreloader = source(
+  "app/fearless-draft/components/DraftAvatarPreloader.tsx",
+);
+const stratzLogo = source("public/fearless-draft/stratz-logo.svg");
 const styles = source("app/styles/51-fearless-draft-lobby-roster.css");
 const globals = source("app/globals.css");
 
@@ -50,15 +55,26 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(styles).toContain(".fearless-lobby-player-presence");
   });
 
+  it("preloads every lobby avatar while the coin toss is running", () => {
+    expect(draftScreen).toContain("lobbyPlayers={activeLobbyPlayers}");
+    expect(draftChoices).toContain("<DraftAvatarPreloader");
+    expect(draftChoices).toContain("lobbyPlayers={lobbyPlayers}");
+    expect(avatarPreloader).toContain("staticAvatarUrl");
+    expect(avatarPreloader).toContain('startMode="immediate"');
+    expect(avatarPreloader).toContain("lobbyPlayers.flatMap");
+  });
+
   it("uses the original service marks and keeps presence inside the avatar", () => {
     expect(roster).toContain('<DraftProfileServiceLogo service="stratz" />');
     expect(roster).toContain('<DraftProfileServiceLogo service="dotabuff" />');
     expect(roster).toContain("fearless-lobby-profile-ear left stratz");
     expect(roster).toContain("fearless-lobby-profile-ear right dotabuff");
     expect(serviceLogo).toContain('service === "stratz"');
-    expect(serviceLogo).toContain('viewBox="0 0 300 300"');
+    expect(serviceLogo).toContain('src="/fearless-draft/stratz-logo.svg"');
     expect(serviceLogo).toContain('viewBox="0 0 450 448"');
     expect(serviceLogo).toContain('aria-hidden="true"');
+    expect(stratzLogo).toContain("data:image/png;base64,");
+    expect(stratzLogo).toContain('stroke="#0aa9c6"');
     expect(styles).toContain(".fearless-lobby-profile-ear.stratz");
     expect(styles).toContain(".fearless-lobby-profile-ear.dotabuff");
     expect(styles).toMatch(
@@ -66,6 +82,12 @@ describe("Fearless Draft season lobby team strip", () => {
     );
     expect(styles).toMatch(
       /\.fearless-lobby-profile-ear\s*\{[^}]*height:\s*var\(--roster-avatar-size\);/,
+    );
+    expect(styles).toMatch(
+      /\.fearless-lobby-profile-ear\.left\s*\{[^}]*margin-right:\s*-8px;/,
+    );
+    expect(styles).toMatch(
+      /\.fearless-lobby-profile-ear\.right\s*\{[^}]*margin-left:\s*-8px;/,
     );
     expect(styles).toMatch(
       /\.fearless-lobby-player-presence\s*\{[^}]*z-index:\s*6;[^}]*right:\s*2px;[^}]*bottom:\s*2px;/,
