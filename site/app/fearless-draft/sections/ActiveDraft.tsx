@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { FiArrowRight, FiCheck } from "react-icons/fi";
 import type {
   DraftPlayer,
+  DraftLobbyPlayer,
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
@@ -13,6 +14,7 @@ import { DraftTeamPanel } from "../components/DraftTeamPanel";
 import { HeroGrid } from "../components/HeroGrid";
 import { DraftHistory } from "./DraftHistory";
 import { useDraftLocale } from "../hooks/useDraftLocale";
+import { draftLobbyTeamForCaptain } from "../model/lobby-roster";
 
 function otherPlayer(series: DraftSeriesSnapshot, playerId: string): DraftPlayer {
   return series.player1.id === playerId ? series.player2 : series.player1;
@@ -28,6 +30,7 @@ export function ActiveDraft({
   isFullscreenSupported,
   toggleFullscreen,
   canControlSeries,
+  lobbyPlayers,
 }: {
   series: DraftSeriesSnapshot;
   userId: string;
@@ -38,6 +41,7 @@ export function ActiveDraft({
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
   canControlSeries: boolean;
+  lobbyPlayers?: DraftLobbyPlayer[];
 }) {
   const { text } = useDraftLocale();
   const [localPreview, setLocalPreview] = useState<{
@@ -78,6 +82,13 @@ export function ActiveDraft({
   const opponentReady = userId === series.player1.id
     ? series.player2ReadyForNextMap
     : series.player1ReadyForNextMap;
+  const radiantReserve = radiant.id === series.player1.id
+    ? player1Reserve
+    : player2Reserve;
+  const direReserve = dire.id === series.player1.id
+    ? player1Reserve
+    : player2Reserve;
+  const hasLobbyPlayers = Boolean(lobbyPlayers?.length);
   const phaseLabels = {
     FIRST_BANS: text.firstBans,
     FIRST_PICKS: text.firstPicks,
@@ -86,49 +97,68 @@ export function ActiveDraft({
     FINAL_BANS: text.finalBans,
     FINAL_PICKS: text.finalPicks,
   } as const;
+  let turnControl: ReactNode = null;
+
+  if (isComplete && canControlSeries) {
+    turnControl = (
+      <div className="fearless-map-ready-control">
+        {series.status === "COMPLETE" ? (
+          <button
+            className="primary-button"
+            type="button"
+            disabled={isSending}
+            onClick={() => void send({ action: "DISMISS_COMPLETE" })}
+          >
+            {text.returnToQueue} <FiArrowRight />
+          </button>
+        ) : (
+          <button
+            className="primary-button"
+            type="button"
+            disabled={isSending || ownReady}
+            onClick={() => void send({ action: "READY_FOR_NEXT_MAP" })}
+          >
+            {ownReady ? (
+              <><FiCheck /> {text.waitingOpponent}</>
+            ) : (
+              <>
+                {opponentReady && text.opponentReady}
+                {text.readyForMap} {map.number + 1} <FiArrowRight />
+              </>
+            )}
+          </button>
+        )}
+      </div>
+    );
+  } else if (currentActor) {
+    turnControl = (
+      <div className={`fearless-turn ${isOwnTurn ? "own" : "opponent"}`}>
+        <span>{isOwnTurn ? text.yourTurn : `${text.turn}: ${currentActor.name}`}</span>
+        <strong>{map.currentAction === "BAN" ? text.ban : text.pick}</strong>
+      </div>
+    );
+  }
 
   return (
     <section className="fearless-active-draft">
-      <header className="fearless-draft-status">
+      <header className={`fearless-draft-status ${hasLobbyPlayers ? "has-lobby-players" : ""}`}>
         <div>
           <span>{text.map} {map.number} / {series.format}</span>
           <strong>{isComplete ? text.draftComplete : map.currentPhase ? phaseLabels[map.currentPhase] : text.draft}</strong>
         </div>
-        {isComplete && canControlSeries ? (
-          <div className="fearless-map-ready-control">
-            {series.status === "COMPLETE" ? (
-              <button
-                className="primary-button"
-                type="button"
-                disabled={isSending}
-                onClick={() => void send({ action: "DISMISS_COMPLETE" })}
-              >
-                {text.returnToQueue} <FiArrowRight />
-              </button>
-            ) : (
-              <button
-                className="primary-button"
-                type="button"
-                disabled={isSending || ownReady}
-                onClick={() => void send({ action: "READY_FOR_NEXT_MAP" })}
-              >
-                {ownReady ? (
-                  <><FiCheck /> {text.waitingOpponent}</>
-                ) : (
-                  <>
-                    {opponentReady && text.opponentReady}
-                    {text.readyForMap} {map.number + 1} <FiArrowRight />
-                  </>
-                )}
-              </button>
-            )}
+        {hasLobbyPlayers ? (
+          <div className="fearless-lobby-turn-group">
+            <div className="fearless-lobby-side-status radiant">
+              <strong>{text.radiant} · {firstPick.id === radiant.id ? text.firstPick : text.secondPick}</strong>
+              <span>{text.reserve} <b>{Math.ceil(radiantReserve)}{text.secondsShort}</b></span>
+            </div>
+            {turnControl ?? <div className="fearless-lobby-turn-placeholder" aria-hidden="true" />}
+            <div className="fearless-lobby-side-status dire">
+              <strong>{text.dire} · {firstPick.id === dire.id ? text.firstPick : text.secondPick}</strong>
+              <span>{text.reserve} <b>{Math.ceil(direReserve)}{text.secondsShort}</b></span>
+            </div>
           </div>
-        ) : currentActor && (
-          <div className={`fearless-turn ${isOwnTurn ? "own" : "opponent"}`}>
-            <span>{isOwnTurn ? text.yourTurn : `${text.turn}: ${currentActor.name}`}</span>
-            <strong>{map.currentAction === "BAN" ? text.ban : text.pick}</strong>
-          </div>
-        )}
+        ) : turnControl}
         <div className="fearless-draft-view-controls">
           <div className={`fearless-main-clock ${clock?.isUsingReserve ? "reserve" : ""}`}>
             <span>{clock?.isUsingReserve ? text.reserveTime : text.turnTime}</span>
@@ -158,9 +188,10 @@ export function ActiveDraft({
           actions={map.actions}
           currentStep={map.currentStep}
           previewHeroId={localPreviewHeroId}
-          reserveSeconds={radiant.id === series.player1.id ? player1Reserve : player2Reserve}
+          reserveSeconds={radiantReserve}
           isCurrent={map.currentActorId === radiant.id}
           isConnected={radiant.id === series.player1.id ? series.player1Connected : series.player2Connected}
+          teamPlayers={lobbyPlayers ? draftLobbyTeamForCaptain(lobbyPlayers, radiant.id) : undefined}
         />
         <DraftTeamPanel
           player={dire}
@@ -169,9 +200,10 @@ export function ActiveDraft({
           actions={map.actions}
           currentStep={map.currentStep}
           previewHeroId={localPreviewHeroId}
-          reserveSeconds={dire.id === series.player1.id ? player1Reserve : player2Reserve}
+          reserveSeconds={direReserve}
           isCurrent={map.currentActorId === dire.id}
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}
+          teamPlayers={lobbyPlayers ? draftLobbyTeamForCaptain(lobbyPlayers, dire.id) : undefined}
         />
       </div>
 

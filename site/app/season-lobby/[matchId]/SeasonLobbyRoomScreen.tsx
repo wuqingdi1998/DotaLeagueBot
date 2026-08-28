@@ -102,6 +102,14 @@ export function SeasonLobbyRoomScreen({
           <FearlessDraftScreen
             initialSnapshot={initialDraft}
             seasonMatchId={snapshot.matchId}
+            lobbyPlayers={snapshot.players.map((player) => ({
+              id: player.playerId,
+              dotaId: player.dotaId,
+              name: player.nickname,
+              avatarUrl: player.avatarUrl,
+              teamSide: player.teamSide,
+              isOnline: player.isOnline,
+            }))}
           />
         </section>
       )}

@@ -14,6 +14,15 @@ export type DraftPlayer = {
   avatarUrl: string | null;
 };
 
+export type DraftLobbyPlayer = {
+  id: string;
+  dotaId: string;
+  name: string;
+  avatarUrl: string | null;
+  teamSide: "a" | "b";
+  isOnline: boolean;
+};
+
 export type WaitingDraftPlayer = DraftPlayer & {
   joinedAt: string;
 };

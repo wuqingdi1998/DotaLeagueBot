@@ -3,8 +3,10 @@ import { DRAFT_SEQUENCE } from "../model/config";
 import { FEARLESS_DRAFT_HEROES_BY_ID } from "../model/heroes";
 import type {
   DraftActionSnapshot,
+  DraftLobbyPlayer,
   DraftPlayer,
 } from "../model/snapshot";
+import { DraftLobbyTeamStrip } from "./DraftLobbyTeamStrip";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { useDraftLocale } from "../hooks/useDraftLocale";
 
@@ -24,6 +26,7 @@ export function DraftTeamPanel({
   reserveSeconds,
   isCurrent,
   isConnected,
+  teamPlayers,
 }: {
   player: DraftPlayer;
   side: "RADIANT" | "DIRE";
@@ -34,6 +37,7 @@ export function DraftTeamPanel({
   reserveSeconds: number;
   isCurrent: boolean;
   isConnected: boolean;
+  teamPlayers?: DraftLobbyPlayer[];
 }) {
   const { text } = useDraftLocale();
   const actionsByStep = new Map(actions.map((action) => [action.step, action]));
@@ -44,19 +48,25 @@ export function DraftTeamPanel({
   const priorityLabel = priority === "FIRST" ? text.firstPick : text.secondPick;
   return (
     <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
-      <header>
-        <PlayerAvatar player={player} freezeAnimation />
-        <div>
-          <span>{sideLabel} · {priorityLabel}</span>
-          <strong>{player.name}</strong>
-          <small className={isConnected ? undefined : "disconnected"}>
-            <i /> {isConnected ? text.online : text.opponentDisconnected}
-          </small>
-        </div>
-        <div className="fearless-team-reserve">
-          <span>{text.reserve}</span>
-          <strong>{Math.ceil(reserveSeconds)}{text.secondsShort}</strong>
-        </div>
+      <header className={teamPlayers ? "fearless-lobby-team-header" : undefined}>
+        {teamPlayers ? (
+          <DraftLobbyTeamStrip players={teamPlayers} />
+        ) : (
+          <>
+            <PlayerAvatar player={player} freezeAnimation />
+            <div>
+              <span>{sideLabel} · {priorityLabel}</span>
+              <strong>{player.name}</strong>
+              <small className={isConnected ? undefined : "disconnected"}>
+                <i /> {isConnected ? text.online : text.opponentDisconnected}
+              </small>
+            </div>
+            <div className="fearless-team-reserve">
+              <span>{text.reserve}</span>
+              <strong>{Math.ceil(reserveSeconds)}{text.secondsShort}</strong>
+            </div>
+          </>
+        )}
       </header>
       <div className="fearless-pick-slots">
         {pickSteps.map((step) => {

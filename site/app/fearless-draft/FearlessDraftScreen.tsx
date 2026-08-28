@@ -1,7 +1,10 @@
 "use client";
 
 import { FiActivity, FiShield } from "react-icons/fi";
-import type { FearlessDraftSnapshot } from "./model/snapshot";
+import type {
+  DraftLobbyPlayer,
+  FearlessDraftSnapshot,
+} from "./model/snapshot";
 import { useFearlessDraft } from "./hooks/useFearlessDraft";
 import { useDraftFullscreen } from "./hooks/useDraftFullscreen";
 import { ActiveDraft } from "./sections/ActiveDraft";
@@ -14,15 +17,18 @@ import { translateDraftError } from "./model/i18n";
 export function FearlessDraftScreen({
   initialSnapshot,
   seasonMatchId,
+  lobbyPlayers,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
   seasonMatchId?: number;
+  lobbyPlayers?: DraftLobbyPlayer[];
 }) {
   return (
     <DraftLocaleProvider>
       <FearlessDraftContent
         initialSnapshot={initialSnapshot}
         seasonMatchId={seasonMatchId}
+        lobbyPlayers={lobbyPlayers}
       />
     </DraftLocaleProvider>
   );
@@ -31,9 +37,11 @@ export function FearlessDraftScreen({
 function FearlessDraftContent({
   initialSnapshot,
   seasonMatchId,
+  lobbyPlayers,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
   seasonMatchId?: number;
+  lobbyPlayers?: DraftLobbyPlayer[];
 }) {
   const { snapshot, error, isSending, isConnected, send } =
     useFearlessDraft(initialSnapshot, seasonMatchId);
@@ -105,6 +113,7 @@ function FearlessDraftContent({
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
               canControlSeries={canControlSeries}
+              lobbyPlayers={lobbyPlayers}
             />
           )}
         </section>

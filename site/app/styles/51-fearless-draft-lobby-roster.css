@@ -1,0 +1,236 @@
+.fearless-draft-status.has-lobby-players {
+  grid-template-columns: minmax(190px, 0.65fr) minmax(680px, 2fr) minmax(190px, 0.65fr);
+}
+
+.fearless-lobby-turn-group {
+  display: grid;
+  min-width: 0;
+  align-items: stretch;
+  grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+  gap: 10px;
+}
+
+.fearless-lobby-turn-group .fearless-turn {
+  min-width: 260px;
+  min-height: 56px;
+  padding: 9px 16px;
+}
+
+.fearless-lobby-turn-group .fearless-map-ready-control {
+  min-width: 260px;
+}
+
+.fearless-lobby-turn-placeholder {
+  min-width: 260px;
+  min-height: 56px;
+}
+
+.fearless-lobby-side-status {
+  display: flex;
+  min-width: 0;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  border: 1px solid color-mix(in srgb, var(--team-accent) 48%, var(--line));
+  border-radius: 12px;
+  padding: 7px 12px;
+  background: color-mix(in srgb, var(--team-accent) 8%, var(--surface-soft));
+  text-align: center;
+}
+
+.fearless-lobby-side-status.radiant { --team-accent: #43c98e; }
+.fearless-lobby-side-status.dire { --team-accent: #ed6575; }
+
+.fearless-lobby-side-status strong,
+.fearless-lobby-side-status span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fearless-lobby-side-status strong {
+  color: var(--team-accent);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fearless-lobby-side-status span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.fearless-lobby-side-status b {
+  color: var(--text);
+  font-size: 19px;
+  font-variant-numeric: tabular-nums;
+}
+
+.fearless-team-panel > header.fearless-lobby-team-header {
+  min-height: 76px;
+  justify-content: center;
+  padding: 9px 12px;
+}
+
+.fearless-lobby-team-strip {
+  display: grid;
+  width: 100%;
+  align-items: center;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(2px, 0.65vw, 10px);
+}
+
+.fearless-lobby-player {
+  --roster-avatar-size: clamp(34px, 3.1vw, 52px);
+  --roster-ear-width: clamp(15px, 1.65vw, 27px);
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.fearless-lobby-player-avatar {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: var(--roster-avatar-size);
+  height: var(--roster-avatar-size);
+  flex: 0 0 var(--roster-avatar-size);
+  border: 1px solid color-mix(in srgb, var(--team-accent) 58%, var(--line));
+  border-radius: 11px;
+  background: var(--surface-soft);
+  box-shadow: 0 5px 13px rgba(0, 0, 0, 0.28);
+}
+
+.fearless-team-panel > header.fearless-lobby-team-header .fearless-player-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.fearless-lobby-profile-ear {
+  z-index: 1;
+  display: grid;
+  width: var(--roster-ear-width);
+  height: calc(var(--roster-avatar-size) * 0.68);
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--team-accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--team-accent) 9%, var(--surface-soft));
+  color: color-mix(in srgb, var(--team-accent) 82%, white);
+  font-size: clamp(7px, 0.65vw, 10px);
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+  transition: background 150ms ease, color 150ms ease, transform 150ms ease;
+}
+
+.fearless-lobby-profile-ear.left {
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+}
+
+.fearless-lobby-profile-ear.right {
+  border-left: 0;
+  border-radius: 0 10px 10px 0;
+}
+
+.fearless-lobby-profile-ear:hover,
+.fearless-lobby-profile-ear:focus-visible {
+  z-index: 3;
+  outline: none;
+  background: var(--team-accent);
+  color: #041019;
+  transform: translateY(-1px);
+}
+
+.fearless-lobby-player-presence {
+  position: absolute;
+  z-index: 3;
+  right: -2px;
+  bottom: -2px;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: #e78663;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.28);
+}
+
+.fearless-lobby-player-presence.online {
+  background: #39d398;
+  box-shadow: 0 0 7px rgba(57, 211, 152, 0.72);
+}
+
+.fearless-draft-stage:fullscreen .fearless-team-panel > header.fearless-lobby-team-header {
+  min-height: 72px;
+  padding: 7px 12px;
+}
+
+.fearless-draft-stage:fullscreen .fearless-team-panel > header.fearless-lobby-team-header .fearless-player-avatar {
+  width: 100%;
+  height: 100%;
+  flex-basis: auto;
+  border-radius: 10px;
+}
+
+@media (max-width: 1180px) {
+  .fearless-draft-status.has-lobby-players {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fearless-draft-status.has-lobby-players .fearless-lobby-turn-group {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .fearless-draft-status.has-lobby-players .fearless-draft-view-controls {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .fearless-lobby-turn-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .fearless-lobby-turn-group .fearless-turn,
+  .fearless-lobby-turn-group .fearless-map-ready-control,
+  .fearless-lobby-turn-placeholder {
+    min-width: 0;
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .fearless-lobby-side-status.radiant {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .fearless-lobby-side-status.dire {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .fearless-team-panel > header.fearless-lobby-team-header {
+    min-height: 62px;
+    padding: 7px 4px;
+  }
+
+  .fearless-lobby-player {
+    --roster-avatar-size: clamp(30px, 9vw, 38px);
+    --roster-ear-width: clamp(11px, 3.5vw, 15px);
+  }
+
+  .fearless-lobby-player-presence {
+    width: 9px;
+    height: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fearless-lobby-profile-ear { transition: none; }
+}
