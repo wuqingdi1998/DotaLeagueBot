@@ -27,6 +27,7 @@ export function DraftTeamPanel({
   isCurrent,
   isConnected,
   teamPlayers,
+  showPlayerColors = false,
 }: {
   player: DraftPlayer;
   side: "RADIANT" | "DIRE";
@@ -38,6 +39,7 @@ export function DraftTeamPanel({
   isCurrent: boolean;
   isConnected: boolean;
   teamPlayers?: DraftLobbyPlayer[];
+  showPlayerColors?: boolean;
 }) {
   const { text } = useDraftLocale();
   const actionsByStep = new Map(actions.map((action) => [action.step, action]));
@@ -50,7 +52,10 @@ export function DraftTeamPanel({
     <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
       <header className={teamPlayers ? "fearless-lobby-team-header" : undefined}>
         {teamPlayers ? (
-          <DraftLobbyTeamStrip players={teamPlayers} />
+          <DraftLobbyTeamStrip
+            players={teamPlayers}
+            showPlayerColors={showPlayerColors}
+          />
         ) : (
           <>
             <PlayerAvatar player={player} freezeAnimation />

@@ -6,6 +6,7 @@ import type {
   DraftPriority,
   DraftSide,
 } from "./types";
+import type { DraftTeamPlayerColorSlot } from "./player-colors";
 
 export type DraftPlayer = {
   id: string;
@@ -21,6 +22,14 @@ export type DraftLobbyPlayer = {
   avatarUrl: string | null;
   teamSide: "a" | "b";
   isOnline: boolean;
+  slotNumber?: number | null;
+  isCaptain?: boolean;
+};
+
+export type DraftHeroSuggestion = {
+  heroId: number;
+  playerId: string;
+  colorSlot: DraftTeamPlayerColorSlot;
 };
 
 export type WaitingDraftPlayer = DraftPlayer & {
@@ -65,6 +74,7 @@ export type DraftMapSnapshot = {
   player1ReserveSeconds: number;
   player2ReserveSeconds: number;
   actions: DraftActionSnapshot[];
+  heroSuggestions: DraftHeroSuggestion[];
   unavailableHeroIds: number[];
   createdAt: string;
 };
@@ -114,6 +124,7 @@ export type FearlessDraftCommand =
   | { action: "CANCEL_INVITATION"; invitationId: number }
   | { action: "MAKE_CHOICE"; choice: DraftChoice }
   | { action: "HIGHLIGHT_HERO"; heroId: number; expectedVersion: number }
+  | { action: "TOGGLE_HERO_SUGGESTION"; heroId: number; expectedVersion: number }
   | { action: "SELECT_HERO"; heroId: number; expectedVersion: number }
   | { action: "READY_FOR_NEXT_MAP" }
   | { action: "REQUEST_SERIES_END" }

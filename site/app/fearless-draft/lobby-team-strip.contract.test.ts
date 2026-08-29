@@ -51,7 +51,8 @@ describe("Fearless Draft season lobby team strip", () => {
   });
 
   it("renders five avatar controls per team with profile ears and presence dots", () => {
-    expect(teamPanel).toContain("<DraftLobbyTeamStrip players={teamPlayers}");
+    expect(teamPanel).toContain("<DraftLobbyTeamStrip");
+    expect(teamPanel).toContain("players={teamPlayers}");
     expect(roster).toContain("players.slice(0, 5)");
     expect(roster).toContain('aria-label={`STRATZ: ${player.name}`}');
     expect(roster).toContain('aria-label={`DotaBuff: ${player.name}`}');

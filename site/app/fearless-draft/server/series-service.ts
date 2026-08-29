@@ -161,6 +161,12 @@ async function commitHeroAction(
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [map.id, map.current_step, actorId, step.type, heroId, isAutomatic],
   );
+  if (heroId !== null) {
+    await client.query(
+      "DELETE FROM draft_hero_suggestions WHERE map_id = $1 AND hero_id = $2",
+      [map.id, heroId],
+    );
+  }
   const nextStep = map.current_step + 1;
   const reserveColumn = actorId === series.player1_id
     ? "player1_reserve_seconds"

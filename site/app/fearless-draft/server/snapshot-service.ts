@@ -24,6 +24,8 @@ import { databaseNow } from "./database-clock";
 import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
 import { buildLobbyPreviewBotCaptain } from "../model/lobby-preview";
 import { loadLobbyPreviewPlayers } from "./lobby-preview-service";
+import { SEASON_LOBBY_PRESENCE_TTL_SECONDS } from "@/lib/season-lobby-room";
+import { loadVisibleDraftHeroSuggestions } from "./suggestion-service";
 
 type PlayerRow = {
   id: string;
@@ -118,6 +120,54 @@ async function loadPlayers(
     [playerIds],
   );
   return new Map(result.rows.map((row) => [row.id, playerFromRow(row)]));
+}
+
+async function loadSeasonLobbyPlayers(
+  client: PoolClient,
+  matchId: number,
+): Promise<DraftLobbyPlayer[]> {
+  const result = await client.query<{
+    id: string;
+    dota_id: string;
+    name: string;
+    avatar_url: string | null;
+    team_side: "a" | "b";
+    slot_number: number | null;
+    is_captain: boolean;
+    is_online: boolean;
+  }>(
+    `SELECT room_player.player_id::text AS id,
+            player.steam_id32::text AS dota_id,
+            player.ingame_name AS name,
+            player.avatar_url,
+            room_player.team_side,
+            room_player.slot_number::int,
+            room_player.player_id IN (
+              room.team_a_captain_id, room.team_b_captain_id
+            ) AS is_captain,
+            presence.heartbeat_at >= NOW()
+              - ($2::int * INTERVAL '1 second') AS is_online
+     FROM season_match_room_players room_player
+     JOIN season_match_rooms room ON room.match_id = room_player.match_id
+     JOIN players player ON player.discord_id = room_player.player_id
+     LEFT JOIN season_match_room_presence presence
+       ON presence.match_id = room_player.match_id
+      AND presence.player_id = room_player.player_id
+     WHERE room_player.match_id = $1
+     ORDER BY room_player.team_side,
+       is_captain DESC, room_player.slot_number NULLS LAST, room_player.player_id`,
+    [matchId, SEASON_LOBBY_PRESENCE_TTL_SECONDS],
+  );
+  return result.rows.map((row) => ({
+    id: row.id,
+    dotaId: row.dota_id,
+    name: row.name,
+    avatarUrl: row.avatar_url,
+    teamSide: row.team_side,
+    isOnline: row.is_online,
+    slotNumber: row.slot_number,
+    isCaptain: row.is_captain,
+  }));
 }
 
 async function loadSeries(
@@ -284,6 +334,7 @@ async function loadSeries(
       player1ReserveSeconds: map.player1_reserve_seconds,
       player2ReserveSeconds: map.player2_reserve_seconds,
       actions,
+      heroSuggestions: [],
       unavailableHeroIds: unavailableResult.rows.map((row) => row.hero_id),
       createdAt: map.created_at.toISOString(),
     },
@@ -366,11 +417,13 @@ export async function loadFearlessDraftSnapshot(
     const series = await loadSeries(client, user.discordId, options.seasonMatchId);
     const lobbyPlayers: DraftLobbyPlayer[] | undefined = series?.isLobbyPreview
       ? await loadLobbyPreviewPlayers(client, user, series.id)
-      : undefined;
+      : series && options.seasonMatchId
+        ? await loadSeasonLobbyPlayers(client, options.seasonMatchId)
+        : undefined;
     const previewBotCaptain = lobbyPlayers
       ? buildLobbyPreviewBotCaptain(lobbyPlayers, FEARLESS_DRAFT_BOT_PLAYER_ID)
       : null;
-    const displayedSeries = series && previewBotCaptain
+    let displayedSeries = series && previewBotCaptain
       ? {
           ...series,
           player1: series.player1.id === FEARLESS_DRAFT_BOT_PLAYER_ID
@@ -381,6 +434,21 @@ export async function loadFearlessDraftSnapshot(
             : series.player2,
         }
       : series;
+    if (displayedSeries) {
+      displayedSeries = {
+        ...displayedSeries,
+        map: {
+          ...displayedSeries.map,
+          heroSuggestions: await loadVisibleDraftHeroSuggestions(
+            client,
+            displayedSeries.map.id,
+            user.discordId,
+            lobbyPlayers,
+            [displayedSeries.player1.id, displayedSeries.player2.id],
+          ),
+        },
+      };
+    }
     const serverNow = await databaseNow(client);
     return {
       serverNow: serverNow.toISOString(),

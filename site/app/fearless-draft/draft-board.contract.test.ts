@@ -320,6 +320,15 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
+  it("keeps regular pick and ban step badges proportionate to fullscreen", () => {
+    expect(interactions).toMatch(
+      /:not\(:fullscreen\) \.fearless-pick-slots \.fearless-slot-step\s*\{[^}]*min-width:\s*26px;[^}]*height:\s*26px;[^}]*right:\s*0;[^}]*bottom:\s*0;[^}]*font-size:\s*12px;/,
+    );
+    expect(interactions).toMatch(
+      /:not\(:fullscreen\) \.fearless-ban-list \.fearless-slot-step\s*\{[^}]*min-width:\s*22px;[^}]*height:\s*22px;[^}]*right:\s*0;[^}]*bottom:\s*0;[^}]*font-size:\s*11px;/,
+    );
+  });
+
   it("sends physical letter keys to hero search in English", () => {
     expect(heroGrid).toContain("useHeroSearchHotkeys");
     expect(heroGrid).toContain("ref={searchInputRef}");

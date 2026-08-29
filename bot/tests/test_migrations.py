@@ -99,6 +99,13 @@ TEST_SEASON_ROUND_ONE_CLEANUP = (
     / "0094_cleanup_test_season_round_one.sql"
 ).read_text(encoding="utf-8")
 
+FEARLESS_DRAFT_HERO_SUGGESTIONS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0098_fearless_draft_hero_suggestions.sql"
+).read_text(encoding="utf-8")
+
 FINAL_PREDICTION_OPENING_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -194,6 +201,14 @@ PLAYOFF_ELIMINATIONS_BACKFILL = (
 def test_web_sessions_are_linked_to_registered_players() -> None:
     assert "web_sessions" in MIGRATION
     assert "REFERENCES players(discord_id)" in MIGRATION
+
+
+def test_fearless_draft_hero_suggestions_are_scoped_to_map_and_player() -> None:
+    assert "draft_hero_suggestions" in FEARLESS_DRAFT_HERO_SUGGESTIONS_MIGRATION
+    assert "PRIMARY KEY (map_id, player_id, hero_id)" in (
+        FEARLESS_DRAFT_HERO_SUGGESTIONS_MIGRATION
+    )
+    assert "ON DELETE CASCADE" in FEARLESS_DRAFT_HERO_SUGGESTIONS_MIGRATION
 
 
 def test_tournament_schedule_has_days_entries_and_fastcup_seed() -> None:

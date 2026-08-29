@@ -58,7 +58,11 @@ function FearlessDraftContent({
     series && [series.player1.id, series.player2.id].includes(snapshot.user.id),
   );
   return (
-    <div className="fearless-draft-page" lang={locale}>
+    <div
+      className="fearless-draft-page"
+      lang={locale}
+      onContextMenu={(event) => event.preventDefault()}
+    >
       <section className="fearless-draft-hero">
         <div>
           <span className="section-kicker">Linken&apos;s Sphere</span>

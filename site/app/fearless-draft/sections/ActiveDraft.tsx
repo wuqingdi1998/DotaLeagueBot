@@ -89,6 +89,13 @@ export function ActiveDraft({
     ? player1Reserve
     : player2Reserve;
   const hasLobbyPlayers = Boolean(lobbyPlayers?.length);
+  const viewerLobbyPlayer = lobbyPlayers?.find((player) => player.id === userId);
+  const radiantTeamPlayers = lobbyPlayers
+    ? draftLobbyTeamForCaptain(lobbyPlayers, radiant.id)
+    : undefined;
+  const direTeamPlayers = lobbyPlayers
+    ? draftLobbyTeamForCaptain(lobbyPlayers, dire.id)
+    : undefined;
   const phaseLabels = {
     FIRST_BANS: text.firstBans,
     FIRST_PICKS: text.firstPicks,
@@ -191,7 +198,8 @@ export function ActiveDraft({
           reserveSeconds={radiantReserve}
           isCurrent={map.currentActorId === radiant.id}
           isConnected={radiant.id === series.player1.id ? series.player1Connected : series.player2Connected}
-          teamPlayers={lobbyPlayers ? draftLobbyTeamForCaptain(lobbyPlayers, radiant.id) : undefined}
+          teamPlayers={radiantTeamPlayers}
+          showPlayerColors={viewerLobbyPlayer?.teamSide === radiantTeamPlayers?.[0]?.teamSide}
         />
         <DraftTeamPanel
           player={dire}
@@ -203,7 +211,8 @@ export function ActiveDraft({
           reserveSeconds={direReserve}
           isCurrent={map.currentActorId === dire.id}
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}
-          teamPlayers={lobbyPlayers ? draftLobbyTeamForCaptain(lobbyPlayers, dire.id) : undefined}
+          teamPlayers={direTeamPlayers}
+          showPlayerColors={viewerLobbyPlayer?.teamSide === direTeamPlayers?.[0]?.teamSide}
         />
       </div>
 
@@ -211,6 +220,7 @@ export function ActiveDraft({
         <HeroGrid
           map={map}
           userId={userId}
+          canSuggest={Boolean(viewerLobbyPlayer)}
           isSending={isSending}
           send={send}
           onPreviewHeroIdChange={(heroId) => setLocalPreview({

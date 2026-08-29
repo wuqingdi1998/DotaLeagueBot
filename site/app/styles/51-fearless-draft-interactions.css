@@ -44,6 +44,26 @@
   line-height: 1;
 }
 
+.fearless-draft-stage:not(:fullscreen) .fearless-pick-slots .fearless-slot-step {
+  min-width: 26px;
+  height: 26px;
+  right: 0;
+  bottom: 0;
+  border-radius: 7px;
+  padding: 0;
+  font-size: 12px;
+}
+
+.fearless-draft-stage:not(:fullscreen) .fearless-ban-list .fearless-slot-step {
+  min-width: 22px;
+  height: 22px;
+  right: 0;
+  bottom: 0;
+  border-radius: 6px;
+  padding: 0;
+  font-size: 11px;
+}
+
 .fearless-ban-list > div:not(.filled)::after { display: none; }
 .fearless-ban-list > div:not(.filled) .fearless-slot-step,
 .fearless-pick-slots > div:not(.filled) .fearless-slot-step {

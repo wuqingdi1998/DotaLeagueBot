@@ -2,7 +2,7 @@ import type { DraftLobbyPlayer, DraftPlayer } from "./snapshot";
 
 export type LobbyPreviewProfile = Omit<
   DraftLobbyPlayer,
-  "teamSide" | "isOnline"
+  "teamSide" | "isOnline" | "slotNumber" | "isCaptain"
 >;
 
 export function buildLobbyPreviewRoster({
@@ -18,16 +18,20 @@ export function buildLobbyPreviewRoster({
     throw new Error("Для предпросмотра нужны девять профилей");
   }
 
-  const teamA = [viewer, ...profiles.slice(0, 4)].map((profile) => ({
+  const teamA = [viewer, ...profiles.slice(0, 4)].map((profile, index) => ({
     ...profile,
     teamSide: "a" as const,
     isOnline: true,
+    slotNumber: index + 1,
+    isCaptain: index === 0,
   }));
   const teamB = profiles.slice(4).map((profile, index) => ({
     ...profile,
     id: index === 0 ? botCaptainId : profile.id,
     teamSide: "b" as const,
     isOnline: true,
+    slotNumber: index + 1,
+    isCaptain: index === 0,
   }));
 
   return [...teamA, ...teamB];

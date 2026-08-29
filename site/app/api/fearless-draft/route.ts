@@ -31,6 +31,8 @@ import {
 } from "@/app/fearless-draft/server/bot-service";
 import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
+import { toggleDraftHeroSuggestion } from
+  "@/app/fearless-draft/server/suggestion-service";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -49,6 +51,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const user = await requireSession();
+    const seasonMatchId = fearlessSeasonMatchId(request);
     const command = (await request.json()) as Partial<FearlessDraftCommand>;
     switch (command.action) {
       case "START_BOT":
@@ -120,6 +123,17 @@ export async function POST(request: Request) {
           user.discordId,
           Number(command.heroId),
           Number(command.expectedVersion),
+        );
+        break;
+      case "TOGGLE_HERO_SUGGESTION":
+        if (!("heroId" in command) || !("expectedVersion" in command)) {
+          throw new DraftRequestError("Герой не указан");
+        }
+        await toggleDraftHeroSuggestion(
+          user.discordId,
+          Number(command.heroId),
+          Number(command.expectedVersion),
+          seasonMatchId,
         );
         break;
       case "READY_FOR_NEXT_MAP":

@@ -5,7 +5,13 @@ export function draftLobbyTeamForCaptain(
   captainId: string,
 ) {
   const captain = players.find((player) => player.id === captainId);
-  return captain
-    ? players.filter((player) => player.teamSide === captain.teamSide)
-    : [];
+  if (!captain) return [];
+  return players
+    .filter((player) => player.teamSide === captain.teamSide)
+    .sort((left, right) => {
+      if (left.id === captainId) return -1;
+      if (right.id === captainId) return 1;
+      return (left.slotNumber ?? Number.MAX_SAFE_INTEGER) -
+        (right.slotNumber ?? Number.MAX_SAFE_INTEGER);
+    });
 }

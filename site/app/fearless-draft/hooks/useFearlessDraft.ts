@@ -62,7 +62,8 @@ export function useFearlessDraft(
   const send = useCallback(async (command: FearlessDraftCommand) => {
     setIsSending(true);
     try {
-      const response = await fetch("/api/fearless-draft", {
+      const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
+      const response = await fetch(`/api/fearless-draft${suffix}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(command),
@@ -79,7 +80,7 @@ export function useFearlessDraft(
     } finally {
       setIsSending(false);
     }
-  }, [reload]);
+  }, [reload, seasonMatchId]);
 
   return { snapshot, error, isSending, isConnected, send };
 }

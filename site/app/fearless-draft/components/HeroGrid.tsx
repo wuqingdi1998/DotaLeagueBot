@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import type { MouseEvent } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
 import {
@@ -16,6 +17,7 @@ import type {
 } from "../model/snapshot";
 import { useHeroSearchHotkeys } from "../hooks/useHeroSearchHotkeys";
 import { useDraftLocale } from "../hooks/useDraftLocale";
+import { draftTeamPlayerColor } from "../model/player-colors";
 
 type HeroState =
   | "available"
@@ -33,17 +35,32 @@ type HeroPreview = {
   top: number;
 };
 
+type HeroSuggestionStyle = CSSProperties & {
+  "--fearless-suggestion-ring"?: string;
+  "--fearless-suggestion-glow"?: string;
+};
+
+function suggestionRing(colors: string[]): string {
+  if (colors.length === 1) return colors[0];
+  const step = 100 / colors.length;
+  return `conic-gradient(${colors.map((color, index) =>
+    `${color} ${index * step}% ${(index + 1) * step}%`,
+  ).join(", ")})`;
+}
+
 const LATEST_ACTION_FLASH_DURATION_MS = 3_000;
 
 export function HeroGrid({
   map,
   userId,
+  canSuggest,
   isSending,
   send,
   onPreviewHeroIdChange,
 }: {
   map: DraftMapSnapshot;
   userId: string;
+  canSuggest: boolean;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
   onPreviewHeroIdChange: (heroId: number) => void;
@@ -177,17 +194,34 @@ export function HeroGrid({
               {group.heroes.map((hero) => {
                 const state = heroState(hero.id);
                 const canSelect = isOwnTurn && state === "available";
+                const canSuggestHero = canSuggest && state === "available";
+                const suggestions = map.heroSuggestions.filter(
+                  (suggestion) => suggestion.heroId === hero.id,
+                );
+                const orderedSuggestions = [...suggestions].sort((left, right) =>
+                  Number(right.playerId === userId) - Number(left.playerId === userId),
+                );
+                const suggestionColors = orderedSuggestions.map((suggestion) =>
+                  draftTeamPlayerColor(suggestion.colorSlot),
+                );
+                const suggestionStyle: HeroSuggestionStyle | undefined = suggestionColors.length
+                  ? {
+                      "--fearless-suggestion-ring": suggestionRing(suggestionColors),
+                      "--fearless-suggestion-glow": suggestionColors[0],
+                    }
+                  : undefined;
                 const flashClass = flashingAction?.heroId === hero.id
                   ? `just-${flashingAction.type.toLowerCase()}`
                   : "";
                 return (
                   <button
                     key={hero.id}
-                    className={`${state} ${selectedHeroId === hero.id ? "selected" : ""} ${flashClass}`}
+                    className={`${state} ${selectedHeroId === hero.id ? "selected" : ""} ${suggestions.length ? "suggested" : ""} ${flashClass}`}
                     type="button"
-                    aria-disabled={!canSelect}
+                    aria-disabled={!canSelect && !canSuggestHero}
                     aria-label={hero.name}
-                    tabIndex={canSelect ? 0 : -1}
+                    tabIndex={canSelect || canSuggestHero ? 0 : -1}
+                    style={suggestionStyle}
                     title={
                       state === "fearless-locked"
                         ? text.usedPreviousMap
@@ -199,6 +233,15 @@ export function HeroGrid({
                     }
                     onMouseEnter={(event) => showHeroPreview(hero, event)}
                     onMouseLeave={() => setHeroPreview(null)}
+                    onContextMenu={(event) => {
+                      event.preventDefault();
+                      if (!canSuggestHero || isSending) return;
+                      void send({
+                        action: "TOGGLE_HERO_SUGGESTION",
+                        heroId: hero.id,
+                        expectedVersion: map.version,
+                      });
+                    }}
                     onClick={() => {
                       if (canSelect) {
                         setSelection({ heroId: hero.id, version: map.version });
@@ -217,6 +260,9 @@ export function HeroGrid({
                       {state === "banned" && <FiSlash />}
                       {state.startsWith("picked") && <FiCheck />}
                     </span>
+                    {suggestions.length > 0 && (
+                      <span className="fearless-hero-suggestion-frame" aria-hidden="true" />
+                    )}
                   </button>
                 );
               })}

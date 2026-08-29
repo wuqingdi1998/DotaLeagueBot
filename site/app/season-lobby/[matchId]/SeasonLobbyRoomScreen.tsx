@@ -109,6 +109,8 @@ export function SeasonLobbyRoomScreen({
               avatarUrl: player.avatarUrl,
               teamSide: player.teamSide,
               isOnline: player.isOnline,
+              slotNumber: player.slotNumber,
+              isCaptain: player.isCaptain,
             }))}
           />
         </section>
