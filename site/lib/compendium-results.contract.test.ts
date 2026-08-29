@@ -23,7 +23,7 @@ const resultsCss = source("../app/styles/57-compendium-results.css");
 const resultsPrizeCss = source(
   "../app/styles/58-compendium-results-prizes.css",
 );
-const globalStyles = source("../app/globals.css");
+const routeStyles = source("../app/styles/compendium-route.css");
 const styleRules = source("../../.codex/rules/04-styles.md");
 
 describe("finished compendium results contract", () => {
@@ -122,8 +122,8 @@ describe("finished compendium results contract", () => {
     expect(resultsPrizeCss).toMatch(
       /@media \(max-width: 720px\)[\s\S]*\.compendium-results-prize-image \.compendium-star-race-prize-preview\s*\{[^}]*left:\s*50%;[^}]*width:\s*min\(300px, 70vw\);[^}]*transform:\s*translate\(-50%, -4px\);/,
     );
-    expect(globalStyles).toContain(
-      '@import "./styles/58-compendium-results-prizes.css"',
+    expect(routeStyles).toContain(
+      '@import "./58-compendium-results-prizes.css"',
     );
   });
 

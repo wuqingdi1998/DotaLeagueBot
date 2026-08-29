@@ -1,10 +1,18 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { FiCalendar, FiInfo } from "react-icons/fi";
-import { CalendarEventEditor } from "../admin/CalendarEventEditor";
 import { CalendarGrid } from "../components/CalendarGrid";
 import { useCalendarEvents } from "../hooks/useCalendarEvents";
 import type { SeasonCalendarEvent } from "@/lib/season-calendar";
+
+const CalendarEventEditor = dynamic(
+  () =>
+    import("../admin/CalendarEventEditor").then(
+      (module) => module.CalendarEventEditor,
+    ),
+  { ssr: false },
+);
 
 export function SeasonCalendarPage({
   initialEvents,

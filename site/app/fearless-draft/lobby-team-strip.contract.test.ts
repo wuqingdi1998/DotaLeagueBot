@@ -35,7 +35,7 @@ const lobbyPreviewService = source(
 const playerProfile = source("lib/player-profile.ts");
 const stratzLogo = source("public/fearless-draft/stratz-logo.svg");
 const styles = source("app/styles/51-fearless-draft-lobby-roster.css");
-const globals = source("app/globals.css");
+const routeStyles = source("app/styles/fearless-draft-route.css");
 
 describe("Fearless Draft season lobby team strip", () => {
   it("passes all ten room players into the shared draft board", () => {
@@ -161,11 +161,11 @@ describe("Fearless Draft season lobby team strip", () => {
   });
 
   it("loads the roster styling after the shared board styles", () => {
-    const boardImport = '@import "./styles/51-fearless-draft-board.css";';
-    const rosterImport = '@import "./styles/51-fearless-draft-lobby-roster.css";';
-    expect(globals).toContain(rosterImport);
-    expect(globals.indexOf(rosterImport)).toBeGreaterThan(
-      globals.indexOf(boardImport),
+    const boardImport = '@import "./51-fearless-draft-board.css";';
+    const rosterImport = '@import "./51-fearless-draft-lobby-roster.css";';
+    expect(routeStyles).toContain(rosterImport);
+    expect(routeStyles.indexOf(rosterImport)).toBeGreaterThan(
+      routeStyles.indexOf(boardImport),
     );
   });
 });

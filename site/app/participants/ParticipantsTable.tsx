@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 import { FiArchive, FiEdit3, FiSearch, FiX } from "react-icons/fi";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
@@ -11,7 +12,14 @@ import {
 } from "@/lib/participant-filter";
 import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
-import { ParticipantAdminDialog } from "./ParticipantAdminDialog";
+
+const ParticipantAdminDialog = dynamic(
+  () =>
+    import("./ParticipantAdminDialog").then(
+      (module) => module.ParticipantAdminDialog,
+    ),
+  { ssr: false },
+);
 
 export function ParticipantsTable({
   players,
@@ -176,7 +184,7 @@ export function ParticipantsTable({
           </div>
         )}
       </div>
-      {editedPlayer && (
+      {isOrganizer && editedPlayer && (
         <ParticipantAdminDialog
           player={editedPlayer}
           canArchive={editedPlayer.dotaId !== organizerDotaId}

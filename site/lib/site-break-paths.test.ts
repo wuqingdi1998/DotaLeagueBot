@@ -5,6 +5,7 @@ describe("site break path boundaries", () => {
   it("keeps recovery, organizer login and health checks available", () => {
     expect(isSiteBreakBypassPath("/break")).toBe(true);
     expect(isSiteBreakBypassPath("/api/health")).toBe(true);
+    expect(isSiteBreakBypassPath("/api/site-break/events")).toBe(true);
     expect(isSiteBreakBypassPath("/api/site-break/status")).toBe(true);
     expect(isSiteBreakBypassPath("/api/auth/discord")).toBe(true);
     expect(isSiteBreakBypassPath("/api/auth/callback")).toBe(true);

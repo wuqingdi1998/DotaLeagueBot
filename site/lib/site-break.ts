@@ -2,6 +2,7 @@ import "server-only";
 
 import { one, query } from "@/lib/db";
 import { sessionTokenHash } from "@/lib/auth-session";
+import { publishSiteBreakEvent } from "@/lib/site-break-events";
 
 type SiteBreakRow = {
   is_break_enabled: boolean;
@@ -29,7 +30,9 @@ export async function setSiteBreakEnabled(
      RETURNING is_break_enabled`,
     [isBreakEnabled, organizerId],
   );
-  return rows[0].is_break_enabled;
+  const nextState = rows[0].is_break_enabled;
+  publishSiteBreakEvent({ isBreakEnabled: nextState });
+  return nextState;
 }
 
 export async function hasOrganizerSession(input: {

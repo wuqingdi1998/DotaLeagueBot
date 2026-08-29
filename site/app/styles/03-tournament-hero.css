@@ -134,59 +134,6 @@
   line-height: 1.65;
 }
 
-.hero-buttons {
-  display: flex;
-  gap: 12px;
-  margin-top: 34px;
-}
-
-.primary-button,
-.secondary-button {
-  display: inline-flex;
-  min-height: 52px;
-  align-items: center;
-  justify-content: center;
-  gap: 13px;
-  border: 1px solid rgba(121, 221, 255, 0.72);
-  border-radius: 13px;
-  padding: 0 23px;
-  background: var(--blue-gradient);
-  color: #fff;
-  cursor: pointer;
-  font-size: 15px;
-  font-weight: 600;
-  box-shadow: 0 12px 28px rgba(0, 121, 201, 0.2);
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
-}
-
-.primary-button:hover,
-.secondary-button:hover {
-  transform: translateY(-2px);
-  background: var(--blue-gradient-hover);
-  box-shadow: 0 16px 34px rgba(0, 121, 201, 0.28);
-}
-
-.primary-button:disabled {
-  cursor: not-allowed;
-  transform: none;
-  filter: grayscale(0.35);
-  opacity: 0.48;
-  box-shadow: none;
-}
-
-.secondary-button {
-  border-color: var(--line);
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: none;
-}
-
-.secondary-button:hover {
-  border-color: var(--line-strong);
-  background: var(--surface-blue);
-  color: var(--blue-deep);
-}
-
 .hero-footnote {
   margin: 15px 0 0;
   color: var(--quiet);

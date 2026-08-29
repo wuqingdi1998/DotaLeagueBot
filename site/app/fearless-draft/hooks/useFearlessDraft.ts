@@ -71,7 +71,7 @@ export function useFearlessDraft(
       const body = (await response.json()) as CommandResponse;
       if (!response.ok) throw new Error(body.error ?? "Действие не выполнено");
       setError("");
-      await reload();
+      if (!isConnected) await reload();
       return true;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Действие не выполнено");
@@ -80,7 +80,7 @@ export function useFearlessDraft(
     } finally {
       setIsSending(false);
     }
-  }, [reload, seasonMatchId]);
+  }, [isConnected, reload, seasonMatchId]);
 
   return { snapshot, error, isSending, isConnected, send };
 }

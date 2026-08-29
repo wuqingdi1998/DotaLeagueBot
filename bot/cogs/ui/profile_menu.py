@@ -6,7 +6,7 @@ from discord.ext import commands
 from discord import ui
 
 # Импортируем сервис и модели
-from services.league_service import LeagueService
+from services.profile_change_service import ProfileChangeService
 from database.models import Player
 from utils.nickname_validator import NICKNAME_MAX_LENGTH, validate_nickname
 
@@ -55,7 +55,7 @@ class ChangeNickModal(ui.Modal, title="Смена никнейма"):
 
             # 3. Открываем сессию
             async with session_maker() as session:
-                service = LeagueService(session)  # Передаем сессию в сервис!
+                service = ProfileChangeService(session)
 
                 # Выполняем смену ника
                 # Ожидаем, что сервис вернет (True, (old_nick, remaining)) или (False, "Ошибка")
@@ -143,7 +143,7 @@ class ChangeRolesModal(ui.Modal, title="Смена позиций"):
                 return await interaction.followup.send("❌ Ошибка БД.", ephemeral=True)
 
             async with session_maker() as session:
-                service = LeagueService(session)  # Передаем сессию!
+                service = ProfileChangeService(session)
 
                 # Вызываем метод сервиса
                 success, msg = await service.change_roles(interaction.user.id, new_roles)

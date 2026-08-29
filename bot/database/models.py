@@ -70,6 +70,7 @@ class Player(Base):
     last_season_update = Column(Integer, default=1)
     nick_changes_used = Column(Integer, default=0)
     role_changes_used = Column(Integer, default=0)
+    profile_change_policy_version = Column(Integer, nullable=False, default=0)
     last_role_change_at = Column(DateTime(timezone=True), nullable=True)
     seasonal_free_reg_used = Column(Integer, default=0)
     last_seasonal_season_update = Column(Integer, default=0)

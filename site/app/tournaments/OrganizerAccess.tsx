@@ -1,10 +1,15 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { FiLogOut, FiShield, FiX } from "react-icons/fi";
-import { SiteBreakButton } from "./SiteBreakButton";
+
+const SiteBreakButton = dynamic(
+  () => import("./SiteBreakButton").then((module) => module.SiteBreakButton),
+  { ssr: false },
+);
 
 type OrganizerUser = {
   isAdmin: boolean;

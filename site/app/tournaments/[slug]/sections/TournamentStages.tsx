@@ -2,11 +2,25 @@
 
 import { groupOutcome, groupOutcomeLabel } from "@/lib/group-advancement";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
-import { GroupShuffleToolbar } from "../admin/GroupShuffleToolbar";
-import { GroupSettingsEditor } from "../admin/GroupSettingsEditor";
+import dynamic from "next/dynamic";
 import { useTournament } from "../hooks/TournamentContext";
 import { initials } from "../model/formatters";
 import { TournamentBracket } from "../TournamentBracket";
+
+const GroupShuffleToolbar = dynamic(
+  () =>
+    import("../admin/GroupShuffleToolbar").then(
+      (module) => module.GroupShuffleToolbar,
+    ),
+  { ssr: false },
+);
+const GroupSettingsEditor = dynamic(
+  () =>
+    import("../admin/GroupSettingsEditor").then(
+      (module) => module.GroupSettingsEditor,
+    ),
+  { ssr: false },
+);
 
 export function GroupsPanel() {
   const {

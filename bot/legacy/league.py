@@ -1,14 +1,17 @@
 import os
+import traceback
 import time
+
+"""Frozen backup of the former ordinary league Discord interface."""
 
 import discord
 import asyncio
 from discord import app_commands
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks  # tasks нужен для автоматики
 from discord.ui import Modal, View, Select, Button, TextInput
 from sqlalchemy import select
 from database.models import Player
-from services.seasonal_league_service import SeasonalLeagueService
+from services.league_service import LeagueService
 from services.player_tier import effective_player_tier
 from services.profile_service import ProfileService
 from services.stratz_service import StratzService
@@ -17,39 +20,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 SCREEN_CHANNEL_ID = int(os.getenv("SCREEN_CHANNEL_ID") or 0)
-GUILD_ID_ENV = os.getenv("GUILD_ID")
-
-
-def _parse_role_ids(raw: str | None) -> set[int]:
-    if not raw:
-        return set()
-    out = set()
-    for part in raw.split(","):
-        part = part.strip()
-        if not part:
-            continue
-        try:
-            out.add(int(part))
-        except ValueError:
-            pass
-    return out
-
-
-SEASONAL_ALLOWED_ROLE_IDS: set[int] = _parse_role_ids(os.getenv("SEASONAL_ALLOWED_ROLE_IDS"))
-
-
-async def _fetch_user_role_ids(bot, user_id: int) -> set[int]:
-    """Fetch the user's role IDs from the configured guild. Returns empty set on failure."""
-    if not GUILD_ID_ENV:
-        return set()
-    try:
-        guild = bot.get_guild(int(GUILD_ID_ENV)) or await bot.fetch_guild(int(GUILD_ID_ENV))
-        member = guild.get_member(user_id)
-        if member is None:
-            member = await guild.fetch_member(user_id)
-        return {r.id for r in member.roles}
-    except Exception:
-        return set()
 
 
 class ActivityCheckView(discord.ui.View):
@@ -57,31 +27,32 @@ class ActivityCheckView(discord.ui.View):
         super().__init__(timeout=None)
         self._cooldowns = {}
 
-    @discord.ui.button(
-        label="📊 Проверить активность",
-        style=discord.ButtonStyle.primary,
-        custom_id="seasonal_check_activity_btn_persistent"
-    )
+    @discord.ui.button(label="📊 Проверить активность", style=discord.ButtonStyle.primary, custom_id="check_activity_btn_persistent")
     async def check_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = interaction.user.id
         current_time = time.time()
 
+        # 1. ПРОВЕРКА КУЛДАУНА (Сначала проверяем, потом деферим)
         last_press = self._cooldowns.get(user_id, 0)
         if current_time - last_press < 30:
             retry_after = int(30 - (current_time - last_press))
+            # Здесь используем обычный response.send_message
             return await interaction.response.send_message(
                 f"⏳ Слишком часто! Попробуй снова через {retry_after} сек.",
                 ephemeral=True
             )
 
+        # 2. Если кулдаун пройден — только тогда "деферим" и обновляем время
         await interaction.response.defer(ephemeral=True)
         self._cooldowns[user_id] = current_time
 
-        league_cog = interaction.client.get_cog("SeasonalLeague")
+        # 3. Достаем Ког
+        league_cog = interaction.client.get_cog("League")
         if not league_cog:
             return await interaction.followup.send("❌ Ошибка: Модуль лиги не найден.", ephemeral=True)
 
-        async with SeasonalLeagueService(interaction.client) as league_service:
+        # 2. Работаем с БД через LeagueService (как в твоем методе регистрации)
+        async with LeagueService(interaction.client) as league_service:
             session = league_service.session
             profile_service = ProfileService(session)
 
@@ -96,6 +67,7 @@ class ActivityCheckView(discord.ui.View):
             active_session, _ = await league_service.get_active_registrations()
             target_date = active_session.start_time if (active_session and active_session.start_time) else datetime.now()
 
+            # Подготовка данных
             steam_id = int(player.steam_id32)
             if steam_id > 76561190000000000:
                 steam_id -= 76561197960265728
@@ -107,6 +79,7 @@ class ActivityCheckView(discord.ui.View):
             else:
                 m_role, s_role = "1", "1"
 
+        # 3. Запрос к Stratz через сервис из Кога
         try:
             stats = await league_cog.stratz.get_player_activity(steam_id, m_role, s_role, target_date)
         except Exception as e:
@@ -118,6 +91,7 @@ class ActivityCheckView(discord.ui.View):
         if stats.get('is_private'):
             return await interaction.followup.send("🔒 **Твой профиль скрыт!** Открой историю матчей в Dota 2.", ephemeral=True)
 
+        # 4. 🔥 ВОЗВРАЩАЕМ ТВОЙ ФОРМАТ ЭМБЕДА
         stratz = league_cog.stratz
         use_wins = stats.get('mode') == 'wins'
         main_req = stratz.main_required
@@ -125,11 +99,11 @@ class ActivityCheckView(discord.ui.View):
         total_req = stratz.total_required
 
         if stats['passed']:
-            color = 0x00ff00
+            color = 0x00ff00  # Зеленый
             title = "✅ ДОПУЩЕН К ЛИГЕ"
             desc = "Ты проходишь по критериям активности."
         else:
-            color = 0xff0000
+            color = 0xff0000  # Красный
             title = "❌ НЕДОСТАТОЧНО АКТИВНОСТИ"
             desc = "Нужно сыграть/выиграть больше рейтинговых игр."
 
@@ -140,29 +114,48 @@ class ActivityCheckView(discord.ui.View):
             ws = stats.get('wins_side', 0)
             m_ico = "✅" if wm >= main_req else "❌"
             s_ico = "✅" if ws >= side_req else "❌"
-            embed.add_field(name=f"Wins Main {m_role} (надо {main_req})", value=f"{m_ico} **{wm}**", inline=True)
-            embed.add_field(name=f"Wins Side {s_role} (надо {side_req})", value=f"{s_ico} **{ws}**", inline=True)
+            embed.add_field(
+                name=f"Wins Main {m_role} (надо {main_req})",
+                value=f"{m_ico} **{wm}**",
+                inline=True
+            )
+            embed.add_field(
+                name=f"Wins Side {s_role} (надо {side_req})",
+                value=f"{s_ico} **{ws}**",
+                inline=True
+            )
         else:
             t_ico = "✅" if stats['total'] >= total_req else "❌"
             m_ico = "✅" if stats['main'] >= main_req else "❌"
             s_ico = "✅" if stats['side'] >= side_req else "❌"
-            embed.add_field(name=f"Всего (надо {total_req})", value=f"{t_ico} **{stats['total']}**", inline=True)
-            embed.add_field(name=f"Main {m_role} pos (надо {main_req})", value=f"{m_ico} **{stats['main']}**", inline=True)
-            embed.add_field(name=f"Side {s_role} pos (надо {side_req})", value=f"{s_ico} **{stats['side']}**", inline=True)
+            embed.add_field(
+                name=f"Всего (надо {total_req})",
+                value=f"{t_ico} **{stats['total']}**",
+                inline=True
+            )
+            embed.add_field(
+                name=f"Main {m_role} pos (надо {main_req})",
+                value=f"{m_ico} **{stats['main']}**",
+                inline=True
+            )
+            embed.add_field(
+                name=f"Side {s_role} pos (надо {side_req})",
+                value=f"{s_ico} **{stats['side']}**",
+                inline=True
+            )
 
         date_str = target_date.strftime('%d.%m')
         embed.set_footer(text=f"Поиск за 30 дней до: {date_str} | ID: {steam_id}")
 
         await interaction.followup.send(embed=embed, ephemeral=True)
-
-
 class TierModalInternal(Modal):
     def __init__(self, bot, view, player_discord_id, player_name):
         super().__init__(title=f"Edit: {player_name}")
         self.bot = bot
-        self.view = view
+        self.view = view  # Ссылка на родительское View (меню)
         self.player_discord_id = player_discord_id
 
+        # Поле ввода
         self.rating_input = TextInput(
             label="Новый тир (0-12)",
             placeholder="0 = сброс (авто)",
@@ -178,17 +171,22 @@ class TierModalInternal(Modal):
             if not 0 <= val <= 12:
                 return await interaction.response.send_message("❌ Число от 0 до 12!", ephemeral=True)
 
-            async with SeasonalLeagueService(self.bot) as service:
+            # 1. Сохраняем в БД
+            async with LeagueService(self.bot) as service:
                 await service.update_player_internal_rating(self.player_discord_id, val)
 
+            # 2. ОБНОВЛЯЕМ ПАМЯТЬ VIEW (чтобы цифра сменилась мгновенно)
+            # Ищем игрока в списке, который хранится в View, и меняем ему рейтинг
             for reg, p in self.view.registrations:
                 if p.discord_id == self.player_discord_id:
                     p.internal_rating = val
                     break
 
+            # 3. Перестраиваем вид (кнопки, текст)
             self.view.update_components()
             new_embed = self.view.build_embed()
 
+            # 4. ГЛАВНОЕ: Ответ на модалку — это редактирование исходного сообщения!
             await interaction.response.edit_message(embed=new_embed, view=self.view)
 
         except ValueError:
@@ -198,11 +196,13 @@ class TierModalInternal(Modal):
             await interaction.response.send_message("❌ Ошибка при обновлении.", ephemeral=True)
 
 
+# --- 2. КЛАСС VIEW (МЕНЮ) ---
 class TierAdjustmentViewWrapper(View):
     def __init__(self, bot, registrations):
         super().__init__(timeout=600)
         self.bot = bot
         self.registrations = registrations
+        # Сортировка по имени
         self.registrations.sort(key=lambda x: x[1].ingame_name.lower())
 
         self.page = 0
@@ -214,13 +214,15 @@ class TierAdjustmentViewWrapper(View):
         return effective_player_tier(player), is_manual
 
     def update_components(self):
-        self.clear_items()
+        self.clear_items()  # Очищаем старые кнопки
 
+        # Пагинация
         start = self.page * self.items_per_page
         end = start + self.items_per_page
         current_batch = self.registrations[start:end]
         total_pages = (len(self.registrations) - 1) // self.items_per_page + 1
 
+        # Формируем список (Select)
         options = []
         for reg, player in current_batch:
             val, is_manual = self._get_display_tier(player)
@@ -249,27 +251,31 @@ class TierAdjustmentViewWrapper(View):
             select.callback = self.select_callback
             self.add_item(select)
 
-        self.add_item(Button(label="⬅️", style=discord.ButtonStyle.secondary, row=1,
-                             disabled=(self.page == 0), custom_id="seasonal_prev_btn"))
-        self.children[-1].callback = self.prev_page
+        # Кнопки навигации
+        self.add_item(Button(label="⬅️", style=discord.ButtonStyle.secondary, row=1, disabled=(self.page == 0),
+                             custom_id="prev_btn"))
+        self.children[-1].callback = self.prev_page  # Привязываем коллбек к последней добавленной кнопке
 
-        self.add_item(Button(label="🔄 Обновить", style=discord.ButtonStyle.primary, row=1,
-                             custom_id="seasonal_refresh_btn"))
+        self.add_item(Button(label="🔄 Обновить", style=discord.ButtonStyle.primary, row=1, custom_id="refresh_btn"))
         self.children[-1].callback = self.refresh_btn
 
-        self.add_item(Button(label="➡️", style=discord.ButtonStyle.secondary, row=1,
-                             disabled=(end >= len(self.registrations)), custom_id="seasonal_next_btn"))
+        self.add_item(
+            Button(label="➡️", style=discord.ButtonStyle.secondary, row=1, disabled=(end >= len(self.registrations)),
+                   custom_id="next_btn"))
         self.children[-1].callback = self.next_page
 
     async def select_callback(self, interaction: discord.Interaction):
+        # Получаем ID выбранного игрока
         selected_id = int(interaction.data['values'][0])
 
+        # Ищем имя (чисто для заголовка модалки)
         p_name = "Player"
         for reg, p in self.registrations:
             if p.discord_id == selected_id:
                 p_name = p.ingame_name
                 break
 
+        # Открываем модалку, передавая 'self' (этот View) внутрь
         modal = TierModalInternal(self.bot, self, selected_id, p_name)
         await interaction.response.send_modal(modal)
 
@@ -284,8 +290,9 @@ class TierAdjustmentViewWrapper(View):
         await interaction.response.edit_message(embed=self.build_embed(), view=self)
 
     async def refresh_btn(self, interaction: discord.Interaction):
+        # Полная перезагрузка из БД
         await interaction.response.defer()
-        async with SeasonalLeagueService(self.bot) as service:
+        async with LeagueService(self.bot) as service:
             _, registrations = await service.get_active_registrations()
 
         self.registrations = registrations
@@ -309,42 +316,56 @@ class TierAdjustmentViewWrapper(View):
             lines.append(line)
 
         desc = "**Список игроков**\n" + ("\n".join(lines) if lines else "Пусто")
-        return discord.Embed(title="🔧 Корректировка Тиров (Seasonal)", description=desc, color=discord.Color.orange())
+        return discord.Embed(title="🔧 Корректировка Тиров", description=desc, color=discord.Color.orange())
 
 
 class DMCheckinView(discord.ui.View):
     def __init__(self, bot, week_id: int):
         super().__init__(timeout=None)
         self.bot = bot
-        self.week_id = int(week_id)
+        self.week_id = int(week_id)  # Гарантируем, что это число
 
-    @discord.ui.button(label="✅ Я буду играть", style=discord.ButtonStyle.green,
-                       custom_id="seasonal_dm_checkin_confirm_v2")
+    @discord.ui.button(label="✅ Я буду играть", style=discord.ButtonStyle.green, custom_id="dm_checkin_confirm_v2")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # 1. Сразу говорим Дискорду "подожди", чтобы кнопка не зависла
         await interaction.response.defer(ephemeral=True)
-        print(f"[BUTTON-SEASONAL] Нажата кнопка чекина игроком {interaction.user.name}")
+        print(f"[BUTTON] Нажата кнопка чекина игроком {interaction.user.name}")
 
         try:
-            async with SeasonalLeagueService(self.bot) as service:
+            # 2. Логика проверки
+            async with LeagueService(self.bot) as service:
+                # Получаем текущую неделю
                 week, _ = await service.get_active_registrations()
 
                 if not week:
+                    print("[BUTTON] Нет активной недели")
                     return await interaction.followup.send("❌ Сейчас нет активных игр.", ephemeral=True)
 
+                print(f"[BUTTON] Сравниваю: ID кнопки={self.week_id} vs Текущая={week.id}")
+
+                # 3. Сравнение ID (защита от старых кнопок)
                 if week.id != self.week_id:
+                    print("[BUTTON] ID не совпали!")
                     return await interaction.followup.send(
                         f"⚠️ **Эта кнопка устарела.**\n"
                         f"Это чек-ин для тура #{self.week_id}, а сейчас идет тур #{week.id}.",
                         ephemeral=True
                     )
 
+                # 4. Выполняем чекин
+                print(f"[BUTTON] Пробую сделать чекин для {interaction.user.id}...")
+
+                # ВНИМАНИЕ: Если у тебя нет метода do_checkin, раскомментируй код ниже, а этот вызов удали
+                # success, msg = await service.do_checkin(interaction.user.id, week.id)
+
+                # --- ВСТАВКА ЛОГИКИ ЧЕКИНА ПРЯМО СЮДА (если нет метода do_checkin) ---
                 session = service.session
-                from database.models import SeasonalLeagueRegistration
+                from database.models import LeagueRegistration
                 from sqlalchemy import select
 
-                reg_stmt = select(SeasonalLeagueRegistration).where(
-                    SeasonalLeagueRegistration.player_id == interaction.user.id,
-                    SeasonalLeagueRegistration.session_id == week.id
+                reg_stmt = select(LeagueRegistration).where(
+                    LeagueRegistration.player_id == interaction.user.id,
+                    LeagueRegistration.session_id == week.id
                 )
                 res = await session.execute(reg_stmt)
                 reg = res.scalar_one_or_none()
@@ -360,9 +381,11 @@ class DMCheckinView(discord.ui.View):
                     await session.commit()
                     success = True
                     msg = "Участие подтверждено! Жди сбора команд."
+                # -------------------------------------------------------------------
 
                 if success:
                     await interaction.followup.send(f"✅ {msg}", ephemeral=True)
+                    # Отключаем кнопку визуально
                     button.disabled = True
                     button.label = "✅ Вы в игре"
                     await interaction.message.edit(view=self)
@@ -370,10 +393,11 @@ class DMCheckinView(discord.ui.View):
                     await interaction.followup.send(f"❌ {msg}", ephemeral=True)
 
         except Exception as e:
-            import traceback
-            print(f"[ERROR-SEASONAL] Ошибка кнопки: {e}")
+            print(f"[ERROR] Ошибка кнопки: {e}")
             traceback.print_exc()
             await interaction.followup.send(f"❌ Произошла ошибка: {e}", ephemeral=True)
+
+
 
 
 def simple_balance(players):
@@ -391,9 +415,11 @@ def simple_balance(players):
     return t1, t2
 
 
+
+
 class LobbyView(discord.ui.View):
     def __init__(self, lobby_data, match_index, steam_map, render_func, check_admin_func):
-        super().__init__(timeout=None)
+        super().__init__(timeout=None)  # Кнопки вечные
         self.lobby_data = lobby_data
         self.match_index = match_index
         self.steam_map = steam_map
@@ -401,18 +427,24 @@ class LobbyView(discord.ui.View):
         self.check_admin_func = check_admin_func
         self.host_id = None
 
+        # Очищаем и заполняем список
         self.select_host.options.clear()
         all_players = lobby_data['radiant'] + lobby_data['dire']
 
         for p in all_players:
+            # 🔥 ИСПРАВЛЕНИЕ ОШИБКИ ЗДЕСЬ
+            # Мы берем атрибуты по очереди через getattr, чтобы не было краша
             ingame = getattr(p, 'ingame_name', None)
-            d_name = getattr(p, 'discord_name', None)
+            d_name = getattr(p, 'discord_name', None)  # Теперь не упадет, если поля нет
 
+            # Логика приоритета: Ingame > Discord Name > ID
             label_name = ingame or d_name or str(p.discord_id)
 
+            # Обрезаем, если длиннее 100 символов (лимит Discord)
             if len(label_name) > 95:
                 label_name = label_name[:95] + "..."
 
+            # Получаем ранг безопасно
             rank = getattr(p, 'rank_tier', 'Unknown')
 
             self.select_host.add_option(
@@ -422,8 +454,7 @@ class LobbyView(discord.ui.View):
                 emoji="👤"
             )
 
-    @discord.ui.select(placeholder="👑 Назначить хоста лобби...", min_values=1, max_values=1,
-                       custom_id="seasonal_host_select")
+    @discord.ui.select(placeholder="👑 Назначить хоста лобби...", min_values=1, max_values=1, custom_id="host_select")
     async def select_host(self, interaction: discord.Interaction, select: discord.ui.Select):
         if not interaction.user.guild_permissions.administrator:
             await interaction.response.send_message("❌ Только администратор может назначать хоста.", ephemeral=True)
@@ -432,6 +463,7 @@ class LobbyView(discord.ui.View):
         selected_id = int(select.values[0])
         self.host_id = selected_id
 
+        # Перерисовываем сообщение через переданную функцию
         new_embed, content_msg = self.render_func(
             self.match_index,
             self.lobby_data,
@@ -442,19 +474,21 @@ class LobbyView(discord.ui.View):
         await interaction.response.edit_message(content=content_msg, embed=new_embed, view=self)
         await interaction.followup.send(f"👑 Хостом назначен <@{selected_id}>!", ephemeral=True)
 
-
 class MultiLobbyView(View):
     def __init__(self, bot, active_players, bench_players):
         super().__init__(timeout=1800)
         self.bot = bot
 
+        # 1. СТАРТ: Все в запасе
         self.bench = active_players + bench_players
+        # Сортируем по ТИРУ (функция get_tier)
         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
 
         self.lobbies = []
         self.current_lobby_idx = 0
         self.selected_player_id = None
 
+        # 2. Создаем слоты
         total_players = len(self.bench)
         num_lobbies = max(1, total_players // 10)
 
@@ -463,9 +497,11 @@ class MultiLobbyView(View):
 
         self.update_components()
 
+    # --- РАСЧЕТ ТИРА ---
     def get_tier(self, p):
         return effective_player_tier(p)
 
+    # --- ПОЛУЧЕНИЕ ДАННЫХ ---
     def get_current_lobby(self):
         return self.lobbies[self.current_lobby_idx]
 
@@ -477,6 +513,7 @@ class MultiLobbyView(View):
             if p.discord_id == p_id: return p
         return None
 
+    # --- ФОРМАТИРОВАНИЕ ---
     def format_player_str(self, p):
         tier = self.get_tier(p)
         name = p.ingame_name[:15]
@@ -489,6 +526,7 @@ class MultiLobbyView(View):
         total = sum([self.get_tier(p) for p in team])
         return round(total / len(team), 1)
 
+    # --- ВИЗУАЛ (EMBED) ---
     def build_embed(self):
         lobby = self.get_current_lobby()
 
@@ -498,23 +536,25 @@ class MultiLobbyView(View):
         rad_text = "\n".join([self.format_player_str(p) for p in lobby['radiant']]) or "*(Пусто)*"
         dire_text = "\n".join([self.format_player_str(p) for p in lobby['dire']]) or "*(Пусто)*"
 
+        # Сортировка запаса
         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
 
         lobby_num = self.current_lobby_idx + 1
         total_lobbies = len(self.lobbies)
 
         embed = discord.Embed(
-            title=f"🏟️ Seasonal Лобби {lobby_num} из {total_lobbies}",
+            title=f"🏟️ Лобби {lobby_num} из {total_lobbies}",
             description=f"Avg Tier: **Rad {rad_avg}** vs **Dire {dire_avg}**",
             color=discord.Color.gold()
         )
 
         embed.add_field(name="🌳 Radiant", value=rad_text, inline=True)
         embed.add_field(name="🌋 Dire", value=dire_text, inline=True)
-        embed.add_field(name="​", value="​", inline=False)
+        embed.add_field(name="\u200b", value="\u200b", inline=False)
 
         if self.bench:
             bench_strings = [self.format_player_str(p) for p in self.bench]
+            # Показываем запас компактно, если он большой
             chunk_size = 12
             for i in range(0, len(bench_strings), chunk_size):
                 chunk = bench_strings[i: i + chunk_size]
@@ -525,10 +565,12 @@ class MultiLobbyView(View):
 
         return embed
 
+    # --- ИНТЕРФЕЙС ---
     def update_components(self):
-        self.clear_items()
+        self.clear_items()  # Очищаем все
         lobby = self.get_current_lobby()
 
+        # --- 1. СЕЛЕКТЫ ИГРОКОВ (Ряды 0 и 1) ---
         sort_key = lambda p: (-self.get_tier(p), p.ingame_name.lower())
         in_game = sorted(lobby['radiant'] + lobby['dire'], key=sort_key)
         bench_sorted = sorted(self.bench, key=sort_key)
@@ -538,6 +580,7 @@ class MultiLobbyView(View):
         chunks = [all_players[i:i + chunk_size] for i in range(0, len(all_players), chunk_size)]
 
         current_row = 0
+        # Лимит 2 меню (до 50 игроков)
         for i, chunk in enumerate(chunks[:2]):
             options = []
             for p in chunk:
@@ -545,6 +588,7 @@ class MultiLobbyView(View):
                 tier = self.get_tier(p)
                 label = f"[{tier}] {p.ingame_name}"[:100]
 
+                # Обработка позиций
                 pos_text = "Rank only"
                 if p.positions:
                     if isinstance(p.positions, list):
@@ -569,6 +613,7 @@ class MultiLobbyView(View):
                 self.add_item(sel)
                 current_row += 1
 
+        # --- 2. ПЕРЕМЕЩЕНИЕ (Ряд 2) ---
         move_row = current_row
         dis = (self.selected_player_id is None)
 
@@ -584,6 +629,7 @@ class MultiLobbyView(View):
         b_bench.callback = self.move_to_bench
         self.add_item(b_bench)
 
+        # --- 3. НАВИГАЦИЯ И УТИЛИТЫ (Ряд 3) ---
         nav_row = move_row + 1
 
         b_prev = Button(label="⬅️", style=discord.ButtonStyle.primary, row=nav_row,
@@ -608,16 +654,29 @@ class MultiLobbyView(View):
         b_pub.callback = self.publish_all
         self.add_item(b_pub)
 
+        # --- 4. GOOGLE TOOLS (Ряд 4) - ТОЛЬКО MASSIVE ---
         google_row = nav_row + 1
         if google_row < 5:
-            btn_ex_all = Button(label="Export ALL", style=discord.ButtonStyle.blurple, emoji="📤", row=google_row)
+            # 4.1 Export ALL
+            btn_ex_all = Button(
+                label="Export ALL",
+                style=discord.ButtonStyle.blurple,
+                emoji="📤",
+                row=google_row
+            )
             btn_ex_all.callback = self.export_all_callback
             self.add_item(btn_ex_all)
 
-            btn_im_all = Button(label="Import ALL", style=discord.ButtonStyle.blurple, emoji="📥", row=google_row)
+            # 4.2 Import ALL
+            btn_im_all = Button(
+                label="Import ALL",
+                style=discord.ButtonStyle.blurple,
+                emoji="📥",
+                row=google_row
+            )
             btn_im_all.callback = self.import_all_callback
             self.add_item(btn_im_all)
-
+    # --- CALLBACKS (Стандартные) ---
     async def select_callback(self, interaction):
         self.selected_player_id = int(interaction.data['values'][0])
         self.update_components()
@@ -696,12 +755,13 @@ class MultiLobbyView(View):
             2: ("Evil Geniuses", "NewBee"),
         }
 
-        await interaction.edit_original_response(view=None, content="⏳ **Публикую матчи (Seasonal)...**")
+        await interaction.edit_original_response(view=None, content="⏳ **Публикую матчи...**")
 
+        # --- ПОДГОТОВКА ДАННЫХ ---
         base_start_time = datetime.now()
         steam_map = {}
 
-        async with SeasonalLeagueService(self.bot) as service:
+        async with LeagueService(self.bot) as service:
             active_session = await service.get_active_session()
             if active_session and active_session.start_time:
                 base_start_time = active_session.start_time
@@ -717,18 +777,29 @@ class MultiLobbyView(View):
                 for row in result:
                     steam_map[row.discord_id] = row.steam_id32
 
+        # --- ФУНКЦИЯ ОТРИСОВКИ (Передается в View) ---
+        # Она должна быть внутри метода или иметь доступ к self.get_tier
         def create_lobby_embed(index, lobby_data, s_map, host_id=None):
             r_name, d_name = TEAM_NAMES.get(index, (f"Radiant {index + 1}", f"Dire {index + 1}"))
 
+            # Время
             lobby_match_time = base_start_time + timedelta(minutes=index * 5)
-            lobby_match_time += timedelta(hours=3)
+            lobby_match_time += timedelta(hours=3) # Если нужно +3
             discord_time_str = f"{lobby_match_time.strftime('%H:%M')} МСК"
 
+            # Форматирование игрока
             def format_p(p):
                 tier_val = self.get_tier(p)
                 roles_str = ""
+                # Логика ролей (сокращена для читаемости, вставь свою если она сложнее)
+                clean_pos = []
+                if hasattr(p, 'positions') and p.positions:
+                    # Твоя логика парсинга ролей...
+                    pass
+
                 base_name = getattr(p, 'ingame_name', str(p.discord_id))
 
+                # 🔥 ЕСЛИ ЭТО ХОСТ — СТАВИМ КОРОНУ
                 prefix = "👑 " if p.discord_id == host_id else ""
 
                 display_name = f"**{base_name}**"
@@ -750,46 +821,54 @@ class MultiLobbyView(View):
             dire_pings = " ".join([f"<@{p.discord_id}>" for p in lobby_data['dire']])
 
             embed = discord.Embed(
-                title=f"⚔️ Seasonal Match #{index + 1} ({discord_time_str})",
-                color=discord.Color.purple()
+                title=f"⚔️ Match #{index + 1} ({discord_time_str})",
+                color=discord.Color.purple()  # Или Gold если хост выбран
             )
             if host_id:
                 embed.color = discord.Color.gold()
 
             embed.add_field(name=f"🌳 {r_name}", value=rad_list or "-", inline=True)
-            embed.add_field(name="⚔️", value="​", inline=True)
+            embed.add_field(name="⚔️", value="\u200b", inline=True)
             embed.add_field(name=f"🌋 {d_name}", value=dire_list or "-", inline=True)
 
             content_res = f"**Lobby {index + 1}** Summon: {rad_pings} {dire_pings}"
 
             if host_id:
+                # Находим имя хоста для футера
+                host_p = next((p for p in lobby_data['radiant'] + lobby_data['dire'] if p.discord_id == host_id), None)
                 content_res += f"\n👑 **Host:** <@{host_id}>"
             else:
                 embed.set_footer(text="Ожидание назначения хоста администратором...")
 
             return embed, content_res
 
+        # --- ЦИКЛ ПУБЛИКАЦИИ ---
         try:
             for i, lobby in enumerate(self.lobbies):
                 if not lobby['radiant'] and not lobby['dire']:
                     continue
 
+                # 1. Генерируем эмбед первый раз (без хоста)
                 initial_embed, initial_content = create_lobby_embed(i, lobby, steam_map, host_id=None)
 
+                # 2. Создаем View с выпадающим списком
+                # Передаем туда функцию create_lobby_embed, чтобы View мог обновлять сообщение сам
                 view = LobbyView(
                     lobby_data=lobby,
                     match_index=i,
                     steam_map=steam_map,
                     render_func=create_lobby_embed,
-                    check_admin_func=None
+                    check_admin_func=None  # Можно передать сюда self.bot.is_owner или типа того
                 )
 
+                # 3. Отправляем
                 await interaction.channel.send(
                     content=initial_content,
                     embed=initial_embed,
                     view=view
                 )
 
+            # Запасные игроки
             if self.bench:
                 bench_pings = " ".join([f"<@{p.discord_id}>" for p in self.bench])
                 await interaction.channel.send(f"🪑 **В запасе:** {bench_pings}")
@@ -802,15 +881,22 @@ class MultiLobbyView(View):
             await interaction.channel.send(f"❌ Ошибка публикации: {e}")
 
     async def export_all_callback(self, interaction: discord.Interaction):
+        # Делаем defer ephemeral, чтобы никто не видел сообщение "Bot thinks..."
         await interaction.response.defer(ephemeral=True)
 
+        # --- ЗАЩИТА ---
+        # Проверяем, существует ли сервис вообще
         if not getattr(self.bot, 'sheet_service', None):
             return await interaction.followup.send("❌ Ошибка: Сервис Google Таблиц не подключен в main.py",
                                                    ephemeral=True)
+        # --------------
 
         try:
             self.bot.sheet_service.export_custom_format(self.lobbies, self.bench)
+
+            # Безопасно получаем URL (если его нет, пишем заглушку)
             url = getattr(self.bot, 'sheet_url', 'URL не найден')
+
             await interaction.followup.send(f"✅ Таблица обновлена!\n<{url}>", ephemeral=True)
         except Exception as e:
             await interaction.followup.send(f"❌ Ошибка экспорта: {e}", ephemeral=True)
@@ -818,13 +904,17 @@ class MultiLobbyView(View):
     async def import_all_callback(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
+        # --- ЗАЩИТА ---
         if not getattr(self.bot, 'sheet_service', None):
             return await interaction.followup.send("❌ Ошибка: Сервис Google Таблиц не подключен в main.py",
                                                    ephemeral=True)
+        # --------------
 
         try:
+            # 1. Читаем таблицу
             imported_data, bench_names = self.bot.sheet_service.import_all_lobbies()
 
+            # 2. Создаем ПОЛНЫЙ пул игроков из памяти бота (до импорта)
             pool = []
             if self.lobbies:
                 for l in self.lobbies: pool.extend(l['radiant'] + l['dire'])
@@ -833,11 +923,13 @@ class MultiLobbyView(View):
 
             def find(n):
                 if not n: return None
+                # Сравниваем без учета регистра и пробелов
                 search_n = str(n).lower().strip()
                 for p in pool:
                     if p.ingame_name.lower().strip() == search_n: return p
                 return None
 
+            # 3. Строим структуру новых лобби
             new_lobbies = []
             processed_ids = set()
 
@@ -853,6 +945,7 @@ class MultiLobbyView(View):
                         processed_ids.add(p.discord_id)
                 new_lobbies.append(nl)
 
+            # 4. Строим новый запас из таблицы
             new_bench = []
             for name in bench_names:
                 if p := find(name):
@@ -860,6 +953,7 @@ class MultiLobbyView(View):
                         new_bench.append(p)
                         processed_ids.add(p.discord_id)
 
+            # 5. SAFETY NET (Возвращаем тех, кто был в пуле, но исчез из таблицы)
             restored_count = 0
             for p in pool:
                 if p.discord_id not in processed_ids:
@@ -867,13 +961,16 @@ class MultiLobbyView(View):
                     processed_ids.add(p.discord_id)
                     restored_count += 1
 
+            # 6. Применяем изменения
             self.lobbies = new_lobbies
 
+            # Гарантируем минимум 1 лобби (или 3, как у тебя было)
             while len(self.lobbies) < 3:
                 self.lobbies.append({'radiant': [], 'dire': []})
 
             self.bench = new_bench
 
+            # Сортировка бенча (если есть get_tier)
             try:
                 self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
             except:
@@ -894,9 +991,65 @@ class MultiLobbyView(View):
             import traceback
             traceback.print_exc()
             await interaction.followup.send(f"❌ Ошибка импорта: {e}", ephemeral=True)
+    # ==========================
+    # === GOOGLE: ONE LOBBY ====
+    # ==========================
 
+    # async def export_current_callback(self, interaction: discord.Interaction):
+    #     await interaction.response.defer()
+    #     lobby = self.get_current_lobby()
+    #     try:
+    #         # Используем старый метод export_lobby (только для текущего)
+    #         # Он запишет данные только в первые колонки (или как настроено)
+    #         self.bot.sheet_service.export_lobby(lobby['radiant'], lobby['dire'], self.bench)
+    #         await interaction.followup.send(f"✅ **Текущее** лобби выгружено!\n<{self.bot.sheet_url}>", ephemeral=True)
+    #     except Exception as e:
+    #         await interaction.followup.send(f"❌ Error Export One: {e}", ephemeral=True)
+    #
+    # async def import_current_callback(self, interaction: discord.Interaction):
+    #     await interaction.response.defer()
+    #     try:
+    #         # Читаем ТОЛЬКО первые колонки (старый метод)
+    #         r_names, d_names, b_names = self.bot.sheet_service.import_lobby()
+    #
+    #         lobby = self.get_current_lobby()
+    #
+    #         # Пул: берем игроков только из ЭТОГО лобби и ЗАПАСА
+    #         # (Игроков других лобби не трогаем, чтобы не сломать соседние игры)
+    #         pool = lobby['radiant'] + lobby['dire'] + self.bench
+    #
+    #         new_rad, new_dire, new_bench = [], [], []
+    #         found_ids = set()
+    #
+    #         def find(n):
+    #             for p in pool:
+    #                 if p.ingame_name.lower().strip() == n.lower().strip(): return p
+    #             return None
+    #
+    #         for n in r_names:
+    #             if p := find(n): new_rad.append(p); found_ids.add(p.discord_id)
+    #         for n in d_names:
+    #             if p := find(n): new_dire.append(p); found_ids.add(p.discord_id)
+    #
+    #         # Тех, кого нет в таблице для этого лобби, кидаем в ОБЩИЙ запас
+    #         for p in pool:
+    #             if p.discord_id not in found_ids: new_bench.append(p)
+    #
+    #         # Обновляем только текущее лобби
+    #         lobby['radiant'] = new_rad
+    #         lobby['dire'] = new_dire
+    #         self.bench = new_bench  # Запас обновляется глобально
+    #         self.bench.sort(key=lambda x: self.get_tier(x), reverse=True)
+    #
+    #         self.update_components()
+    #         await interaction.edit_original_response(embed=self.build_embed(), view=self)
+    #         await interaction.followup.send("✅ **Текущее** лобби обновлено!", ephemeral=True)
+    #
+    #     except Exception as e:
+    #         await interaction.followup.send(f"❌ Error Import One: {e}", ephemeral=True)
 
 class ReuploadScreenView(discord.ui.View):
+    """View with a reupload button shown after successful screenshot upload. Active for 5 minutes."""
     def __init__(self, cog, user_id: int, log_msg_id: int, log_channel_id: int):
         super().__init__(timeout=300)
         self.cog = cog
@@ -906,9 +1059,11 @@ class ReuploadScreenView(discord.ui.View):
 
     @discord.ui.button(label="Перезалить скрин", style=discord.ButtonStyle.secondary, emoji="🔄")
     async def reupload_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        # Disable the button immediately
         button.disabled = True
         await interaction.response.edit_message(view=self)
 
+        # Delete old screenshot from the screen channel
         try:
             log_channel = self.cog.bot.get_channel(self.log_channel_id)
             if log_channel is None:
@@ -916,8 +1071,9 @@ class ReuploadScreenView(discord.ui.View):
             old_msg = await log_channel.fetch_message(self.log_msg_id)
             await old_msg.delete()
         except Exception as e:
-            print(f"[WARN-SEASONAL] Не удалось удалить старый скриншот: {e}")
+            print(f"[WARN] Не удалось удалить старый скриншот: {e}")
 
+        # Re-open upload window for 5 minutes
         self.cog.waiting_for_screen[self.user_id] = time.time() + 300
 
         await interaction.followup.send(
@@ -934,17 +1090,16 @@ class RegistrationView(discord.ui.View):
         super().__init__(timeout=None)
         self.bot = bot
 
-    @discord.ui.button(label="Участвовать (Seasonal)", style=discord.ButtonStyle.green,
-                       emoji="✅", custom_id="seasonal_join_league_btn")
+    @discord.ui.button(label="Участвовать", style=discord.ButtonStyle.green, emoji="✅", custom_id="join_league_btn")
     async def join_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer(ephemeral=True)
 
-        user_role_ids = {r.id for r in getattr(interaction.user, 'roles', [])} if hasattr(interaction.user, 'roles') else set()
-
-        async with SeasonalLeagueService(interaction.client) as league_service:
+        # ✅ ОТКРЫВАЕМ СЕССИЮ
+        async with LeagueService(interaction.client) as league_service:
             session = league_service.session
             profile_service = ProfileService(session)
 
+            # 1. Проверки профиля
             player = await profile_service.get_player(interaction.user.id)
 
             if not player:
@@ -962,65 +1117,77 @@ class RegistrationView(discord.ui.View):
                 )
                 return
 
-            success, message, is_auto_checked, used_free = await league_service.register_player(
-                user_id=interaction.user.id,
-                user_role_ids=user_role_ids,
-                allowed_role_ids=SEASONAL_ALLOWED_ROLE_IDS,
-            )
+            # 2. Попытка регистрации
+            success, message, is_auto_checked = await league_service.register_player(user_id=interaction.user.id)
 
             if not success:
+                # Если требуется подтверждение Титана (или любая другая причина для скрина)
                 if "Titan" in str(message):
                     try:
-                        cog = interaction.client.get_cog("SeasonalLeague")
+                        # ==============================================================================
+                        # 🔥 ДОБАВЛЕНА ЛОГИКА ОЖИДАНИЯ СКРИНА
+                        # ==============================================================================
+
+                        # 1. Ищем твой Ког, где лежит слушатель on_message
+                        # ВАЖНО: Замени "Registration" на точное имя класса твоего Кога!
+                        # Если твой класс называется class LeagueSystem(commands.Cog), то пиши "LeagueSystem"
+                        cog = interaction.client.get_cog("League")
 
                         if cog:
+                            import time
+                            # 2. Добавляем игрока в "белый список" на 5 минут
                             cog.waiting_for_screen[interaction.user.id] = time.time() + 300
-                            print(f"[LOG-SEASONAL] Игрок {interaction.user} добавлен в ожидание скрина.")
+                            print(f"[LOG] Игрок {interaction.user} добавлен в ожидание скрина.")
                         else:
-                            print("[ERROR-SEASONAL] Не найден ког SeasonalLeague!")
+                            print("[ERROR] Не найден ког Registration! Скриншот не будет принят.")
+
+                        # ==============================================================================
 
                         await interaction.user.send(
-                            "📸 **Подтверждение ранга (Seasonal)**\n"
-                            "Пожалуйста, отправь скриншот твоего MMR (в профиле Dota 2) прямо сюда, "
-                            "в ответ на это сообщение.\n"
+                            "📸 **Подтверждение ранга**\n"
+                            "Пожалуйста, отправь скриншот твоего MMR (в профиле Dota 2) прямо сюда, в ответ на это сообщение.\n"
                             "⏳ Окно для отправки открыто на **5 минут**."
                         )
-                        await interaction.followup.send(
-                            "⚠️ **Требуется подтверждение.** Инструкция отправлена в ЛС.", ephemeral=True
-                        )
+                        await interaction.followup.send(f"⚠️ **Требуется подтверждение.** Инструкция отправлена в ЛС.",
+                                                        ephemeral=True)
 
                     except discord.Forbidden:
                         await interaction.followup.send(
                             f"❌ {message}\n(Открой ЛС, бот не может написать тебе инструкцию)", ephemeral=True)
                 else:
+                    # Другие ошибки
                     await interaction.followup.send(f"❌ {message}", ephemeral=True)
                 return
 
+            # 3. Успех
             await interaction.followup.send(f"✅ {message}", ephemeral=True)
 
+            # Если сработал авточекин
             bot = interaction.client
             if hasattr(bot, 'active_checkin') and bot.active_checkin:
                 if not bot.active_checkin.is_finished() and is_auto_checked:
                     await bot.active_checkin.add_player_external(player, interaction.channel)
 
 
-class SeasonalLeague(commands.Cog):
+# --- ОСНОВНОЙ КОГ ---
+class League(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.bot.add_view(RegistrationView(bot))
         self.checkin_sent_weeks = set()
         self.stratz = StratzService()
-        self.service = SeasonalLeagueService(bot)
+        self.service = LeagueService(bot)
         self.check_upcoming_games.start()
-        self.waiting_for_screen = {}
+        self.waiting_for_screen ={}
 
     def cog_unload(self):
         self.check_upcoming_games.cancel()
 
+    # --- ФОНОВАЯ ЗАДАЧА: АВТО-ЧЕКИН ---
     @tasks.loop(minutes=1)
     async def check_upcoming_games(self):
         try:
-            async with SeasonalLeagueService(self.bot) as service:
+            async with LeagueService(self.bot) as service:
                 week, registrations = await service.get_active_registrations()
 
                 if not week or not registrations:
@@ -1035,22 +1202,24 @@ class SeasonalLeague(commands.Cog):
                 if start_utc > now_utc:
                     diff = start_utc - now_utc
                     if timedelta(minutes=0) < diff <= timedelta(minutes=120):
-                        print(f"[AUTO-CHECKIN-SEASONAL] Запускаю рассылку для Тура #{week.week_number}")
+                        print(f"[AUTO-CHECKIN] Запускаю рассылку для Тура #{week.week_number}")
 
+                        # 🔥 ИСПРАВЛЕНИЕ: Сначала добавляем в список, чтобы не запустить дважды
                         self.checkin_sent_weeks.add(week.id)
 
+                        # А потом уже отправляем
                         await self.send_checkin_dms(registrations, week.week_number)
 
         except Exception as e:
-            print(f"[ERROR-SEASONAL] Auto-checkin task failed: {e}")
+            print(f"[ERROR] Auto-checkin task failed: {e}")
 
     async def enable_screen_upload(self, user_id):
         self.waiting_for_screen[user_id] = time.time() + 300
-        print(f"[DEBUG-SEASONAL] Ожидаем скрин от {user_id} следующие 5 минут.")
-
+        print(f"[DEBUG] Ожидаем скрин от {user_id} следующие 5 минут.")
+    # --- ФУНКЦИЯ РАССЫЛКИ ---
     async def send_checkin_dms(self, registrations, week_num):
         embed = discord.Embed(
-            title="⚠️ Seasonal Check-In: Подтверждение участия",
+            title="⚠️ Check-In: Подтверждение участия",
             description=(
                 f"Игры лиги (Тур #{week_num}) начнутся через 2 часа.\n"
                 "**Ты готов играть?**\n\n"
@@ -1061,7 +1230,7 @@ class SeasonalLeague(commands.Cog):
 
         week_id = registrations[0][0].session_id if registrations else None
 
-        if not week_id: return
+        if not week_id: return  # Защита
 
         for reg, player in registrations:
             if reg.is_checked_in:
@@ -1087,28 +1256,33 @@ class SeasonalLeague(commands.Cog):
     @commands.Cog.listener()
     async def on_ready(self):
         self.bot.add_view(ActivityCheckView())
-        print("✅ Кнопка проверки активности (Seasonal) зарегистрирована")
-
+        print("✅ Кнопка проверки активности зарегистрирована")
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+
+        # 1. Отсеиваем бота
         if message.author.bot:
             return
 
+        # 2. Проверка на ЛС (упрощенная)
         if message.guild is not None:
             return
 
         user_id = message.author.id
 
+        # Проверка списка ожидания
         if user_id not in self.waiting_for_screen:
             return
 
+        # Проверка таймера
         if time.time() > self.waiting_for_screen[user_id]:
             del self.waiting_for_screen[user_id]
             await message.channel.send("❌ Время ожидания истекло. Начните регистрацию заново.")
             return
 
+        # 3. Проверка на наличие картинки
         if not message.attachments:
-            return
+            return  # Игнорируем текст
 
         attachment = message.attachments[0]
         ctype = attachment.content_type
@@ -1116,31 +1290,40 @@ class SeasonalLeague(commands.Cog):
             await message.channel.send("❌ Это не картинка. Пришлите скриншот.")
             return
 
+        # 🔥 ФИКС ДУБЛЕЙ: Удаляем из очереди СРАЗУ, до начала обработки.
+        # Это гарантирует, что код не сработает дважды, если юзер кинет 2 фото или Дискорд лаганет.
         del self.waiting_for_screen[user_id]
 
-        print(f"[DEBUG-SEASONAL] Картинка найдена! Начинаю обработку...")
+        print(f"[DEBUG] Картинка найдена! Начинаю обработку...")
         processing_msg = await message.channel.send("⏳ Обрабатываю скриншот и сохраняю...")
 
         permanent_url = ""
         try:
+            # 🔥 ИСПРАВЛЕНО: Обращаемся к глобальной переменной SCREEN_CHANNEL_ID без self.
             log_channel = self.bot.get_channel(SCREEN_CHANNEL_ID)
+
+            # Если в кэше нет, пробуем подгрузить через API
             if log_channel is None:
                 log_channel = await self.bot.fetch_channel(SCREEN_CHANNEL_ID)
 
+            # Скачиваем файл из ЛС и готовим к отправке
             file_to_send = await attachment.to_file()
 
+            # Отправляем в канал на сервере
             log_msg = await log_channel.send(
-                content=f"📸 Регистрация (Seasonal) от {message.author.mention}",
+                content=f"📸 Регистрация от {message.author.mention}",
                 file=file_to_send
             )
 
+            # ✅ БЕРЕМ ВЕЧНУЮ ССЫЛКУ ИЗ КАНАЛА
             permanent_url = log_msg.attachments[0].url
 
         except Exception as e:
-            print(f"[ERROR-SEASONAL] Не удалось сохранить скриншот: {e}")
+            print(f"[ERROR] Не удалось сохранить скриншот: {e}")
             await processing_msg.edit(content="❌ Ошибка сохранения скриншота (нет доступа к каналу логов).")
             return
 
+        # --- ДАЛЬШЕ ЛОГИКА РЕГИСТРАЦИИ / ПЕРЕЗАЛИВА ---
         success = False
         response_text = ""
         is_auto_checked = False
@@ -1148,60 +1331,58 @@ class SeasonalLeague(commands.Cog):
         is_reupload = False
 
         try:
-            user_role_ids = await _fetch_user_role_ids(self.bot, message.author.id)
-
-            async with SeasonalLeagueService(self.bot) as service:
-                print("[DEBUG-SEASONAL] Сервис лиги запущен")
+            async with LeagueService(self.bot) as service:
+                print("[DEBUG] Сервис лиги запущен")
                 session = service.session
                 profile_service = ProfileService(session)
 
+                # Проверяем, есть ли уже регистрация (перезалив скрина)
                 from sqlalchemy import and_
-                from database.models import SeasonalLeagueRegistration
+                from database.models import LeagueRegistration, LeagueSession, SessionStatus
                 active_session = await service.get_active_session()
                 if active_session:
                     existing_reg = (await session.execute(
-                        select(SeasonalLeagueRegistration).where(
+                        select(LeagueRegistration).where(
                             and_(
-                                SeasonalLeagueRegistration.session_id == active_session.id,
-                                SeasonalLeagueRegistration.player_id == message.author.id
+                                LeagueRegistration.session_id == active_session.id,
+                                LeagueRegistration.player_id == message.author.id
                             )
                         )
                     )).scalar_one_or_none()
 
                     if existing_reg:
+                        # Перезалив: обновляем screenshot_url
                         existing_reg.screenshot_url = permanent_url
                         await session.commit()
                         success = True
                         response_text = "Скриншот успешно обновлён!"
                         is_reupload = True
                     else:
-                        success, response_text, is_auto_checked, _ = await service.register_player(
+                        # Первичная регистрация
+                        success, response_text, is_auto_checked = await service.register_player(
                             user_id=message.author.id,
-                            user_role_ids=user_role_ids,
-                            allowed_role_ids=SEASONAL_ALLOWED_ROLE_IDS,
                             screenshot_url=permanent_url
                         )
                 else:
-                    success, response_text, is_auto_checked, _ = await service.register_player(
+                    success, response_text, is_auto_checked = await service.register_player(
                         user_id=message.author.id,
-                        user_role_ids=user_role_ids,
-                        allowed_role_ids=SEASONAL_ALLOWED_ROLE_IDS,
                         screenshot_url=permanent_url
                     )
 
-                print(f"[DEBUG-SEASONAL] Результат: {success}, {response_text}, reupload={is_reupload}")
+                print(f"[DEBUG] Результат: {success}, {response_text}, reupload={is_reupload}")
 
                 if success and is_auto_checked and not is_reupload:
                     player_obj = await profile_service.get_player(message.author.id)
 
         except Exception as e:
-            print(f"[ERROR-SEASONAL] Ошибка внутри on_message: {e}")
+            print(f"[ERROR] Ошибка внутри on_message: {e}")
             import traceback
             traceback.print_exc()
             await processing_msg.edit(content=f"❌ Ошибка бота: {e}")
             return
 
         if success:
+            # Отправляем кнопку перезалива (активна 5 минут)
             reupload_view = ReuploadScreenView(
                 cog=self,
                 user_id=user_id,
@@ -1213,6 +1394,7 @@ class SeasonalLeague(commands.Cog):
                 view=reupload_view
             )
 
+            # Обновление меню чекина (только для первичной регистрации)
             if is_auto_checked and player_obj and not is_reupload:
                 if hasattr(self.bot, 'active_checkin') and self.bot.active_checkin:
                     if not self.bot.active_checkin.is_finished():
@@ -1223,55 +1405,84 @@ class SeasonalLeague(commands.Cog):
                                     self.bot.active_checkin.message.channel
                                 )
                         except Exception as e:
-                            print(f"[WARN-SEASONAL] Ошибка обновления меню: {e}")
+                            print(f"[WARN] Ошибка обновления меню: {e}")
         else:
             await processing_msg.edit(content=f"❌ {response_text}")
 
-    league_group = app_commands.Group(name="seasonal_league", description="Управление seasonal-лигой")
+    # --- КОМАНДЫ ---
+    league_group = app_commands.Group(name="league", description="Управление лигой")
 
-    @league_group.command(name="make_teams", description="Создать матчи Seasonal (Мульти-лобби)")
+    # @league_group.command(name="debug_clear", description="[DEBUG] Удалить фейковых игроков")
+    # @app_commands.checks.has_permissions(administrator=True)
+    # async def debug_clear(self, interaction: discord.Interaction):
+    #     await interaction.response.defer(ephemeral=True)
+    #
+    #     from sqlalchemy import delete
+    #     from database.models import Player, LeagueRegistration
+    #
+    #     async with LeagueService(interaction.client) as service:
+    #         session = service.session
+    #
+    #         # 1. Сначала удаляем РЕГИСТРАЦИИ фейков (чтобы не ругались FK)
+    #         # Удаляем записи, где player_id >= 99000
+    #         stmt_reg = delete(LeagueRegistration).where(LeagueRegistration.player_id >= 99000)
+    #         await session.execute(stmt_reg)
+    #
+    #         # 2. Теперь удаляем самих ИГРОКОВ
+    #         stmt_player = delete(Player).where(Player.discord_id >= 99000)
+    #         result = await session.execute(stmt_player)
+    #
+    #         await session.commit()
+    #         deleted = result.rowcount
+    #
+    #     await interaction.followup.send(f"🗑️ Удалено **{deleted}** фейковых игроков и их регистрации.", ephemeral=True)
+
+    @league_group.command(name="make_teams", description="Создать матчи (Мульти-лобби)")
     @app_commands.checks.has_permissions(administrator=True)
     async def make_teams(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        async with SeasonalLeagueService(self.bot) as service:
+        async with LeagueService(self.bot) as service:
             week, registrations = await service.get_active_registrations()
 
         if not registrations:
             return await interaction.followup.send("❌ Нет регистраций.", ephemeral=True)
 
+        # 1. Берем всех CHECKED_IN
         ready_players = [p for reg, p in registrations]
 
         if len(ready_players) < 2:
             return await interaction.followup.send(f"⚠️ Мало людей: {len(ready_players)}.", ephemeral=True)
 
-        sorted_all = sorted(
-            ready_players,
-            key=effective_player_tier,
-            reverse=True
-        )
+        # 2. Сортируем всех по скиллу (Internal Rating -> Rank Tier)
+        # Это критично, чтобы Лобби 1 было самым сильным
+        sorted_all = sorted(ready_players, key=effective_player_tier, reverse=True)
 
+        # 3. Определяем, сколько полных лобби получается
         total_players = len(sorted_all)
         games_count = total_players // 10
 
         if games_count == 0:
+            # Если меньше 10 человек, пробуем сделать хотя бы одну неполную игру
             games_count = 1
 
         cutoff = games_count * 10
 
-        active_pool = sorted_all[:cutoff]
-        bench_pool = sorted_all[cutoff:]
+        active_pool = sorted_all[:cutoff]  # Те кто точно играет
+        bench_pool = sorted_all[cutoff:]  # Остаток (лишние люди)
 
+        # Если игроков меньше 10 (например 8), active_pool будет пустым из-за логики среза, поправим:
         if total_players < 10:
             active_pool = sorted_all
             bench_pool = []
 
+        # 4. Запускаем MultiLobbyView
         view = MultiLobbyView(self.bot, active_pool, bench_pool)
         embed = view.build_embed()
 
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
-    @league_group.command(name="open", description="Открыть регистрацию Seasonal (время по МСК)")
+    @league_group.command(name="open", description="Открыть регистрацию (время по МСК)")
     @app_commands.checks.has_permissions(administrator=True)
     @app_commands.describe(
         day_month="Дата старта (формат: 07.02)",
@@ -1289,10 +1500,10 @@ class SeasonalLeague(commands.Cog):
 
             start_datetime_utc = start_datetime_msk.astimezone(timezone.utc).replace(tzinfo=None)
         except ValueError:
-            await interaction.followup.send("❌ Формат: `/seasonal_league open 07.02 19:00`", ephemeral=True)
+            await interaction.followup.send("❌ Формат: `/league open 07.02 19:00`", ephemeral=True)
             return
 
-        async with SeasonalLeagueService(self.bot) as service:
+        async with LeagueService(self.bot) as service:
             week_id, week_num = await service.create_new_week(start_time=start_datetime_utc, season=season)
             if week_id in self.checkin_sent_weeks:
                 self.checkin_sent_weeks.remove(week_id)
@@ -1304,25 +1515,24 @@ class SeasonalLeague(commands.Cog):
         view = RegistrationView(self.bot)
 
         embed = discord.Embed(
-            title=f"🏆 Seasonal Лига Dota 2 - Тур #{week_num}",
+            title=f"🏆 Лига Dota 2 - Тур #{week_num}",
             description=(
-                f"📅 **Старт игр:** {time_str_msk} (МСК)\n"
+                f"📅 **Старт игр:** {time_str_msk} (МСК)\n" 
                 f"⏳ **До старта:** <t:{timestamp}:R>\n\n"
                 "⏳ **Чек-ин:** Автоматически в ЛС за 2 часа до начала.\n\n"
-                "🎟️ Без нужной роли доступна **1 бесплатная регистрация** на сезон.\n\n"
                 "**Жми кнопку ниже, чтобы записаться!**"
             ),
             color=discord.Color.blue()
         )
         await interaction.channel.send(embed=embed, view=view)
-        await interaction.followup.send("✅ Регистрация (Seasonal) опубликована!", ephemeral=True)
-
-    @league_group.command(name="adjust_tiers", description="[ADMIN] Изменить рейтинг игроков вручную (Seasonal)")
+        await interaction.followup.send("✅ Регистрация опубликована!", ephemeral=True)
+    @league_group.command(name="adjust_tiers", description="[ADMIN] Изменить рейтинг игроков вручную")
     @app_commands.checks.has_permissions(administrator=True)
     async def adjust_tiers(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        async with SeasonalLeagueService(self.bot) as service:
+        async with LeagueService(self.bot) as service:
+            # Получаем список зарегистрированных на текущую неделю
             week, registrations = await service.get_active_registrations()
 
         if not registrations:
@@ -1333,18 +1543,19 @@ class SeasonalLeague(commands.Cog):
 
         await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
-    @league_group.command(name="status", description="Статус регистрации Seasonal и чек-ина")
+    @league_group.command(name="status", description="Статус регистрации и чек-ина")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_status(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
-        async with SeasonalLeagueService(interaction.client) as service:
+        async with LeagueService(interaction.client) as service:
             active_session, registrations = await service.get_active_registrations()
 
             if not active_session or not registrations:
                 await interaction.followup.send("ℹ️ Нет активных участников.", ephemeral=True)
                 return
 
+            # 🔥 СОРТИРОВКА: Строго по времени регистрации (ID)
             registrations.sort(key=lambda x: x[0].id)
 
             checked_cnt = sum(1 for r, p in registrations if r.is_checked_in)
@@ -1355,17 +1566,23 @@ class SeasonalLeague(commands.Cog):
                 status = "✅" if reg.is_checked_in else "💤"
                 mmr = f"**{reg.mmr_snapshot}**"
 
+                # Ссылка на Stratz (если есть ID)
                 link = player.ingame_name
                 if player.steam_id32:
                     link = f"[{player.ingame_name}](https://www.stratz.com/players/{player.steam_id32})"
 
+                # 🔥 ВОЗВРАЩАЕМ ФОТО
+                # Если url есть, ставим просто иконку (без длинной ссылки)
                 photo_icon = " 📸" if reg.screenshot_url else ""
 
+                # Номер
                 num_display = f"`{i:>2}.`"
 
+                # Собираем строку
                 row_str = f"{num_display} {status} {mmr} | {link} (<@{player.discord_id}>){photo_icon}"
                 all_lines.append(row_str)
 
+            # --- ПАГИНАЦИЯ ---
             CHUNK_SIZE = 20
             total_pages = (len(all_lines) + CHUNK_SIZE - 1) // CHUNK_SIZE
 
@@ -1378,9 +1595,10 @@ class SeasonalLeague(commands.Cog):
 
                 description_text = "\n".join(chunk)
 
+                # Заголовок только на первой странице
                 if page_num == 1:
                     header = (
-                        f"**Seasonal Тур #{active_session.week_number}**\n"
+                        f"**Тур #{active_session.week_number}**\n"
                         f"Всего: **{total_cnt}** | Ready: **{checked_cnt}**\n"
                         f"*(Сортировка: По времени регистрации)*\n\n"
                     )
@@ -1389,63 +1607,83 @@ class SeasonalLeague(commands.Cog):
                     final_text = description_text
 
                 embed = discord.Embed(
-                    title=f"📊 Seasonal Статус (Стр. {page_num}/{total_pages})",
+                    title=f"📊 Статус (Стр. {page_num}/{total_pages})",
                     description=final_text,
                     color=discord.Color.blue()
                 )
 
                 await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @league_group.command(name="delete_last", description="Удалить seasonal-тур")
+    @league_group.command(name="delete_last", description="Удалить тур")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_delete(self, interaction: discord.Interaction):
         await interaction.response.defer(ephemeral=True)
-        async with SeasonalLeagueService(self.bot) as service:
+        async with LeagueService(self.bot) as service:
             success, msg = await service.delete_last_week()
         await interaction.followup.send(msg, ephemeral=True)
 
-    @league_group.command(name="kick", description="Кикнуть игрока из seasonal-тура")
+    @league_group.command(name="kick", description="Кикнуть игрока")
     @app_commands.checks.has_permissions(administrator=True)
     async def league_kick(self, interaction: discord.Interaction, user: discord.User):
-        async with SeasonalLeagueService(self.bot) as service:
+        await interaction.response.defer(ephemeral=True)
+        async with LeagueService(self.bot) as service:
             success, msg = await service.remove_registration(user.id)
         if success:
-            await interaction.response.send_message(f"✅ {user.name} удален.", ephemeral=True)
+            await interaction.followup.send(f"✅ {user.name} удален.", ephemeral=True)
         else:
-            await interaction.response.send_message(f"❌ {msg}", ephemeral=True)
+            await interaction.followup.send(f"❌ {msg}", ephemeral=True)
 
     @league_group.command(
-        name="reset_free_reg",
-        description="[ADMIN] Сбросить бесплатную seasonal-регистрацию игроку"
+        name="reset_uses",
+        description="[ADMIN] Сбросить счётчики смены ника/ролей и кулдаун у игрока"
     )
     @app_commands.checks.has_permissions(administrator=True)
-    async def reset_free_reg(self, interaction: discord.Interaction, user: discord.User):
-        async with SeasonalLeagueService(self.bot) as service:
-            updated = await service.reset_free_reg(user.id)
+    async def league_reset_uses(self, interaction: discord.Interaction, user: discord.User):
+        await interaction.response.defer(ephemeral=True)
+        async with LeagueService(self.bot) as service:
+            updated = await service.reset_uses(user.id)
         if updated:
-            await interaction.response.send_message(
-                f"✅ Бесплатная регистрация сброшена для {user.mention}.",
+            await interaction.followup.send(
+                f"✅ Счётчики сброшены для {user.mention} (ник + роли + кулдаун).",
                 ephemeral=True
             )
         else:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"❌ Игрок {user.mention} не найден в БД.", ephemeral=True
             )
+
+    @league_group.command(
+        name="reset_uses_all",
+        description="[ADMIN] Сбросить счётчики смены ника/ролей и кулдаун у ВСЕХ игроков"
+    )
+    @app_commands.checks.has_permissions(administrator=True)
+    async def league_reset_uses_all(self, interaction: discord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+        async with LeagueService(self.bot) as service:
+            updated = await service.reset_uses(None)
+        await interaction.followup.send(
+            f"✅ Сброшено для **{updated}** игроков (ник + роли + кулдаун).",
+            ephemeral=True
+        )
 
     async def cog_app_command_error(self, interaction: discord.Interaction, error):
         msg = f"❌ Ошибка: {error}"
         if isinstance(error, app_commands.MissingRole): msg = "❌ Нужны права Admin!"
-        if interaction.response.is_done():
-            await interaction.followup.send(msg, ephemeral=True)
-        else:
-            await interaction.response.send_message(msg, ephemeral=True)
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(msg, ephemeral=True)
+            else:
+                await interaction.response.send_message(msg, ephemeral=True)
+        except (discord.NotFound, discord.HTTPException) as e:
+            print(f"[cog_app_command_error] Не удалось доставить сообщение об ошибке: {e}. Исходная ошибка: {error}")
 
-    @league_group.command(name="check_activity", description="Проверка (Stratz) у всех зарегистрированных (Seasonal)")
+    @league_group.command(name="check_activity", description="Проверка (Stratz) у всех зарегистрированных")
     @app_commands.checks.has_permissions(administrator=True)
     async def check_activity(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
-        async with SeasonalLeagueService(self.bot) as service:
+        # 1. Получаем данные
+        async with LeagueService(self.bot) as service:
             active_session, registrations = await service.get_active_registrations()
 
         target_date = active_session.start_time if active_session.start_time else datetime.now()
@@ -1454,10 +1692,12 @@ class SeasonalLeague(commands.Cog):
             await interaction.followup.send("ℹ️ Нет активных регистраций.", ephemeral=True)
             return
 
+        # 🔥 СОРТИРОВКА: По времени регистрации (ID)
         registrations.sort(key=lambda x: x[0].id)
 
+        # Стартовое сообщение анимации
         progress_embed = discord.Embed(
-            title="⏳ Сканирование Stratz (Seasonal)...",
+            title="⏳ Сканирование Stratz...",
             description="Подготовка...",
             color=discord.Color.gold()
         )
@@ -1465,6 +1705,7 @@ class SeasonalLeague(commands.Cog):
 
         report_lines = []
 
+        # Вспомогательная функция
         def get_clean_steam_id(raw_id):
             if not raw_id: return None
             try:
@@ -1474,12 +1715,14 @@ class SeasonalLeague(commands.Cog):
             except ValueError:
                 return None
 
+        # 2. Сканирование
         total = len(registrations)
         for i, (reg, player) in enumerate(registrations, start=1):
 
             clean_id = get_clean_steam_id(player.steam_id32)
             p_name = player.ingame_name
 
+            # Роли
             if not player.positions:
                 m_role, s_role = "1", "1"
             else:
@@ -1489,10 +1732,13 @@ class SeasonalLeague(commands.Cog):
 
             roles_disp = f"({m_role}/{s_role})"
 
+            # Ссылка
             player_link = f"[{p_name}](https://www.stratz.com/players/{clean_id})" if clean_id else f"**{p_name}**"
 
+            # Номер
             num_display = f"`{i:>2}.`"
 
+            # Логика
             line = ""
             if not clean_id:
                 line = f"{num_display} ⚠️ {player_link} | ❌ **Bad ID**"
@@ -1525,7 +1771,11 @@ class SeasonalLeague(commands.Cog):
 
             report_lines.append(line)
 
+            # --- АНИМАЦИЯ ---
+            # Обновляем каждые 4 игрока (или в конце)
             if i % 4 == 0 or i == total:
+                # Если список длинный, показываем только хвост (последние 15 строк)
+                # чтобы не словить ошибку 4096 символов во время анимации
                 if len(report_lines) <= 20:
                     preview_text = "\n".join(report_lines)
                 else:
@@ -1537,10 +1787,11 @@ class SeasonalLeague(commands.Cog):
                 try:
                     await status_msg.edit(embed=progress_embed)
                 except:
-                    pass
+                    pass  # Если сообщение удалено, не падаем
 
             await asyncio.sleep(0.5)
 
+            # 3. ФИНАЛ (удаляем анимацию, шлем страницы)
         try:
             await status_msg.delete()
         except:
@@ -1554,28 +1805,31 @@ class SeasonalLeague(commands.Cog):
             desc_text = "\n".join(chunk)
 
             if page_num == 1:
-                header = f"*(Seasonal · Сортировка: По времени регистрации)*\n\n"
+                header = f"*(Сортировка: По времени регистрации)*\n\n"
                 final_desc = header + desc_text
             else:
                 final_desc = desc_text
 
             embed = discord.Embed(
-                title=f"🏁 Seasonal Результаты Stratz (Стр. {page_num}/{total_pages})",
+                title=f"🏁 Результаты Stratz (Стр. {page_num}/{total_pages})",
                 description=final_desc,
                 color=discord.Color.green()
             )
             await interaction.followup.send(embed=embed)
 
-    @league_group.command(name="spawn_checker", description="Создать панель проверки активности (Seasonal)")
+    @league_group.command(name="spawn_checker", description="Создать панель проверки активности")
     @app_commands.checks.has_permissions(administrator=True)
     async def spawn_checker(self, interaction: discord.Interaction):
+        # 1. Отвечаем невидимо, чтобы закрыть команду
         await interaction.response.send_message("Создаю панель...", ephemeral=True, delete_after=1)
 
+        # 2. Создаем View
         view = ActivityCheckView()
 
+        # 3. ВАЖНО: Тут используем .send(), а не .send_message()
         await interaction.channel.send(
             embed=discord.Embed(
-                title="🏆 Seasonal: Проверка активности для текущего тура",
+                title="🏆 Проверка активности для текущего тура",
                 description=(
                     "Нажми на кнопку ниже, чтобы проверить свой наигрыш.\n"
                     "Бот просканирует твои рейтинговые матчи за 30 дней до старта тура."
@@ -1586,5 +1840,6 @@ class SeasonalLeague(commands.Cog):
         )
 
 
+
 async def setup(bot):
-    await bot.add_cog(SeasonalLeague(bot))
+    await bot.add_cog(League(bot))

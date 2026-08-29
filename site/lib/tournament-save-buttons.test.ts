@@ -5,7 +5,7 @@ function source(path: string) {
   return readFileSync(new URL(path, import.meta.url), "utf8");
 }
 
-const globalStyles = source("../app/globals.css");
+const routeStyles = source("../app/styles/tournaments-route.css");
 const saveButtonStyles = source(
   "../app/styles/31-tournament-save-buttons.css",
 );
@@ -43,8 +43,8 @@ describe("tournament management save buttons", () => {
   });
 
   it("loads a bright green style with darker press feedback", () => {
-    expect(globalStyles).toContain(
-      '@import "./styles/31-tournament-save-buttons.css";',
+    expect(routeStyles).toContain(
+      '@import "./31-tournament-save-buttons.css";',
     );
     expect(saveButtonStyles).toMatch(
       /button\.tournament-save-button\s*\{[^}]*background:\s*#16b85f;/,

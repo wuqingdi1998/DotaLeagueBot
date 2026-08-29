@@ -51,7 +51,7 @@ const summaryStyles = source(
   "../app/styles/48-compendium-star-race-summary.css",
 );
 const rewardsStyles = source("../app/styles/38-compendium-rewards.css");
-const globalStyles = source("../app/globals.css");
+const routeStyles = source("../app/styles/compendium-route.css");
 const basePage = source("../app/compendium/base/page.tsx");
 const baseView = source("../app/compendium/admin/CompendiumBase.tsx");
 const archiveView = source(
@@ -280,8 +280,8 @@ describe("compendium star race contract", () => {
     expect(archiveView).toContain("Сценарии Гонки");
     expect(archiveView).toContain("Итоговая таблица");
     expect(archiveStyles).toContain("@media (max-width: 720px)");
-    expect(globalStyles).toContain(
-      '@import "./styles/49-compendium-star-race-archive.css";',
+    expect(routeStyles).toContain(
+      '@import "./49-compendium-star-race-archive.css";',
     );
   });
 
@@ -380,8 +380,8 @@ describe("compendium star race contract", () => {
     expect(styles).toContain(
       "grid-template-columns: minmax(280px, 0.68fr) minmax(350px, 0.9fr) minmax(380px, 0.92fr);",
     );
-    expect(globalStyles).toContain(
-      '@import "./styles/48-compendium-star-race-summary.css";',
+    expect(routeStyles).toContain(
+      '@import "./48-compendium-star-race-summary.css";',
     );
     expect(summaryStyles).toMatch(
       /\.compendium-star-race-rules ul\s*\{[^}]*padding-left:\s*0;[^}]*font-size:\s*15px;[^}]*list-style:\s*none;/,

@@ -11,7 +11,7 @@ const boundaryHook = source(
   "app/fearless-draft/hooks/useActiveDraftPageBoundary.ts",
 );
 const styles = source("app/styles/51-fearless-draft-page-boundary.css");
-const globalStyles = source("app/globals.css");
+const routeStyles = source("app/styles/fearless-draft-route.css");
 
 describe("Fearless Draft page boundary", () => {
   it("enables the document boundary only while a draft series is open", () => {
@@ -24,8 +24,8 @@ describe("Fearless Draft page boundary", () => {
   });
 
   it("ends either host page at the complete draft without locking scroll", () => {
-    expect(globalStyles).toContain(
-      '@import "./styles/51-fearless-draft-page-boundary.css";',
+    expect(routeStyles).toContain(
+      '@import "./51-fearless-draft-page-boundary.css";',
     );
     expect(styles).toMatch(
       /body\.fearless-active-draft-document \.platform-shell\s*\{[^}]*min-height:\s*0;/,

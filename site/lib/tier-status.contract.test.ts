@@ -21,7 +21,7 @@ const participantAdmin = source("./player-identity-admin.ts");
 const participantStyles = source(
   "../app/styles/32-participant-tier-status.css",
 );
-const globalStyles = source("../app/globals.css");
+const routeStyles = source("../app/styles/player-directory-route.css");
 const applicationSupport = source(
   "../app/api/applications/application-support.ts",
 );
@@ -35,8 +35,8 @@ describe("current player tier status", () => {
     expect(participantsTable).toContain('"!"');
     expect(participantStyles).toContain(".participant-tier.outdated");
     expect(participantStyles).toContain("#d83d4f");
-    expect(globalStyles).toContain(
-      '@import "./styles/32-participant-tier-status.css";',
+    expect(routeStyles).toContain(
+      '@import "./32-participant-tier-status.css";',
     );
   });
 

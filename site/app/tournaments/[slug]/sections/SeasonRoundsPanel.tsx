@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { SeasonLobbyBuilder } from "../admin/SeasonLobbyBuilder";
-import { SeasonRegistrationAdmin } from "../admin/SeasonRegistrationAdmin";
-import { SeasonPublishedLobbyTools } from "../admin/SeasonPublishedLobbyTools";
-import { SeasonLobbyHostButton } from "../admin/SeasonLobbyHostButton";
+import dynamic from "next/dynamic";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
@@ -12,6 +9,35 @@ import {
   SeasonLobbyList,
 } from "./SeasonLobbyDisplay";
 import { SeasonRoundRegistration } from "./SeasonRoundRegistration";
+
+const SeasonLobbyBuilder = dynamic(
+  () =>
+    import("../admin/SeasonLobbyBuilder").then(
+      (module) => module.SeasonLobbyBuilder,
+    ),
+  { ssr: false },
+);
+const SeasonRegistrationAdmin = dynamic(
+  () =>
+    import("../admin/SeasonRegistrationAdmin").then(
+      (module) => module.SeasonRegistrationAdmin,
+    ),
+  { ssr: false },
+);
+const SeasonPublishedLobbyTools = dynamic(
+  () =>
+    import("../admin/SeasonPublishedLobbyTools").then(
+      (module) => module.SeasonPublishedLobbyTools,
+    ),
+  { ssr: false },
+);
+const SeasonLobbyHostButton = dynamic(
+  () =>
+    import("../admin/SeasonLobbyHostButton").then(
+      (module) => module.SeasonLobbyHostButton,
+    ),
+  { ssr: false },
+);
 
 export function SeasonRoundPanel() {
   const { activeTab, data, season } = useTournament();
@@ -32,6 +58,7 @@ export function SeasonRoundPanel() {
   if (!season.data || !round) return <SeasonLoadState />;
 
   const isRegularRound = round.round_kind === "regular";
+  const isOrganizer = season.data.isOrganizer;
   const showPublicLobbies =
     !isRegularRound || round.lobby_configuration_status === "published";
 
@@ -61,16 +88,20 @@ export function SeasonRoundPanel() {
         <SeasonLobbyList
           round={round}
           isArchived={data.tournament.status === "archived"}
-          lobbyFooter={(lobby) => <SeasonPublishedLobbyTools lobby={lobby} />}
+          lobbyFooter={(lobby) =>
+            isOrganizer ? <SeasonPublishedLobbyTools lobby={lobby} /> : null
+          }
           participantAction={(match, player) => (
-            <SeasonLobbyHostButton match={match} player={player} />
+            isOrganizer ? (
+              <SeasonLobbyHostButton match={match} player={player} />
+            ) : null
           )}
         />
       )}
 
       {isRegularRound && <SeasonRoundRegistration round={round} />}
-      {isRegularRound && <SeasonRegistrationAdmin round={round} />}
-      {isRegularRound && <SeasonLobbyBuilder round={round} />}
+      {isOrganizer && isRegularRound && <SeasonRegistrationAdmin round={round} />}
+      {isOrganizer && isRegularRound && <SeasonLobbyBuilder round={round} />}
 
       {!isRegularRound && (
         <>
@@ -82,11 +113,13 @@ export function SeasonRoundPanel() {
               lobby.matches.some((match) =>
                 ["published", "completed"].includes(match.status),
               ) ? (
-                <SeasonPublishedLobbyTools lobby={lobby} />
+                isOrganizer ? <SeasonPublishedLobbyTools lobby={lobby} /> : null
               ) : null
             }
             participantAction={(match, player) => (
-              <SeasonLobbyHostButton match={match} player={player} />
+              isOrganizer ? (
+                <SeasonLobbyHostButton match={match} player={player} />
+              ) : null
             )}
           />
         </>

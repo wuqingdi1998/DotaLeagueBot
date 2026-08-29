@@ -5,11 +5,16 @@ import {
   seasonLobbyRoomErrorResponse,
   SeasonLobbyRoomError,
 } from "@/app/season-lobby/[matchId]/server/errors";
+import {
+  seasonLobbyChannel,
+  subscribeToLiveUpdates,
+} from "@/lib/live-update-events";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const updateIntervalMs = 1_500;
+const draftingUpdateIntervalMs = 5_000;
 
 function matchIdFromRoute(value: string): number {
   const matchId = Number(value);
@@ -28,16 +33,25 @@ export async function GET(
     const { matchId: rawMatchId } = await context.params;
     const matchId = matchIdFromRoute(rawMatchId);
     const encoder = new TextEncoder();
-    let timer: ReturnType<typeof setInterval> | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     let isLoading = false;
     let isClosed = false;
+    let reloadQueued = false;
+    let nextUpdateIntervalMs = updateIntervalMs;
+    let unsubscribe: () => void = () => {};
     const stream = new ReadableStream({
       async start(controller) {
         const pushSnapshot = async () => {
-          if (isLoading) return;
+          if (isLoading) {
+            reloadQueued = true;
+            return;
+          }
           isLoading = true;
           try {
             const snapshot = await loadSeasonLobbyRoomSnapshot(user, matchId);
+            nextUpdateIntervalMs = snapshot.status === "drafting"
+              ? draftingUpdateIntervalMs
+              : updateIntervalMs;
             if (!isClosed) controller.enqueue(encoder.encode(
               `event: snapshot\ndata: ${JSON.stringify(snapshot)}\n\n`,
             ));
@@ -49,13 +63,28 @@ export async function GET(
             ));
           } finally {
             isLoading = false;
+            if (reloadQueued && !isClosed) {
+              reloadQueued = false;
+              void pushSnapshot();
+            }
           }
         };
+        const scheduleUpdate = () => {
+          timer = setTimeout(async () => {
+            await pushSnapshot();
+            if (!isClosed) scheduleUpdate();
+          }, nextUpdateIntervalMs);
+        };
+        unsubscribe = subscribeToLiveUpdates(
+          seasonLobbyChannel(matchId),
+          () => void pushSnapshot(),
+        );
         await pushSnapshot();
-        timer = setInterval(() => void pushSnapshot(), updateIntervalMs);
+        scheduleUpdate();
         request.signal.addEventListener("abort", () => {
           isClosed = true;
-          if (timer) clearInterval(timer);
+          unsubscribe();
+          if (timer) clearTimeout(timer);
           try {
             controller.close();
           } catch {
@@ -65,7 +94,8 @@ export async function GET(
       },
       cancel() {
         isClosed = true;
-        if (timer) clearInterval(timer);
+        unsubscribe();
+        if (timer) clearTimeout(timer);
       },
     });
     return new Response(stream, {

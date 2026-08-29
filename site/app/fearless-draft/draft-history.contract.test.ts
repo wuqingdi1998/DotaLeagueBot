@@ -13,7 +13,7 @@ const draftTree = source("app/fearless-draft/components/DraftTree.tsx");
 const draftTreeModel = source("app/fearless-draft/model/draft-tree.ts");
 const board = source("app/styles/51-fearless-draft-board.css");
 const treeStyles = source("app/styles/51-fearless-draft-history-tree.css");
-const globalStyles = source("app/globals.css");
+const routeStyles = source("app/styles/fearless-draft-route.css");
 
 describe("Fearless Draft history", () => {
   it("matches the hero pool height and scrolls without stretching the board", () => {
@@ -224,11 +224,11 @@ describe("Fearless Draft history", () => {
   });
 
   it("loads the isolated tree styles after the existing Fearless modules", () => {
-    const interactionsImport = '@import "./styles/51-fearless-draft-interactions.css";';
-    const treeImport = '@import "./styles/51-fearless-draft-history-tree.css";';
-    expect(globalStyles).toContain(treeImport);
-    expect(globalStyles.indexOf(treeImport)).toBeGreaterThan(
-      globalStyles.indexOf(interactionsImport),
+    const interactionsImport = '@import "./51-fearless-draft-interactions.css";';
+    const treeImport = '@import "./51-fearless-draft-history-tree.css";';
+    expect(routeStyles).toContain(treeImport);
+    expect(routeStyles.indexOf(treeImport)).toBeGreaterThan(
+      routeStyles.indexOf(interactionsImport),
     );
   });
 });

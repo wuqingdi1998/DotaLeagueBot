@@ -11,6 +11,7 @@ const proxy = source("proxy.ts");
 const adminRoute = source("app/api/admin/site-break/route.ts");
 const organizerAccess = source("app/tournaments/OrganizerAccess.tsx");
 const watcher = source("app/components/SiteBreakWatcher.tsx");
+const eventsRoute = source("app/api/site-break/events/route.ts");
 
 describe("site-wide organizer break", () => {
   it("stores one durable break state with an organizer audit", () => {
@@ -35,8 +36,11 @@ describe("site-wide organizer break", () => {
   });
 
   it("moves already open visitor pages to the break screen", () => {
-    expect(watcher).toContain("window.setInterval");
+    expect(watcher).toContain('new EventSource("/api/site-break/events")');
+    expect(watcher).not.toContain("window.setInterval");
     expect(watcher).toContain('window.location.replace("/break")');
     expect(watcher).toContain("!status.hasOrganizerAccess");
+    expect(eventsRoute).toContain("subscribeToSiteBreakEvents");
+    expect(eventsRoute).toContain('"X-Accel-Buffering": "no"');
   });
 });

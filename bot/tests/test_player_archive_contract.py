@@ -11,8 +11,8 @@ def source(path: str) -> str:
 def test_bot_accepts_manual_tiers_up_to_twelve() -> None:
     for path in (
         "cogs/profile.py",
-        "cogs/league.py",
-        "cogs/seasonal_league.py",
+        "legacy/league.py",
+        "legacy/seasonal_league.py",
     ):
         contents = source(path)
         assert "0 <= val <= 12" in contents
@@ -41,7 +41,7 @@ def test_all_bot_tier_editors_restore_current_status() -> None:
 
 
 def test_team_creation_uses_one_effective_tier_scale() -> None:
-    for path in ("cogs/league.py", "cogs/seasonal_league.py"):
+    for path in ("legacy/league.py", "legacy/seasonal_league.py"):
         contents = source(path)
         assert "effective_player_tier" in contents
         assert "x.internal_rating if x.internal_rating else (x.rank_tier or 0)" not in contents

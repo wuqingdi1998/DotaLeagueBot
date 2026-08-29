@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { SiteHeader } from "@/app/components/SiteHeader";
-import { TournamentAdminPanel } from "./admin/TournamentAdminPanel";
 import { TournamentModals } from "./components/TournamentModals";
 import { useTournament } from "./hooks/TournamentContext";
 import { CommunityFooter } from "./sections/CommunityFooter";
@@ -27,6 +27,14 @@ import {
   PlayoffsPanel,
   RulesPanel,
 } from "./sections/TournamentStages";
+
+const TournamentAdminPanel = dynamic(
+  () =>
+    import("./admin/TournamentAdminPanel").then(
+      (module) => module.TournamentAdminPanel,
+    ),
+  { ssr: false },
+);
 
 export function TournamentPageView() {
   const { data, loadData, loadingError, setTheme, theme } = useTournament();
@@ -89,7 +97,7 @@ export function TournamentPageView() {
         <GroupsPanel />
         <PlayoffsPanel />
         <RulesPanel />
-        <TournamentAdminPanel />
+        {data.user?.isAdmin && <TournamentAdminPanel />}
       </section>
 
       <CommunityFooter />

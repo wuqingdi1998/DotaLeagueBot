@@ -33,6 +33,10 @@ import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
 import { toggleDraftHeroSuggestion } from
   "@/app/fearless-draft/server/suggestion-service";
+import {
+  fearlessDraftChannel,
+  publishLiveUpdate,
+} from "@/lib/live-update-events";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -161,6 +165,9 @@ export async function POST(request: Request) {
         break;
       default:
         throw new DraftRequestError("Неизвестное действие");
+    }
+    if (command.action !== "HIGHLIGHT_HERO") {
+      publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
     }
     return Response.json({ ok: true });
   } catch (error) {

@@ -2,6 +2,10 @@ import { requireSession, responseFromAuthError } from "@/lib/auth";
 import { loadFearlessDraftSnapshot } from "@/app/fearless-draft/server/snapshot-service";
 import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
+import {
+  fearlessDraftChannel,
+  subscribeToLiveUpdates,
+} from "@/lib/live-update-events";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,11 +20,16 @@ export async function GET(request: Request) {
     let timer: ReturnType<typeof setInterval> | null = null;
     let isLoading = false;
     let isClosed = false;
+    let reloadQueued = false;
+    let unsubscribe: () => void = () => {};
 
     const stream = new ReadableStream({
       async start(controller) {
         const pushSnapshot = async () => {
-          if (isLoading) return;
+          if (isLoading) {
+            reloadQueued = true;
+            return;
+          }
           isLoading = true;
           try {
             const snapshot = await loadFearlessDraftSnapshot(user, {
@@ -38,12 +47,21 @@ export async function GET(request: Request) {
             );
           } finally {
             isLoading = false;
+            if (reloadQueued && !isClosed) {
+              reloadQueued = false;
+              void pushSnapshot();
+            }
           }
         };
+        unsubscribe = subscribeToLiveUpdates(
+          fearlessDraftChannel(seasonMatchId),
+          () => void pushSnapshot(),
+        );
         await pushSnapshot();
         timer = setInterval(() => void pushSnapshot(), updateIntervalMs);
         request.signal.addEventListener("abort", () => {
           isClosed = true;
+          unsubscribe();
           if (timer) clearInterval(timer);
           try {
             controller.close();
@@ -54,6 +72,7 @@ export async function GET(request: Request) {
       },
       cancel() {
         isClosed = true;
+        unsubscribe();
         if (timer) clearInterval(timer);
       },
     });

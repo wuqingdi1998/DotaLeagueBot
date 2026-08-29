@@ -68,7 +68,7 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
         throw new Error(body.error ?? "Действие не выполнено");
       }
       setError("");
-      await reload();
+      if (!isConnected) await reload();
       return true;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Действие не выполнено");
@@ -77,7 +77,7 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
     } finally {
       setIsSending(false);
     }
-  }, [endpoint, reload]);
+  }, [endpoint, isConnected, reload]);
 
   return { snapshot, error, isSending, isConnected, send };
 }

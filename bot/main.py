@@ -7,15 +7,10 @@ from dotenv import load_dotenv
 # 👇 ИМПОРТИРУЕМ БАЗУ И СЕРВИСЫ
 from database.core import init_db, async_session
 from cogs.ui.profile_menu import ProfileManageView
-from services.sheet_service import SheetService
 
 # Загружаем переменные из .env
 load_dotenv()
 GUILD_ID = os.getenv("GUILD_ID")
-SHEET_URL = os.getenv("SHEET_URL")
-GOOGLE_CREDENTIALS_PATH = os.getenv(
-    "GOOGLE_CREDENTIALS_PATH", "credentials.json"
-)
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 
@@ -35,8 +30,6 @@ class LeagueBot(commands.Bot):
 
         # 3. Заготовки для атрибутов
         self.session_maker = None
-        self.sheet_service = None
-        self.sheet_url = SHEET_URL
 
     async def setup_hook(self):
         print("🔄 Запуск setup_hook...")
@@ -49,24 +42,7 @@ class LeagueBot(commands.Bot):
         except Exception as e:
             print(f"❌ Ошибка БД: {e}")
 
-        # --- 2. Подключение Google Sheets ---
-        try:
-            if not SHEET_URL:
-                print("⚠️ Внимание: SHEET_URL не найден в .env файле.")
-                self.sheet_service = None
-            else:
-                # 🔥 ИСПРАВЛЕНИЕ: Передаем имя файла ключей И ссылку на таблицу
-                # Файл 'credentials.json' должен лежать рядом с main.py
-                self.sheet_service = SheetService(
-                    GOOGLE_CREDENTIALS_PATH, SHEET_URL
-                )
-                print("✅ Google Sheets Service успешно запущен!")
-
-        except Exception as e:
-            print(f"⚠️ Ошибка запуска Google Sheets: {e}")
-            self.sheet_service = None
-
-        # --- 3. Загрузка когов ---
+        # --- 2. Загрузка активных модулей бота ---
         # (Этот блок теперь вынесен из except, чтобы грузился всегда)
         if os.path.exists("./cogs"):
             for filename in os.listdir("./cogs"):
@@ -79,11 +55,11 @@ class LeagueBot(commands.Bot):
         else:
             print("⚠️ Папка cogs не найдена!")
 
-        # --- 4. Регистрация Кнопок (Persistent Views) ---
+        # --- 3. Регистрация Кнопок (Persistent Views) ---
         self.add_view(ProfileManageView())
         print("✅ Кнопки профиля зарегистрированы.")
 
-        # --- 5. Синхронизация команд ---
+        # --- 4. Синхронизация команд ---
         try:
             if GUILD_ID:
                 guild_object = discord.Object(id=int(GUILD_ID))

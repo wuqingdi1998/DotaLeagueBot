@@ -17,6 +17,10 @@ import {
 } from "@/app/season-lobby/[matchId]/server/errors";
 import { loadSeasonLobbyRoomSnapshot } from
   "@/app/season-lobby/[matchId]/server/room-query";
+import {
+  publishLiveUpdate,
+  seasonLobbyChannel,
+} from "@/lib/live-update-events";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -105,6 +109,7 @@ export async function POST(
     } else {
       throw new SeasonLobbyRoomError("Неизвестное действие");
     }
+    publishLiveUpdate(seasonLobbyChannel(matchId));
     return Response.json({ ok: true });
   } catch (error) {
     return roomErrorResponse(error);

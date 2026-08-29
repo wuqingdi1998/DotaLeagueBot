@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { FaDiscord } from "react-icons/fa";
 import {
   FiArchive,
@@ -25,7 +26,6 @@ import {
 import { formatTournamentDateRange } from "@/lib/tournament-date";
 import { OrganizerAccess } from "./OrganizerAccess";
 import { TournamentCard } from "./hub/TournamentCard";
-import { TournamentForm } from "./hub/TournamentForm";
 import {
   filterTournamentSummaries,
   loadSavedTheme,
@@ -33,6 +33,11 @@ import {
   type TournamentListResponse,
 } from "./hub/tournament-hub-model";
 import { TournamentStatusBadge } from "./hub/TournamentStatusBadge";
+
+const TournamentForm = dynamic(
+  () => import("./hub/TournamentForm").then((module) => module.TournamentForm),
+  { ssr: false },
+);
 
 function useTournamentList() {
   const [data, setData] = useState<TournamentListResponse>({
@@ -352,7 +357,7 @@ export function TournamentsDirectory() {
         )}
       </section>
 
-      {createOpen && (
+      {createOpen && data.user?.isAdmin && (
         <TournamentForm
           onClose={() => setCreateOpen(false)}
           onCreated={(slug) =>
