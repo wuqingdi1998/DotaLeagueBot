@@ -1,13 +1,36 @@
 import { describe, expect, it } from "vitest";
 import {
   DRAFT_SUGGESTION_BREATHE_DURATION_MS,
+  DRAFT_SUGGESTION_DASH_COUNT,
   DRAFT_SUGGESTION_DASH_PATH_LENGTH,
   DRAFT_SUGGESTION_RUN_DURATION_MS,
+  draftSuggestionDashLayers,
   draftSuggestionAnimationFrame,
   stableServerClockOffset,
 } from "./suggestion-animation";
 
 describe("Fearless Draft synchronized suggestion animation", () => {
+  it("alternates exactly twenty dashes between up to five player colors", () => {
+    expect(DRAFT_SUGGESTION_DASH_COUNT).toBe(20);
+    const expectedCounts = [
+      [20],
+      [10, 10],
+      [7, 7, 6],
+      [5, 5, 5, 5],
+      [4, 4, 4, 4, 4],
+    ];
+
+    expectedCounts.forEach((counts, index) => {
+      const colors = Array.from({ length: index + 1 }, (_, colorIndex) =>
+        `color-${colorIndex}`,
+      );
+      const layers = draftSuggestionDashLayers(colors);
+      expect(layers.map((layer) => layer.dashCount)).toEqual(counts);
+      expect(layers.map((layer) => layer.color)).toEqual(colors);
+      expect(layers.reduce((total, layer) => total + layer.dashCount, 0)).toBe(20);
+    });
+  });
+
   it("moves one complete dash path in twelve seconds", () => {
     expect(DRAFT_SUGGESTION_RUN_DURATION_MS).toBe(12_000);
     expect(draftSuggestionAnimationFrame(0).dashTravel).toBe(0);

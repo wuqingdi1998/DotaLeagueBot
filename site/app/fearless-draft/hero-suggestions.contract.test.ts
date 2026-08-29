@@ -90,6 +90,7 @@ describe("Fearless Draft teammate hero suggestions", () => {
       /\.fearless-hero-suggestion-frame::before\s*\{[^}]*inset:\s*3px;[^}]*border:\s*2px solid #000;/,
     );
     expect(heroGrid).toContain("pathLength={DRAFT_SUGGESTION_DASH_PATH_LENGTH}");
+    expect(heroGrid).toContain("draftSuggestionDashLayers(colors)");
     expect(heroGrid).toContain("strokeDasharray=");
     expect(heroGrid).toContain('strokeWidth="3"');
     expect(heroGrid).toContain("data-fearless-suggestion-dash-start={dashStart}");

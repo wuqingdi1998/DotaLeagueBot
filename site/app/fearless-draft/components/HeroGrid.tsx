@@ -19,7 +19,10 @@ import { useHeroSearchHotkeys } from "../hooks/useHeroSearchHotkeys";
 import { useDraftLocale } from "../hooks/useDraftLocale";
 import { draftTeamPlayerColor } from "../model/player-colors";
 import { useSuggestionAnimationSync } from "../hooks/useSuggestionAnimationSync";
-import { DRAFT_SUGGESTION_DASH_PATH_LENGTH } from "../model/suggestion-animation";
+import {
+  DRAFT_SUGGESTION_DASH_PATH_LENGTH,
+  draftSuggestionDashLayers,
+} from "../model/suggestion-animation";
 import { HeroSuggestionBoards } from "./HeroSuggestionBoards";
 
 type HeroState =
@@ -42,20 +45,15 @@ type HeroSuggestionFrameStyle = CSSProperties & {
   "--fearless-suggestion-glow": string;
 };
 
-const SUGGESTION_DASH_LENGTH = 4;
-const SUGGESTION_DASH_PERIOD = 7;
-
 function HeroSuggestionFrame({ colors }: { colors: string[] }) {
   const frameStyle: HeroSuggestionFrameStyle = {
     "--fearless-suggestion-glow": colors[0],
   };
-  const dashGap = SUGGESTION_DASH_PERIOD - SUGGESTION_DASH_LENGTH
-    + SUGGESTION_DASH_PERIOD * (colors.length - 1);
+  const dashLayers = draftSuggestionDashLayers(colors);
   return (
     <span className="fearless-hero-suggestion-frame" style={frameStyle} aria-hidden="true">
       <svg width="100%" height="100%" focusable="false">
-        {colors.map((color, index) => {
-          const dashStart = -SUGGESTION_DASH_PERIOD * index;
+        {dashLayers.map(({ color, dashArray, dashStart }, index) => {
           return (
             <rect
               key={`${color}-${index}`}
@@ -70,7 +68,7 @@ function HeroSuggestionFrame({ colors }: { colors: string[] }) {
               stroke={color}
               strokeWidth="3"
               strokeLinecap="butt"
-              strokeDasharray={`${SUGGESTION_DASH_LENGTH} ${dashGap}`}
+              strokeDasharray={dashArray}
               strokeDashoffset={dashStart}
               data-fearless-suggestion-dash-start={dashStart}
             />
