@@ -1,0 +1,16 @@
+body.fearless-active-draft-document .platform-shell {
+  min-height: 0;
+}
+
+body.fearless-active-draft-document .platform-footer {
+  display: none;
+}
+
+body.fearless-active-draft-document .fearless-draft-page {
+  min-height: 0;
+  padding-bottom: 0;
+}
+
+body.fearless-active-draft-document .season-room-page {
+  padding-bottom: 0;
+}

@@ -7,6 +7,7 @@ import type {
 } from "./model/snapshot";
 import { useFearlessDraft } from "./hooks/useFearlessDraft";
 import { useDraftFullscreen } from "./hooks/useDraftFullscreen";
+import { useActiveDraftPageBoundary } from "./hooks/useActiveDraftPageBoundary";
 import { ActiveDraft } from "./sections/ActiveDraft";
 import { DraftChoices } from "./sections/DraftChoices";
 import { DraftQueue } from "./sections/DraftQueue";
@@ -53,6 +54,7 @@ function FearlessDraftContent({
     toggleFullscreen,
   } = useDraftFullscreen();
   const series = snapshot.series;
+  useActiveDraftPageBoundary(Boolean(series));
   const activeLobbyPlayers = lobbyPlayers ?? snapshot.lobbyPlayers;
   const canControlSeries = Boolean(
     series && [series.player1.id, series.player2.id].includes(snapshot.user.id),
