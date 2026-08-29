@@ -16,9 +16,6 @@
 
 .fearless-hero-suggestion-frame rect {
   shape-rendering: geometricPrecision;
-  stroke-dashoffset: calc(
-    var(--fearless-suggestion-dash-start) - var(--fearless-suggestion-dash-travel, 0)
-  );
   vector-effect: non-scaling-stroke;
 }
 
@@ -83,7 +80,7 @@
 
 .fearless-hero-suggestion-boards article img { object-fit: cover; }
 .fearless-hero-suggestion-boards article > button { cursor: pointer; }
-.fearless-hero-suggestion-boards article > button:disabled { cursor: wait; }
+.fearless-hero-suggestion-boards article > button:disabled { cursor: default; }
 .fearless-hero-suggestion-boards article > button img { transition: filter 160ms ease; }
 .fearless-hero-suggestion-boards article > button > svg {
   position: absolute;
@@ -116,7 +113,4 @@
 
 @media (prefers-reduced-motion: reduce) {
   .fearless-hero-suggestion-frame { opacity: 1; }
-  .fearless-hero-suggestion-frame rect {
-    stroke-dashoffset: var(--fearless-suggestion-dash-start);
-  }
 }

@@ -74,6 +74,7 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionBoards).toContain("board.playerId === userId");
     expect(suggestionBoards).toContain("onRemoveOwnSuggestion(hero.id)");
     expect(suggestionBoards).toContain("<FiX aria-hidden=\"true\"");
+    expect(suggestionStyles).not.toContain("button:disabled { cursor: wait; }");
   });
 
   it("renders bright player frames without an inner separator", () => {
@@ -85,9 +86,10 @@ describe("Fearless Draft teammate hero suggestions", () => {
   it("renders uniform external suggestion dashes with a twelve-second lap", () => {
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-frame");
     expect(suggestionStyles).toContain("inset: -2px");
-    expect(suggestionStyles).toContain("stroke-dashoffset");
     expect(heroGrid).toContain("pathLength={DRAFT_SUGGESTION_DASH_PATH_LENGTH}");
     expect(heroGrid).toContain("strokeDasharray=");
+    expect(heroGrid).toContain("data-fearless-suggestion-dash-start={dashStart}");
+    expect(heroGrid).toContain("strokeDashoffset={dashStart}");
     expect(heroGrid).not.toContain("conic-gradient");
     expect(interactionStyles).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*overflow:\s*visible;/,
@@ -102,8 +104,10 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(heroGrid).not.toContain("useServerNow");
     expect(suggestionAnimationHook).toContain("requestAnimationFrame");
     expect(suggestionAnimationHook).toContain("draftSuggestionAnimationFrame");
-    expect(suggestionAnimationHook).toContain("--fearless-suggestion-dash-travel");
+    expect(suggestionAnimationHook).toContain("querySelectorAll<SVGRectElement>");
+    expect(suggestionAnimationHook).toContain("dash.style.strokeDashoffset");
     expect(suggestionAnimationHook).toContain("--fearless-suggestion-opacity");
+    expect(suggestionStyles).not.toContain("--fearless-suggestion-dash-travel");
     expect(suggestionStyles).not.toContain("animation-delay");
     expect(suggestionStyles).not.toContain("@keyframes fearless-hero-suggestion");
     expect(suggestionAnimationModel).toContain("stableServerClockOffset");

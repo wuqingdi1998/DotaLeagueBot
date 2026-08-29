@@ -29,6 +29,7 @@ export function useSuggestionAnimationSync(
   useEffect(() => {
     if (!isActive) return;
     let animationFrameId = 0;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const updateAnimation = (performanceNowMs: number) => {
       const targetOffsetMs = targetServerOffsetMs.current;
       let currentOffsetMs = currentServerOffsetMs.current;
@@ -43,10 +44,15 @@ export function useSuggestionAnimationSync(
           performanceNowMs + currentOffsetMs,
         );
         const root = animationRootRef.current;
-        root?.style.setProperty(
-          "--fearless-suggestion-dash-travel",
-          frame.dashTravel.toFixed(4),
-        );
+        root?.querySelectorAll<SVGRectElement>(
+          "[data-fearless-suggestion-dash-start]",
+        ).forEach((dash) => {
+          const dashStart = Number(
+            dash.dataset.fearlessSuggestionDashStart ?? "0",
+          );
+          const dashTravel = reducedMotion.matches ? 0 : frame.dashTravel;
+          dash.style.strokeDashoffset = (dashStart - dashTravel).toFixed(4);
+        });
         root?.style.setProperty(
           "--fearless-suggestion-opacity",
           frame.opacity.toFixed(4),

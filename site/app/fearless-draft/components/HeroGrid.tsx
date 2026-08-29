@@ -42,10 +42,6 @@ type HeroSuggestionFrameStyle = CSSProperties & {
   "--fearless-suggestion-glow": string;
 };
 
-type HeroSuggestionDashStyle = CSSProperties & {
-  "--fearless-suggestion-dash-start": number;
-};
-
 const SUGGESTION_DASH_LENGTH = 4;
 const SUGGESTION_DASH_PERIOD = 7;
 
@@ -60,9 +56,6 @@ function HeroSuggestionFrame({ colors }: { colors: string[] }) {
       <svg width="100%" height="100%" focusable="false">
         {colors.map((color, index) => {
           const dashStart = -SUGGESTION_DASH_PERIOD * index;
-          const dashStyle: HeroSuggestionDashStyle = {
-            "--fearless-suggestion-dash-start": dashStart,
-          };
           return (
             <rect
               key={`${color}-${index}`}
@@ -78,7 +71,8 @@ function HeroSuggestionFrame({ colors }: { colors: string[] }) {
               strokeWidth="2"
               strokeLinecap="butt"
               strokeDasharray={`${SUGGESTION_DASH_LENGTH} ${dashGap}`}
-              style={dashStyle}
+              strokeDashoffset={dashStart}
+              data-fearless-suggestion-dash-start={dashStart}
             />
           );
         })}
