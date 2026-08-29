@@ -18,6 +18,8 @@ import type {
 import { useHeroSearchHotkeys } from "../hooks/useHeroSearchHotkeys";
 import { useDraftLocale } from "../hooks/useDraftLocale";
 import { draftTeamPlayerColor } from "../model/player-colors";
+import { useServerNow } from "../hooks/useServerNow";
+import { HeroSuggestionBoards } from "./HeroSuggestionBoards";
 
 type HeroState =
   | "available"
@@ -37,6 +39,8 @@ type HeroPreview = {
 
 type HeroSuggestionFrameStyle = CSSProperties & {
   "--fearless-suggestion-glow": string;
+  "--fearless-suggestion-run-delay": string;
+  "--fearless-suggestion-breathe-delay": string;
 };
 
 type HeroSuggestionDashStyle = CSSProperties & {
@@ -47,10 +51,20 @@ type HeroSuggestionDashStyle = CSSProperties & {
 const SUGGESTION_PATH_LENGTH = 140;
 const SUGGESTION_DASH_LENGTH = 4;
 const SUGGESTION_DASH_PERIOD = 7;
+const SUGGESTION_RUN_DURATION_MS = 12_000;
+const SUGGESTION_BREATHE_DURATION_MS = 4_800;
 
-function HeroSuggestionFrame({ colors }: { colors: string[] }) {
+function HeroSuggestionFrame({
+  colors,
+  synchronizedNowMs,
+}: {
+  colors: string[];
+  synchronizedNowMs: number;
+}) {
   const frameStyle: HeroSuggestionFrameStyle = {
     "--fearless-suggestion-glow": colors[0],
+    "--fearless-suggestion-run-delay": `${-(synchronizedNowMs % SUGGESTION_RUN_DURATION_MS)}ms`,
+    "--fearless-suggestion-breathe-delay": `${-(synchronizedNowMs % SUGGESTION_BREATHE_DURATION_MS)}ms`,
   };
   const dashGap = SUGGESTION_DASH_PERIOD - SUGGESTION_DASH_LENGTH
     + SUGGESTION_DASH_PERIOD * (colors.length - 1);
@@ -92,6 +106,7 @@ const LATEST_ACTION_FLASH_DURATION_MS = 3_000;
 export function HeroGrid({
   map,
   userId,
+  serverNow,
   canSuggest,
   isSending,
   send,
@@ -99,6 +114,7 @@ export function HeroGrid({
 }: {
   map: DraftMapSnapshot;
   userId: string;
+  serverNow: string;
   canSuggest: boolean;
   isSending: boolean;
   send: (command: FearlessDraftCommand) => Promise<boolean>;
@@ -115,6 +131,7 @@ export function HeroGrid({
     heroId: number;
     type: "PICK" | "BAN";
   } | null>(null);
+  const synchronizedNowMs = useServerNow(serverNow, 1_000);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const latestAction = map.actions.at(-1);
   const latestActionHeroId = latestAction?.heroId;
@@ -208,10 +225,10 @@ export function HeroGrid({
   return (
     <section className="fearless-hero-pool">
       <div className="fearless-hero-toolbar">
-        <div>
-          <span>{text.heroPool}</span>
-          <strong>{visibleHeroes.length} {text.heroes}</strong>
-        </div>
+        <HeroSuggestionBoards
+          suggestions={map.heroSuggestions}
+          label={text.teamSuggestions}
+        />
         <label>
           <FiSearch />
           <input
@@ -293,7 +310,10 @@ export function HeroGrid({
                       {state.startsWith("picked") && <FiCheck />}
                     </span>
                     {suggestions.length > 0 && (
-                      <HeroSuggestionFrame colors={suggestionColors} />
+                      <HeroSuggestionFrame
+                        colors={suggestionColors}
+                        synchronizedNowMs={synchronizedNowMs}
+                      />
                     )}
                   </button>
                 );

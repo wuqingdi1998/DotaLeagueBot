@@ -30,6 +30,7 @@ export type DraftLobbyPlayer = {
 export type DraftHeroSuggestion = {
   heroId: number;
   playerId: string;
+  playerName: string;
   colorSlot: DraftTeamPlayerColorSlot;
 };
 

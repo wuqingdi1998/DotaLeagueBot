@@ -220,6 +220,7 @@ export function ActiveDraft({
         <HeroGrid
           map={map}
           userId={userId}
+          serverNow={serverNow}
           canSuggest={Boolean(viewerLobbyPlayer)}
           isSending={isSending}
           send={send}

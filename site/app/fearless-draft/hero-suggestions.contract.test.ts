@@ -8,6 +8,10 @@ function source(path: string) {
 
 const screen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
+const suggestionBoards = source(
+  "app/fearless-draft/components/HeroSuggestionBoards.tsx",
+);
+const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const roster = source("app/fearless-draft/components/DraftLobbyTeamStrip.tsx");
 const suggestionService = source(
   "app/fearless-draft/server/suggestion-service.ts",
@@ -47,6 +51,16 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionService).toContain("draftLobbyTeamForCaptain");
     expect(suggestionService).toContain("player_id = ANY($2::bigint[])");
     expect(snapshotService).toContain("loadVisibleDraftHeroSuggestions");
+    expect(suggestionService).toContain("playerName, colorSlot");
+  });
+
+  it("replaces the hero count with up to five named suggestion boards", () => {
+    expect(heroGrid).toContain("<HeroSuggestionBoards");
+    expect(heroGrid).not.toContain("text.heroPool");
+    expect(heroGrid).not.toContain("visibleHeroes.length");
+    expect(suggestionBoards).toContain("buildDraftHeroSuggestionBoards");
+    expect(suggestionBoards).toContain("board.playerName");
+    expect(suggestionBoards).toContain("FEARLESS_DRAFT_HEROES_BY_ID");
   });
 
   it("renders bright player frames without an inner separator", () => {
@@ -73,6 +87,25 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(interactionStyles).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*overflow:\s*visible;/,
     );
+  });
+
+  it("synchronizes every suggestion animation to the shared server clock", () => {
+    expect(activeDraft).toContain("serverNow={serverNow}");
+    expect(heroGrid).toContain("useServerNow(serverNow");
+    expect(heroGrid).toContain("--fearless-suggestion-run-delay");
+    expect(heroGrid).toContain("--fearless-suggestion-breathe-delay");
+    expect(suggestionStyles).toContain(
+      "animation-delay: var(--fearless-suggestion-run-delay)",
+    );
+    expect(suggestionStyles).toContain(
+      "animation-delay: var(--fearless-suggestion-breathe-delay)",
+    );
+  });
+
+  it("keeps five boards beside a search field shortened to 220 pixels", () => {
+    expect(suggestionStyles).toContain(".fearless-hero-suggestion-boards");
+    expect(suggestionStyles).toContain("flex: 1 1 0");
+    expect(suggestionStyles).toContain("width: min(220px, 34%)");
   });
 
   it("keeps Fearless Draft dark inside either site theme", () => {

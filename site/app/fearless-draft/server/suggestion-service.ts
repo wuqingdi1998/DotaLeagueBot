@@ -146,6 +146,9 @@ export async function loadVisibleDraftHeroSuggestions(
       (index + 1) as DraftTeamPlayerColorSlot,
     ]),
   );
+  const playerNames = new Map(
+    team.map((player) => [player.id, player.serverName ?? player.name]),
+  );
   const result = await client.query<{ hero_id: number; player_id: string }>(
     `SELECT hero_id::int, player_id::text
      FROM draft_hero_suggestions
@@ -155,8 +158,9 @@ export async function loadVisibleDraftHeroSuggestions(
   );
   return result.rows.flatMap((row) => {
     const colorSlot = colorSlots.get(row.player_id);
-    return colorSlot
-      ? [{ heroId: row.hero_id, playerId: row.player_id, colorSlot }]
+    const playerName = playerNames.get(row.player_id);
+    return colorSlot && playerName
+      ? [{ heroId: row.hero_id, playerId: row.player_id, playerName, colorSlot }]
       : [];
   });
 }

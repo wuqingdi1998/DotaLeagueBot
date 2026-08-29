@@ -22,6 +22,7 @@
   overflow: visible;
   border-radius: calc(var(--fearless-hero-card-radius) + 2px);
   animation: fearless-hero-suggestion-breathe 4800ms ease-in-out infinite;
+  animation-delay: var(--fearless-suggestion-breathe-delay);
   filter: drop-shadow(0 0 2px var(--fearless-suggestion-glow));
   pointer-events: none;
 }
@@ -33,6 +34,7 @@
 
 .fearless-hero-suggestion-frame rect {
   animation: fearless-hero-suggestion-run 12000ms linear infinite;
+  animation-delay: var(--fearless-suggestion-run-delay);
   shape-rendering: geometricPrecision;
   stroke-dashoffset: var(--fearless-suggestion-dash-start);
   vector-effect: non-scaling-stroke;
@@ -41,6 +43,75 @@
 .fearless-attribute-group button.suggested {
   position: relative;
   z-index: 1;
+}
+
+.fearless-hero-toolbar {
+  min-height: 66px;
+  padding: 7px 10px;
+}
+
+.fearless-hero-toolbar label {
+  width: min(220px, 34%);
+  flex: 0 0 auto;
+}
+
+.fearless-hero-suggestion-boards {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 0;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.fearless-hero-suggestion-boards article {
+  display: flex;
+  min-width: 0;
+  max-width: 168px;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 3px;
+  border: 1px solid color-mix(in srgb, var(--fearless-suggestion-player-color) 68%, transparent);
+  border-radius: 8px;
+  padding: 4px 5px 5px;
+  background: color-mix(in srgb, var(--fearless-suggestion-player-color) 9%, var(--surface-soft));
+}
+
+.fearless-hero-suggestion-boards article > strong {
+  overflow: hidden;
+  color: var(--fearless-suggestion-player-color);
+  font-size: 9px;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fearless-hero-suggestion-boards article > div {
+  display: grid;
+  height: 31px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.fearless-hero-suggestion-boards article span {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #06131e;
+}
+
+.fearless-hero-suggestion-boards article img { object-fit: cover; }
+
+@media (max-width: 600px) {
+  .fearless-hero-toolbar label { width: 100%; }
+  .fearless-hero-suggestion-boards {
+    width: 100%;
+    overflow-x: auto;
+  }
+  .fearless-hero-suggestion-boards article {
+    min-width: 132px;
+    flex-basis: 132px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
