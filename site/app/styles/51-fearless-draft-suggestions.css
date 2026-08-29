@@ -1,29 +1,11 @@
-@keyframes fearless-hero-suggestion-run {
-  from { stroke-dashoffset: var(--fearless-suggestion-dash-start); }
-  to { stroke-dashoffset: var(--fearless-suggestion-dash-end); }
-}
-
-@keyframes fearless-hero-suggestion-breathe {
-  0%, 100% {
-    opacity: 0.4;
-    filter: drop-shadow(0 0 1px var(--fearless-suggestion-glow));
-  }
-
-  50% {
-    opacity: 1;
-    filter: drop-shadow(0 0 4px var(--fearless-suggestion-glow));
-  }
-}
-
 .fearless-hero-suggestion-frame {
   position: absolute;
   z-index: 4;
   inset: -2px;
   overflow: visible;
   border-radius: calc(var(--fearless-hero-card-radius) + 2px);
-  animation: fearless-hero-suggestion-breathe 4800ms ease-in-out infinite;
-  animation-delay: var(--fearless-suggestion-breathe-delay);
-  filter: drop-shadow(0 0 2px var(--fearless-suggestion-glow));
+  opacity: var(--fearless-suggestion-opacity, 0.4);
+  filter: drop-shadow(0 0 var(--fearless-suggestion-glow-radius, 1px) var(--fearless-suggestion-glow));
   pointer-events: none;
 }
 
@@ -33,10 +15,10 @@
 }
 
 .fearless-hero-suggestion-frame rect {
-  animation: fearless-hero-suggestion-run 12000ms linear infinite;
-  animation-delay: var(--fearless-suggestion-run-delay);
   shape-rendering: geometricPrecision;
-  stroke-dashoffset: var(--fearless-suggestion-dash-start);
+  stroke-dashoffset: calc(
+    var(--fearless-suggestion-dash-start) - var(--fearless-suggestion-dash-travel, 0)
+  );
   vector-effect: non-scaling-stroke;
 }
 
@@ -115,6 +97,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fearless-hero-suggestion-frame,
-  .fearless-hero-suggestion-frame rect { animation: none; }
+  .fearless-hero-suggestion-frame { opacity: 1; }
+  .fearless-hero-suggestion-frame rect {
+    stroke-dashoffset: var(--fearless-suggestion-dash-start);
+  }
 }

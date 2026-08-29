@@ -12,6 +12,9 @@ const suggestionBoards = source(
   "app/fearless-draft/components/HeroSuggestionBoards.tsx",
 );
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
+const suggestionAnimationHook = source(
+  "app/fearless-draft/hooks/useSuggestionAnimationSync.ts",
+);
 const roster = source("app/fearless-draft/components/DraftLobbyTeamStrip.tsx");
 const suggestionService = source(
   "app/fearless-draft/server/suggestion-service.ts",
@@ -71,17 +74,9 @@ describe("Fearless Draft teammate hero suggestions", () => {
 
   it("renders uniform external suggestion dashes with a twelve-second lap", () => {
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-frame");
-    expect(suggestionStyles).toContain("fearless-hero-suggestion-run");
-    expect(suggestionStyles).toContain("fearless-hero-suggestion-breathe");
-    expect(suggestionStyles).toContain(
-      "fearless-hero-suggestion-run 12000ms linear infinite",
-    );
-    expect(suggestionStyles).toContain(
-      "fearless-hero-suggestion-breathe 4800ms ease-in-out infinite",
-    );
     expect(suggestionStyles).toContain("inset: -2px");
     expect(suggestionStyles).toContain("stroke-dashoffset");
-    expect(heroGrid).toContain("pathLength={SUGGESTION_PATH_LENGTH}");
+    expect(heroGrid).toContain("pathLength={DRAFT_SUGGESTION_DASH_PATH_LENGTH}");
     expect(heroGrid).toContain("strokeDasharray=");
     expect(heroGrid).not.toContain("conic-gradient");
     expect(interactionStyles).toMatch(
@@ -91,15 +86,16 @@ describe("Fearless Draft teammate hero suggestions", () => {
 
   it("synchronizes every suggestion animation to the shared server clock", () => {
     expect(activeDraft).toContain("serverNow={serverNow}");
-    expect(heroGrid).toContain("useServerNow(serverNow");
-    expect(heroGrid).toContain("--fearless-suggestion-run-delay");
-    expect(heroGrid).toContain("--fearless-suggestion-breathe-delay");
-    expect(suggestionStyles).toContain(
-      "animation-delay: var(--fearless-suggestion-run-delay)",
-    );
-    expect(suggestionStyles).toContain(
-      "animation-delay: var(--fearless-suggestion-breathe-delay)",
-    );
+    expect(heroGrid).toContain("useSuggestionAnimationSync(");
+    expect(heroGrid).toContain("map.heroSuggestions.length > 0");
+    expect(heroGrid).toContain("ref={animationRootRef}");
+    expect(heroGrid).not.toContain("useServerNow");
+    expect(suggestionAnimationHook).toContain("requestAnimationFrame");
+    expect(suggestionAnimationHook).toContain("draftSuggestionAnimationFrame");
+    expect(suggestionAnimationHook).toContain("--fearless-suggestion-dash-travel");
+    expect(suggestionAnimationHook).toContain("--fearless-suggestion-opacity");
+    expect(suggestionStyles).not.toContain("animation-delay");
+    expect(suggestionStyles).not.toContain("@keyframes fearless-hero-suggestion");
   });
 
   it("keeps five boards beside a search field shortened to 220 pixels", () => {
