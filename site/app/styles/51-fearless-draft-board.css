@@ -59,10 +59,10 @@
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 15px 20px;
+  padding: 12px 16px;
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -84,14 +84,14 @@
 
 .fearless-draft-status > div:first-child strong {
   font-family: "5ka Sans Design", sans-serif;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .fearless-turn {
   display: flex;
-  min-width: 300px; min-height: 52px;
+  min-width: 300px; min-height: 50px;
   align-items: center;
   justify-content: center;
   gap: 12px;
@@ -110,7 +110,7 @@
 .fearless-main-clock { align-items: flex-end; }
 .fearless-main-clock strong {
   font-variant-numeric: tabular-nums;
-  font-size: 34px;
+  font-size: 32px;
   line-height: 1;
 }
 .fearless-main-clock.reserve strong { color: #f0a83f; }

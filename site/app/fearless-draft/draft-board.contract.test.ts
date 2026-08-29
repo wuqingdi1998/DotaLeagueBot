@@ -30,6 +30,7 @@ const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
 const draftBase = source("app/styles/50-fearless-draft.css");
 const board = source("app/styles/51-fearless-draft-board.css");
 const interactions = source("app/styles/51-fearless-draft-interactions.css");
+const lobbyRoster = source("app/styles/51-fearless-draft-lobby-roster.css");
 
 describe("Fearless Draft board interface", () => {
   it("reserves every pick and ban slot with its global draft step", () => {
@@ -153,6 +154,24 @@ describe("Fearless Draft board interface", () => {
     expect(activeDraft).not.toContain('className="fearless-map-complete"');
     expect(board).toMatch(
       /\.fearless-map-ready-control\s*\{[^}]*grid-column:\s*2;[^}]*justify-content:\s*center;/,
+    );
+  });
+
+  it("keeps the regular desktop status bar compact enough for Chromium", () => {
+    expect(board).toMatch(
+      /\.fearless-draft-status\s*\{[^}]*gap:\s*14px;[^}]*padding:\s*12px 16px;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-draft-status > div:first-child strong\s*\{[^}]*font-size:\s*18px;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*32px;/,
+    );
+    expect(lobbyRoster).toMatch(
+      /\.fearless-lobby-turn-group \.fearless-turn\s*\{[^}]*min-height:\s*50px;[^}]*padding:\s*7px 14px;/,
+    );
+    expect(lobbyRoster).toMatch(
+      /\.fearless-lobby-side-status\s*\{[^}]*gap:\s*3px;[^}]*padding:\s*6px 10px;/,
     );
   });
 

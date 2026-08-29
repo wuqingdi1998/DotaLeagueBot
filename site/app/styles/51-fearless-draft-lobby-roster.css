@@ -7,13 +7,13 @@
   min-width: 0;
   align-items: stretch;
   grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 
 .fearless-lobby-turn-group .fearless-turn {
   min-width: 260px;
-  min-height: 56px;
-  padding: 9px 16px;
+  min-height: 50px;
+  padding: 7px 14px;
 }
 
 .fearless-lobby-turn-group .fearless-map-ready-control {
@@ -22,7 +22,7 @@
 
 .fearless-lobby-turn-placeholder {
   min-width: 260px;
-  min-height: 56px;
+  min-height: 50px;
 }
 
 .fearless-lobby-side-status {
@@ -30,10 +30,10 @@
   min-width: 0;
   justify-content: center;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   border: 1px solid color-mix(in srgb, var(--team-accent) 48%, var(--line));
   border-radius: 12px;
-  padding: 7px 12px;
+  padding: 6px 10px;
   background: color-mix(in srgb, var(--team-accent) 8%, var(--surface-soft));
   text-align: center;
 }
@@ -63,7 +63,7 @@
 
 .fearless-lobby-side-status b {
   color: var(--text);
-  font-size: 19px;
+  font-size: 18px;
   font-variant-numeric: tabular-nums;
 }
 
