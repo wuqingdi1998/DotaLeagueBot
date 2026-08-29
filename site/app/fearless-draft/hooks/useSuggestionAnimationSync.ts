@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useRef, type RefObject } from "react";
-import { draftSuggestionAnimationFrame } from "../model/suggestion-animation";
+import {
+  draftSuggestionAnimationFrame,
+  stableServerClockOffset,
+} from "../model/suggestion-animation";
 
 const SERVER_CLOCK_CORRECTION_RATE = 0.025;
 
@@ -16,8 +19,11 @@ export function useSuggestionAnimationSync(
 
   useEffect(() => {
     const observedOffsetMs = Date.parse(serverNow) - performance.now();
-    targetServerOffsetMs.current = observedOffsetMs;
-    currentServerOffsetMs.current ??= observedOffsetMs;
+    targetServerOffsetMs.current = stableServerClockOffset(
+      targetServerOffsetMs.current,
+      observedOffsetMs,
+    );
+    currentServerOffsetMs.current ??= targetServerOffsetMs.current;
   }, [serverNow]);
 
   useEffect(() => {

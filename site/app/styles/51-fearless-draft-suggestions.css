@@ -28,7 +28,11 @@
 }
 
 .fearless-hero-toolbar {
+  box-sizing: border-box;
+  height: 66px;
   min-height: 66px;
+  max-height: 66px;
+  overflow: hidden;
   padding: 7px 10px;
 }
 
@@ -39,56 +43,70 @@
 
 .fearless-hero-suggestion-boards {
   display: flex;
+  height: 100%;
   min-width: 0;
+  align-items: stretch;
   flex: 1 1 0;
   flex-direction: row;
   gap: 6px;
+  overflow: hidden;
 }
 
 .fearless-hero-suggestion-boards article {
-  display: flex;
+  display: grid;
+  box-sizing: border-box;
+  height: 100%;
   min-width: 0;
   max-width: 168px;
   flex: 1 1 0;
-  flex-direction: column;
-  gap: 3px;
-  border: 1px solid color-mix(in srgb, var(--fearless-suggestion-player-color) 68%, transparent);
-  border-radius: 8px;
-  padding: 4px 5px 5px;
-  background: color-mix(in srgb, var(--fearless-suggestion-player-color) 9%, var(--surface-soft));
-}
-
-.fearless-hero-suggestion-boards article > strong {
-  overflow: hidden;
-  color: var(--fearless-suggestion-player-color);
-  font-size: 9px;
-  line-height: 1.1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fearless-hero-suggestion-boards article > div {
-  display: grid;
-  height: 31px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 2px;
+  border: 1px solid color-mix(in srgb, var(--fearless-suggestion-player-color) 68%, transparent);
+  border-radius: 8px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--fearless-suggestion-player-color) 18%, var(--surface-soft));
 }
 
-.fearless-hero-suggestion-boards article span {
+.fearless-hero-suggestion-boards article > button,
+.fearless-hero-suggestion-boards article > span {
   position: relative;
+  display: block;
   min-width: 0;
+  height: 100%;
   overflow: hidden;
+  border: 0;
   border-radius: 4px;
+  padding: 0;
   background: #06131e;
+  color: #fff;
 }
 
 .fearless-hero-suggestion-boards article img { object-fit: cover; }
+.fearless-hero-suggestion-boards article > button { cursor: pointer; }
+.fearless-hero-suggestion-boards article > button:disabled { cursor: wait; }
+.fearless-hero-suggestion-boards article > button img { transition: filter 160ms ease; }
+.fearless-hero-suggestion-boards article > button > svg {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  filter: drop-shadow(0 1px 2px #000);
+  font-size: 20px;
+  transition: opacity 160ms ease;
+}
+.fearless-hero-suggestion-boards article > button:not(:disabled):hover img {
+  filter: brightness(0.42);
+}
+.fearless-hero-suggestion-boards article > button:not(:disabled):hover > svg { opacity: 1; }
 
 @media (max-width: 600px) {
-  .fearless-hero-toolbar label { width: 100%; }
+  .fearless-hero-toolbar { align-items: center; flex-direction: row; }
+  .fearless-hero-toolbar label { width: min(120px, 34%); }
   .fearless-hero-suggestion-boards {
-    width: 100%;
     overflow-x: auto;
+    overflow-y: hidden;
   }
   .fearless-hero-suggestion-boards article {
     min-width: 132px;

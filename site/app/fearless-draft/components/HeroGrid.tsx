@@ -196,6 +196,15 @@ export function HeroGrid({
     return action.actorId === map.radiantPlayerId ? "picked-radiant" : "picked-dire";
   }
 
+  function toggleHeroSuggestion(heroId: number) {
+    if (!canSuggest || isSending) return;
+    void send({
+      action: "TOGGLE_HERO_SUGGESTION",
+      heroId,
+      expectedVersion: map.version,
+    });
+  }
+
   function showHeroPreview(hero: DraftHero, event: MouseEvent<HTMLButtonElement>) {
     const bounds = event.currentTarget.getBoundingClientRect();
     const previewWidth = 150;
@@ -217,6 +226,10 @@ export function HeroGrid({
         <HeroSuggestionBoards
           suggestions={map.heroSuggestions}
           label={text.teamSuggestions}
+          removeLabel={text.removeSuggestion}
+          userId={userId}
+          isSending={isSending}
+          onRemoveOwnSuggestion={toggleHeroSuggestion}
         />
         <label>
           <FiSearch />
@@ -244,7 +257,7 @@ export function HeroGrid({
                   (suggestion) => suggestion.heroId === hero.id,
                 );
                 const orderedSuggestions = [...suggestions].sort((left, right) =>
-                  Number(right.playerId === userId) - Number(left.playerId === userId),
+                  left.colorSlot - right.colorSlot || left.playerId.localeCompare(right.playerId),
                 );
                 const suggestionColors = orderedSuggestions.map((suggestion) =>
                   draftTeamPlayerColor(suggestion.colorSlot),
@@ -273,12 +286,7 @@ export function HeroGrid({
                     onMouseLeave={() => setHeroPreview(null)}
                     onContextMenu={(event) => {
                       event.preventDefault();
-                      if (!canSuggestHero || isSending) return;
-                      void send({
-                        action: "TOGGLE_HERO_SUGGESTION",
-                        heroId: hero.id,
-                        expectedVersion: map.version,
-                      });
+                      if (canSuggestHero) toggleHeroSuggestion(hero.id);
                     }}
                     onClick={() => {
                       if (canSelect) {

@@ -4,6 +4,7 @@ import {
   DRAFT_SUGGESTION_DASH_PATH_LENGTH,
   DRAFT_SUGGESTION_RUN_DURATION_MS,
   draftSuggestionAnimationFrame,
+  stableServerClockOffset,
 } from "./suggestion-animation";
 
 describe("Fearless Draft synchronized suggestion animation", () => {
@@ -30,5 +31,11 @@ describe("Fearless Draft synchronized suggestion animation", () => {
       opacity: 1,
       glowRadius: 4,
     });
+  });
+
+  it("keeps the lowest observed network delay instead of chasing every snapshot", () => {
+    expect(stableServerClockOffset(null, 10_000)).toBe(10_000);
+    expect(stableServerClockOffset(10_000, 9_940)).toBe(10_000);
+    expect(stableServerClockOffset(10_000, 10_015)).toBe(10_015);
   });
 });

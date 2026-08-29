@@ -15,6 +15,9 @@ const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const suggestionAnimationHook = source(
   "app/fearless-draft/hooks/useSuggestionAnimationSync.ts",
 );
+const suggestionAnimationModel = source(
+  "app/fearless-draft/model/suggestion-animation.ts",
+);
 const roster = source("app/fearless-draft/components/DraftLobbyTeamStrip.tsx");
 const suggestionService = source(
   "app/fearless-draft/server/suggestion-service.ts",
@@ -57,13 +60,20 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionService).toContain("playerName, colorSlot");
   });
 
-  it("replaces the hero count with up to five named suggestion boards", () => {
+  it("replaces the hero count with up to five compact suggestion boards", () => {
     expect(heroGrid).toContain("<HeroSuggestionBoards");
     expect(heroGrid).not.toContain("text.heroPool");
     expect(heroGrid).not.toContain("visibleHeroes.length");
     expect(suggestionBoards).toContain("buildDraftHeroSuggestionBoards");
-    expect(suggestionBoards).toContain("board.playerName");
     expect(suggestionBoards).toContain("FEARLESS_DRAFT_HEROES_BY_ID");
+    expect(suggestionBoards).not.toContain("<strong");
+  });
+
+  it("lets the viewer remove a hero from their own suggestion board", () => {
+    expect(heroGrid).toContain("toggleHeroSuggestion");
+    expect(suggestionBoards).toContain("board.playerId === userId");
+    expect(suggestionBoards).toContain("onRemoveOwnSuggestion(hero.id)");
+    expect(suggestionBoards).toContain("<FiX aria-hidden=\"true\"");
   });
 
   it("renders bright player frames without an inner separator", () => {
@@ -96,12 +106,19 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionAnimationHook).toContain("--fearless-suggestion-opacity");
     expect(suggestionStyles).not.toContain("animation-delay");
     expect(suggestionStyles).not.toContain("@keyframes fearless-hero-suggestion");
+    expect(suggestionAnimationModel).toContain("stableServerClockOffset");
+    expect(heroGrid).toContain("left.colorSlot - right.colorSlot");
+    expect(heroGrid).not.toContain("right.playerId === userId");
   });
 
   it("keeps five boards beside a search field shortened to 220 pixels", () => {
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-boards");
     expect(suggestionStyles).toContain("flex: 1 1 0");
     expect(suggestionStyles).toContain("width: min(220px, 34%)");
+    expect(suggestionStyles).toMatch(
+      /\.fearless-hero-toolbar\s*\{[^}]*height:\s*66px;[^}]*overflow:\s*hidden;/,
+    );
+    expect(suggestionStyles).toContain("height: 100%");
   });
 
   it("keeps Fearless Draft dark inside either site theme", () => {

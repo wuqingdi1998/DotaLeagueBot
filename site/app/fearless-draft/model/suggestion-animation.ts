@@ -13,6 +13,15 @@ function cycleProgress(nowMs: number, durationMs: number): number {
   return elapsed / durationMs;
 }
 
+export function stableServerClockOffset(
+  previousOffsetMs: number | null,
+  observedOffsetMs: number,
+): number {
+  return previousOffsetMs === null
+    ? observedOffsetMs
+    : Math.max(previousOffsetMs, observedOffsetMs);
+}
+
 export function draftSuggestionAnimationFrame(
   synchronizedNowMs: number,
 ): DraftSuggestionAnimationFrame {
