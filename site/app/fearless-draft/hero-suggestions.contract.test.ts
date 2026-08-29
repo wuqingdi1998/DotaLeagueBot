@@ -51,6 +51,13 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(rosterStyles).toContain("inset 0 0 0 2px var(--line-strong)");
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-frame");
     expect(suggestionStyles).toContain("fearless-hero-suggestion-run");
+    expect(suggestionStyles).toContain("fearless-hero-suggestion-breathe");
+    expect(suggestionStyles).toContain(
+      "fearless-hero-suggestion-run 6000ms linear infinite",
+    );
+    expect(suggestionStyles).toContain(
+      "fearless-hero-suggestion-breathe 4800ms ease-in-out infinite",
+    );
     expect(suggestionStyles).toContain("--fearless-suggestion-angle");
     expect(heroGrid).toContain("suggestionRing(suggestionColors)");
   });

@@ -8,6 +8,18 @@
   to { --fearless-suggestion-angle: 360deg; }
 }
 
+@keyframes fearless-hero-suggestion-breathe {
+  0%, 100% {
+    opacity: 0.4;
+    filter: drop-shadow(0 0 1px var(--fearless-suggestion-glow));
+  }
+
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 4px var(--fearless-suggestion-glow));
+  }
+}
+
 .fearless-hero-suggestion-frame {
   position: absolute;
   z-index: 4;
@@ -15,7 +27,9 @@
   border-radius: var(--fearless-hero-card-radius);
   padding: 3px;
   background: var(--fearless-suggestion-ring);
-  animation: fearless-hero-suggestion-run 1800ms linear infinite;
+  animation:
+    fearless-hero-suggestion-run 6000ms linear infinite,
+    fearless-hero-suggestion-breathe 4800ms ease-in-out infinite;
   filter: drop-shadow(0 0 2px var(--fearless-suggestion-glow));
   pointer-events: none;
   -webkit-mask:
