@@ -85,9 +85,13 @@ describe("Fearless Draft teammate hero suggestions", () => {
 
   it("renders uniform external suggestion dashes with a twelve-second lap", () => {
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-frame");
-    expect(suggestionStyles).toContain("inset: -2px");
+    expect(suggestionStyles).toContain("inset: -5px");
+    expect(suggestionStyles).toMatch(
+      /\.fearless-hero-suggestion-frame::before\s*\{[^}]*inset:\s*3px;[^}]*border:\s*2px solid #000;/,
+    );
     expect(heroGrid).toContain("pathLength={DRAFT_SUGGESTION_DASH_PATH_LENGTH}");
     expect(heroGrid).toContain("strokeDasharray=");
+    expect(heroGrid).toContain('strokeWidth="3"');
     expect(heroGrid).toContain("data-fearless-suggestion-dash-start={dashStart}");
     expect(heroGrid).toContain("strokeDashoffset={dashStart}");
     expect(heroGrid).not.toContain("conic-gradient");

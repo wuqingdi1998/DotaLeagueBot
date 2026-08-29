@@ -59,16 +59,16 @@ function HeroSuggestionFrame({ colors }: { colors: string[] }) {
           return (
             <rect
               key={`${color}-${index}`}
-              x="1"
-              y="1"
-              width="calc(100% - 2px)"
-              height="calc(100% - 2px)"
-              rx="8"
-              ry="8"
+              x="1.5"
+              y="1.5"
+              width="calc(100% - 3px)"
+              height="calc(100% - 3px)"
+              rx="10.5"
+              ry="10.5"
               pathLength={DRAFT_SUGGESTION_DASH_PATH_LENGTH}
               fill="none"
               stroke={color}
-              strokeWidth="2"
+              strokeWidth="3"
               strokeLinecap="butt"
               strokeDasharray={`${SUGGESTION_DASH_LENGTH} ${dashGap}`}
               strokeDashoffset={dashStart}

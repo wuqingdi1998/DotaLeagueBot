@@ -1,17 +1,25 @@
 .fearless-hero-suggestion-frame {
   position: absolute;
   z-index: 4;
-  inset: -2px;
+  inset: -5px;
   overflow: visible;
-  border-radius: calc(var(--fearless-hero-card-radius) + 2px);
-  opacity: var(--fearless-suggestion-opacity, 0.4);
-  filter: drop-shadow(0 0 var(--fearless-suggestion-glow-radius, 1px) var(--fearless-suggestion-glow));
+  border-radius: calc(var(--fearless-hero-card-radius) + 5px);
   pointer-events: none;
+}
+
+.fearless-hero-suggestion-frame::before {
+  position: absolute;
+  inset: 3px;
+  border: 2px solid #000;
+  border-radius: calc(var(--fearless-hero-card-radius) + 2px);
+  content: "";
 }
 
 .fearless-hero-suggestion-frame svg {
   display: block;
   overflow: visible;
+  opacity: var(--fearless-suggestion-opacity, 0.4);
+  filter: drop-shadow(0 0 var(--fearless-suggestion-glow-radius, 1px) var(--fearless-suggestion-glow));
 }
 
 .fearless-hero-suggestion-frame rect {
@@ -112,5 +120,5 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fearless-hero-suggestion-frame { opacity: 1; }
+  .fearless-hero-suggestion-frame svg { opacity: 1; }
 }
