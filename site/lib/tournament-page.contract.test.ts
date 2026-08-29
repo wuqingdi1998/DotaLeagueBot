@@ -23,6 +23,10 @@ function sourceFiles(directory: URL): string[] {
 
 const tournamentSource = sourceFiles(tournamentPageDirectory).join("\n");
 const stylesSource = loadSiteStyles();
+const matchesPanelSource = readFileSync(
+  new URL("../app/tournaments/[slug]/sections/MatchesPanel.tsx", import.meta.url),
+  "utf8",
+);
 const playerSearchRoute = readFileSync(
   new URL("../app/api/players/route.ts", import.meta.url),
   "utf8",
@@ -112,6 +116,18 @@ describe("tournament page public behavior", () => {
       /\.team-emblem-preview:hover \.team-emblem-popup\s*\{[^}]*visibility:\s*visible;[^}]*opacity:\s*1;/,
     );
     expect(stylesSource).not.toContain(".team-card .team-emblem:hover");
+  });
+
+  it("shows static team emblems in the match list", () => {
+    expect(matchesPanelSource).toContain('import Image from "next/image"');
+    expect(matchesPanelSource).toContain("match.team_a_application_id");
+    expect(matchesPanelSource).toContain("match.team_b_application_id");
+    expect(matchesPanelSource).toContain('className="match-team-emblem"');
+    expect(matchesPanelSource).not.toContain("TeamEmblemPreview");
+    expect(stylesSource).toMatch(
+      /\.match-team-emblem\s*\{[^}]*width:\s*36px;[^}]*height:\s*36px;[^}]*object-fit:\s*cover;/,
+    );
+    expect(stylesSource).not.toMatch(/\.match-team[^,{]*:hover/);
   });
 
   it("keeps tournament navigation usable on narrow screens", () => {
