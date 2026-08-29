@@ -19,6 +19,7 @@ export type DraftLobbyPlayer = {
   id: string;
   dotaId: string;
   name: string;
+  serverName?: string;
   avatarUrl: string | null;
   teamSide: "a" | "b";
   isOnline: boolean;

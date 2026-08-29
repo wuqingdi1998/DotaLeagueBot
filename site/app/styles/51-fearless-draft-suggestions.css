@@ -1,3 +1,13 @@
+@property --fearless-suggestion-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes fearless-hero-suggestion-run {
+  to { --fearless-suggestion-angle: 360deg; }
+}
+
 .fearless-hero-suggestion-frame {
   position: absolute;
   z-index: 4;
@@ -5,8 +15,8 @@
   border-radius: var(--fearless-hero-card-radius);
   padding: 3px;
   background: var(--fearless-suggestion-ring);
-  filter: drop-shadow(0 0 4px var(--fearless-suggestion-glow))
-    drop-shadow(0 0 7px var(--fearless-suggestion-glow));
+  animation: fearless-hero-suggestion-run 1800ms linear infinite;
+  filter: drop-shadow(0 0 2px var(--fearless-suggestion-glow));
   pointer-events: none;
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
@@ -18,4 +28,8 @@
 .fearless-attribute-group button.suggested {
   position: relative;
   z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fearless-hero-suggestion-frame { animation: none; }
 }

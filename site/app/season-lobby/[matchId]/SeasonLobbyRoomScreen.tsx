@@ -106,6 +106,7 @@ export function SeasonLobbyRoomScreen({
               id: player.playerId,
               dotaId: player.dotaId,
               name: player.nickname,
+              serverName: player.serverName,
               avatarUrl: player.avatarUrl,
               teamSide: player.teamSide,
               isOnline: player.isOnline,

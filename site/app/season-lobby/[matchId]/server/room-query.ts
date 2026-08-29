@@ -11,6 +11,7 @@ import type {
   SeasonLobbyRoomStatus,
 } from "../model/types";
 import { SeasonLobbyRoomError } from "./errors";
+import { playerServerName } from "@/lib/security";
 
 type RoomTargetRow = {
   match_id: number;
@@ -32,6 +33,12 @@ type RoomStateRow = {
 
 type RoomMessageRow = Omit<SeasonLobbyRoomMessage, "createdAt"> & {
   createdAt: Date;
+};
+
+type RoomPlayerRow = Omit<SeasonLobbyRoomPlayer, "serverName"> & {
+  realName: string | null;
+  serverPlayerName: string;
+  positions: string | null;
 };
 
 async function loadRoomTarget(
@@ -116,7 +123,7 @@ export async function loadSeasonLobbyRoomSnapshot(
            WHERE room.match_id = $1`,
           [matchId],
         ),
-        client.query<SeasonLobbyRoomPlayer>(
+        client.query<RoomPlayerRow>(
           `SELECT room_player.player_id::text AS "playerId",
              COALESCE(current_player.steam_id32, player.steam_id32)::text
                AS "dotaId",
@@ -126,6 +133,10 @@ export async function loadSeasonLobbyRoomSnapshot(
                    current_player.ingame_name, player.ingame_name)
                ELSE COALESCE(current_player.ingame_name, player.ingame_name)
              END AS nickname,
+             COALESCE(current_player.real_name, player.real_name) AS "realName",
+             COALESCE(current_player.ingame_name, player.ingame_name)
+               AS "serverPlayerName",
+             COALESCE(current_player.positions, player.positions) AS positions,
              COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url)
                AS "avatarUrl",
              room_player.team_side AS "teamSide",
@@ -185,7 +196,13 @@ export async function loadSeasonLobbyRoomSnapshot(
       ]);
 
     const state = stateResult.rows[0];
-    const players = playerResult.rows;
+    const players: SeasonLobbyRoomPlayer[] = playerResult.rows.map((row) => {
+      const { realName, serverPlayerName, positions, ...player } = row;
+      return {
+        ...player,
+        serverName: playerServerName(realName, serverPlayerName, positions),
+      };
+    });
     const ownTeam = players.filter(
       (player) => player.teamSide === target.current_user_team_side,
     );

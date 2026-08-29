@@ -15,6 +15,9 @@ const suggestionService = source(
 const snapshotService = source(
   "app/fearless-draft/server/snapshot-service.ts",
 );
+const seriesService = source(
+  "app/fearless-draft/server/series-service.ts",
+);
 const route = source("app/api/fearless-draft/route.ts");
 const suggestionStyles = source(
   "app/styles/51-fearless-draft-suggestions.css",
@@ -42,11 +45,22 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(snapshotService).toContain("loadVisibleDraftHeroSuggestions");
   });
 
-  it("renders pastel player frames inward and matching hero glows", () => {
+  it("renders thicker separated player frames and animated suggestion dashes", () => {
     expect(roster).toContain("draftTeamPlayerColor");
-    expect(rosterStyles).toContain("border: 3px solid var(--fearless-player-color)");
+    expect(rosterStyles).toContain("border: 4px solid var(--fearless-player-color)");
+    expect(rosterStyles).toContain("inset 0 0 0 2px var(--line-strong)");
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-frame");
-    expect(suggestionStyles).toContain("var(--fearless-suggestion-glow)");
+    expect(suggestionStyles).toContain("fearless-hero-suggestion-run");
+    expect(suggestionStyles).toContain("--fearless-suggestion-angle");
     expect(heroGrid).toContain("suggestionRing(suggestionColors)");
+  });
+
+  it("clears a selected hero and every remaining suggestion at draft completion", () => {
+    expect(seriesService).toContain(
+      "DELETE FROM draft_hero_suggestions WHERE map_id = $1 AND hero_id = $2",
+    );
+    expect(seriesService).toContain(
+      "DELETE FROM draft_hero_suggestions WHERE map_id = $1",
+    );
   });
 });

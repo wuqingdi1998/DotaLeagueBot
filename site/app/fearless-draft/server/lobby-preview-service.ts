@@ -7,11 +7,14 @@ import {
 } from "../model/lobby-preview";
 import type { DraftLobbyPlayer } from "../model/snapshot";
 import { DraftRequestError } from "./errors";
+import { playerServerName } from "@/lib/security";
 
 type LobbyPreviewProfileRow = {
   id: string;
   dota_id: string;
   name: string;
+  real_name: string | null;
+  positions: string | null;
   avatar_url: string | null;
 };
 
@@ -24,6 +27,8 @@ export async function loadLobbyPreviewPlayers(
     `SELECT player.discord_id::text AS id,
             player.steam_id32::text AS dota_id,
             player.ingame_name AS name,
+            player.real_name,
+            player.positions,
             COALESCE(
               NULLIF(player.avatar_url, ''),
               NULLIF(latest.discord_avatar_url, '')
@@ -52,13 +57,15 @@ export async function loadLobbyPreviewPlayers(
     id: row.id,
     dotaId: row.dota_id,
     name: row.name,
+    serverName: playerServerName(row.real_name, row.name, row.positions),
     avatarUrl: row.avatar_url,
   }));
   return buildLobbyPreviewRoster({
     viewer: {
       id: user.discordId,
       dotaId: user.dotaId,
-      name: user.serverName,
+      name: user.playerName,
+      serverName: user.serverName,
       avatarUrl: user.avatarUrl,
     },
     profiles,

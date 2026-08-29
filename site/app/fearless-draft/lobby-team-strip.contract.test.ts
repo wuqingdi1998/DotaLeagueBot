@@ -9,6 +9,9 @@ function source(path: string) {
 const roomScreen = source(
   "app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
 );
+const roomQuery = source(
+  "app/season-lobby/[matchId]/server/room-query.ts",
+);
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const draftChoices = source("app/fearless-draft/sections/DraftChoices.tsx");
 const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
@@ -25,6 +28,9 @@ const statisticsPopover = source(
 );
 const statisticsService = source(
   "app/fearless-draft/services/player-statistics.ts",
+);
+const lobbyPreviewService = source(
+  "app/fearless-draft/server/lobby-preview-service.ts",
 );
 const playerProfile = source("lib/player-profile.ts");
 const stratzLogo = source("public/fearless-draft/stratz-logo.svg");
@@ -115,6 +121,17 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(statisticsService).toContain("/api/players/");
     expect(playerProfile).toContain("winRate: mapWinRatePercent(mapStatistics)");
     expect(styles).toContain(".fearless-lobby-statistics-popover");
+  });
+
+  it("shows every player's full server name in the avatar popover", () => {
+    expect(roomQuery).toContain("playerServerName");
+    expect(roomScreen).toContain("serverName: player.serverName");
+    expect(lobbyPreviewService).toContain("serverName: user.serverName");
+    expect(lobbyPreviewService).toContain("playerServerName(");
+    expect(statisticsPopover).toContain("player.serverName ?? player.name");
+    expect(styles).toMatch(
+      /\.fearless-lobby-statistics-popover > header strong\s*\{[^}]*white-space:\s*normal;/,
+    );
   });
 
   it("enlarges the roster controls without making their header taller", () => {

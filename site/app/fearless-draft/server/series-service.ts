@@ -173,6 +173,10 @@ async function commitHeroAction(
     : "player2_reserve_seconds";
   if (nextStep === DRAFT_SEQUENCE.length) {
     await client.query(
+      "DELETE FROM draft_hero_suggestions WHERE map_id = $1",
+      [map.id],
+    );
+    await client.query(
       `UPDATE draft_maps
        SET current_step = $1, ${reserveColumn} = $2, status = 'COMPLETE',
            preview_hero_id = NULL, completed_at = $3, version = version + 1

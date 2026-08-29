@@ -26,6 +26,7 @@ import { buildLobbyPreviewBotCaptain } from "../model/lobby-preview";
 import { loadLobbyPreviewPlayers } from "./lobby-preview-service";
 import { SEASON_LOBBY_PRESENCE_TTL_SECONDS } from "@/lib/season-lobby-room";
 import { loadVisibleDraftHeroSuggestions } from "./suggestion-service";
+import { playerServerName } from "@/lib/security";
 
 type PlayerRow = {
   id: string;
@@ -130,6 +131,8 @@ async function loadSeasonLobbyPlayers(
     id: string;
     dota_id: string;
     name: string;
+    real_name: string | null;
+    positions: string | null;
     avatar_url: string | null;
     team_side: "a" | "b";
     slot_number: number | null;
@@ -139,6 +142,8 @@ async function loadSeasonLobbyPlayers(
     `SELECT room_player.player_id::text AS id,
             player.steam_id32::text AS dota_id,
             player.ingame_name AS name,
+            player.real_name,
+            player.positions,
             player.avatar_url,
             room_player.team_side,
             room_player.slot_number::int,
@@ -162,6 +167,7 @@ async function loadSeasonLobbyPlayers(
     id: row.id,
     dotaId: row.dota_id,
     name: row.name,
+    serverName: playerServerName(row.real_name, row.name, row.positions),
     avatarUrl: row.avatar_url,
     teamSide: row.team_side,
     isOnline: row.is_online,

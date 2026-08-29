@@ -4,6 +4,7 @@ export type SeasonLobbyRoomPlayer = {
   playerId: string;
   dotaId: string;
   nickname: string;
+  serverName: string;
   avatarUrl: string | null;
   teamSide: "a" | "b";
   tier: number | null;

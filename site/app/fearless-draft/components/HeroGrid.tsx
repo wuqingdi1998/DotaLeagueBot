@@ -41,11 +41,16 @@ type HeroSuggestionStyle = CSSProperties & {
 };
 
 function suggestionRing(colors: string[]): string {
-  if (colors.length === 1) return colors[0];
-  const step = 100 / colors.length;
-  return `conic-gradient(${colors.map((color, index) =>
-    `${color} ${index * step}% ${(index + 1) * step}%`,
-  ).join(", ")})`;
+  const dashCount = 32;
+  const dashAngle = 360 / dashCount;
+  const stops = Array.from({ length: dashCount }, (_, index) => {
+    const start = index * dashAngle;
+    const dashEnd = start + dashAngle * 0.58;
+    const end = (index + 1) * dashAngle;
+    const color = colors[index % colors.length];
+    return `${color} ${start}deg ${dashEnd}deg, transparent ${dashEnd}deg ${end}deg`;
+  });
+  return `conic-gradient(from var(--fearless-suggestion-angle), ${stops.join(", ")})`;
 }
 
 const LATEST_ACTION_FLASH_DURATION_MS = 3_000;
@@ -221,7 +226,6 @@ export function HeroGrid({
                     aria-disabled={!canSelect && !canSuggestHero}
                     aria-label={hero.name}
                     tabIndex={canSelect || canSuggestHero ? 0 : -1}
-                    style={suggestionStyle}
                     title={
                       state === "fearless-locked"
                         ? text.usedPreviousMap
@@ -261,7 +265,11 @@ export function HeroGrid({
                       {state.startsWith("picked") && <FiCheck />}
                     </span>
                     {suggestions.length > 0 && (
-                      <span className="fearless-hero-suggestion-frame" aria-hidden="true" />
+                      <span
+                        className="fearless-hero-suggestion-frame"
+                        style={suggestionStyle}
+                        aria-hidden="true"
+                      />
                     )}
                   </button>
                 );

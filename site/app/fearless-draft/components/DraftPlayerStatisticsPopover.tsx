@@ -7,13 +7,13 @@ import type { DraftLobbyPlayer, DraftPlayer } from "../model/snapshot";
 import { PlayerAvatar } from "./PlayerAvatar";
 
 const POPOVER_WIDTH = 390;
-const POPOVER_HEIGHT = 174;
+const POPOVER_HEIGHT = 204;
 const VIEWPORT_GAP = 8;
 
 function avatarPlayer(player: DraftLobbyPlayer): DraftPlayer {
   return {
     id: player.id,
-    name: player.name,
+    name: player.serverName ?? player.name,
     discordName: player.name,
     avatarUrl: player.avatarUrl,
   };
@@ -31,6 +31,7 @@ export function DraftPlayerStatisticsPopover({
   const popoverId = useId();
   const { statistics, isLoading, error, loadStatistics } =
     useDraftPlayerStatistics(player.dotaId);
+  const displayedName = player.serverName ?? player.name;
 
   const updatePosition = useCallback(() => {
     const anchor = anchorRef.current;
@@ -89,7 +90,7 @@ export function DraftPlayerStatisticsPopover({
         ref={anchorRef}
         type="button"
         className="fearless-lobby-player-avatar"
-        aria-label={`Статистика игрока ${player.name}`}
+        aria-label={`Статистика игрока ${displayedName}`}
         aria-describedby={isOpen ? popoverId : undefined}
         aria-expanded={isOpen}
         onMouseEnter={showStatistics}
@@ -113,7 +114,7 @@ export function DraftPlayerStatisticsPopover({
           role="tooltip"
         >
           <header>
-            <strong>{player.name}</strong>
+            <strong>{displayedName}</strong>
             <span>Статистика на сервере</span>
           </header>
           {statistics ? (
