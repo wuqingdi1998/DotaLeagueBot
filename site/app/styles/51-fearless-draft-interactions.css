@@ -324,7 +324,7 @@
 .fearless-draft-stage:fullscreen .fearless-attribute-group button {
   display: grid;
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   place-items: center;
   padding: 0;
 }

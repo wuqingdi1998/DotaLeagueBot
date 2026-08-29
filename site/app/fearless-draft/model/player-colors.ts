@@ -1,9 +1,9 @@
 export const DRAFT_TEAM_PLAYER_COLORS = [
-  "#71c4dc",
-  "#dfa171",
-  "#d8c76f",
-  "#79bd96",
-  "#aa91c7",
+  "#22c7f2",
+  "#ff9a4c",
+  "#f2d94e",
+  "#4bd58a",
+  "#c58cff",
 ] as const;
 
 export type DraftTeamPlayerColorSlot = 1 | 2 | 3 | 4 | 5;

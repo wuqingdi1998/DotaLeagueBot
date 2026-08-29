@@ -35,22 +35,56 @@ type HeroPreview = {
   top: number;
 };
 
-type HeroSuggestionStyle = CSSProperties & {
-  "--fearless-suggestion-ring"?: string;
-  "--fearless-suggestion-glow"?: string;
+type HeroSuggestionFrameStyle = CSSProperties & {
+  "--fearless-suggestion-glow": string;
 };
 
-function suggestionRing(colors: string[]): string {
-  const dashCount = 32;
-  const dashAngle = 360 / dashCount;
-  const stops = Array.from({ length: dashCount }, (_, index) => {
-    const start = index * dashAngle;
-    const dashEnd = start + dashAngle * 0.58;
-    const end = (index + 1) * dashAngle;
-    const color = colors[index % colors.length];
-    return `${color} ${start}deg ${dashEnd}deg, transparent ${dashEnd}deg ${end}deg`;
-  });
-  return `conic-gradient(from var(--fearless-suggestion-angle), ${stops.join(", ")})`;
+type HeroSuggestionDashStyle = CSSProperties & {
+  "--fearless-suggestion-dash-start": number;
+  "--fearless-suggestion-dash-end": number;
+};
+
+const SUGGESTION_PATH_LENGTH = 140;
+const SUGGESTION_DASH_LENGTH = 4;
+const SUGGESTION_DASH_PERIOD = 7;
+
+function HeroSuggestionFrame({ colors }: { colors: string[] }) {
+  const frameStyle: HeroSuggestionFrameStyle = {
+    "--fearless-suggestion-glow": colors[0],
+  };
+  const dashGap = SUGGESTION_DASH_PERIOD - SUGGESTION_DASH_LENGTH
+    + SUGGESTION_DASH_PERIOD * (colors.length - 1);
+  return (
+    <span className="fearless-hero-suggestion-frame" style={frameStyle} aria-hidden="true">
+      <svg width="100%" height="100%" focusable="false">
+        {colors.map((color, index) => {
+          const dashStart = -SUGGESTION_DASH_PERIOD * index;
+          const dashStyle: HeroSuggestionDashStyle = {
+            "--fearless-suggestion-dash-start": dashStart,
+            "--fearless-suggestion-dash-end": dashStart - SUGGESTION_PATH_LENGTH,
+          };
+          return (
+            <rect
+              key={`${color}-${index}`}
+              x="1"
+              y="1"
+              width="calc(100% - 2px)"
+              height="calc(100% - 2px)"
+              rx="8"
+              ry="8"
+              pathLength={SUGGESTION_PATH_LENGTH}
+              fill="none"
+              stroke={color}
+              strokeWidth="2"
+              strokeLinecap="butt"
+              strokeDasharray={`${SUGGESTION_DASH_LENGTH} ${dashGap}`}
+              style={dashStyle}
+            />
+          );
+        })}
+      </svg>
+    </span>
+  );
 }
 
 const LATEST_ACTION_FLASH_DURATION_MS = 3_000;
@@ -209,12 +243,6 @@ export function HeroGrid({
                 const suggestionColors = orderedSuggestions.map((suggestion) =>
                   draftTeamPlayerColor(suggestion.colorSlot),
                 );
-                const suggestionStyle: HeroSuggestionStyle | undefined = suggestionColors.length
-                  ? {
-                      "--fearless-suggestion-ring": suggestionRing(suggestionColors),
-                      "--fearless-suggestion-glow": suggestionColors[0],
-                    }
-                  : undefined;
                 const flashClass = flashingAction?.heroId === hero.id
                   ? `just-${flashingAction.type.toLowerCase()}`
                   : "";
@@ -265,11 +293,7 @@ export function HeroGrid({
                       {state.startsWith("picked") && <FiCheck />}
                     </span>
                     {suggestions.length > 0 && (
-                      <span
-                        className="fearless-hero-suggestion-frame"
-                        style={suggestionStyle}
-                        aria-hidden="true"
-                      />
+                      <HeroSuggestionFrame colors={suggestionColors} />
                     )}
                   </button>
                 );

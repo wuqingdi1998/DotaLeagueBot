@@ -1,10 +1,31 @@
 .fearless-draft-page {
+  color-scheme: dark;
+  --bg: #071827;
+  --surface: #0d2434;
+  --surface-soft: #122f42;
+  --surface-blue: #0e3b52;
+  --surface-violet: #182948;
+  --blue: #00c3ff;
+  --blue-soft: #79ddff;
+  --blue-strong: #62d8ff;
+  --blue-deep: #a9e7ff;
+  --blue-solid: #075f9d;
+  --text: #f6fbff;
+  --muted: #b2cad8;
+  --quiet: #89a8ba;
+  --line: rgba(173, 220, 245, 0.14);
+  --line-strong: rgba(0, 195, 255, 0.34);
+  --shadow: 0 24px 75px rgba(2, 10, 20, 0.36);
+  --scrollbar-track: #081a28;
+  --scrollbar-thumb: #287896;
+  --scrollbar-thumb-hover: #00a9d9;
   min-height: calc(100vh - 88px);
   padding-bottom: 80px;
   background:
     radial-gradient(circle at 12% 2%, rgba(0, 195, 255, 0.16), transparent 27%),
     radial-gradient(circle at 88% 15%, rgba(88, 101, 242, 0.13), transparent 25%),
     var(--bg);
+  color: var(--text);
 }
 
 .fearless-draft-hero {

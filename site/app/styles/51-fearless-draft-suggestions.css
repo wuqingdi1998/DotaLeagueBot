@@ -1,11 +1,6 @@
-@property --fearless-suggestion-angle {
-  syntax: "<angle>";
-  inherits: false;
-  initial-value: 0deg;
-}
-
 @keyframes fearless-hero-suggestion-run {
-  to { --fearless-suggestion-angle: 360deg; }
+  from { stroke-dashoffset: var(--fearless-suggestion-dash-start); }
+  to { stroke-dashoffset: var(--fearless-suggestion-dash-end); }
 }
 
 @keyframes fearless-hero-suggestion-breathe {
@@ -23,20 +18,24 @@
 .fearless-hero-suggestion-frame {
   position: absolute;
   z-index: 4;
-  inset: 0;
-  border-radius: var(--fearless-hero-card-radius);
-  padding: 3px;
-  background: var(--fearless-suggestion-ring);
-  animation:
-    fearless-hero-suggestion-run 6000ms linear infinite,
-    fearless-hero-suggestion-breathe 4800ms ease-in-out infinite;
+  inset: -2px;
+  overflow: visible;
+  border-radius: calc(var(--fearless-hero-card-radius) + 2px);
+  animation: fearless-hero-suggestion-breathe 4800ms ease-in-out infinite;
   filter: drop-shadow(0 0 2px var(--fearless-suggestion-glow));
   pointer-events: none;
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+}
+
+.fearless-hero-suggestion-frame svg {
+  display: block;
+  overflow: visible;
+}
+
+.fearless-hero-suggestion-frame rect {
+  animation: fearless-hero-suggestion-run 12000ms linear infinite;
+  shape-rendering: geometricPrecision;
+  stroke-dashoffset: var(--fearless-suggestion-dash-start);
+  vector-effect: non-scaling-stroke;
 }
 
 .fearless-attribute-group button.suggested {
@@ -45,5 +44,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .fearless-hero-suggestion-frame { animation: none; }
+  .fearless-hero-suggestion-frame,
+  .fearless-hero-suggestion-frame rect { animation: none; }
 }

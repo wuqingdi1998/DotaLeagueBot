@@ -25,6 +25,10 @@ const suggestionStyles = source(
 const rosterStyles = source(
   "app/styles/51-fearless-draft-lobby-roster.css",
 );
+const interactionStyles = source(
+  "app/styles/51-fearless-draft-interactions.css",
+);
+const draftStyles = source("app/styles/50-fearless-draft.css");
 
 describe("Fearless Draft teammate hero suggestions", () => {
   it("suppresses the native context menu across the draft interface", () => {
@@ -45,21 +49,36 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(snapshotService).toContain("loadVisibleDraftHeroSuggestions");
   });
 
-  it("renders thicker separated player frames and animated suggestion dashes", () => {
+  it("renders bright player frames without an inner separator", () => {
     expect(roster).toContain("draftTeamPlayerColor");
     expect(rosterStyles).toContain("border: 4px solid var(--fearless-player-color)");
-    expect(rosterStyles).toContain("inset 0 0 0 2px var(--line-strong)");
+    expect(rosterStyles).not.toContain("inset 0 0 0 2px var(--line-strong)");
+  });
+
+  it("renders uniform external suggestion dashes with a twelve-second lap", () => {
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-frame");
     expect(suggestionStyles).toContain("fearless-hero-suggestion-run");
     expect(suggestionStyles).toContain("fearless-hero-suggestion-breathe");
     expect(suggestionStyles).toContain(
-      "fearless-hero-suggestion-run 6000ms linear infinite",
+      "fearless-hero-suggestion-run 12000ms linear infinite",
     );
     expect(suggestionStyles).toContain(
       "fearless-hero-suggestion-breathe 4800ms ease-in-out infinite",
     );
-    expect(suggestionStyles).toContain("--fearless-suggestion-angle");
-    expect(heroGrid).toContain("suggestionRing(suggestionColors)");
+    expect(suggestionStyles).toContain("inset: -2px");
+    expect(suggestionStyles).toContain("stroke-dashoffset");
+    expect(heroGrid).toContain("pathLength={SUGGESTION_PATH_LENGTH}");
+    expect(heroGrid).toContain("strokeDasharray=");
+    expect(heroGrid).not.toContain("conic-gradient");
+    expect(interactionStyles).toMatch(
+      /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*overflow:\s*visible;/,
+    );
+  });
+
+  it("keeps Fearless Draft dark inside either site theme", () => {
+    expect(draftStyles).toMatch(
+      /\.fearless-draft-page\s*\{[^}]*color-scheme:\s*dark;[^}]*--bg:\s*#071827;[^}]*--surface:\s*#0d2434;[^}]*--text:\s*#f6fbff;/,
+    );
   });
 
   it("clears a selected hero and every remaining suggestion at draft completion", () => {
