@@ -38,7 +38,7 @@ export function HeroSuggestionBoards({
               const hero = FEARLESS_DRAFT_HEROES_BY_ID.get(heroId);
               if (!hero) return [];
               const portrait = (
-                <Image src={hero.portraitUrl} alt={hero.name} fill sizes="42px" unoptimized />
+                <Image src={hero.portraitUrl} alt={hero.name} fill sizes="48px" unoptimized />
               );
               return board.playerId === userId ? [(
                 <button

@@ -34,16 +34,26 @@
 
 .fearless-hero-toolbar {
   box-sizing: border-box;
-  height: 66px;
-  min-height: 66px;
-  max-height: 66px;
+  height: 78px;
+  min-height: 78px;
+  max-height: 78px;
   overflow: hidden;
   padding: 7px 10px;
 }
 
 .fearless-hero-toolbar label {
-  width: min(220px, 34%);
+  width: min(148px, 23%);
   flex: 0 0 auto;
+}
+
+.fearless-draft-stage:not(:fullscreen) .fearless-hero-grid {
+  padding: 0 10px 8px;
+}
+
+.fearless-draft-stage:fullscreen .fearless-hero-toolbar {
+  height: 66px;
+  min-height: 66px;
+  max-height: 66px;
 }
 
 .fearless-hero-suggestion-boards {
@@ -62,7 +72,7 @@
   box-sizing: border-box;
   height: 100%;
   min-width: 0;
-  max-width: 168px;
+  max-width: 204px;
   flex: 1 1 0;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 2px;
@@ -108,7 +118,7 @@
 
 @media (max-width: 600px) {
   .fearless-hero-toolbar { align-items: center; flex-direction: row; }
-  .fearless-hero-toolbar label { width: min(120px, 34%); }
+  .fearless-hero-toolbar label { width: min(80px, 23%); }
   .fearless-hero-suggestion-boards {
     overflow-x: auto;
     overflow-y: hidden;

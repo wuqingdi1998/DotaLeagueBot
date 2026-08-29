@@ -120,12 +120,20 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(heroGrid).not.toContain("right.playerId === userId");
   });
 
-  it("keeps five boards beside a search field shortened to 220 pixels", () => {
+  it("gives five larger boards more room beside a 148 pixel search field", () => {
     expect(suggestionStyles).toContain(".fearless-hero-suggestion-boards");
     expect(suggestionStyles).toContain("flex: 1 1 0");
-    expect(suggestionStyles).toContain("width: min(220px, 34%)");
+    expect(suggestionStyles).toContain("width: min(148px, 23%)");
+    expect(suggestionStyles).toContain("max-width: 204px");
+    expect(suggestionBoards).toContain('sizes="48px"');
     expect(suggestionStyles).toMatch(
-      /\.fearless-hero-toolbar\s*\{[^}]*height:\s*66px;[^}]*overflow:\s*hidden;/,
+      /\.fearless-hero-toolbar\s*\{[^}]*height:\s*78px;[^}]*overflow:\s*hidden;/,
+    );
+    expect(suggestionStyles).toMatch(
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-hero-grid\s*\{[^}]*padding:\s*0 10px 8px;/,
+    );
+    expect(suggestionStyles).toMatch(
+      /\.fearless-draft-stage:fullscreen \.fearless-hero-toolbar\s*\{[^}]*height:\s*66px;/,
     );
     expect(suggestionStyles).toContain("height: 100%");
   });
