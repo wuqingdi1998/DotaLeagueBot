@@ -5,6 +5,11 @@ import type {
   FearlessDraftCommand,
   FearlessDraftSnapshot,
 } from "../model/snapshot";
+import {
+  draftRequestErrorMessage,
+  fetchDraftRequest,
+  readDraftResponse,
+} from "../services/draft-request";
 
 type CommandResponse = { error?: string };
 
@@ -20,11 +25,13 @@ export function useFearlessDraft(
 
   const reload = useCallback(async () => {
     const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
-    const response = await fetch(`/api/fearless-draft${suffix}`, {
+    const response = await fetchDraftRequest(`/api/fearless-draft${suffix}`, {
       cache: "no-store",
     });
-    const body = (await response.json()) as FearlessDraftSnapshot & CommandResponse;
-    if (!response.ok) throw new Error(body.error ?? "Не удалось обновить драфт");
+    const body = await readDraftResponse<FearlessDraftSnapshot & CommandResponse>(
+      response,
+      "Не удалось обновить драфт",
+    );
     setSnapshot(body);
   }, [seasonMatchId]);
 
@@ -32,7 +39,13 @@ export function useFearlessDraft(
     const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
     const events = new EventSource(`/api/fearless-draft/events${suffix}`);
     const receiveSnapshot = (event: MessageEvent<string>) => {
-      setSnapshot(JSON.parse(event.data) as FearlessDraftSnapshot);
+      try {
+        setSnapshot(JSON.parse(event.data) as FearlessDraftSnapshot);
+      } catch {
+        setError("Не удалось обновить драфт");
+        void reload().catch(() => undefined);
+        return;
+      }
       setIsConnected(true);
       setError("");
       if (fallbackTimer.current !== null) {
@@ -63,18 +76,21 @@ export function useFearlessDraft(
     setIsSending(true);
     try {
       const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
-      const response = await fetch(`/api/fearless-draft${suffix}`, {
+      const response = await fetchDraftRequest(`/api/fearless-draft${suffix}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(command),
       });
-      const body = (await response.json()) as CommandResponse;
-      if (!response.ok) throw new Error(body.error ?? "Действие не выполнено");
+      await readDraftResponse<CommandResponse>(
+        response,
+        "Действие не выполнено",
+        { allowEmptySuccess: true },
+      );
       setError("");
       if (!isConnected) await reload();
       return true;
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Действие не выполнено");
+      setError(draftRequestErrorMessage(reason, "Действие не выполнено"));
       await reload().catch(() => undefined);
       return false;
     } finally {

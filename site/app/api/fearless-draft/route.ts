@@ -1,4 +1,4 @@
-import { requireSession, responseFromAuthError } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
 import type { FearlessDraftCommand } from "@/app/fearless-draft/model/snapshot";
 import {
   joinDraftQueue,
@@ -23,7 +23,7 @@ import {
 } from "@/app/fearless-draft/server/snapshot-service";
 import {
   DraftRequestError,
-  draftErrorResponse,
+  draftRouteErrorResponse,
 } from "@/app/fearless-draft/server/errors";
 import {
   advanceBotDraft,
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
       seasonMatchId: fearlessSeasonMatchId(request),
     }));
   } catch (error) {
-    return draftErrorResponse(error) ?? responseFromAuthError(error);
+    return draftRouteErrorResponse(error, "Не удалось обновить драфт");
   }
 }
 
@@ -171,6 +171,6 @@ export async function POST(request: Request) {
     }
     return Response.json({ ok: true });
   } catch (error) {
-    return draftErrorResponse(error) ?? responseFromAuthError(error);
+    return draftRouteErrorResponse(error, "Действие не выполнено");
   }
 }

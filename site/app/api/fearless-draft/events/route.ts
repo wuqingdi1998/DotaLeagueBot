@@ -1,4 +1,6 @@
-import { requireSession, responseFromAuthError } from "@/lib/auth";
+import { requireSession } from "@/lib/auth";
+import { draftRouteErrorResponse } from
+  "@/app/fearless-draft/server/errors";
 import { loadFearlessDraftSnapshot } from "@/app/fearless-draft/server/snapshot-service";
 import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
@@ -86,6 +88,6 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    return responseFromAuthError(error);
+    return draftRouteErrorResponse(error, "Не удалось обновить драфт");
   }
 }
