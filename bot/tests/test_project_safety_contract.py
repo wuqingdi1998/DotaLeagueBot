@@ -35,6 +35,10 @@ def test_deploy_recovers_space_left_by_interrupted_releases() -> None:
     assert workflow.index("Prepare production host") < workflow.index(
         "Transfer production images"
     )
-    assert workflow.index("docker image prune --force") < workflow.index(
+    assert "docker container prune --force" in workflow
+    assert "docker image prune --all --force" in workflow
+    assert "docker builder prune --all --force" in workflow
+    assert "docker volume prune" not in workflow
+    assert workflow.index("docker image prune --all --force") < workflow.index(
         "Transfer production images"
     )

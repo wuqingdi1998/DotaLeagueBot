@@ -70,15 +70,19 @@ jobs:
           port: ${{ secrets.DEPLOY_PORT }}
           script: |
             set -euo pipefail
-            # Interrupted releases can leave large archives and dangling layers.
-            # Remove only known deployment artifacts; running images stay protected.
+            # Interrupted releases can leave large archives, old images and build cache.
+            # Remove only unused Docker data; running containers and their images stay protected.
             for stale_artifact in /tmp/dotaleaguebot-*/deployment-images.tar.gz; do
               [ -f "$stale_artifact" ] || continue
               stale_dir="${stale_artifact%/*}"
               rm -f -- "$stale_artifact"
               rmdir -- "$stale_dir" 2>/dev/null || true
             done
-            docker image prune --force
+            docker container prune --force
+            docker image prune --all --force
+            docker builder prune --all --force
+            df -h / /tmp
+            docker system df
       - name: Transfer production images
         uses: appleboy/scp-action@v1
         with:
