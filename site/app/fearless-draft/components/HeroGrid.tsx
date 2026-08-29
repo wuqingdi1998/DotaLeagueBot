@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
-import type { MouseEvent } from "react";
 import { FiCheck, FiLock, FiSearch, FiSlash } from "react-icons/fi";
 import {
   FEARLESS_DRAFT_HEROES,
@@ -32,14 +31,6 @@ type HeroState =
   | "banned"
   | "fearless-locked"
   | "captains-disabled";
-
-type DraftHero = (typeof FEARLESS_DRAFT_HEROES)[number];
-
-type HeroPreview = {
-  hero: DraftHero;
-  left: number;
-  top: number;
-};
 
 type HeroSuggestionFrameStyle = CSSProperties & {
   "--fearless-suggestion-glow": string;
@@ -104,7 +95,6 @@ export function HeroGrid({
     heroId: number;
     version: number;
   } | null>(null);
-  const [heroPreview, setHeroPreview] = useState<HeroPreview | null>(null);
   const [flashingAction, setFlashingAction] = useState<{
     heroId: number;
     type: "PICK" | "BAN";
@@ -134,8 +124,7 @@ export function HeroGrid({
     : null;
   const selectedHero = selectedHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(selectedHeroId) : null;
   const isOwnTurn = map.currentActorId === userId;
-  const hideHeroPreview = useCallback(() => setHeroPreview(null), []);
-  useHeroSearchHotkeys(searchInputRef, setSearch, hideHeroPreview);
+  useHeroSearchHotkeys(searchInputRef, setSearch);
 
   useEffect(() => {
     if (latestActionSignature === previousActionSignature.current) return;
@@ -197,21 +186,6 @@ export function HeroGrid({
     });
   }
 
-  function showHeroPreview(hero: DraftHero, event: MouseEvent<HTMLButtonElement>) {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const previewWidth = 150;
-    const previewHeight = 300;
-    const left = Math.min(
-      Math.max(8, bounds.left + bounds.width / 2 - previewWidth / 2),
-      window.innerWidth - previewWidth - 8,
-    );
-    const preferredTop = bounds.top - previewHeight - 8;
-    const top = preferredTop >= 8
-      ? preferredTop
-      : Math.min(bounds.bottom + 8, window.innerHeight - previewHeight - 8);
-    setHeroPreview({ hero, left, top });
-  }
-
   return (
     <section className="fearless-hero-pool" ref={animationRootRef}>
       <div className="fearless-hero-toolbar">
@@ -228,10 +202,7 @@ export function HeroGrid({
           <input
             ref={searchInputRef}
             value={search}
-            onChange={(event) => {
-              setHeroPreview(null);
-              setSearch(event.target.value);
-            }}
+            onChange={(event) => setSearch(event.target.value)}
             placeholder={text.searchHero}
           />
         </label>
@@ -274,8 +245,6 @@ export function HeroGrid({
                             ? text.bannedCurrentMap
                             : hero.name
                     }
-                    onMouseEnter={(event) => showHeroPreview(hero, event)}
-                    onMouseLeave={() => setHeroPreview(null)}
                     onContextMenu={(event) => {
                       event.preventDefault();
                       if (canSuggestHero) toggleHeroSuggestion(hero.id);
@@ -343,24 +312,6 @@ export function HeroGrid({
               {map.currentAction === "BAN" ? text.ban : text.pick}
             </span>
           </button>
-        </div>
-      )}
-      {heroPreview && (
-        <div
-          className="fearless-hero-preview"
-          role="tooltip"
-          style={{ left: heroPreview.left, top: heroPreview.top }}
-        >
-          <span>
-            <Image
-              src={heroPreview.hero.portraitUrl}
-              alt=""
-              fill
-              sizes="150px"
-              unoptimized
-            />
-          </span>
-          <strong>{heroPreview.hero.name}</strong>
         </div>
       )}
     </section>

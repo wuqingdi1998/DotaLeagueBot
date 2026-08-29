@@ -53,20 +53,17 @@ describe("Fearless Draft board interface", () => {
     expect(board).toContain(".fearless-ban-list > div.phase-start { margin-left: 12px; }");
   });
 
-  it("uses dedicated vertical portraits and a full-name hover preview", () => {
+  it("uses dedicated vertical portraits without a large hover preview", () => {
     expect(FEARLESS_DRAFT_HEROES.every((hero) =>
       hero.portraitUrl.includes("variant=vertical"),
     )).toBe(true);
     expect(heroGrid).toContain("src={hero.portraitUrl}");
     expect(heroGrid).toContain("src={selectedHero.portraitUrl}");
     expect(heroGrid).toContain("src={selectedHero.imageUrl}");
-    expect(heroGrid).toContain('className="fearless-hero-preview"');
-    expect(interactions).toContain("white-space: nowrap");
     expect(board).toContain("aspect-ratio: 25 / 44");
-    expect(interactions).toMatch(
-      /\.fearless-hero-preview > span\s*\{[^}]*aspect-ratio:\s*25 \/ 44;/,
-    );
-    expect(heroGrid).toContain("const previewWidth = 150");
+    expect(heroGrid).not.toContain('className="fearless-hero-preview"');
+    expect(heroGrid).not.toContain("showHeroPreview");
+    expect(interactions).not.toContain(".fearless-hero-preview");
   });
 
   it("fits hero frames tightly to portraits without stretching them", () => {
@@ -81,10 +78,22 @@ describe("Fearless Draft board interface", () => {
 
   it("keeps portrait corners parallel to the hero card border", () => {
     expect(board).toMatch(
-      /\.fearless-attribute-group button\s*\{[^}]*--fearless-hero-card-radius:\s*7px;[^}]*border:\s*1px solid transparent;[^}]*border-radius:\s*var\(--fearless-hero-card-radius\);/,
+      /\.fearless-attribute-group button\s*\{[^}]*--fearless-hero-card-radius:\s*7px;[^}]*border:\s*2px solid transparent;[^}]*border-radius:\s*var\(--fearless-hero-card-radius\);/,
     );
     expect(board).toMatch(
-      /\.fearless-hero-image\s*\{[^}]*border-radius:\s*calc\(var\(--fearless-hero-card-radius\) - 1px\);/,
+      /\.fearless-hero-image\s*\{[^}]*border-radius:\s*calc\(var\(--fearless-hero-card-radius\) - 2px\);/,
+    );
+  });
+
+  it("doubles the hover and selected hero frame thickness", () => {
+    expect(board).toMatch(
+      /\.fearless-attribute-group button\s*\{[^}]*border:\s*2px solid transparent;/,
+    );
+    expect(board).toMatch(
+      /\.fearless-attribute-group button\.selected\s*\{[^}]*border-color:\s*var\(--blue\);[^}]*box-shadow:\s*0 0 0 4px/,
+    );
+    expect(board).toMatch(
+      /\.fearless-attribute-group button\.available\[aria-disabled="false"\]:hover\s*\{[^}]*border-color:\s*var\(--line-strong\);/,
     );
   });
 
@@ -116,6 +125,12 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain("animation: fearless-ban-flash 3000ms");
     expect(interactions).toContain("animation: fearless-pick-flash 3000ms");
     expect(interactions).toContain("0 0 68px 26px");
+  });
+
+  it("keeps the fullscreen board fixed to one screen without a scrollbar", () => {
+    expect(interactions).toMatch(
+      /\.fearless-draft-stage:fullscreen\s*\{[^}]*height:\s*100dvh;[^}]*overflow:\s*hidden;/,
+    );
   });
 
   it("marks the current pick or ban slot for a white shimmer", () => {
@@ -354,8 +369,8 @@ describe("Fearless Draft board interface", () => {
     expect(heroSearchHotkeys).toContain('event.code.match(/^Key([A-Z])$/)');
     expect(heroSearchHotkeys).toContain("event.preventDefault()");
     expect(heroSearchHotkeys).toContain("searchInputRef.current?.focus()");
-    expect(heroSearchHotkeys).toContain("onSearchLetter()");
-    expect(heroGrid).toContain("setHeroPreview(null)");
+    expect(heroGrid).toContain("useHeroSearchHotkeys(searchInputRef, setSearch)");
+    expect(heroSearchHotkeys).not.toContain("onSearchLetter");
   });
 
   it("keeps skipped bans blank outside the ordered history", () => {

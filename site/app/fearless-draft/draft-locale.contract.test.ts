@@ -85,7 +85,7 @@ describe("Fearless Draft language switch", () => {
     const queue = source("app/fearless-draft/sections/DraftQueue.tsx");
     const choices = source("app/fearless-draft/sections/DraftChoices.tsx");
     expect(heroGrid).toContain("selectedHero.name");
-    expect(heroGrid).toContain("heroPreview.hero.name");
+    expect(heroGrid).toContain("aria-label={hero.name}");
     expect(queue).toContain("invitation.format");
     expect(queue).toContain('["BO2", "BO3"]');
     expect(choices).toContain("decisionPlayer.name");

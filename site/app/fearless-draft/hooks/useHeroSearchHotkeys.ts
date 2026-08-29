@@ -6,7 +6,6 @@ import type { Dispatch, RefObject, SetStateAction } from "react";
 export function useHeroSearchHotkeys(
   searchInputRef: RefObject<HTMLInputElement | null>,
   setSearch: Dispatch<SetStateAction<string>>,
-  onSearchLetter: () => void,
 ) {
   useEffect(() => {
     function sendLetterToSearch(event: KeyboardEvent) {
@@ -24,7 +23,6 @@ export function useHeroSearchHotkeys(
       if (!letterMatch) return;
 
       event.preventDefault();
-      onSearchLetter();
       const letter = letterMatch[1].toLowerCase();
       setSearch((currentSearch) => `${currentSearch}${letter}`);
       searchInputRef.current?.focus();
@@ -32,5 +30,5 @@ export function useHeroSearchHotkeys(
 
     window.addEventListener("keydown", sendLetterToSearch);
     return () => window.removeEventListener("keydown", sendLetterToSearch);
-  }, [onSearchLetter, searchInputRef, setSearch]);
+  }, [searchInputRef, setSearch]);
 }

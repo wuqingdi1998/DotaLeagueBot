@@ -350,7 +350,7 @@
 .fearless-attribute-group button {
   --fearless-hero-card-radius: 7px;
   min-width: 0;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   border-radius: var(--fearless-hero-card-radius);
   padding: 0;
   background: var(--surface-soft);
@@ -358,7 +358,7 @@
   cursor: pointer;
 }
 .fearless-attribute-group button[aria-disabled="true"] { cursor: default; }
-.fearless-attribute-group button.selected { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(0, 195, 255, 0.18); }
+.fearless-attribute-group button.selected { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(0, 195, 255, 0.18); }
 .fearless-attribute-group button.available[aria-disabled="false"]:hover { transform: translateY(-1px); border-color: var(--line-strong); }
 
 .fearless-hero-image {
@@ -366,7 +366,7 @@
   display: block;
   aspect-ratio: 25 / 44;
   overflow: hidden;
-  border-radius: calc(var(--fearless-hero-card-radius) - 1px);
+  border-radius: calc(var(--fearless-hero-card-radius) - 2px);
   background: #06131e;
 }
 .fearless-hero-image img { object-fit: cover; object-position: center; }

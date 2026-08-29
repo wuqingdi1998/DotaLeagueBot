@@ -101,7 +101,7 @@ describe("Fearless Draft fullscreen layout", () => {
 
   it("does not let portrait corner styling change desktop frame geometry", () => {
     expect(boardStyles).toMatch(
-      /\.fearless-attribute-group button\s*\{[^}]*min-width:\s*0;[^}]*border:\s*1px solid transparent;[^}]*padding:\s*0;/,
+      /\.fearless-attribute-group button\s*\{[^}]*min-width:\s*0;[^}]*border:\s*2px solid transparent;[^}]*padding:\s*0;/,
     );
     expect(boardStyles).toMatch(
       /\.fearless-hero-image\s*\{[^}]*aspect-ratio:\s*25 \/ 44;[^}]*overflow:\s*hidden;/,
