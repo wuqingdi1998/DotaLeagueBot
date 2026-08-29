@@ -61,6 +61,24 @@ jobs:
           docker build --tag dotaleaguebot-site:deploy ./site
           docker save dotaleaguebot-bot:deploy dotaleaguebot-site:deploy |
             gzip -1 > deployment-images.tar.gz
+      - name: Prepare production host
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          script: |
+            set -euo pipefail
+            # Interrupted releases can leave large archives and dangling layers.
+            # Remove only known deployment artifacts; running images stay protected.
+            for stale_artifact in /tmp/dotaleaguebot-*/deployment-images.tar.gz; do
+              [ -f "$stale_artifact" ] || continue
+              stale_dir="${stale_artifact%/*}"
+              rm -f -- "$stale_artifact"
+              rmdir -- "$stale_dir" 2>/dev/null || true
+            done
+            docker image prune --force
       - name: Transfer production images
         uses: appleboy/scp-action@v1
         with:

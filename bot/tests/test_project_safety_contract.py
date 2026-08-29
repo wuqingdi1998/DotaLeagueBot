@@ -22,3 +22,19 @@ def test_check_script_stops_after_each_failed_native_command() -> None:
     assert "if ($LASTEXITCODE -ne 0)" in script
     assert script.count("Invoke-CheckedCommand") >= 11
     assert "docker compose config --quiet --no-env-resolution" in script
+
+
+def test_deploy_recovers_space_left_by_interrupted_releases() -> None:
+    workflow = (PROJECT_ROOT / ".github" / "workflows" / "deploy.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "for stale_artifact in /tmp/dotaleaguebot-*/deployment-images.tar.gz" in workflow
+    assert 'rm -f -- "$stale_artifact"' in workflow
+    assert "rm -rf" not in workflow
+    assert workflow.index("Prepare production host") < workflow.index(
+        "Transfer production images"
+    )
+    assert workflow.index("docker image prune --force") < workflow.index(
+        "Transfer production images"
+    )
