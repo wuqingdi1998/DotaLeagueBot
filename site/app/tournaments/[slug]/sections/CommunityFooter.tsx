@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FaDiscord } from "react-icons/fa";
 import { FiArrowUpRight } from "react-icons/fi";
 import { OrganizerAccess } from "../../OrganizerAccess";
+import { OrganizerArchiveLink } from "../../OrganizerArchiveLink";
 import { useTournament } from "../hooks/TournamentContext";
 
 export function CommunityFooter() {
@@ -55,6 +56,7 @@ export function CommunityFooter() {
           </span>
         </a>
         <p>Создано сообществом для сообщества · 2026</p>
+        <OrganizerArchiveLink isOrganizer={data.user?.isAdmin ?? false} />
         <OrganizerAccess
           user={data.user}
           manageHref={`/tournaments/${data.tournament.slug}?manage=1`}

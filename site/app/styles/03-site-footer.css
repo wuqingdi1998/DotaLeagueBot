@@ -40,6 +40,7 @@
 }
 
 .fearless-footer-link,
+.organizer-archive-link,
 .platform-footer-links .discord-link {
   display: inline-flex;
   min-height: 42px;
@@ -53,7 +54,8 @@
   font-weight: 600;
 }
 
-.fearless-footer-link:hover {
+.fearless-footer-link:hover,
+.organizer-archive-link:hover {
   border-color: var(--line-strong);
   color: var(--blue);
 }

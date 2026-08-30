@@ -25,6 +25,7 @@ import {
 } from "@/lib/tournaments";
 import { formatTournamentDateRange } from "@/lib/tournament-date";
 import { OrganizerAccess } from "./OrganizerAccess";
+import { OrganizerArchiveLink } from "./OrganizerArchiveLink";
 import { TournamentCard } from "./hub/TournamentCard";
 import {
   filterTournamentSummaries,
@@ -121,6 +122,7 @@ export function PlatformShell({
           >
             Discord <FiArrowUpRight />
           </a>
+          <OrganizerArchiveLink isOrganizer={user?.isAdmin ?? false} />
         </div>
         <OrganizerAccess user={user} />
       </footer>

@@ -34,7 +34,6 @@ const questSetMaintenance = source(
 );
 const compendiumConstants = source("../app/compendium/model/constants.ts");
 const header = source("../app/components/SiteHeader.tsx");
-const navigationCss = source("../app/styles/34-compendium-navigation.css");
 const dashboard = source("../app/compendium/sections/CompendiumDashboard.tsx");
 const compendiumCss = source("../app/styles/33-compendium.css");
 const headingCss = source("../app/styles/35-compendium-heading.css");
@@ -132,17 +131,9 @@ describe("compendium persistence and security contract", () => {
     expect(migration).toContain("CHECK (reward_amount = 1)");
   });
 
-  it("adds the compendium results to desktop and mobile navigation", () => {
-    expect(header.match(/href="\/compendium\/results"/g)).toHaveLength(2);
-    expect(header.match(/compendium-navigation-link/g)).toHaveLength(2);
-    expect(header.match(/Результаты/g)).toHaveLength(2);
-    expect(header.match(/компендиума/g)).toHaveLength(2);
-  });
-
-  it("highlights the compendium navigation with an accessible gold shimmer", () => {
-    expect(navigationCss).toContain("@keyframes compendium-gold-shimmer");
-    expect(navigationCss).toContain("animation: compendium-gold-shimmer");
-    expect(navigationCss).toContain("@media (prefers-reduced-motion: reduce)");
+  it("keeps the finished compendium outside the public header navigation", () => {
+    expect(header).not.toContain('href="/compendium/results"');
+    expect(header).not.toContain("compendium-navigation-link");
   });
 
   it("shows the 2026 event and links its official Liquipedia page", () => {

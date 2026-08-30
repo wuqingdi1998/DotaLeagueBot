@@ -14,7 +14,6 @@ import {
   FiLogIn,
   FiMenu,
   FiMoon,
-  FiSettings,
   FiSun,
   FiX,
 } from "react-icons/fi";
@@ -93,8 +92,6 @@ export function SiteHeader({
   const calendarActive = pathname.startsWith("/calendar");
   const hallActive = pathname.startsWith("/hall-of-fame");
   const participantsActive = pathname.startsWith("/participants");
-  const compendiumActive = pathname.startsWith("/compendium");
-  const organizerActive = pathname.startsWith("/organizer");
   const hasLongProfileName =
     (user?.serverName.length ?? 0) > longProfileNameLength;
 
@@ -155,15 +152,6 @@ export function SiteHeader({
         >
           Участники
         </Link>
-        <Link
-          className={`compendium-navigation-link${compendiumActive ? " active" : ""}`}
-          href="/compendium/results"
-          aria-current={compendiumActive ? "page" : undefined}
-        >
-          <span className="compendium-navigation-label">
-            Результаты<br />компендиума
-          </span>
-        </Link>
         <a href={discordUrl} target="_blank" rel="noreferrer">
           Наш Discord <FiArrowUpRight aria-hidden="true" />
         </a>
@@ -180,16 +168,6 @@ export function SiteHeader({
         >
           {mobileMenuOpen ? <FiX /> : <FiMenu />}
         </button>
-        {user?.isAdmin && (
-          <Link
-            className={`organizer-menu-button${organizerActive ? " active" : ""}`}
-            href="/organizer"
-            aria-current={organizerActive ? "page" : undefined}
-          >
-            <FiSettings aria-hidden="true" />
-            <span>Меню организатора</span>
-          </Link>
-        )}
         <a
           className="boosty-button"
           href="https://boosty.to/linkenssphere"
@@ -335,26 +313,6 @@ export function SiteHeader({
           >
             Участники
           </Link>
-          <Link
-            className={`compendium-navigation-link${compendiumActive ? " active" : ""}`}
-            href="/compendium/results"
-            aria-current={compendiumActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <span className="compendium-navigation-label">
-              Результаты<br />компендиума
-            </span>
-          </Link>
-          {user?.isAdmin && (
-            <Link
-              className={organizerActive ? "active" : undefined}
-              href="/organizer"
-              aria-current={organizerActive ? "page" : undefined}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <FiSettings aria-hidden="true" /> Меню организатора
-            </Link>
-          )}
           <a
             href={discordUrl}
             target="_blank"

@@ -2,26 +2,21 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { getSession } from "@/lib/auth";
-import { CompendiumDashboard } from "../compendium/sections/CompendiumDashboard";
-import { loadCompendium } from "../compendium/services/compendium";
+import { OrganizerArchive } from "./sections/OrganizerArchive";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Меню организатора — Linken's Sphere Esports",
+  title: "Архив организатора — Linken's Sphere Esports",
 };
 
 export default async function OrganizerPage() {
   const user = await getSession();
   if (!user?.isAdmin) notFound();
-  const data = await loadCompendium(user);
+
   return (
     <PlatformShell user={user}>
-      <CompendiumDashboard
-        key={data.moscowDate}
-        initialData={data}
-        isOrganizer
-      />
+      <OrganizerArchive />
     </PlatformShell>
   );
 }

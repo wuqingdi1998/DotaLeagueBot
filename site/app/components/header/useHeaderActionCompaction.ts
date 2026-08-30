@@ -20,7 +20,7 @@ export function useHeaderActionCompaction() {
 
     function actionsOverlapNavigation() {
       const firstVisibleAction = actions?.querySelector<HTMLElement>(
-        ".organizer-menu-button, .boosty-button",
+        ".boosty-button",
       );
       if (!navigation || !firstVisibleAction) return false;
 
@@ -32,14 +32,10 @@ export function useHeaderActionCompaction() {
     function updateCompaction() {
       if (!actions) return;
 
-      delete actions.dataset.compactOrganizer;
       delete actions.dataset.compactBoosty;
       delete actions.dataset.compactProfile;
 
       if (!desktopNavigation.matches || !actionsOverlapNavigation()) return;
-
-      actions.dataset.compactOrganizer = "true";
-      if (!actionsOverlapNavigation()) return;
 
       actions.dataset.compactBoosty = "true";
       if (!actionsOverlapNavigation()) return;

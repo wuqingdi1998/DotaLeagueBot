@@ -8,6 +8,18 @@ function source(path: string) {
 const header = source("../app/components/SiteHeader.tsx");
 const legacyPage = source("../app/compendium/page.tsx");
 const organizerPage = source("../app/organizer/page.tsx");
+const organizerArchive = source(
+  "../app/organizer/sections/OrganizerArchive.tsx",
+);
+const organizerCompendiumPage = source(
+  "../app/organizer/compendium/page.tsx",
+);
+const organizerResultsPage = source(
+  "../app/organizer/compendium/results/page.tsx",
+);
+const organizerArchiveLink = source(
+  "../app/tournaments/OrganizerArchiveLink.tsx",
+);
 const resultsPage = source("../app/compendium/results/page.tsx");
 const resultsRepository = source(
   "../app/compendium/services/results-repository.ts",
@@ -27,12 +39,25 @@ const routeStyles = source("../app/styles/compendium-route.css");
 const styleRules = source("../../.codex/rules/04-styles.md");
 
 describe("finished compendium results contract", () => {
-  it("keeps the full compendium behind the organizer menu", () => {
-    expect(header).toContain("Меню организатора");
-    expect(header).toContain('href="/organizer"');
-    expect(header).toContain("user?.isAdmin");
+  it("keeps both finished compendium pages in the organizer archive", () => {
+    expect(header).not.toContain('href="/compendium/results"');
+    expect(header).not.toContain('href="/organizer"');
+    expect(organizerArchiveLink).toContain('href="/organizer"');
+    expect(organizerArchiveLink).toContain("Архив организатора");
     expect(organizerPage).toContain("if (!user?.isAdmin) notFound()");
-    expect(organizerPage).toContain("<CompendiumDashboard");
+    expect(organizerPage).toContain("<OrganizerArchive />");
+    expect(organizerArchive).toContain('href: "/organizer/compendium"');
+    expect(organizerArchive).toContain(
+      'href: "/organizer/compendium/results"',
+    );
+    expect(organizerCompendiumPage).toContain(
+      "if (!user?.isAdmin) notFound()",
+    );
+    expect(organizerCompendiumPage).toContain("<CompendiumDashboard");
+    expect(organizerResultsPage).toContain(
+      "if (!user?.isAdmin) notFound()",
+    );
+    expect(organizerResultsPage).toContain("<CompendiumResults");
     expect(legacyPage).toContain('redirect("/compendium/results")');
   });
 
