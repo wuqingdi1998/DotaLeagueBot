@@ -99,6 +99,13 @@ TEST_SEASON_ROUND_ONE_CLEANUP = (
     / "0094_cleanup_test_season_round_one.sql"
 ).read_text(encoding="utf-8")
 
+TEST_SEASON_ROUND_ONE_FULL_RESET = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0101_reset_test_season_round_one.sql"
+).read_text(encoding="utf-8")
+
 FEARLESS_DRAFT_HERO_SUGGESTIONS_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -470,6 +477,29 @@ def test_test_season_round_one_cleanup_is_scoped_and_refuses_played_data() -> No
     assert "DELETE FROM season_lobbies" in TEST_SEASON_ROUND_ONE_CLEANUP
     assert "DELETE FROM season_participants" in TEST_SEASON_ROUND_ONE_CLEANUP
     assert "SET status = 'completed'" in TEST_SEASON_ROUND_ONE_CLEANUP
+
+
+def test_test_season_round_one_full_reset_clears_round_and_standings() -> None:
+    assert "tournament.slug = 'league-season-9-test'" in (
+        TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
+    assert "round.round_number = 1" in TEST_SEASON_ROUND_ONE_FULL_RESET
+    assert "DELETE FROM season_round_registrations" in (
+        TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
+    assert "DELETE FROM season_lobbies" in TEST_SEASON_ROUND_ONE_FULL_RESET
+    assert "DELETE FROM season_participants" in (
+        TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
+    assert "DELETE FROM season_point_adjustments" in (
+        TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
+    assert "DELETE FROM season_penalty_events" in (
+        TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
+    assert "lobby_configuration_status = 'none'" in (
+        TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
 
 
 def test_finished_lower_bracket_losses_are_backfilled_as_eliminations() -> None:
