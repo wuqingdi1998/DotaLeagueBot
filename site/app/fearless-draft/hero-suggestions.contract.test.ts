@@ -132,8 +132,8 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionStyles).toMatch(
       /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-hero-grid\s*\{[^}]*padding:\s*0 10px 8px;/,
     );
-    expect(suggestionStyles).toMatch(
-      /\.fearless-draft-stage:fullscreen \.fearless-hero-toolbar\s*\{[^}]*height:\s*66px;/,
+    expect(suggestionStyles).not.toContain(
+      ".fearless-draft-stage:fullscreen .fearless-hero-toolbar",
     );
     expect(suggestionStyles).toContain("height: 100%");
   });
