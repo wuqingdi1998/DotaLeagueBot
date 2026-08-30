@@ -44,7 +44,7 @@ describe("Fearless Draft fullscreen layout", () => {
 
   it("keeps the fullscreen owner mounted around both draft and choice stages", () => {
     expect(fullscreenStyles).toMatch(
-      /\.fearless-draft-stage:fullscreen \.fearless-active-draft\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*100%;/,
+      /\.fearless-draft-stage:fullscreen \.fearless-active-draft\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*100%;[^}]*transform:\s*translateY\(-9px\);/,
     );
     expect(fullscreenStyles).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-choice-screen\s*\{[^}]*min-height:\s*min\(800px, calc\(100dvh - 48px\)\);/,
