@@ -6,7 +6,8 @@
   display: grid;
   min-width: 0;
   align-items: stretch;
-  grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+  grid-template-columns: minmax(170px, max-content) auto minmax(170px, max-content);
+  justify-content: center;
   gap: 8px;
 }
 

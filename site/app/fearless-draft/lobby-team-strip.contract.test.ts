@@ -53,7 +53,8 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(activeDraft).toContain('className="fearless-lobby-side-status dire"');
     expect(activeDraft).toContain("Math.ceil(radiantReserve)");
     expect(activeDraft).toContain("Math.ceil(direReserve)");
-    expect(styles).toContain("grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr)");
+    expect(styles).toContain("grid-template-columns: minmax(170px, max-content) auto minmax(170px, max-content)");
+    expect(styles).toContain("justify-content: center");
   });
 
   it("renders five avatar controls per team with profile ears and presence dots", () => {
