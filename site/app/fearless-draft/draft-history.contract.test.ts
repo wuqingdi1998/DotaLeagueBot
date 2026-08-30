@@ -51,7 +51,10 @@ describe("Fearless Draft history", () => {
     expect(history).toContain('activeView === "tree" ? (');
     expect(treeStyles).toContain(".fearless-history-tabs");
     expect(treeStyles).toContain(
-      "grid-template-columns: minmax(88px, 2fr) minmax(124px, 3fr)",
+      "grid-template-columns: repeat(2, minmax(0, 1fr))",
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-history-tabs button\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
