@@ -55,6 +55,18 @@ describe("site security boundaries", () => {
     expect(caddyfile).toMatch(/request_body\s*\{[\s\S]*max_size 55MB/);
   });
 
+  it("does not apply API request limits to public pages", () => {
+    expect(proxySource).toMatch(
+      /if \(pathname\.startsWith\("\/api\/"\)\) \{[\s\S]*inspectApiRequest/,
+    );
+  });
+
+  it("retries page requests while the site restarts during publication", () => {
+    expect(caddyfile).toMatch(
+      /reverse_proxy site:3000\s*\{[\s\S]*lb_try_duration 10s/,
+    );
+  });
+
   it("sends browser hardening headers without identifying the framework", () => {
     expect(nextConfig).toContain("Content-Security-Policy");
     expect(nextConfig).toContain("frame-ancestors 'self'");

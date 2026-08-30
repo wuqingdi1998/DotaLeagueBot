@@ -14,37 +14,39 @@ function clientAddress(request: NextRequest) {
 }
 
 export async function proxy(request: NextRequest) {
-  const contentLengthHeader = request.headers.get("content-length");
-  const parsedContentLength = contentLengthHeader
-    ? Number(contentLengthHeader)
-    : null;
-  const rejection = inspectApiRequest({
-    method: request.method,
-    pathname: request.nextUrl.pathname,
-    origin: request.headers.get("origin"),
-    expectedOrigin:
-      process.env.PUBLIC_BASE_URL?.trim() || request.nextUrl.origin,
-    fetchSite: request.headers.get("sec-fetch-site"),
-    contentLength:
-      parsedContentLength !== null && Number.isFinite(parsedContentLength)
-        ? parsedContentLength
-        : null,
-    clientAddress: clientAddress(request),
-  });
-  if (rejection) {
-    const response = NextResponse.json(
-      { error: rejection.message },
-      { status: rejection.status },
-    );
-    if (rejection.retryAfterSeconds) {
-      response.headers.set(
-        "Retry-After",
-        String(rejection.retryAfterSeconds),
-      );
-    }
-    return response;
-  }
   const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith("/api/")) {
+    const contentLengthHeader = request.headers.get("content-length");
+    const parsedContentLength = contentLengthHeader
+      ? Number(contentLengthHeader)
+      : null;
+    const rejection = inspectApiRequest({
+      method: request.method,
+      pathname,
+      origin: request.headers.get("origin"),
+      expectedOrigin:
+        process.env.PUBLIC_BASE_URL?.trim() || request.nextUrl.origin,
+      fetchSite: request.headers.get("sec-fetch-site"),
+      contentLength:
+        parsedContentLength !== null && Number.isFinite(parsedContentLength)
+          ? parsedContentLength
+          : null,
+      clientAddress: clientAddress(request),
+    });
+    if (rejection) {
+      const response = NextResponse.json(
+        { error: rejection.message },
+        { status: rejection.status },
+      );
+      if (rejection.retryAfterSeconds) {
+        response.headers.set(
+          "Retry-After",
+          String(rejection.retryAfterSeconds),
+        );
+      }
+      return response;
+    }
+  }
   if (isSiteBreakBypassPath(pathname)) return NextResponse.next();
 
   let breakEnabled: boolean;
