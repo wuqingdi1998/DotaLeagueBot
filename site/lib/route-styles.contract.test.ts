@@ -6,6 +6,9 @@ function source(path: string) {
 }
 
 const globals = source("../app/globals.css");
+const headerResponsive = source(
+  "../app/styles/02-site-header-responsive.css",
+);
 const compendium = source("../app/styles/compendium-route.css");
 const tournaments = source("../app/styles/tournaments-route.css");
 const draft = source("../app/styles/fearless-draft-route.css");
@@ -30,6 +33,16 @@ describe("route-specific styles", () => {
     );
     expect(source("../app/calendar/layout.tsx")).toContain(
       "calendar-route.css",
+    );
+  });
+
+  it("loads mobile tournament rules after the desktop tournament modules", () => {
+    expect(globals).toContain("02-site-header-responsive.css");
+    expect(globals).not.toContain("08-tournament-responsive.css");
+    expect(headerResponsive).toContain("@media (max-width: 760px)");
+    expect(tournaments).toContain("08-tournament-responsive.css");
+    expect(tournaments.indexOf("08-tournament-responsive.css")).toBeGreaterThan(
+      tournaments.indexOf("03-tournament-hero.css"),
     );
   });
 });

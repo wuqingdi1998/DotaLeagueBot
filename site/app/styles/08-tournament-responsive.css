@@ -1,12 +1,4 @@
 @media (max-width: 1050px) {
-  .site-header {
-    grid-template-columns: 1fr auto;
-  }
-
-  .header-center {
-    display: none;
-  }
-
   .hero {
     grid-template-columns: minmax(0, 1fr);
     gap: 70px;
@@ -32,88 +24,6 @@
 }
 
 @media (max-width: 760px) {
-  .site-header {
-    min-height: 74px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 12px;
-    padding: 12px 17px;
-  }
-
-  .brand {
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-  }
-
-  .brand > span {
-    min-width: 0;
-    gap: 4px;
-    overflow: hidden;
-  }
-
-  .brand img {
-    width: 42px;
-    height: 42px;
-    border-radius: 11px;
-  }
-
-  .brand strong {
-    font-size: 15px;
-    line-height: 1.25;
-    white-space: nowrap;
-  }
-
-  .brand small {
-    margin-top: 0;
-    font-size: 12px;
-    line-height: 1.25;
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-
-  .brand strong,
-  .brand small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .header-actions {
-    grid-column: 2;
-  }
-
-  .discord-login {
-    width: 46px;
-    min-height: 46px;
-    padding: 0;
-  }
-
-  .discord-login span {
-    display: none;
-  }
-
-  .player-profile-button {
-    width: 46px;
-    min-height: 46px;
-    padding: 3px;
-  }
-
-  .player-profile-avatar {
-    width: 38px;
-    height: 38px;
-    flex-basis: 38px;
-  }
-
-  .theme-button {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    font-size: 19px;
-  }
-
-  .player-profile-copy {
-    display: none;
-  }
-
   .hero {
     width: 100%;
     max-width: 100%;
@@ -246,25 +156,6 @@
     justify-content: center;
   }
 
-  .boosty-button {
-    width: 46px;
-    min-height: 46px;
-    padding: 0;
-    border-radius: 12px;
-  }
-
-  .boosty-button span {
-    display: none;
-  }
-
-  .login-icon-discord {
-    display: none;
-  }
-
-  .login-icon-mobile {
-    display: block;
-  }
-
   .group-settings-grid {
     grid-template-columns: 1fr;
   }
@@ -364,24 +255,5 @@
     right: 12px;
     bottom: 82px;
     left: 12px;
-  }
-}
-
-@media (max-width: 370px) {
-  .brand > span {
-    display: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
   }
 }
