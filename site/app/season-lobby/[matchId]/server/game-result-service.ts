@@ -1,4 +1,5 @@
 import { transaction } from "@/lib/db";
+import type { AuthUser } from "@/lib/auth";
 import { syncSeasonFinalAwards } from "@/lib/season-final-awards";
 import {
   isFinalSeasonGame,
@@ -36,7 +37,7 @@ function gameWinner(value: unknown): SeasonGameWinner {
 
 export async function reportSeasonLobbyGameResult(
   seasonMatchId: number,
-  actorPlayerId: string,
+  actor: Pick<AuthUser, "discordId" | "isAdmin">,
   rawDotaMatchId: unknown,
   rawWinnerSide: unknown,
 ): Promise<void> {
@@ -69,9 +70,9 @@ export async function reportSeasonLobbyGameResult(
         409,
       );
     }
-    if (room.host_player_id !== actorPlayerId) {
+    if (room.host_player_id !== actor.discordId && !actor.isAdmin) {
       throw new SeasonLobbyRoomError(
-        "Результат карты может внести только хост лобби",
+        "Результат карты может внести только хост или организатор",
         403,
       );
     }
@@ -162,7 +163,7 @@ export async function reportSeasonLobbyGameResult(
        VALUES ($1, $2, 'complete', 'season_match', $3, $4::jsonb)`,
       [
         room.tournament_id,
-        actorPlayerId,
+        actor.discordId,
         String(seasonMatchId),
         JSON.stringify(score),
       ],
@@ -170,7 +171,7 @@ export async function reportSeasonLobbyGameResult(
     await syncSeasonFinalAwards(
       client,
       room.tournament_id,
-      actorPlayerId,
+      actor.discordId,
     );
   });
 }

@@ -5,6 +5,9 @@ import { describe, expect, it } from "vitest";
 const fullscreenStyles = readFileSync(
   resolve(process.cwd(), "app/styles/51-fearless-draft-interactions.css"),
   "utf8",
+) + readFileSync(
+  resolve(process.cwd(), "app/styles/51-fearless-draft-compact-fullscreen.css"),
+  "utf8",
 );
 const boardStyles = readFileSync(
   resolve(process.cwd(), "app/styles/51-fearless-draft-board.css"),
@@ -108,6 +111,16 @@ describe("Fearless Draft fullscreen layout", () => {
     );
     expect(fullscreenStyles).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*100%;[^}]*padding:\s*0;/,
+    );
+  });
+
+  it("keeps turns geometrically stable and scales short fullscreen windows by height", () => {
+    expect(fullscreenStyles).toMatch(
+      /\.fearless-team-panel\.current\s*\{[^}]*border-width:\s*1px;/,
+    );
+    expect(fullscreenStyles).toContain("scrollbar-gutter: stable");
+    expect(fullscreenStyles).toMatch(
+      /@media \(max-height: 900px\)[\s\S]*:fullscreen \.fearless-attribute-group button\s*\{[^}]*width:\s*min\(100%, clamp\(28px, calc\(\(100dvh - 350px\) \/ 12\.32\), 58px\)\);/,
     );
   });
 });

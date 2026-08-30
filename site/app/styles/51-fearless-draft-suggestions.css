@@ -50,7 +50,7 @@
   padding: 0 10px 8px;
 }
 
-.fearless-hero-suggestion-boards {
+.fearless-hero-toolbar > .fearless-hero-suggestion-boards {
   display: flex;
   height: 100%;
   min-width: 0;

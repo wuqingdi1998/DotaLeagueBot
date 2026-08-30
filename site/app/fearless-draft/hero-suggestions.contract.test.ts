@@ -136,6 +136,10 @@ describe("Fearless Draft teammate hero suggestions", () => {
       ".fearless-draft-stage:fullscreen .fearless-hero-toolbar",
     );
     expect(suggestionStyles).toContain("height: 100%");
+    expect(suggestionStyles).toContain(
+      ".fearless-hero-toolbar > .fearless-hero-suggestion-boards",
+    );
+    expect(suggestionStyles).toContain("flex-direction: row");
   });
 
   it("keeps Fearless Draft dark inside either site theme", () => {

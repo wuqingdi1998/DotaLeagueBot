@@ -15,13 +15,15 @@ describe("season game flow contract", () => {
     expect(migration).toContain("stored_status_value = 'cancelled'");
   });
 
-  it("requires a host result between draft maps", () => {
+  it("allows the host or an organizer to save a result between draft maps", () => {
     const commands = source(
       "app/season-lobby/[matchId]/server/game-result-service.ts",
     );
     const agreement = source("app/fearless-draft/server/agreement-service.ts");
     expect(commands).toContain("room.status !== \"playing\"");
-    expect(commands).toContain("room.host_player_id !== actorPlayerId");
+    expect(commands).toContain(
+      "room.host_player_id !== actor.discordId && !actor.isAdmin",
+    );
     expect(commands).toContain("status = 'break'");
     expect(agreement).toContain("room.status !== \"break\"");
   });

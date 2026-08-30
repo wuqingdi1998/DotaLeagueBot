@@ -35,14 +35,14 @@ export function SeasonLobbyRoomScreen({
   useEffect(() => {
     if (
       ["drafting", "break"].includes(snapshot.status) &&
-      !snapshot.isOrganizer &&
+      snapshot.currentUserTeamSide &&
       !initialDraft &&
       !hasRequestedDraftReload.current
     ) {
       hasRequestedDraftReload.current = true;
       window.location.reload();
     }
-  }, [initialDraft, snapshot.isOrganizer, snapshot.status]);
+  }, [initialDraft, snapshot.currentUserTeamSide, snapshot.status]);
 
   return (
     <main className="season-room-page">
@@ -85,14 +85,14 @@ export function SeasonLobbyRoomScreen({
         isSending={isSending}
         send={send}
       />
-      {!snapshot.isOrganizer && (
+      {snapshot.currentUserTeamSide && (
         <CaptainVoting
           snapshot={snapshot}
           isSending={isSending}
           send={send}
         />
       )}
-      {!snapshot.isOrganizer && (
+      {snapshot.currentUserTeamSide && (
         <CaptainTransfer
           snapshot={snapshot}
           isSending={isSending}
@@ -101,7 +101,7 @@ export function SeasonLobbyRoomScreen({
       )}
 
       {["drafting", "break"].includes(snapshot.status) &&
-        !snapshot.isOrganizer && initialDraft?.series && (
+        snapshot.currentUserTeamSide && initialDraft?.series && (
         <section className="season-room-draft">
           <p className="season-room-draft-perspective">
             Ваша команда участвует в драфте от лица капитана:{" "}
@@ -125,7 +125,7 @@ export function SeasonLobbyRoomScreen({
         </section>
       )}
       {["drafting", "break"].includes(snapshot.status) &&
-        !snapshot.isOrganizer && !initialDraft?.series && (
+        snapshot.currentUserTeamSide && !initialDraft?.series && (
         <div className="season-room-draft-loading">Открываем Fearless Draft…</div>
       )}
     </main>

@@ -237,10 +237,10 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("animates a thicker outline around the team making the current action", () => {
+  it("animates the current team without changing the board geometry", () => {
     expect(interactions).toContain("@keyframes fearless-current-team-flame");
     expect(interactions).toMatch(
-      /\.fearless-team-panel\.current\s*\{[^}]*border-width:\s*2px;[^}]*animation:\s*fearless-current-team-flame/,
+      /\.fearless-team-panel\.current\s*\{[^}]*border-width:\s*1px;[^}]*animation:\s*fearless-current-team-flame/,
     );
   });
 

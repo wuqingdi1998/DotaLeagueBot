@@ -111,7 +111,7 @@ export async function POST(
     } else if (command.action === "REPORT_GAME_RESULT") {
       await reportSeasonLobbyGameResult(
         matchId,
-        user.discordId,
+        user,
         command.dotaMatchId,
         command.winnerSide,
       );

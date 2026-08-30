@@ -34,14 +34,15 @@ export function LobbyGameResult({
   if (snapshot.status !== "playing") return null;
 
   const host = snapshot.players.find((player) => player.isHost);
-  if (!snapshot.isHost) {
+  const canReportResult = snapshot.isHost || snapshot.isOrganizer;
+  if (!canReportResult) {
     return (
       <section className="season-room-result-state waiting">
         <FiFlag aria-hidden="true" />
         <div>
           <strong>Идёт игра на карте {snapshot.currentGameNumber ?? "—"}</strong>
           <p>
-            После игры результат внесёт {host?.nickname ?? "хост лобби"}.
+            После игры результат внесёт {host?.nickname ?? "организатор"}.
           </p>
         </div>
       </section>

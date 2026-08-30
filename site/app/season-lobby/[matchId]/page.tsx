@@ -15,7 +15,7 @@ async function loadRoomPage(
 ) {
   try {
     const room = await loadSeasonLobbyRoomSnapshot(user, matchId);
-    const draft = ["drafting", "break"].includes(room.status) && !room.isOrganizer
+    const draft = ["drafting", "break"].includes(room.status) && room.currentUserTeamSide
       ? await loadFearlessDraftSnapshot(user, { seasonMatchId: matchId })
       : null;
     return { room, draft };

@@ -66,16 +66,17 @@ describe("season lobby room contract", () => {
     expect(lobbyDisplay).toContain("Войти в лобби");
   });
 
-  it("supports organizer captain selection and hides the draft from organizers", () => {
+  it("lets a participating organizer keep player controls beside organizer controls", () => {
     expect(roomCommands).toContain("startSeasonLobbyWithCaptains");
     expect(roomCommands).toContain("manualCaptain");
     expect(transfer).toContain("setSeasonLobbyCaptain");
     expect(organizerCaptainControls).toContain("START_WITH_CAPTAINS");
     expect(organizerCaptainControls).toContain("SET_CAPTAIN");
     expect(roomPage).toContain(
-      '["drafting", "break"].includes(room.status) && !room.isOrganizer',
+      '["drafting", "break"].includes(room.status) && room.currentUserTeamSide',
     );
-    expect(roomScreen).toContain("!snapshot.isOrganizer && initialDraft?.series");
+    expect(roomScreen).toContain("snapshot.currentUserTeamSide && (");
+    expect(roomScreen).not.toContain("!snapshot.isOrganizer && (");
   });
 
   it("keeps the organizer host control left of the tier on one row", () => {

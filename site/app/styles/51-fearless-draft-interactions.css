@@ -91,7 +91,7 @@
 }
 
 .fearless-team-panel.current {
-  border-width: 2px;
+  border-width: 1px;
   animation: fearless-current-team-flame 2200ms ease-in-out infinite;
 }
 
@@ -280,11 +280,13 @@
   max-height: none;
   flex: 0 0 auto;
   overflow: hidden;
+  scrollbar-gutter: stable;
   align-self: start;
   align-items: start;
   row-gap: 8px;
   padding: 5px 8px 8px;
 }
+
 .fearless-draft-stage:fullscreen .fearless-attribute-group > header { min-height: 28px; font-size: 13px; }
 .fearless-draft-stage:fullscreen .fearless-attribute-group {
   display: grid;

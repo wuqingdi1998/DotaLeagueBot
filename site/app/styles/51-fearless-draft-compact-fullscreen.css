@@ -1,0 +1,83 @@
+@media (max-height: 900px) {
+  .fearless-draft-stage:fullscreen { padding: 4px; }
+  .fearless-draft-stage:fullscreen .fearless-active-draft {
+    height: 100%;
+    min-height: 0;
+    transform: translateY(-4px);
+  }
+  .fearless-draft-stage:fullscreen .fearless-draft-status,
+  .fearless-draft-stage:fullscreen .fearless-team-columns {
+    width: calc(100% - 8px);
+  }
+  .fearless-draft-stage:fullscreen .fearless-draft-status { padding: 4px 8px; }
+  .fearless-draft-stage:fullscreen .fearless-team-columns { margin-top: 4px; }
+  .fearless-draft-stage:fullscreen .fearless-team-panel > header.fearless-lobby-team-header {
+    min-height: 58px;
+    padding: 4px 8px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-lobby-player {
+    --roster-avatar-size: 48px;
+    --roster-ear-width: 24px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-pick-slots { padding: 4px 6px; }
+  .fearless-draft-stage:fullscreen .fearless-pick-slots > div {
+    height: 42px;
+    min-height: 42px;
+    aspect-ratio: auto;
+  }
+  .fearless-draft-stage:fullscreen .fearless-ban-list {
+    min-height: 36px;
+    padding: 0 6px 5px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-ban-list > div {
+    width: clamp(56px, 4vw, 70px);
+    height: 30px;
+    aspect-ratio: auto;
+  }
+  .fearless-draft-stage:fullscreen .fearless-slot-step {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    font-size: 11px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-ban-list .fearless-slot-step {
+    min-width: 19px;
+    height: 19px;
+    font-size: 10px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-draft-workspace {
+    overflow: hidden;
+    flex: 1 1 auto;
+    margin-top: 4px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-hero-pool,
+  .fearless-draft-stage:fullscreen .fearless-history {
+    height: 100%;
+    min-height: 0;
+  }
+  .fearless-draft-stage:fullscreen .fearless-hero-toolbar {
+    height: 58px;
+    min-height: 58px;
+    max-height: 58px;
+    padding: 4px 8px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-hero-grid {
+    min-height: 0;
+    flex: 1 1 auto;
+    row-gap: 4px;
+    padding: 3px 8px 5px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-attribute-group > header {
+    min-height: 22px;
+    font-size: 11px;
+  }
+  .fearless-draft-stage:fullscreen .fearless-attribute-group > div { gap: 2px; }
+  .fearless-draft-stage:fullscreen .fearless-attribute-group button {
+    width: min(100%, clamp(28px, calc((100dvh - 350px) / 12.32), 58px));
+    justify-self: center;
+  }
+  .fearless-draft-stage:fullscreen .fearless-hero-grid-placeholder {
+    width: min(100%, clamp(28px, calc((100dvh - 350px) / 12.32), 58px));
+    justify-self: center;
+  }
+}
