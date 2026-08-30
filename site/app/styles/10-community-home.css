@@ -399,10 +399,6 @@
   line-height: 1.6;
 }
 
-.platform-footer {
-  position: relative;
-}
-
 .directory-hero {
   display: flex;
   min-height: 220px;

@@ -430,23 +430,6 @@
   text-align: center;
 }
 
-.platform-footer-links { display: flex; align-items: center; gap: 9px; }
-.fearless-footer-link,
-.platform-footer-links .discord-link {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: 11px;
-  padding: 0 14px;
-  background: var(--surface);
-  color: var(--muted);
-  font-weight: 600;
-}
-
-.fearless-footer-link:hover { border-color: var(--line-strong); color: var(--blue); }
-
 @media (max-width: 760px) {
   .fearless-draft-page { padding-bottom: 42px; }
   .fearless-draft-hero { align-items: flex-start; flex-direction: column; padding: 34px 20px 25px; }
@@ -463,5 +446,4 @@
   .fearless-invitation-actions button { flex: 1; }
   .fearless-series-meta { align-items: flex-start; flex-direction: column; }
   .fearless-choice-buttons { grid-template-columns: 1fr; }
-  .platform-footer-links { width: 100%; flex-wrap: wrap; }
 }

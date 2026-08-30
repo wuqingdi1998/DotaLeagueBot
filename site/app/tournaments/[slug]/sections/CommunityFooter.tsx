@@ -40,7 +40,7 @@ export function CommunityFooter() {
         </div>
       </section>
 
-      <footer>
+      <footer className="site-footer">
         <a className="brand" href="#top">
           <Image
             src="/linkens-sphere-logo.png"

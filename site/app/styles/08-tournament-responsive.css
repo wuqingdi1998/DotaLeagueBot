@@ -328,15 +328,6 @@
     padding: 56px 20px;
   }
 
-  footer {
-    min-height: auto;
-    align-items: flex-start;
-    flex-direction: column;
-    justify-content: center;
-    gap: 20px;
-    padding: 30px 20px;
-  }
-
   .modal-backdrop {
     align-items: flex-end;
     padding: 0;

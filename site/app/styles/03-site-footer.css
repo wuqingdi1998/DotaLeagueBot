@@ -1,0 +1,75 @@
+.site-footer {
+  position: relative;
+  display: flex;
+  min-height: 120px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding: 0 clamp(24px, 5vw, 78px);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.site-footer .brand {
+  opacity: 0.8;
+}
+
+.site-footer button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.organizer-entry {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line) !important;
+  border-radius: 11px;
+  padding: 0 14px;
+}
+
+.platform-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.fearless-footer-link,
+.platform-footer-links .discord-link {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  padding: 0 14px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.fearless-footer-link:hover {
+  border-color: var(--line-strong);
+  color: var(--blue);
+}
+
+@media (max-width: 760px) {
+  .site-footer {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    padding: 30px 20px;
+  }
+
+  .platform-footer-links {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}

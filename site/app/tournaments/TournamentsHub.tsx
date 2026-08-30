@@ -94,7 +94,7 @@ export function PlatformShell({
     <main className="site-shell platform-shell" data-theme={theme}>
       <SiteHeader theme={theme} setTheme={setTheme} user={user} />
       {children}
-      <footer className="platform-footer">
+      <footer className="site-footer platform-footer">
         <Link className="brand" href="/">
           <Image
             src="/linkens-sphere-logo.png"

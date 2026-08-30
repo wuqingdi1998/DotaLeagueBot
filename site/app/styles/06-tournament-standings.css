@@ -458,37 +458,3 @@
   color: rgba(255, 255, 255, 0.66);
   font-size: 15px;
 }
-
-footer {
-  display: flex;
-  min-height: 120px;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid var(--line);
-  padding: 0 clamp(24px, 5vw, 78px);
-  background: var(--bg);
-  color: var(--muted);
-  font-size: 15px;
-}
-
-footer .brand {
-  opacity: 0.8;
-}
-
-footer button {
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 15px;
-}
-
-.organizer-entry {
-  display: inline-flex;
-  min-height: 42px;
-  align-items: center;
-  gap: 8px;
-  border: 1px solid var(--line) !important;
-  border-radius: 11px;
-  padding: 0 14px;
-}
