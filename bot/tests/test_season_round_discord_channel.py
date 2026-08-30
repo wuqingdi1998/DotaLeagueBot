@@ -81,6 +81,7 @@ def test_round_channel_id_is_persistent_and_bridge_manages_lifecycle() -> None:
     assert "PRIMARY KEY (round_id, player_id)" in MEMBERSHIP_MIGRATION
     assert "sync_season_round_discord_channels(self.bot, session)" in BRIDGE
     assert "INTERVAL '3 hours'" in SYNC
+    assert "season_round_status_at(scheduled_at, status)" in SYNC
     assert "ensure_season_round_discord_channel" in SYNC
     assert "delete_season_round_discord_channel" in SYNC
     assert "season_round_discord_channel_members" in SYNC

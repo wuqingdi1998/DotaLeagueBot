@@ -15,6 +15,7 @@ import { HeroGrid } from "../components/HeroGrid";
 import { DraftHistory } from "./DraftHistory";
 import { useDraftLocale } from "../hooks/useDraftLocale";
 import { draftLobbyTeamForCaptain } from "../model/lobby-roster";
+import { draftSeriesMapCount } from "../model/series";
 
 function otherPlayer(series: DraftSeriesSnapshot, playerId: string): DraftPlayer {
   return series.player1.id === playerId ? series.player2 : series.player1;
@@ -75,6 +76,7 @@ export function ActiveDraft({
     ? clock.reserveRemainingSeconds
     : map.player2ReserveSeconds;
   const isComplete = map.status === "COMPLETE";
+  const hasNextMap = map.number < draftSeriesMapCount(series.format);
   const isOwnTurn = map.currentActorId === userId;
   const ownReady = userId === series.player1.id
     ? series.player1ReadyForNextMap
@@ -106,7 +108,11 @@ export function ActiveDraft({
   } as const;
   let turnControl: ReactNode = null;
 
-  if (isComplete && canControlSeries) {
+  if (
+    isComplete &&
+    canControlSeries &&
+    (series.status === "COMPLETE" || hasNextMap)
+  ) {
     turnControl = (
       <div className="fearless-map-ready-control">
         {series.status === "COMPLETE" ? (
@@ -118,7 +124,7 @@ export function ActiveDraft({
           >
             {text.returnToQueue} <FiArrowRight />
           </button>
-        ) : (
+        ) : hasNextMap ? (
           <button
             className="primary-button"
             type="button"
@@ -134,7 +140,7 @@ export function ActiveDraft({
               </>
             )}
           </button>
-        )}
+        ) : null}
       </div>
     );
   } else if (currentActor) {

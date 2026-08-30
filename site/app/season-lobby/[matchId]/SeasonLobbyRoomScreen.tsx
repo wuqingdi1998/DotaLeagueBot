@@ -11,6 +11,7 @@ import { CaptainVoting } from "./components/CaptainVoting";
 import { LobbyChat } from "./components/LobbyChat";
 import { LobbyPlayerTeams } from "./components/LobbyPlayerTeams";
 import { LobbyStartControls } from "./components/LobbyStartControls";
+import { LobbyGameResult } from "./components/LobbyGameResult";
 import { OrganizerCaptainControls } from
   "./components/OrganizerCaptainControls";
 import { useSeasonLobbyRoom } from "./hooks/useSeasonLobbyRoom";
@@ -33,7 +34,7 @@ export function SeasonLobbyRoomScreen({
 
   useEffect(() => {
     if (
-      snapshot.status === "drafting" &&
+      ["drafting", "break"].includes(snapshot.status) &&
       !snapshot.isOrganizer &&
       !initialDraft &&
       !hasRequestedDraftReload.current
@@ -73,6 +74,12 @@ export function SeasonLobbyRoomScreen({
         isSending={isSending}
         send={send}
       />
+      <LobbyGameResult
+        key={snapshot.currentGameNumber ?? "no-game"}
+        snapshot={snapshot}
+        isSending={isSending}
+        send={send}
+      />
       <OrganizerCaptainControls
         snapshot={snapshot}
         isSending={isSending}
@@ -93,7 +100,8 @@ export function SeasonLobbyRoomScreen({
         />
       )}
 
-      {snapshot.status === "drafting" && !snapshot.isOrganizer && initialDraft?.series && (
+      {["drafting", "break"].includes(snapshot.status) &&
+        !snapshot.isOrganizer && initialDraft?.series && (
         <section className="season-room-draft">
           <p className="season-room-draft-perspective">
             Ваша команда участвует в драфте от лица капитана:{" "}
@@ -116,7 +124,8 @@ export function SeasonLobbyRoomScreen({
           />
         </section>
       )}
-      {snapshot.status === "drafting" && !snapshot.isOrganizer && !initialDraft?.series && (
+      {["drafting", "break"].includes(snapshot.status) &&
+        !snapshot.isOrganizer && !initialDraft?.series && (
         <div className="season-room-draft-loading">Открываем Fearless Draft…</div>
       )}
     </main>

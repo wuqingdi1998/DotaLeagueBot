@@ -1,4 +1,10 @@
-export type SeasonLobbyRoomStatus = "waiting" | "voting" | "drafting";
+export type SeasonLobbyRoomStatus =
+  | "waiting"
+  | "voting"
+  | "drafting"
+  | "playing"
+  | "break"
+  | "completed";
 
 export type SeasonLobbyRoomPlayer = {
   playerId: string;
@@ -47,6 +53,7 @@ export type SeasonLobbyRoomSnapshot = {
   teamVoteCount: number;
   teamPlayerCount: number;
   draftSeriesId: number | null;
+  currentGameNumber: number | null;
 };
 
 export type SeasonLobbyRoomCommand =
@@ -64,4 +71,9 @@ export type SeasonLobbyRoomCommand =
       action: "SET_CAPTAIN";
       teamSide: "a" | "b";
       newCaptainPlayerId: string;
+    }
+  | {
+      action: "REPORT_GAME_RESULT";
+      dotaMatchId: string;
+      winnerSide: "a" | "b";
     };

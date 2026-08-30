@@ -1,0 +1,164 @@
+.season-room-result-state,
+.season-room-result-form {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.season-room-result-state {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px 22px;
+}
+
+.season-room-result-state > svg {
+  flex: 0 0 auto;
+  color: var(--blue);
+  font-size: 25px;
+}
+
+.season-room-result-state > div {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+}
+
+.season-room-result-state p,
+.season-room-result-form p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.season-room-result-state.completed > svg {
+  color: #2fc579;
+}
+
+.season-room-result-state button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+}
+
+.season-room-result-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
+  gap: 18px 24px;
+  padding: 22px;
+}
+
+.season-room-result-form > header,
+.season-room-result-form > footer {
+  grid-column: 1 / -1;
+}
+
+.season-room-result-form > header {
+  display: grid;
+  gap: 4px;
+}
+
+.season-room-result-form > header > span,
+.season-room-result-form label > span,
+.season-room-result-form legend {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.season-room-match-id-field {
+  display: grid;
+  gap: 7px;
+}
+
+.season-room-match-id-field input {
+  min-height: 48px;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  padding: 10px 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.season-room-result-form fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.season-room-result-form legend {
+  grid-column: 1 / -1;
+  margin-bottom: 7px;
+}
+
+.season-room-result-form fieldset label {
+  position: relative;
+  cursor: pointer;
+}
+
+.season-room-result-form fieldset input {
+  position: absolute;
+  opacity: 0;
+}
+
+.season-room-result-form fieldset label > span {
+  display: grid;
+  min-height: 48px;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 11px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.season-room-result-form fieldset input:checked + span {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 13%, var(--surface));
+  color: var(--blue-strong);
+}
+
+.season-room-result-form > footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+@media (max-width: 720px) {
+  .season-room-result-state {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-room-result-state > svg {
+    display: none;
+  }
+
+  .season-room-result-state button,
+  .season-room-result-form > footer button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .season-room-result-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .season-room-result-form > header,
+  .season-room-result-form > footer {
+    grid-column: auto;
+  }
+
+  .season-room-result-form > footer {
+    flex-direction: column-reverse;
+  }
+}

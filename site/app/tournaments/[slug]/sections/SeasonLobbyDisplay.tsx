@@ -182,11 +182,11 @@ function SeasonMatchCard({
               {game.dota_match_id && <code>{game.dota_match_id}</code>}
               {links && (
                 <nav aria-label={`Ссылки карты ${game.game_number}`}>
-                  <a href={links.dotaBuff} target="_blank" rel="noopener noreferrer">
-                    DotaBuff <FiExternalLink aria-hidden="true" />
-                  </a>
                   <a href={links.stratz} target="_blank" rel="noopener noreferrer">
                     Stratz <FiExternalLink aria-hidden="true" />
+                  </a>
+                  <a href={links.dotaBuff} target="_blank" rel="noopener noreferrer">
+                    DotaBuff <FiExternalLink aria-hidden="true" />
                   </a>
                 </nav>
               )}

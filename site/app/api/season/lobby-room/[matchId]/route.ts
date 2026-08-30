@@ -11,6 +11,8 @@ import {
   startSeasonLobbyWithCaptains,
   voteForSeasonLobbyCaptain,
 } from "@/app/season-lobby/[matchId]/server/room-commands";
+import { reportSeasonLobbyGameResult } from
+  "@/app/season-lobby/[matchId]/server/game-result-service";
 import {
   seasonLobbyRoomErrorResponse,
   SeasonLobbyRoomError,
@@ -105,6 +107,13 @@ export async function POST(
         user,
         command.teamSide,
         command.newCaptainPlayerId,
+      );
+    } else if (command.action === "REPORT_GAME_RESULT") {
+      await reportSeasonLobbyGameResult(
+        matchId,
+        user.discordId,
+        command.dotaMatchId,
+        command.winnerSide,
       );
     } else {
       throw new SeasonLobbyRoomError("Неизвестное действие");

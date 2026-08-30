@@ -47,7 +47,8 @@ async function updateRegistration(
       const result = await client.query<RegistrationTarget>(
         `SELECT round.id::int, round.tournament_id::int,
            round.scheduled_at, round.round_kind,
-           round.status AS round_status,
+           season_round_status_at(round.scheduled_at, round.status)
+             AS round_status,
            tournament.status AS tournament_status, round.is_visible
          FROM season_rounds round
          JOIN tournaments tournament ON tournament.id = round.tournament_id

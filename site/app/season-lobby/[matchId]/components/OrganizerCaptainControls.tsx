@@ -34,7 +34,12 @@ export function OrganizerCaptainControls({
     currentCaptainId(snapshot, "b"),
   );
 
-  if (!snapshot.isOrganizer) return null;
+  if (
+    !snapshot.isOrganizer ||
+    !["waiting", "voting", "drafting"].includes(snapshot.status)
+  ) {
+    return null;
+  }
   const selections = [
     {
       side: "a" as const,

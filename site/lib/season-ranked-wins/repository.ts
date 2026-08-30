@@ -174,7 +174,8 @@ export async function refreshRegisteredSeasonRankedWins(): Promise<{
       AND current_player.is_archived = FALSE
      WHERE tournament.tournament_type = 'seasonal'
        AND tournament.status IN ('registration', 'active')
-       AND round.status IN ('planned', 'active')
+       AND season_round_status_at(round.scheduled_at, round.status)
+         IN ('planned', 'active')
        AND round.is_visible = TRUE
      ORDER BY registration.player_id, round.scheduled_at DESC NULLS LAST`,
   );

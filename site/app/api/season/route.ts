@@ -88,7 +88,11 @@ export async function GET(request: Request) {
     await Promise.all([
       query<RoundRow>(
         `SELECT round.id::int, round.tournament_id::int,
-           round.round_number::int, round.name, round.status,
+           round.round_number::int, round.name,
+           CASE WHEN round.round_kind = 'regular'
+             THEN season_round_status_at(round.scheduled_at, round.status)
+             ELSE round.status
+           END AS status,
            round.scheduled_at, round.is_visible, round.round_kind,
            round.lobby_configuration_status,
            COUNT(DISTINCT lobby.id)::int AS lobby_count,

@@ -29,6 +29,7 @@ type RoomStateRow = {
   status: SeasonLobbyRoomStatus;
   is_force_started: boolean;
   draft_series_id: number | null;
+  current_game_number: number | null;
 };
 
 type RoomMessageRow = Omit<SeasonLobbyRoomMessage, "createdAt"> & {
@@ -117,7 +118,8 @@ export async function loadSeasonLobbyRoomSnapshot(
       await Promise.all([
         client.query<RoomStateRow>(
           `SELECT room.status, room.is_force_started,
-             series.id::int AS draft_series_id
+             series.id::int AS draft_series_id,
+             series.current_map::int AS current_game_number
            FROM season_match_rooms room
            LEFT JOIN draft_series series ON series.season_match_id = room.match_id
            WHERE room.match_id = $1`,
@@ -234,6 +236,7 @@ export async function loadSeasonLobbyRoomSnapshot(
       teamVoteCount: ownTeam.filter((player) => player.hasVoted).length,
       teamPlayerCount: ownTeam.length,
       draftSeriesId: state.draft_series_id,
+      currentGameNumber: state.current_game_number,
     };
   });
 }

@@ -12,7 +12,13 @@ import { randomCoinTossResult } from
 import { SeasonLobbyRoomError } from "./errors";
 
 type LockedRoom = {
-  status: "waiting" | "voting" | "drafting";
+  status:
+    | "waiting"
+    | "voting"
+    | "drafting"
+    | "playing"
+    | "break"
+    | "completed";
   host_player_id: string | null;
   best_of: number;
 };
@@ -357,8 +363,8 @@ export async function startSeasonLobbyWithCaptains(
   await transaction(async (client) => {
     const room = await lockRoom(client, matchId);
     await requireOrganizerLobby(client, matchId);
-    if (room.status === "drafting") {
-      throw new SeasonLobbyRoomError("Драфт уже запущен", 409);
+    if (!["waiting", "voting"].includes(room.status)) {
+      throw new SeasonLobbyRoomError("Матч уже запущен", 409);
     }
     if (!seasonLobbyDraftFormat(room.best_of)) {
       throw new SeasonLobbyRoomError(

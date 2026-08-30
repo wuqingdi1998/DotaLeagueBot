@@ -106,7 +106,6 @@ export async function updateSeasonRound(
   actorDiscordId: string,
 ) {
   const id = requiredId(body.id, "тур");
-  const status = enumValue(body.status, roundStatuses, "статус тура");
   const isVisible = body.isVisible === true;
   const roundState = await query<{
     is_visible: boolean;
@@ -125,6 +124,9 @@ export async function updateSeasonRound(
   if (!roundState.length) {
     throw new Response("Тур не найден", { status: 404 });
   }
+  const status = roundState[0].round_kind === "finals"
+    ? enumValue(body.status, roundStatuses, "статус финалов")
+    : "planned";
   if (
     status === "completed" &&
     roundState[0].round_kind === "finals" &&
@@ -145,7 +147,11 @@ export async function updateSeasonRound(
   }
   const updated = await query<{ tournament_id: number }>(
     `UPDATE season_rounds
-     SET name = $2, scheduled_at = $3, status = $4,
+     SET name = $2, scheduled_at = $3,
+       status = CASE WHEN round_kind = 'regular'
+         THEN season_round_status_at($3, status)
+         ELSE $4
+       END,
        is_visible = $5, updated_at = NOW()
      WHERE id = $1
      RETURNING tournament_id::int`,

@@ -40,8 +40,10 @@ export function SeasonAdminPanel() {
           <p className="card-kicker">Сезонный формат</p>
           <h3>Настройки туров и финального этапа</h3>
           <p>
-            Здесь задаются названия, даты, статусы и видимость туров. Финалы
-            вынесены в отдельную последнюю вкладку и не влияют на общую таблицу.
+            Здесь задаются названия, даты и видимость туров. Статус обычного
+            тура меняется автоматически: в момент старта он становится
+            активным, а через три часа — завершённым. Финалы вынесены в
+            отдельную последнюю вкладку и не влияют на общую таблицу.
           </p>
         </div>
       </div>
@@ -157,20 +159,22 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
               onChange={(event) => setScheduledAt(event.target.value)}
             />
           </label>
-          <label>
-            <span>Статус</span>
-            <select
-              value={status}
-              onChange={(event) =>
-                setStatus(event.target.value as SeasonRound["status"])
-              }
-            >
-              <option value="planned">Запланирован</option>
-              <option value="active">Идёт</option>
-              <option value="completed">Завершён</option>
-              <option value="cancelled">Отменён</option>
-            </select>
-          </label>
+          {round.round_kind === "finals" && (
+            <label>
+              <span>Статус финалов</span>
+              <select
+                value={status}
+                onChange={(event) =>
+                  setStatus(event.target.value as SeasonRound["status"])
+                }
+              >
+                <option value="planned">Запланирован</option>
+                <option value="active">Идёт</option>
+                <option value="completed">Завершён</option>
+                <option value="cancelled">Отменён</option>
+              </select>
+            </label>
+          )}
           <label className="season-visibility-field">
             <input
               type="checkbox"

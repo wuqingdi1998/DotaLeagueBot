@@ -89,6 +89,20 @@ export async function markReadyForNextDraftMap(playerId: string): Promise<void> 
     if (series.status !== "MAP_COMPLETE" || map.status !== "COMPLETE") {
       throw new DraftRequestError("Текущая карта ещё не завершена", 409);
     }
+    if (series.season_match_id) {
+      const roomResult = await client.query<{ status: string }>(
+        `SELECT status FROM season_match_rooms
+         WHERE match_id = $1 FOR UPDATE`,
+        [series.season_match_id],
+      );
+      const room = roomResult.rows[0];
+      if (!room || room.status !== "break") {
+        throw new DraftRequestError(
+          "Сначала хост должен сохранить результат сыгранной карты",
+          409,
+        );
+      }
+    }
     const readiness = markNextMapReady({
       player1Id: series.player1_id,
       player2Id: series.player2_id,
@@ -136,5 +150,13 @@ export async function markReadyForNextDraftMap(playerId: string): Promise<void> 
        WHERE id = $2`,
       [nextMap, series.id],
     );
+    if (series.season_match_id) {
+      await client.query(
+        `UPDATE season_match_rooms
+         SET status = 'drafting', updated_at = NOW()
+         WHERE match_id = $1`,
+        [series.season_match_id],
+      );
+    }
   });
 }

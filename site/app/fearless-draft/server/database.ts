@@ -14,6 +14,7 @@ export type DraftSeriesRow = {
   end_requested_at: Date | null;
   player1_ready_for_next_map: boolean;
   player2_ready_for_next_map: boolean;
+  season_match_id: number | null;
 };
 
 export type DraftMapRow = {
@@ -100,7 +101,8 @@ export async function loadLockedDraftSeriesById(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
             current_map::int, map1_coin_toss_winner_id::text,
             end_requested_by::text, end_requested_at,
-            player1_ready_for_next_map, player2_ready_for_next_map
+            player1_ready_for_next_map, player2_ready_for_next_map,
+            season_match_id::int
      FROM draft_series WHERE id = $1 FOR UPDATE`,
     [seriesId],
   );

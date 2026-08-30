@@ -73,7 +73,7 @@ describe("season lobby room contract", () => {
     expect(organizerCaptainControls).toContain("START_WITH_CAPTAINS");
     expect(organizerCaptainControls).toContain("SET_CAPTAIN");
     expect(roomPage).toContain(
-      'room.status === "drafting" && !room.isOrganizer',
+      '["drafting", "break"].includes(room.status) && !room.isOrganizer',
     );
     expect(roomScreen).toContain("!snapshot.isOrganizer && initialDraft?.series");
   });

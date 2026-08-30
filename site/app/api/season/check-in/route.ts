@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     return await transaction(async (client) => {
       const result = await client.query<CheckInTarget>(
         `SELECT round.scheduled_at, round.round_kind,
-           round.status AS round_status,
+           season_round_status_at(round.scheduled_at, round.status)
+             AS round_status,
            tournament.status AS tournament_status, round.is_visible,
            EXISTS (
              SELECT 1 FROM season_round_registrations registration

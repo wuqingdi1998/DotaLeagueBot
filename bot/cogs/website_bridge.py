@@ -116,7 +116,8 @@ class WebsiteBridge(commands.Cog):
                  AND checkin.player_id = registration.player_id
                 WHERE round.round_kind = 'regular'
                   AND round.is_visible = TRUE
-                  AND round.status IN ('planned', 'active')
+                  AND season_round_status_at(round.scheduled_at, round.status)
+                      IN ('planned', 'active')
                   AND tournament.status IN ('registration', 'active')
                   AND NOW() >= round.scheduled_at - INTERVAL '2 hours'
                   AND NOW() < round.scheduled_at - INTERVAL '10 minutes'
@@ -170,7 +171,8 @@ class WebsiteBridge(commands.Cog):
                 ) missing ON TRUE
                 WHERE round.round_kind = 'regular'
                   AND round.is_visible = TRUE
-                  AND round.status IN ('planned', 'active')
+                  AND season_round_status_at(round.scheduled_at, round.status)
+                      IN ('planned', 'active')
                   AND tournament.status IN ('registration', 'active')
                   AND NOW() >= round.scheduled_at - INTERVAL '10 minutes'
                   AND NOW() < round.scheduled_at + INTERVAL '6 hours'

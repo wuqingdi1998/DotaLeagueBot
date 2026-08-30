@@ -188,6 +188,18 @@ async def sync_season_round_discord_channels(
     bot: discord.Client,
     session: AsyncSession,
 ) -> None:
+    await session.execute(
+        text(
+            """
+            UPDATE season_rounds
+            SET status = season_round_status_at(scheduled_at, status),
+                updated_at = NOW()
+            WHERE round_kind = 'regular'
+              AND status IS DISTINCT FROM
+                season_round_status_at(scheduled_at, status)
+            """
+        )
+    )
     try:
         category = await resolve_live_events_category(
             bot, LIVE_EVENTS_CATEGORY_ID

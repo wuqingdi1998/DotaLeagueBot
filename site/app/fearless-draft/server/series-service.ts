@@ -186,11 +186,24 @@ async function commitHeroAction(
     const isSeriesComplete =
       (series.format === "BO2" && map.map_number === 2) ||
       (series.format === "BO3" && map.map_number === 3);
+    const seriesStatus = series.season_match_id
+      ? "MAP_COMPLETE"
+      : isSeriesComplete
+        ? "COMPLETE"
+        : "MAP_COMPLETE";
     await client.query(
       `UPDATE draft_series
        SET status = $1, updated_at = $2 WHERE id = $3`,
-      [isSeriesComplete ? "COMPLETE" : "MAP_COMPLETE", now, series.id],
+      [seriesStatus, now, series.id],
     );
+    if (series.season_match_id) {
+      await client.query(
+        `UPDATE season_match_rooms
+         SET status = 'playing', updated_at = $2
+         WHERE match_id = $1`,
+        [series.season_match_id, now],
+      );
+    }
   } else {
     await client.query(
       `UPDATE draft_maps
