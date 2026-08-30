@@ -397,6 +397,10 @@ export async function GET(request: Request) {
     result: match.result,
     teamAScore: match.team_a_score,
     teamBScore: match.team_b_score,
+    games: match.games.map((game) => ({
+      gameNumber: game.game_number,
+      winnerSide: game.winner_side,
+    })),
     participants: match.participants.map((participant) => ({
       playerId: participant.player_id,
       dotaId: participant.dota_id,
@@ -444,6 +448,7 @@ export async function GET(request: Request) {
       incomingAvatarUrl: substitution.incoming_avatar_url,
       teamSide: substitution.team_side,
       technicalLoss: substitution.technical_loss,
+      gameNumber: substitution.game_number,
     })),
     penalties: penaltyStates,
     participantStates: seasonPlayers.map((player) => ({

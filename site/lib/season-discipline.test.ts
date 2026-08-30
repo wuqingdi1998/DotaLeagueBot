@@ -60,6 +60,10 @@ describe("season substitutions and p adjustments", () => {
     result: "team_a",
     teamAScore: 2,
     teamBScore: 0,
+    games: [
+      { gameNumber: 1, winnerSide: "a" },
+      { gameNumber: 2, winnerSide: "a" },
+    ],
     participants: [
       {
         playerId: "1",
@@ -94,6 +98,7 @@ describe("season substitutions and p adjustments", () => {
             incomingAvatarUrl: null,
             teamSide: "a",
             technicalLoss: true,
+            gameNumber: 2,
           },
         ],
       },
@@ -107,6 +112,69 @@ describe("season substitutions and p adjustments", () => {
       adjustmentPoints: 1,
       hasAdjustments: true,
       points: 1,
+    });
+  });
+
+  it("rewards a second-map substitute only for winning that map", () => {
+    const rows = calculateSeasonStandings(
+      [{ id: 1, roundNumber: 1, isVisible: true }],
+      [{
+        ...match,
+        result: "draw",
+        teamAScore: 1,
+        teamBScore: 1,
+        games: [
+          { gameNumber: 1, winnerSide: "a" },
+          { gameNumber: 2, winnerSide: "b" },
+        ],
+      }],
+      [],
+      {
+        substitutions: [{
+          matchId: 10,
+          outgoingPlayerId: "1",
+          incomingPlayerId: "3",
+          incomingDotaId: "103",
+          incomingNickname: "Замена",
+          incomingAvatarUrl: null,
+          teamSide: "a",
+          technicalLoss: true,
+          gameNumber: 2,
+        }],
+      },
+    );
+
+    expect(rows.find((row) => row.playerId === "3")).toMatchObject({
+      adjustmentPoints: 0,
+      points: 0,
+    });
+  });
+
+  it("treats a replacement before game one as a full participant", () => {
+    const rows = calculateSeasonStandings(
+      [{ id: 1, roundNumber: 1, isVisible: true }],
+      [match],
+      [],
+      {
+        substitutions: [{
+          matchId: 10,
+          outgoingPlayerId: "1",
+          incomingPlayerId: "3",
+          incomingDotaId: "103",
+          incomingNickname: "Новый игрок",
+          incomingAvatarUrl: null,
+          teamSide: "a",
+          technicalLoss: false,
+          gameNumber: null,
+        }],
+      },
+    );
+
+    expect(rows.find((row) => row.playerId === "1")).toBeUndefined();
+    expect(rows.find((row) => row.playerId === "3")).toMatchObject({
+      wins: 1,
+      adjustmentPoints: 0,
+      points: 2,
     });
   });
 
@@ -136,6 +204,7 @@ describe("season substitutions and p adjustments", () => {
       incomingAvatarUrl: null,
       teamSide: "a" as const,
       technicalLoss: true,
+      gameNumber: 2,
     };
     const rows = calculateSeasonStandings(
       [{ id: 1, roundNumber: 1, isVisible: true }],

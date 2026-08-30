@@ -11,13 +11,15 @@ export type SeasonAdminPlayerOption = {
 
 export function SeasonAdminPlayerPicker({
   label,
+  initialValue = "",
   onSelect,
 }: {
   label: string;
+  initialValue?: string;
   onSelect: (player: SeasonAdminPlayerOption | null) => void;
 }) {
   const listId = useId();
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(initialValue);
   const [options, setOptions] = useState<SeasonAdminPlayerOption[]>([]);
   const [isFocused, setIsFocused] = useState(false);
 

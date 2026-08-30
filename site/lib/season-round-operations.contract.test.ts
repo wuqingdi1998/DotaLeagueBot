@@ -27,6 +27,15 @@ const lobbyTools = source(
 const lobbyActions = source(
   "../app/api/admin/season/season-published-lobby-actions.ts",
 );
+const lobbyResult = source(
+  "../app/season-lobby/[matchId]/model/published-result.ts",
+);
+const substitutionActions = source(
+  "../app/api/admin/season/season-substitution-actions.ts",
+);
+const seasonAdmin = source(
+  "../app/tournaments/[slug]/admin/SeasonAdminPanel.tsx",
+);
 const roundPanel = source(
   "../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
 );
@@ -70,12 +79,26 @@ describe("season round operations", () => {
     expect(registrationActions).not.toContain("NOW() <");
   });
 
-  it("keeps match IDs and substitutions in compact published-lobby tools", () => {
-    expect(lobbyTools).toContain("Действия организатора");
-    expect(lobbyTools).toContain("dotaMatchIds.map");
+  it("edits completed lobby scores, both maps and substitutions", () => {
+    expect(lobbyTools).toContain("Сохранить счёт и карты");
+    expect(lobbyTools).toContain("winnerSide");
     expect(lobbyTools).toContain("SeasonSubstitutionAdmin");
-    expect(lobbyActions).toContain("value.length !== 2");
+    expect(lobbyResult).toContain("value.length !== 2");
     expect(lobbyActions).toContain("ON CONFLICT (match_id, game_number)");
+    expect(lobbyActions).toContain("team_a_score = $2");
+    expect(lobbyActions).toContain("winner_side = EXCLUDED.winner_side");
     expect(roundPanel).toContain("SeasonPublishedLobbyTools");
+    expect(seasonAdmin).toContain("Созданные лобби и результаты");
+    expect(seasonAdmin).toContain("SeasonPublishedLobbyTools");
+  });
+
+  it("applies and reverses the five-fire second-map substitution penalty", () => {
+    expect(substitutionActions).toContain(
+      "secondMapSubstitutionPenaltyFires = 5",
+    );
+    expect(substitutionActions).toContain("game_number !== 2");
+    expect(substitutionActions).toContain("addSubstitutionPenalty");
+    expect(substitutionActions).toContain("removeSubstitutionPenalty");
+    expect(substitutionActions).toContain("penalty_fire_count");
   });
 });

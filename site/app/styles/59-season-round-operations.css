@@ -47,13 +47,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  width: fit-content;
+  width: 100%;
   padding: 9px 12px;
   color: var(--text);
   cursor: pointer;
   font-size: 13px;
   font-weight: 700;
   list-style: none;
+}
+
+.season-published-lobby-tools > summary small {
+  margin-left: auto;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .season-registration-admin > summary::-webkit-details-marker,
@@ -67,7 +73,7 @@
 }
 
 .season-registration-admin > form,
-.season-published-match-ids > div,
+.season-published-score-fields,
 .season-published-lobby-tools .season-inline-admin-form {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) 140px auto;
@@ -77,7 +83,7 @@
 
 .season-registration-admin > form,
 .season-registration-admin > ul,
-.season-published-match-ids,
+.season-published-result-editor,
 .season-published-lobby-tools > .season-substitution-admin {
   margin: 0;
   padding: 14px;
@@ -144,7 +150,8 @@
 }
 
 .season-registration-admin > ul small,
-.season-published-match-ids p {
+.season-published-result-editor p,
+.season-round-result-admin > p {
   color: var(--muted);
 }
 
@@ -231,15 +238,71 @@
   margin: 0 16px 16px;
 }
 
-.season-published-match-ids h5,
-.season-published-match-ids p {
+.season-published-result-editor h5,
+.season-published-result-editor p {
   margin: 0;
 }
 
-.season-published-match-ids p {
+.season-published-result-editor p {
   margin-top: 4px;
   margin-bottom: 12px;
   font-size: 13px;
+}
+
+.season-published-score-fields {
+  grid-template-columns: repeat(2, minmax(140px, 220px));
+  margin-bottom: 12px;
+}
+
+.season-published-game-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.season-published-game-fields fieldset {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 0.7fr);
+  gap: 10px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.season-published-game-fields legend {
+  padding: 0 5px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.season-round-result-admin {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.season-round-result-admin > h4,
+.season-round-result-admin > p {
+  margin: 0;
+}
+
+.season-round-result-admin .season-published-lobby-tools {
+  margin: 0;
+}
+
+.season-substitution-record-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.season-substitution-record-actions button {
+  min-width: 38px;
+  padding: 8px;
 }
 
 .season-published-lobby-tools .season-inline-admin-form {
@@ -258,9 +321,21 @@
   }
 
   .season-registration-admin > form,
-  .season-published-match-ids > div,
+  .season-published-score-fields,
+  .season-published-game-fields,
+  .season-published-game-fields fieldset,
   .season-published-lobby-tools .season-inline-admin-form {
     grid-template-columns: 1fr;
+  }
+
+  .season-published-lobby-tools > summary {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .season-published-lobby-tools > summary small {
+    width: 100%;
+    margin-left: 26px;
   }
 
   .season-published-lobby-tools {

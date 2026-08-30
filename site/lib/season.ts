@@ -26,6 +26,10 @@ export type SeasonStandingMatch = {
   result: "team_a" | "draw" | "team_b" | null;
   teamAScore: number | null;
   teamBScore: number | null;
+  games?: Array<{
+    gameNumber: number;
+    winnerSide: "a" | "draw" | "b" | null;
+  }>;
   participants: SeasonStandingParticipant[];
 };
 
@@ -38,6 +42,7 @@ export type SeasonStandingSubstitution = {
   incomingAvatarUrl: string | null;
   teamSide: "a" | "b";
   technicalLoss: boolean;
+  gameNumber: number | null;
 };
 
 export type SeasonStandingAdjustment = {
@@ -300,6 +305,7 @@ export function calculateSeasonStandings(
       const substitution = outgoingByMatchAndPlayer.get(
         `${match.id}:${participant.playerId}`,
       );
+      if (substitution?.gameNumber === null) continue;
       const normalOutcome = participantOutcome(match, participant.teamSide);
       const outcome =
         substitution?.technicalLoss && normalOutcome !== "pending"
@@ -368,10 +374,28 @@ export function calculateSeasonStandings(
         new Set<number>();
       playedRounds.add(roundNumber);
       playedRoundsByPlayer.set(substitution.incomingPlayerId, playedRounds);
-      const didWin =
-        (match.result === "team_a" && substitution.teamSide === "a") ||
-        (match.result === "team_b" && substitution.teamSide === "b");
-      if (didWin) {
+      if (substitution.gameNumber === null) {
+        const outcome = participantOutcome(match, substitution.teamSide);
+        const points = outcomePoints(outcome);
+        cell.points += points;
+        cell.outcome = outcome;
+        row.points += points;
+        if (outcome === "win") row.wins += 1;
+        if (outcome === "draw") row.draws += 1;
+        if (outcome === "loss") row.losses += 1;
+        const ownScore = substitution.teamSide === "a"
+          ? match.teamAScore : match.teamBScore;
+        const opponentScore = substitution.teamSide === "a"
+          ? match.teamBScore : match.teamAScore;
+        if (ownScore !== null && opponentScore !== null) {
+          row.mapWins += ownScore;
+          row.mapLosses += opponentScore;
+        }
+      } else if (
+        match.games?.find(
+          (game) => game.gameNumber === substitution.gameNumber,
+        )?.winnerSide === substitution.teamSide
+      ) {
         const rewardKey = `${match.id}:${substitution.incomingPlayerId}`;
         if (!rewardedSubstitutes.has(rewardKey)) {
           row.adjustmentPoints += 1;

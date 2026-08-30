@@ -6,6 +6,7 @@ import { toMoscowDateTimeInput } from "@/lib/moscow-date-time";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonLobby, SeasonRound } from "../model/season-types";
 import { SeasonMatchAdmin } from "./SeasonMatchAdmin";
+import { SeasonPublishedLobbyTools } from "./SeasonPublishedLobbyTools";
 
 export function SeasonAdminPanel() {
   const { data, loadData, season } = useTournament();
@@ -207,6 +208,22 @@ function SeasonRoundAdmin({ round }: { round: SeasonRound }) {
             </button>
           )}
         </div>
+        {round.round_kind === "regular" && round.lobbies.length > 0 && (
+          <section className="season-round-result-admin">
+            <h4>Созданные лобби и результаты</h4>
+            <p>
+              Здесь можно исправить счёт, ID и победителей карт, а также
+              добавить или изменить замену после завершения матча.
+            </p>
+            {round.lobbies.map((lobby, index) => (
+              <SeasonPublishedLobbyTools
+                lobby={lobby}
+                isOpenByDefault={index === 0}
+                key={lobby.id}
+              />
+            ))}
+          </section>
+        )}
         {round.round_kind === "finals" && (
           <div className="season-lobby-admin-list">
             {round.lobbies.map((lobby) => (

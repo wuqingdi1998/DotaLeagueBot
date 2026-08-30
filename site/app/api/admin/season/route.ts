@@ -36,7 +36,7 @@ import {
   addSeasonRoundRegistration,
   deleteSeasonRoundRegistration,
 } from "./season-registration-actions";
-import { savePublishedLobbyMatchIds } from "./season-published-lobby-actions";
+import { savePublishedLobbyResult } from "./season-published-lobby-actions";
 import { setSeasonLobbyHost } from "./season-lobby-host-actions";
 
 export const dynamic = "force-dynamic";
@@ -173,7 +173,7 @@ export async function PATCH(request: Request) {
     }
     if (body.entity === "publishedLobby") {
       return Response.json(
-        await savePublishedLobbyMatchIds(body, admin.discordId),
+        await savePublishedLobbyResult(body, admin.discordId),
       );
     }
     if (body.entity === "lobbyHost") {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FiTrash2 } from "react-icons/fi";
+import { FiEdit3, FiTrash2 } from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonMatch } from "../model/season-types";
 import {
@@ -16,46 +16,67 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
   const [outgoingPlayerId, setOutgoingPlayerId] = useState("");
   const [incomingPlayer, setIncomingPlayer] =
     useState<SeasonAdminPlayerOption | null>(null);
-  const [technicalLoss, setTechnicalLoss] = useState(true);
   const [note, setNote] = useState("");
   const [pickerRevision, setPickerRevision] = useState(0);
+  const [editingSubstitutionId, setEditingSubstitutionId] =
+    useState<number | null>(null);
+  const secondGame = match.games.find((game) => game.game_number === 2);
 
-  async function addSubstitution() {
-    const result = await season.mutate("POST", {
+  function resetForm() {
+    setGameId("");
+    setOutgoingPlayerId("");
+    setIncomingPlayer(null);
+    setNote("");
+    setEditingSubstitutionId(null);
+    setPickerRevision((current) => current + 1);
+  }
+
+  async function saveSubstitution() {
+    const result = await season.mutate(editingSubstitutionId ? "PATCH" : "POST", {
       entity: "substitution",
+      id: editingSubstitutionId,
       matchId: match.id,
       gameId: gameId || null,
       outgoingPlayerId,
       incomingPlayerId: incomingPlayer?.discord_id,
-      technicalLoss,
       note,
     });
-    if (result.ok) {
-      setIncomingPlayer(null);
-      setPickerRevision((current) => current + 1);
-      setNote("");
-    }
+    if (result.ok) resetForm();
+  }
+
+  function editSubstitution(substitution: SeasonMatch["substitutions"][number]) {
+    setGameId(substitution.game_number === 2 ? String(substitution.game_id) : "");
+    setOutgoingPlayerId(substitution.outgoing_player_id);
+    setIncomingPlayer({
+      discord_id: substitution.incoming_player_id,
+      dota_id: substitution.incoming_dota_id,
+      nickname: substitution.incoming_nickname,
+      tier: null,
+    });
+    setNote(substitution.note ?? "");
+    setEditingSubstitutionId(substitution.id);
+    setPickerRevision((current) => current + 1);
   }
 
   return (
     <section className="season-substitution-admin">
       <div>
-        <h4>Замены по ходу матча</h4>
+        <h4>Замены игроков</h4>
         <p>
-          Укажите карту, выбывшего игрока и ID игрока замены. При победе
-          заменивший игрок автоматически получит +1 в столбец p.
+          До первой карты новый игрок считается полноценным участником без
+          штрафа. Замена на второй карте даёт выбывшему техническое поражение,
+          5 огоньков и пропуск следующего тура; новый игрок получает +1 p только
+          при победе своей команды на второй карте.
         </p>
       </div>
       <div className="season-inline-admin-form">
         <label>
-          <span>Карта</span>
+          <span>Когда произошла замена</span>
           <select value={gameId} onChange={(event) => setGameId(event.target.value)}>
-            <option value="">Весь матч</option>
-            {match.games.map((game) => (
-              <option value={game.id} key={game.id}>
-                Карта {game.game_number}
-              </option>
-            ))}
+            <option value="">До первой карты — полноценный игрок</option>
+            {secondGame && (
+              <option value={secondGame.id}>На второй карте — со штрафом</option>
+            )}
           </select>
         </label>
         <label>
@@ -75,6 +96,7 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
         <SeasonAdminPlayerPicker
           key={pickerRevision}
           label="Кто выходит на замену"
+          initialValue={incomingPlayer?.nickname}
           onSelect={setIncomingPlayer}
         />
         <label>
@@ -85,22 +107,19 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
             onChange={(event) => setNote(event.target.value)}
           />
         </label>
-        <label className="season-technical-loss-field">
-          <input
-            type="checkbox"
-            checked={technicalLoss}
-            onChange={(event) => setTechnicalLoss(event.target.checked)}
-          />
-          <span>Выбывшему игроку — техническое поражение и 0 очков</span>
-        </label>
         <button
           className="secondary-button"
           type="button"
           disabled={!outgoingPlayerId || !incomingPlayer}
-          onClick={() => void addSubstitution()}
+          onClick={() => void saveSubstitution()}
         >
-          Добавить замену
+          {editingSubstitutionId ? "Сохранить замену" : "Добавить замену"}
         </button>
+        {editingSubstitutionId && (
+          <button className="secondary-button" type="button" onClick={resetForm}>
+            Отмена
+          </button>
+        )}
       </div>
       {match.substitutions.length > 0 && (
         <div className="season-admin-record-list">
@@ -118,19 +137,29 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
                   {substitution.note ? ` · ${substitution.note}` : ""}
                 </span>
               </div>
-              <button
-                className="danger-button"
-                type="button"
-                aria-label="Удалить замену"
-                onClick={() =>
-                  void season.mutate("DELETE", {
-                    entity: "substitution",
-                    id: substitution.id,
-                  })
-                }
-              >
-                <FiTrash2 />
-              </button>
+              <div className="season-substitution-record-actions">
+                <button
+                  className="secondary-button"
+                  type="button"
+                  aria-label="Изменить замену"
+                  onClick={() => editSubstitution(substitution)}
+                >
+                  <FiEdit3 />
+                </button>
+                <button
+                  className="danger-button"
+                  type="button"
+                  aria-label="Удалить замену"
+                  onClick={() =>
+                    void season.mutate("DELETE", {
+                      entity: "substitution",
+                      id: substitution.id,
+                    })
+                  }
+                >
+                  <FiTrash2 />
+                </button>
+              </div>
               {!substitution.game_number && (
                 <SeasonLobbyHostButton
                   match={match}

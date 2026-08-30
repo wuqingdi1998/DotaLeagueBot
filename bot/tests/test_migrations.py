@@ -106,6 +106,13 @@ TEST_SEASON_ROUND_ONE_FULL_RESET = (
     / "0101_reset_test_season_round_one.sql"
 ).read_text(encoding="utf-8")
 
+SEASON_SUBSTITUTION_PENALTIES_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0102_season_substitution_penalties.sql"
+).read_text(encoding="utf-8")
+
 FEARLESS_DRAFT_HERO_SUGGESTIONS_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -499,6 +506,14 @@ def test_test_season_round_one_full_reset_clears_round_and_standings() -> None:
     )
     assert "lobby_configuration_status = 'none'" in (
         TEST_SEASON_ROUND_ONE_FULL_RESET
+    )
+
+
+def test_second_map_substitutions_track_their_five_fire_penalty() -> None:
+    assert "penalty_event_id BIGINT" in SEASON_SUBSTITUTION_PENALTIES_MIGRATION
+    assert "penalty_fire_count SMALLINT" in SEASON_SUBSTITUTION_PENALTIES_MIGRATION
+    assert "REFERENCES season_penalty_events(id)" in (
+        SEASON_SUBSTITUTION_PENALTIES_MIGRATION
     )
 
 
