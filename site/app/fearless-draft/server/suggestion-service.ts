@@ -113,7 +113,17 @@ export async function toggleDraftHeroSuggestion(
       [context.map_id, playerId],
     );
     if ((count.rows[0]?.count ?? 0) >= MAX_SUGGESTIONS_PER_PLAYER) {
-      throw new DraftRequestError("Можно предложить не больше пяти героев", 409);
+      await client.query(
+        `DELETE FROM draft_hero_suggestions
+         WHERE map_id = $1 AND player_id = $2 AND hero_id = (
+           SELECT oldest.hero_id
+           FROM draft_hero_suggestions oldest
+           WHERE oldest.map_id = $1 AND oldest.player_id = $2
+           ORDER BY oldest.created_at, oldest.hero_id
+           LIMIT 1
+         )`,
+        [context.map_id, playerId],
+      );
     }
     await client.query(
       `INSERT INTO draft_hero_suggestions(map_id, player_id, hero_id)

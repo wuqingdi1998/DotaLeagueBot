@@ -71,16 +71,19 @@
 .fearless-realtime.reconnecting svg { color: #f4b84a; }
 
 .fearless-error {
-  position: sticky;
+  position: fixed;
   z-index: 20;
   top: 92px;
+  left: 50%;
   width: min(720px, calc(100% - 40px));
-  margin: 14px auto -4px;
+  margin: 0;
+  transform: translateX(-50%);
   border: 1px solid rgba(255, 99, 111, 0.45);
   border-radius: 13px;
   padding: 13px 17px;
   background: #54242b;
   color: #fff;
+  pointer-events: none;
   text-align: center;
 }
 

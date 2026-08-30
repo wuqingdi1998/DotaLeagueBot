@@ -244,6 +244,18 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
+  it("keeps transient errors and turn labels from moving the draft", () => {
+    expect(draftBase).toMatch(
+      /\.fearless-error\s*\{[^}]*position:\s*fixed;[^}]*left:\s*50%;[^}]*transform:\s*translateX\(-50%\);/,
+    );
+    expect(board).toMatch(
+      /\.fearless-turn\s*\{[^}]*width:\s*300px;[^}]*height:\s*50px;[^}]*overflow:\s*hidden;/,
+    );
+    expect(lobbyRoster).toMatch(
+      /\.fearless-lobby-turn-group \.fearless-turn\s*\{[^}]*width:\s*260px;[^}]*height:\s*50px;/,
+    );
+  });
+
   it("counts end-request time from the synchronized server clock", () => {
     expect(draftScreen).toContain("serverNow={snapshot.serverNow}");
     expect(agreementPanel).toContain("useServerNow(serverNow, 1_000)");

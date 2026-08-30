@@ -60,6 +60,18 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionService).toContain("playerName, colorSlot");
   });
 
+  it("replaces the oldest personal suggestion when a sixth hero is added", () => {
+    expect(suggestionService).toContain(
+      "ORDER BY oldest.created_at, oldest.hero_id",
+    );
+    expect(suggestionService).toContain(
+      "DELETE FROM draft_hero_suggestions",
+    );
+    expect(suggestionService).not.toContain(
+      'throw new DraftRequestError("Можно предложить не больше пяти героев"',
+    );
+  });
+
   it("replaces the hero count with up to five compact suggestion boards", () => {
     expect(heroGrid).toContain("<HeroSuggestionBoards");
     expect(heroGrid).not.toContain("text.heroPool");

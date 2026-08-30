@@ -90,21 +90,19 @@
 }
 
 .fearless-turn {
-  display: flex;
-  min-width: 300px; min-height: 50px;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px 22px;
-  background: var(--surface-soft);
+  display: flex; box-sizing: border-box; width: 300px; height: 50px;
+  min-width: 300px; align-items: center; justify-content: center; gap: 12px;
+  border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  padding: 12px 22px; background: var(--surface-soft);
 }
 
 .fearless-turn span,
-.fearless-turn strong { font-size: 22px; font-weight: 700; line-height: 1; }
-.fearless-turn span { color: var(--muted); }
-.fearless-turn strong { color: var(--blue); }
+.fearless-turn strong {
+  overflow: hidden; font-size: 22px; font-weight: 700; line-height: 1;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.fearless-turn span { min-width: 0; color: var(--muted); }
+.fearless-turn strong { flex: 0 0 auto; color: var(--blue); }
 .fearless-turn.own { border-color: var(--line-strong); background: var(--surface-blue); }
 
 .fearless-main-clock { align-items: flex-end; }
@@ -475,7 +473,7 @@
 @media (max-width: 600px) {
   .fearless-draft-status { grid-template-columns: 1fr auto; padding: 12px; }
   .fearless-main-clock strong { font-size: 27px; }
-  .fearless-turn { min-width: 0; }
+  .fearless-turn { width: 100%; min-width: 0; }
   .fearless-pick-slots { gap: 3px; }
   .fearless-pick-slots > div { min-height: 56px; }
   .fearless-ban-list {

@@ -12,6 +12,8 @@
 }
 
 .fearless-lobby-turn-group .fearless-turn {
+  width: 260px;
+  height: 50px;
   min-width: 260px;
   min-height: 50px;
   padding: 7px 14px;
@@ -335,6 +337,7 @@
   .fearless-lobby-turn-group .fearless-map-ready-control,
   .fearless-lobby-turn-placeholder {
     min-width: 0;
+    width: 100%;
     grid-column: 1 / -1;
     grid-row: 1;
   }
