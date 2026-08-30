@@ -1,9 +1,11 @@
 import { DRAFT_SEQUENCE } from "./config";
 import type { DraftActionSnapshot } from "./snapshot";
+import type { DraftPhase } from "./types";
 
 export type DraftTreeStep = {
   number: number;
   type: DraftActionSnapshot["type"];
+  phase: DraftPhase;
   action: DraftActionSnapshot | undefined;
   isRadiant: boolean;
 };
@@ -29,6 +31,7 @@ export function buildDraftTreeSteps(
     return {
       number: index + 1,
       type: sequenceStep.type,
+      phase: sequenceStep.phase,
       action,
       isRadiant: action
         ? action.actorId === radiantPlayerId
@@ -37,7 +40,7 @@ export function buildDraftTreeSteps(
   });
 }
 
-/** Keeps steps chronological and only pairs consecutive actions from opposing sides. */
+/** Keeps steps chronological and only pairs opposing actions from the same phase. */
 export function buildDraftTreeRows(
   actions: DraftActionSnapshot[],
   radiantPlayerId: string,
@@ -49,7 +52,8 @@ export function buildDraftTreeRows(
   for (let index = 0; index < steps.length;) {
     const currentStep = steps[index];
     const nextStep = steps[index + 1];
-    const canPair = currentStep.isRadiant !== nextStep?.isRadiant;
+    const canPair = currentStep.isRadiant !== nextStep?.isRadiant &&
+      currentStep.phase === nextStep?.phase;
 
     if (nextStep && canPair) {
       rows.push({

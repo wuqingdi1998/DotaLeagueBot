@@ -158,7 +158,6 @@
 }
 .fearless-draft-tree-slot.ban { width: 64px; aspect-ratio: 16 / 9; }
 .fearless-draft-tree-slot.pick { width: 88px; aspect-ratio: 16 / 9; }
-.fearless-draft-tree-slot.opening-ban-spacing { transform: translateY(20px); }
 .fearless-draft-tree-slot img { object-fit: contain; }
 .fearless-draft-tree-branch.radiant .filled { border-color: rgba(67, 201, 142, 0.62); }
 .fearless-draft-tree-branch.dire .filled { border-color: rgba(237, 101, 117, 0.62); }
@@ -268,9 +267,6 @@
     height: 36px;
     height: clamp(30px, 7cqh, 42px);
   }
-  .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.opening-ban-spacing {
-    transform: translateY(clamp(10px, 45%, 16px));
-  }
 }
 
 @media (max-width: 980px) {
@@ -288,9 +284,6 @@
   }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.pick {
     width: 74px;
-  }
-  .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.opening-ban-spacing {
-    transform: translateY(16px);
   }
   .fearless-draft-stage .fearless-history > .fearless-draft-tree {
     max-height: none;

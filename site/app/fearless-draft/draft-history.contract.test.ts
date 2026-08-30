@@ -82,7 +82,7 @@ describe("Fearless Draft history", () => {
   it("builds all 24 tree steps from the current draft sequence", () => {
     expect(draftTree).toContain("buildDraftTreeRows");
     expect(draftTreeModel).toContain("DRAFT_SEQUENCE.map((sequenceStep, index)");
-    expect(draftTreeModel).toContain("currentStep.isRadiant !== nextStep?.isRadiant");
+    expect(draftTreeModel).toContain("currentStep.phase === nextStep?.phase");
     expect(draftTreeModel).toContain('sequenceStep.actor === "FIRST"');
     expect(draftTreeModel).toContain("firstPickPlayerId === radiantPlayerId");
     expect(draftTreeModel).toContain("action.actorId === radiantPlayerId");
@@ -149,11 +149,9 @@ describe("Fearless Draft history", () => {
     expect(treeStyles).toContain("translateY(var(--tree-number-offset))");
   });
 
-  it("keeps the three opening bans of the first-pick side evenly spaced", () => {
-    expect(draftTree).toContain('treeStep.number === 4 ? "opening-ban-spacing" : ""');
-    expect(treeStyles).toMatch(
-      /\.fearless-draft-tree-slot\.opening-ban-spacing\s*\{[^}]*transform:\s*translateY\(20px\);/,
-    );
+  it("uses the chronological rows without a manual opening-ban offset", () => {
+    expect(draftTree).not.toContain("opening-ban-spacing");
+    expect(treeStyles).not.toContain(".fearless-draft-tree-slot.opening-ban-spacing");
   });
 
   it("leaves exactly two pixels between every connector and its number", () => {

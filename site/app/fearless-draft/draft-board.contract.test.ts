@@ -46,8 +46,8 @@ describe("Fearless Draft board interface", () => {
         ? [index + 1]
         : []);
 
-    expect(banSteps("FIRST")).toEqual([1, 4, 7, 10, 11, 19, 22]);
-    expect(banSteps("SECOND")).toEqual([2, 3, 5, 6, 12, 20, 21]);
+    expect(banSteps("FIRST")).toEqual([1, 2, 5, 10, 11, 20, 22]);
+    expect(banSteps("SECOND")).toEqual([3, 4, 6, 7, 12, 19, 21]);
     expect(teamPanel).toContain('isPhaseStart ? "phase-start" : ""');
     expect(teamPanel).toContain("DRAFT_SEQUENCE[previousBanStep].phase !== DRAFT_SEQUENCE[step].phase");
     expect(board).toContain(".fearless-ban-list > div.phase-start { margin-left: 12px; }");
