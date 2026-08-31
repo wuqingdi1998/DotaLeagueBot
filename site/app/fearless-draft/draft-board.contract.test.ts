@@ -175,7 +175,7 @@ describe("Fearless Draft board interface", () => {
 
   it("keeps the regular desktop status bar compact enough for Chromium", () => {
     expect(board).toMatch(
-      /\.fearless-draft-status\s*\{[^}]*gap:\s*14px;[^}]*padding:\s*12px 16px;/,
+      /\.fearless-draft-status\s*\{[^}]*gap:\s*14px;[^}]*padding:\s*5px 16px;/,
     );
     expect(board).toMatch(
       /\.fearless-draft-status > div:first-child strong\s*\{[^}]*font-size:\s*18px;/,
