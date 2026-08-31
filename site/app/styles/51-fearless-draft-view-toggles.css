@@ -57,6 +57,10 @@
   text-align: left;
   white-space: nowrap;
 }
+.fearless-fullscreen-toggle em {
+  line-height: 1.1;
+  white-space: normal;
+}
 .fearless-language-toggle em {
   display: inline-flex;
   justify-content: flex-start;

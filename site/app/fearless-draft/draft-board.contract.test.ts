@@ -32,6 +32,7 @@ const draftBase = source("app/styles/50-fearless-draft.css");
 const board = source("app/styles/51-fearless-draft-board.css");
 const interactions = source("app/styles/51-fearless-draft-interactions.css");
 const lobbyRoster = source("app/styles/51-fearless-draft-lobby-roster.css");
+const viewToggles = source("app/styles/51-fearless-draft-view-toggles.css");
 
 describe("Fearless Draft board interface", () => {
   it("reserves every pick and ban slot with its global draft step", () => {
@@ -436,12 +437,18 @@ describe("Fearless Draft board interface", () => {
   });
 
   it("keeps reserve-time controls the same height without shifting the status bar", () => {
-    expect(board).toContain("width: 116px; min-height: 50px");
-    expect(board).toContain("min-block-size: 28px");
+    expect(board).toContain("width: 132px; min-height: 50px; align-items: center; justify-content: center; gap: 1px");
+    expect(board).toContain("min-block-size: 14px; line-height: 1.15; text-align: right; white-space: nowrap");
     expect(lobbyRoster).toContain("height: 50px");
     expect(activeDraft).toContain("const isReserveWarning");
     expect(teamPanel).toContain("isReserveWarning");
     expect(interactions).toContain("@keyframes fearless-reserve-warning");
+  });
+
+  it("wraps the fullscreen control label before it reaches the status bar edge", () => {
+    expect(viewToggles).toMatch(
+      /\.fearless-fullscreen-toggle em\s*\{[^}]*line-height:\s*1\.1;[^}]*white-space:\s*normal;/,
+    );
   });
 
   it("scrolls to the completed draft stage whenever its visible state changes", () => {
