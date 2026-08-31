@@ -437,7 +437,7 @@ describe("Fearless Draft board interface", () => {
   });
 
   it("keeps reserve-time controls the same height without shifting the status bar", () => {
-    expect(board).toContain("width: 132px; min-height: 50px; align-items: center; justify-content: center; gap: 1px");
+    expect(board).toContain("width: 148px; min-height: 50px; align-items: center; justify-content: center; gap: 1px");
     expect(board).toContain("min-block-size: 14px; line-height: 1.15; text-align: right; white-space: nowrap");
     expect(lobbyRoster).toContain("height: 50px");
     expect(activeDraft).toContain("const isReserveWarning");
