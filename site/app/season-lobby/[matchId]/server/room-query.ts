@@ -47,6 +47,7 @@ async function loadRoomTarget(
   matchId: number,
   playerId: string,
   isOrganizer: boolean,
+  canLoadCompleted: boolean,
 ): Promise<RoomTargetRow> {
   const result = await client.query<RoomTargetRow>(
     `SELECT match.id::int AS match_id, tournament.slug AS tournament_slug,
@@ -62,6 +63,7 @@ async function loadRoomTarget(
        ON viewer.match_id = match.id AND viewer.player_id = $2
      WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
        AND match.status <> 'cancelled'
+       AND ($4::boolean OR match.status <> 'completed')
        AND (
          $3::boolean
          OR (
@@ -76,7 +78,7 @@ async function loadRoomTarget(
            )
          )
        )`,
-    [matchId, playerId, isOrganizer],
+    [matchId, playerId, isOrganizer, canLoadCompleted],
   );
   const target = result.rows[0];
   if (!target) {
@@ -91,6 +93,7 @@ async function loadRoomTarget(
 export async function loadSeasonLobbyRoomSnapshot(
   user: AuthUser,
   matchId: number,
+  options: { canLoadCompleted?: boolean } = {},
 ): Promise<SeasonLobbyRoomSnapshot> {
   return transaction(async (client) => {
     const target = await loadRoomTarget(
@@ -98,6 +101,7 @@ export async function loadSeasonLobbyRoomSnapshot(
       matchId,
       user.discordId,
       user.isAdmin,
+      options.canLoadCompleted === true,
     );
     await client.query(
       `INSERT INTO season_match_rooms(match_id) VALUES ($1)

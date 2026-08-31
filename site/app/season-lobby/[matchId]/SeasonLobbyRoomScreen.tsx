@@ -15,6 +15,10 @@ import { LobbyGameResult } from "./components/LobbyGameResult";
 import { OrganizerCaptainControls } from
   "./components/OrganizerCaptainControls";
 import { useSeasonLobbyRoom } from "./hooks/useSeasonLobbyRoom";
+import {
+  canAdvanceSeasonLobbyDraft,
+  shouldShowSeasonLobbyDraft,
+} from "./model/draft-visibility";
 import type { SeasonLobbyRoomSnapshot } from "./model/types";
 
 export function SeasonLobbyRoomScreen({
@@ -31,10 +35,19 @@ export function SeasonLobbyRoomScreen({
     (player) =>
       player.teamSide === snapshot.currentUserTeamSide && player.isCaptain,
   );
+  const tournamentRoundUrl =
+    `/tournaments/${snapshot.tournamentSlug}?round=${snapshot.roundNumber}`;
+  const shouldShowDraft = shouldShowSeasonLobbyDraft(snapshot.status);
+
+  useEffect(() => {
+    if (snapshot.status === "completed") {
+      window.location.replace(tournamentRoundUrl);
+    }
+  }, [snapshot.status, tournamentRoundUrl]);
 
   useEffect(() => {
     if (
-      ["drafting", "break"].includes(snapshot.status) &&
+      shouldShowSeasonLobbyDraft(snapshot.status) &&
       snapshot.currentUserTeamSide &&
       !initialDraft &&
       !hasRequestedDraftReload.current
@@ -49,7 +62,7 @@ export function SeasonLobbyRoomScreen({
       <header className="season-room-hero">
         <div>
           <Link
-            href={`/tournaments/${snapshot.tournamentSlug}?round=${snapshot.roundNumber}`}
+            href={tournamentRoundUrl}
           >
             <FiArrowLeft aria-hidden="true" /> Вернуться к туру
           </Link>
@@ -100,7 +113,7 @@ export function SeasonLobbyRoomScreen({
         />
       )}
 
-      {["drafting", "break"].includes(snapshot.status) &&
+      {shouldShowDraft &&
         snapshot.currentUserTeamSide && initialDraft?.series && (
         <section className="season-room-draft">
           <p className="season-room-draft-perspective">
@@ -110,6 +123,7 @@ export function SeasonLobbyRoomScreen({
           <FearlessDraftScreen
             initialSnapshot={initialDraft}
             seasonMatchId={snapshot.matchId}
+            canAdvanceToNextMap={canAdvanceSeasonLobbyDraft(snapshot.status)}
             lobbyPlayers={snapshot.players.map((player) => ({
               id: player.playerId,
               dotaId: player.dotaId,
@@ -124,7 +138,7 @@ export function SeasonLobbyRoomScreen({
           />
         </section>
       )}
-      {["drafting", "break"].includes(snapshot.status) &&
+      {shouldShowDraft &&
         snapshot.currentUserTeamSide && !initialDraft?.series && (
         <div className="season-room-draft-loading">Открываем Fearless Draft…</div>
       )}

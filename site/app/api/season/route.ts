@@ -133,7 +133,7 @@ export async function GET(request: Request) {
            match.best_of::int, match.team_a_score::int,
            match.team_b_score::int, match.result, match.status,
            match.sort_order, match.host_player_id::text,
-           match.status <> 'cancelled' AND (
+           match.status NOT IN ('cancelled', 'completed') AND (
              $3::boolean OR EXISTS (
                SELECT 1 FROM season_match_room_players room_participant
                WHERE room_participant.match_id = match.id

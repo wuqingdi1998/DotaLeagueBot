@@ -63,7 +63,8 @@ async function participantSide(
      JOIN season_lobbies lobby ON lobby.id = match.lobby_id
      JOIN season_rounds round ON round.id = lobby.round_id
      WHERE participant.match_id = $1 AND participant.player_id = $2
-       AND match.status <> 'cancelled' AND round.is_visible = TRUE
+       AND match.status NOT IN ('cancelled', 'completed')
+       AND round.is_visible = TRUE
        AND (
          (round.round_kind = 'regular'
            AND round.lobby_configuration_status = 'published')
@@ -91,7 +92,7 @@ async function requireOrganizerLobby(
      JOIN season_rounds round ON round.id = lobby.round_id
      JOIN tournaments tournament ON tournament.id = round.tournament_id
      WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
-       AND match.status <> 'cancelled'`,
+       AND match.status NOT IN ('cancelled', 'completed')`,
     [matchId],
   );
   if (!result.rowCount) {

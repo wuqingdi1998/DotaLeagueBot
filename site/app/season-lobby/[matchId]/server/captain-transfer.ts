@@ -45,7 +45,7 @@ async function changeSeasonLobbyCaptain(
        WHERE series.season_match_id = $1
          AND room.status = 'drafting'
          AND series.status IN ('CHOOSING', 'DRAFTING', 'MAP_COMPLETE')
-         AND match.status <> 'cancelled'
+         AND match.status NOT IN ('cancelled', 'completed')
          AND (
            $3::text IS NOT NULL
            OR (

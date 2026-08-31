@@ -20,7 +20,7 @@ export async function setSeasonLobbyHost(
        JOIN season_match_room_players participant
          ON participant.match_id = match.id AND participant.player_id = $2
        WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
-         AND match.status <> 'cancelled'
+         AND match.status NOT IN ('cancelled', 'completed')
          AND (
            (round.round_kind = 'regular'
              AND round.lobby_configuration_status = 'published')

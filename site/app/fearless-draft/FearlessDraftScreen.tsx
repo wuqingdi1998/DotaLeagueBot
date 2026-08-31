@@ -20,10 +20,12 @@ export function FearlessDraftScreen({
   initialSnapshot,
   seasonMatchId,
   lobbyPlayers,
+  canAdvanceToNextMap = true,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
   seasonMatchId?: number;
   lobbyPlayers?: DraftLobbyPlayer[];
+  canAdvanceToNextMap?: boolean;
 }) {
   return (
     <DraftLocaleProvider>
@@ -31,6 +33,7 @@ export function FearlessDraftScreen({
         initialSnapshot={initialSnapshot}
         seasonMatchId={seasonMatchId}
         lobbyPlayers={lobbyPlayers}
+        canAdvanceToNextMap={canAdvanceToNextMap}
       />
     </DraftLocaleProvider>
   );
@@ -40,10 +43,12 @@ function FearlessDraftContent({
   initialSnapshot,
   seasonMatchId,
   lobbyPlayers,
+  canAdvanceToNextMap,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
   seasonMatchId?: number;
   lobbyPlayers?: DraftLobbyPlayer[];
+  canAdvanceToNextMap: boolean;
 }) {
   const { snapshot, error, isSending, isConnected, send } =
     useFearlessDraft(initialSnapshot, seasonMatchId);
@@ -123,6 +128,7 @@ function FearlessDraftContent({
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
               canControlSeries={canControlSeries}
+              canAdvanceToNextMap={canAdvanceToNextMap}
               lobbyPlayers={activeLobbyPlayers}
             />
           )}

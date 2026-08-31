@@ -6,6 +6,7 @@ import { loadFearlessDraftSnapshot } from
 import { SeasonLobbyRoomError } from "./server/errors";
 import { loadSeasonLobbyRoomSnapshot } from "./server/room-query";
 import { SeasonLobbyRoomScreen } from "./SeasonLobbyRoomScreen";
+import { shouldShowSeasonLobbyDraft } from "./model/draft-visibility";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ async function loadRoomPage(
 ) {
   try {
     const room = await loadSeasonLobbyRoomSnapshot(user, matchId);
-    const draft = ["drafting", "break"].includes(room.status) && room.currentUserTeamSide
+    const draft = shouldShowSeasonLobbyDraft(room.status) && room.currentUserTeamSide
       ? await loadFearlessDraftSnapshot(user, { seasonMatchId: matchId })
       : null;
     return { room, draft };

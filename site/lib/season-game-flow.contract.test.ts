@@ -38,13 +38,17 @@ describe("season game flow contract", () => {
     expect(service).toContain("syncSeasonFinalAwards");
   });
 
-  it("shows result controls only through the lobby room flow", () => {
+  it("keeps the completed draft under the lobby result controls", () => {
     const screen = source(
       "app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
     );
     const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
     expect(screen).toContain("<LobbyGameResult");
-    expect(screen).toContain('["drafting", "break"].includes(snapshot.status)');
+    expect(screen).toContain("shouldShowSeasonLobbyDraft(snapshot.status)");
+    expect(screen.indexOf("<LobbyGameResult")).toBeLessThan(
+      screen.indexOf("<FearlessDraftScreen"),
+    );
+    expect(activeDraft).toContain("canAdvanceToNextMap");
     expect(activeDraft).toContain("hasNextMap");
   });
 });

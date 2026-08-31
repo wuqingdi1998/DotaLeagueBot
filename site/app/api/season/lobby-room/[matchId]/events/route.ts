@@ -1,4 +1,6 @@
 import { requireSession, responseFromAuthError } from "@/lib/auth";
+import type { SeasonLobbyRoomSnapshot } from
+  "@/app/season-lobby/[matchId]/model/types";
 import { loadSeasonLobbyRoomSnapshot } from
   "@/app/season-lobby/[matchId]/server/room-query";
 import {
@@ -32,6 +34,8 @@ export async function GET(
     const user = await requireSession();
     const { matchId: rawMatchId } = await context.params;
     const matchId = matchIdFromRoute(rawMatchId);
+    let initialSnapshot: SeasonLobbyRoomSnapshot | null =
+      await loadSeasonLobbyRoomSnapshot(user, matchId);
     const encoder = new TextEncoder();
     let timer: ReturnType<typeof setTimeout> | null = null;
     let isLoading = false;
@@ -48,7 +52,12 @@ export async function GET(
           }
           isLoading = true;
           try {
-            const snapshot = await loadSeasonLobbyRoomSnapshot(user, matchId);
+            const snapshot = initialSnapshot ?? await loadSeasonLobbyRoomSnapshot(
+              user,
+              matchId,
+              { canLoadCompleted: true },
+            );
+            initialSnapshot = null;
             nextUpdateIntervalMs = snapshot.status === "drafting"
               ? draftingUpdateIntervalMs
               : updateIntervalMs;

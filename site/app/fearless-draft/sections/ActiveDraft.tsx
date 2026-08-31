@@ -31,6 +31,7 @@ export function ActiveDraft({
   isFullscreenSupported,
   toggleFullscreen,
   canControlSeries,
+  canAdvanceToNextMap,
   lobbyPlayers,
 }: {
   series: DraftSeriesSnapshot;
@@ -42,6 +43,7 @@ export function ActiveDraft({
   isFullscreenSupported: boolean;
   toggleFullscreen: () => Promise<void>;
   canControlSeries: boolean;
+  canAdvanceToNextMap: boolean;
   lobbyPlayers?: DraftLobbyPlayer[];
 }) {
   const { text } = useDraftLocale();
@@ -135,7 +137,7 @@ export function ActiveDraft({
           >
             {text.returnToQueue} <FiArrowRight />
           </button>
-        ) : hasNextMap ? (
+        ) : hasNextMap && canAdvanceToNextMap ? (
           <button
             className="primary-button"
             type="button"

@@ -34,6 +34,9 @@ const roomScreen = source(
   "../app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
 );
 const roomPage = source("../app/season-lobby/[matchId]/page.tsx");
+const roomEvents = source(
+  "../app/api/season/lobby-room/[matchId]/events/route.ts",
+);
 const organizerCaptainControls = source(
   "../app/season-lobby/[matchId]/components/OrganizerCaptainControls.tsx",
 );
@@ -43,15 +46,25 @@ const fearlessSnapshot = source(
 );
 
 describe("season lobby room contract", () => {
-  it("lets players and organizers enter while keeping public player access scoped", () => {
+  it("lets players and organizers enter an open match and closes completed rooms", () => {
     expect(roomQuery).toContain("LEFT JOIN season_match_room_players viewer");
     expect(roomQuery).toContain("$3::boolean");
     expect(roomQuery).toContain("lobby_configuration_status = 'published'");
+    expect(roomQuery).toContain("match.status <> 'completed'");
     expect(roomCommands).toContain("if (actor.isAdmin)");
+    expect(roomCommands).toContain(
+      "match.status NOT IN ('cancelled', 'completed')",
+    );
     expect(roomCommands).toContain(
       "await participantSide(client, matchId, actor.discordId)",
     );
     expect(seasonRoute).toContain("$3::boolean OR EXISTS");
+    expect(seasonRoute).toContain(
+      "match.status NOT IN ('cancelled', 'completed')",
+    );
+    expect(roomScreen).toContain('snapshot.status === "completed"');
+    expect(roomScreen).toContain("window.location.replace");
+    expect(roomEvents).toContain("canLoadCompleted: true");
     expect(migration).toContain("VARCHAR(500)");
     expect(migration).toContain("season_match_room_players");
   });
@@ -73,7 +86,13 @@ describe("season lobby room contract", () => {
     expect(organizerCaptainControls).toContain("START_WITH_CAPTAINS");
     expect(organizerCaptainControls).toContain("SET_CAPTAIN");
     expect(roomPage).toContain(
-      '["drafting", "break"].includes(room.status) && room.currentUserTeamSide',
+      "shouldShowSeasonLobbyDraft(room.status)",
+    );
+    expect(roomScreen).toContain(
+      "shouldShowSeasonLobbyDraft(snapshot.status)",
+    );
+    expect(roomScreen).toContain(
+      "canAdvanceToNextMap={canAdvanceSeasonLobbyDraft(snapshot.status)}",
     );
     expect(roomScreen).toContain("snapshot.currentUserTeamSide && (");
     expect(roomScreen).not.toContain("!snapshot.isOrganizer && (");
