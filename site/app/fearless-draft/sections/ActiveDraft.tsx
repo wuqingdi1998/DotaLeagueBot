@@ -91,7 +91,10 @@ export function ActiveDraft({
     ? player1Reserve
     : player2Reserve;
   const isReserveWarning = Boolean(
-    clock?.isUsingReserve && clock.reserveRemainingSeconds <= 10,
+    clock && (
+      (clock.isUsingReserve && clock.reserveRemainingSeconds <= 10)
+      || (clock.reserveRemainingSeconds === 0 && clock.baseRemainingSeconds <= 10)
+    ),
   );
   const isRadiantReserveWarning = isReserveWarning && currentActor?.id === radiant.id;
   const isDireReserveWarning = isReserveWarning && currentActor?.id === dire.id;

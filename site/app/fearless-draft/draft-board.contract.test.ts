@@ -441,6 +441,8 @@ describe("Fearless Draft board interface", () => {
     expect(board).toContain("min-block-size: 14px; line-height: 1.15; text-align: right; white-space: nowrap");
     expect(lobbyRoster).toContain("height: 50px");
     expect(activeDraft).toContain("const isReserveWarning");
+    expect(activeDraft).toContain("clock.reserveRemainingSeconds === 0");
+    expect(activeDraft).toContain("clock.baseRemainingSeconds <= 10");
     expect(teamPanel).toContain("isReserveWarning");
     expect(interactions).toContain("@keyframes fearless-reserve-warning");
   });
