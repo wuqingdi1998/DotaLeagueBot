@@ -21,26 +21,26 @@ describe("Fearless Draft tree", () => {
       Array.from({ length: 24 }, (_, index) => index + 1),
     );
     expect(steps.slice(0, 7).map(({ type, isRadiant }) => ({ type, isRadiant }))).toEqual([
-      { type: "BAN", isRadiant: true },
-      { type: "BAN", isRadiant: true },
       { type: "BAN", isRadiant: false },
       { type: "BAN", isRadiant: false },
       { type: "BAN", isRadiant: true },
+      { type: "BAN", isRadiant: true },
       { type: "BAN", isRadiant: false },
-      { type: "BAN", isRadiant: false },
+      { type: "BAN", isRadiant: true },
+      { type: "BAN", isRadiant: true },
     ]);
   });
 
   it("mirrors future branches when Dire has first pick", () => {
     const steps = buildDraftTreeSteps([], "radiant", "dire");
     expect(steps.slice(0, 7).map((step) => step.isRadiant)).toEqual([
-      false,
-      false,
       true,
       true,
       false,
+      false,
       true,
-      true,
+      false,
+      false,
     ]);
   });
 
@@ -55,17 +55,17 @@ describe("Fearless Draft tree", () => {
 
     expect(rows).toHaveLength(14);
     expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
-      [undefined, 1],
-      [3, 2],
-      [4, 5],
-      [6, undefined],
-      [7, undefined],
-      [9, 8],
-      [undefined, 10],
-      [12, 11],
-      [13, 14],
+      [1, undefined],
+      [2, 3],
+      [5, 4],
+      [undefined, 6],
+      [undefined, 7],
+      [8, 9],
+      [10, undefined],
+      [11, 12],
+      [14, 13],
       [15, 16],
-      [17, 18],
+      [18, 17],
       [19, 20],
       [21, 22],
       [23, 24],
@@ -82,17 +82,17 @@ describe("Fearless Draft tree", () => {
     const rows = buildDraftTreeRows([], "radiant", "radiant");
 
     expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
-      [1, undefined],
-      [2, 3],
-      [5, 4],
-      [undefined, 6],
-      [undefined, 7],
-      [8, 9],
-      [10, undefined],
-      [11, 12],
-      [14, 13],
+      [undefined, 1],
+      [3, 2],
+      [4, 5],
+      [6, undefined],
+      [7, undefined],
+      [9, 8],
+      [undefined, 10],
+      [12, 11],
+      [13, 14],
       [16, 15],
-      [18, 17],
+      [17, 18],
       [20, 19],
       [22, 21],
       [24, 23],

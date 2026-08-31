@@ -25,13 +25,13 @@ function completeState(heroStart = 1): DraftMapState {
 }
 
 describe("Fearless Draft engine", () => {
-  it("keeps the exact 24-step Captain's Mode sequence", () => {
+  it("gives the first two bans to the team with first pick", () => {
     expect(DRAFT_SEQUENCE.map(({ actor, type }) => `${actor} ${type}`)).toEqual([
-      "FIRST BAN", "FIRST BAN", "SECOND BAN", "SECOND BAN",
-      "FIRST BAN", "SECOND BAN", "SECOND BAN", "FIRST PICK",
-      "SECOND PICK", "FIRST BAN", "FIRST BAN", "SECOND BAN",
-      "SECOND PICK", "FIRST PICK", "SECOND PICK", "FIRST PICK",
-      "SECOND PICK", "FIRST PICK", "SECOND BAN", "FIRST BAN",
+      "SECOND BAN", "SECOND BAN", "FIRST BAN", "FIRST BAN",
+      "SECOND BAN", "FIRST BAN", "FIRST BAN", "SECOND PICK",
+      "FIRST PICK", "SECOND BAN", "SECOND BAN", "FIRST BAN",
+      "FIRST PICK", "SECOND PICK", "SECOND PICK", "FIRST PICK",
+      "FIRST PICK", "SECOND PICK", "SECOND BAN", "FIRST BAN",
       "SECOND BAN", "FIRST BAN", "SECOND PICK", "FIRST PICK",
     ]);
   });
@@ -47,14 +47,14 @@ describe("Fearless Draft engine", () => {
 
   it("rejects duplicate, banned, picked and previous-map heroes", () => {
     const first = applyDraftAction(emptyState([99]), {
-      actor: "FIRST",
+      actor: "SECOND",
       type: "BAN",
       heroId: 1,
     });
     expect(first.ok).toBe(true);
     if (!first.ok) return;
     expect(applyDraftAction(first.state, {
-      actor: "FIRST",
+      actor: "SECOND",
       type: "BAN",
       heroId: 1,
     }).ok).toBe(false);
@@ -67,7 +67,7 @@ describe("Fearless Draft engine", () => {
 
   it("only lets the expected participant act", () => {
     expect(applyDraftAction(emptyState(), {
-      actor: "SECOND",
+      actor: "FIRST",
       type: "BAN",
       heroId: 1,
     }).ok).toBe(false);
