@@ -110,6 +110,15 @@ describe("site header actions", () => {
     expect(scaledDesktopStyles).not.toContain("display: none");
   });
 
+  it("centers desktop navigation in the space between the brand and actions", () => {
+    expect(headerCss).toMatch(
+      /\.site-header\s*\{[^}]*grid-template-columns:\s*auto minmax\(0, 1fr\) auto;/,
+    );
+    expect(headerCss).toMatch(
+      /\.site-header > \.platform-navigation\s*\{[^}]*justify-self:\s*center;/,
+    );
+  });
+
   it("reduces the full server-name text for long profile names", () => {
     expect(component).toContain("longProfileNameLength");
     expect(component).toContain("has-long-name");

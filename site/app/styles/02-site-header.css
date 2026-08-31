@@ -8,13 +8,17 @@
   max-width: 100%;
   min-width: 0;
   min-height: 106px;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 26px;
   border-bottom: 1px solid var(--line);
   padding: 17px clamp(22px, 5vw, 78px);
   background: var(--header);
   backdrop-filter: blur(18px);
+}
+
+.site-header > .platform-navigation {
+  justify-self: center;
 }
 
 .brand {
