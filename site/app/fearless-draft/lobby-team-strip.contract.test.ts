@@ -49,8 +49,8 @@ describe("Fearless Draft season lobby team strip", () => {
 
   it("moves side, pick order, and reserve beside the turn plaque", () => {
     expect(activeDraft).toContain('className="fearless-lobby-turn-group"');
-    expect(activeDraft).toContain('className="fearless-lobby-side-status radiant"');
-    expect(activeDraft).toContain('className="fearless-lobby-side-status dire"');
+    expect(activeDraft).toContain("fearless-lobby-side-status radiant");
+    expect(activeDraft).toContain("fearless-lobby-side-status dire");
     expect(activeDraft).toContain("Math.ceil(radiantReserve)");
     expect(activeDraft).toContain("Math.ceil(direReserve)");
     expect(styles).toContain("grid-template-columns: minmax(170px, max-content) auto minmax(170px, max-content)");

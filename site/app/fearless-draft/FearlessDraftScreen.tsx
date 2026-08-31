@@ -8,6 +8,7 @@ import type {
 import { useFearlessDraft } from "./hooks/useFearlessDraft";
 import { useDraftFullscreen } from "./hooks/useDraftFullscreen";
 import { useActiveDraftPageBoundary } from "./hooks/useActiveDraftPageBoundary";
+import { useDraftStageScroll } from "./hooks/useDraftStageScroll";
 import { ActiveDraft } from "./sections/ActiveDraft";
 import { DraftChoices } from "./sections/DraftChoices";
 import { DraftQueue } from "./sections/DraftQueue";
@@ -55,6 +56,7 @@ function FearlessDraftContent({
   } = useDraftFullscreen();
   const series = snapshot.series;
   useActiveDraftPageBoundary(Boolean(series));
+  useDraftStageScroll(series ? `${series.map.id}:${series.map.status}` : null);
   const activeLobbyPlayers = lobbyPlayers ?? snapshot.lobbyPlayers;
   const canControlSeries = Boolean(
     series && [series.player1.id, series.player2.id].includes(snapshot.user.id),

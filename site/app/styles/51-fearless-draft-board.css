@@ -105,7 +105,8 @@
 .fearless-turn strong { flex: 0 0 auto; color: var(--blue); }
 .fearless-turn.own { border-color: var(--line-strong); background: var(--surface-blue); }
 
-.fearless-main-clock { align-items: flex-end; }
+.fearless-main-clock { width: 116px; min-height: 50px; align-items: flex-end; justify-content: space-between; }
+.fearless-main-clock span { min-block-size: 28px; line-height: 1.15; text-align: right; }
 .fearless-main-clock strong {
   font-variant-numeric: tabular-nums;
   font-size: 32px;

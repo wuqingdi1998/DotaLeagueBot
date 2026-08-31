@@ -90,6 +90,14 @@ export function ActiveDraft({
   const direReserve = dire.id === series.player1.id
     ? player1Reserve
     : player2Reserve;
+  const isReserveWarning = Boolean(
+    clock?.isUsingReserve && clock.reserveRemainingSeconds <= 10,
+  );
+  const isRadiantReserveWarning = isReserveWarning && currentActor?.id === radiant.id;
+  const isDireReserveWarning = isReserveWarning && currentActor?.id === dire.id;
+  const displayedClockSeconds = clock
+    ? clock.isUsingReserve ? clock.reserveRemainingSeconds : clock.baseRemainingSeconds
+    : null;
   const hasLobbyPlayers = Boolean(lobbyPlayers?.length);
   const viewerLobbyPlayer = lobbyPlayers?.find((player) => player.id === userId);
   const radiantTeamPlayers = lobbyPlayers
@@ -161,12 +169,12 @@ export function ActiveDraft({
         </div>
         {hasLobbyPlayers ? (
           <div className="fearless-lobby-turn-group">
-            <div className="fearless-lobby-side-status radiant">
+            <div className={`fearless-lobby-side-status radiant ${isRadiantReserveWarning ? "reserve-warning" : ""}`}>
               <strong>{text.radiant} · {firstPick.id === radiant.id ? text.firstPick : text.secondPick}</strong>
               <span>{text.reserve} <b>{Math.ceil(radiantReserve)}{text.secondsShort}</b></span>
             </div>
             {turnControl ?? <div className="fearless-lobby-turn-placeholder" aria-hidden="true" />}
-            <div className="fearless-lobby-side-status dire">
+            <div className={`fearless-lobby-side-status dire ${isDireReserveWarning ? "reserve-warning" : ""}`}>
               <strong>{text.dire} · {firstPick.id === dire.id ? text.firstPick : text.secondPick}</strong>
               <span>{text.reserve} <b>{Math.ceil(direReserve)}{text.secondsShort}</b></span>
             </div>
@@ -178,10 +186,8 @@ export function ActiveDraft({
             <strong>
               {isComplete
                 ? "00:00"
-                : clock
-                  ? formatDraftSeconds(clock.isUsingReserve
-                      ? clock.reserveRemainingSeconds
-                      : clock.baseRemainingSeconds)
+                : displayedClockSeconds !== null
+                  ? formatDraftSeconds(displayedClockSeconds)
                   : "--:--"}
             </strong>
           </div>
@@ -202,6 +208,7 @@ export function ActiveDraft({
           currentStep={map.currentStep}
           previewHeroId={localPreviewHeroId}
           reserveSeconds={radiantReserve}
+          isReserveWarning={isRadiantReserveWarning}
           isCurrent={map.currentActorId === radiant.id}
           isConnected={radiant.id === series.player1.id ? series.player1Connected : series.player2Connected}
           teamPlayers={radiantTeamPlayers}
@@ -215,6 +222,7 @@ export function ActiveDraft({
           currentStep={map.currentStep}
           previewHeroId={localPreviewHeroId}
           reserveSeconds={direReserve}
+          isReserveWarning={isDireReserveWarning}
           isCurrent={map.currentActorId === dire.id}
           isConnected={dire.id === series.player1.id ? series.player1Connected : series.player2Connected}
           teamPlayers={direTeamPlayers}

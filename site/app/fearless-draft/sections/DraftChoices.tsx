@@ -8,6 +8,7 @@ import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { HeroPortraitPreloader } from "../components/HeroPortraitPreloader";
 import { PlayerAvatar } from "../components/PlayerAvatar";
 import { useServerNow } from "../hooks/useServerNow";
+import { useDraftStageScroll } from "../hooks/useDraftStageScroll";
 import {
   COIN_FLIP_DURATION_MS,
   COIN_SPINNER_DURATION_MS,
@@ -72,6 +73,7 @@ export function DraftChoices({
     synchronizedNow - Date.parse(map.createdAt),
   ));
   const isCoinRevealed = !hasCoinToss || tossStage === "REVEALED";
+  useDraftStageScroll(tossStage);
   const choiceLabels: Record<DraftChoice, string> = {
     FIRST: text.choiceFirst,
     SECOND: text.choiceSecond,

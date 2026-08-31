@@ -27,6 +27,7 @@ const fullscreenToggle = source(
   "app/fearless-draft/components/DraftFullscreenToggle.tsx",
 );
 const teamPanel = source("app/fearless-draft/components/DraftTeamPanel.tsx");
+const stageScroll = source("app/fearless-draft/hooks/useDraftStageScroll.ts");
 const draftBase = source("app/styles/50-fearless-draft.css");
 const board = source("app/styles/51-fearless-draft-board.css");
 const interactions = source("app/styles/51-fearless-draft-interactions.css");
@@ -432,5 +433,21 @@ describe("Fearless Draft board interface", () => {
     expect(choices).toContain("<HeroPortraitPreloader />");
     expect(heroPortraitPreloader).toContain("FEARLESS_DRAFT_HERO_PORTRAIT_URLS");
     expect(heroPortraitPreloader).toContain('startMode="immediate"');
+  });
+
+  it("keeps reserve-time controls the same height without shifting the status bar", () => {
+    expect(board).toContain("width: 116px; min-height: 50px");
+    expect(board).toContain("min-block-size: 28px");
+    expect(lobbyRoster).toContain("height: 50px");
+    expect(activeDraft).toContain("const isReserveWarning");
+    expect(teamPanel).toContain("isReserveWarning");
+    expect(interactions).toContain("@keyframes fearless-reserve-warning");
+  });
+
+  it("scrolls to the completed draft stage whenever its visible state changes", () => {
+    expect(draftScreen).toContain("useDraftStageScroll");
+    expect(choices).toContain("useDraftStageScroll(tossStage)");
+    expect(stageScroll).toContain("window.scrollTo");
+    expect(stageScroll).toContain("document.documentElement.scrollHeight");
   });
 });

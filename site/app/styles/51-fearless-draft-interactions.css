@@ -228,6 +228,27 @@
   flex-basis: 64px;
   border-radius: 12px;
 }
+
+.fearless-team-panel.reserve-warning,
+.fearless-lobby-side-status.reserve-warning {
+  animation: fearless-reserve-warning 1s ease-out infinite;
+}
+
+.fearless-team-panel.reserve-warning > header,
+.fearless-team-panel.reserve-warning .fearless-player-avatar,
+.fearless-team-panel.reserve-warning .fearless-lobby-player-avatar {
+  animation: fearless-reserve-warning 1s ease-out infinite;
+}
+
+@keyframes fearless-reserve-warning {
+  0% {
+    background-color: color-mix(in srgb, #ff4d2e 38%, var(--surface));
+    box-shadow: inset 0 0 34px rgba(255, 70, 29, 0.95), 0 0 26px rgba(255, 70, 29, 0.8);
+  }
+  45%, 100% {
+    box-shadow: inset 0 0 0 rgba(255, 70, 29, 0), 0 0 0 rgba(255, 70, 29, 0);
+  }
+}
 .fearless-draft-stage:fullscreen .fearless-pick-slots { padding: 7px 9px; }
 .fearless-draft-stage:fullscreen .fearless-pick-slots > div {
   min-height: 43px;

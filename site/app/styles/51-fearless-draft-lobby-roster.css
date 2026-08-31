@@ -30,6 +30,8 @@
 
 .fearless-lobby-side-status {
   display: flex;
+  box-sizing: border-box;
+  height: 50px;
   min-width: 0;
   justify-content: center;
   flex-direction: column;

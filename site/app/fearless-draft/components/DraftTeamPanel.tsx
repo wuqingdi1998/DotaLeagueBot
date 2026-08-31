@@ -24,6 +24,7 @@ export function DraftTeamPanel({
   currentStep,
   previewHeroId,
   reserveSeconds,
+  isReserveWarning,
   isCurrent,
   isConnected,
   teamPlayers,
@@ -36,6 +37,7 @@ export function DraftTeamPanel({
   currentStep: number;
   previewHeroId: number | null;
   reserveSeconds: number;
+  isReserveWarning: boolean;
   isCurrent: boolean;
   isConnected: boolean;
   teamPlayers?: DraftLobbyPlayer[];
@@ -49,7 +51,7 @@ export function DraftTeamPanel({
   const sideLabel = side === "RADIANT" ? text.radiant : text.dire;
   const priorityLabel = priority === "FIRST" ? text.firstPick : text.secondPick;
   return (
-    <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""}`}>
+    <article className={`fearless-team-panel ${side.toLowerCase()} ${isCurrent ? "current" : ""} ${isReserveWarning ? "reserve-warning" : ""}`}>
       <header className={teamPlayers ? "fearless-lobby-team-header" : undefined}>
         {teamPlayers ? (
           <DraftLobbyTeamStrip
