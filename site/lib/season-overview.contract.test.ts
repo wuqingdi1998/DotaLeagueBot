@@ -20,9 +20,6 @@ const styles = source("../app/styles/64-season-overview.css");
 const secondaryStyles = source(
   "../app/styles/65-season-secondary-overview.css",
 );
-const desktopStyles = source(
-  "../app/styles/66-season-overview-desktop.css",
-);
 const routeStyles = source("../app/styles/season-route.css");
 const seasonRule = source("../../.codex/rules/07-season-page.md");
 
@@ -94,8 +91,8 @@ describe("season overview page", () => {
     );
     expect(routeStyles).toContain("64-season-overview.css");
     expect(secondaryStyles).toContain(".fast-cups-grid");
-    expect(desktopStyles).toMatch(
-      /@media \(min-width: 1051px\)[\s\S]*\.season-overview\s*\{[^}]*height:\s*calc\(100svh - 106px\);[^}]*overflow:\s*hidden;/,
+    expect(secondaryStyles).toContain(
+      "font-size: clamp(11px, 0.75vw, 12px);",
     );
     expect(styles).toMatch(
       /@media \(max-width: 1050px\)[\s\S]*\.season-overview\s*\{[^}]*min-height:\s*calc\(100svh - 74px\);/,
@@ -103,8 +100,8 @@ describe("season overview page", () => {
     const layout = source("../app/season/layout.tsx");
     expect(layout).toContain("season-route.css");
     expect(layout).toContain("65-season-secondary-overview.css");
-    expect(layout).toContain("66-season-overview-desktop.css");
-    expect(seasonRule).toContain("1280 × 720");
-    expect(seasonRule).toContain("не требует вертикальной или горизонтальной");
+    expect(layout).not.toContain("66-season-overview-desktop.css");
+    expect(seasonRule).toContain("Читабельность важнее");
+    expect(seasonRule).toContain("не меньше 13 px");
   });
 });

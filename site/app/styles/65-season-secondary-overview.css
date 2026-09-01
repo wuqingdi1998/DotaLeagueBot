@@ -181,7 +181,7 @@
   display: grid;
   gap: 5px;
   color: var(--muted);
-  font-size: clamp(10px, 0.75vw, 12px);
+  font-size: clamp(11px, 0.75vw, 12px);
   line-height: 1.35;
 }
 
