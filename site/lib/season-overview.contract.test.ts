@@ -103,8 +103,10 @@ describe("season overview page", () => {
     );
     expect(routeStyles).toContain("64-season-overview.css");
     expect(secondaryStyles).toContain(".fast-cups-grid");
-    expect(secondaryStyles).toContain(
-      "font-size: clamp(11px, 0.75vw, 12px);",
+    expect(secondaryStyles).toContain(".fast-cup-facts");
+    expect(secondaryStyles).toContain("font-size: 13px;");
+    expect(`${styles}\n${secondaryStyles}`).not.toMatch(
+      /font-size:\s*(?:10|11|12(?:\.5)?)px;/,
     );
     expect(styles).toContain(".season-cup-card .season-final-callout");
     expect(secondaryStyles).toContain("rgba(111, 76, 255, 0.18)");
@@ -116,6 +118,6 @@ describe("season overview page", () => {
     expect(layout).toContain("65-season-secondary-overview.css");
     expect(layout).not.toContain("66-season-overview-desktop.css");
     expect(seasonRule).toContain("Читабельность важнее");
-    expect(seasonRule).toContain("не меньше 13 px");
+    expect(seasonRule).toContain("Весь текст на странице не меньше 13 px");
   });
 });
