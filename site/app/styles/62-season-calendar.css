@@ -131,10 +131,140 @@
 }
 
 .calendar-days {
+  position: relative;
   overflow: visible;
   border-top: 2px solid var(--line);
   border-left: 2px solid var(--line);
   border-radius: 12px;
+}
+
+.calendar-period-outline {
+  position: absolute;
+  z-index: 8;
+  top: calc(
+    var(--calendar-period-start-row) * 100% /
+      var(--calendar-period-row-count)
+  );
+  right: 0;
+  left: 0;
+  height: calc(
+    var(--calendar-period-row-span) * 100% /
+      var(--calendar-period-row-count)
+  );
+  pointer-events: none;
+}
+
+.calendar-period-outline::after {
+  position: absolute;
+  z-index: 60;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  width: max-content;
+  max-width: min(330px, calc(100vw - 32px));
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 7px 9px;
+  background: var(--text);
+  color: var(--surface);
+  box-shadow: var(--shadow);
+  content: attr(data-tooltip);
+  font-family: "Montserrat", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 0;
+  overflow-wrap: anywhere;
+  pointer-events: none;
+  text-align: center;
+  text-wrap: balance;
+  transform: translate(-50%, 4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.calendar-period-outline:has(.calendar-period-edge:hover)::after,
+.calendar-period-outline:focus-within::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.calendar-period-edge {
+  position: absolute;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: help;
+  pointer-events: auto;
+}
+
+.calendar-period-edge::before {
+  position: absolute;
+  background: var(--calendar-period-color);
+  content: "";
+}
+
+.calendar-period-edge:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--calendar-period-color) 45%, #fff);
+  outline-offset: 2px;
+}
+
+.calendar-period-edge.is-top,
+.calendar-period-edge.is-bottom {
+  right: 0;
+  left: 0;
+  height: 12px;
+}
+
+.calendar-period-edge.is-top {
+  top: -5px;
+}
+
+.calendar-period-edge.is-bottom {
+  bottom: -5px;
+}
+
+.calendar-period-edge.is-top::before,
+.calendar-period-edge.is-bottom::before {
+  right: 0;
+  left: 0;
+  height: 3px;
+}
+
+.calendar-period-edge.is-top::before {
+  top: 5px;
+}
+
+.calendar-period-edge.is-bottom::before {
+  bottom: 5px;
+}
+
+.calendar-period-edge.is-left,
+.calendar-period-edge.is-right {
+  top: 0;
+  bottom: 0;
+  width: 12px;
+}
+
+.calendar-period-edge.is-left {
+  left: -5px;
+}
+
+.calendar-period-edge.is-right {
+  right: -5px;
+}
+
+.calendar-period-edge.is-left::before,
+.calendar-period-edge.is-right::before {
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.calendar-period-edge.is-left::before {
+  left: 5px;
+}
+
+.calendar-period-edge.is-right::before {
+  right: 5px;
 }
 
 .calendar-day {

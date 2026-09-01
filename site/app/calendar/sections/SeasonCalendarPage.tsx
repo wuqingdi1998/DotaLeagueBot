@@ -40,7 +40,8 @@ export function SeasonCalendarPage({
         <div className="calendar-hint">
           <FiInfo aria-hidden="true" />
           <span>
-            Наведите на закрашенную половину дня, чтобы увидеть название события.
+            Наведите на заливку дня или контур периода, чтобы увидеть название
+            события.
           </span>
         </div>
         <CalendarGrid events={events} />

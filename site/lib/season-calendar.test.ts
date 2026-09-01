@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildCalendarPeriodSegments,
   buildSeasonCalendarMonths,
   parseSeasonCalendarEventInput,
   SeasonCalendarValidationError,
@@ -31,6 +32,30 @@ describe("season calendar", () => {
     expect(october.days.find((day) => day.date === event.date)?.events).toEqual([
       event,
     ]);
+  });
+
+  it("outlines the league cup across its November and December calendar rows", () => {
+    const months = buildSeasonCalendarMonths([]);
+    const septemberSegments = buildCalendarPeriodSegments(months[0]);
+    const octoberSegments = buildCalendarPeriodSegments(months[1]);
+    const novemberSegment = buildCalendarPeriodSegments(months[2])[0];
+    const decemberSegment = buildCalendarPeriodSegments(months[3])[0];
+
+    expect(septemberSegments).toEqual([]);
+    expect(octoberSegments).toEqual([]);
+    expect(novemberSegment).toMatchObject({
+      title: "Linken's Sphere Esports League Cup Season 9",
+      startDate: "2026-11-02",
+      endDate: "2026-12-13",
+      startRow: 1,
+      rowSpan: 5,
+      rowCount: 6,
+    });
+    expect(decemberSegment).toMatchObject({
+      startRow: 0,
+      rowSpan: 2,
+      rowCount: 5,
+    });
   });
 
   it("normalizes valid editor input and rejects dates outside season nine", () => {

@@ -18,6 +18,24 @@ export const calendarEventColors = [
   "#FF70A6",
 ] as const;
 
+export type SeasonCalendarPeriod = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  title: string;
+  color: string;
+};
+
+export const seasonCalendarPeriods = [
+  {
+    id: "season-9-league-cup",
+    startDate: "2026-11-02",
+    endDate: "2026-12-13",
+    title: "Linken's Sphere Esports League Cup Season 9",
+    color: "#FF4057",
+  },
+] as const satisfies readonly SeasonCalendarPeriod[];
+
 export const calendarWeekdayLabels = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
 
 const calendarMonthNames = [
@@ -54,6 +72,12 @@ export type CalendarMonth = {
   monthIndex: number;
   name: string;
   days: CalendarDay[];
+};
+
+export type CalendarPeriodSegment = SeasonCalendarPeriod & {
+  startRow: number;
+  rowSpan: number;
+  rowCount: number;
 };
 
 export class SeasonCalendarValidationError extends Error {}
@@ -116,6 +140,43 @@ export function buildSeasonCalendarMonths(
       };
     },
   );
+}
+
+export function buildCalendarPeriodSegments(
+  month: CalendarMonth,
+  periods: readonly SeasonCalendarPeriod[] = seasonCalendarPeriods,
+): CalendarPeriodSegment[] {
+  const datedCells = month.days.filter(
+    (day): day is CalendarDay & { date: string } => day.date !== null,
+  );
+  const firstDate = datedCells.at(0)?.date;
+  const lastDate = datedCells.at(-1)?.date;
+  if (!firstDate || !lastDate) return [];
+
+  return periods.flatMap((period) => {
+    if (period.endDate < firstDate || period.startDate > lastDate) return [];
+
+    const startCellIndex =
+      period.startDate <= firstDate
+        ? 0
+        : month.days.findIndex((day) => day.date === period.startDate);
+    const endCellIndex =
+      period.endDate >= lastDate
+        ? month.days.length - 1
+        : month.days.findIndex((day) => day.date === period.endDate);
+    if (startCellIndex < 0 || endCellIndex < 0) return [];
+
+    const startRow = Math.floor(startCellIndex / 7);
+    const endRow = Math.floor(endCellIndex / 7);
+    return [
+      {
+        ...period,
+        startRow,
+        rowSpan: endRow - startRow + 1,
+        rowCount: month.days.length / 7,
+      },
+    ];
+  });
 }
 
 export function parseSeasonCalendarEventInput(

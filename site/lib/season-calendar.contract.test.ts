@@ -17,6 +17,13 @@ const grid = readFileSync(
   new URL("../app/calendar/components/CalendarGrid.tsx", import.meta.url),
   "utf8",
 );
+const periodOutline = readFileSync(
+  new URL(
+    "../app/calendar/components/CalendarPeriodOutline.tsx",
+    import.meta.url,
+  ),
+  "utf8",
+);
 const editor = readFileSync(
   new URL("../app/calendar/admin/CalendarEventEditor.tsx", import.meta.url),
   "utf8",
@@ -65,6 +72,25 @@ describe("season nine calendar contract", () => {
       /\.calendar-day:hover \.calendar-event-fills,\s*\.calendar-day:focus-within \.calendar-event-fills\s*\{[^}]*z-index:\s*3;/,
     );
     expect(calendarStyles).not.toContain("calendar-event-dot");
+  });
+
+  it("shows the league cup as a hoverable period outline", () => {
+    expect(grid).toContain("buildCalendarPeriodSegments(month)");
+    expect(periodOutline).toContain('className="calendar-period-outline"');
+    expect(periodOutline).toContain("data-tooltip={period.title}");
+    expect(periodOutline).toContain("aria-label={period.title}");
+    expect(calendarStyles).toMatch(
+      /\.calendar-period-outline\s*\{[^}]*position:\s*absolute;[^}]*pointer-events:\s*none;/,
+    );
+    expect(calendarStyles).toMatch(
+      /\.calendar-period-edge\s*\{[^}]*background:\s*transparent;[^}]*pointer-events:\s*auto;/,
+    );
+    expect(calendarStyles).toMatch(
+      /\.calendar-period-edge::before\s*\{[^}]*background:\s*var\(--calendar-period-color\);/,
+    );
+    expect(calendarStyles).toContain(
+      ".calendar-period-outline:has(.calendar-period-edge:hover)::after",
+    );
   });
 
   it("keeps calendar callouts balanced and the hero compact in both themes", () => {

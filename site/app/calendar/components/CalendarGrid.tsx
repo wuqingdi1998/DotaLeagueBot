@@ -1,9 +1,11 @@
 import {
+  buildCalendarPeriodSegments,
   buildSeasonCalendarMonths,
   calendarWeekdayLabels,
   seasonCalendar,
   type SeasonCalendarEvent,
 } from "@/lib/season-calendar";
+import { CalendarPeriodOutline } from "./CalendarPeriodOutline";
 
 function eventAccessibleLabel(event: SeasonCalendarEvent) {
   const date = new Intl.DateTimeFormat("ru-RU", {
@@ -59,6 +61,9 @@ export function CalendarGrid({ events }: { events: SeasonCalendarEvent[] }) {
                   </>
                 )}
               </div>
+            ))}
+            {buildCalendarPeriodSegments(month).map((period) => (
+              <CalendarPeriodOutline key={period.id} period={period} />
             ))}
           </div>
         </article>
