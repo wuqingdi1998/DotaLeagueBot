@@ -31,3 +31,4 @@ bot/.ruff_cache/
 *.pyc
 *.dump
 *.backup
+.tmp/

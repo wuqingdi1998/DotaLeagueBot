@@ -1,3 +1,5 @@
+import json
+import re
 from pathlib import Path
 
 
@@ -197,6 +199,13 @@ FASTCUP_HISTORICAL_PLAYER_LINKS_MIGRATION = (
     / "0017_fastcup_historical_player_links.sql"
 ).read_text(encoding="utf-8")
 
+LS_FASTCUP_10_13_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0107_ls_fastcup_10_13.sql"
+).read_text(encoding="utf-8")
+
 FASTCUP_4_TITLE_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -388,6 +397,46 @@ def test_fastcup_archive_has_all_teams_players_and_matches() -> None:
     assert FASTCUP_SEED_MIGRATION.count("'approved', 'Приглашение'") == 2
     assert FASTCUP_SEED_MIGRATION.count("::timestamptz, '") == 16
     assert FASTCUP_SEED_MIGRATION.count("tournament_id_value, ") >= 16
+
+
+def test_ls_fastcup_10_13_archive_is_complete() -> None:
+    for number in range(10, 14):
+        assert f'"slug":"ls-fastcup-{number}"' in LS_FASTCUP_10_13_MIGRATION
+    assert LS_FASTCUP_10_13_MIGRATION.count('"nickname":') == 90
+    assert LS_FASTCUP_10_13_MIGRATION.count('"matchKey":') == 35
+    assert "Лист «Тир игроков» использован только" in LS_FASTCUP_10_13_MIGRATION
+
+
+def test_ls_fastcup_historical_nicks_share_a_dota_identity() -> None:
+    roster_json = re.search(
+        r"\$rosters\$\n(.+?)\n\$rosters\$::jsonb",
+        LS_FASTCUP_10_13_MIGRATION,
+        re.DOTALL,
+    )
+    assert roster_json is not None
+    rosters = json.loads(roster_json.group(1))
+    dota_id_groups: dict[str, set[str]] = {}
+    for roster in rosters:
+        dota_id = roster["dotaId"]
+        if dota_id is not None:
+            dota_id_groups.setdefault(dota_id, set()).add(roster["archiveId"])
+    assert all(len(archive_ids) == 1 for archive_ids in dota_id_groups.values())
+    fastcup_ten = [roster for roster in rosters if roster["slug"] == "ls-fastcup-10"]
+    zol = next(roster for roster in fastcup_ten if roster["nickname"] == "Zol")
+    gavr = next(roster for roster in fastcup_ten if roster["nickname"] == "Gavr")
+    assert zol["archiveId"] != gavr["archiveId"]
+
+
+def test_ls_fastcup_roster_tier_falls_back_to_roster_sheet() -> None:
+    roster_json = re.search(
+        r"\$rosters\$\n(.+?)\n\$rosters\$::jsonb",
+        LS_FASTCUP_10_13_MIGRATION,
+        re.DOTALL,
+    )
+    assert roster_json is not None
+    rosters = json.loads(roster_json.group(1))
+    wispiq = next(roster for roster in rosters if roster["nickname"] == "wispiq")
+    assert wispiq["tier"] == 6
 
 
 def test_fastcup_archive_ends_on_source_second_day() -> None:
