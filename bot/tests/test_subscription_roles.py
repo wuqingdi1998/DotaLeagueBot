@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from utils.subscription_roles import (
+    PRIORITY_REGISTRATION_ROLE_IDS,
     SUPPORTER_ROLE_NAME,
     SUBSCRIPTION_ROLE_NAMES,
     canonical_subscription_role_name,
@@ -48,6 +49,14 @@ def test_supporters_role_is_stored_for_feature_access() -> None:
     supporter = role(8, SUPPORTER_ROLE_NAME, 0xE0A62F)
 
     assert canonical_subscription_role_name(supporter, set()) == SUPPORTER_ROLE_NAME
+
+
+def test_priority_registration_roles_are_stored_by_discord_role_id() -> None:
+    for role_id in PRIORITY_REGISTRATION_ROLE_IDS:
+        assert canonical_subscription_role_name(
+            role(role_id, "Подписчики цветных рун"),
+            set(),
+        ) == "Подписчики цветных рун"
 
 
 def test_unrelated_discord_roles_are_not_written() -> None:

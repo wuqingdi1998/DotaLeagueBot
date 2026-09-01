@@ -59,6 +59,9 @@ describe("season round registration contract", () => {
   it("allows registration until ten minutes before start and cancellation before the 24 hour cutoff", () => {
     expect(registrationRoute).toContain("requireSession");
     expect(registrationRoute).toContain("seasonRoundRegistrationIsOpen");
+    expect(registrationRoute).toContain("seasonRoundPriorityRegistrationIsOpen");
+    expect(registrationRoute).toContain("priorityRegistrationRoleIds");
+    expect(registrationRoute).toContain("priorityRegistrationAdministratorId");
     expect(registrationRoute).toContain("seasonRoundCancellationIsOpen");
     expect(registrationRoute).toContain("tier_status !== \"current\"");
     expect(registrationRules).toContain("@frokeng");

@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth";
-import { one, query } from "@/lib/db";
-import type { TournamentStatus } from "@/lib/tournaments";
+import { query } from "@/lib/db";
 import {
   calculateSeasonStandings,
   type SeasonStandingIdentity,
@@ -16,9 +15,11 @@ import {
   seasonRoundCheckInWindow,
   seasonRoundRegistrationDeadline,
   seasonRoundRegistrationIsOpen,
+  seasonRoundPriorityRegistrationIsOpen,
 } from "@/lib/season-round-registration";
 import { freshPlayerRankedWins } from "@/lib/season-ranked-wins/repository";
 import { loadSeasonExtras } from "./season-extra-query";
+import { hasPriorityRegistrationAccess, loadSeasonTournament } from "./season-route-access";
 import type {
   GameRow,
   LobbyRow,
@@ -44,19 +45,14 @@ export async function GET(request: Request) {
     return Response.json({ error: "Некорректный номер тура" }, { status: 400 });
   }
 
-  const tournament = await one<{
-    id: number;
-    tournament_type: string;
-    status: TournamentStatus;
-  }>(
-    `SELECT id::int, tournament_type, status
-     FROM tournaments
-     WHERE slug = $1 ${isOrganizer ? "" : "AND status <> 'draft'"}`,
-    [slug],
-  );
+  const tournament = await loadSeasonTournament(slug, isOrganizer);
   if (!tournament || tournament.tournament_type !== "seasonal") {
     return Response.json({ error: "Сезонный турнир не найден" }, { status: 404 });
   }
+
+  const priorityRegistrationAccess = await hasPriorityRegistrationAccess(
+    user?.discordId,
+  );
 
   const visibility = isOrganizer ? "" : "AND round.is_visible = TRUE";
   const lobbyVisibility = isOrganizer
@@ -349,7 +345,9 @@ export async function GET(request: Request) {
       ),
       registration_open:
         round.is_visible &&
-        seasonRoundRegistrationIsOpen(registrationState),
+        (seasonRoundRegistrationIsOpen(registrationState) ||
+          (priorityRegistrationAccess &&
+            seasonRoundPriorityRegistrationIsOpen(registrationState))),
       cancellation_open:
         round.is_visible &&
         seasonRoundCancellationIsOpen(registrationState),

@@ -7,6 +7,9 @@ import {
   seasonRoundRegistrationDeadline,
   seasonRoundRegistrationGetsAutomaticCheckIn,
   seasonRoundRegistrationIsOpen,
+  seasonRoundPriorityRegistrationIsOpen,
+  seasonRoundPriorityRegistrationOpensAt,
+  seasonRoundPublicRegistrationOpensAt,
 } from "./season-round-registration";
 
 describe("season round registration", () => {
@@ -43,6 +46,49 @@ describe("season round registration", () => {
         tournamentStatus: "active",
       }),
     ).toBe(false);
+  });
+
+  it("gives priority roles a five-day window before public registration", () => {
+    const state = {
+      scheduledAt,
+      roundKind: "regular" as const,
+      roundStatus: "planned" as const,
+      tournamentStatus: "registration" as const,
+    };
+
+    expect(seasonRoundPriorityRegistrationOpensAt(scheduledAt)).toBe(
+      "2026-09-15T17:00:00.000Z",
+    );
+    expect(seasonRoundPublicRegistrationOpensAt(scheduledAt)).toBe(
+      "2026-09-16T17:00:00.000Z",
+    );
+    expect(
+      seasonRoundPriorityRegistrationIsOpen({
+        ...state,
+        now: "2026-09-15T17:00:00.000Z",
+      }),
+    ).toBe(true);
+    expect(
+      seasonRoundRegistrationIsOpen({
+        ...state,
+        now: "2026-09-15T17:00:00.000Z",
+      }),
+    ).toBe(false);
+    expect(
+      seasonRoundRegistrationIsOpen({
+        ...state,
+        now: "2026-09-16T17:00:00.000Z",
+      }),
+    ).toBe(true);
+  });
+
+  it("opens the first priority window at the delayed Boosty announcement", () => {
+    expect(
+      seasonRoundPriorityRegistrationOpensAt("2026-09-06T18:00:00.000Z"),
+    ).toBe("2026-09-01T19:00:00.000Z");
+    expect(
+      seasonRoundPublicRegistrationOpensAt("2026-09-06T18:00:00.000Z"),
+    ).toBe("2026-09-02T18:00:00.000Z");
   });
 
   it("closes cancellation exactly 24 hours before the round starts", () => {

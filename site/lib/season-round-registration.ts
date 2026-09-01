@@ -1,6 +1,16 @@
 const registrationLeadMilliseconds = 10 * 60 * 1_000;
 const cancellationLeadMilliseconds = 24 * 60 * 60 * 1_000;
 const checkInLeadMilliseconds = 2 * 60 * 60 * 1_000;
+const priorityRegistrationLeadMilliseconds = 5 * 24 * 60 * 60 * 1_000;
+const publicRegistrationLeadMilliseconds = 4 * 24 * 60 * 60 * 1_000;
+const firstRoundScheduledAt = "2026-09-06T18:00:00.000Z";
+const firstRoundPriorityRegistrationOpensAt = "2026-09-01T19:00:00.000Z";
+
+export const priorityRegistrationRoleIds = [
+  "1506419804125528267",
+  "1506420703254286478",
+] as const;
+export const priorityRegistrationAdministratorId = "311247030422863882";
 
 export const seasonTierConfirmationMessage =
   "Отправьте полный скриншот страницы с MMR и последними матчами организатору — @frokeng";
@@ -47,6 +57,26 @@ export function seasonRoundRegistrationDeadline(
     : new Date(start - registrationLeadMilliseconds).toISOString();
 }
 
+export function seasonRoundPriorityRegistrationOpensAt(
+  scheduledAt: string | Date | null,
+): string | null {
+  const start = timestamp(scheduledAt);
+  if (start === null) return null;
+  if (start === timestamp(firstRoundScheduledAt)) {
+    return firstRoundPriorityRegistrationOpensAt;
+  }
+  return new Date(start - priorityRegistrationLeadMilliseconds).toISOString();
+}
+
+export function seasonRoundPublicRegistrationOpensAt(
+  scheduledAt: string | Date | null,
+): string | null {
+  const start = timestamp(scheduledAt);
+  return start === null
+    ? null
+    : new Date(start - publicRegistrationLeadMilliseconds).toISOString();
+}
+
 export function seasonRoundCancellationDeadline(
   scheduledAt: string | Date | null,
 ): string | null {
@@ -85,12 +115,35 @@ export function seasonRoundRegistrationIsOpen(
   state: SeasonRoundRegistrationState,
 ): boolean {
   const deadline = seasonRoundRegistrationDeadline(state.scheduledAt);
+  const opensAt = seasonRoundPublicRegistrationOpensAt(state.scheduledAt);
   const now = timestamp(state.now);
   return Boolean(
     deadline &&
+      opensAt &&
       now !== null &&
       seasonRoundAllowsRegistration(state) &&
+      now >= new Date(opensAt).getTime() &&
       now < new Date(deadline).getTime(),
+  );
+}
+
+export function seasonRoundPriorityRegistrationIsOpen(
+  state: SeasonRoundRegistrationState,
+): boolean {
+  const priorityOpensAt = seasonRoundPriorityRegistrationOpensAt(
+    state.scheduledAt,
+  );
+  const publicOpensAt = seasonRoundPublicRegistrationOpensAt(
+    state.scheduledAt,
+  );
+  const now = timestamp(state.now);
+  return Boolean(
+    priorityOpensAt &&
+      publicOpensAt &&
+      now !== null &&
+      seasonRoundAllowsRegistration(state) &&
+      now >= new Date(priorityOpensAt).getTime() &&
+      now < new Date(publicOpensAt).getTime(),
   );
 }
 

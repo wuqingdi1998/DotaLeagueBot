@@ -5,6 +5,9 @@ import {
   seasonRoundCancellationIsOpen,
   seasonRoundRegistrationGetsAutomaticCheckIn,
   seasonRoundRegistrationIsOpen,
+  seasonRoundPriorityRegistrationIsOpen,
+  priorityRegistrationAdministratorId,
+  priorityRegistrationRoleIds,
   seasonTierConfirmationMessage,
 } from "@/lib/season-round-registration";
 import { refreshRoundRegistrationRankedWins } from "@/lib/season-ranked-wins/repository";
@@ -24,6 +27,7 @@ type RegistrationTarget = {
 type RegistrationPlayer = {
   tier_status: string;
   tier: number | null;
+  has_priority_registration_access: boolean;
 };
 
 function registrationRoundId(value: unknown): number {
@@ -69,9 +73,12 @@ async function updateRegistration(
         roundStatus: target.round_status,
         tournamentStatus: target.tournament_status,
       };
+      const priorityRegistrationIsOpen =
+        seasonRoundPriorityRegistrationIsOpen(registrationState);
       const actionIsOpen =
         action === "register"
-          ? seasonRoundRegistrationIsOpen(registrationState)
+          ? priorityRegistrationIsOpen ||
+            seasonRoundRegistrationIsOpen(registrationState)
           : seasonRoundCancellationIsOpen(registrationState);
       if (!target.is_visible || !actionIsOpen) {
         throw new Response(
@@ -85,18 +92,29 @@ async function updateRegistration(
       if (action === "register") {
         const playerResult = await client.query<RegistrationPlayer>(
           `SELECT tier_status,
-             COALESCE(
+           COALESCE(
                NULLIF(internal_rating, 0),
                CASE
                  WHEN rank_tier >= 10 THEN rank_tier / 10
                  WHEN rank_tier > 0 THEN rank_tier
-                 ELSE NULL
-               END
-             )::int AS tier
+               ELSE NULL
+             END
+             )::int AS tier,
+           $1::text = $2::text
+             OR EXISTS (
+               SELECT 1
+               FROM player_discord_roles role
+               WHERE role.player_id = players.discord_id
+                 AND role.role_id = ANY($3::bigint[])
+             ) AS has_priority_registration_access
            FROM players
            WHERE discord_id = $1 AND is_archived = FALSE
            FOR UPDATE`,
-          [user.discordId],
+          [
+            user.discordId,
+            priorityRegistrationAdministratorId,
+            priorityRegistrationRoleIds,
+          ],
         );
         const player = playerResult.rows[0];
         if (
@@ -107,6 +125,12 @@ async function updateRegistration(
           player.tier > 12
         ) {
           throw new Response(seasonTierConfirmationMessage, { status: 409 });
+        }
+        if (priorityRegistrationIsOpen && !player.has_priority_registration_access) {
+          throw new Response(
+            "Ранняя регистрация доступна подписчикам цветных рун и Суппортерам. Для остальных она откроется после общего анонса.",
+            { status: 403 },
+          );
         }
 
         await client.query(

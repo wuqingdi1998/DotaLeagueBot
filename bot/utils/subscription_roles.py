@@ -12,6 +12,10 @@ SUBSCRIPTION_ROLE_NAMES = (
     "Руна Воды",
 )
 SUPPORTER_ROLE_NAME = "Суппортеры"
+PRIORITY_REGISTRATION_ROLE_IDS = {
+    1506419804125528267,
+    1506420703254286478,
+}
 TRACKED_PLAYER_ROLE_NAMES = (*SUBSCRIPTION_ROLE_NAMES, SUPPORTER_ROLE_NAME)
 TRACKED_PLAYER_ROLE_NAMES_BY_KEY = {
     role_name.casefold(): role_name for role_name in TRACKED_PLAYER_ROLE_NAMES
@@ -42,7 +46,7 @@ def canonical_subscription_role_name(
     canonical_name = TRACKED_PLAYER_ROLE_NAMES_BY_KEY.get(role_name.casefold())
     if canonical_name:
         return canonical_name
-    if role.id in configured_role_ids:
+    if role.id in configured_role_ids | PRIORITY_REGISTRATION_ROLE_IDS:
         return role_name
     return None
 
