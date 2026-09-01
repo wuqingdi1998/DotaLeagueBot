@@ -185,5 +185,31 @@ jobs:
               sleep 5
             done
 
+            for attempt in $(seq 1 30); do
+              due_announcements="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT COUNT(*) FROM channel_announcement_outbox
+                 WHERE available_at <= NOW() AND status <> '\''sent'\''"')"
+              if [ "$due_announcements" = "0" ]; then
+                sent_announcements="$(docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                  "SELECT COUNT(*) FROM channel_announcement_outbox
+                   WHERE status = '\''sent'\''"')"
+                echo "Delivered channel announcements: $sent_announcements"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT dedupe_key, status, attempts, last_error
+                   FROM channel_announcement_outbox
+                   WHERE available_at <= NOW() AND status <> '\''sent'\''
+                   ORDER BY id"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             docker image prune --force
             docker compose ps
