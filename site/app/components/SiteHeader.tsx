@@ -88,6 +88,7 @@ export function SiteHeader({
   }
 
   const homeActive = pathname === "/";
+  const seasonActive = pathname.startsWith("/season");
   const tournamentsActive = pathname.startsWith("/tournaments");
   const calendarActive = pathname.startsWith("/calendar");
   const hallActive = pathname.startsWith("/hall-of-fame");
@@ -123,6 +124,13 @@ export function SiteHeader({
           aria-current={homeActive ? "page" : undefined}
         >
           Главная
+        </Link>
+        <Link
+          className={seasonActive ? "active" : undefined}
+          href="/season"
+          aria-current={seasonActive ? "page" : undefined}
+        >
+          Сезон
         </Link>
         <Link
           className={tournamentsActive ? "active" : undefined}
@@ -280,6 +288,14 @@ export function SiteHeader({
             onClick={() => setMobileMenuOpen(false)}
           >
             Главная
+          </Link>
+          <Link
+            className={seasonActive ? "active" : undefined}
+            href="/season"
+            aria-current={seasonActive ? "page" : undefined}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Сезон
           </Link>
           <Link
             className={tournamentsActive ? "active" : undefined}

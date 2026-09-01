@@ -81,9 +81,11 @@ function useTournamentList() {
 export function PlatformShell({
   children,
   user,
+  hasFooter = true,
 }: {
   children: React.ReactNode;
   user: SessionUser | null;
+  hasFooter?: boolean;
 }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   useEffect(() => {
@@ -95,37 +97,39 @@ export function PlatformShell({
     <main className="site-shell platform-shell" data-theme={theme}>
       <SiteHeader theme={theme} setTheme={setTheme} user={user} />
       {children}
-      <footer className="site-footer platform-footer">
-        <Link className="brand" href="/">
-          <Image
-            src="/linkens-sphere-logo.png"
-            alt=""
-            width={48}
-            height={48}
-            unoptimized
-          />
-          <span>
-            <strong>Linken&apos;s Sphere</strong>
-            <small>Esports community</small>
-          </span>
-        </Link>
-        <p>Турниры, лиги и события нашего Dota-сообщества</p>
-        <div className="platform-footer-links">
-          <Link className="fearless-footer-link" href="/fearless-draft">
-            <FiCrosshair /> Fearless Draft
+      {hasFooter && (
+        <footer className="site-footer platform-footer">
+          <Link className="brand" href="/">
+            <Image
+              src="/linkens-sphere-logo.png"
+              alt=""
+              width={48}
+              height={48}
+              unoptimized
+            />
+            <span>
+              <strong>Linken&apos;s Sphere</strong>
+              <small>Esports community</small>
+            </span>
           </Link>
-          <a
-            className="discord-link"
-            href="https://discord.gg/lsesports"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Discord <FiArrowUpRight />
-          </a>
-          <OrganizerArchiveLink isOrganizer={user?.isAdmin ?? false} />
-        </div>
-        <OrganizerAccess user={user} />
-      </footer>
+          <p>Турниры, лиги и события нашего Dota-сообщества</p>
+          <div className="platform-footer-links">
+            <Link className="fearless-footer-link" href="/fearless-draft">
+              <FiCrosshair /> Fearless Draft
+            </Link>
+            <a
+              className="discord-link"
+              href="https://discord.gg/lsesports"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Discord <FiArrowUpRight />
+            </a>
+            <OrganizerArchiveLink isOrganizer={user?.isAdmin ?? false} />
+          </div>
+          <OrganizerAccess user={user} />
+        </footer>
+      )}
     </main>
   );
 }

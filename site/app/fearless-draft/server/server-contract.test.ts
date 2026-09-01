@@ -82,7 +82,7 @@ describe("Fearless Draft server safety contract", () => {
     expect(heroGrid).toContain("FEARLESS_DRAFT_HEROES");
     expect(heroModel).toContain("COMPENDIUM_HEROES.map");
     expect(heroModel).toContain("disabledCaptainModeHeroIds");
-    expect(footer).toContain(">\n            <FiCrosshair /> Fearless Draft");
+    expect(footer).toMatch(/<FiCrosshair\s*\/>\s*Fearless Draft/);
     expect(footer).toContain('href="/fearless-draft"');
   });
 

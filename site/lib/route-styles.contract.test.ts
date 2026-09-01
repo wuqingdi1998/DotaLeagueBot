@@ -13,6 +13,7 @@ const compendium = source("../app/styles/compendium-route.css");
 const tournaments = source("../app/styles/tournaments-route.css");
 const draft = source("../app/styles/fearless-draft-route.css");
 const calendar = source("../app/styles/calendar-route.css");
+const season = source("../app/styles/season-route.css");
 
 describe("route-specific styles", () => {
   it("keeps only shared interface styles in the root bundle", () => {
@@ -21,6 +22,7 @@ describe("route-specific styles", () => {
     expect(globals).not.toContain("33-compendium.css");
     expect(globals).not.toContain("50-fearless-draft.css");
     expect(globals).not.toContain("62-season-calendar.css");
+    expect(globals).not.toContain("64-season-overview.css");
   });
 
   it("loads each large section from its own layout", () => {
@@ -28,12 +30,16 @@ describe("route-specific styles", () => {
     expect(tournaments).toContain("03-tournament-hero.css");
     expect(draft).toContain("50-fearless-draft.css");
     expect(calendar).toContain("62-season-calendar.css");
+    expect(season).toContain("64-season-overview.css");
     expect(source("../app/compendium/layout.tsx")).toContain(
       "compendium-route.css",
     );
     expect(source("../app/calendar/layout.tsx")).toContain(
       "calendar-route.css",
     );
+    const seasonLayout = source("../app/season/layout.tsx");
+    expect(seasonLayout).toContain("season-route.css");
+    expect(seasonLayout).toContain("65-season-secondary-overview.css");
   });
 
   it("loads mobile tournament rules after the desktop tournament modules", () => {
