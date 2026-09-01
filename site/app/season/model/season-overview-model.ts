@@ -12,6 +12,7 @@ export const leagueOverview = {
   finalExplanation:
     "20 лучших игроков по итогам лиги получают место в финальном турнире сезона.",
   prize: "12 000 ₽",
+  tournamentHref: "/tournaments/league-season-9",
   calendarHref: "/calendar",
 } as const;
 
@@ -24,7 +25,7 @@ export const leagueCupOverview = {
     "Администратор приглашает игроков, которые ярко проявили себя результатами, активностью и игрой. Открытой регистрации нет.",
   participation: "Только по приглашению администрации",
   advice: "Хороший результат в лиге — главный способ получить приглашение.",
-  prize: "9 000 ₽",
+  prize: "7 500 ₽",
 } as const;
 
 export type FastCupOverview = {
@@ -34,14 +35,14 @@ export type FastCupOverview = {
 
 export const fastCupIntroduction = {
   descriptor: "Дополнительные открытые турниры",
-  summary: "Быстрые турниры для игроков лиги и сообщества.",
-  registration:
-    "Игроки самостоятельно собирают состав и регистрируют готовую команду.",
+  summary:
+    "Быстрые открытые турниры: игроки сами собирают состав и регистрируют готовую команду.",
 } as const;
 
 export const fastCupOverviews: readonly FastCupOverview[] = [
-  { title: "Fast Cup #1", prize: "2 000 ₽" },
-  { title: "Fast Cup #2", prize: "2 000 ₽" },
-  { title: "Fast Cup #3", prize: "2 000 ₽" },
-  { title: "Fast Cup #4", prize: "2 000 ₽" },
+  { title: "Linken’s Sphere CD Fastcup #7", prize: "2 000 ₽" },
+  { title: "Linken’s Sphere SD Fastcup #2", prize: "2 000 ₽" },
+  { title: "Linken’s Sphere Fastcup #14", prize: "2 000 ₽" },
+  { title: "Linken’s Sphere CD Fastcup #8", prize: "2 000 ₽" },
+  { title: "Linken’s Sphere Fastcup #15", prize: "2 000 ₽" },
 ] as const;

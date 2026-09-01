@@ -6,14 +6,14 @@ export function FastCupCard({ cup }: { cup: FastCupOverview }) {
     <article className="fast-cup-card">
       <div className="fast-cup-heading">
         <h3>{cup.title}</h3>
-        <span>PRE-MADE</span>
       </div>
       <div className="fast-cup-facts">
+        <span className="fast-cup-type">PRE-MADE</span>
         <span>
           <FiUsers aria-hidden="true" /> Свой состав
         </span>
         <span>
-          <FiAward aria-hidden="true" /> {cup.prize} призовых
+          <FiAward aria-hidden="true" /> {cup.prize}
         </span>
       </div>
     </article>

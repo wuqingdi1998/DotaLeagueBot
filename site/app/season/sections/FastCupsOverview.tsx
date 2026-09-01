@@ -14,9 +14,7 @@ export function FastCupsOverview() {
           </span>
           <h2 id="fast-cups-title">Fast Cup</h2>
         </div>
-        <p>
-          {fastCupIntroduction.summary} {fastCupIntroduction.registration}
-        </p>
+        <p>{fastCupIntroduction.summary}</p>
       </div>
       <div className="fast-cups-grid">
         {fastCupOverviews.map((cup) => (

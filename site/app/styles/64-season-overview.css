@@ -105,6 +105,10 @@
   text-transform: uppercase;
 }
 
+.season-card-heading h2 a:hover {
+  color: var(--blue-strong);
+}
+
 .season-format-badge {
   border: 1px solid var(--line-strong);
   border-radius: 999px;
@@ -201,15 +205,22 @@
   font-weight: 600;
 }
 
-.season-calendar-link {
+.season-league-links {
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.season-calendar-link,
+.season-tournament-link {
   display: inline-flex;
   min-height: 44px;
   width: fit-content;
   align-items: center;
   gap: 9px;
-  margin-top: auto;
   border-radius: 12px;
   padding: 0 14px;
   color: var(--blue-deep);
@@ -218,10 +229,21 @@
   transition: background 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
-.season-calendar-link:hover {
+.season-calendar-link:hover,
+.season-tournament-link:hover {
   transform: translateY(-1px);
   background: var(--surface-blue);
   color: var(--blue-strong);
+}
+
+.season-tournament-link {
+  background: var(--blue-gradient);
+  color: #fff;
+}
+
+.season-tournament-link:hover {
+  background: var(--blue-gradient-hover);
+  color: #fff;
 }
 
 @media (max-height: 820px) and (min-width: 1051px) {
@@ -278,6 +300,17 @@
 
   .season-prize {
     place-content: initial;
+  }
+
+  .season-league-links {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .season-calendar-link,
+  .season-tournament-link {
+    width: 100%;
+    justify-content: center;
   }
 
 }

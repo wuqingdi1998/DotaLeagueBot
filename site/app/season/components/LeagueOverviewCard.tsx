@@ -8,7 +8,11 @@ export function LeagueOverviewCard() {
       <div className="season-card-heading">
         <div>
           <span className="season-card-kicker">Главное событие</span>
-          <h2>{leagueOverview.title}</h2>
+          <h2>
+            <Link href={leagueOverview.tournamentHref}>
+              {leagueOverview.title}
+            </Link>
+          </h2>
         </div>
         <span className="season-format-badge">{leagueOverview.descriptor}</span>
       </div>
@@ -32,11 +36,17 @@ export function LeagueOverviewCard() {
         </div>
       </div>
 
-      <Link className="season-calendar-link" href={leagueOverview.calendarHref}>
-        <FiCalendar aria-hidden="true" />
-        Смотреть календарь
-        <FiArrowRight aria-hidden="true" />
-      </Link>
+      <div className="season-league-links">
+        <Link className="season-tournament-link" href={leagueOverview.tournamentHref}>
+          Открыть лигу
+          <FiArrowRight aria-hidden="true" />
+        </Link>
+        <Link className="season-calendar-link" href={leagueOverview.calendarHref}>
+          <FiCalendar aria-hidden="true" />
+          Смотреть календарь
+          <FiArrowRight aria-hidden="true" />
+        </Link>
+      </div>
     </article>
   );
 }

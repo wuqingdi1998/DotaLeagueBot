@@ -126,18 +126,18 @@ export function SiteHeader({
           Главная
         </Link>
         <Link
-          className={seasonActive ? "active" : undefined}
-          href="/season"
-          aria-current={seasonActive ? "page" : undefined}
-        >
-          Сезон
-        </Link>
-        <Link
           className={tournamentsActive ? "active" : undefined}
           href="/tournaments"
           aria-current={tournamentsActive ? "page" : undefined}
         >
           Турниры
+        </Link>
+        <Link
+          className={seasonActive ? "active" : undefined}
+          href="/season"
+          aria-current={seasonActive ? "page" : undefined}
+        >
+          Сезон
         </Link>
         <Link
           className={calendarActive ? "active" : undefined}
@@ -290,20 +290,20 @@ export function SiteHeader({
             Главная
           </Link>
           <Link
-            className={seasonActive ? "active" : undefined}
-            href="/season"
-            aria-current={seasonActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Сезон
-          </Link>
-          <Link
             className={tournamentsActive ? "active" : undefined}
             href="/tournaments"
             aria-current={tournamentsActive ? "page" : undefined}
             onClick={() => setMobileMenuOpen(false)}
           >
             Турниры
+          </Link>
+          <Link
+            className={seasonActive ? "active" : undefined}
+            href="/season"
+            aria-current={seasonActive ? "page" : undefined}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Сезон
           </Link>
           <Link
             className={calendarActive ? "active" : undefined}

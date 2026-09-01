@@ -22,6 +22,16 @@ describe("season overview page", () => {
   it("adds the season page to desktop and mobile navigation", () => {
     expect(header.match(/href="\/season"/g)).toHaveLength(2);
     expect(header).toContain("seasonActive");
+    const desktopNavigation = header.slice(
+      header.indexOf('className="platform-navigation"'),
+      header.indexOf('className="header-actions"'),
+    );
+    expect(desktopNavigation.indexOf('href="/tournaments"')).toBeLessThan(
+      desktopNavigation.indexOf('href="/season"'),
+    );
+    expect(desktopNavigation.indexOf('href="/season"')).toBeLessThan(
+      desktopNavigation.indexOf('href="/calendar"'),
+    );
   });
 
   it("explains the league and links to the existing calendar", () => {
@@ -30,15 +40,23 @@ describe("season overview page", () => {
     expect(model).toContain("14 туров · 1 раз в неделю · BO2");
     expect(model).toContain("ТОП-20 → ФИНАЛ");
     expect(model).toContain('calendarHref: "/calendar"');
+    expect(model).toContain(
+      'tournamentHref: "/tournaments/league-season-9"',
+    );
   });
 
-  it("shows the invitation-only cup and four open Fast Cup events", () => {
+  it("shows the invitation-only cup and the named Fast Cup events", () => {
     expect(section).toContain("LeagueCupOverviewCard");
     expect(section).toContain("FastCupsOverview");
     expect(model).toContain("Только по приглашению администрации");
     expect(model).toContain("Открытой регистрации нет");
-    expect(model.match(/Fast Cup #\d/g)).toHaveLength(4);
-    expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(4);
+    expect(model).toContain('prize: "7 500 ₽"');
+    expect(model).toContain("Linken’s Sphere CD Fastcup #7");
+    expect(model).toContain("Linken’s Sphere SD Fastcup #2");
+    expect(model).toContain("Linken’s Sphere Fastcup #14");
+    expect(model).toContain("Linken’s Sphere CD Fastcup #8");
+    expect(model).toContain("Linken’s Sphere Fastcup #15");
+    expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(5);
     expect(fastCupSection).toContain("fastCupOverviews.map");
   });
 
