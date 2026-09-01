@@ -30,7 +30,8 @@ services:
   migrate:
     image: dotaleaguebot-bot:deploy
     build:
-      context: ./bot
+      context: .
+      dockerfile: bot/Dockerfile
     env_file:
       - .env
     environment:
@@ -46,7 +47,8 @@ services:
   bot:
     image: dotaleaguebot-bot:deploy
     build:
-      context: ./bot
+      context: .
+      dockerfile: bot/Dockerfile
     container_name: linkens_sphere_bot
     restart: unless-stopped
     env_file:

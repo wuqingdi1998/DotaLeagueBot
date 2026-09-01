@@ -6,5 +6,10 @@
 **/*.pyc
 **/node_modules
 **/.next
+bot/.coverage
+bot/.mypy_cache
+bot/.pytest_cache
+bot/.ruff_cache
+bot/tests
 postgres_data
 uploads_data

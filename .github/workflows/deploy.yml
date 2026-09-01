@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build production images
         run: |
-          docker build --tag dotaleaguebot-bot:deploy ./bot
+          docker build --tag dotaleaguebot-bot:deploy --file bot/Dockerfile .
           docker build --tag dotaleaguebot-site:deploy ./site
           docker save dotaleaguebot-bot:deploy dotaleaguebot-site:deploy |
             gzip -1 > deployment-images.tar.gz
