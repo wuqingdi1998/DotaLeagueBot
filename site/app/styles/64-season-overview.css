@@ -1,11 +1,9 @@
 .season-overview {
   display: grid;
-  height: calc(100svh - 106px);
-  min-height: 610px;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: 20px;
-  padding: 22px clamp(24px, 5vw, 76px) 28px;
-  overflow: hidden;
+  gap: 24px;
+  min-height: calc(100svh - 106px);
+  padding: 30px clamp(24px, 5vw, 76px) 48px;
+  overflow-x: clip;
   background:
     radial-gradient(circle at 18% 10%, rgba(0, 195, 255, 0.12), transparent 28%),
     linear-gradient(145deg, var(--bg), var(--surface-soft));
@@ -13,8 +11,16 @@
 
 .season-overview-heading {
   display: grid;
-  max-width: 1180px;
-  gap: 5px;
+  width: 100%;
+  max-width: 1220px;
+  gap: 12px;
+}
+
+.season-overview-title-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .season-overview-heading .eyebrow {
@@ -27,7 +33,7 @@
 }
 
 .season-overview-heading h1 {
-  margin: 0;
+  margin: 2px 0 0;
   font-family: "5ka Sans Design", sans-serif;
   font-size: clamp(38px, 4vw, 58px);
   font-weight: 600;
@@ -36,44 +42,50 @@
 }
 
 .season-overview-heading > p:last-child {
-  max-width: 1080px;
-  margin: 3px 0 0;
+  max-width: 1120px;
+  margin: 0;
   color: var(--muted);
   font-size: clamp(13px, 1vw, 15px);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-.season-overview-grid {
+.season-primary-grid {
   display: grid;
-  min-height: 0;
-  grid-template-columns: minmax(0, 1.14fr) minmax(460px, 0.86fr);
-  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 18px;
 }
 
-.season-league-card {
+.season-feature-card {
   position: relative;
   display: flex;
-  min-height: 0;
+  min-width: 0;
   flex-direction: column;
-  gap: clamp(12px, 1.5vh, 18px);
+  gap: 16px;
   border: 1px solid var(--line-strong);
   border-radius: 24px;
-  padding: clamp(22px, 2.5vw, 36px);
+  padding: clamp(22px, 2.5vw, 34px);
   overflow: hidden;
-  background:
-    linear-gradient(145deg, rgba(0, 195, 255, 0.09), transparent 52%),
-    var(--surface);
+  background: var(--surface);
   box-shadow: var(--shadow);
 }
 
-.season-league-card::after {
+.season-league-card {
+  background:
+    linear-gradient(145deg, rgba(0, 195, 255, 0.09), transparent 56%),
+    var(--surface);
+}
+
+.season-league-card::after,
+.season-cup-card::after {
   position: absolute;
-  right: -100px;
-  bottom: -150px;
+  z-index: 0;
+  right: -110px;
+  bottom: -170px;
   width: 360px;
   height: 360px;
   border-radius: 50%;
-  background: rgba(0, 195, 255, 0.08);
+  background: rgba(0, 195, 255, 0.07);
   content: "";
   pointer-events: none;
 }
@@ -85,7 +97,11 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
+  gap: 18px;
+}
+
+.season-card-heading > div {
+  min-width: 0;
 }
 
 .season-card-kicker {
@@ -99,9 +115,10 @@
 .season-card-heading h2 {
   margin: 5px 0 0;
   font-family: "5ka Sans Design", sans-serif;
-  font-size: clamp(38px, 4vw, 58px);
+  font-size: clamp(34px, 3.5vw, 50px);
   font-weight: 600;
-  line-height: 0.95;
+  line-height: 0.96;
+  overflow-wrap: anywhere;
   text-transform: uppercase;
 }
 
@@ -110,47 +127,69 @@
 }
 
 .season-format-badge {
+  flex: 0 1 auto;
+  max-width: 230px;
   border: 1px solid var(--line-strong);
   border-radius: 999px;
   padding: 9px 13px;
   background: var(--surface-blue);
   color: var(--blue-deep);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-  white-space: nowrap;
+  line-height: 1.3;
+  text-align: center;
 }
 
 .season-card-summary {
   position: relative;
   z-index: 1;
-  max-width: 950px;
   margin: 0;
   color: var(--muted);
-  font-size: clamp(13px, 1.1vw, 15px);
+  font-size: clamp(13px, 1vw, 15px);
   line-height: 1.55;
 }
 
+.season-registration-callout,
 .season-scoring-line {
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-start;
+  gap: 11px;
   border: 1px solid var(--line);
   border-radius: 15px;
-  padding: 12px 15px;
+  padding: 12px 14px;
   background: var(--surface-soft);
   color: var(--text);
   font-size: 13px;
-  font-weight: 600;
   line-height: 1.45;
 }
 
+.season-registration-callout svg,
 .season-scoring-line svg,
 .season-calendar-link svg,
 .season-prize svg {
   flex: 0 0 auto;
+  margin-top: 2px;
   color: var(--blue-strong);
+}
+
+.season-registration-callout strong {
+  font-weight: 700;
+}
+
+.season-scoring-line > div {
+  display: grid;
+  gap: 3px;
+}
+
+.season-scoring-line strong {
+  font-size: 13px;
+}
+
+.season-scoring-line span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .season-league-outcome {
@@ -173,7 +212,7 @@
 
 .season-final-callout strong {
   font-family: "5ka Sans Design", sans-serif;
-  font-size: clamp(24px, 2.7vw, 40px);
+  font-size: clamp(24px, 2.6vw, 38px);
   font-weight: 600;
   line-height: 1;
 }
@@ -185,12 +224,12 @@
 
 .season-prize {
   display: grid;
-  min-width: 180px;
+  min-width: 160px;
   place-content: center;
   gap: 4px;
   border: 1px solid var(--line-strong);
   border-radius: 17px;
-  padding: 14px 20px;
+  padding: 14px 18px;
   background: var(--surface-blue);
 }
 
@@ -201,17 +240,18 @@
 
 .season-prize strong {
   font-family: "5ka Sans Design", sans-serif;
-  font-size: 28px;
+  font-size: 27px;
   font-weight: 600;
+  white-space: nowrap;
 }
 
-.season-league-links {
+.season-card-action {
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: 8px;
   margin-top: auto;
+  padding-top: 2px;
 }
 
 .season-calendar-link,
@@ -220,6 +260,7 @@
   min-height: 44px;
   width: fit-content;
   align-items: center;
+  justify-content: center;
   gap: 9px;
   border-radius: 12px;
   padding: 0 14px;
@@ -237,6 +278,7 @@
 }
 
 .season-tournament-link {
+  min-width: 158px;
   background: var(--blue-gradient);
   color: #fff;
 }
@@ -246,35 +288,14 @@
   color: #fff;
 }
 
-@media (max-height: 820px) and (min-width: 1051px) {
-  .season-overview {
-    gap: 14px;
-    padding-top: 16px;
-    padding-bottom: 20px;
-  }
-
-  .season-overview-heading > p:last-child {
-    line-height: 1.35;
-  }
-
-  .season-league-card {
-    gap: 10px;
-    padding: 20px 24px;
-  }
-
-}
-
 @media (max-width: 1050px) {
   .season-overview {
-    height: auto;
     min-height: calc(100svh - 74px);
-    overflow: visible;
   }
 
-  .season-overview-grid {
+  .season-primary-grid {
     grid-template-columns: 1fr;
   }
-
 }
 
 @media (max-width: 700px) {
@@ -283,7 +304,14 @@
     padding: 24px 17px 34px;
   }
 
-  .season-league-card {
+  .season-overview-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .season-feature-card {
+    gap: 14px;
     border-radius: 19px;
     padding: 20px;
   }
@@ -296,21 +324,16 @@
   .season-format-badge,
   .season-prize {
     width: 100%;
+    max-width: none;
   }
 
   .season-prize {
     place-content: initial;
   }
 
-  .season-league-links {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
+  .season-card-action,
   .season-calendar-link,
   .season-tournament-link {
     width: 100%;
-    justify-content: center;
   }
-
 }

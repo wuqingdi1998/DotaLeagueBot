@@ -15,6 +15,13 @@ export function FastCupsOverview() {
           <h2 id="fast-cups-title">Fast Cup</h2>
         </div>
         <p>{fastCupIntroduction.summary}</p>
+        <Link
+          className="season-calendar-link"
+          href={fastCupIntroduction.tournamentsHref}
+        >
+          Открыть турниры
+          <FiArrowRight aria-hidden="true" />
+        </Link>
       </div>
       <div className="fast-cups-grid">
         {fastCupOverviews.map((cup) => (
@@ -24,3 +31,5 @@ export function FastCupsOverview() {
     </section>
   );
 }
+import Link from "next/link";
+import { FiArrowRight } from "react-icons/fi";

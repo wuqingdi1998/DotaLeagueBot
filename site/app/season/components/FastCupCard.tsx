@@ -1,21 +1,24 @@
-import { FiAward, FiUsers } from "react-icons/fi";
+import Link from "next/link";
+import { FiArrowRight } from "react-icons/fi";
 import type { FastCupOverview } from "../model/season-overview-model";
 
 export function FastCupCard({ cup }: { cup: FastCupOverview }) {
   return (
     <article className="fast-cup-card">
-      <div className="fast-cup-heading">
+      <Link
+        className="fast-cup-card-link"
+        href={cup.tournamentHref}
+        aria-label={`Открыть ${cup.title}`}
+      >
         <h3>{cup.title}</h3>
-      </div>
-      <div className="fast-cup-facts">
-        <span className="fast-cup-type">PRE-MADE</span>
-        <span>
-          <FiUsers aria-hidden="true" /> Свой состав
+        <div className="fast-cup-facts">
+          <span>Турнир для Boosty подписчиков</span>
+          <strong>Призовой фонд — {cup.prize}</strong>
+        </div>
+        <span className="fast-cup-open-link">
+          Открыть турнир <FiArrowRight aria-hidden="true" />
         </span>
-        <span>
-          <FiAward aria-hidden="true" /> {cup.prize}
-        </span>
-      </div>
+      </Link>
     </article>
   );
 }

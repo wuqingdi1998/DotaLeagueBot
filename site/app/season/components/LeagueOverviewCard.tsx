@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { FiArrowRight, FiAward, FiCalendar, FiTarget } from "react-icons/fi";
+import { FiArrowRight, FiAward, FiTarget, FiUserCheck } from "react-icons/fi";
 import { leagueOverview } from "../model/season-overview-model";
 
 export function LeagueOverviewCard() {
   return (
-    <article className="season-league-card">
+    <article className="season-feature-card season-league-card">
       <div className="season-card-heading">
         <div>
           <span className="season-card-kicker">Главное событие</span>
@@ -19,9 +19,17 @@ export function LeagueOverviewCard() {
 
       <p className="season-card-summary">{leagueOverview.summary}</p>
 
+      <div className="season-registration-callout">
+        <FiUserCheck aria-hidden="true" />
+        <strong>{leagueOverview.registration}</strong>
+      </div>
+
       <div className="season-scoring-line">
         <FiTarget aria-hidden="true" />
-        <span>{leagueOverview.scoring}</span>
+        <div>
+          <strong>{leagueOverview.scoring}</strong>
+          <span>{leagueOverview.ranking}</span>
+        </div>
       </div>
 
       <div className="season-league-outcome">
@@ -36,14 +44,9 @@ export function LeagueOverviewCard() {
         </div>
       </div>
 
-      <div className="season-league-links">
+      <div className="season-card-action">
         <Link className="season-tournament-link" href={leagueOverview.tournamentHref}>
           Открыть лигу
-          <FiArrowRight aria-hidden="true" />
-        </Link>
-        <Link className="season-calendar-link" href={leagueOverview.calendarHref}>
-          <FiCalendar aria-hidden="true" />
-          Смотреть календарь
           <FiArrowRight aria-hidden="true" />
         </Link>
       </div>

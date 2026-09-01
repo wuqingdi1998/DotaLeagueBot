@@ -11,6 +11,7 @@ const section = source("../app/season/sections/SeasonOverviewPage.tsx");
 const fastCupSection = source(
   "../app/season/sections/FastCupsOverview.tsx",
 );
+const fastCupCard = source("../app/season/components/FastCupCard.tsx");
 const model = source("../app/season/model/season-overview-model.ts");
 const styles = source("../app/styles/64-season-overview.css");
 const secondaryStyles = source(
@@ -43,6 +44,8 @@ describe("season overview page", () => {
     expect(model).toContain(
       'tournamentHref: "/tournaments/league-season-9"',
     );
+    expect(model).toContain("Регистрация проходит отдельно на каждый тур");
+    expect(section).toContain("season-overview-title-row");
   });
 
   it("shows the invitation-only cup and the named Fast Cup events", () => {
@@ -57,16 +60,20 @@ describe("season overview page", () => {
     expect(model).toContain("Linken’s Sphere CD Fastcup #8");
     expect(model).toContain("Linken’s Sphere Fastcup #15");
     expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(5);
+    expect(model.match(/tournamentHref: "\/tournaments"/g)).toHaveLength(6);
     expect(fastCupSection).toContain("fastCupOverviews.map");
+    expect(fastCupCard).toContain("Турнир для Boosty подписчиков");
+    expect(fastCupCard).toContain("Призовой фонд — {cup.prize}");
+    expect(fastCupCard).not.toContain("PRE-MADE");
   });
 
-  it("keeps the desktop overview within the viewport and isolates its styles", () => {
+  it("uses balanced desktop grids and isolates its styles", () => {
     expect(page).toContain("hasFooter={false}");
     expect(styles).toMatch(
-      /\.season-overview\s*\{[^}]*height:\s*calc\(100svh - 106px\);[^}]*overflow:\s*hidden;/,
+      /\.season-primary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
     );
-    expect(styles).toMatch(
-      /@media \(max-width:\s*1050px\)[\s\S]*\.season-overview\s*\{[^}]*height:\s*auto;[^}]*overflow:\s*visible;/,
+    expect(secondaryStyles).toMatch(
+      /\.fast-cups-grid\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\);/,
     );
     expect(routeStyles).toContain("64-season-overview.css");
     expect(secondaryStyles).toContain(".fast-cups-grid");
