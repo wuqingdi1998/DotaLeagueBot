@@ -55,9 +55,13 @@ describe("season overview page", () => {
   it("shows dated tournaments and spells Fastcup as one word", () => {
     expect(section).toContain("LeagueCupOverviewCard");
     expect(section).toContain("FastCupsOverview");
-    expect(model).toContain("Только по приглашению администрации");
-    expect(model).toContain('descriptor: "Турнир по приглашениям"');
-    expect(model).toContain("Открытой регистрации нет");
+    expect(model).toContain('descriptor: "6-недельный турнир"');
+    expect(model).toContain('participation: "Турнир по приглашениям"');
+    expect(model.match(/Турнир по приглашениям/g)).toHaveLength(1);
+    expect(model).toContain("4 команды · 5 игроков и тренер");
+    expect(model).toContain("Групповой этап: BO2, каждый с каждым.");
+    expect(model).toContain('accessLabel: "ПЛЕЙ-ОФФ · BO3"');
+    expect(model).toContain("1–2 места — верхняя сетка, 3–4 — нижняя");
     expect(model).toContain('prize: "7 500 ₽"');
     expect(model).toContain("Linken’s Sphere CD Fastcup #7");
     expect(model).toContain("Linken’s Sphere SD Fastcup #2");
@@ -102,6 +106,8 @@ describe("season overview page", () => {
     expect(secondaryStyles).toContain(
       "font-size: clamp(11px, 0.75vw, 12px);",
     );
+    expect(styles).toContain(".season-cup-card .season-final-callout");
+    expect(secondaryStyles).toContain("rgba(111, 76, 255, 0.18)");
     expect(styles).toMatch(
       /@media \(max-width: 1050px\)[\s\S]*\.season-overview\s*\{[^}]*min-height:\s*calc\(100svh - 74px\);/,
     );

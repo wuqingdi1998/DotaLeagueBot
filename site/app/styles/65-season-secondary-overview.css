@@ -1,11 +1,11 @@
 .season-cup-card {
   background:
-    linear-gradient(145deg, rgba(111, 76, 255, 0.08), transparent 56%),
+    linear-gradient(145deg, rgba(111, 76, 255, 0.18), rgba(0, 195, 255, 0.05) 52%, transparent 74%),
     var(--surface);
 }
 
 .season-cup-card::after {
-  background: rgba(111, 76, 255, 0.06);
+  background: radial-gradient(circle at 30% 30%, rgba(135, 104, 255, 0.2), rgba(33, 97, 226, 0.05) 62%, transparent 63%);
 }
 
 .fast-cups-overview {
