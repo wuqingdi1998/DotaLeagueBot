@@ -6,11 +6,10 @@ import {
   seasonRoundRegistrationGetsAutomaticCheckIn,
   seasonRoundRegistrationIsOpen,
   seasonRoundPriorityRegistrationIsOpen,
-  priorityRegistrationAdministratorId,
-  priorityRegistrationRoleIds,
   seasonTierConfirmationMessage,
 } from "@/lib/season-round-registration";
 import { refreshRoundRegistrationRankedWins } from "@/lib/season-ranked-wins/repository";
+import { hasPriorityRegistrationAccess } from "../season-route-access";
 
 export const dynamic = "force-dynamic";
 
@@ -27,7 +26,6 @@ type RegistrationTarget = {
 type RegistrationPlayer = {
   tier_status: string;
   tier: number | null;
-  has_priority_registration_access: boolean;
 };
 
 function registrationRoundId(value: unknown): number {
@@ -90,6 +88,9 @@ async function updateRegistration(
       }
 
       if (action === "register") {
+        const priorityRegistrationAccess = priorityRegistrationIsOpen
+          ? await hasPriorityRegistrationAccess(user.discordId)
+          : false;
         const playerResult = await client.query<RegistrationPlayer>(
           `SELECT tier_status,
            COALESCE(
@@ -99,22 +100,11 @@ async function updateRegistration(
                  WHEN rank_tier > 0 THEN rank_tier
                ELSE NULL
              END
-             )::int AS tier,
-           $1::text = $2::text
-             OR EXISTS (
-               SELECT 1
-               FROM player_discord_roles role
-               WHERE role.player_id = players.discord_id
-                 AND role.role_id = ANY($3::bigint[])
-             ) AS has_priority_registration_access
+             )::int AS tier
            FROM players
            WHERE discord_id = $1 AND is_archived = FALSE
            FOR UPDATE`,
-          [
-            user.discordId,
-            priorityRegistrationAdministratorId,
-            priorityRegistrationRoleIds,
-          ],
+          [user.discordId],
         );
         const player = playerResult.rows[0];
         if (
@@ -126,7 +116,7 @@ async function updateRegistration(
         ) {
           throw new Response(seasonTierConfirmationMessage, { status: 409 });
         }
-        if (priorityRegistrationIsOpen && !player.has_priority_registration_access) {
+        if (priorityRegistrationIsOpen && !priorityRegistrationAccess) {
           throw new Response(
             "Ранняя регистрация доступна подписчикам цветных рун и Суппортерам. Для остальных она откроется после общего анонса.",
             { status: 403 },

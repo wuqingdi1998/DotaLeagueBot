@@ -60,8 +60,7 @@ describe("season round registration contract", () => {
     expect(registrationRoute).toContain("requireSession");
     expect(registrationRoute).toContain("seasonRoundRegistrationIsOpen");
     expect(registrationRoute).toContain("seasonRoundPriorityRegistrationIsOpen");
-    expect(registrationRoute).toContain("priorityRegistrationRoleIds");
-    expect(registrationRoute).toContain("priorityRegistrationAdministratorId");
+    expect(registrationRoute).toContain("hasPriorityRegistrationAccess");
     expect(registrationRoute).toContain("seasonRoundCancellationIsOpen");
     expect(registrationRoute).toContain("tier_status !== \"current\"");
     expect(registrationRules).toContain("@frokeng");
