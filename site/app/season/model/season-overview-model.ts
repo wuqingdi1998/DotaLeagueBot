@@ -25,7 +25,7 @@ export const leagueOverview = {
 
 export const leagueCupOverview = {
   title: "Кубок лиги",
-  descriptor: "Середина сезона · по приглашениям",
+  descriptor: "Турнир по приглашениям",
   period: "2 ноября — 13 декабря 2026",
   summary:
     "Специальный турнир для лучших и наиболее заметных игроков лиги. Проводится в середине сезона, а участники получают приглашения по результатам выступлений в лиге.",
@@ -34,6 +34,9 @@ export const leagueCupOverview = {
   participation: "Только по приглашению администрации",
   advice:
     "Хороший результат в лиге — один из главных способов получить приглашение.",
+  accessLabel: "ТУРНИР ПО ПРИГЛАШЕНИЯМ",
+  accessExplanation:
+    "Открытой регистрации нет: администрация приглашает игроков по результатам сезона.",
   prize: "7 500 ₽",
   tournamentHref: null,
 } as const;
@@ -42,6 +45,7 @@ export type FastCupOverview = {
   title: string;
   prize: string;
   period: string;
+  format: string;
   tournamentHref: string | null;
 };
 
@@ -57,30 +61,35 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     title: "Linken’s Sphere CD Fastcup #7",
     prize: "2 000 ₽",
     period: "12–13 сентября 2026",
+    format: "Capitan's Draft",
     tournamentHref: null,
   },
   {
     title: "Linken’s Sphere SD Fastcup #2",
     prize: "2 000 ₽",
     period: "26–27 сентября 2026",
+    format: "Single Draft",
     tournamentHref: null,
   },
   {
     title: "Linken’s Sphere Fastcup #14",
     prize: "2 000 ₽",
     period: "10–11 октября 2026",
+    format: "Capitan's Mode",
     tournamentHref: null,
   },
   {
     title: "Linken’s Sphere CD Fastcup #8",
     prize: "2 000 ₽",
     period: "24–25 октября 2026",
+    format: "Capitan's Draft",
     tournamentHref: null,
   },
   {
     title: "Linken’s Sphere Fastcup #15",
     prize: "2 000 ₽",
     period: "5–6 декабря 2026",
+    format: "Capitan's Mode",
     tournamentHref: null,
   },
 ] as const;

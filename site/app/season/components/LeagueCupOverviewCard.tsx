@@ -1,10 +1,4 @@
-import {
-  FiArrowRight,
-  FiAward,
-  FiCalendar,
-  FiStar,
-  FiUserCheck,
-} from "react-icons/fi";
+import { FiArrowRight, FiAward, FiCalendar, FiStar, FiUserCheck } from "react-icons/fi";
 import { leagueCupOverview } from "../model/season-overview-model";
 
 export function LeagueCupOverviewCard() {
@@ -25,23 +19,29 @@ export function LeagueCupOverviewCard() {
 
       <p className="season-card-summary">{leagueCupOverview.summary}</p>
 
-      <div className="season-invitation-callout">
+      <div className="season-registration-callout">
         <FiUserCheck aria-hidden="true" />
+        <strong>{leagueCupOverview.participation}</strong>
+      </div>
+
+      <div className="season-scoring-line">
+        <FiStar aria-hidden="true" />
         <div>
-          <strong>{leagueCupOverview.participation}</strong>
+          <strong>{leagueCupOverview.advice}</strong>
           <span>{leagueCupOverview.invitation}</span>
         </div>
       </div>
 
-      <p className="season-cup-advice">
-        <FiStar aria-hidden="true" />
-        {leagueCupOverview.advice}
-      </p>
-
-      <div className="season-cup-prize">
-        <FiAward aria-hidden="true" />
-        <span>Призовой фонд</span>
-        <strong>{leagueCupOverview.prize}</strong>
+      <div className="season-league-outcome">
+        <div className="season-final-callout">
+          <strong>{leagueCupOverview.accessLabel}</strong>
+          <span>{leagueCupOverview.accessExplanation}</span>
+        </div>
+        <div className="season-prize">
+          <FiAward aria-hidden="true" />
+          <span>Призовой фонд</span>
+          <strong>{leagueCupOverview.prize}</strong>
+        </div>
       </div>
 
       <div className="season-card-action">

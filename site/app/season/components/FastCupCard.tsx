@@ -8,6 +8,7 @@ export function FastCupCard({ cup }: { cup: FastCupOverview }) {
       <h3>{cup.title}</h3>
       <div className="fast-cup-facts">
         <span className="fast-cup-period">{cup.period}</span>
+        <span className="fast-cup-format">{cup.format}</span>
         <span>Турнир для Boosty подписчиков</span>
         <strong>Призовой фонд — {cup.prize}</strong>
       </div>
