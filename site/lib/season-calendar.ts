@@ -24,6 +24,7 @@ export type SeasonCalendarPeriod = {
   endDate: string;
   title: string;
   color: string;
+  accentColor: string;
 };
 
 export const seasonCalendarPeriods = [
@@ -32,7 +33,8 @@ export const seasonCalendarPeriods = [
     startDate: "2026-11-02",
     endDate: "2026-12-13",
     title: "Linken's Sphere Esports League Cup Season 9",
-    color: "#FF4057",
+    color: "#D4A05B",
+    accentColor: "#72977A",
   },
 ] as const satisfies readonly SeasonCalendarPeriod[];
 
@@ -75,6 +77,8 @@ export type CalendarMonth = {
 };
 
 export type CalendarPeriodSegment = SeasonCalendarPeriod & {
+  hasBottomEdge: boolean;
+  hasTopEdge: boolean;
   startRow: number;
   rowSpan: number;
   rowCount: number;
@@ -171,6 +175,8 @@ export function buildCalendarPeriodSegments(
     return [
       {
         ...period,
+        hasBottomEdge: period.endDate <= lastDate,
+        hasTopEdge: period.startDate >= firstDate,
         startRow,
         rowSpan: endRow - startRow + 1,
         rowCount: month.days.length / 7,

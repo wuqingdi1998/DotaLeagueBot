@@ -47,11 +47,17 @@ describe("season calendar", () => {
       title: "Linken's Sphere Esports League Cup Season 9",
       startDate: "2026-11-02",
       endDate: "2026-12-13",
+      color: "#D4A05B",
+      accentColor: "#72977A",
+      hasTopEdge: true,
+      hasBottomEdge: false,
       startRow: 1,
       rowSpan: 5,
       rowCount: 6,
     });
     expect(decemberSegment).toMatchObject({
+      hasTopEdge: false,
+      hasBottomEdge: true,
       startRow: 0,
       rowSpan: 2,
       rowCount: 5,

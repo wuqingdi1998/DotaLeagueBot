@@ -198,7 +198,6 @@
 
 .calendar-period-edge::before {
   position: absolute;
-  background: var(--calendar-period-color);
   content: "";
 }
 
@@ -227,6 +226,11 @@
   right: 0;
   left: 0;
   height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--calendar-period-color),
+    var(--calendar-period-accent-color)
+  );
 }
 
 .calendar-period-edge.is-top::before {
@@ -261,10 +265,12 @@
 
 .calendar-period-edge.is-left::before {
   left: 5px;
+  background: var(--calendar-period-color);
 }
 
 .calendar-period-edge.is-right::before {
   right: 5px;
+  background: var(--calendar-period-accent-color);
 }
 
 .calendar-day {

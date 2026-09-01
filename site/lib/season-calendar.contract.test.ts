@@ -79,6 +79,10 @@ describe("season nine calendar contract", () => {
     expect(periodOutline).toContain('className="calendar-period-outline"');
     expect(periodOutline).toContain("data-tooltip={period.title}");
     expect(periodOutline).toContain("aria-label={period.title}");
+    expect(periodOutline).toContain('edge !== "top" || period.hasTopEdge');
+    expect(periodOutline).toContain(
+      'edge !== "bottom" || period.hasBottomEdge',
+    );
     expect(calendarStyles).toMatch(
       /\.calendar-period-outline\s*\{[^}]*position:\s*absolute;[^}]*pointer-events:\s*none;/,
     );
@@ -86,7 +90,7 @@ describe("season nine calendar contract", () => {
       /\.calendar-period-edge\s*\{[^}]*background:\s*transparent;[^}]*pointer-events:\s*auto;/,
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-period-edge::before\s*\{[^}]*background:\s*var\(--calendar-period-color\);/,
+      /\.calendar-period-edge\.is-top::before,[\s\S]*background:\s*linear-gradient\([\s\S]*var\(--calendar-period-color\),[\s\S]*var\(--calendar-period-accent-color\)/,
     );
     expect(calendarStyles).toContain(
       ".calendar-period-outline:has(.calendar-period-edge:hover)::after",
