@@ -221,7 +221,20 @@ async def deliver_pending_channel_announcements(
                         """
                         UPDATE tournaments
                         SET status = 'registration', updated_at = NOW()
-                        WHERE slug = :slug AND status = 'draft'
+                        WHERE slug = :slug AND status IN ('draft', 'planned')
+                        """
+                    ),
+                    {"slug": announcement.tournament_slug_to_publish},
+                )
+                await session.execute(
+                    text(
+                        """
+                        UPDATE season_rounds AS round
+                        SET is_visible = TRUE, updated_at = NOW()
+                        FROM tournaments AS tournament
+                        WHERE round.tournament_id = tournament.id
+                          AND tournament.slug = :slug
+                          AND round.round_kind = 'regular'
                         """
                     ),
                     {"slug": announcement.tournament_slug_to_publish},

@@ -25,6 +25,13 @@ PRODUCTION_MIGRATION = (
     / "migrations"
     / "0104_season_nine_registration_announcements.sql"
 ).read_text(encoding="utf-8")
+PUBLISH_SEASON_MIGRATION = (
+    ROOT
+    / "bot"
+    / "database"
+    / "migrations"
+    / "0105_publish_season_nine_registration.sql"
+).read_text(encoding="utf-8")
 
 
 class FakeChannel:
@@ -179,7 +186,7 @@ def test_production_queue_schedules_two_announcements_for_each_round() -> None:
     assert "ON CONFLICT (dedupe_key) DO NOTHING" in PRODUCTION_MIGRATION
 
 
-def test_successful_announcement_publishes_draft_and_queues_report() -> None:
+def test_successful_announcement_publishes_season_and_queues_report() -> None:
     delivery = (
         ROOT / "bot" / "services" / "channel_announcement_delivery.py"
     ).read_text(encoding="utf-8")
@@ -188,10 +195,19 @@ def test_successful_announcement_publishes_draft_and_queues_report() -> None:
     )
 
     assert "SET status = 'registration', updated_at = NOW()" in delivery
-    assert "WHERE slug = :slug AND status = 'draft'" in delivery
+    assert "WHERE slug = :slug AND status IN ('draft', 'planned')" in delivery
+    assert "SET is_visible = TRUE, updated_at = NOW()" in delivery
+    assert "AND round.round_kind = 'regular'" in delivery
     assert "discord_message_url = :message_url" in delivery
     assert "report_status = 'pending'" in delivery
     assert "deliver_pending_announcement_reports(self.bot, session)" in cog
+
+
+def test_season_nine_publish_migration_opens_registration_and_regular_rounds() -> None:
+    assert "slug = 'league-season-9'" in PUBLISH_SEASON_MIGRATION
+    assert "status IN ('draft', 'planned')" in PUBLISH_SEASON_MIGRATION
+    assert "SET is_visible = TRUE, updated_at = NOW()" in PUBLISH_SEASON_MIGRATION
+    assert "round.round_kind = 'regular'" in PUBLISH_SEASON_MIGRATION
 
 
 def test_production_bot_image_contains_announcement_images() -> None:
