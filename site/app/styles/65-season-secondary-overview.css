@@ -151,6 +151,12 @@
   background: var(--surface-blue);
 }
 
+.fast-cup-card.is-disabled:hover {
+  transform: none;
+  border-color: var(--line);
+  background: var(--surface-soft);
+}
+
 .fast-cup-card-link {
   display: flex;
   min-height: 188px;
@@ -185,6 +191,11 @@
   white-space: nowrap;
 }
 
+.fast-cup-period {
+  color: var(--blue-deep);
+  font-weight: 700;
+}
+
 .fast-cup-open-link {
   display: inline-flex;
   align-items: center;
@@ -197,6 +208,12 @@
 
 .fast-cup-open-link svg {
   flex: 0 0 auto;
+}
+
+.fast-cup-open-link.is-disabled {
+  cursor: not-allowed;
+  color: var(--muted);
+  opacity: 0.72;
 }
 
 @media (max-width: 1050px) {

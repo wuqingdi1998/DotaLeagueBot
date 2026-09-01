@@ -1,5 +1,11 @@
 import Link from "next/link";
-import { FiArrowRight, FiAward, FiTarget, FiUserCheck } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiAward,
+  FiCalendar,
+  FiTarget,
+  FiUserCheck,
+} from "react-icons/fi";
 import { leagueOverview } from "../model/season-overview-model";
 
 export function LeagueOverviewCard() {
@@ -16,6 +22,11 @@ export function LeagueOverviewCard() {
         </div>
         <span className="season-format-badge">{leagueOverview.descriptor}</span>
       </div>
+
+      <p className="season-card-period">
+        <FiCalendar aria-hidden="true" />
+        {leagueOverview.period}
+      </p>
 
       <p className="season-card-summary">{leagueOverview.summary}</p>
 

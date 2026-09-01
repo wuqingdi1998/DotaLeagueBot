@@ -1,5 +1,10 @@
-import Link from "next/link";
-import { FiArrowRight, FiAward, FiStar, FiUserCheck } from "react-icons/fi";
+import {
+  FiArrowRight,
+  FiAward,
+  FiCalendar,
+  FiStar,
+  FiUserCheck,
+} from "react-icons/fi";
 import { leagueCupOverview } from "../model/season-overview-model";
 
 export function LeagueCupOverviewCard() {
@@ -12,6 +17,11 @@ export function LeagueCupOverviewCard() {
         </div>
         <span className="season-format-badge">{leagueCupOverview.descriptor}</span>
       </div>
+
+      <p className="season-card-period">
+        <FiCalendar aria-hidden="true" />
+        {leagueCupOverview.period}
+      </p>
 
       <p className="season-card-summary">{leagueCupOverview.summary}</p>
 
@@ -35,13 +45,13 @@ export function LeagueCupOverviewCard() {
       </div>
 
       <div className="season-card-action">
-        <Link
-          className="season-tournament-link"
-          href={leagueCupOverview.tournamentHref}
+        <span
+          className="season-tournament-link is-disabled"
+          aria-disabled="true"
         >
           Открыть кубок
           <FiArrowRight aria-hidden="true" />
-        </Link>
+        </span>
       </div>
     </article>
   );

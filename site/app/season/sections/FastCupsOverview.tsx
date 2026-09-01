@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { FiArrowRight } from "react-icons/fi";
 import { FastCupCard } from "../components/FastCupCard";
 import {
   fastCupIntroduction,
@@ -12,7 +14,7 @@ export function FastCupsOverview() {
           <span className="season-card-kicker">
             {fastCupIntroduction.descriptor}
           </span>
-          <h2 id="fast-cups-title">Fast Cup</h2>
+          <h2 id="fast-cups-title">Fastcup</h2>
         </div>
         <p>{fastCupIntroduction.summary}</p>
         <Link
@@ -31,5 +33,3 @@ export function FastCupsOverview() {
     </section>
   );
 }
-import Link from "next/link";
-import { FiArrowRight } from "react-icons/fi";

@@ -12,12 +12,19 @@ const fastCupSection = source(
   "../app/season/sections/FastCupsOverview.tsx",
 );
 const fastCupCard = source("../app/season/components/FastCupCard.tsx");
+const leagueCupCard = source(
+  "../app/season/components/LeagueCupOverviewCard.tsx",
+);
 const model = source("../app/season/model/season-overview-model.ts");
 const styles = source("../app/styles/64-season-overview.css");
 const secondaryStyles = source(
   "../app/styles/65-season-secondary-overview.css",
 );
+const desktopStyles = source(
+  "../app/styles/66-season-overview-desktop.css",
+);
 const routeStyles = source("../app/styles/season-route.css");
+const seasonRule = source("../../.codex/rules/07-season-page.md");
 
 describe("season overview page", () => {
   it("adds the season page to desktop and mobile navigation", () => {
@@ -48,7 +55,7 @@ describe("season overview page", () => {
     expect(section).toContain("season-overview-title-row");
   });
 
-  it("shows the invitation-only cup and the named Fast Cup events", () => {
+  it("shows dated tournaments and spells Fastcup as one word", () => {
     expect(section).toContain("LeagueCupOverviewCard");
     expect(section).toContain("FastCupsOverview");
     expect(model).toContain("Только по приглашению администрации");
@@ -59,12 +66,22 @@ describe("season overview page", () => {
     expect(model).toContain("Linken’s Sphere Fastcup #14");
     expect(model).toContain("Linken’s Sphere CD Fastcup #8");
     expect(model).toContain("Linken’s Sphere Fastcup #15");
+    expect(model).toContain('period: "6 сентября — 20 декабря 2026"');
+    expect(model).toContain('period: "2 ноября — 13 декабря 2026"');
+    expect(model).toContain('period: "12–13 сентября 2026"');
+    expect(model).toContain('period: "5–6 декабря 2026"');
+    expect(model.match(/period: "/g)).toHaveLength(7);
     expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(5);
-    expect(model.match(/tournamentHref: "\/tournaments"/g)).toHaveLength(6);
+    expect(model.match(/tournamentHref: null/g)).toHaveLength(6);
     expect(fastCupSection).toContain("fastCupOverviews.map");
+    expect(fastCupSection).toContain(">Fastcup<");
     expect(fastCupCard).toContain("Турнир для Boosty подписчиков");
     expect(fastCupCard).toContain("Призовой фонд — {cup.prize}");
+    expect(fastCupCard).toContain("fast-cup-period");
+    expect(fastCupCard).toContain("is-disabled");
+    expect(leagueCupCard).toContain("season-tournament-link is-disabled");
     expect(fastCupCard).not.toContain("PRE-MADE");
+    expect(model).not.toContain(["Fast", "Cup"].join(" "));
   });
 
   it("uses balanced desktop grids and isolates its styles", () => {
@@ -77,8 +94,17 @@ describe("season overview page", () => {
     );
     expect(routeStyles).toContain("64-season-overview.css");
     expect(secondaryStyles).toContain(".fast-cups-grid");
+    expect(desktopStyles).toMatch(
+      /@media \(min-width: 1051px\)[\s\S]*\.season-overview\s*\{[^}]*height:\s*calc\(100svh - 106px\);[^}]*overflow:\s*hidden;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width: 1050px\)[\s\S]*\.season-overview\s*\{[^}]*min-height:\s*calc\(100svh - 74px\);/,
+    );
     const layout = source("../app/season/layout.tsx");
     expect(layout).toContain("season-route.css");
     expect(layout).toContain("65-season-secondary-overview.css");
+    expect(layout).toContain("66-season-overview-desktop.css");
+    expect(seasonRule).toContain("1280 × 720");
+    expect(seasonRule).toContain("не требует вертикальной или горизонтальной");
   });
 });

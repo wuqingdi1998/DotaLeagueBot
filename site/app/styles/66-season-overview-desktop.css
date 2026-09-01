@@ -1,0 +1,263 @@
+@media (min-width: 1051px) {
+  .season-overview {
+    height: calc(100svh - 106px);
+    min-height: 610px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 13px clamp(24px, 5vw, 64px) 15px;
+    overflow: hidden;
+  }
+
+  .season-overview-heading {
+    max-width: none;
+    grid-template-columns: minmax(0, 1fr) 222px;
+    gap: 14px;
+  }
+
+  .season-overview-copy {
+    gap: 3px;
+  }
+
+  .season-overview-heading .eyebrow {
+    font-size: 9px;
+  }
+
+  .season-overview-heading h1 {
+    font-size: clamp(29px, 2.7vw, 38px);
+  }
+
+  .season-overview-title-row {
+    gap: 10px;
+  }
+
+  .season-overview-title-row > span {
+    padding: 5px 9px;
+    font-size: 9px;
+  }
+
+  .season-overview-copy > p:last-child {
+    max-width: 1050px;
+    font-size: 10px;
+    line-height: 1.28;
+  }
+
+  .season-calendar-card {
+    gap: 8px;
+    border-radius: 13px;
+    padding: 8px 10px;
+  }
+
+  .season-calendar-card-icon {
+    width: 29px;
+    height: 29px;
+  }
+
+  .season-calendar-card small {
+    font-size: 8px;
+  }
+
+  .season-calendar-card strong {
+    font-size: 10px;
+  }
+
+  .season-primary-grid {
+    min-height: 0;
+    gap: 10px;
+  }
+
+  .season-feature-card {
+    gap: 6px;
+    border-radius: 17px;
+    padding: 11px 13px;
+  }
+
+  .season-card-heading {
+    gap: 10px;
+  }
+
+  .season-card-kicker {
+    font-size: 8.5px;
+  }
+
+  .season-card-heading h2 {
+    margin-top: 2px;
+    font-size: clamp(25px, 2.35vw, 33px);
+  }
+
+  .season-format-badge {
+    max-width: 190px;
+    padding: 6px 9px;
+    font-size: 9px;
+  }
+
+  .season-card-period {
+    gap: 5px;
+    font-size: 9.5px;
+  }
+
+  .season-card-summary {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .season-registration-callout,
+  .season-scoring-line {
+    gap: 7px;
+    border-radius: 11px;
+    padding: 7px 9px;
+    font-size: 9.5px;
+    line-height: 1.25;
+  }
+
+  .season-scoring-line > div {
+    gap: 1px;
+  }
+
+  .season-scoring-line strong {
+    font-size: 9.5px;
+  }
+
+  .season-scoring-line span {
+    font-size: 8.5px;
+  }
+
+  .season-league-outcome {
+    gap: 7px;
+  }
+
+  .season-final-callout {
+    gap: 3px;
+    border-radius: 12px;
+    padding: 8px 10px;
+  }
+
+  .season-final-callout strong {
+    font-size: clamp(20px, 2vw, 28px);
+  }
+
+  .season-final-callout span {
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .season-prize {
+    min-width: 130px;
+    gap: 1px;
+    border-radius: 12px;
+    padding: 8px 11px;
+  }
+
+  .season-prize span {
+    font-size: 8.5px;
+  }
+
+  .season-prize strong {
+    font-size: 21px;
+  }
+
+  .season-card-action {
+    padding-top: 0;
+  }
+
+  .season-calendar-link,
+  .season-tournament-link {
+    min-height: 31px;
+    border-radius: 9px;
+    padding: 0 10px;
+    font-size: 10px;
+  }
+
+  .season-tournament-link {
+    min-width: 126px;
+  }
+
+  .season-invitation-callout {
+    gap: 7px;
+    border-radius: 11px;
+    padding: 7px 9px;
+  }
+
+  .season-invitation-callout strong {
+    font-size: 9.5px;
+    line-height: 1.25;
+  }
+
+  .season-invitation-callout span {
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .season-cup-advice {
+    gap: 6px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .season-cup-prize {
+    gap: 1px 6px;
+    border-radius: 11px;
+    padding: 7px 10px;
+  }
+
+  .season-cup-prize span {
+    font-size: 8px;
+  }
+
+  .season-cup-prize strong {
+    font-size: 19px;
+  }
+
+  .fast-cups-overview {
+    min-height: 0;
+    gap: 6px;
+    border-radius: 16px;
+    padding: 9px 12px;
+  }
+
+  .fast-cups-heading {
+    grid-template-columns: auto minmax(220px, 1fr) auto;
+    gap: 12px;
+  }
+
+  .fast-cups-heading h2 {
+    margin-top: 2px;
+    font-size: 22px;
+  }
+
+  .fast-cups-heading > p {
+    max-width: 650px;
+    font-size: 9px;
+    line-height: 1.25;
+  }
+
+  .fast-cups-grid {
+    min-height: 0;
+    gap: 7px;
+  }
+
+  .fast-cup-card {
+    border-radius: 11px;
+  }
+
+  .fast-cup-card-link {
+    min-height: 92px;
+    gap: 5px;
+    padding: 7px 9px;
+  }
+
+  .fast-cup-card h3 {
+    font-size: 11px;
+    line-height: 1.08;
+  }
+
+  .fast-cup-facts {
+    gap: 1px;
+    font-size: 7.8px;
+    line-height: 1.25;
+  }
+
+  .fast-cup-open-link {
+    gap: 4px;
+    font-size: 8px;
+  }
+}

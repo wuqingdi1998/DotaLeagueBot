@@ -13,14 +13,21 @@
   display: grid;
   width: 100%;
   max-width: 1220px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 12px;
+}
+
+.season-overview-copy {
+  display: grid;
+  min-width: 0;
+  gap: 7px;
 }
 
 .season-overview-title-row {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
+  align-items: center;
+  gap: 14px;
 }
 
 .season-overview-heading .eyebrow {
@@ -41,12 +48,72 @@
   text-transform: uppercase;
 }
 
-.season-overview-heading > p:last-child {
+.season-overview-title-row > span {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: var(--surface-blue);
+  color: var(--blue-deep);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.season-overview-copy > p:last-child {
   max-width: 1120px;
   margin: 0;
   color: var(--muted);
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.55;
+}
+
+.season-calendar-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  padding: 11px 13px;
+  background: var(--surface);
+  box-shadow: 0 10px 28px rgba(26, 104, 148, 0.08);
+  color: var(--text);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.season-calendar-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--blue-strong);
+  background: var(--surface-blue);
+}
+
+.season-calendar-card-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--blue-gradient);
+  color: #fff;
+}
+
+.season-calendar-card > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.season-calendar-card small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.season-calendar-card strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.season-calendar-card > svg {
+  color: var(--blue-strong);
 }
 
 .season-primary-grid {
@@ -147,6 +214,24 @@
   color: var(--muted);
   font-size: clamp(13px, 1vw, 15px);
   line-height: 1.55;
+}
+
+.season-card-period {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  color: var(--blue-deep);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.season-card-period svg {
+  flex: 0 0 auto;
+  color: var(--blue-strong);
 }
 
 .season-registration-callout,
@@ -288,6 +373,19 @@
   color: #fff;
 }
 
+.season-tournament-link.is-disabled {
+  cursor: not-allowed;
+  background: var(--surface-soft);
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.season-tournament-link.is-disabled:hover {
+  transform: none;
+  background: var(--surface-soft);
+  color: var(--muted);
+}
+
 @media (max-width: 1050px) {
   .season-overview {
     min-height: calc(100svh - 74px);
@@ -295,6 +393,14 @@
 
   .season-primary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .season-overview-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .season-calendar-card {
+    width: fit-content;
   }
 }
 
@@ -308,6 +414,10 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 10px;
+  }
+
+  .season-overview-title-row > span {
+    white-space: normal;
   }
 
   .season-feature-card {
