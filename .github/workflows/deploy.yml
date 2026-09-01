@@ -186,16 +186,15 @@ jobs:
             done
 
             for attempt in $(seq 1 30); do
-              due_announcements="$(docker compose exec -T db sh -c \
+              preview_delivery="$(docker compose exec -T db sh -c \
                 'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT COUNT(*) FROM channel_announcement_outbox
-                 WHERE available_at <= NOW() AND status <> '\''sent'\''"')"
-              if [ "$due_announcements" = "0" ]; then
-                sent_announcements="$(docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                  "SELECT COUNT(*) FROM channel_announcement_outbox
-                   WHERE status = '\''sent'\''"')"
-                echo "Delivered channel announcements: $sent_announcements"
+                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                    || '\''|'\'' ||
+                    COUNT(*) FILTER (WHERE status <> '\''sent'\'')
+                 FROM channel_announcement_outbox
+                 WHERE dedupe_key LIKE '\''season9-registration-preview-round-%'\''"')"
+              if [ "$preview_delivery" = "14|0" ]; then
+                echo "Delivered season 9 preview announcements: 14"
                 break
               fi
               if [ "$attempt" -eq 30 ]; then
@@ -203,7 +202,7 @@ jobs:
                   'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
                   "SELECT dedupe_key, status, attempts, last_error
                    FROM channel_announcement_outbox
-                   WHERE available_at <= NOW() AND status <> '\''sent'\''
+                   WHERE dedupe_key LIKE '\''season9-registration-preview-round-%'\''
                    ORDER BY id"'
                 docker compose logs --tail=200 bot
                 exit 1

@@ -92,5 +92,5 @@ def test_production_bot_image_contains_announcement_images() -> None:
     assert "COPY anounce/Reg/ ./assets/league-registration/" in dockerfile
     assert compose.count("dockerfile: bot/Dockerfile") == 2
     assert "docker build --tag dotaleaguebot-bot:deploy --file bot/Dockerfile ." in deploy
-    assert "Delivered channel announcements: $sent_announcements" in deploy
-    assert "available_at <= NOW() AND status <> '\\''sent'\\''" in deploy
+    assert "Delivered season 9 preview announcements: 14" in deploy
+    assert 'if [ "$preview_delivery" = "14|0" ]' in deploy
