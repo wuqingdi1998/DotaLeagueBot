@@ -13,6 +13,10 @@ if (!sourcePath || !sqlPath || !reportPath) {
 const source = fs.readFileSync(sourcePath, "utf8").replace(/^\uFEFF/, "");
 const tournaments = parseFastcupWorkbooks(JSON.parse(source));
 const expected = {
+  6: { teams: 6, matches: 9 },
+  7: { teams: 4, matches: 8 },
+  8: { teams: 6, matches: 11 },
+  9: { teams: 3, matches: 5 },
   10: { teams: 4, matches: 7 },
   11: { teams: 6, matches: 12 },
   12: { teams: 4, matches: 8 },

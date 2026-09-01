@@ -27,6 +27,21 @@ export const fetchLivePlayers = async () => {
 };
 
 const sourceCorrections = {
+  6: [
+    "Команда «KOMARU v6.8k» в составах и сетке названа «AVE SONYA»; на сайте сохранено заявочное название «KOMARU v6.8k».",
+    "В расписании полуфиналы подписаны «НС Ф», а в сетке — «ПО»; внесены два полуфинала по фактической сетке.",
+  ],
+  7: [
+    "В составе название «NON-ALCO 0.0%» записано с точкой, а в заявке и сетке — «NON-ALCO 0,0%»; сохранён вариант из заявки.",
+    "В расписании слот 12 октября в 20:00 повторно подписан «ГЭ Р1»; по сетке это второй тур, поэтому внесён второй тур.",
+  ],
+  8: [
+    "В описании формата осталось «4 команды (возможно расширение до 6)», но заявлены и сыграли 6 команд; внесены все 6.",
+    "В расписании слот 7 декабря в 19:30 повторно подписан «ГЭ Р1»; по сетке это второй тур, поэтому внесён второй тур.",
+  ],
+  9: [
+    "В сетке перед названием TEAM SWEETBUBBLES остался технический префикс TBA; на сайте он убран.",
+  ],
   10: [
     "В расписании третьего дня написано «ГЭ Р3 (2 матча) [bo3]», но сетка показывает гранд-финал из одного BO3; внесён гранд-финал.",
   ],
@@ -77,13 +92,21 @@ export const buildFastcupReport = (tournaments, livePlayers) => {
   const identityConflicts = findDotaIdConflicts(tournaments);
   const sharedIdConflicts = findSharedDotaIdConflicts(tournaments);
   const totalTeams = tournaments.reduce((sum, item) => sum + item.teams.length, 0);
+  const numbers = tournaments.map((tournament) => tournament.number).sort((a, b) => a - b);
+  const range = numbers.length === 1 ? `#${numbers[0]}` : `#${numbers[0]}–${numbers.at(-1)}`;
+  const hasMmrWorkbooks = tournaments.some((tournament) => tournament.hasMmrSheet);
+  const hasTierWorkbooks = tournaments.some((tournament) => tournament.hasTierSheet);
   const report = [
-    "# Проверка импорта LS Fastcup #10–13",
+    `# Проверка импорта LS Fastcup ${range}`,
     "",
     `Проверено турниров: **${tournaments.length}**, команд: **${totalTeams}**, мест в составах: **${totalTeams * 5}**.`,
     "",
-    "Листы «Тир игроков» не переносятся на сайт отдельными таблицами. Они использованы только для тиров в составах и точного сопоставления профилей.",
-    "",
+    ...(hasTierWorkbooks
+      ? ["Листы «Тир игроков» не переносятся на сайт отдельными таблицами. Они использованы только для тиров в составах и точного сопоставления профилей.", ""]
+      : []),
+    ...(hasMmrWorkbooks
+      ? ["Листы «ММР игроков» не переносятся на сайт отдельными таблицами. ММР использован только для проверки составов, а ссылки Stratz — для точного сопоставления профилей. ММР не записывался в поле тира.", ""]
+      : []),
     "Роли во всех книгах помечены как предположительные. Они перенесены в порядке 1–5. Капитаны в источниках не отмечены, поэтому капитанские отметки не ставились.",
     "",
     "Точное время закрытия регистрации не указано: технически оно поставлено на время первого матча. Точное время завершения турниров тоже отсутствует: поставлен конец последнего календарного дня, 23:59 по Москве.",
@@ -96,6 +119,9 @@ export const buildFastcupReport = (tournaments, livePlayers) => {
     const missingTiers = tournament.teams.flatMap((team) => team.players
       .filter((player) => !Number.isInteger(player.tier))
       .map((player) => `${team.teamName}: ${player.nickname}`));
+    const missingMmr = tournament.teams.flatMap((team) => team.players
+      .filter((player) => !Number.isInteger(player.mmr))
+      .map((player) => `${team.teamName}: ${player.nickname}`));
     const tournamentIdentityConflicts = identityConflicts.filter((items) =>
       items.some((item) => item.tournamentNumber === tournament.number),
     );
@@ -107,16 +133,21 @@ export const buildFastcupReport = (tournaments, livePlayers) => {
       "",
       `- Период: ${tournament.metadata.startAt.slice(0, 10)} — ${tournament.metadata.endAt.slice(0, 10)}.`,
       `- Команд: ${tournament.teams.length}; матчей: ${tournament.matches.length}; правил: ${tournament.rules.length}.`,
-      `- Лист «Тир игроков»: ${tournament.hasTierSheet ? "использован как справочник" : "отсутствует"}.`,
+      `- Справочный лист игроков: ${tournament.hasMmrSheet ? "«ММР игроков»" : tournament.hasTierSheet ? "«Тир игроков»" : "отсутствует"}.`,
       "",
       "### Команды и составы",
       "",
     );
     for (const team of tournament.teams) {
       const roster = team.players
-        .map((player) => `${player.nickname} — тир ${player.tier ?? "не указан"}`)
+        .map((player) => tournament.hasMmrSheet
+          ? `${player.nickname} — ММР ${player.mmr ?? "не указан"}`
+          : `${player.nickname} — тир ${player.tier ?? "не указан"}`)
         .join("; ");
-      report.push(`- **${team.teamName}** — ${team.resultLabel}, суммарный тир ${team.tierTotal ?? "не удалось определить"}: ${roster}.`);
+      const total = tournament.hasMmrSheet
+        ? `суммарный ММР ${team.mmrTotal ?? "не удалось определить полностью"}`
+        : `суммарный тир ${team.tierTotal ?? "не удалось определить"}`;
+      report.push(`- **${team.teamName}** — ${team.resultLabel}, ${total}: ${roster}.`);
     }
     report.push(
       "",
@@ -134,7 +165,11 @@ export const buildFastcupReport = (tournaments, livePlayers) => {
       "",
       "### Неполные и спорные данные",
       "",
-      ...(missingTiers.length
+      ...(tournament.hasMmrSheet && missingMmr.length
+        ? missingMmr.map((entry) => `- На листе «ММР игроков» не найден ММР — ${entry}.`)
+        : tournament.hasMmrSheet
+          ? ["- ММР найден для всех игроков состава."]
+          : missingTiers.length
         ? missingTiers.map((entry) => `- Не найден индивидуальный тир — ${entry}.`)
         : ["- Индивидуальные тиры заполнены для всех игроков."]),
       ...tournamentIdentityConflicts.map((items) => {

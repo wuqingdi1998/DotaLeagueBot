@@ -206,6 +206,13 @@ LS_FASTCUP_10_13_MIGRATION = (
     / "0107_ls_fastcup_10_13.sql"
 ).read_text(encoding="utf-8")
 
+LS_FASTCUP_6_9_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0108_ls_fastcup_6_9.sql"
+).read_text(encoding="utf-8")
+
 FASTCUP_4_TITLE_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -405,6 +412,49 @@ def test_ls_fastcup_10_13_archive_is_complete() -> None:
     assert LS_FASTCUP_10_13_MIGRATION.count('"nickname":') == 90
     assert LS_FASTCUP_10_13_MIGRATION.count('"matchKey":') == 35
     assert "Лист «Тир игроков» использован только" in LS_FASTCUP_10_13_MIGRATION
+
+
+def test_ls_fastcup_6_9_archive_is_complete() -> None:
+    for number in range(6, 10):
+        assert f'"slug":"ls-fastcup-{number}"' in LS_FASTCUP_6_9_MIGRATION
+    assert LS_FASTCUP_6_9_MIGRATION.count('"nickname":') == 95
+    assert LS_FASTCUP_6_9_MIGRATION.count('"matchKey":') == 33
+    assert LS_FASTCUP_6_9_MIGRATION.count('"tier":null') == 95
+    assert '"groupName":"Группа А"' in LS_FASTCUP_6_9_MIGRATION
+    assert '"groupName":"Группа Б"' in LS_FASTCUP_6_9_MIGRATION
+    assert "Сумма ММР пяти игроков — не более 23500" in LS_FASTCUP_6_9_MIGRATION
+
+
+def test_ls_fastcup_6_9_avoids_unsafe_identity_links() -> None:
+    roster_json = re.search(
+        r"\$rosters\$\n(.+?)\n\$rosters\$::jsonb",
+        LS_FASTCUP_6_9_MIGRATION,
+        re.DOTALL,
+    )
+    assert roster_json is not None
+    rosters = json.loads(roster_json.group(1))
+    assert all(roster["dotaId"] != "303682892" for roster in rosters)
+    assert all(roster["tier"] is None for roster in rosters)
+    assert all(roster["teamName"] != "AVE SONYA" for roster in rosters)
+
+
+def test_ls_fastcup_6_9_matches_reference_existing_teams_and_groups() -> None:
+    sections: dict[str, list[dict[str, object]]] = {}
+    for tag in ("teams", "groups", "matches"):
+        section = re.search(
+            rf"\${tag}\$\n(.+?)\n\${tag}\$::jsonb",
+            LS_FASTCUP_6_9_MIGRATION,
+            re.DOTALL,
+        )
+        assert section is not None
+        sections[tag] = json.loads(section.group(1))
+    team_keys = {(item["slug"], item["teamName"]) for item in sections["teams"]}
+    group_keys = {(item["slug"], item["groupName"]) for item in sections["groups"]}
+    for match in sections["matches"]:
+        assert (match["slug"], match["teamA"]) in team_keys
+        assert (match["slug"], match["teamB"]) in team_keys
+        if match["groupName"] is not None:
+            assert (match["slug"], match["groupName"]) in group_keys
 
 
 def test_ls_fastcup_historical_nicks_share_a_dota_identity() -> None:

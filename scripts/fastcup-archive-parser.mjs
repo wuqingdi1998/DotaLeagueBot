@@ -17,6 +17,9 @@ export const clean = (value) =>
 
 export const key = (value) => clean(value).toLocaleLowerCase("ru");
 
+const cleanPlayerNickname = (value) =>
+  clean(value).replace(/\s*⚜️?\s*$/u, "");
+
 const displayedRows = (sheet) => sheet?.DisplayRows ?? sheet?.Rows ?? [];
 
 const findSheet = (workbook, name) =>
@@ -39,25 +42,42 @@ const scoreFrom = (rows, rowIndex, columnIndex) => {
 
 const seriesBestOf = (format) => Number(clean(format).match(/\d+/)?.[0] ?? 1);
 
-const parseTierSheet = (workbook) => {
-  const sheet = findSheet(workbook, "Тир игроков");
-  if (!sheet) return new Map();
-  const tiers = new Map();
+const parsePlayerReferenceSheet = (workbook) => {
+  const tierSheet = findSheet(workbook, "Тир игроков");
+  const mmrSheet = findSheet(workbook, "ММР игроков");
+  const sheet = tierSheet ?? mmrSheet;
+  if (!sheet) return { entries: new Map(), kind: null };
+  const kind = tierSheet ? "tier" : "mmr";
+  const entries = new Map();
   for (const [rowIndex, row] of displayedRows(sheet).slice(1).entries()) {
     const nickname = clean(row[1]);
-    const tier = numberFrom(row[2]);
-    if (!nickname || !Number.isInteger(tier)) continue;
-    const link = clean(
-      sheet.HyperlinkRows?.[rowIndex + 1]?.[4] ?? row[4],
-    );
-    tiers.set(key(nickname), {
+    if (!nickname) continue;
+    const tier = kind === "tier" ? numberFrom(row[2]) : null;
+    const mmr = kind === "mmr"
+      ? row.map(numberFrom).find((value) => Number.isInteger(value) && value >= 1000) ?? null
+      : null;
+    const sourceRowIndex = rowIndex + 1;
+    const links = [
+      ...(sheet.HyperlinkRows?.[sourceRowIndex] ?? []),
+      ...row,
+    ].map(clean);
+    const dotaId = links
+      .map((value) => value.match(/players\/(\d+)/i)?.[1] ?? null)
+      .find(Boolean) ?? null;
+    const entry = {
       nickname,
       tier,
-      dotaId: link.match(/players\/(\d+)/i)?.[1] ?? null,
-    });
+      mmr,
+      dotaId,
+    };
+    entries.set(key(nickname), entry);
+    entries.set(key(knownFastcupAliases[key(nickname)] ?? nickname), entry);
   }
-  return tiers;
+  return { entries, kind };
 };
+
+const canonicalTeamName = (teamName, metadata) =>
+  metadata.teamNameAliases?.[key(teamName)] ?? clean(teamName);
 
 const parseTeams = (tournamentRows) => {
   const teams = [];
@@ -81,12 +101,12 @@ const parseTeams = (tournamentRows) => {
   return teams;
 };
 
-const tierForRoster = (nickname, tierMap) => {
+const referenceForRoster = (nickname, referenceMap) => {
   const linkedNickname = knownFastcupAliases[key(nickname)] ?? nickname;
-  return tierMap.get(key(nickname)) ?? tierMap.get(key(linkedNickname)) ?? null;
+  return referenceMap.get(key(nickname)) ?? referenceMap.get(key(linkedNickname)) ?? null;
 };
 
-const parseRosters = (workbook, teams, tierMap, discrepancies) => {
+const parseRosters = (workbook, teams, referenceMap, metadata, discrepancies) => {
   const sheet = findSheet(workbook, "Составы");
   if (!sheet) throw new Error(`${workbook.FileName}: не найден лист «Составы»`);
   const rows = displayedRows(sheet);
@@ -94,35 +114,38 @@ const parseRosters = (workbook, teams, tierMap, discrepancies) => {
   for (const [rowIndex, row] of rows.entries()) {
     for (let columnIndex = 0; columnIndex < row.length - 1; columnIndex += 1) {
       if (key(row[columnIndex]) !== "п") continue;
-      const team = teamByName.get(key(row[columnIndex + 1]));
+      const rosterTeamName = canonicalTeamName(row[columnIndex + 1], metadata);
+      const team = teamByName.get(key(rosterTeamName));
       if (!team) continue;
       const players = [];
       for (let playerOffset = 1; playerOffset <= 5; playerOffset += 1) {
         const playerRow = rows[rowIndex + playerOffset] ?? [];
         const position = numberFrom(playerRow[columnIndex]);
-        const nickname = clean(playerRow[columnIndex + 1]);
+        const nickname = cleanPlayerNickname(playerRow[columnIndex + 1]);
         if (position !== playerOffset || !nickname) {
           throw new Error(
             `${workbook.FileName}: не удалось прочитать пять игроков команды «${team.teamName}»`,
           );
         }
-        const tierEntry = tierForRoster(nickname, tierMap);
+        const referenceEntry = referenceForRoster(nickname, referenceMap);
         const rosterTier = numberFrom(playerRow[columnIndex + 2]);
         if (
-          tierEntry &&
+          referenceEntry &&
+          Number.isInteger(referenceEntry.tier) &&
           Number.isInteger(rosterTier) &&
-          rosterTier !== tierEntry.tier
+          rosterTier !== referenceEntry.tier
         ) {
           discrepancies.push(
-            `${team.teamName}: у ${nickname} тир ${rosterTier} в составе и ${tierEntry.tier} на листе «Тир игроков»; взят тир из справочного листа.`,
+            `${team.teamName}: у ${nickname} тир ${rosterTier} в составе и ${referenceEntry.tier} на листе «Тир игроков»; взят тир из справочного листа.`,
           );
         }
         players.push({
           nickname,
           linkedNickname: knownFastcupAliases[key(nickname)] ?? nickname,
           role: roles[playerOffset - 1],
-          tier: tierEntry?.tier ?? rosterTier,
-          dotaId: tierEntry?.dotaId ?? null,
+          tier: referenceEntry?.tier ?? rosterTier,
+          mmr: referenceEntry?.mmr ?? null,
+          dotaId: referenceEntry?.dotaId ?? null,
           isCaptain: false,
           sortOrder: playerOffset,
         });
@@ -148,6 +171,18 @@ const parseRosters = (workbook, teams, tierMap, discrepancies) => {
       }
       team.players = players;
       team.tierTotal = explicitTotal ?? calculatedTotal;
+      team.mmrTotal = players.every((player) => Number.isInteger(player.mmr))
+        ? players.reduce((sum, player) => sum + player.mmr, 0)
+        : null;
+      if (
+        Number.isInteger(team.mmrTotal) &&
+        Number.isInteger(metadata.mmrLimit) &&
+        team.mmrTotal > metadata.mmrLimit
+      ) {
+        discrepancies.push(
+          `${team.teamName}: сумма ММР по справочному листу ${team.mmrTotal}, что выше указанного лимита ${metadata.mmrLimit}.`,
+        );
+      }
     }
   }
   const missing = teams.filter((team) => !team.players);
@@ -158,7 +193,7 @@ const parseRosters = (workbook, teams, tierMap, discrepancies) => {
   }
 };
 
-const parsePlacements = (rows, teams) => {
+const parsePlacements = (rows, teams, metadata, discrepancies) => {
   const titleRow = rows.findIndex((row) =>
     row.some((value) => key(value) === "итоговое положение команд"),
   );
@@ -166,9 +201,12 @@ const parsePlacements = (rows, teams) => {
   const teamByName = new Map(teams.map((team) => [key(team.teamName), team]));
   for (let rowIndex = titleRow + 2; rowIndex < rows.length; rowIndex += 1) {
     const placementText = clean(rows[rowIndex][3]);
-    const team = teamByName.get(key(rows[rowIndex][4]));
-    if (!placementText || !team) break;
-    const placement = rowIndex - titleRow - 1;
+    const sourceTeamName = clean(rows[rowIndex][4]);
+    if (!placementText && !sourceTeamName) continue;
+    const team = teamByName.get(key(canonicalTeamName(sourceTeamName, metadata)));
+    if (!placementText || !team) continue;
+    const placement = numberFrom(placementText.match(/^\d+/)?.[0]);
+    if (!Number.isInteger(placement)) continue;
     team.placement = placement;
     team.prizeText = clean(rows[rowIndex][5]) || null;
     team.resultLabel =
@@ -178,22 +216,41 @@ const parsePlacements = (rows, teams) => {
           ? "Финалист"
           : placementText.replace("-", "–") + "-е место";
   }
+  for (const [teamName, placement, resultLabel] of metadata.placementOverrides ?? []) {
+    const team = teamByName.get(key(teamName));
+    if (!team) throw new Error(`Не найдена команда для итогового места: ${teamName}`);
+    team.placement = placement;
+    team.resultLabel = resultLabel;
+  }
+  if ((metadata.placementOverrides ?? []).length) {
+    discrepancies.push(
+      "Итоговые места в нижней таблице не заполнены; 1–3-е места восстановлены по результатам гранд-финала и плей-офф.",
+    );
+  }
 };
 
-const parseGroupOrder = (rows) => {
-  const titleRow = rows.findIndex((row) =>
-    row.some((value) => key(value) === "общая группа"),
-  );
-  if (titleRow < 0) return [];
-  const titleColumn = rows[titleRow].findIndex(
-    (value) => key(value) === "общая группа",
-  );
+const parseGroupOrder = (rows, teams, metadata) => {
+  const titles = [];
+  for (const [rowIndex, row] of rows.entries()) {
+    for (const [columnIndex, value] of row.entries()) {
+      if (/^(общая группа|группа\s+[а-яa-z])$/i.test(clean(value))) {
+        titles.push({ rowIndex, columnIndex, groupName: clean(value) });
+      }
+    }
+  }
   const order = [];
-  for (let rowIndex = titleRow + 1; rowIndex < rows.length; rowIndex += 1) {
-    const teamName = clean(rows[rowIndex][titleColumn]);
-    const sortOrder = numberFrom(rows[rowIndex][titleColumn - 1]);
-    if (!teamName || !Number.isInteger(sortOrder)) break;
-    order.push({ teamName, sortOrder });
+  const teamNames = new Set(teams.map((team) => key(team.teamName)));
+  for (const title of titles) {
+    for (let rowIndex = title.rowIndex + 1; rowIndex < rows.length; rowIndex += 1) {
+      const teamName = canonicalTeamName(rows[rowIndex][title.columnIndex], metadata);
+      if (!teamNames.has(key(teamName))) break;
+      const explicitOrder = numberFrom(rows[rowIndex][title.columnIndex - 1]);
+      order.push({
+        teamName,
+        sortOrder: explicitOrder ?? order.filter((entry) => entry.groupName === title.groupName).length + 1,
+        groupName: title.groupName,
+      });
+    }
   }
   return order;
 };
@@ -264,10 +321,10 @@ const parseMatches = (rows, metadata, discrepancies) => {
   for (const [rowIndex, row] of rows.entries()) {
     for (const [columnIndex, value] of row.entries()) {
       const header = clean(value);
-      const groupHeader = header.match(/^ГЭ\s+(\d+)\.(\d+)\s*\[/i);
+      const groupHeader = header.match(/^ГЭ\s+(\d+)\.(\d+)(?:\s+([А-ЯA-Z]))?\s*\[/i);
       if (!groupHeader) continue;
       const roundNumber = Number(groupHeader[1]);
-      const sourceKey = `${roundNumber}.${groupHeader[2]}`;
+      const sourceKey = `${roundNumber}.${groupHeader[2]}${groupHeader[3] ? ` ${groupHeader[3]}` : ""}`;
       if (seenGroupHeaders.has(sourceKey)) {
         discrepancies.push(
           `В сетке дважды указан заголовок «ГЭ ${sourceKey}»; матчи сохранены по фактическим парам команд.`,
@@ -276,8 +333,8 @@ const parseMatches = (rows, metadata, discrepancies) => {
       seenGroupHeaders.add(sourceKey);
       const slot = (groupSlots.get(roundNumber) ?? 0) + 1;
       groupSlots.set(roundNumber, slot);
-      const teamA = clean(rows[rowIndex + 1]?.[columnIndex]);
-      const teamB = clean(rows[rowIndex + 2]?.[columnIndex]);
+      const teamA = canonicalTeamName(rows[rowIndex + 1]?.[columnIndex], metadata);
+      const teamB = canonicalTeamName(rows[rowIndex + 2]?.[columnIndex], metadata);
       const time = header.match(/(\d{1,2}:\d{2})/)?.[1] ?? "";
       const result = matchResult(
         teamA,
@@ -289,7 +346,9 @@ const parseMatches = (rows, metadata, discrepancies) => {
       matches.push({
         matchKey: `g${roundNumber}-${slot}`,
         stage: `Групповой этап · Тур ${roundNumber}`,
-        groupName: "Общая группа",
+        groupName: groupHeader[3]
+          ? `Группа ${groupHeader[3].toUpperCase()}`
+          : metadata.defaultGroupName ?? "Общая группа",
         teamA,
         teamB,
         bestOf: seriesBestOf(schedule[5]),
@@ -305,11 +364,11 @@ const parseMatches = (rows, metadata, discrepancies) => {
   for (const [rowIndex, row] of rows.entries()) {
     for (const [columnIndex, value] of row.entries()) {
       const header = clean(value);
-      const playoffHeader = header.match(/^(ГФ|ПФ(?:\s+\d+)?)\s*\[/i);
+      const playoffHeader = header.match(/^(ГФ|ПФ(?:\s+\d+)?|ПО(?:\s+(?:Р?\d+(?:\.\d+)?))?)\s*\[/i);
       if (!playoffHeader) continue;
       const isFinal = key(playoffHeader[1]) === "гф";
-      const teamA = clean(rows[rowIndex + 1]?.[columnIndex]);
-      const teamB = clean(rows[rowIndex + 2]?.[columnIndex]);
+      const teamA = canonicalTeamName(rows[rowIndex + 1]?.[columnIndex], metadata);
+      const teamB = canonicalTeamName(rows[rowIndex + 2]?.[columnIndex], metadata);
       const time = header.match(/(\d{1,2}:\d{2})/)?.[1] ?? "";
       const result = matchResult(
         teamA,
@@ -383,12 +442,12 @@ export function parseFastcupWorkbooks(workbooks) {
     if (!tournamentSheet) throw new Error(`${workbook.FileName}: нет листа «Турнир»`);
     const rows = displayedRows(tournamentSheet);
     const discrepancies = [];
-    const tierMap = parseTierSheet(workbook);
+    const playerReference = parsePlayerReferenceSheet(workbook);
     const teams = parseTeams(rows);
-    parseRosters(workbook, teams, tierMap, discrepancies);
-    parsePlacements(rows, teams);
+    parseRosters(workbook, teams, playerReference.entries, metadata, discrepancies);
+    parsePlacements(rows, teams, metadata, discrepancies);
     const matches = parseMatches(rows, metadata, discrepancies);
-    const groupOrder = parseGroupOrder(rows);
+    const groupOrder = parseGroupOrder(rows, teams, metadata);
     const rules = parseRules(workbook, discrepancies);
     return {
       number,
@@ -398,7 +457,8 @@ export function parseFastcupWorkbooks(workbooks) {
       matches,
       groupOrder,
       rules,
-      hasTierSheet: tierMap.size > 0,
+      hasTierSheet: playerReference.kind === "tier",
+      hasMmrSheet: playerReference.kind === "mmr",
       discrepancies,
     };
   });
