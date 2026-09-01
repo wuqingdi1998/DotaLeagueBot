@@ -4,6 +4,7 @@ from discord.ext import commands, tasks
 
 from database.core import async_session
 from services.channel_announcement_delivery import (
+    deliver_pending_announcement_reports,
     deliver_pending_channel_announcements,
 )
 
@@ -22,6 +23,7 @@ class ChannelAnnouncements(commands.Cog):
     async def deliver_announcements(self) -> None:
         async with async_session() as session:
             await deliver_pending_channel_announcements(self.bot, session)
+            await deliver_pending_announcement_reports(self.bot, session)
 
     @deliver_announcements.before_loop
     async def before_delivery(self) -> None:

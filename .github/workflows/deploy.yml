@@ -210,5 +210,17 @@ jobs:
               sleep 3
             done
 
+            scheduled_announcements="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) || '\''|'\'' ||
+                      COUNT(*) FILTER (WHERE status = '\''failed'\'')
+               FROM channel_announcement_outbox
+               WHERE dedupe_key LIKE '\''season9-registration-round-%'\''"')"
+            if [ "$scheduled_announcements" != "28|0" ]; then
+              echo "Expected 28 scheduled season 9 announcements without failures, got $scheduled_announcements" >&2
+              exit 1
+            fi
+            echo "Scheduled season 9 registration announcements: 28"
+
             docker image prune --force
             docker compose ps
