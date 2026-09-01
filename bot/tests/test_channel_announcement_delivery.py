@@ -32,6 +32,13 @@ PUBLISH_SEASON_MIGRATION = (
     / "migrations"
     / "0105_publish_season_nine_registration.sql"
 ).read_text(encoding="utf-8")
+SCHEDULE_SEASON_MIGRATION = (
+    ROOT
+    / "bot"
+    / "database"
+    / "migrations"
+    / "0106_schedule_season_nine_rounds.sql"
+).read_text(encoding="utf-8")
 
 
 class FakeChannel:
@@ -208,6 +215,16 @@ def test_season_nine_publish_migration_opens_registration_and_regular_rounds() -
     assert "status IN ('draft', 'planned')" in PUBLISH_SEASON_MIGRATION
     assert "SET is_visible = TRUE, updated_at = NOW()" in PUBLISH_SEASON_MIGRATION
     assert "round.round_kind = 'regular'" in PUBLISH_SEASON_MIGRATION
+
+
+def test_season_nine_round_schedule_matches_registration_announcements() -> None:
+    for round_number in range(1, 15):
+        assert f"({round_number}," in SCHEDULE_SEASON_MIGRATION
+        assert f"'Reg{round_number}.png'" in PREVIEW_MIGRATION
+    assert "2026-09-06 21:00:00+03" in SCHEDULE_SEASON_MIGRATION
+    assert "2026-12-04 22:00:00+03" in SCHEDULE_SEASON_MIGRATION
+    assert "tournament.slug = 'league-season-9'" in SCHEDULE_SEASON_MIGRATION
+    assert "round.round_number = schedule.round_number" in SCHEDULE_SEASON_MIGRATION
 
 
 def test_production_bot_image_contains_announcement_images() -> None:
