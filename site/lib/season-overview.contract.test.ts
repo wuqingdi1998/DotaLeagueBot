@@ -43,6 +43,9 @@ describe("season overview page", () => {
     expect(page).toContain("SeasonOverviewPage");
     expect(section).toContain("LeagueOverviewCard");
     expect(model).toContain("14 туров · 1 раз в неделю · BO2");
+    expect(styles).toMatch(
+      /\.season-league-card \.season-format-badge\s*\{[^}]*white-space:\s*nowrap;/,
+    );
     expect(model).toContain("ТОП-20 → ФИНАЛ");
     expect(model).toContain('calendarHref: "/calendar"');
     expect(model).toContain(
@@ -98,6 +101,13 @@ describe("season overview page", () => {
     expect(model.match(/tournamentHref: null/g)).toHaveLength(6);
     expect(fastCupSection).toContain("fastCupOverviews.map");
     expect(fastCupSection).toContain(">Fastcup<");
+    expect(fastCupSection).toContain("fast-cups-title-row");
+    expect(secondaryStyles).toMatch(
+      /\.fast-cups-title-row\s*\{[^}]*gap:\s*1\.5cm;/,
+    );
+    expect(secondaryStyles).toMatch(
+      /@media \(max-width: 560px\)[\s\S]*\.fast-cups-title-row\s*\{[^}]*flex-direction:\s*column;/,
+    );
     expect(fastCupCard).toContain("Турнир для Boosty подписчиков");
     expect(fastCupCard).toContain("Призовой фонд – {cup.prize}");
     expect(fastCupCard).toContain("fast-cup-period");

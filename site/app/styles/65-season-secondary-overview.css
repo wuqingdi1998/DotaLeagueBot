@@ -21,9 +21,22 @@
 
 .fast-cups-heading {
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 18px;
+}
+
+.fast-cups-heading-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fast-cups-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
+  gap: 1.5cm;
 }
 
 .fast-cups-heading h2 {
@@ -35,7 +48,7 @@
   text-transform: uppercase;
 }
 
-.fast-cups-heading > p {
+.fast-cups-title-row > p {
   max-width: 590px;
   margin: 0;
   color: var(--muted);
@@ -135,15 +148,6 @@
 }
 
 @media (max-width: 1050px) {
-  .fast-cups-heading {
-    grid-template-columns: 1fr auto;
-  }
-
-  .fast-cups-heading > p {
-    grid-column: 1 / -1;
-    grid-row: 2;
-  }
-
   .fast-cups-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -166,9 +170,10 @@
     align-items: start;
   }
 
-  .fast-cups-heading > p {
-    grid-column: auto;
-    grid-row: auto;
+  .fast-cups-title-row {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
   }
 
   .fast-cups-heading .season-calendar-link {

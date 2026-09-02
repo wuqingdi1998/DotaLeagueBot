@@ -10,13 +10,15 @@ export function FastCupsOverview() {
   return (
     <section className="fast-cups-overview" aria-labelledby="fast-cups-title">
       <div className="fast-cups-heading">
-        <div>
+        <div className="fast-cups-heading-copy">
           <span className="season-card-kicker">
             {fastCupIntroduction.descriptor}
           </span>
-          <h2 id="fast-cups-title">Fastcup</h2>
+          <div className="fast-cups-title-row">
+            <h2 id="fast-cups-title">Fastcup</h2>
+            <p>{fastCupIntroduction.summary}</p>
+          </div>
         </div>
-        <p>{fastCupIntroduction.summary}</p>
         <Link
           className="season-calendar-link"
           href={fastCupIntroduction.tournamentsHref}
