@@ -214,11 +214,13 @@
     font-size: 11px;
   }
 
-  .hall-head > span:first-child {
+  .participants-row.hall-head > span:first-child,
+  .hall-player-row.hall-head > span:first-child {
     font-size: 0;
   }
 
-  .hall-head > span:first-child::after {
+  .participants-row.hall-head > span:first-child::after,
+  .hall-player-row.hall-head > span:first-child::after {
     font-size: 11px;
     content: "#";
   }

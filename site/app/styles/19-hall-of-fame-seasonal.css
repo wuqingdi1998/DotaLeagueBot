@@ -1,87 +1,118 @@
 .hall-table {
-  --hall-place-column: 90px;
-  --hall-player-column: minmax(220px, 1fr);
+  --hall-head-height: 84px;
+  --hall-row-height: 72px;
   --hall-season-column: 156px;
-  --hall-gold-column: 108px;
-  --hall-silver-column: 108px;
-  --hall-bronze-column: 120px;
-  --hall-grid-gap: 10px;
-  --hall-horizontal-padding: 22px;
-  overflow-x: auto;
+  --hall-gold-column: 88px;
+  --hall-silver-column: 88px;
+  --hall-bronze-column: 96px;
+  display: grid;
+  grid-template-columns: minmax(300px, 1fr) minmax(260px, 2fr) 320px;
+  overflow: hidden;
+}
+
+.hall-player-panel,
+.hall-season-panel,
+.hall-totals-panel {
+  min-width: 0;
+}
+
+.hall-player-panel {
+  z-index: 1;
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 12px 0 14px -14px rgba(9, 45, 68, 0.52);
+}
+
+.hall-totals-panel {
+  z-index: 1;
+  border-left: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: -12px 0 14px -14px rgba(9, 45, 68, 0.52);
+}
+
+.hall-panel-row,
+.hall-panel-head {
+  display: grid;
+  height: var(--hall-row-height);
+  min-height: var(--hall-row-height);
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.hall-panel-row:last-child {
+  border-bottom: 0;
+}
+
+.hall-panel-head {
+  height: var(--hall-head-height);
+  min-height: var(--hall-head-height);
+}
+
+.hall-player-row {
+  grid-template-columns: 90px minmax(0, 1fr);
+  gap: 10px;
+  padding: 0 16px 0 22px;
+}
+
+.hall-player-row > :first-child {
+  justify-self: center;
+  text-align: center;
+}
+
+.hall-player-row.hall-head > :nth-child(2) {
+  justify-self: start;
+  text-align: left;
+}
+
+.hall-player-row.hall-panel-head {
+  padding-bottom: 10px;
+}
+
+.hall-player-row .hall-player {
+  min-width: 0;
+}
+
+.hall-player-row .hall-player b {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hall-season-panel {
+  background: var(--surface);
+}
+
+.hall-season-header-scroll,
+.hall-season-body-scroll {
+  min-width: 0;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
 }
 
-.hall-row {
+.hall-season-header-scroll {
+  height: var(--hall-head-height);
+  overflow-x: scroll;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+
+.hall-season-body-scroll {
+  overflow-x: auto;
+}
+
+.hall-season-row {
   width: max-content;
   min-width: 100%;
-  grid-template-columns:
-    var(--hall-place-column)
-    var(--hall-player-column)
-    repeat(var(--hall-season-count), var(--hall-season-column))
-    var(--hall-gold-column)
-    var(--hall-silver-column)
-    var(--hall-bronze-column);
-  gap: var(--hall-grid-gap);
-  padding: 0 var(--hall-horizontal-padding);
-}
-
-.hall-head {
-  min-height: 84px;
-}
-
-.hall-row > :first-child {
-  display: grid;
-  align-self: stretch;
-  justify-self: stretch;
-  place-items: center;
-}
-
-.hall-row > :first-child,
-.hall-row > :nth-child(2),
-.hall-row > :nth-last-child(-n + 3) {
-  position: sticky;
-  z-index: 2;
-  align-self: stretch;
-  background: var(--surface);
-}
-
-.hall-row > :first-child {
-  left: var(--hall-horizontal-padding);
-}
-
-.hall-row > :nth-child(2) {
-  left: calc(
-    var(--hall-horizontal-padding) + var(--hall-place-column) +
-      var(--hall-grid-gap)
-  );
-  box-shadow: 12px 0 14px -14px rgba(9, 45, 68, 0.52);
-}
-
-.hall-row > :nth-last-child(3) {
-  right: calc(
-    var(--hall-horizontal-padding) + var(--hall-silver-column) +
-      var(--hall-bronze-column) + var(--hall-grid-gap) + var(--hall-grid-gap)
-  );
-  box-shadow: -12px 0 14px -14px rgba(9, 45, 68, 0.52);
-}
-
-.hall-row > :nth-last-child(2) {
-  right: calc(
-    var(--hall-horizontal-padding) + var(--hall-bronze-column) +
-      var(--hall-grid-gap)
+  grid-template-columns: repeat(
+    var(--hall-season-count),
+    var(--hall-season-column)
   );
 }
 
-.hall-row > :last-child {
-  right: var(--hall-horizontal-padding);
-}
-
-.hall-head > :first-child,
-.hall-head > :nth-child(2),
-.hall-head > :nth-last-child(-n + 3) {
-  z-index: 3;
-  background: var(--surface-soft);
+.hall-season-header-scroll .hall-panel-head {
+  height: 100%;
+  min-height: 0;
+  border-bottom: 0;
 }
 
 .hall-season-tournament {
@@ -123,41 +154,81 @@
 
 .hall-season-medal.bronze svg { color: #c77a43; }
 
+.hall-totals-row {
+  grid-template-columns:
+    var(--hall-gold-column)
+    var(--hall-silver-column)
+    var(--hall-bronze-column);
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.hall-totals-row.hall-panel-head {
+  padding-bottom: 10px;
+}
+
+.hall-empty {
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 900px) {
   .hall-table {
-    --hall-place-column: 32px;
-    --hall-player-column: 220px;
+    --hall-head-height: 78px;
+    --hall-row-height: 66px;
     --hall-season-column: 144px;
     --hall-gold-column: 44px;
     --hall-silver-column: 44px;
     --hall-bronze-column: 44px;
-    --hall-grid-gap: 4px;
-    --hall-horizontal-padding: 18px;
-    overflow-x: auto;
+    grid-template-columns: 252px minmax(120px, 1fr) 146px;
   }
 
-  .hall-row {
-    width: max-content;
-    min-height: 66px;
+  .hall-player-row {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 4px;
+    padding: 0 18px;
   }
 
-  .hall-head {
-    min-height: 78px;
+  .hall-player-row.hall-panel-head {
+    padding-bottom: 10px;
+  }
+
+  .hall-totals-row {
+    gap: 4px;
+    padding: 0 3px;
+  }
+
+  .hall-totals-row.hall-panel-head {
+    padding-bottom: 10px;
   }
 }
 
 @media (max-width: 760px) {
   .hall-table {
-    --hall-place-column: 24px;
-    --hall-player-column: 120px;
+    --hall-row-height: 62px;
     --hall-season-column: 124px;
-    --hall-gold-column: 30px;
-    --hall-silver-column: 30px;
-    --hall-bronze-column: 30px;
-    --hall-horizontal-padding: 8px;
+    --hall-gold-column: 28px;
+    --hall-silver-column: 28px;
+    --hall-bronze-column: 28px;
+    grid-template-columns: minmax(126px, 44%) minmax(64px, 1fr) 92px;
   }
 
-  .hall-row {
-    min-height: 62px;
+  .hall-player-row {
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 4px;
+    padding: 0 6px;
+  }
+
+  .hall-player-row.hall-panel-head {
+    padding-bottom: 10px;
+  }
+
+  .hall-totals-row {
+    gap: 4px;
+    padding: 0;
+  }
+
+  .hall-totals-row.hall-panel-head {
+    padding-bottom: 10px;
   }
 }

@@ -70,14 +70,31 @@ describe("hall of fame and participant directory", () => {
   });
 
   it("keeps names and medal totals fixed around a horizontal tournament strip", () => {
+    expect(hallTable).toContain('className="hall-player-panel"');
+    expect(hallTable).toContain('className="hall-season-panel"');
+    expect(hallTable).toContain('className="hall-totals-panel"');
+    expect(hallTable).toContain('className="hall-season-header-scroll"');
+    expect(hallTable).toContain('className="hall-season-body-scroll"');
+    expect(hallTable).toContain("syncSeasonScroll");
+    expect(hallStyles).toMatch(/\.hall-table\s*\{[^}]*display:\s*grid;/);
     expect(hallStyles).toMatch(
-      /\.hall-table\s*\{[^}]*overflow-x:\s*auto;/,
+      /\.hall-season-header-scroll\s*\{[^}]*overflow-x:\s*scroll;/,
+    );
+    expect(hallStyles).toMatch(
+      /\.hall-season-body-scroll\s*\{[^}]*overflow-x:\s*auto;/,
     );
     expect(hallStyles).toContain(".hall-season-tournament");
     expect(hallStyles).toContain(".hall-season-medal");
     expect(hallStyles).toMatch(
-      /\.hall-row > :first-child,\s*\.hall-row > :nth-child\(2\),\s*\.hall-row > :nth-last-child\(-n \+ 3\)\s*\{[^}]*position:\s*sticky;/,
+      /\.hall-season-row\s*\{[^}]*width:\s*max-content;/,
     );
+    expect(hallStyles).toMatch(
+      /\.hall-player-row\.hall-panel-head\s*\{[^}]*padding-bottom:\s*10px;/,
+    );
+    expect(hallStyles).toMatch(
+      /\.hall-totals-row\.hall-panel-head\s*\{[^}]*padding-bottom:\s*10px;/,
+    );
+    expect(hallStyles).not.toContain("position: sticky");
   });
 
   it("adds the participant directory after the hall of fame in both menus", () => {
@@ -140,7 +157,7 @@ describe("hall of fame and participant directory", () => {
       /\.participant-tier\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--text\);/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*30px;[^}]*--hall-silver-column:\s*30px;[^}]*--hall-bronze-column:\s*30px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*28px;[^}]*--hall-silver-column:\s*28px;[^}]*--hall-bronze-column:\s*28px;/,
     );
     expect(hallStyles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal svg\s*\{[^}]*display:\s*none;/,
@@ -152,13 +169,13 @@ describe("hall of fame and participant directory", () => {
 
   it("keeps medal totals wider on desktop and compact on smaller screens", () => {
     expect(hallStyles).toMatch(
-      /\.hall-table\s*\{[^}]*--hall-gold-column:\s*108px;[^}]*--hall-silver-column:\s*108px;[^}]*--hall-bronze-column:\s*120px;/,
+      /\.hall-table\s*\{[^}]*--hall-gold-column:\s*88px;[^}]*--hall-silver-column:\s*88px;[^}]*--hall-bronze-column:\s*96px;/,
     );
     expect(hallStyles).toMatch(
       /@media \(max-width:\s*900px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*44px;[^}]*--hall-silver-column:\s*44px;[^}]*--hall-bronze-column:\s*44px;/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*30px;[^}]*--hall-silver-column:\s*30px;[^}]*--hall-bronze-column:\s*30px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*28px;[^}]*--hall-silver-column:\s*28px;[^}]*--hall-bronze-column:\s*28px;/,
     );
   });
 
