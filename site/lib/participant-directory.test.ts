@@ -29,8 +29,18 @@ const directoryStyles = readFileSync(
   new URL("../app/styles/28-participants.css", import.meta.url),
   "utf8",
 );
-const hallStyles = readFileSync(
-  new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
+const hallStyles = [
+  readFileSync(
+    new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
+    "utf8",
+  ),
+  readFileSync(
+    new URL("../app/styles/19-hall-of-fame-seasonal.css", import.meta.url),
+    "utf8",
+  ),
+].join("\n");
+const hallTable = readFileSync(
+  new URL("../app/hall-of-fame/HallOfFameTable.tsx", import.meta.url),
   "utf8",
 );
 
@@ -44,6 +54,30 @@ describe("hall of fame and participant directory", () => {
       "Медальный зачёт участников за всю историю. В зачёт идут только",
     );
     expect(hallPage).toContain("сезонные турниры — лига и кубок лиги.");
+  });
+
+  it("shows completed medal tournaments from earliest to latest", () => {
+    expect(hallLoader).toContain("medal_tournament.end_at < NOW()");
+    expect(hallLoader).toMatch(
+      /ORDER BY\s+medal_tournament\.start_at ASC,\s+medal_tournament\.end_at ASC/,
+    );
+    expect(hallLoader).toContain("tournamentMedals");
+    expect(hallPage).toContain("tournaments={hallOfFame.tournaments}");
+    expect(hallTable).toContain("tournaments.map((tournament) =>");
+    expect(hallTable.indexOf("hall-season-tournament")).toBeLessThan(
+      hallTable.indexOf("hall-medal-heading gold"),
+    );
+  });
+
+  it("keeps names and medal totals fixed around a horizontal tournament strip", () => {
+    expect(hallStyles).toMatch(
+      /\.hall-table\s*\{[^}]*overflow-x:\s*auto;/,
+    );
+    expect(hallStyles).toContain(".hall-season-tournament");
+    expect(hallStyles).toContain(".hall-season-medal");
+    expect(hallStyles).toMatch(
+      /\.hall-row > :first-child,\s*\.hall-row > :nth-child\(2\),\s*\.hall-row > :nth-last-child\(-n \+ 3\)\s*\{[^}]*position:\s*sticky;/,
+    );
   });
 
   it("adds the participant directory after the hall of fame in both menus", () => {
@@ -106,7 +140,7 @@ describe("hall of fame and participant directory", () => {
       /\.participant-tier\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--text\);/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*30px\)/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*30px;[^}]*--hall-silver-column:\s*30px;[^}]*--hall-bronze-column:\s*30px;/,
     );
     expect(hallStyles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal svg\s*\{[^}]*display:\s*none;/,
@@ -116,15 +150,15 @@ describe("hall of fame and participant directory", () => {
     );
   });
 
-  it("groups gold and silver closer to bronze only on desktop", () => {
+  it("keeps medal totals wider on desktop and compact on smaller screens", () => {
     expect(hallStyles).toMatch(
-      /\.hall-row\s*\{[^}]*grid-template-columns:\s*90px minmax\(220px, 1fr\) 108px 108px 120px;/,
+      /\.hall-table\s*\{[^}]*--hall-gold-column:\s*108px;[^}]*--hall-silver-column:\s*108px;[^}]*--hall-bronze-column:\s*120px;/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*900px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*44px\)/,
+      /@media \(max-width:\s*900px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*44px;[^}]*--hall-silver-column:\s*44px;[^}]*--hall-bronze-column:\s*44px;/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-row\s*\{[^}]*repeat\(3,\s*30px\)/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*30px;[^}]*--hall-silver-column:\s*30px;[^}]*--hall-bronze-column:\s*30px;/,
     );
   });
 

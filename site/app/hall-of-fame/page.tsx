@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HallOfFamePage() {
-  const [players, user] = await Promise.all([loadHallOfFame(), getSession()]);
+  const [hallOfFame, user] = await Promise.all([loadHallOfFame(), getSession()]);
 
   return (
     <PlatformShell user={user}>
@@ -25,7 +25,10 @@ export default async function HallOfFamePage() {
       </section>
 
       <section className="hall-content">
-        <HallOfFameTable players={players} />
+        <HallOfFameTable
+          players={hallOfFame.players}
+          tournaments={hallOfFame.tournaments}
+        />
       </section>
     </PlatformShell>
   );

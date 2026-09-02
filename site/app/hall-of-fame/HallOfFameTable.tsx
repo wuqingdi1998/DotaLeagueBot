@@ -2,15 +2,27 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { FaMedal } from "react-icons/fa";
 import { FiSearch, FiX } from "react-icons/fi";
-import type { HallOfFamePlayer } from "@/lib/hall-of-fame";
+import type {
+  HallOfFameMedal,
+  HallOfFamePlayer,
+  HallOfFameTournament,
+} from "@/lib/hall-of-fame";
+
+const medalLabels: Record<HallOfFameMedal, string> = {
+  gold: "Золото",
+  silver: "Серебро",
+  bronze: "Бронза",
+};
 
 export function HallOfFameTable({
   players,
+  tournaments,
 }: {
   players: HallOfFamePlayer[];
+  tournaments: HallOfFameTournament[];
 }) {
   const [search, setSearch] = useState("");
   const visiblePlayers = useMemo(() => {
@@ -45,10 +57,26 @@ export function HallOfFameTable({
         )}
       </label>
 
-      <div className="hall-table" role="table" aria-label="Медальный зачёт">
+      <div
+        className="hall-table"
+        role="table"
+        aria-label="Медальный зачёт"
+        style={{ "--hall-season-count": tournaments.length } as CSSProperties}
+      >
         <div className="hall-row hall-head" role="row">
           <span role="columnheader">Место</span>
           <span role="columnheader">Игрок</span>
+          {tournaments.map((tournament) => (
+            <Link
+              className="hall-season-tournament"
+              href={`/tournaments/${tournament.slug}`}
+              role="columnheader"
+              title={tournament.name}
+              key={tournament.id}
+            >
+              {tournament.name}
+            </Link>
+          ))}
           <span className="hall-medal-heading gold" role="columnheader">
             <FaMedal aria-hidden="true" />
             <b>Золото</b>
@@ -80,6 +108,20 @@ export function HallOfFameTable({
                 )}
                 <b>{player.nickname}</b>
               </span>
+              {tournaments.map((tournament) => {
+                const medal = player.tournamentMedals[tournament.id];
+                return (
+                  <span
+                    className={`hall-season-medal ${medal ?? "none"}`}
+                    role="cell"
+                    aria-label={`${tournament.name}: ${medal ? medalLabels[medal] : "без медали"}`}
+                    title={medal ? medalLabels[medal] : "Без медали"}
+                    key={tournament.id}
+                  >
+                    {medal ? <FaMedal aria-hidden="true" /> : "—"}
+                  </span>
+                );
+              })}
               <span className="hall-medal gold" role="cell">
                 <FaMedal aria-hidden="true" /> {player.medals.gold}
               </span>

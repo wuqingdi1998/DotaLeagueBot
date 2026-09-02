@@ -1,0 +1,163 @@
+.hall-table {
+  --hall-place-column: 90px;
+  --hall-player-column: minmax(220px, 1fr);
+  --hall-season-column: 156px;
+  --hall-gold-column: 108px;
+  --hall-silver-column: 108px;
+  --hall-bronze-column: 120px;
+  --hall-grid-gap: 10px;
+  --hall-horizontal-padding: 22px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+}
+
+.hall-row {
+  width: max-content;
+  min-width: 100%;
+  grid-template-columns:
+    var(--hall-place-column)
+    var(--hall-player-column)
+    repeat(var(--hall-season-count), var(--hall-season-column))
+    var(--hall-gold-column)
+    var(--hall-silver-column)
+    var(--hall-bronze-column);
+  gap: var(--hall-grid-gap);
+  padding: 0 var(--hall-horizontal-padding);
+}
+
+.hall-head {
+  min-height: 84px;
+}
+
+.hall-row > :first-child {
+  display: grid;
+  align-self: stretch;
+  justify-self: stretch;
+  place-items: center;
+}
+
+.hall-row > :first-child,
+.hall-row > :nth-child(2),
+.hall-row > :nth-last-child(-n + 3) {
+  position: sticky;
+  z-index: 2;
+  align-self: stretch;
+  background: var(--surface);
+}
+
+.hall-row > :first-child {
+  left: var(--hall-horizontal-padding);
+}
+
+.hall-row > :nth-child(2) {
+  left: calc(
+    var(--hall-horizontal-padding) + var(--hall-place-column) +
+      var(--hall-grid-gap)
+  );
+  box-shadow: 12px 0 14px -14px rgba(9, 45, 68, 0.52);
+}
+
+.hall-row > :nth-last-child(3) {
+  right: calc(
+    var(--hall-horizontal-padding) + var(--hall-silver-column) +
+      var(--hall-bronze-column) + var(--hall-grid-gap) + var(--hall-grid-gap)
+  );
+  box-shadow: -12px 0 14px -14px rgba(9, 45, 68, 0.52);
+}
+
+.hall-row > :nth-last-child(2) {
+  right: calc(
+    var(--hall-horizontal-padding) + var(--hall-bronze-column) +
+      var(--hall-grid-gap)
+  );
+}
+
+.hall-row > :last-child {
+  right: var(--hall-horizontal-padding);
+}
+
+.hall-head > :first-child,
+.hall-head > :nth-child(2),
+.hall-head > :nth-last-child(-n + 3) {
+  z-index: 3;
+  background: var(--surface-soft);
+}
+
+.hall-season-tournament {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  text-transform: none;
+  text-wrap: balance;
+}
+
+.hall-season-tournament:hover {
+  color: var(--blue);
+}
+
+.hall-season-medal {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.hall-season-medal svg {
+  width: 22px;
+  height: 22px;
+}
+
+.hall-season-medal.gold svg { color: #f0bd29; }
+
+.hall-season-medal.silver svg { color: #aebdca; }
+
+.hall-season-medal.bronze svg { color: #c77a43; }
+
+@media (max-width: 900px) {
+  .hall-table {
+    --hall-place-column: 32px;
+    --hall-player-column: 220px;
+    --hall-season-column: 144px;
+    --hall-gold-column: 44px;
+    --hall-silver-column: 44px;
+    --hall-bronze-column: 44px;
+    --hall-grid-gap: 4px;
+    --hall-horizontal-padding: 18px;
+    overflow-x: auto;
+  }
+
+  .hall-row {
+    width: max-content;
+    min-height: 66px;
+  }
+
+  .hall-head {
+    min-height: 78px;
+  }
+}
+
+@media (max-width: 760px) {
+  .hall-table {
+    --hall-place-column: 24px;
+    --hall-player-column: 120px;
+    --hall-season-column: 124px;
+    --hall-gold-column: 30px;
+    --hall-silver-column: 30px;
+    --hall-bronze-column: 30px;
+    --hall-horizontal-padding: 8px;
+  }
+
+  .hall-row {
+    min-height: 62px;
+  }
+}
