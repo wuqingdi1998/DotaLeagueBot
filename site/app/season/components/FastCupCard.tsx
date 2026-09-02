@@ -23,7 +23,7 @@ export function FastCupCard({ cup }: { cup: FastCupOverview }) {
 
   return (
     <article
-      className={`fast-cup-card${cup.tournamentHref ? "" : " is-disabled"}`}
+      className={`fast-cup-card is-${cup.accent}${cup.tournamentHref ? "" : " is-disabled"}`}
     >
       {cup.tournamentHref ? (
         <Link

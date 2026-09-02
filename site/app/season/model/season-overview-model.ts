@@ -47,6 +47,7 @@ export type FastCupOverview = {
   prize: string;
   period: string;
   format: string;
+  accent: "cd" | "sd" | "cm";
   tournamentHref: string | null;
 };
 
@@ -63,6 +64,7 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     prize: "2 000 ₽",
     period: "12–13 сентября 2026",
     format: "Capitan's Draft",
+    accent: "cd",
     tournamentHref: null,
   },
   {
@@ -70,6 +72,7 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     prize: "2 000 ₽",
     period: "26–27 сентября 2026",
     format: "Single Draft",
+    accent: "sd",
     tournamentHref: null,
   },
   {
@@ -77,6 +80,7 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     prize: "2 000 ₽",
     period: "10–11 октября 2026",
     format: "Capitan's Mode",
+    accent: "cm",
     tournamentHref: null,
   },
   {
@@ -84,6 +88,7 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     prize: "2 000 ₽",
     period: "24–25 октября 2026",
     format: "Capitan's Draft",
+    accent: "cd",
     tournamentHref: null,
   },
   {
@@ -91,6 +96,7 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     prize: "2 000 ₽",
     period: "5–6 декабря 2026",
     format: "Capitan's Mode",
+    accent: "cm",
     tournamentHref: null,
   },
 ] as const;

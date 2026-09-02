@@ -95,6 +95,10 @@ describe("season overview page", () => {
     expect(model.match(/period: "/g)).toHaveLength(7);
     expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(5);
     expect(model.match(/format: "/g)).toHaveLength(5);
+    expect(model.match(/^    accent: "/gm)).toHaveLength(5);
+    expect(model.match(/^    accent: "cd"/gm)).toHaveLength(2);
+    expect(model.match(/^    accent: "sd"/gm)).toHaveLength(1);
+    expect(model.match(/^    accent: "cm"/gm)).toHaveLength(2);
     expect(model).toContain('format: "Capitan\'s Draft"');
     expect(model).toContain('format: "Single Draft"');
     expect(model).toContain('format: "Capitan\'s Mode"');
@@ -112,6 +116,7 @@ describe("season overview page", () => {
     expect(fastCupCard).toContain("Призовой фонд – {cup.prize}");
     expect(fastCupCard).toContain("fast-cup-period");
     expect(fastCupCard).toContain("fast-cup-format");
+    expect(fastCupCard).toContain("is-${cup.accent}");
     expect(fastCupCard).toContain("is-disabled");
     expect(leagueCupCard).toContain("season-tournament-link is-disabled");
     expect(leagueCupCard).toContain("season-league-outcome");
@@ -138,6 +143,9 @@ describe("season overview page", () => {
     );
     expect(styles).toContain(".season-cup-card .season-final-callout");
     expect(secondaryStyles).toContain("rgba(111, 76, 255, 0.18)");
+    expect(secondaryStyles).toContain(".fast-cup-card.is-cd");
+    expect(secondaryStyles).toContain(".fast-cup-card.is-sd");
+    expect(secondaryStyles).toContain(".fast-cup-card.is-cm");
     expect(styles).toMatch(
       /@media \(max-width: 1050px\)[\s\S]*\.season-overview\s*\{[^}]*min-height:\s*calc\(100svh - 74px\);/,
     );

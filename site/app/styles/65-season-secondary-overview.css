@@ -83,6 +83,30 @@
   background: var(--surface-soft);
 }
 
+.fast-cup-card.is-cd,
+.fast-cup-card.is-cd.is-disabled:hover {
+  border-color: rgba(0, 174, 232, 0.42);
+  background:
+    linear-gradient(145deg, rgba(0, 195, 255, 0.2), rgba(33, 97, 226, 0.13) 72%),
+    var(--surface-soft);
+}
+
+.fast-cup-card.is-sd,
+.fast-cup-card.is-sd.is-disabled:hover {
+  border-color: rgba(20, 190, 163, 0.42);
+  background:
+    linear-gradient(145deg, rgba(24, 214, 173, 0.2), rgba(0, 150, 199, 0.12) 72%),
+    var(--surface-soft);
+}
+
+.fast-cup-card.is-cm,
+.fast-cup-card.is-cm.is-disabled:hover {
+  border-color: rgba(127, 88, 255, 0.44);
+  background:
+    linear-gradient(145deg, rgba(127, 88, 255, 0.22), rgba(42, 89, 222, 0.14) 72%),
+    var(--surface-soft);
+}
+
 .fast-cup-card-link {
   display: flex;
   min-height: 188px;
