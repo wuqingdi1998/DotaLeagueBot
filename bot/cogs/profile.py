@@ -26,6 +26,7 @@ from services.player_tier import effective_player_tier, set_player_tier
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
 NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
 LEAGUE_PARTICIPANT_ROLE_ID = int(os.getenv("LEAGUE_PARTICIPANT_ROLE_ID", "0"))
+DISCORD_PROFILE_SYNC_INTERVAL_HOURS = 1
 
 
 RANK_BRACKETS_RU = [
@@ -198,11 +199,13 @@ class RegistrationView(ui.View):
 class Profile(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.sync_discord_profiles_task.start()
         self.update_ranks_task.start()
         self.sync_discord_avatars_task.start()
         self.bot.add_view(RegistrationView())
 
     def cog_unload(self):
+        self.sync_discord_profiles_task.cancel()
         self.update_ranks_task.cancel()
         self.sync_discord_avatars_task.cancel()
 
@@ -275,6 +278,40 @@ class Profile(commands.Cog):
             print(f"[WARN] Missing permissions to edit {member.display_name}")
         except Exception as e:
             print(f"[ERROR] Profile sync failed: {e}")
+
+    @tasks.loop(hours=DISCORD_PROFILE_SYNC_INTERVAL_HOURS)
+    async def sync_discord_profiles_task(self):
+        guild = (
+            self.bot.get_guild(GUILD_ID)
+            if GUILD_ID
+            else next(iter(self.bot.guilds), None)
+        )
+        if guild is None:
+            print("[PROFILES] Discord server is unavailable for synchronization.")
+            return
+
+        try:
+            async with async_session() as session:
+                players = (await session.execute(
+                    select(Player).where(Player.is_archived.is_(False))
+                )).scalars().all()
+
+            for player in players:
+                member = guild.get_member(player.discord_id)
+                if member:
+                    await self.update_discord_profile(member, player)
+                await asyncio.sleep(0.5)
+
+            print(f"[PROFILES] Synchronized {len(players)} player profiles.")
+        except Exception as error:
+            print(
+                "[PROFILES] Hourly synchronization failed; "
+                f"the next run will retry: {error}"
+            )
+
+    @sync_discord_profiles_task.before_loop
+    async def before_profile_sync(self):
+        await self.bot.wait_until_ready()
 
     # --- COMMANDS ---
 
@@ -538,9 +575,6 @@ class Profile(commands.Cog):
 
     @tasks.loop(hours=24)
     async def update_ranks_task(self):
-        if not self.bot.guilds: return
-        guild = self.bot.guilds[0]
-
         print("[TASKS] Starting mass rank update...")
 
         async with async_session() as session:
@@ -577,23 +611,7 @@ class Profile(commands.Cog):
             await session.commit()
             print(f"[TASKS] OpenDota data saved. Success: {updated_count}/{total_players}")
 
-            # --- Часть 2: Обновление ников в Дискорде ---
-            print("[TASKS] 2. Starting Discord profile updates...")
-            for i, p in enumerate(players, 1):
-                member = guild.get_member(p.discord_id)
-                if member:
-                    try:
-                        await self.update_discord_profile(member, p)
-                    except Exception as e:
-                        print(f"[WARN] Missing permissions to edit {member.display_name}")
-
-                if i % 10 == 0 or i == total_players:
-                    print(f"[PROGRESS] Processed {i}/{total_players} profiles...")
-
-                # Небольшая пауза, чтобы не спамить в API Дискорда
-                await asyncio.sleep(0.5)
-
-        print("[TASKS] Mass update completed successfully.")
+        print("[TASKS] Rank update completed successfully.")
 
     @update_ranks_task.before_loop
     async def before_tasks(self):
