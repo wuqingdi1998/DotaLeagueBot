@@ -18,19 +18,17 @@ export function SeasonOverviewPage() {
           <div className="season-overview-title-row">
             <h1 id="season-title">Сезон</h1>
             <span>{seasonPeriod}</span>
+            <Link
+              className="season-title-calendar-link"
+              href={leagueOverview.calendarHref}
+            >
+              <FiCalendar aria-hidden="true" />
+              Смотреть календарь
+              <FiArrowRight aria-hidden="true" />
+            </Link>
           </div>
           <p>{seasonIntroduction}</p>
         </div>
-        <Link className="season-calendar-card" href={leagueOverview.calendarHref}>
-          <span className="season-calendar-card-icon">
-            <FiCalendar aria-hidden="true" />
-          </span>
-          <span>
-            <small>Расписание сезона</small>
-            <strong>Смотреть календарь</strong>
-          </span>
-          <FiArrowRight aria-hidden="true" />
-        </Link>
       </header>
 
       <div className="season-primary-grid">

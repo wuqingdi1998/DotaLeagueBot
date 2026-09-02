@@ -49,19 +49,36 @@ describe("season overview page", () => {
       'tournamentHref: "/tournaments/league-season-9"',
     );
     expect(model).toContain("Регистрация проходит отдельно на каждый тур");
+    expect(model).toContain(
+      "Сезон Linken’s Sphere - это серия турниров в течение 4 месяцев.",
+    );
     expect(section).toContain("season-overview-title-row");
+    expect(section).toContain("season-title-calendar-link");
+    expect(section).not.toContain("season-calendar-card");
+    expect(styles).toMatch(
+      /\.season-title-calendar-link\s*\{[^}]*height:\s*36px;/,
+    );
+    expect(styles).toMatch(
+      /\.season-overview-title-row > span\s*\{[^}]*height:\s*36px;/,
+    );
   });
 
   it("shows dated tournaments and spells Fastcup as one word", () => {
     expect(section).toContain("LeagueCupOverviewCard");
     expect(section).toContain("FastCupsOverview");
     expect(model).toContain('descriptor: "6-недельный турнир"');
-    expect(model).toContain('participation: "Турнир по приглашениям"');
-    expect(model.match(/Турнир по приглашениям/g)).toHaveLength(1);
-    expect(model).toContain("4 команды · 5 игроков и тренер");
-    expect(model).toContain("Групповой этап: BO2, каждый с каждым.");
-    expect(model).toContain('accessLabel: "ПЛЕЙ-ОФФ · BO3"');
-    expect(model).toContain("1–2 места — верхняя сетка, 3–4 — нижняя");
+    expect(model).toContain("Специальный турнир по приглашениям");
+    expect(model.match(/турнир по приглашениям/gi)).toHaveLength(1);
+    expect(model).toContain("4 команды · 5 игроков и тренер в каждой");
+    expect(model).toContain(
+      "Групповой этап · 4 недели · BO2 · каждый с каждым",
+    );
+    expect(model).toContain(
+      "Плей-офф и финал · 2 недели · BO3. 1–2 места — верхняя сетка, 3–4 — нижняя.",
+    );
+    expect(model).toContain(
+      "ГРУППОВОЙ ЭТАП (4 НЕДЕЛИ) → ПЛЕЙ-ОФФ И ФИНАЛ (2 НЕДЕЛИ)",
+    );
     expect(model).toContain('prize: "7 500 ₽"');
     expect(model).toContain("Linken’s Sphere CD Fastcup #7");
     expect(model).toContain("Linken’s Sphere SD Fastcup #2");

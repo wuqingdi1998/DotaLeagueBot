@@ -21,21 +21,21 @@ export function LeagueCupOverviewCard() {
 
       <div className="season-registration-callout">
         <FiUserCheck aria-hidden="true" />
-        <strong>{leagueCupOverview.participation}</strong>
+        <strong>{leagueCupOverview.roster}</strong>
       </div>
 
       <div className="season-scoring-line">
         <FiStar aria-hidden="true" />
         <div>
-          <strong>{leagueCupOverview.advice}</strong>
-          <span>{leagueCupOverview.invitation}</span>
+          <strong>{leagueCupOverview.groupStage}</strong>
+          <span>{leagueCupOverview.playoffs}</span>
         </div>
       </div>
 
       <div className="season-league-outcome">
         <div className="season-final-callout">
-          <strong>{leagueCupOverview.accessLabel}</strong>
-          <span>{leagueCupOverview.accessExplanation}</span>
+          <strong>{leagueCupOverview.stageTimelineLabel}</strong>
+          <span>{leagueCupOverview.stageTimelineExplanation}</span>
         </div>
         <div className="season-prize">
           <FiAward aria-hidden="true" />
