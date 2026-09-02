@@ -74,7 +74,7 @@ describe("season overview page", () => {
       "Групповой этап · 4 недели · BO2 · каждый с каждым",
     );
     expect(model).toContain(
-      "Плей-офф и финал · 2 недели · BO3. 1–2 места — верхняя сетка, 3–4 — нижняя.",
+      "Плей-офф и финал · 2 недели · BO3. 1–2 места – верхняя сетка, 3–4 – нижняя.",
     );
     expect(model).toContain(
       "ГРУППОВОЙ ЭТАП (4 НЕДЕЛИ) → ПЛЕЙ-ОФФ И ФИНАЛ (2 НЕДЕЛИ)",
@@ -85,8 +85,8 @@ describe("season overview page", () => {
     expect(model).toContain("Linken’s Sphere Fastcup #14");
     expect(model).toContain("Linken’s Sphere CD Fastcup #8");
     expect(model).toContain("Linken’s Sphere Fastcup #15");
-    expect(model).toContain('period: "6 сентября — 20 декабря 2026"');
-    expect(model).toContain('period: "2 ноября — 13 декабря 2026"');
+    expect(model).toContain('period: "6 сентября – 20 декабря 2026"');
+    expect(model).toContain('period: "2 ноября – 13 декабря 2026"');
     expect(model).toContain('period: "12–13 сентября 2026"');
     expect(model).toContain('period: "5–6 декабря 2026"');
     expect(model.match(/period: "/g)).toHaveLength(7);
@@ -99,7 +99,7 @@ describe("season overview page", () => {
     expect(fastCupSection).toContain("fastCupOverviews.map");
     expect(fastCupSection).toContain(">Fastcup<");
     expect(fastCupCard).toContain("Турнир для Boosty подписчиков");
-    expect(fastCupCard).toContain("Призовой фонд — {cup.prize}");
+    expect(fastCupCard).toContain("Призовой фонд – {cup.prize}");
     expect(fastCupCard).toContain("fast-cup-period");
     expect(fastCupCard).toContain("fast-cup-format");
     expect(fastCupCard).toContain("is-disabled");
@@ -108,6 +108,7 @@ describe("season overview page", () => {
     expect(leagueCupCard).toContain("season-final-callout");
     expect(fastCupCard).not.toContain("PRE-MADE");
     expect(model).not.toContain(["Fast", "Cup"].join(" "));
+    expect(`${page}${section}${fastCupCard}${model}`).not.toContain("—");
   });
 
   it("uses balanced desktop grids and isolates its styles", () => {

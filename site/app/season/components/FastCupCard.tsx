@@ -10,7 +10,7 @@ export function FastCupCard({ cup }: { cup: FastCupOverview }) {
         <span className="fast-cup-period">{cup.period}</span>
         <span className="fast-cup-format">{cup.format}</span>
         <span>Турнир для Boosty подписчиков</span>
-        <strong>Призовой фонд — {cup.prize}</strong>
+        <strong>Призовой фонд – {cup.prize}</strong>
       </div>
       <span
         className={`fast-cup-open-link${cup.tournamentHref ? "" : " is-disabled"}`}

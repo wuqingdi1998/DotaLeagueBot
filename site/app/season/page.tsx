@@ -4,7 +4,7 @@ import { getSession } from "@/lib/auth";
 import { SeasonOverviewPage } from "./sections/SeasonOverviewPage";
 
 export const metadata: Metadata = {
-  title: "Сезон — Linken's Sphere Esports",
+  title: "Сезон – Linken's Sphere Esports",
   description:
     "Формат сезона Linken's Sphere Esports: лига, Кубок лиги, Fastcup и путь в финал.",
 };
