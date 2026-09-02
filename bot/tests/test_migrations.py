@@ -213,6 +213,13 @@ LS_FASTCUP_6_9_MIGRATION = (
     / "0108_ls_fastcup_6_9.sql"
 ).read_text(encoding="utf-8")
 
+LS_FASTCUP_3_5_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0109_ls_fastcup_3_5.sql"
+).read_text(encoding="utf-8")
+
 FASTCUP_4_TITLE_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -455,6 +462,50 @@ def test_ls_fastcup_6_9_matches_reference_existing_teams_and_groups() -> None:
         assert (match["slug"], match["teamB"]) in team_keys
         if match["groupName"] is not None:
             assert (match["slug"], match["groupName"]) in group_keys
+
+
+def test_ls_fastcup_3_5_archive_is_complete() -> None:
+    for number in range(3, 6):
+        assert f'"slug":"ls-fastcup-{number}"' in LS_FASTCUP_3_5_MIGRATION
+    assert LS_FASTCUP_3_5_MIGRATION.count('"nickname":') == 110
+    assert LS_FASTCUP_3_5_MIGRATION.count('"matchKey":') == 39
+    assert LS_FASTCUP_3_5_MIGRATION.count('"tier":null') == 110
+    assert '"playoffType":"double_elimination"' in LS_FASTCUP_3_5_MIGRATION
+    assert '"matchKey":"third-place"' in LS_FASTCUP_3_5_MIGRATION
+    assert '"groupName":"Группа А"' in LS_FASTCUP_3_5_MIGRATION
+    assert '"groupName":"Группа Б"' in LS_FASTCUP_3_5_MIGRATION
+
+
+def test_ls_fastcup_3_5_matches_reference_existing_teams_and_groups() -> None:
+    sections: dict[str, list[dict[str, object]]] = {}
+    for tag in ("teams", "groups", "matches"):
+        section = re.search(
+            rf"\${tag}\$\n(.+?)\n\${tag}\$::jsonb",
+            LS_FASTCUP_3_5_MIGRATION,
+            re.DOTALL,
+        )
+        assert section is not None
+        sections[tag] = json.loads(section.group(1))
+    team_keys = {(item["slug"], item["teamName"]) for item in sections["teams"]}
+    group_keys = {(item["slug"], item["groupName"]) for item in sections["groups"]}
+    match_keys = {(item["slug"], item["matchKey"]) for item in sections["matches"]}
+    assert {slug for slug, _ in group_keys} == {"ls-fastcup-5"}
+    double_finals = [
+        match
+        for match in sections["matches"]
+        if match["slug"] in {"ls-fastcup-3", "ls-fastcup-4"}
+        and match["matchKey"] == "gf"
+    ]
+    assert all(match["bracketRound"] == 5 for match in double_finals)
+    for match in sections["matches"]:
+        assert (match["slug"], match["teamA"]) in team_keys
+        assert (match["slug"], match["teamB"]) in team_keys
+        if match["groupName"] is not None:
+            assert (match["slug"], match["groupName"]) in group_keys
+        if match.get("winnerToKey") is not None:
+            assert (match["slug"], match["winnerToKey"]) in match_keys
+        if match.get("loserToKey") is not None:
+            assert (match["slug"], match["loserToKey"]) in match_keys
 
 
 def test_ls_fastcup_historical_nicks_share_a_dota_identity() -> None:

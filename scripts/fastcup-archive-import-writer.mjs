@@ -119,8 +119,8 @@ const tournamentSource = (tournaments) =>
   tournaments.map((tournament) => ({
     slug: tournament.metadata.slug,
     name: tournament.name,
-    description: `${teamCountText(tournament.teams.length)}, групповой этап и плей-офф по результатам таблицы турнира.`,
-    about: `Captain's Mode. ${tournament.metadata.mmrLimit
+    description: tournament.metadata.description ?? `${teamCountText(tournament.teams.length)}, групповой этап и плей-офф по результатам таблицы турнира.`,
+    about: `${tournament.metadata.gameMode ?? "Captain's Mode"}. ${tournament.metadata.mmrLimit
       ? `Сумма ММР пяти игроков — не более ${tournament.metadata.mmrLimit}`
       : `Сумма тиров пяти игроков — не более ${tournament.metadata.tierLimit}`}, минимальный ранг — Герой.${tournament.metadata.participationNote ? ` ${tournament.metadata.participationNote}` : ""}`,
     startAt: tournament.metadata.startAt,
@@ -131,6 +131,8 @@ const tournamentSource = (tournaments) =>
     playoffFormat: tournament.metadata.playoffFormat,
     finalFormat: tournament.metadata.finalFormat,
     advanceToPlayoff: tournament.metadata.advanceToPlayoff,
+    gameMode: tournament.metadata.gameMode ?? "Captain's Mode",
+    playoffType: tournament.metadata.playoffType ?? "single_elimination",
   }));
 
 const buildSql = (tournaments, data) => `-- Файл сформирован scripts/generate-fastcup-archive-import.mjs.
@@ -141,7 +143,7 @@ SELECT * FROM jsonb_to_recordset(${json(tournamentSource(tournaments), "tourname
   "startAt" TIMESTAMPTZ, "endAt" TIMESTAMPTZ,
   "registrationDeadline" TIMESTAMPTZ, "maxTeams" SMALLINT,
   "groupFormat" TEXT, "playoffFormat" TEXT, "finalFormat" TEXT,
-  "advanceToPlayoff" SMALLINT
+  "advanceToPlayoff" SMALLINT, "gameMode" TEXT, "playoffType" TEXT
 );
 
 INSERT INTO tournaments (
@@ -157,9 +159,9 @@ SELECT
     || ' — ' || TO_CHAR(source."endAt" AT TIME ZONE 'Europe/Moscow', 'DD.MM.YYYY'),
   source.description, source.about, source."startAt", source."endAt",
   source."registrationDeadline", 'Турнир завершён',
-  'Captain''s Mode · 5 × 5', 5, source."maxTeams", '', 'Stockholm', 60,
+  source."gameMode" || ' · 5 × 5', 5, source."maxTeams", '', 'Stockholm', 60,
   source."groupFormat", source."playoffFormat", source."finalFormat",
-  'https://discord.gg/lsesports', 'archived', 'single_elimination'
+  'https://discord.gg/lsesports', 'archived', source."playoffType"
 FROM imported_fastcups source
 ON CONFLICT (slug) DO NOTHING;
 

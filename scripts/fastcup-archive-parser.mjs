@@ -2,7 +2,9 @@ import {
   fastcupMetadata,
   fastcupTeamTags,
   knownFastcupAliases,
+  knownFastcupDotaIds,
 } from "./fastcup-archive-import-config.mjs";
+import { parseDoubleEliminationMatches } from "./fastcup-archive-double-elimination.mjs";
 
 const roles = [
   "safe_lane",
@@ -145,7 +147,9 @@ const parseRosters = (workbook, teams, referenceMap, metadata, discrepancies) =>
           role: roles[playerOffset - 1],
           tier: referenceEntry?.tier ?? rosterTier,
           mmr: referenceEntry?.mmr ?? null,
-          dotaId: referenceEntry?.dotaId ?? null,
+          dotaId: referenceEntry?.dotaId ?? knownFastcupDotaIds[key(
+            knownFastcupAliases[key(nickname)] ?? nickname,
+          )] ?? null,
           isCaptain: false,
           sortOrder: playerOffset,
         });
@@ -222,6 +226,11 @@ const parsePlacements = (rows, teams, metadata, discrepancies) => {
     team.placement = placement;
     team.resultLabel = resultLabel;
   }
+  for (const [teamName, resultLabel] of metadata.resultLabelOverrides ?? []) {
+    const team = teamByName.get(key(teamName));
+    if (!team) throw new Error(`Не найдена команда для итоговой отметки: ${teamName}`);
+    team.resultLabel = resultLabel;
+  }
   if ((metadata.placementOverrides ?? []).length) {
     discrepancies.push(
       "Итоговые места в нижней таблице не заполнены; 1–3-е места восстановлены по результатам гранд-финала и плей-офф.",
@@ -292,10 +301,12 @@ const matchResult = (teamA, teamB, scoreA, scoreB) => {
 };
 
 const winnerAndLoser = (match) => {
-  if (match.labelA === "w" || match.labelB === "ff") {
+  const labelA = key(match.labelA);
+  const labelB = key(match.labelB);
+  if (labelA === "w" || labelA === ">" || ["ff", "тп", "тл"].includes(labelB)) {
     return { winner: match.teamA, loser: match.teamB };
   }
-  if (match.labelB === "w" || match.labelA === "ff") {
+  if (labelB === "w" || labelB === ">" || ["ff", "тп", "тл"].includes(labelA)) {
     return { winner: match.teamB, loser: match.teamA };
   }
   return match.scoreA > match.scoreB
@@ -309,12 +320,20 @@ const scheduledAt = (metadata, stageName, roundNumber, time) => {
       ? entry[3].endsWith(`Раунд ${roundNumber}`)
       : stageName === "final"
         ? entry[3] === "Гранд-финал"
+        : stageName === "third"
+          ? entry[3].includes("3-е место")
         : entry[3].includes("Плей-офф"),
   );
   return `${schedule[0]}T${time || schedule[2]}:00+03:00`;
 };
 
 const parseMatches = (rows, metadata, discrepancies) => {
+  if (metadata.playoffType === "double_elimination") {
+    return parseDoubleEliminationMatches({
+      rows, metadata, clean, key, scoreFrom, matchResult, winnerAndLoser,
+      canonicalTeamName,
+    });
+  }
   const matches = [];
   const seenGroupHeaders = new Set();
   const groupSlots = new Map();
@@ -364,9 +383,10 @@ const parseMatches = (rows, metadata, discrepancies) => {
   for (const [rowIndex, row] of rows.entries()) {
     for (const [columnIndex, value] of row.entries()) {
       const header = clean(value);
-      const playoffHeader = header.match(/^(ГФ|ПФ(?:\s+\d+)?|ПО(?:\s+(?:Р?\d+(?:\.\d+)?))?)\s*\[/i);
+      const playoffHeader = header.match(/^(ГФ|ИЗ3|ПФ(?:\s+\d+)?|ПО(?:\s+(?:Р?\d+(?:\.\d+)?))?)\s*\[/i);
       if (!playoffHeader) continue;
       const isFinal = key(playoffHeader[1]) === "гф";
+      const isThird = key(playoffHeader[1]) === "из3";
       const teamA = canonicalTeamName(rows[rowIndex + 1]?.[columnIndex], metadata);
       const teamB = canonicalTeamName(rows[rowIndex + 2]?.[columnIndex], metadata);
       const time = header.match(/(\d{1,2}:\d{2})/)?.[1] ?? "";
@@ -377,37 +397,44 @@ const parseMatches = (rows, metadata, discrepancies) => {
         scoreFrom(rows, rowIndex + 2, columnIndex),
       );
       const schedule = metadata.schedules.find((entry) =>
-        isFinal ? entry[3] === "Гранд-финал" : entry[3].includes("Плей-офф"),
+        isFinal ? entry[3] === "Гранд-финал"
+          : isThird ? entry[3].includes("3-е место") : entry[3].includes("Плей-офф"),
       );
       playoffMatches.push({
-        matchKey: isFinal ? "gf" : `sf${playoffMatches.filter((match) => !match.isFinal).length + 1}`,
-        stage: isFinal ? "Гранд-финал" : "Плей-офф · Полуфинал",
+        matchKey: isFinal ? "gf" : isThird ? "third-place" : `sf${playoffMatches.filter((match) => !match.isFinal && !match.isThird).length + 1}`,
+        stage: isFinal ? "Гранд-финал" : isThird ? "Матч за 3-е место" : "Плей-офф · Полуфинал",
         groupName: null,
         teamA,
         teamB,
         bestOf: seriesBestOf(schedule[5]),
-        scheduledAt: scheduledAt(metadata, isFinal ? "final" : "playoff", null, time),
-        bracketSide: isFinal ? "grand_final" : "upper",
-        bracketSlot: isFinal ? 1 : playoffMatches.filter((match) => !match.isFinal).length + 1,
+        scheduledAt: scheduledAt(metadata, isFinal ? "final" : isThird ? "third" : "playoff", null, time),
+        bracketSide: isFinal ? "grand_final" : isThird ? null : "upper",
+        bracketSlot: isFinal || isThird ? 1 : playoffMatches.filter((match) => !match.isFinal && !match.isThird).length + 1,
         isFinal,
+        isThird,
         ...result,
       });
     }
   }
   const final = playoffMatches.find((match) => match.isFinal);
-  const semifinals = playoffMatches.filter((match) => !match.isFinal);
+  const thirdPlace = playoffMatches.find((match) => match.isThird);
+  const semifinals = playoffMatches.filter((match) => !match.isFinal && !match.isThird);
   for (const semifinal of semifinals) {
     const outcome = winnerAndLoser(semifinal);
     semifinal.bracketRound = 1;
     semifinal.winnerToKey = "gf";
     semifinal.winnerToSlot = key(outcome.winner) === key(final.teamA) ? "a" : "b";
-    semifinal.eliminatedTeam = outcome.loser;
+    if (thirdPlace) {
+      semifinal.loserToKey = "third-place";
+      semifinal.loserToSlot = key(outcome.loser) === key(thirdPlace.teamA) ? "a" : "b";
+    } else semifinal.eliminatedTeam = outcome.loser;
   }
   if (final) {
     final.bracketRound = semifinals.length ? 2 : 1;
     final.eliminatedTeam = winnerAndLoser(final).loser;
   }
-  return [...matches, ...semifinals, final].filter(Boolean).map((match, index) => ({
+  if (thirdPlace) thirdPlace.eliminatedTeam = winnerAndLoser(thirdPlace).loser;
+  return [...matches, ...semifinals, final, thirdPlace].filter(Boolean).map((match, index) => ({
     ...match,
     sortOrder: index + 1,
   }));

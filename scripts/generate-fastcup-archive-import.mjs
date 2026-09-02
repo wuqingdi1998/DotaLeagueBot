@@ -13,6 +13,9 @@ if (!sourcePath || !sqlPath || !reportPath) {
 const source = fs.readFileSync(sourcePath, "utf8").replace(/^\uFEFF/, "");
 const tournaments = parseFastcupWorkbooks(JSON.parse(source));
 const expected = {
+  3: { teams: 8, matches: 14 },
+  4: { teams: 8, matches: 14 },
+  5: { teams: 6, matches: 11 },
   6: { teams: 6, matches: 9 },
   7: { teams: 4, matches: 8 },
   8: { teams: 6, matches: 11 },
@@ -38,7 +41,7 @@ for (const tournament of tournaments) {
   if (tournament.teams.some((team) => team.players.length !== 5)) {
     throw new Error(`${tournament.name}: не во всех командах по пять игроков`);
   }
-  if (tournament.groupOrder.length !== tournament.teams.length) {
+  if (tournament.metadata.hasGroupStage !== false && tournament.groupOrder.length !== tournament.teams.length) {
     throw new Error(`${tournament.name}: итоговая таблица группы неполна`);
   }
 }
