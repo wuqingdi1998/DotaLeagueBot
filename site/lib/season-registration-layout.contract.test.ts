@@ -31,7 +31,24 @@ describe("season registration table layout", () => {
     expect(styles).toMatch(
       /\.season-registration-list time \{[\s\S]*?grid-column: 7;[\s\S]*?justify-self: center;/,
     );
+    expect(styles).toContain(".season-registration-table {\n  column-gap: 16px;");
+    expect(styles).toMatch(
+      /@media \(max-width: 800px\) \{[\s\S]*?\.season-registration-table \{[\s\S]*?column-gap: 10px;/,
+    );
     expect(styles).not.toContain("span:nth-child(2)");
+  });
+
+  it("uses the table only for regular rounds of seasonal leagues", () => {
+    const roundPanel = source(
+      "app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx",
+    );
+
+    expect(roundPanel).toContain(
+      'data.tournament.tournament_type !== "seasonal"',
+    );
+    expect(roundPanel).toContain(
+      "{isRegularRound && <SeasonRoundRegistration round={round} />}",
+    );
   });
 
   it("shows the live refresh countdown only in the ranked wins heading", () => {

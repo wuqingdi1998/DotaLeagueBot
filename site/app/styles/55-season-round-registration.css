@@ -97,7 +97,7 @@
 }
 
 .season-registration-table {
-  column-gap: 12px;
+  column-gap: 16px;
   display: grid;
   grid-template-columns:
     34px max-content 30px max-content minmax(24px, 1fr) max-content
