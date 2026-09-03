@@ -94,8 +94,13 @@ export async function resizeSeason(
     await client.query(
       `INSERT INTO tournament_audit_log
         (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
-       VALUES ($1, $2, 'resize', 'season', $1::text, $3::jsonb)`,
-      [tournamentId, actorDiscordId, JSON.stringify({ from: currentCount, to: count })],
+       VALUES ($1, $2, 'resize', 'season', $3, $4::jsonb)`,
+      [
+        tournamentId,
+        actorDiscordId,
+        String(tournamentId),
+        JSON.stringify({ from: currentCount, to: count }),
+      ],
     );
     return { ok: true };
   });

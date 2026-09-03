@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FiEye, FiEyeOff, FiPlus, FiTrash2 } from "react-icons/fi";
 import { toMoscowDateTimeInput } from "@/lib/moscow-date-time";
+import { validSeasonRoundCount } from "@/lib/season";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonLobby, SeasonRound } from "../model/season-types";
 import { SeasonMatchAdmin } from "./SeasonMatchAdmin";
@@ -10,10 +11,12 @@ import { SeasonPublishedLobbyTools } from "./SeasonPublishedLobbyTools";
 
 export function SeasonAdminPanel() {
   const { data, loadData, season } = useTournament();
-  const [roundCount, setRoundCount] = useState(
-    data?.tournament.season_round_count ?? 1,
+  const [roundCountInput, setRoundCountInput] = useState(
+    String(data?.tournament.season_round_count ?? 1),
   );
   if (!data || data.tournament.tournament_type !== "seasonal") return null;
+  const roundCount = Number(roundCountInput);
+  const isRoundCountValid = validSeasonRoundCount(roundCount);
 
   async function resize(confirmDelete = false) {
     const result = await season.mutate("PATCH", {
@@ -55,13 +58,14 @@ export function SeasonAdminPanel() {
             type="number"
             min="1"
             max="100"
-            value={roundCount}
-            onChange={(event) => setRoundCount(Number(event.target.value))}
+            value={roundCountInput}
+            onChange={(event) => setRoundCountInput(event.target.value)}
           />
         </label>
         <button
           className="secondary-button"
           type="button"
+          disabled={!isRoundCountValid}
           onClick={() => void resize()}
         >
           Изменить количество
