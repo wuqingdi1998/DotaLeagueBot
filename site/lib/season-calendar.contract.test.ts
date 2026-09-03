@@ -84,7 +84,7 @@ describe("season nine calendar contract", () => {
       'edge !== "bottom" || period.hasBottomEdge',
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-period-outline\s*\{[^}]*position:\s*absolute;[^}]*pointer-events:\s*none;/,
+      /\.calendar-period-outline\s*\{[^}]*position:\s*absolute;[^}]*z-index:\s*50;[^}]*pointer-events:\s*none;/,
     );
     expect(calendarStyles).toMatch(
       /\.calendar-period-edge\s*\{[^}]*background:\s*transparent;[^}]*pointer-events:\s*auto;/,

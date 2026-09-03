@@ -48,7 +48,7 @@ describe("season calendar", () => {
       startDate: "2026-11-02",
       endDate: "2026-12-13",
       color: "#D4A05B",
-      accentColor: "#72977A",
+      accentColor: "#D4A05B",
       hasTopEdge: true,
       hasBottomEdge: false,
       startRow: 1,

@@ -34,7 +34,7 @@ export const seasonCalendarPeriods = [
     endDate: "2026-12-13",
     title: "Linken's Sphere Esports League Cup Season 9",
     color: "#D4A05B",
-    accentColor: "#72977A",
+    accentColor: "#D4A05B",
   },
 ] as const satisfies readonly SeasonCalendarPeriod[];
 
