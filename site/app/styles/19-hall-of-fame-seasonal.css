@@ -1,4 +1,4 @@
-.hall-table {
+.hall-medal-table {
   --hall-head-height: 84px;
   --hall-row-height: 72px;
   --hall-season-column: 156px;
@@ -173,7 +173,7 @@
 }
 
 @media (max-width: 900px) {
-  .hall-table {
+  .hall-medal-table {
     --hall-head-height: 78px;
     --hall-row-height: 66px;
     --hall-season-column: 144px;
@@ -204,7 +204,7 @@
 }
 
 @media (max-width: 760px) {
-  .hall-table {
+  .hall-medal-table {
     --hall-row-height: 62px;
     --hall-season-column: 124px;
     --hall-gold-column: 28px;

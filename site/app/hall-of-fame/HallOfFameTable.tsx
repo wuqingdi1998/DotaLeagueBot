@@ -77,7 +77,7 @@ export function HallOfFameTable({
       </label>
 
       <div
-        className="hall-table"
+        className="hall-table hall-medal-table"
         role="region"
         aria-label="Медальный зачёт"
         style={{ "--hall-season-count": tournaments.length } as CSSProperties}

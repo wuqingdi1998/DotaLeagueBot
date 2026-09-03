@@ -41,7 +41,17 @@
 
 @media (max-width: 760px) {
   .participants-table.organizer .participants-row {
-    min-width: 630px;
-    grid-template-columns: minmax(190px, 1fr) 48px 124px 112px;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 34px 48px 92px;
+  }
+
+  .participants-table.organizer .participant-tier-cell {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .participants-table.organizer .participant-inactive-badge {
+    padding: 2px 5px;
+    font-size: 8px;
   }
 }

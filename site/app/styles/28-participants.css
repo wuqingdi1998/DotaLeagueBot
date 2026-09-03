@@ -429,13 +429,13 @@
   }
 
   .participants-table {
-    overflow-x: auto;
+    overflow-x: hidden;
   }
 
   .participants-row {
-    min-width: 550px;
-    grid-template-columns: minmax(190px, 1fr) 48px 48px 112px;
-    gap: 6px;
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) 34px 36px 92px;
+    gap: 4px;
     padding: 0 10px;
   }
 
@@ -451,18 +451,18 @@
   }
 
   .participant-links {
-    gap: 5px;
+    gap: 1px;
   }
 
   .participant-links a {
-    width: 32px;
-    height: 32px;
+    width: 30px;
+    height: 30px;
     border-radius: 9px;
   }
 
   .participant-links svg {
-    width: 18px;
-    height: 18px;
+    width: 17px;
+    height: 17px;
   }
 
   .archive-player-content {

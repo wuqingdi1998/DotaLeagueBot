@@ -29,16 +29,19 @@ const directoryStyles = readFileSync(
   new URL("../app/styles/28-participants.css", import.meta.url),
   "utf8",
 );
-const hallStyles = [
-  readFileSync(
-    new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
-    "utf8",
-  ),
-  readFileSync(
-    new URL("../app/styles/19-hall-of-fame-seasonal.css", import.meta.url),
-    "utf8",
-  ),
-].join("\n");
+const participantTierStyles = readFileSync(
+  new URL("../app/styles/32-participant-tier-status.css", import.meta.url),
+  "utf8",
+);
+const baseHallStyles = readFileSync(
+  new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
+  "utf8",
+);
+const seasonalHallStyles = readFileSync(
+  new URL("../app/styles/19-hall-of-fame-seasonal.css", import.meta.url),
+  "utf8",
+);
+const hallStyles = [baseHallStyles, seasonalHallStyles].join("\n");
 const hallTable = readFileSync(
   new URL("../app/hall-of-fame/HallOfFameTable.tsx", import.meta.url),
   "utf8",
@@ -76,7 +79,11 @@ describe("hall of fame and participant directory", () => {
     expect(hallTable).toContain('className="hall-season-header-scroll"');
     expect(hallTable).toContain('className="hall-season-body-scroll"');
     expect(hallTable).toContain("syncSeasonScroll");
-    expect(hallStyles).toMatch(/\.hall-table\s*\{[^}]*display:\s*grid;/);
+    expect(hallTable).toContain('className="hall-table hall-medal-table"');
+    expect(seasonalHallStyles).toMatch(
+      /\.hall-medal-table\s*\{[^}]*display:\s*grid;/,
+    );
+    expect(seasonalHallStyles).not.toMatch(/(^|\n)\.hall-table\s*\{/);
     expect(hallStyles).toMatch(
       /\.hall-season-header-scroll\s*\{[^}]*overflow-x:\s*scroll;/,
     );
@@ -142,6 +149,18 @@ describe("hall of fame and participant directory", () => {
     expect(participantsTable).toContain('aria-label="Очистить поиск"');
   });
 
+  it("keeps every participant column inside a compact phone viewport", () => {
+    expect(directoryStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.participants-table\s*\{[^}]*overflow-x:\s*hidden;/,
+    );
+    expect(directoryStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.participants-row\s*\{[^}]*min-width:\s*0;[^}]*grid-template-columns:\s*minmax\(0, 1fr\) 34px 36px 92px;/,
+    );
+    expect(participantTierStyles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*?\.participants-table\.organizer \.participants-row\s*\{[^}]*min-width:\s*0;[^}]*grid-template-columns:\s*minmax\(0, 1fr\) 34px 48px 92px;/,
+    );
+  });
+
   it("does not let archive identities break the participant page", () => {
     expect(participantsLoader).toContain(
       "player.steam_id32 BETWEEN 1 AND 4294967295",
@@ -157,7 +176,7 @@ describe("hall of fame and participant directory", () => {
       /\.participant-tier\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--text\);/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*28px;[^}]*--hall-silver-column:\s*28px;[^}]*--hall-bronze-column:\s*28px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal-table\s*\{[^}]*--hall-gold-column:\s*28px;[^}]*--hall-silver-column:\s*28px;[^}]*--hall-bronze-column:\s*28px;/,
     );
     expect(hallStyles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal svg\s*\{[^}]*display:\s*none;/,
@@ -169,13 +188,13 @@ describe("hall of fame and participant directory", () => {
 
   it("keeps medal totals wider on desktop and compact on smaller screens", () => {
     expect(hallStyles).toMatch(
-      /\.hall-table\s*\{[^}]*--hall-gold-column:\s*88px;[^}]*--hall-silver-column:\s*88px;[^}]*--hall-bronze-column:\s*96px;/,
+      /\.hall-medal-table\s*\{[^}]*--hall-gold-column:\s*88px;[^}]*--hall-silver-column:\s*88px;[^}]*--hall-bronze-column:\s*96px;/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*900px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*44px;[^}]*--hall-silver-column:\s*44px;[^}]*--hall-bronze-column:\s*44px;/,
+      /@media \(max-width:\s*900px\)[\s\S]*?\.hall-medal-table\s*\{[^}]*--hall-gold-column:\s*44px;[^}]*--hall-silver-column:\s*44px;[^}]*--hall-bronze-column:\s*44px;/,
     );
     expect(hallStyles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-table\s*\{[^}]*--hall-gold-column:\s*28px;[^}]*--hall-silver-column:\s*28px;[^}]*--hall-bronze-column:\s*28px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*?\.hall-medal-table\s*\{[^}]*--hall-gold-column:\s*28px;[^}]*--hall-silver-column:\s*28px;[^}]*--hall-bronze-column:\s*28px;/,
     );
   });
 
