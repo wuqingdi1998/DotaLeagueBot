@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { FaDiscord } from "react-icons/fa";
 import { FiArrowRight, FiUploadCloud } from "react-icons/fi";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerAutocomplete } from "./PlayerAutocomplete";
 import { RoleIcon, RoleSelect } from "./RoleField";
 import { useTournament } from "../hooks/TournamentContext";
@@ -335,20 +336,19 @@ export function TournamentModals() {
             >
               ×
             </button>
-            {data.user?.avatarUrl ? (
-              <Image
-                className="profile-modal-avatar"
-                src={data.user.avatarUrl}
-                alt=""
-                width={76}
-                height={76}
-                unoptimized
-              />
-            ) : (
-              <div className="discord-modal-icon">
-                <FaDiscord />
-              </div>
-            )}
+            <AvatarImage
+              source={data.user?.avatarUrl}
+              className="profile-modal-avatar"
+              alt=""
+              width={76}
+              height={76}
+              unoptimized
+              fallback={
+                <div className="discord-modal-icon">
+                  <FaDiscord />
+                </div>
+              }
+            />
             <h2 id="login-title">
               {data.user ? "Профиль участника" : "Вход через Discord"}
             </h2>

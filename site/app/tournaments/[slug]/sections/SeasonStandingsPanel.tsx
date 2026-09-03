@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { SeasonStanding } from "@/lib/season";
 import {
@@ -319,11 +319,14 @@ function PlayerIdentityCells({
           dotaId={dotaId}
           nickname={nickname}
         >
-          {avatarUrl ? (
-            <Image src={avatarUrl} alt="" width={34} height={34} unoptimized />
-          ) : (
-            <i>{nickname.slice(0, 1).toUpperCase()}</i>
-          )}
+          <AvatarImage
+            source={avatarUrl}
+            alt=""
+            width={34}
+            height={34}
+            unoptimized
+            fallback={<i>{nickname.slice(0, 1).toUpperCase()}</i>}
+          />
         </PlayerProfileLink>
       </td>
       <td className="season-player-name-column">

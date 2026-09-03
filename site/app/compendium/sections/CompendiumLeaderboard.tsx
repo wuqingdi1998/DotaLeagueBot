@@ -1,24 +1,21 @@
-import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiArrowLeft } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
 
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
     <span className="compendium-leaderboard-avatar" aria-hidden="true">
-      {player.avatarUrl ? (
-        <Image
-          src={player.avatarUrl}
-          alt=""
-          width={48}
-          height={48}
-          unoptimized
-        />
-      ) : (
-        player.playerName.slice(0, 1).toUpperCase()
-      )}
+      <AvatarImage
+        source={player.avatarUrl}
+        alt=""
+        width={48}
+        height={48}
+        unoptimized
+        fallback={player.playerName.slice(0, 1).toUpperCase()}
+      />
     </span>
   );
 }

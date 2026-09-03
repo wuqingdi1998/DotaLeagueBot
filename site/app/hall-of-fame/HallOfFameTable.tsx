@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   useMemo,
@@ -12,6 +11,7 @@ import {
 } from "react";
 import { FaMedal } from "react-icons/fa";
 import { FiSearch, FiX } from "react-icons/fi";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import type {
   HallOfFameMedal,
   HallOfFamePlayer,
@@ -92,17 +92,16 @@ export function HallOfFameTable({
               <>
                 <strong>{rank}</strong>
                 <span className="hall-player">
-                  {player.avatarUrl ? (
-                    <Image
-                      src={player.avatarUrl}
-                      alt=""
-                      width={46}
-                      height={46}
-                      unoptimized
-                    />
-                  ) : (
-                    <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
-                  )}
+                  <AvatarImage
+                    source={player.avatarUrl}
+                    alt=""
+                    width={46}
+                    height={46}
+                    unoptimized
+                    fallback={
+                      <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
+                    }
+                  />
                   <b>{player.nickname}</b>
                 </span>
               </>

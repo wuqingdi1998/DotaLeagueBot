@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { FiMessageCircle, FiSend } from "react-icons/fi";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import type {
   SeasonLobbyRoomCommand,
@@ -60,16 +60,17 @@ export function LobbyChat({
               key={item.id}
             >
               <span className="season-room-message-avatar">
-                {item.avatarUrl ? (
-                  <Image
-                    src={compactDiscordAvatarUrl(item.avatarUrl)}
-                    width={26}
-                    height={26}
-                    alt=""
-                  />
-                ) : (
-                  <i>{item.nickname.slice(0, 1).toUpperCase()}</i>
-                )}
+                <AvatarImage
+                  source={
+                    item.avatarUrl
+                      ? compactDiscordAvatarUrl(item.avatarUrl)
+                      : null
+                  }
+                  width={26}
+                  height={26}
+                  alt=""
+                  fallback={<i>{item.nickname.slice(0, 1).toUpperCase()}</i>}
+                />
               </span>
               <div className="season-room-message-body">
                 {!isContinuation && <strong>{item.nickname}</strong>}

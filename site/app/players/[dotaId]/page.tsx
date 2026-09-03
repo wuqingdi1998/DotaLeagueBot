@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaMedal } from "react-icons/fa";
@@ -23,6 +22,7 @@ import {
 } from "@/lib/player-profile-organizer";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { PlayerServiceIcon } from "@/app/components/PlayerServiceIcon";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { LinkedArchiveProfilesCard } from "./LinkedArchiveProfilesCard";
 import { ProfileBadgesCard } from "./ProfileBadgesCard";
 import { ProfileBackgroundPicker } from "./ProfileBackgroundPicker";
@@ -187,21 +187,20 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
         }
       >
         <div className="player-profile-identity">
-          {profile.avatarUrl ? (
-            <Image
-              className="public-profile-avatar"
-              src={profile.avatarUrl}
-              alt={`Аватар игрока ${profile.nickname}`}
-              width={164}
-              height={164}
-              priority
-              unoptimized
-            />
-          ) : (
-            <div className="public-profile-avatar fallback">
-              {profile.nickname.slice(0, 1).toUpperCase()}
-            </div>
-          )}
+          <AvatarImage
+            source={profile.avatarUrl}
+            className="public-profile-avatar"
+            alt={`Аватар игрока ${profile.nickname}`}
+            width={164}
+            height={164}
+            priority
+            unoptimized
+            fallback={
+              <div className="public-profile-avatar fallback">
+                {profile.nickname.slice(0, 1).toUpperCase()}
+              </div>
+            }
+          />
           <div>
             {(profile.realName || profile.subscriptionRole) && (
               <div className="public-profile-heading">

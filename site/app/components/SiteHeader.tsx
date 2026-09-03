@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
+import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import {
   FiArrowRight,
@@ -211,20 +212,19 @@ export function SiteHeader({
               aria-label={`Открыть меню профиля ${user.serverName}`}
               aria-expanded={profileOpen}
             >
-              {user.avatarUrl ? (
-                <Image
-                  className="player-profile-avatar"
-                  src={user.avatarUrl}
-                  alt=""
-                  width={38}
-                  height={38}
-                  unoptimized
-                />
-              ) : (
-                <span className="player-profile-avatar fallback">
-                  {user.playerName.slice(0, 1).toUpperCase()}
-                </span>
-              )}
+              <AvatarImage
+                source={user.avatarUrl}
+                className="player-profile-avatar"
+                alt=""
+                width={38}
+                height={38}
+                unoptimized
+                fallback={
+                  <span className="player-profile-avatar fallback">
+                    {user.playerName.slice(0, 1).toUpperCase()}
+                  </span>
+                }
+              />
               <span className="player-profile-copy">
                 <strong>{user.serverName}</strong>
                 <small>Профиль участника</small>

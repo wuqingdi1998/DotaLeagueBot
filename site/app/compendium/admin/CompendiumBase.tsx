@@ -1,10 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type SyntheticEvent } from "react";
 import { FaStar } from "react-icons/fa";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import {
   FiArrowLeft,
   FiChevronDown,
@@ -249,19 +249,18 @@ function ParticipantHistory({
     >
       <summary>
         <span className="compendium-base-avatar">
-          {participant.avatarUrl ? (
-            <Image
-              src={participant.avatarUrl}
-              alt={`Аватар ${participant.playerName}`}
-              width={44}
-              height={44}
-              unoptimized
-            />
-          ) : (
-            <span aria-hidden="true">
-              {participant.playerName.slice(0, 1).toUpperCase()}
-            </span>
-          )}
+          <AvatarImage
+            source={participant.avatarUrl}
+            alt={`Аватар ${participant.playerName}`}
+            width={44}
+            height={44}
+            unoptimized
+            fallback={
+              <span aria-hidden="true">
+                {participant.playerName.slice(0, 1).toUpperCase()}
+              </span>
+            }
+          />
         </span>
         <span className="compendium-base-player-name">
           <strong>{participant.playerName}</strong>

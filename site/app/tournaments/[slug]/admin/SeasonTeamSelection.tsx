@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { FiSearch, FiUserCheck } from "react-icons/fi";
-import Image from "next/image";
+import { AvatarImage } from "@/app/components/AvatarImage";
 
 export type SeasonTeamPlayerOption = {
   discord_id: string;
@@ -90,16 +90,15 @@ export function SeasonTeamPicker({
                 disabled={isDisabled}
                 onChange={() => toggle(player.discord_id)}
               />
-              {player.avatar_url ? (
-                <Image
-                  src={player.avatar_url}
-                  width={34}
-                  height={34}
-                  alt=""
-                />
-              ) : (
-                <i>{player.ingame_name.slice(0, 1).toUpperCase()}</i>
-              )}
+              <AvatarImage
+                source={player.avatar_url}
+                width={34}
+                height={34}
+                alt=""
+                fallback={
+                  <i>{player.ingame_name.slice(0, 1).toUpperCase()}</i>
+                }
+              />
               <span>
                 <strong>{player.ingame_name}</strong>
                 <small>

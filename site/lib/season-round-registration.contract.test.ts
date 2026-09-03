@@ -108,7 +108,7 @@ describe("season round registration contract", () => {
     );
 
     expect(registrationSection).toContain("registration.avatar_url");
-    expect(registrationSection).toContain("<Image");
+    expect(registrationSection).toContain("<AvatarImage");
     expect(registrationSection).not.toContain("<FiUser");
     expect(registrationSection).not.toContain(
       "Тир {registration.tier_snapshot",

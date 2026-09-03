@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiAward, FiCheck, FiFlag, FiTarget, FiUser } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
 import type { StarRacePrize } from "../model/star-race";
 import {
@@ -14,17 +14,14 @@ import { StarRacePrizePreview } from "../components/StarRacePrizePreview";
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
     <span className="compendium-results-avatar" aria-hidden="true">
-      {player.avatarUrl ? (
-        <Image
-          src={player.avatarUrl}
-          alt=""
-          width={42}
-          height={42}
-          unoptimized
-        />
-      ) : (
-        player.playerName.slice(0, 1).toUpperCase()
-      )}
+      <AvatarImage
+        source={player.avatarUrl}
+        alt=""
+        width={42}
+        height={42}
+        unoptimized
+        fallback={player.playerName.slice(0, 1).toUpperCase()}
+      />
     </span>
   );
 }

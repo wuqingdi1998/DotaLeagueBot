@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { FaTools } from "react-icons/fa";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type {
   SeasonLobbyRoomPlayer,
@@ -16,11 +16,13 @@ function RoomPlayer({ player }: { player: SeasonLobbyRoomPlayer }) {
         aria-label={player.isOnline ? "В сети" : "Не в сети"}
         title={player.isOnline ? "В сети" : "Не в сети"}
       />
-      {player.avatarUrl ? (
-        <Image src={player.avatarUrl} alt="" width={42} height={42} />
-      ) : (
-        <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
-      )}
+      <AvatarImage
+        source={player.avatarUrl}
+        alt=""
+        width={42}
+        height={42}
+        fallback={<i>{player.nickname.slice(0, 1).toUpperCase()}</i>}
+      />
       <span className="season-room-player-name">
         <PlayerProfileLink
           dotaId={player.dotaId}

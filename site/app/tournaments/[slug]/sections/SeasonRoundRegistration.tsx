@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useMemo, useState } from "react";
 import { FiArrowDown, FiArrowUp, FiClock } from "react-icons/fi";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useServerClock } from "@/hooks/useServerClock";
 import {
@@ -206,20 +206,19 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
               <li key={registration.player_id}>
                 <span className="season-registration-number">{index + 1}</span>
                 <span className="season-registration-player">
-                  {registration.avatar_url ? (
-                    <Image
-                      className="season-registration-player-avatar"
-                      src={registration.avatar_url}
-                      width={30}
-                      height={30}
-                      alt=""
-                      unoptimized
-                    />
-                  ) : (
-                    <i className="season-registration-player-avatar">
-                      {registration.nickname.slice(0, 1).toUpperCase()}
-                    </i>
-                  )}
+                  <AvatarImage
+                    source={registration.avatar_url}
+                    className="season-registration-player-avatar"
+                    width={30}
+                    height={30}
+                    alt=""
+                    unoptimized
+                    fallback={
+                      <i className="season-registration-player-avatar">
+                        {registration.nickname.slice(0, 1).toUpperCase()}
+                      </i>
+                    }
+                  />
                   <PlayerProfileLink
                     dotaId={registration.dota_id}
                     nickname={registration.nickname}

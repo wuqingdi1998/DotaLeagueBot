@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
@@ -11,6 +10,7 @@ import {
   type ParticipantTierOrder,
 } from "@/lib/participant-filter";
 import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 
 const ParticipantAdminDialog = dynamic(
@@ -243,17 +243,18 @@ function ParticipantIdentity({
 }) {
   const content = (
     <>
-      {player.avatarUrl ? (
-        <Image
-          src={compactDiscordAvatarUrl(player.avatarUrl)}
-          alt=""
-          width={46}
-          height={46}
-          unoptimized
-        />
-      ) : (
-        <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
-      )}
+      <AvatarImage
+        source={
+          player.avatarUrl
+            ? compactDiscordAvatarUrl(player.avatarUrl)
+            : null
+        }
+        alt=""
+        width={46}
+        height={46}
+        unoptimized
+        fallback={<i>{player.nickname.slice(0, 1).toUpperCase()}</i>}
+      />
       <span>
         <b>{player.nickname}</b>
         {player.kind === "archive" && <small>Архивный профиль</small>}

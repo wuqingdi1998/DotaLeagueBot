@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { FiCalendar, FiExternalLink, FiLayers, FiLogIn, FiUsers } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import { seasonMatchLinks } from "@/lib/season";
 import { groupSeasonFinalMedalists } from "@/lib/season-finals";
 import { formatDayMonth, formatTime } from "../model/formatters";
@@ -306,11 +306,13 @@ function SeasonTemporaryTeam({
       <ul>
         {players.map((player) => (
           <li key={player.player_id}>
-            {player.avatar_url ? (
-              <Image src={player.avatar_url} width={36} height={36} alt="" />
-            ) : (
-              <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
-            )}
+            <AvatarImage
+              source={player.avatar_url}
+              width={36}
+              height={36}
+              alt=""
+              fallback={<i>{player.nickname.slice(0, 1).toUpperCase()}</i>}
+            />
             <span>
               <PlayerProfileLink
                 className="season-player-profile-link"
