@@ -21,6 +21,11 @@ type RegistrationTarget = {
   round_status: "planned" | "active" | "completed" | "cancelled";
   tournament_status: TournamentStatus;
   is_visible: boolean;
+  lobby_configuration_status:
+    | "none"
+    | "editing"
+    | "locked"
+    | "published";
 };
 
 type RegistrationPlayer = {
@@ -51,7 +56,8 @@ async function updateRegistration(
            round.scheduled_at, round.round_kind,
            season_round_status_at(round.scheduled_at, round.status)
              AS round_status,
-           tournament.status AS tournament_status, round.is_visible
+           tournament.status AS tournament_status, round.is_visible,
+           round.lobby_configuration_status
          FROM season_rounds round
          JOIN tournaments tournament ON tournament.id = round.tournament_id
          WHERE round.id = $1 AND tournament.tournament_type = 'seasonal'
@@ -70,6 +76,7 @@ async function updateRegistration(
         roundKind: target.round_kind,
         roundStatus: target.round_status,
         tournamentStatus: target.tournament_status,
+        lobbyConfigurationStatus: target.lobby_configuration_status,
       };
       const priorityRegistrationIsOpen =
         seasonRoundPriorityRegistrationIsOpen(registrationState);
@@ -81,7 +88,7 @@ async function updateRegistration(
       if (!target.is_visible || !actionIsOpen) {
         throw new Response(
           action === "register"
-            ? "Регистрация закрывается за 10 минут до начала тура"
+            ? "Регистрация закрыта после публикации лобби"
             : "Отмена регистрации закрывается за 24 часа до начала тура",
           { status: 409 },
         );

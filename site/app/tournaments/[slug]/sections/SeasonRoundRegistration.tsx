@@ -38,11 +38,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
 
   if (!data) return null;
 
-  const registrationOpen = Boolean(
-    round.registration_open &&
-      round.registration_deadline &&
-      currentTime < new Date(round.registration_deadline).getTime(),
-  );
+  const registrationOpen = round.registration_open;
   const cancellationOpen = Boolean(
     round.cancellation_open &&
       round.cancellation_deadline &&
@@ -81,15 +77,9 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
         <div className="season-round-registration-copy">
           <strong>Регистрация на тур</strong>
           <span>
-            {round.registration_deadline
-              ? <>
-                  Регистрация до{" "}
-                  <time dateTime={round.registration_deadline}>
-                    {formatDayMonth(round.registration_deadline)} ·{" "}
-                    {formatTime(round.registration_deadline)}
-                  </time>
-                </>
-              : "Откроется после назначения даты тура"}
+            {round.lobby_configuration_status === "published"
+              ? "Регистрация закрыта после публикации лобби"
+              : "Регистрация доступна до публикации лобби"}
           </span>
           <small>
             Зарегистрировано: {round.registration_count}. Отмена доступна до{" "}

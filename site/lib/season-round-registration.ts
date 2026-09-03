@@ -23,6 +23,15 @@ type SeasonRoundRegistrationState = {
   readonly tournamentStatus: TournamentStatus;
 };
 
+type SeasonRoundRegistrationAvailabilityState =
+  SeasonRoundRegistrationState & {
+  readonly lobbyConfigurationStatus:
+    | "none"
+    | "editing"
+    | "locked"
+    | "published";
+  };
+
 function timestamp(value: string | Date | null): number | null {
   if (!value) return null;
   const result = new Date(value).getTime();
@@ -36,6 +45,15 @@ function seasonRoundAllowsRegistration(
     state.roundKind === "regular" &&
     ["planned", "active"].includes(state.roundStatus) &&
     ["registration", "active"].includes(state.tournamentStatus)
+  );
+}
+
+function seasonRoundAcceptsRegistrations(
+  state: SeasonRoundRegistrationAvailabilityState,
+): boolean {
+  return (
+    seasonRoundAllowsRegistration(state) &&
+    state.lobbyConfigurationStatus !== "published"
   );
 }
 
@@ -112,23 +130,20 @@ export function seasonRoundRegistrationGetsAutomaticCheckIn(
 }
 
 export function seasonRoundRegistrationIsOpen(
-  state: SeasonRoundRegistrationState,
+  state: SeasonRoundRegistrationAvailabilityState,
 ): boolean {
-  const deadline = seasonRoundRegistrationDeadline(state.scheduledAt);
   const opensAt = seasonRoundPublicRegistrationOpensAt(state.scheduledAt);
   const now = timestamp(state.now);
   return Boolean(
-    deadline &&
       opensAt &&
       now !== null &&
-      seasonRoundAllowsRegistration(state) &&
-      now >= new Date(opensAt).getTime() &&
-      now < new Date(deadline).getTime(),
+      seasonRoundAcceptsRegistrations(state) &&
+      now >= new Date(opensAt).getTime(),
   );
 }
 
 export function seasonRoundPriorityRegistrationIsOpen(
-  state: SeasonRoundRegistrationState,
+  state: SeasonRoundRegistrationAvailabilityState,
 ): boolean {
   const priorityOpensAt = seasonRoundPriorityRegistrationOpensAt(
     state.scheduledAt,
@@ -141,7 +156,7 @@ export function seasonRoundPriorityRegistrationIsOpen(
     priorityOpensAt &&
       publicOpensAt &&
       now !== null &&
-      seasonRoundAllowsRegistration(state) &&
+      seasonRoundAcceptsRegistrations(state) &&
       now >= new Date(priorityOpensAt).getTime() &&
       now < new Date(publicOpensAt).getTime(),
   );

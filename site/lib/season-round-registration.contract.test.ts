@@ -56,12 +56,13 @@ describe("season round registration contract", () => {
     expect(migration).toContain("REFERENCES season_rounds(id) ON DELETE CASCADE");
   });
 
-  it("allows registration until ten minutes before start and cancellation before the 24 hour cutoff", () => {
+  it("allows registration until lobby publication and cancellation before the 24 hour cutoff", () => {
     expect(registrationRoute).toContain("requireSession");
     expect(registrationRoute).toContain("seasonRoundRegistrationIsOpen");
     expect(registrationRoute).toContain("seasonRoundPriorityRegistrationIsOpen");
     expect(registrationRoute).toContain("hasPriorityRegistrationAccess");
     expect(registrationRoute).toContain("seasonRoundCancellationIsOpen");
+    expect(registrationRoute).toContain("lobby_configuration_status");
     expect(registrationRoute).toContain("tier_status !== \"current\"");
     expect(registrationRules).toContain("@frokeng");
     expect(registrationRoute).toContain("ON CONFLICT (round_id, player_id)");

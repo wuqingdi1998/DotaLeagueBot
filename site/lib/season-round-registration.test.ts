@@ -15,7 +15,7 @@ import {
 describe("season round registration", () => {
   const scheduledAt = "2026-09-20T17:00:00.000Z";
 
-  it("keeps registration open until ten minutes before the round starts", () => {
+  it("keeps registration open until the lobby is published", () => {
     expect(seasonRoundRegistrationDeadline(scheduledAt)).toBe(
       "2026-09-20T16:50:00.000Z",
     );
@@ -26,6 +26,7 @@ describe("season round registration", () => {
         roundKind: "regular",
         roundStatus: "planned",
         tournamentStatus: "active",
+        lobbyConfigurationStatus: "none",
       }),
     ).toBe(true);
     expect(
@@ -35,6 +36,7 @@ describe("season round registration", () => {
         roundKind: "regular",
         roundStatus: "planned",
         tournamentStatus: "active",
+        lobbyConfigurationStatus: "locked",
       }),
     ).toBe(true);
     expect(
@@ -44,6 +46,7 @@ describe("season round registration", () => {
         roundKind: "regular",
         roundStatus: "planned",
         tournamentStatus: "active",
+        lobbyConfigurationStatus: "published",
       }),
     ).toBe(false);
   });
@@ -54,6 +57,7 @@ describe("season round registration", () => {
       roundKind: "regular" as const,
       roundStatus: "planned" as const,
       tournamentStatus: "registration" as const,
+      lobbyConfigurationStatus: "none" as const,
     };
 
     expect(seasonRoundPriorityRegistrationOpensAt(scheduledAt)).toBe(
@@ -100,6 +104,7 @@ describe("season round registration", () => {
       roundKind: "regular" as const,
       roundStatus: "planned" as const,
       tournamentStatus: "active" as const,
+      lobbyConfigurationStatus: "none" as const,
     };
     expect(
       seasonRoundCancellationIsOpen({
@@ -125,6 +130,7 @@ describe("season round registration", () => {
       roundKind: "regular" as const,
       roundStatus: "planned" as const,
       tournamentStatus: "active" as const,
+      lobbyConfigurationStatus: "none" as const,
     };
     expect(
       seasonRoundCheckInIsOpen({
@@ -179,6 +185,7 @@ describe("season round registration", () => {
       now: "2026-09-18T17:00:00.000Z",
       roundStatus: "planned" as const,
       tournamentStatus: "active" as const,
+      lobbyConfigurationStatus: "none" as const,
     };
     expect(
       seasonRoundRegistrationIsOpen({ ...base, roundKind: "finals" }),

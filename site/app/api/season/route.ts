@@ -334,6 +334,7 @@ export async function GET(request: Request) {
       roundKind: round.round_kind,
       roundStatus: round.status,
       tournamentStatus: tournament.status,
+      lobbyConfigurationStatus: round.lobby_configuration_status,
     };
     return {
       ...round,

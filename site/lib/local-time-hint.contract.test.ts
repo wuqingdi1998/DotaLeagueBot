@@ -27,7 +27,7 @@ describe("local computer time hint contract", () => {
       "app/compendium/components/CompendiumPredictions.tsx",
     );
     expect(matches).toContain("dateTime={match.scheduled_at}");
-    expect(season).toContain("dateTime={round.registration_deadline}");
+    expect(season).toContain("dateTime={round.cancellation_deadline}");
     expect(predictions).toContain("dateTime={match.startsAt}");
     expect(predictions).toContain("dateTime={match.opensAt}");
   });
