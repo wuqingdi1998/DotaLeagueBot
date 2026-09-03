@@ -59,10 +59,36 @@ def _position_select_options() -> list[discord.SelectOption]:
 async def fetch_opendota_rank(steam_id32: int) -> int:
     """Return rank_tier, or 0 when OpenDota has no rank data."""
     url = f"https://api.opendota.com/api/players/{steam_id32}"
-    async with aiohttp.ClientSession() as hs:
-        async with hs.get(url, timeout=10) as res:
-            data = await res.json() if res.status == 200 else {}
+    try:
+        async with aiohttp.ClientSession() as hs:
+            async with hs.get(url, timeout=10) as res:
+                data = await res.json() if res.status == 200 else {}
+    except (aiohttp.ClientError, TimeoutError, ValueError):
+        return 0
     return data.get('rank_tier') or 0
+
+
+async def update_registration_access_roles(
+    member: discord.Member,
+    guild: discord.Guild | None,
+) -> None:
+    """Give registration access and remove the newcomer role when present."""
+    if guild is None:
+        print(f"[WARN] Guild unavailable while updating roles for {member.id}")
+        return
+
+    participant_role = guild.get_role(LEAGUE_PARTICIPANT_ROLE_ID)
+    if participant_role is None:
+        print(
+            "[WARN] Registration participant role is not configured or was not found "
+            f"for {member.id}"
+        )
+    elif participant_role not in member.roles:
+        await member.add_roles(participant_role)
+
+    new_user_role = guild.get_role(NEW_USER_ROLE_ID) if NEW_USER_ROLE_ID else None
+    if new_user_role is not None and new_user_role in member.roles:
+        await member.remove_roles(new_user_role)
 
 class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
     real_name = ui.Label(
@@ -163,20 +189,13 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
                 await cog.update_discord_profile(interaction.user, new_p)
 
         # --- 6. ЗАМЕНА РОЛИ НОВИЧКА НА РОЛЬ УЧАСТНИКА ---
-        if NEW_USER_ROLE_ID and any(r.id == NEW_USER_ROLE_ID for r in interaction.user.roles):
-            try:
-                guild = interaction.guild
-                new_user_role = guild.get_role(NEW_USER_ROLE_ID)
-                participant_role = guild.get_role(LEAGUE_PARTICIPANT_ROLE_ID)
-                if new_user_role:
-                    await interaction.user.remove_roles(new_user_role)
-                if participant_role and participant_role not in interaction.user.roles:
-                    await interaction.user.add_roles(participant_role)
-                print(f"[ROLE] Роль новичка заменена на участника для {interaction.user.display_name}")
-            except discord.Forbidden:
-                print(f"[WARN] Нет прав для замены роли у {interaction.user.display_name}")
-            except Exception as e:
-                print(f"[ERROR] Ошибка замены роли: {e}")
+        try:
+            await update_registration_access_roles(interaction.user, interaction.guild)
+            print(f"[ROLE] Доступ участника обновлён для {interaction.user.display_name}")
+        except discord.Forbidden:
+            print(f"[WARN] Нет прав для замены роли у {interaction.user.display_name}")
+        except discord.HTTPException as error:
+            print(f"[ERROR] Ошибка замены роли: {error}")
 
         # --- 7. ЛОГИРОВАНИЕ ---
         await send_log(
@@ -187,6 +206,31 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
 
         await interaction.followup.send(f"✅ Регистрация успешна! Добро пожаловать, {formatted_real_name}!",
                                         ephemeral=True)
+
+    async def on_error(
+        self,
+        interaction: discord.Interaction,
+        error: Exception,
+    ) -> None:
+        user_id = getattr(interaction.user, "id", "unknown")
+        print(
+            f"[ERROR] Registration failed for {user_id}: "
+            f"{type(error).__name__}: {error}"
+        )
+        message = (
+            "❌ Не удалось завершить регистрацию. "
+            "Пожалуйста, попробуйте ещё раз. Если ошибка повторится, сообщите организатору."
+        )
+        try:
+            if interaction.response.is_done():
+                await interaction.followup.send(message, ephemeral=True)
+            else:
+                await interaction.response.send_message(message, ephemeral=True)
+        except discord.HTTPException as response_error:
+            print(
+                f"[ERROR] Could not report registration failure to {user_id}: "
+                f"{response_error}"
+            )
 
 class RegistrationView(ui.View):
     def __init__(self):
