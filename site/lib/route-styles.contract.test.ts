@@ -14,6 +14,7 @@ const tournaments = source("../app/styles/tournaments-route.css");
 const draft = source("../app/styles/fearless-draft-route.css");
 const calendar = source("../app/styles/calendar-route.css");
 const season = source("../app/styles/season-route.css");
+const playerDirectory = source("../app/styles/player-directory-route.css");
 
 describe("route-specific styles", () => {
   it("keeps only shared interface styles in the root bundle", () => {
@@ -50,5 +51,12 @@ describe("route-specific styles", () => {
     expect(tournaments.indexOf("08-tournament-responsive.css")).toBeGreaterThan(
       tournaments.indexOf("03-tournament-hero.css"),
     );
+  });
+
+  it("loads mobile profile rules after the desktop profile module", () => {
+    expect(playerDirectory).toContain("12-player-profile-responsive.css");
+    expect(
+      playerDirectory.indexOf("12-player-profile-responsive.css"),
+    ).toBeGreaterThan(playerDirectory.indexOf("12-player-profile.css"));
   });
 });

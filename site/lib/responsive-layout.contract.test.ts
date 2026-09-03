@@ -13,7 +13,7 @@ const standingsStyles = readFileSync(
   "utf8",
 );
 const profileStyles = readFileSync(
-  new URL("../app/styles/13-bracket-and-archive.css", import.meta.url),
+  new URL("../app/styles/12-player-profile-responsive.css", import.meta.url),
   "utf8",
 );
 
