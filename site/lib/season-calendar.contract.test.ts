@@ -65,11 +65,11 @@ describe("season nine calendar contract", () => {
     expect(calendarStyles).toMatch(
       /\.calendar-day\s*\{[^}]*border-right:\s*2px[^}]*border-bottom:\s*2px/,
     );
-    expect(calendarStyles).toMatch(
-      /\.calendar-day:hover,\s*\.calendar-day:focus-within\s*\{[^}]*z-index:\s*40;/,
+    expect(calendarStyles).not.toMatch(
+      /\.calendar-day:hover,\s*\.calendar-day:focus-within\s*\{[^}]*z-index:/,
     );
     expect(calendarStyles).toMatch(
-      /\.calendar-day:hover \.calendar-event-fills,\s*\.calendar-day:focus-within \.calendar-event-fills\s*\{[^}]*z-index:\s*3;/,
+      /\.calendar-day:hover \.calendar-event-fills,\s*\.calendar-day:focus-within \.calendar-event-fills\s*\{[^}]*z-index:\s*70;/,
     );
     expect(calendarStyles).not.toContain("calendar-event-dot");
   });

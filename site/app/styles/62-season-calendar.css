@@ -296,14 +296,9 @@
   opacity: 0.48;
 }
 
-.calendar-day:hover,
-.calendar-day:focus-within {
-  z-index: 40;
-}
-
 .calendar-day:hover .calendar-event-fills,
 .calendar-day:focus-within .calendar-event-fills {
-  z-index: 3;
+  z-index: 70;
 }
 
 .calendar-day-number {
