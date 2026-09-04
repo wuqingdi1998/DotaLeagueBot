@@ -156,8 +156,8 @@ export function CommunityHome() {
         <div className="platform-hero-copy">
           <p className="eyebrow">Linken&apos;s Sphere Esports</p>
           <h1>
-            Турниры живут здесь.
-            <span>История остаётся.</span>
+            Наши турниры живут здесь.
+            <span>Твоя история только начинается!</span>
           </h1>
           <p>
             Постоянная площадка нашего Dota-сообщества: будущие события,
@@ -200,7 +200,6 @@ export function CommunityHome() {
           ) : featured ? (
             <>
               <div className="featured-event-heading">
-                <p className="card-kicker">Ближайшее событие</p>
                 <TournamentStatusBadge
                   status={featured.status}
                   variant="short"

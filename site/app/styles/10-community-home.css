@@ -346,7 +346,7 @@
 .platform-purpose > div:first-child {
   display: grid;
   width: 100%;
-  max-width: 1030px;
+  max-width: var(--site-content-max);
   grid-template-columns: 1fr;
   gap: 40px;
   align-items: start;

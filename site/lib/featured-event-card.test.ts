@@ -9,10 +9,9 @@ const component = readFileSync(
 const css = loadSiteStyles();
 
 describe("featured event card", () => {
-  it("shows the nearest-event label above the registration status", () => {
-    expect(component).toMatch(
-      /featured-event-heading[\s\S]*card-kicker">Ближайшее событие[\s\S]*TournamentStatusBadge/,
-    );
+  it("shows the tournament status without a redundant nearest-event label", () => {
+    expect(component).toMatch(/featured-event-heading[\s\S]*TournamentStatusBadge/);
+    expect(component).not.toContain(">Ближайшее событие<");
   });
 
   it("keeps labels separated and safely wraps any tournament name", () => {

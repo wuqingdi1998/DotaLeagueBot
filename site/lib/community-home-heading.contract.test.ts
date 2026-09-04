@@ -9,6 +9,12 @@ const component = readFileSync(
 const styles = loadSiteStyles();
 
 describe("community home heading", () => {
+  it("aligns the community title with the cards below", () => {
+    expect(styles).toMatch(
+      /\.platform-purpose > div:first-child\s*\{[^}]*max-width:\s*var\(--site-content-max\);[^}]*margin-inline:\s*auto;/,
+    );
+  });
+
   it("keeps the title split into readable blocks without forbidding wrapping", () => {
     expect(component).toMatch(
       /platform-purpose-title[\s\S]*<span>Сайт сообщества<\/span>[\s\S]*<span>Linken&apos;s Sphere Esports<\/span>/,
