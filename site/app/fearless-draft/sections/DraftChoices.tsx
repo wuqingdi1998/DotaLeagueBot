@@ -5,7 +5,6 @@ import { FiCheckCircle } from "react-icons/fi";
 import { DraftCoinToss, type CoinTossStage } from "../components/DraftCoinToss";
 import { DraftAvatarPreloader } from "../components/DraftAvatarPreloader";
 import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
-import { HeroPortraitPreloader } from "../components/HeroPortraitPreloader";
 import { PlayerAvatar } from "../components/PlayerAvatar";
 import { useServerNow } from "../hooks/useServerNow";
 import { useDraftStageScroll } from "../hooks/useDraftStageScroll";
@@ -83,7 +82,6 @@ export function DraftChoices({
 
   return (
     <section className="fearless-choice-screen">
-      <HeroPortraitPreloader />
       <DraftAvatarPreloader
         firstCaptainAvatarUrl={series.player1.avatarUrl}
         secondCaptainAvatarUrl={series.player2.avatarUrl}

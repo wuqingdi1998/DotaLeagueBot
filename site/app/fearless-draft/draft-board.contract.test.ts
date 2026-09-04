@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DRAFT_SEQUENCE } from "./model/config";
 import {
+  FEARLESS_DRAFT_HERO_IMAGE_URLS,
   FEARLESS_DRAFT_HEROES,
   sortHeroesAlphabetically,
 } from "./model/heroes";
@@ -15,9 +16,10 @@ const activeDraft = source("app/fearless-draft/sections/ActiveDraft.tsx");
 const agreementPanel = source("app/fearless-draft/sections/DraftAgreementPanel.tsx");
 const choices = source("app/fearless-draft/sections/DraftChoices.tsx");
 const coinToss = source("app/fearless-draft/components/DraftCoinToss.tsx");
-const heroPortraitPreloader = source(
-  "app/fearless-draft/components/HeroPortraitPreloader.tsx",
+const heroImagePreloader = source(
+  "app/fearless-draft/components/HeroImagePreloader.tsx",
 );
+const imagePreloader = source("app/components/ImagePreloader.tsx");
 const draftScreen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const history = source("app/fearless-draft/sections/DraftHistory.tsx");
 const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
@@ -430,10 +432,20 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("preloads every vertical hero portrait while the toss screen is visible", () => {
-    expect(choices).toContain("<HeroPortraitPreloader />");
-    expect(heroPortraitPreloader).toContain("FEARLESS_DRAFT_HERO_PORTRAIT_URLS");
-    expect(heroPortraitPreloader).toContain('startMode="immediate"');
+  it("preloads and decodes every hero image from the toss through the draft", () => {
+    expect(FEARLESS_DRAFT_HERO_IMAGE_URLS).toHaveLength(
+      FEARLESS_DRAFT_HEROES.length * 2,
+    );
+    for (const hero of FEARLESS_DRAFT_HEROES) {
+      expect(FEARLESS_DRAFT_HERO_IMAGE_URLS).toContain(hero.portraitUrl);
+      expect(FEARLESS_DRAFT_HERO_IMAGE_URLS).toContain(hero.imageUrl);
+    }
+    expect(draftScreen).toContain("series && <HeroImagePreloader />");
+    expect(choices).not.toContain("HeroImagePreloader");
+    expect(heroImagePreloader).toContain("FEARLESS_DRAFT_HERO_IMAGE_URLS");
+    expect(heroImagePreloader).toContain("concurrency={24}");
+    expect(heroImagePreloader).toContain('startMode="immediate"');
+    expect(imagePreloader).toContain("image.decode().then(resolve, resolve)");
   });
 
   it("keeps reserve-time controls the same height without shifting the status bar", () => {

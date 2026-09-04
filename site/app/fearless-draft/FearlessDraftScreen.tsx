@@ -15,6 +15,7 @@ import { DraftQueue } from "./sections/DraftQueue";
 import { DraftAgreementPanel } from "./sections/DraftAgreementPanel";
 import { DraftLocaleProvider, useDraftLocale } from "./hooks/useDraftLocale";
 import { translateDraftError } from "./model/i18n";
+import { HeroImagePreloader } from "./components/HeroImagePreloader";
 
 export function FearlessDraftScreen({
   initialSnapshot,
@@ -72,6 +73,7 @@ function FearlessDraftContent({
       lang={locale}
       onContextMenu={(event) => event.preventDefault()}
     >
+      {series && <HeroImagePreloader />}
       <section className="fearless-draft-hero">
         <div>
           <span className="section-kicker">Linken&apos;s Sphere</span>

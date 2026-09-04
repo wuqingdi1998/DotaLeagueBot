@@ -8,7 +8,9 @@ function preloadImage(imageUrl: string) {
   return new Promise<void>((resolve) => {
     const image = new window.Image();
     image.decoding = "async";
-    image.onload = () => resolve();
+    image.onload = () => {
+      void image.decode().then(resolve, resolve);
+    };
     image.onerror = () => resolve();
     image.src = imageUrl;
   });

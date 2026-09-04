@@ -28,8 +28,8 @@ export const FEARLESS_DRAFT_HEROES_BY_ID = new Map(
   FEARLESS_DRAFT_HEROES.map((hero) => [hero.id, hero]),
 );
 
-export const FEARLESS_DRAFT_HERO_PORTRAIT_URLS = FEARLESS_DRAFT_HEROES.map(
-  (hero) => hero.portraitUrl,
+export const FEARLESS_DRAFT_HERO_IMAGE_URLS = FEARLESS_DRAFT_HEROES.flatMap(
+  (hero) => [hero.portraitUrl, hero.imageUrl],
 );
 
 export function sortHeroesAlphabetically<T extends { name: string }>(
