@@ -25,15 +25,24 @@ function completeState(heroStart = 1): DraftMapState {
 }
 
 describe("Fearless Draft engine", () => {
-  it("gives the first two bans to the team with first pick", () => {
+  it("assigns the preserved draft order to first- and second-pick teams", () => {
     expect(DRAFT_SEQUENCE.map(({ actor, type }) => `${actor} ${type}`)).toEqual([
-      "SECOND BAN", "SECOND BAN", "FIRST BAN", "FIRST BAN",
-      "SECOND BAN", "FIRST BAN", "FIRST BAN", "SECOND PICK",
-      "FIRST PICK", "SECOND BAN", "SECOND BAN", "FIRST BAN",
-      "FIRST PICK", "SECOND PICK", "SECOND PICK", "FIRST PICK",
-      "FIRST PICK", "SECOND PICK", "SECOND BAN", "FIRST BAN",
-      "SECOND BAN", "FIRST BAN", "SECOND PICK", "FIRST PICK",
+      "FIRST BAN", "FIRST BAN", "SECOND BAN", "SECOND BAN",
+      "FIRST BAN", "SECOND BAN", "SECOND BAN", "FIRST PICK",
+      "SECOND PICK", "FIRST BAN", "FIRST BAN", "SECOND BAN",
+      "SECOND PICK", "FIRST PICK", "FIRST PICK", "SECOND PICK",
+      "SECOND PICK", "FIRST PICK", "FIRST BAN", "SECOND BAN",
+      "FIRST BAN", "SECOND BAN", "FIRST PICK", "SECOND PICK",
     ]);
+
+    const stepsFor = (actor: "FIRST" | "SECOND", type: "BAN" | "PICK") =>
+      DRAFT_SEQUENCE.flatMap((step, index) =>
+        step.actor === actor && step.type === type ? [index + 1] : []);
+
+    expect(stepsFor("FIRST", "BAN")).toEqual([1, 2, 5, 10, 11, 19, 21]);
+    expect(stepsFor("FIRST", "PICK")).toEqual([8, 14, 15, 18, 23]);
+    expect(stepsFor("SECOND", "BAN")).toEqual([3, 4, 6, 7, 12, 20, 22]);
+    expect(stepsFor("SECOND", "PICK")).toEqual([9, 13, 16, 17, 24]);
   });
 
   it("finishes with five picks and seven bans for each participant", () => {
@@ -47,14 +56,14 @@ describe("Fearless Draft engine", () => {
 
   it("rejects duplicate, banned, picked and previous-map heroes", () => {
     const first = applyDraftAction(emptyState([99]), {
-      actor: "SECOND",
+      actor: "FIRST",
       type: "BAN",
       heroId: 1,
     });
     expect(first.ok).toBe(true);
     if (!first.ok) return;
     expect(applyDraftAction(first.state, {
-      actor: "SECOND",
+      actor: "FIRST",
       type: "BAN",
       heroId: 1,
     }).ok).toBe(false);
@@ -67,7 +76,7 @@ describe("Fearless Draft engine", () => {
 
   it("only lets the expected participant act", () => {
     expect(applyDraftAction(emptyState(), {
-      actor: "FIRST",
+      actor: "SECOND",
       type: "BAN",
       heroId: 1,
     }).ok).toBe(false);

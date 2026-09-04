@@ -21,26 +21,26 @@ describe("Fearless Draft tree", () => {
       Array.from({ length: 24 }, (_, index) => index + 1),
     );
     expect(steps.slice(0, 7).map(({ type, isRadiant }) => ({ type, isRadiant }))).toEqual([
-      { type: "BAN", isRadiant: false },
-      { type: "BAN", isRadiant: false },
       { type: "BAN", isRadiant: true },
       { type: "BAN", isRadiant: true },
       { type: "BAN", isRadiant: false },
+      { type: "BAN", isRadiant: false },
       { type: "BAN", isRadiant: true },
-      { type: "BAN", isRadiant: true },
+      { type: "BAN", isRadiant: false },
+      { type: "BAN", isRadiant: false },
     ]);
   });
 
   it("mirrors future branches when Dire has first pick", () => {
     const steps = buildDraftTreeSteps([], "radiant", "dire");
     expect(steps.slice(0, 7).map((step) => step.isRadiant)).toEqual([
-      true,
-      true,
       false,
       false,
       true,
+      true,
       false,
-      false,
+      true,
+      true,
     ]);
   });
 
@@ -54,33 +54,6 @@ describe("Fearless Draft tree", () => {
     const rows = buildDraftTreeRows([], "radiant", "dire");
 
     expect(rows).toHaveLength(14);
-    expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
-      [1, undefined],
-      [2, 3],
-      [5, 4],
-      [undefined, 6],
-      [undefined, 7],
-      [8, 9],
-      [10, undefined],
-      [11, 12],
-      [14, 13],
-      [15, 16],
-      [18, 17],
-      [19, 20],
-      [21, 22],
-      [23, 24],
-    ]);
-    expect(rows.flatMap(({ radiant, dire }) => [radiant, dire]
-      .filter((step) => step !== undefined)
-      .sort((left, right) => left.number - right.number)
-      .map((step) => step.number))).toEqual(
-      Array.from({ length: 24 }, (_, index) => index + 1),
-    );
-  });
-
-  it("mirrors the complete tree when Radiant has first pick", () => {
-    const rows = buildDraftTreeRows([], "radiant", "radiant");
-
     expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
       [undefined, 1],
       [3, 2],
@@ -96,6 +69,33 @@ describe("Fearless Draft tree", () => {
       [20, 19],
       [22, 21],
       [24, 23],
+    ]);
+    expect(rows.flatMap(({ radiant, dire }) => [radiant, dire]
+      .filter((step) => step !== undefined)
+      .sort((left, right) => left.number - right.number)
+      .map((step) => step.number))).toEqual(
+      Array.from({ length: 24 }, (_, index) => index + 1),
+    );
+  });
+
+  it("mirrors the complete tree when Radiant has first pick", () => {
+    const rows = buildDraftTreeRows([], "radiant", "radiant");
+
+    expect(rows.map(({ radiant, dire }) => [radiant?.number, dire?.number])).toEqual([
+      [1, undefined],
+      [2, 3],
+      [5, 4],
+      [undefined, 6],
+      [undefined, 7],
+      [8, 9],
+      [10, undefined],
+      [11, 12],
+      [14, 13],
+      [15, 16],
+      [18, 17],
+      [19, 20],
+      [21, 22],
+      [23, 24],
     ]);
   });
 });
