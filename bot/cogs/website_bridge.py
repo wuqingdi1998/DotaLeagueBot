@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.core import async_session
 from services.season_round_channel_sync import sync_season_round_discord_channels
-from utils.website_notifications import notification_embed
+from utils.website_notifications import notification_outbox_embed
 
 
 class WebsiteBridge(commands.Cog):
@@ -194,7 +194,7 @@ class WebsiteBridge(commands.Cog):
             result = await session.execute(
                 text(
                     """
-                    SELECT id, discord_id, title, message, action_url,
+                    SELECT id, discord_id, event_type, title, message, action_url,
                            status, discord_message_id
                     FROM notification_outbox
                     WHERE status IN ('pending', 'delete_pending')
@@ -226,7 +226,8 @@ class WebsiteBridge(commands.Cog):
                         )
                     else:
                         sent_message = await user.send(
-                            embed=notification_embed(
+                            embed=notification_outbox_embed(
+                                notification["event_type"],
                                 notification["title"],
                                 notification["message"],
                                 notification["action_url"],

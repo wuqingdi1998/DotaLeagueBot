@@ -1,6 +1,11 @@
 from pathlib import Path
 
-from utils.website_notifications import notification_embed
+from utils.website_notifications import (
+    MEMBER_WELCOME_PREVIEW_EVENT_TYPE,
+    member_welcome_embed,
+    notification_embed,
+    notification_outbox_embed,
+)
 
 
 BRIDGE = (
@@ -28,7 +33,37 @@ def test_notification_embed_omits_empty_site_link() -> None:
     assert len(embed.fields) == 0
 
 
+def test_member_welcome_contains_clickable_registration_and_admin_links() -> None:
+    embed = member_welcome_embed()
+
+    assert embed.title == "Привет!"
+    assert embed.description == (
+        "Ты зашёл на сервер Linken's Sphere Esports – это площадка для любительских "
+        "турниров для игроков различных рангов.\n\n"
+        "Для участия в наших ивентах нужно зарегистрироваться через "
+        "[канал регистрации](https://discord.com/channels/"
+        "328205360466755584/1457019432034504776).\n"
+        "Основная информация о турнирах и регистрация – на "
+        "[нашем сайте](https://lsesports.ru/).\n"
+        "По любым вопросам, касающимся сервера, можно написать администратору – "
+        "[311247030422863882](https://discord.com/users/311247030422863882)."
+    )
+
+
+def test_welcome_preview_uses_the_new_member_message() -> None:
+    embed = notification_outbox_embed(
+        MEMBER_WELCOME_PREVIEW_EVENT_TYPE,
+        "Текст из очереди",
+        "Этот текст не должен попасть в предпросмотр",
+        None,
+    )
+
+    assert embed.to_dict() == member_welcome_embed().to_dict()
+
+
 def test_bridge_stores_sent_message_ids_for_later_cleanup() -> None:
+    assert "SELECT id, discord_id, event_type" in BRIDGE
+    assert "notification_outbox_embed(" in BRIDGE
     assert 'notification["status"] == "delete_pending"' in BRIDGE
     assert "discord_message_id = :message_id" in BRIDGE
     assert "await message.delete()" in BRIDGE

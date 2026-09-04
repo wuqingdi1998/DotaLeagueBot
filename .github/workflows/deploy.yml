@@ -222,5 +222,33 @@ jobs:
             fi
             echo "Scheduled season 9 registration announcements: 28"
 
+            for attempt in $(seq 1 30); do
+              welcome_preview_status="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT status
+                 FROM notification_outbox
+                 WHERE event_type = '\''member_welcome_preview'\''
+                   AND discord_id = 311247030422863882
+                 ORDER BY id DESC
+                 LIMIT 1"')"
+              if [ "$welcome_preview_status" = "sent" ]; then
+                echo "Delivered member welcome preview to frokeng"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT status, attempts, last_error
+                   FROM notification_outbox
+                   WHERE event_type = '\''member_welcome_preview'\''
+                     AND discord_id = 311247030422863882
+                   ORDER BY id DESC
+                   LIMIT 1"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             docker image prune --force
             docker compose ps
