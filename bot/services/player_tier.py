@@ -10,6 +10,10 @@ def automatic_tier(rank_tier: int | None) -> int:
     return raw_tier // 10 if raw_tier >= 10 else raw_tier
 
 
+def initial_registration_tier_status(rank_tier: int | None) -> str:
+    return "outdated" if automatic_tier(rank_tier) >= 8 else "current"
+
+
 def effective_player_tier(player: Any) -> int:
     manual_tier = int(getattr(player, "internal_rating", 0) or 0)
     if manual_tier > 0:

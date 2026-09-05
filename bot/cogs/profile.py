@@ -22,6 +22,7 @@ from services.player_registration import (
     register_or_reactivate_player,
 )
 from services.player_tier import effective_player_tier, set_player_tier
+from services.titan_checkup_service import TitanRecipient
 
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
 NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
@@ -188,6 +189,25 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             if cog:
                 await cog.update_discord_profile(interaction.user, new_p)
 
+        was_checkup_delivered: bool | None = None
+        if new_p.tier_status == "outdated":
+            titan_checkup_cog = interaction.client.get_cog("TitanCheckup")
+            send_checkup_to_player = getattr(
+                titan_checkup_cog,
+                "send_checkup_to_player",
+                None,
+            )
+            if send_checkup_to_player is None:
+                was_checkup_delivered = False
+                print(
+                    "[ERROR] Titan checkup is unavailable after registration "
+                    f"for {interaction.user.id}"
+                )
+            else:
+                was_checkup_delivered = await send_checkup_to_player(
+                    TitanRecipient(interaction.user.id, nickname)
+                )
+
         # --- 6. ЗАМЕНА РОЛИ НОВИЧКА НА РОЛЬ УЧАСТНИКА ---
         try:
             await update_registration_access_roles(interaction.user, interaction.guild)
@@ -198,9 +218,18 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             print(f"[ERROR] Ошибка замены роли: {error}")
 
         # --- 7. ЛОГИРОВАНИЕ ---
+        checkup_log = ""
+        if was_checkup_delivered is not None:
+            checkup_log = (
+                "\nАктуализация Титана: "
+                + ("отправлена" if was_checkup_delivered else "не доставлена")
+            )
         await send_log(
             title="🆕 Новая регистрация",
-            description=f"Игрок: {interaction.user.mention}\nНик: `{nickname}`\nИмя: `{formatted_real_name}`\nSteam: `{sid32}`",
+            description=(
+                f"Игрок: {interaction.user.mention}\nНик: `{nickname}`\n"
+                f"Имя: `{formatted_real_name}`\nSteam: `{sid32}`{checkup_log}"
+            ),
             color=discord.Color.green()
         )
 

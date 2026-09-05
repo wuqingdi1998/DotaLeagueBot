@@ -4,6 +4,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Player
+from services.player_tier import initial_registration_tier_status
 from utils.nickname_validator import validate_nickname
 
 
@@ -90,6 +91,7 @@ async def register_or_reactivate_player(
     if existing_player is not None and not existing_player.is_archived:
         raise PlayerRegistrationError("Вы уже зарегистрированы.")
 
+    tier_status = initial_registration_tier_status(rank_tier)
     if existing_player is None:
         await _ensure_dota_id_is_available(session, steam_id32)
         player = Player(
@@ -99,6 +101,7 @@ async def register_or_reactivate_player(
             ingame_name=ingame_name,
             positions=positions,
             rank_tier=rank_tier,
+            tier_status=tier_status,
             avatar_url=avatar_url,
         )
         session.add(player)
@@ -113,7 +116,7 @@ async def register_or_reactivate_player(
     existing_player.positions = positions
     existing_player.rank_tier = rank_tier
     existing_player.internal_rating = 0
-    existing_player.tier_status = "current"
+    existing_player.tier_status = tier_status
     existing_player.avatar_url = avatar_url
     existing_player.team_id = None
     existing_player.is_archived = False

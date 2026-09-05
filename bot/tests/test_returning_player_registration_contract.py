@@ -24,7 +24,7 @@ def test_archived_discord_account_can_register_again() -> None:
     assert "register_or_reactivate_player" in profile
     assert "existing_player.is_archived" in registration
     assert "existing_player.is_archived = False" in registration
-    assert 'existing_player.tier_status = "current"' in registration
+    assert "existing_player.tier_status = tier_status" in registration
     assert "existing_player.team_id = None" in registration
     assert "registered_player_id = :player_id" in registration
     assert "existing_player.archived_steam_id32 = None" in registration

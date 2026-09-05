@@ -11,7 +11,11 @@ from cogs.ui.titan_checkup import (
     TitanCheckupView,
     resolved_titan_checkup_view,
 )
-from services.titan_checkup_service import CheckupDeadline, TitanCheckupService
+from services.titan_checkup_service import (
+    CheckupDeadline,
+    TitanCheckupService,
+    TitanRecipient,
+)
 
 FROKENG_DISCORD_ID = 311247030422863882
 TITAN_SCREEN_CHANNEL_ID = 1533127829066092715
@@ -81,25 +85,9 @@ class TitanCheckup(commands.Cog):
         delivered = 0
         failures: list[str] = []
         for recipient in recipients:
-            request_id = await self.service.create_request(
-                recipient.discord_id,
-                FROKENG_DISCORD_ID,
-            )
-            try:
-                user = self.bot.get_user(recipient.discord_id)
-                if user is None:
-                    user = await self.bot.fetch_user(recipient.discord_id)
-                sent = await user.send(CHECKUP_MESSAGE, view=TitanCheckupView())
-                pending_response = await self.service.mark_delivered(
-                    request_id,
-                    sent.id,
-                    CHECKUP_RESPONSE_TIMEOUT_SECONDS,
-                )
-                if pending_response is not None:
-                    self._schedule_response_expiry(pending_response)
+            if await self.send_checkup_to_player(recipient):
                 delivered += 1
-            except (discord.Forbidden, discord.HTTPException, discord.NotFound):
-                await self.service.mark_delivery_failed(request_id)
+            else:
                 failures.append(f"{recipient.nickname} ({recipient.discord_id})")
             await asyncio.sleep(0.15)
 
@@ -114,6 +102,28 @@ class TitanCheckup(commands.Cog):
         if failures and not failure_report_sent:
             summary += " Не удалось отправить вам список в личные сообщения."
         await interaction.followup.send(summary, ephemeral=True)
+
+    async def send_checkup_to_player(self, recipient: TitanRecipient) -> bool:
+        request_id = await self.service.create_request(
+            recipient.discord_id,
+            FROKENG_DISCORD_ID,
+        )
+        try:
+            user = self.bot.get_user(recipient.discord_id)
+            if user is None:
+                user = await self.bot.fetch_user(recipient.discord_id)
+            sent = await user.send(CHECKUP_MESSAGE, view=TitanCheckupView())
+            pending_response = await self.service.mark_delivered(
+                request_id,
+                sent.id,
+                CHECKUP_RESPONSE_TIMEOUT_SECONDS,
+            )
+            if pending_response is not None:
+                self._schedule_response_expiry(pending_response)
+            return True
+        except (discord.Forbidden, discord.HTTPException, discord.NotFound):
+            await self.service.mark_delivery_failed(request_id)
+            return False
 
     async def _send_failure_report(
         self,

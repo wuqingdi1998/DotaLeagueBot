@@ -10,6 +10,10 @@ SERVICE = (ROOT / "services" / "titan_checkup_service.py").read_text(
     encoding="utf-8"
 )
 VIEW = (ROOT / "cogs" / "ui" / "titan_checkup.py").read_text(encoding="utf-8")
+PROFILE = (ROOT / "cogs" / "profile.py").read_text(encoding="utf-8")
+REGISTRATION = (ROOT / "services" / "player_registration.py").read_text(
+    encoding="utf-8"
+)
 
 
 def test_tier_status_and_checkup_requests_are_persistent() -> None:
@@ -54,3 +58,12 @@ def test_ignored_checkup_becomes_later_after_twenty_four_hours() -> None:
     assert "expire_ignored_request" in SERVICE
     assert "request.status = 'sent'" in SERVICE
     assert "SET status = 'later'" in SERVICE
+
+
+def test_new_titan_receives_the_same_checkup_without_bulk_delivery() -> None:
+    assert "initial_registration_tier_status(rank_tier)" in REGISTRATION
+    assert 'if new_p.tier_status == "outdated":' in PROFILE
+    assert "send_checkup_to_player" in PROFILE
+    assert "recipients()" not in PROFILE
+    assert "if await self.send_checkup_to_player(recipient)" in COG
+    assert "CHECKUP_MESSAGE, view=TitanCheckupView()" in COG

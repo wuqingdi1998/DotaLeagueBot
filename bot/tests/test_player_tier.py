@@ -2,7 +2,11 @@ from types import SimpleNamespace
 
 import pytest
 
-from services.player_tier import effective_player_tier, set_player_tier
+from services.player_tier import (
+    effective_player_tier,
+    initial_registration_tier_status,
+    set_player_tier,
+)
 
 
 @pytest.mark.parametrize(
@@ -43,3 +47,20 @@ def test_manual_tier_range_is_validated(tier: int) -> None:
     player = SimpleNamespace(internal_rating=4, tier_status="inactive")
     with pytest.raises(ValueError):
         set_player_tier(player, tier)
+
+
+@pytest.mark.parametrize(
+    ("rank_tier", "expected_status"),
+    [
+        (0, "current"),
+        (8, "outdated"),
+        (79, "current"),
+        (80, "outdated"),
+        (85, "outdated"),
+    ],
+)
+def test_new_titan_starts_with_outdated_tier(
+    rank_tier: int,
+    expected_status: str,
+) -> None:
+    assert initial_registration_tier_status(rank_tier) == expected_status
