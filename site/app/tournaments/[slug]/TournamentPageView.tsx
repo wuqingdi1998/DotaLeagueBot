@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { TournamentModals } from "./components/TournamentModals";
 import { useTournament } from "./hooks/TournamentContext";
+import { useTournamentActionTarget } from "./hooks/useTournamentActionTarget";
 import { CommunityFooter } from "./sections/CommunityFooter";
 import { MatchesPanel } from "./sections/MatchesPanel";
 import { OverviewPanel } from "./sections/OverviewPanel";
@@ -37,7 +38,21 @@ const TournamentAdminPanel = dynamic(
 );
 
 export function TournamentPageView() {
-  const { data, loadData, loadingError, setTheme, theme } = useTournament();
+  const {
+    activeTab,
+    data,
+    loadData,
+    loadingError,
+    season,
+    setActiveTab,
+    setTheme,
+    theme,
+  } = useTournament();
+  useTournamentActionTarget({
+    activeTab,
+    readyKey: `${data?.generatedAt ?? ""}:${season.data?.generatedAt ?? ""}`,
+    setActiveTab,
+  });
 
   if (loadingError) {
     return (

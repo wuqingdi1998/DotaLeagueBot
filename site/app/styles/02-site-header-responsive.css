@@ -80,6 +80,11 @@
     flex-basis: 38px;
   }
 
+  .player-action-notification-badge {
+    top: -4px;
+    left: 29px;
+  }
+
   .theme-button {
     width: 46px;
     height: 46px;

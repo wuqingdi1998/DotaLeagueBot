@@ -56,6 +56,7 @@ export function TournamentCheckInCard() {
       )}
       {captainTeam && !captainTeam.is_checked_in && checkInWindow.isOpen && (
         <button
+          id={`team-check-in-${captainTeam.id}`}
           className="primary-button compact"
           onClick={() => void checkIn(captainTeam.id)}
         >

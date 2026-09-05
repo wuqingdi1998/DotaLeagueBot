@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { announcePlayerActionNotificationsChanged } from "@/lib/player-action-notification-events";
 import type { TournamentTab } from "../model/types";
 import type { SeasonData } from "../model/season-types";
 import {
@@ -203,6 +204,7 @@ export function useSeasonController({
       }
       setMessage("Чек-ин тура пройден");
       await load();
+      announcePlayerActionNotificationsChanged();
     } catch {
       setMessage("Сервер недоступен. Попробуйте ещё раз");
     } finally {

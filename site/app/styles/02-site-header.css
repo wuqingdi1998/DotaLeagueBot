@@ -222,6 +222,40 @@
   position: relative;
 }
 
+.player-action-notification-badge {
+  position: absolute;
+  z-index: 2;
+  top: 3px;
+  left: 39px;
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border: 3px solid var(--surface);
+  border-radius: 50%;
+  padding: 0;
+  background: #ff3d6e;
+  color: #fff;
+  box-shadow: 0 4px 13px rgba(255, 61, 110, 0.48);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.player-action-notification-badge:hover,
+.player-action-notification-badge:focus-visible {
+  background: #ff174f;
+  transform: scale(1.12);
+}
+
+.player-action-notification-badge:focus-visible {
+  outline: 3px solid rgba(255, 61, 110, 0.3);
+  outline-offset: 2px;
+}
+
 .player-profile-button {
   display: inline-flex;
   min-height: 62px;
@@ -383,6 +417,11 @@
     height: 38px;
     flex-basis: 38px;
   }
+
+  .header-actions[data-compact-profile="true"] .player-action-notification-badge {
+    top: -4px;
+    left: 29px;
+  }
 }
 
 @media (min-width: 761px) and (max-width: 1050px) {
@@ -421,5 +460,10 @@
     width: 38px;
     height: 38px;
     flex-basis: 38px;
+  }
+
+  .player-action-notification-badge {
+    top: -4px;
+    left: 29px;
   }
 }

@@ -23,6 +23,7 @@ export function TournamentInvitations() {
           </span>
           <div>
             <button
+              id={`team-invitation-${invitation.application_id}`}
               onClick={() =>
                 void answerInvitation(invitation.application_id, "accepted")
               }

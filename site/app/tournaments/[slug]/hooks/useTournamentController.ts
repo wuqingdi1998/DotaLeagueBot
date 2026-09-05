@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useServerClock } from "@/hooks/useServerClock";
 import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
+import { announcePlayerActionNotificationsChanged } from "@/lib/player-action-notification-events";
 import { tournamentHasStarted } from "@/lib/tournaments";
 import { emptyMatchDraft, emptyRegistration, roleOptions } from "../model/constants";
 import { getTeamNameError } from "../model/formatters";
@@ -282,6 +283,7 @@ export function useTournamentController() {
         : "Вы отклонили приглашение",
     );
     await loadData();
+    announcePlayerActionNotificationsChanged();
   }
 
   async function generateGroups(action: "form" | "shuffle" = "form") {

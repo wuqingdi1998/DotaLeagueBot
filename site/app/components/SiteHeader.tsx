@@ -9,6 +9,7 @@ import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
 import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
+import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
 import {
   FiArrowRight,
   FiArrowUpRight,
@@ -228,6 +229,7 @@ export function SiteHeader({
                 <small>Профиль участника</small>
               </span>
             </button>
+            <PlayerActionNotificationBadge playerId={user.discordId} />
             {profileOpen && (
               <div className="player-profile-popover">
                 <strong>{user.serverName}</strong>

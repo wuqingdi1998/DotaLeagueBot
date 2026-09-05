@@ -61,6 +61,7 @@ export function SeasonRoundCheckIn({
         </button>
       ) : round.is_registered ? (
         <button
+          id={`season-check-in-${round.id}`}
           className="primary-button compact"
           type="button"
           disabled={!isOpen || round.is_checked_in || season.checkInRoundId !== null}

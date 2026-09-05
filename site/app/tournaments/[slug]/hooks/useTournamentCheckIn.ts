@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { tournamentCheckInWindow } from "@/lib/tournament-check-in";
+import { announcePlayerActionNotificationsChanged } from "@/lib/player-action-notification-events";
 import type { TournamentSiteData } from "../model/types";
 
 export function useTournamentCheckIn({
@@ -58,7 +59,10 @@ export function useTournamentCheckIn({
         ? "Чек-ин команды подтверждён"
         : result.error ?? "Не удалось подтвердить участие",
     );
-    if (response.ok) await onReload();
+    if (response.ok) {
+      await onReload();
+      announcePlayerActionNotificationsChanged();
+    }
   }
 
   return { captainApplications, checkIn, checkInWindow };
