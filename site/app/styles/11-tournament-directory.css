@@ -212,17 +212,7 @@
     font-weight: 700;
   }
 
-  .mobile-navigation a.active,
-  .mobile-navigation a[aria-current="page"] {
-    border-color: var(--line-strong);
-    background: var(--surface-blue);
-    color: var(--blue-deep);
-  }
 
-  [data-theme="dark"] .mobile-navigation a.active,
-  [data-theme="dark"] .mobile-navigation a[aria-current="page"] {
-    color: var(--blue-soft);
-  }
 
   .platform-hero {
     grid-template-columns: 1fr;

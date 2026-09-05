@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
+import { HeaderNavigationLink } from "./header/HeaderNavigationLink";
 import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
@@ -120,48 +121,42 @@ export function SiteHeader({
         className="platform-navigation"
         aria-label="Основная навигация"
       >
-        <Link
-          className={homeActive ? "active" : undefined}
+        <HeaderNavigationLink
+          isActive={homeActive}
           href="/"
-          aria-current={homeActive ? "page" : undefined}
         >
           Главная
-        </Link>
-        <Link
-          className={tournamentsActive ? "active" : undefined}
+        </HeaderNavigationLink>
+        <HeaderNavigationLink
+          isActive={tournamentsActive}
           href="/tournaments"
-          aria-current={tournamentsActive ? "page" : undefined}
         >
           Турниры
-        </Link>
-        <Link
-          className={seasonActive ? "active" : undefined}
+        </HeaderNavigationLink>
+        <HeaderNavigationLink
+          isActive={seasonActive}
           href="/season"
-          aria-current={seasonActive ? "page" : undefined}
         >
           Сезон
-        </Link>
-        <Link
-          className={calendarActive ? "active" : undefined}
+        </HeaderNavigationLink>
+        <HeaderNavigationLink
+          isActive={calendarActive}
           href="/calendar"
-          aria-current={calendarActive ? "page" : undefined}
         >
           Календарь
-        </Link>
-        <Link
-          className={hallActive ? "active" : undefined}
+        </HeaderNavigationLink>
+        <HeaderNavigationLink
+          isActive={hallActive}
           href="/hall-of-fame"
-          aria-current={hallActive ? "page" : undefined}
         >
           Зал славы
-        </Link>
-        <Link
-          className={participantsActive ? "active" : undefined}
+        </HeaderNavigationLink>
+        <HeaderNavigationLink
+          isActive={participantsActive}
           href="/participants"
-          aria-current={participantsActive ? "page" : undefined}
         >
           Участники
-        </Link>
+        </HeaderNavigationLink>
         <a href={discordUrl} target="_blank" rel="noreferrer">
           Наш Discord <FiArrowUpRight aria-hidden="true" />
         </a>
@@ -281,54 +276,48 @@ export function SiteHeader({
           id="mobile-primary-navigation"
           aria-label="Мобильная навигация"
         >
-          <Link
-            className={homeActive ? "active" : undefined}
+          <HeaderNavigationLink
+            isActive={homeActive}
             href="/"
-            aria-current={homeActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
+            onAnimationComplete={() => setMobileMenuOpen(false)}
           >
             Главная
-          </Link>
-          <Link
-            className={tournamentsActive ? "active" : undefined}
+          </HeaderNavigationLink>
+          <HeaderNavigationLink
+            isActive={tournamentsActive}
             href="/tournaments"
-            aria-current={tournamentsActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
+            onAnimationComplete={() => setMobileMenuOpen(false)}
           >
             Турниры
-          </Link>
-          <Link
-            className={seasonActive ? "active" : undefined}
+          </HeaderNavigationLink>
+          <HeaderNavigationLink
+            isActive={seasonActive}
             href="/season"
-            aria-current={seasonActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
+            onAnimationComplete={() => setMobileMenuOpen(false)}
           >
             Сезон
-          </Link>
-          <Link
-            className={calendarActive ? "active" : undefined}
+          </HeaderNavigationLink>
+          <HeaderNavigationLink
+            isActive={calendarActive}
             href="/calendar"
-            aria-current={calendarActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
+            onAnimationComplete={() => setMobileMenuOpen(false)}
           >
             Календарь
-          </Link>
-          <Link
-            className={hallActive ? "active" : undefined}
+          </HeaderNavigationLink>
+          <HeaderNavigationLink
+            isActive={hallActive}
             href="/hall-of-fame"
-            aria-current={hallActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
+            onAnimationComplete={() => setMobileMenuOpen(false)}
           >
             Зал славы
-          </Link>
-          <Link
-            className={participantsActive ? "active" : undefined}
+          </HeaderNavigationLink>
+          <HeaderNavigationLink
+            isActive={participantsActive}
             href="/participants"
-            aria-current={participantsActive ? "page" : undefined}
-            onClick={() => setMobileMenuOpen(false)}
+            onAnimationComplete={() => setMobileMenuOpen(false)}
           >
             Участники
-          </Link>
+          </HeaderNavigationLink>
           <a
             href={discordUrl}
             target="_blank"

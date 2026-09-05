@@ -67,26 +67,14 @@
     color 160ms ease;
 }
 
-.platform-navigation a:hover {
+.platform-navigation a:not(.header-navigation-link):hover {
   background: var(--surface-soft);
   color: var(--blue-strong);
 }
 
-.platform-navigation a.active,
-.platform-navigation a[aria-current="page"] {
-  border-color: var(--line-strong);
-  background: var(--surface-blue);
-  color: var(--blue-deep);
-  box-shadow: 0 9px 24px rgba(0, 143, 209, 0.13);
-}
 
 .mobile-navigation { display: none; }
 
-[data-theme="dark"] .platform-navigation a.active,
-[data-theme="dark"] .platform-navigation a[aria-current="page"] {
-  background: rgba(0, 195, 255, 0.12);
-  color: var(--blue-soft);
-}
 
 @media (min-width: 1351px) and (max-width: 1650px) {
   .platform-navigation { gap: 4px; }
