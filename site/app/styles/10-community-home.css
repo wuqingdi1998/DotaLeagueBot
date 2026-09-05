@@ -253,12 +253,12 @@
 }
 
 .featured-tournaments-link {
+  width: 100%;
   min-height: 64px;
-  padding: 0 32px;
-  background: linear-gradient(135deg, #5a55c8 0%, #873fae 100%);
-  font-size: 17px;
+  background: linear-gradient(135deg, var(--blue-solid) 0%, var(--blue-night) 100%);
+  font-size: 19px;
 }
-.featured-tournaments-link:hover { background: linear-gradient(135deg, #6e68dd 0%, #9b50c2 100%); }
+.featured-tournaments-link:hover { background: linear-gradient(135deg, var(--blue-night) 0%, var(--blue-solid) 100%); }
 
 .featured-date {
   display: flex;

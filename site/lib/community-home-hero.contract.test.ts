@@ -30,10 +30,10 @@ describe("community home hero", () => {
       /featured-event-column[\s\S]*<aside className="featured-event-card">[\s\S]*<\/aside>\s*<Link\s*className="primary-button featured-tournaments-link"[\s\S]*Смотреть турниры/,
     );
     expect(styles).toMatch(
-      /\.featured-tournaments-link\s*\{[^}]*min-height:\s*64px;[^}]*padding:\s*0 32px;[^}]*background:\s*linear-gradient\(135deg,\s*#5a55c8 0%,\s*#873fae 100%\);[^}]*font-size:\s*17px;/,
+      /\.featured-tournaments-link\s*\{[^}]*width:\s*100%;[^}]*min-height:\s*64px;[^}]*background:\s*linear-gradient\(135deg,\s*var\(--blue-solid\) 0%,\s*var\(--blue-night\) 100%\);[^}]*font-size:\s*19px;/,
     );
     expect(styles).toMatch(
-      /\.featured-tournaments-link:hover\s*\{[^}]*background:\s*linear-gradient\(135deg,\s*#6e68dd 0%,\s*#9b50c2 100%\);/,
+      /\.featured-tournaments-link:hover\s*\{[^}]*background:\s*linear-gradient\(135deg,\s*var\(--blue-night\) 0%,\s*var\(--blue-solid\) 100%\);/,
     );
   });
 });
