@@ -68,8 +68,11 @@ describe("Fearless Draft language switch", () => {
     expect(translations).toContain('fullscreen: "На полный экран"');
     expect(translations).toContain('fullscreen: "Fullscreen"');
     expect(translations).toContain('fullscreen: "На весь екран"');
-    expect(translations).toContain('history: "История драфта"');
-    expect(translations).toContain('history: "Draft history"');
+    expect(translations).toContain('turnTime: "ВРЕМЯ ХОДА"');
+    expect(translations).toContain('reserveTime: "RESERVE TIME"');
+    expect(translations).toContain('tree: "Дерево драфту"');
+    expect(translations).not.toContain("historyView:");
+    expect(translations).not.toContain("firstActionSoon:");
     expect(translations).toContain('heroPool: "ПУЛ ГЕРОЕВ"');
     expect(translations).toContain('heroPool: "HERO POOL"');
     expect(translations).toContain('heroPool: "ПУЛ ГЕРОЇВ"');

@@ -15,55 +15,40 @@ const board = source("app/styles/51-fearless-draft-board.css");
 const treeStyles = source("app/styles/51-fearless-draft-history-tree.css");
 const routeStyles = source("app/styles/fearless-draft-route.css");
 
-describe("Fearless Draft history", () => {
-  it("matches the hero pool height and scrolls without stretching the board", () => {
+describe("Fearless Draft tree panel", () => {
+  it("renders only the draft tree without history controls or rows", () => {
     expect(activeDraft).toContain("radiantPlayerId={radiant.id}");
-    expect(history).toContain('action.actorId === radiantPlayerId ? "radiant" : "dire"');
+    expect(history).toContain("<DraftTree");
+    expect(history).not.toContain("useState");
+    expect(history).not.toContain("useEffect");
+    expect(history).not.toContain("historyListRef");
+    expect(history).not.toContain("FEARLESS_DRAFT_HEROES_BY_ID");
+    expect(history).not.toContain("text.history");
+    expect(history).not.toContain('role="tablist"');
+    expect(history).not.toContain("actions.map((action)");
+    expect(treeStyles).not.toContain(".fearless-history-tabs");
+    expect(board).not.toContain(".fearless-history article");
+    expect(board).not.toContain(".fearless-history > div");
     expect(board).toMatch(
       /\.fearless-history\s*\{[^}]*display:\s*flex;[^}]*min-height:\s*0;[^}]*align-self:\s*stretch;[^}]*contain:\s*size;[^}]*flex-direction:\s*column;/,
     );
-    expect(board).toMatch(
-      /\.fearless-history > div\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*none;[^}]*flex:\s*1;[^}]*overflow-y:\s*auto;/,
-    );
-    expect(board).toContain(".fearless-history article > span.radiant");
-    expect(board).toContain(".fearless-history article > span.dire");
   });
 
-  it("scrolls to the latest row whenever an overflowing history grows", () => {
-    expect(history).toContain('"use client"');
-    expect(history).toContain("useEffect");
-    expect(history).toContain("historyListRef");
-    expect(history).toContain("historyList.scrollHeight > historyList.clientHeight");
-    expect(history).toContain("historyList.scrollTop = historyList.scrollHeight");
-    expect(history).toContain("[actions.length]");
-  });
-
-  it("opens the Tree first and keeps both expanded tab labels inside", () => {
+  it("moves the synchronized clock into the former switch area and enlarges it", () => {
     expect(activeDraft).toContain("isFullscreen={isFullscreen}");
-    expect(activeDraft).toContain("firstPickPlayerId={firstPick.id}");
-    expect(history).toContain('useState<"history" | "tree">("tree")');
-    expect(history).toContain("{text.history}");
-    expect(history).toContain("{text.tree}");
-    expect(history.indexOf("{text.tree}")).toBeLessThan(
-      history.indexOf("{text.history}"),
-    );
-    expect(history).not.toContain("isTreeAvailable");
-    expect(history).toContain('activeView === "tree" ? (');
-    expect(treeStyles).toContain(".fearless-history-tabs");
-    expect(treeStyles).toContain(
-      "grid-template-columns: repeat(2, minmax(0, 1fr))",
+    expect(activeDraft).not.toContain('className={`fearless-main-clock');
+    expect(activeDraft).toContain("displayedClockSeconds={displayedClockSeconds}");
+    expect(activeDraft).toContain("isUsingReserve={Boolean(clock?.isUsingReserve)}");
+    expect(activeDraft).toContain("isComplete={isComplete}");
+    expect(history).toContain('className={`fearless-main-clock');
+    expect(history).toContain("formatDraftSeconds(displayedClockSeconds)");
+    expect(history).toContain("text.reserveTime");
+    expect(history).toContain("text.turnTime");
+    expect(treeStyles).toMatch(
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*44px;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-history-tabs button\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*0;/,
-    );
-    expect(treeStyles).toMatch(
-      /\.fearless-history-tabs\s*\{[^}]*border:\s*1px solid var\(--line-strong\);/,
-    );
-    expect(treeStyles).toMatch(
-      /\.fearless-history-tabs button\s*\{[^}]*overflow:\s*hidden;[^}]*text-align:\s*center;[^}]*white-space:\s*nowrap;/,
-    );
-    expect(treeStyles).toMatch(
-      /\.fearless-history-tabs button\.active\s*\{[^}]*box-shadow:\s*inset 0 -2px var\(--blue\);/,
+      /\.fearless-main-clock\s*\{[^}]*background:\s*linear-gradient/,
     );
   });
 
@@ -75,7 +60,6 @@ describe("Fearless Draft history", () => {
     expect(activeDraft.indexOf("<HeroGrid")).toBeLessThan(
       activeDraft.indexOf("<DraftHistory"),
     );
-    expect(history).toContain('activeView === "tree"');
     expect(history).toContain("<DraftTree");
     expect(treeStyles).toMatch(
       /@media \(max-width: 980px\)[\s\S]*\.fearless-draft-stage \.fearless-history > \.fearless-draft-tree\s*\{[^}]*max-height:\s*none;/,

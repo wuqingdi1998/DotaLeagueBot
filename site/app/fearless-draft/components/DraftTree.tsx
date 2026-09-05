@@ -52,8 +52,8 @@ export function DraftTree({
     <div
       className="fearless-draft-tree"
       id="fearless-draft-tree-panel"
-      role="tabpanel"
-      aria-labelledby="fearless-draft-tree-tab"
+      role="region"
+      aria-label={text.tree}
     >
       <div className="fearless-draft-tree-sides" aria-hidden="true">
         <span>{text.radiant}</span>

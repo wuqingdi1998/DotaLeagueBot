@@ -22,7 +22,7 @@ describe("site-wide scrollbar styling", () => {
       /\*\s*\{[^}]*scrollbar-color:\s*var\(--scrollbar-thumb\) var\(--scrollbar-track\);[^}]*scrollbar-width:\s*thin;/,
     );
     expect(allStyles).toMatch(
-      /\.fearless-history > div\s*\{[^}]*overflow-y:\s*auto;/,
+      /\.fearless-hero-grid\s*\{[^}]*overflow-y:\s*auto;/,
     );
   });
 

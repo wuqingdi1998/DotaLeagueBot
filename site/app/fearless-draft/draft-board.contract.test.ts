@@ -33,6 +33,7 @@ const stageScroll = source("app/fearless-draft/hooks/useDraftStageScroll.ts");
 const draftBase = source("app/styles/50-fearless-draft.css");
 const board = source("app/styles/51-fearless-draft-board.css");
 const interactions = source("app/styles/51-fearless-draft-interactions.css");
+const treeStyles = source("app/styles/51-fearless-draft-history-tree.css");
 const lobbyRoster = source("app/styles/51-fearless-draft-lobby-roster.css");
 const viewToggles = source("app/styles/51-fearless-draft-view-toggles.css");
 
@@ -176,15 +177,17 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("keeps the regular desktop status bar compact enough for Chromium", () => {
+  it("keeps the desktop status compact and makes the relocated clock prominent", () => {
     expect(board).toMatch(
       /\.fearless-draft-status\s*\{[^}]*gap:\s*14px;[^}]*padding:\s*5px 16px;/,
     );
     expect(board).toMatch(
       /\.fearless-draft-status > div:first-child strong\s*\{[^}]*font-size:\s*18px;/,
     );
-    expect(board).toMatch(
-      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*32px;/,
+    expect(activeDraft).not.toContain('className={`fearless-main-clock');
+    expect(history).toContain('className={`fearless-main-clock');
+    expect(treeStyles).toMatch(
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*44px;/,
     );
     expect(lobbyRoster).toMatch(
       /\.fearless-lobby-turn-group \.fearless-turn\s*\{[^}]*min-height:\s*50px;[^}]*padding:\s*7px 14px;/,
@@ -275,7 +278,7 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
-  it("keeps ordered history visible in the fullscreen right column", () => {
+  it("keeps the draft tree visible in the fullscreen right column", () => {
     expect(activeDraft).not.toContain('className="fearless-history-toggle"');
     expect(activeDraft).not.toContain("isHistoryOpen");
     expect(interactions).toMatch(
@@ -284,8 +287,8 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toMatch(
       /:fullscreen \.fearless-history\s*\{[^}]*display:\s*flex;[^}]*align-self:\s*stretch;/,
     );
-    expect(history).not.toContain("[...actions].reverse()");
-    expect(history).toContain("actions.map((action)");
+    expect(history).toContain("<DraftTree");
+    expect(history).not.toContain("actions.map((action)");
   });
 
   it("highlights the pick or ban confirmation button on hover", () => {
@@ -389,9 +392,9 @@ describe("Fearless Draft board interface", () => {
     expect(heroSearchHotkeys).not.toContain("onSearchLetter");
   });
 
-  it("keeps skipped bans blank outside the ordered history", () => {
+  it("keeps skipped bans blank now that the ordered history is archived", () => {
     expect(teamPanel).not.toContain("<b>—</b>");
-    expect(history).toContain("<i>—</i>");
+    expect(history).not.toContain("<i>—</i>");
   });
 
   it("shows a large player avatar in fullscreen team headers", () => {
@@ -448,9 +451,9 @@ describe("Fearless Draft board interface", () => {
     expect(imagePreloader).toContain("image.decode().then(resolve, resolve)");
   });
 
-  it("keeps reserve-time controls the same height without shifting the status bar", () => {
-    expect(board).toContain("width: 148px; min-height: 50px; align-items: center; justify-content: center; gap: 1px");
-    expect(board).toContain("min-block-size: 14px; line-height: 1.15; text-align: right; white-space: nowrap");
+  it("keeps reserve warnings while the clock is displayed above the tree", () => {
+    expect(treeStyles).toContain("min-height: 66px");
+    expect(treeStyles).toContain("min-block-size: 15px");
     expect(lobbyRoster).toContain("height: 50px");
     expect(activeDraft).toContain("const isReserveWarning");
     expect(activeDraft).toContain("clock.reserveRemainingSeconds === 0");

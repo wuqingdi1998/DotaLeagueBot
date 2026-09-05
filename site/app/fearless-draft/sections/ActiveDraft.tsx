@@ -8,7 +8,7 @@ import type {
   DraftSeriesSnapshot,
   FearlessDraftCommand,
 } from "../model/snapshot";
-import { formatDraftSeconds, useDraftClock } from "../hooks/useDraftClock";
+import { useDraftClock } from "../hooks/useDraftClock";
 import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { DraftTeamPanel } from "../components/DraftTeamPanel";
 import { HeroGrid } from "../components/HeroGrid";
@@ -186,16 +186,6 @@ export function ActiveDraft({
           </div>
         ) : turnControl}
         <div className="fearless-draft-view-controls">
-          <div className={`fearless-main-clock ${clock?.isUsingReserve ? "reserve" : ""}`}>
-            <span>{clock?.isUsingReserve ? text.reserveTime : text.turnTime}</span>
-            <strong>
-              {isComplete
-                ? "00:00"
-                : displayedClockSeconds !== null
-                  ? formatDraftSeconds(displayedClockSeconds)
-                  : "--:--"}
-            </strong>
-          </div>
           <DraftFullscreenToggle
             isFullscreen={isFullscreen}
             isFullscreenSupported={isFullscreenSupported}
@@ -254,6 +244,9 @@ export function ActiveDraft({
           firstPickPlayerId={firstPick.id}
           currentStep={map.currentStep}
           previewHeroId={localPreviewHeroId}
+          displayedClockSeconds={displayedClockSeconds}
+          isUsingReserve={Boolean(clock?.isUsingReserve)}
+          isComplete={isComplete}
         />
       </div>
     </section>

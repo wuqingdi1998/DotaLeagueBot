@@ -67,15 +67,13 @@
   box-shadow: var(--shadow);
 }
 
-.fearless-draft-status > div:first-child,
-.fearless-main-clock {
+.fearless-draft-status > div:first-child {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.fearless-draft-status > div:first-child span,
-.fearless-main-clock span {
+.fearless-draft-status > div:first-child span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
@@ -104,15 +102,6 @@
 .fearless-turn span { min-width: 0; color: var(--muted); }
 .fearless-turn strong { flex: 0 0 auto; color: var(--blue); }
 .fearless-turn.own { border-color: var(--line-strong); background: var(--surface-blue); }
-
-.fearless-main-clock { width: 148px; min-height: 50px; align-items: center; justify-content: center; gap: 1px; }
-.fearless-main-clock span { min-block-size: 14px; line-height: 1.15; text-align: right; white-space: nowrap; }
-.fearless-main-clock strong {
-  font-variant-numeric: tabular-nums;
-  font-size: 32px;
-  line-height: 1;
-}
-.fearless-main-clock.reserve strong { color: #f0a83f; }
 
 .fearless-team-columns {
   display: grid;
@@ -434,23 +423,6 @@
 .fearless-history > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: 14px; }
 .fearless-history > header span { font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .fearless-history > header strong { color: var(--blue); font-size: 12px; }
-.fearless-history > div { min-height: 0; max-height: none; flex: 1; overflow-y: auto; }
-.fearless-history article {
-  display: grid;
-  grid-template-columns: 22px 35px 44px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 6px;
-  border-bottom: 1px solid var(--line);
-  padding: 8px 10px;
-}
-.fearless-history article > b { color: var(--quiet); font-size: 12px; }
-.fearless-history article > span { font-size: 11px; font-weight: 700; }
-.fearless-history article > span.radiant { color: #43c98e; }
-.fearless-history article > span.dire { color: #ed6575; }
-.fearless-history article img { border-radius: 4px; object-fit: cover; }
-.fearless-history article > strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.fearless-history article small { color: #f0a83f; font-size: 10px; }
-.fearless-history > div > p { padding: 20px; color: var(--muted); font-size: 12px; text-align: center; }
 
 @media (max-width: 980px) {
   .fearless-active-draft,
@@ -462,7 +434,6 @@
   .fearless-team-columns { grid-template-columns: 1fr; }
   .fearless-draft-workspace { grid-template-columns: 1fr; }
   .fearless-history { align-self: start; contain: none; }
-  .fearless-history > div { max-height: 230px; flex: none; }
   .fearless-hero-grid {
     aspect-ratio: auto;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -473,7 +444,6 @@
 
 @media (max-width: 600px) {
   .fearless-draft-status { grid-template-columns: 1fr auto; padding: 12px; }
-  .fearless-main-clock strong { font-size: 27px; }
   .fearless-turn { width: 100%; min-width: 0; }
   .fearless-pick-slots { gap: 3px; }
   .fearless-pick-slots > div { min-height: 56px; }
