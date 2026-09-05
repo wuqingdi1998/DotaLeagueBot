@@ -8,7 +8,7 @@ body.fearless-active-draft-document .platform-footer {
 
 body.fearless-active-draft-document .fearless-draft-page {
   min-height: 0;
-  padding-bottom: 0;
+  padding-bottom: 8px;
 }
 
 body.fearless-active-draft-document .season-room-page {

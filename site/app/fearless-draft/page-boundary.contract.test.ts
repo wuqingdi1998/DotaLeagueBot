@@ -34,7 +34,7 @@ describe("Fearless Draft page boundary", () => {
       /body\.fearless-active-draft-document \.platform-footer\s*\{[^}]*display:\s*none;/,
     );
     expect(styles).toMatch(
-      /body\.fearless-active-draft-document \.fearless-draft-page\s*\{[^}]*min-height:\s*0;[^}]*padding-bottom:\s*0;/,
+      /body\.fearless-active-draft-document \.fearless-draft-page\s*\{[^}]*min-height:\s*0;[^}]*padding-bottom:\s*8px;/,
     );
     expect(styles).toMatch(
       /body\.fearless-active-draft-document \.season-room-page\s*\{[^}]*padding-bottom:\s*0;/,

@@ -181,20 +181,6 @@
 }
 
 .fearless-pick-slots img { object-fit: cover; }
-.fearless-pick-slots span {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  overflow: hidden;
-  padding: 14px 26px 4px 5px;
-  background: linear-gradient(transparent, rgba(2, 10, 17, 0.9));
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 .fearless-ban-list {
   display: flex;

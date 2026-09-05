@@ -90,10 +90,13 @@ export function DraftTeamPanel({
               className={`${hero ? "filled" : ""} ${isCurrentAction ? "current-action" : ""} ${isPreviewing ? "previewing" : ""}`}
             >
               {displayedHero ? (
-                <>
-                  <Image src={displayedHero.imageUrl} alt="" fill sizes="160px" unoptimized />
-                  <span>{displayedHero.name}</span>
-                </>
+                <Image
+                  src={displayedHero.imageUrl}
+                  alt={displayedHero.name}
+                  fill
+                  sizes="160px"
+                  unoptimized
+                />
               ) : null}
               <small className="fearless-slot-step">{step + 1}</small>
             </div>

@@ -151,6 +151,15 @@ describe("Fearless Draft board interface", () => {
     );
   });
 
+  it("shows picked heroes without visible name captions in every layout", () => {
+    expect(teamPanel).not.toContain("<span>{displayedHero.name}</span>");
+    expect(teamPanel).toContain("alt={displayedHero.name}");
+    expect(board).not.toMatch(/\.fearless-pick-slots span\s*\{/);
+    expect(interactions).not.toMatch(
+      /\.fearless-draft-stage:fullscreen \.fearless-pick-slots span/,
+    );
+  });
+
   it("keeps picked hero images at their landscape ratio in fullscreen", () => {
     expect(interactions).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-pick-slots > div\s*\{[^}]*aspect-ratio:\s*16 \/ 9;/,
