@@ -38,7 +38,7 @@ jobs:
           python -m compileall -q .
           pip-audit -r requirements.txt
           ruff check .
-          mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py utils/website_notifications.py
+          mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py services/season_ranked_win_reminders.py utils/website_notifications.py
           python -m pytest
       - name: Check site
         working-directory: site
@@ -99,7 +99,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 30m
+          command_timeout: 45m
           script: |
             set -euo pipefail
 
@@ -483,6 +483,8 @@ jobs:
               fi
               sleep 3
             done
+
+            bash scripts/verify-season-ranked-win-reminders.sh
 
             docker image prune --force
             docker compose ps

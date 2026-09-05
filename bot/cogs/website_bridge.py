@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.core import async_session
 from services.season_round_channel_sync import sync_season_round_discord_channels
+from services.season_ranked_win_reminders import queue_due_ranked_win_reminders
 from utils.website_notifications import notification_outbox_embed
 
 
@@ -187,10 +188,14 @@ class WebsiteBridge(commands.Cog):
     @tasks.loop(seconds=15)
     async def deliver_notifications(self) -> None:
         async with async_session() as session:
+            base_url = (
+                os.getenv("PUBLIC_BASE_URL") or "https://lsesports.ru"
+            ).rstrip("/")
             await sync_season_round_discord_channels(self.bot, session)
             await self._queue_tournament_checkins(session)
             await self._queue_season_round_checkins(session)
             await self._queue_season_round_missing_checkins(session)
+            await queue_due_ranked_win_reminders(session, base_url)
             result = await session.execute(
                 text(
                     """
