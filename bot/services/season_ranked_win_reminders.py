@@ -95,16 +95,18 @@ async def queue_due_ranked_win_reminders(
                   ON catch_up.round_id = registered_players.round_id
             )
             SELECT discord_id, round_id, round_number, slug, event_type,
-                   primary_role_wins_required - primary_wins
+                   GREATEST(primary_role_wins_required - primary_wins, 0)
                      AS missing_primary_wins,
-                   secondary_role_wins_required - secondary_wins
+                   GREATEST(secondary_role_wins_required - secondary_wins, 0)
                      AS missing_secondary_wins
             FROM reminder_candidates AS candidate
             WHERE NOW() >= reminder_at
               AND NOW() < scheduled_at
               AND registration_created_at <= reminder_at
-              AND primary_wins < primary_role_wins_required
-              AND secondary_wins < secondary_role_wins_required
+              AND (
+                primary_wins < primary_role_wins_required
+                OR secondary_wins < secondary_role_wins_required
+              )
               AND ranked_wins_checked_at >= counts_fresh_after
               AND NOT EXISTS (
                 SELECT 1

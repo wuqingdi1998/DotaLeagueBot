@@ -56,8 +56,10 @@ for attempt in $(seq 1 120); do
        WHERE tournament.slug = '\''league-season-9'\''
          AND registration.created_at <= catch_up.scheduled_at
          AND ranked_wins.checked_at >= catch_up.scheduled_at - INTERVAL '\''15 minutes'\''
-         AND ranked_wins.primary_wins < settings.primary_role_wins_required
-         AND ranked_wins.secondary_wins < settings.secondary_role_wins_required
+         AND (
+           ranked_wins.primary_wins < settings.primary_role_wins_required
+           OR ranked_wins.secondary_wins < settings.secondary_role_wins_required
+         )
      ), delivered AS (
        SELECT COUNT(*)::int AS total,
               COUNT(*) FILTER (WHERE status = '\''sent'\'')::int AS sent,

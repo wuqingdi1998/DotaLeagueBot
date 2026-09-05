@@ -20,6 +20,9 @@ BRIDGE = (ROOT / "bot" / "cogs" / "website_bridge.py").read_text(
 DEPLOYMENT = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(
     encoding="utf-8"
 )
+VERIFICATION = (
+    ROOT / "scripts" / "verify-season-ranked-win-reminders.sh"
+).read_text(encoding="utf-8")
 
 
 def test_message_contains_personal_shortage_and_round_link() -> None:
@@ -53,9 +56,17 @@ def test_settings_hold_requirements_and_both_delivery_delays() -> None:
     assert "2026-09-05 13:00:00+03" in MIGRATION
 
 
-def test_candidates_require_shortage_on_both_roles_and_fresh_counts() -> None:
-    assert "primary_wins < primary_role_wins_required" in SERVICE
-    assert "secondary_wins < secondary_role_wins_required" in SERVICE
+def test_candidates_require_shortage_on_either_role_and_fresh_counts() -> None:
+    shortage_on_either_role = (
+        "AND (\n"
+        "                primary_wins < primary_role_wins_required\n"
+        "                OR secondary_wins < secondary_role_wins_required\n"
+        "              )"
+    )
+    assert shortage_on_either_role in SERVICE
+    assert "GREATEST(primary_role_wins_required - primary_wins, 0)" in SERVICE
+    assert "GREATEST(secondary_role_wins_required - secondary_wins, 0)" in SERVICE
+    assert "OR ranked_wins.secondary_wins" in VERIFICATION
     assert "ranked_wins_checked_at >= counts_fresh_after" in SERVICE
     assert "registration_created_at <= reminder_at" in SERVICE
     assert "registration_created_at > registration_reminders_start_at" in SERVICE
