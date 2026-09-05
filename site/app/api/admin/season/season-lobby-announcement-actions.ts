@@ -9,7 +9,10 @@ export async function queueSeasonLobbyPublishedAnnouncement(
        dedupe_key,
        channel_id,
        content,
-       attachment_name
+       attachment_name,
+       report_recipient_id,
+       report_description,
+       report_status
      )
      SELECT
        format(
@@ -34,7 +37,17 @@ export async function queueSeasonLobbyPublishedAnnouncement(
            'HH24:MI'
          )
        ),
-       settings.attachment_prefix || round.round_number || '.png'
+       settings.attachment_prefix || round.round_number || '.png',
+       settings.report_recipient_id,
+       format(
+         'анонс публикации лобби на тур №%s – %s',
+         round.round_number,
+         settings.report_audience_name
+       ),
+       CASE
+         WHEN settings.report_recipient_id IS NULL THEN 'not_required'
+         ELSE 'pending'
+       END
      FROM season_rounds round
      JOIN tournaments tournament ON tournament.id = round.tournament_id
      JOIN season_lobby_announcement_settings settings

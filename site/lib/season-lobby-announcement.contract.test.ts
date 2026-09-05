@@ -14,6 +14,9 @@ const announcements = source(
 const migration = source(
   "../../bot/database/migrations/0115_season_lobby_announcements.sql",
 );
+const reportMigration = source(
+  "../../bot/database/migrations/0116_season_lobby_announcement_reports.sql",
+);
 const dockerfile = source("../../bot/Dockerfile");
 const deploy = source("../../.github/workflows/deploy.yml");
 
@@ -40,6 +43,16 @@ describe("season lobby announcement contract", () => {
     expect(announcements).toContain("'DD.MM.YYYY'");
     expect(announcements).toContain("'HH24:MI'");
     expect(announcements).toContain("%s-го тура %s %s (%s)");
+  });
+
+  it("reports each successful real announcement to frokeng", () => {
+    expect(reportMigration).toContain("311247030422863882");
+    expect(reportMigration).toContain("анонсы-и-новости");
+    expect(announcements).toContain("settings.report_recipient_id");
+    expect(announcements).toContain("'pending'");
+    expect(announcements).toContain(
+      "анонс публикации лобби на тур №%s – %s",
+    );
   });
 
   it("queues all fourteen paused previews for the requested test channel", () => {
