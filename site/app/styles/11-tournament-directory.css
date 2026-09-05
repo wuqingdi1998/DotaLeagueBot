@@ -228,7 +228,7 @@
     grid-template-columns: 1fr;
   }
 
-  .featured-event-card {
+  .featured-event-column {
     width: min(680px, 100%);
   }
 
@@ -256,8 +256,8 @@
 
   .platform-hero {
     min-height: auto;
-    gap: 32px;
-    padding: 38px 18px;
+    gap: 24px;
+    padding: 28px 18px;
   }
 
   .platform-hero h1 {
@@ -268,7 +268,7 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
-    margin-top: 28px;
+    margin-top: 22px;
   }
 
   .platform-numbers strong {
@@ -280,7 +280,7 @@
   }
 
   .featured-event-card {
-    min-height: 300px;
+    min-height: 270px;
     border-radius: 22px;
   }
 

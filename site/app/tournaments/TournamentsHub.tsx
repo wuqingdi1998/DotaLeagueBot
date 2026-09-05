@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { FaDiscord } from "react-icons/fa";
 import {
   FiArchive,
   FiArrowRight,
@@ -154,7 +153,6 @@ export function CommunityHome() {
         <div className="hero-orb hero-orb-one" />
         <div className="hero-orb hero-orb-two" />
         <div className="platform-hero-copy">
-          <p className="eyebrow">Linken&apos;s Sphere Esports</p>
           <h1>
             Наши турниры живут здесь.
             <span>Твоя история только начинается!</span>
@@ -164,19 +162,6 @@ export function CommunityHome() {
             регистрация команд, расписание, результаты и архив прошедших
             турниров.
           </p>
-          <div className="hero-buttons">
-            <Link className="primary-button" href="/tournaments">
-              Смотреть турниры <FiArrowRight />
-            </Link>
-            <a
-              className="secondary-button"
-              href="https://discord.gg/lsesports"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <FaDiscord /> Наш Discord
-            </a>
-          </div>
           <div className="platform-numbers">
             <div>
               <strong>{upcomingCount}</strong>
@@ -192,45 +177,56 @@ export function CommunityHome() {
             </div>
           </div>
         </div>
-        <aside className="featured-event-card">
-          {loading ? (
-            <p>Загружаем ближайшее событие…</p>
-          ) : error ? (
-            <p>{error}</p>
-          ) : featured ? (
-            <>
-              <div className="featured-event-heading">
-                <TournamentStatusBadge
-                  status={featured.status}
-                  variant="short"
-                />
-              </div>
-              <h2>{featured.name}</h2>
-              <p>{featured.description}</p>
-              <div className="featured-date">
-                <FiCalendar />
-                {formatTournamentDateRange(featured.start_at, featured.end_at)}
-              </div>
-              <a
-                className="primary-button"
-                href={`/tournaments/${featured.slug}`}
-              >
-                Открыть событие <FiArrowRight />
-              </a>
-            </>
-          ) : (
-            <>
-              <p className="card-kicker">Турниры сообщества</p>
-              <h2>Новый турнир скоро появится</h2>
-              <p>
-                Здесь будут опубликованы регистрация, расписание и результаты.
-              </p>
-              <Link className="primary-button" href="/tournaments">
-                Открыть раздел <FiArrowRight />
-              </Link>
-            </>
-          )}
-        </aside>
+        <div className="featured-event-column">
+          <aside className="featured-event-card">
+            {loading ? (
+              <p>Загружаем ближайшее событие…</p>
+            ) : error ? (
+              <p>{error}</p>
+            ) : featured ? (
+              <>
+                <div className="featured-event-heading">
+                  <TournamentStatusBadge
+                    status={featured.status}
+                    variant="short"
+                  />
+                </div>
+                <h2>{featured.name}</h2>
+                <p>{featured.description}</p>
+                <div className="featured-date">
+                  <FiCalendar />
+                  {formatTournamentDateRange(
+                    featured.start_at,
+                    featured.end_at,
+                  )}
+                </div>
+                <a
+                  className="primary-button"
+                  href={`/tournaments/${featured.slug}`}
+                >
+                  Открыть событие <FiArrowRight />
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="card-kicker">Турниры сообщества</p>
+                <h2>Новый турнир скоро появится</h2>
+                <p>
+                  Здесь будут опубликованы регистрация, расписание и результаты.
+                </p>
+                <Link className="primary-button" href="/tournaments">
+                  Открыть раздел <FiArrowRight />
+                </Link>
+              </>
+            )}
+          </aside>
+          <Link
+            className="primary-button featured-tournaments-link"
+            href="/tournaments"
+          >
+            Смотреть турниры <FiArrowRight />
+          </Link>
+        </div>
       </section>
 
       <section className="platform-purpose">
