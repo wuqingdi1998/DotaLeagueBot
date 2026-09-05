@@ -46,7 +46,7 @@ def test_member_welcome_contains_clickable_registration_and_admin_links() -> Non
         "Основная информация о турнирах и регистрация – на "
         "[нашем сайте](https://lsesports.ru/).\n"
         "По любым вопросам, касающимся сервера, можно написать администратору – "
-        "[311247030422863882](https://discord.com/users/311247030422863882)."
+        "[@frokeng](https://discord.com/users/311247030422863882)."
     )
 
 

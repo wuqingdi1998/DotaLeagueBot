@@ -7,6 +7,7 @@ REGISTRATION_CHANNEL_URL = (
 )
 COMMUNITY_SITE_URL = "https://lsesports.ru/"
 ADMINISTRATOR_ID = 311247030422863882
+ADMINISTRATOR_NAME = "@frokeng"
 ADMINISTRATOR_PROFILE_URL = f"https://discord.com/users/{ADMINISTRATOR_ID}"
 
 
@@ -19,7 +20,7 @@ def member_welcome_embed() -> discord.Embed:
         "Основная информация о турнирах и регистрация – на "
         f"[нашем сайте]({COMMUNITY_SITE_URL}).\n"
         "По любым вопросам, касающимся сервера, можно написать администратору – "
-        f"[{ADMINISTRATOR_ID}]({ADMINISTRATOR_PROFILE_URL})."
+        f"[{ADMINISTRATOR_NAME}]({ADMINISTRATOR_PROFILE_URL})."
     )
     return notification_embed("Привет!", message, None)
 
