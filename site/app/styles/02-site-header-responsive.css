@@ -10,10 +10,11 @@
 
 @media (max-width: 760px) {
   .site-header {
+    --header-block-padding: 12px;
     min-height: 74px;
     grid-template-columns: minmax(0, 1fr) auto;
     gap: 12px;
-    padding: 12px 17px;
+    padding: var(--header-block-padding) 17px;
   }
 
   .brand {

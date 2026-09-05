@@ -7,6 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
+import { useHeaderNavigation } from "./header/useHeaderNavigation";
 import { HeaderNavigationLink } from "./header/HeaderNavigationLink";
 import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
@@ -79,6 +80,7 @@ export function SiteHeader({
   discordUrl = "https://discord.gg/lsesports",
 }: SiteHeaderProps) {
   const pathname = usePathname();
+  const beginNavigation = useHeaderNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { actionsRef, headerRef, navigationRef } =
@@ -122,36 +124,42 @@ export function SiteHeader({
         aria-label="Основная навигация"
       >
         <HeaderNavigationLink
+          beginNavigation={beginNavigation}
           isActive={homeActive}
           href="/"
         >
           Главная
         </HeaderNavigationLink>
         <HeaderNavigationLink
+          beginNavigation={beginNavigation}
           isActive={tournamentsActive}
           href="/tournaments"
         >
           Турниры
         </HeaderNavigationLink>
         <HeaderNavigationLink
+          beginNavigation={beginNavigation}
           isActive={seasonActive}
           href="/season"
         >
           Сезон
         </HeaderNavigationLink>
         <HeaderNavigationLink
+          beginNavigation={beginNavigation}
           isActive={calendarActive}
           href="/calendar"
         >
           Календарь
         </HeaderNavigationLink>
         <HeaderNavigationLink
+          beginNavigation={beginNavigation}
           isActive={hallActive}
           href="/hall-of-fame"
         >
           Зал славы
         </HeaderNavigationLink>
         <HeaderNavigationLink
+          beginNavigation={beginNavigation}
           isActive={participantsActive}
           href="/participants"
         >
@@ -277,6 +285,7 @@ export function SiteHeader({
           aria-label="Мобильная навигация"
         >
           <HeaderNavigationLink
+            beginNavigation={beginNavigation}
             isActive={homeActive}
             href="/"
             onAnimationComplete={() => setMobileMenuOpen(false)}
@@ -284,6 +293,7 @@ export function SiteHeader({
             Главная
           </HeaderNavigationLink>
           <HeaderNavigationLink
+            beginNavigation={beginNavigation}
             isActive={tournamentsActive}
             href="/tournaments"
             onAnimationComplete={() => setMobileMenuOpen(false)}
@@ -291,6 +301,7 @@ export function SiteHeader({
             Турниры
           </HeaderNavigationLink>
           <HeaderNavigationLink
+            beginNavigation={beginNavigation}
             isActive={seasonActive}
             href="/season"
             onAnimationComplete={() => setMobileMenuOpen(false)}
@@ -298,6 +309,7 @@ export function SiteHeader({
             Сезон
           </HeaderNavigationLink>
           <HeaderNavigationLink
+            beginNavigation={beginNavigation}
             isActive={calendarActive}
             href="/calendar"
             onAnimationComplete={() => setMobileMenuOpen(false)}
@@ -305,6 +317,7 @@ export function SiteHeader({
             Календарь
           </HeaderNavigationLink>
           <HeaderNavigationLink
+            beginNavigation={beginNavigation}
             isActive={hallActive}
             href="/hall-of-fame"
             onAnimationComplete={() => setMobileMenuOpen(false)}
@@ -312,6 +325,7 @@ export function SiteHeader({
             Зал славы
           </HeaderNavigationLink>
           <HeaderNavigationLink
+            beginNavigation={beginNavigation}
             isActive={participantsActive}
             href="/participants"
             onAnimationComplete={() => setMobileMenuOpen(false)}
