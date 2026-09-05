@@ -34,7 +34,7 @@ describe("Fearless Draft tree panel", () => {
     );
   });
 
-  it("moves the synchronized clock into the former switch area and enlarges it", () => {
+  it("enlarges the clock digits without increasing the former switch area", () => {
     expect(activeDraft).toContain("isFullscreen={isFullscreen}");
     expect(activeDraft).not.toContain('className={`fearless-main-clock');
     expect(activeDraft).toContain("displayedClockSeconds={displayedClockSeconds}");
@@ -46,14 +46,12 @@ describe("Fearless Draft tree panel", () => {
     expect(history).toContain("text.turnTime");
     expect(board).not.toContain(".fearless-history > header strong");
     expect(treeStyles).toMatch(
-      /\.fearless-main-clock\s*\{[^}]*min-height:\s*128px;/,
+      /\.fearless-main-clock\s*\{[^}]*height:\s*66px;[^}]*min-height:\s*66px;[^}]*overflow:\s*hidden;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*84px;/,
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*58px;/,
     );
-    expect(treeStyles).toMatch(
-      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-main-clock strong\s*\{[^}]*font-size:\s*clamp\(84px, 34cqw, 148px\);/,
-    );
+    expect(treeStyles).not.toContain(".fearless-draft-stage:not(:fullscreen) .fearless-main-clock strong");
     expect(treeStyles).toMatch(
       /\.fearless-main-clock\s*\{[^}]*background:\s*linear-gradient/,
     );

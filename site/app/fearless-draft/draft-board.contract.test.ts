@@ -187,7 +187,7 @@ describe("Fearless Draft board interface", () => {
     expect(activeDraft).not.toContain('className={`fearless-main-clock');
     expect(history).toContain('className={`fearless-main-clock');
     expect(treeStyles).toMatch(
-      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*84px;/,
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*58px;/,
     );
     expect(lobbyRoster).toMatch(
       /\.fearless-lobby-turn-group \.fearless-turn\s*\{[^}]*min-height:\s*50px;[^}]*padding:\s*7px 14px;/,
@@ -455,8 +455,8 @@ describe("Fearless Draft board interface", () => {
   });
 
   it("keeps reserve warnings while the clock is displayed above the tree", () => {
-    expect(treeStyles).toContain("min-height: 128px");
-    expect(treeStyles).toContain("min-block-size: 15px");
+    expect(treeStyles).toContain("min-height: 66px");
+    expect(treeStyles).toContain("min-block-size: 13px");
     expect(lobbyRoster).toContain("height: 50px");
     expect(activeDraft).toContain("const isReserveWarning");
     expect(activeDraft).toContain("clock.reserveRemainingSeconds === 0");
