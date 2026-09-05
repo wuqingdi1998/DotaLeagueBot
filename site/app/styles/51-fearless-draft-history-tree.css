@@ -215,6 +215,7 @@
 
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree {
   padding: 5px 6px 6px;
+  gap: 1px;
 }
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree::before {
   top: 29px;
@@ -248,15 +249,23 @@
 }
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-branch {
   --tree-line-overlap: calc(13px - var(--tree-number-half-width) - var(--tree-line-number-gap));
+  height: 100%;
+}
+.fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.ban {
+  width: auto;
+  height: calc(100% - 2px);
+  max-height: 29px;
+}
+.fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.pick {
+  width: auto;
+  height: calc(100% - 2px);
+  max-height: 38px;
 }
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-branch.radiant.active::after,
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-branch.dire.active::before {
   flex-basis: calc(10px + var(--tree-line-overlap));
 }
 @media (min-width: 981px) {
-  .fearless-draft-stage:not(:fullscreen) .fearless-history {
-    container-type: size;
-  }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-row {
     min-height: 0;
     flex: 1 1 0;
@@ -267,16 +276,6 @@
   }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-numbers {
     min-height: 0;
-  }
-  .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.ban {
-    width: auto;
-    height: 28px;
-    height: clamp(24px, 5.2cqh, 32px);
-  }
-  .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.pick {
-    width: auto;
-    height: 36px;
-    height: clamp(30px, 7cqh, 42px);
   }
 }
 
@@ -289,12 +288,6 @@
   }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-numbers {
     min-height: 32px;
-  }
-  .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.ban {
-    width: 56px;
-  }
-  .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-slot.pick {
-    width: 74px;
   }
   .fearless-draft-stage .fearless-history > .fearless-draft-tree {
     max-height: none;

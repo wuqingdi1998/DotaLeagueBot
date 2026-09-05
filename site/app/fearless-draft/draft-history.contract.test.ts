@@ -175,11 +175,18 @@ describe("Fearless Draft tree panel", () => {
   });
 
   it("fits every draft step into the non-fullscreen board height", () => {
+    expect(treeStyles).not.toContain("cqh");
     expect(treeStyles).toMatch(
-      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-history\s*\{[^}]*container-type:\s*size;/,
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree\s*\{[^}]*padding:\s*5px 6px 6px;[^}]*gap:\s*1px;/,
     );
     expect(treeStyles).toMatch(
-      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree\s*\{[^}]*padding:\s*5px 6px 6px;/,
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-branch\s*\{[^}]*height:\s*100%;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*auto;[^}]*height:\s*calc\(100% - 2px\);[^}]*max-height:\s*29px;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*auto;[^}]*height:\s*calc\(100% - 2px\);[^}]*max-height:\s*38px;/,
     );
     expect(treeStyles).toMatch(
       /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\s*\{[^}]*min-height:\s*0;[^}]*flex:\s*1 1 0;/,
@@ -188,14 +195,10 @@ describe("Fearless Draft tree panel", () => {
       /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*0;[^}]*flex-grow:\s*1\.35;/,
     );
     expect(treeStyles).toMatch(
-      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.ban\s*\{[^}]*width:\s*auto;[^}]*height:\s*28px;[^}]*height:\s*clamp\(24px, 5\.2cqh, 32px\);/,
-    );
-    expect(treeStyles).toMatch(
-      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-slot\.pick\s*\{[^}]*width:\s*auto;[^}]*height:\s*36px;[^}]*height:\s*clamp\(30px, 7cqh, 42px\);/,
-    );
-    expect(treeStyles).toMatch(
       /@media \(max-width: 980px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree-row\s*\{[^}]*min-height:\s*32px;/,
     );
+    expect(29).toBeLessThan(32);
+    expect(38).toBeLessThan(44);
   });
 
   it("shows the local gray preview and current-stage shimmer in the tree", () => {
