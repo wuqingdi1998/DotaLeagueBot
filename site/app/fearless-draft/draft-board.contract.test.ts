@@ -187,7 +187,7 @@ describe("Fearless Draft board interface", () => {
     expect(activeDraft).not.toContain('className={`fearless-main-clock');
     expect(history).toContain('className={`fearless-main-clock');
     expect(treeStyles).toMatch(
-      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*44px;/,
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*84px;/,
     );
     expect(lobbyRoster).toMatch(
       /\.fearless-lobby-turn-group \.fearless-turn\s*\{[^}]*min-height:\s*50px;[^}]*padding:\s*7px 14px;/,
@@ -230,6 +230,9 @@ describe("Fearless Draft board interface", () => {
     );
     expect(board).toMatch(
       /\.fearless-history\s*\{[^}]*align-self:\s*stretch;[^}]*contain:\s*size;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-history > \.fearless-draft-tree\s*\{[^}]*min-height:\s*0;[^}]*flex:\s*1 1 auto;/,
     );
     expect(interactions).toMatch(
       /\.fearless-draft-stage:fullscreen \.fearless-hero-grid\s*\{[^}]*height:\s*auto;[^}]*flex:\s*0 0 auto;/,
@@ -452,7 +455,7 @@ describe("Fearless Draft board interface", () => {
   });
 
   it("keeps reserve warnings while the clock is displayed above the tree", () => {
-    expect(treeStyles).toContain("min-height: 66px");
+    expect(treeStyles).toContain("min-height: 128px");
     expect(treeStyles).toContain("min-block-size: 15px");
     expect(lobbyRoster).toContain("height: 50px");
     expect(activeDraft).toContain("const isReserveWarning");

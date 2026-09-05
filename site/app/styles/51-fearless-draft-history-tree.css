@@ -1,4 +1,5 @@
 .fearless-history > header {
+  flex: 0 0 auto;
   justify-content: center;
   padding: 8px;
 }
@@ -6,7 +7,7 @@
 .fearless-main-clock {
   display: flex;
   width: 100%;
-  min-height: 66px;
+  min-height: 128px;
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -32,8 +33,9 @@
 
 .fearless-main-clock strong {
   color: var(--blue);
-  font-size: 44px;
+  font-size: 84px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
   line-height: 1;
 }
 .fearless-main-clock.reserve strong { color: #f0a83f; }
@@ -46,6 +48,8 @@
   padding: 7px 8px 8px;
 }
 .fearless-history > .fearless-draft-tree {
+  min-height: 0;
+  flex: 1 1 auto;
   overflow-y: hidden;
 }
 .fearless-draft-tree::before {
@@ -211,8 +215,8 @@
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree {
   padding: 5px 6px 6px;
 }
-.fearless-draft-stage:not(:fullscreen) .fearless-history {
-  container-type: size;
+.fearless-draft-stage:not(:fullscreen) .fearless-main-clock strong {
+  font-size: clamp(84px, 34cqw, 148px);
 }
 .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree::before {
   top: 29px;
@@ -252,6 +256,9 @@
   flex-basis: calc(10px + var(--tree-line-overlap));
 }
 @media (min-width: 981px) {
+  .fearless-draft-stage:not(:fullscreen) .fearless-history {
+    container-type: size;
+  }
   .fearless-draft-stage:not(:fullscreen) .fearless-draft-tree-row {
     min-height: 0;
     flex: 1 1 0;

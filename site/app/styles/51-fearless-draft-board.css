@@ -421,8 +421,6 @@
   overflow: hidden;
 }
 .fearless-history > header { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--line); padding: 14px; }
-.fearless-history > header span { font-size: 12px; font-weight: 700; text-transform: uppercase; }
-.fearless-history > header strong { color: var(--blue); font-size: 12px; }
 
 @media (max-width: 980px) {
   .fearless-active-draft,

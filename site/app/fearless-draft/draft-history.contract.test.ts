@@ -44,8 +44,15 @@ describe("Fearless Draft tree panel", () => {
     expect(history).toContain("formatDraftSeconds(displayedClockSeconds)");
     expect(history).toContain("text.reserveTime");
     expect(history).toContain("text.turnTime");
+    expect(board).not.toContain(".fearless-history > header strong");
     expect(treeStyles).toMatch(
-      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*44px;/,
+      /\.fearless-main-clock\s*\{[^}]*min-height:\s*128px;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-main-clock strong\s*\{[^}]*font-size:\s*84px;/,
+    );
+    expect(treeStyles).toMatch(
+      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-main-clock strong\s*\{[^}]*font-size:\s*clamp\(84px, 34cqw, 148px\);/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-main-clock\s*\{[^}]*background:\s*linear-gradient/,
@@ -118,7 +125,7 @@ describe("Fearless Draft tree panel", () => {
     expect(draftTree).toContain('laterStep ? "upper" : "middle"');
     expect(treeStyles).toContain(".fearless-history > .fearless-draft-tree");
     expect(treeStyles).toMatch(
-      /\.fearless-history > \.fearless-draft-tree\s*\{[^}]*overflow-y:\s*hidden;/,
+      /\.fearless-history > \.fearless-draft-tree\s*\{[^}]*min-height:\s*0;[^}]*flex:\s*1 1 auto;[^}]*overflow-y:\s*hidden;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-draft-tree-row\.has-pick\s*\{[^}]*min-height:\s*52px;/,
@@ -171,7 +178,7 @@ describe("Fearless Draft tree panel", () => {
 
   it("fits every draft step into the non-fullscreen board height", () => {
     expect(treeStyles).toMatch(
-      /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-history\s*\{[^}]*container-type:\s*size;/,
+      /@media \(min-width: 981px\)[\s\S]*\.fearless-draft-stage:not\(:fullscreen\) \.fearless-history\s*\{[^}]*container-type:\s*size;/,
     );
     expect(treeStyles).toMatch(
       /\.fearless-draft-stage:not\(:fullscreen\) \.fearless-draft-tree\s*\{[^}]*padding:\s*5px 6px 6px;/,
