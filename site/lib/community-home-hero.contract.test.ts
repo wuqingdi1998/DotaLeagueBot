@@ -29,5 +29,8 @@ describe("community home hero", () => {
     expect(component).toMatch(
       /featured-event-column[\s\S]*<aside className="featured-event-card">[\s\S]*<\/aside>\s*<Link\s*className="primary-button featured-tournaments-link"[\s\S]*Смотреть турниры/,
     );
+    expect(styles).toMatch(
+      /\.featured-tournaments-link\s*\{[^}]*min-height:\s*64px;[^}]*padding:\s*0 32px;[^}]*background:\s*linear-gradient\(135deg,\s*#08a9df 0%,\s*#2b66bc 100%\);[^}]*font-size:\s*17px;/,
+    );
   });
 });

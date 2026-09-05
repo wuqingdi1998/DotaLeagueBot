@@ -1,12 +1,8 @@
 /* Permanent community home and tournaments directory */
 
-.platform-shell {
-  overflow-x: clip;
-}
+.platform-shell { overflow-x: clip; }
 
-.platform-header {
-  position: relative;
-}
+.platform-header { position: relative; }
 
 .auth-error-banner {
   position: fixed;
@@ -84,9 +80,7 @@
   box-shadow: 0 9px 24px rgba(0, 143, 209, 0.13);
 }
 
-.mobile-navigation {
-  display: none;
-}
+.mobile-navigation { display: none; }
 
 [data-theme="dark"] .platform-navigation a.active,
 [data-theme="dark"] .platform-navigation a[aria-current="page"] {
@@ -258,6 +252,13 @@
   margin-top: 24px;
 }
 
+.featured-tournaments-link {
+  min-height: 64px;
+  padding: 0 32px;
+  background: linear-gradient(135deg, #08a9df 0%, #2b66bc 100%);
+  font-size: 17px;
+}
+
 .featured-date {
   display: flex;
   align-items: center;
@@ -285,9 +286,7 @@
   text-transform: uppercase;
 }
 
-[data-theme="dark"] .tournament-status {
-  color: var(--blue-soft);
-}
+[data-theme="dark"] .tournament-status { color: var(--blue-soft); }
 
 .tournament-status.registration {
   position: relative;
