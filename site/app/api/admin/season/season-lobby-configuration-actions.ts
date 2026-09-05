@@ -19,6 +19,8 @@ import {
   optimizeSeasonLobbyConfiguration,
   sortSeasonLobbyConfigurationByTier,
 } from "./season-lobby-optimization-actions";
+import { queueSeasonLobbyPublishedAnnouncement } from
+  "./season-lobby-announcement-actions";
 
 const configurationActions = [
   "create",
@@ -354,6 +356,7 @@ export async function updateSeasonLobbyConfiguration(
         throw new Response("Сначала зафиксируйте лобби", { status: 409 });
       }
       await setConfigurationStatus(client, roundId, "published");
+      await queueSeasonLobbyPublishedAnnouncement(client, roundId);
     } else if (action === "unpublish") {
       if (status !== "published") {
         throw new Response("Лобби сейчас не опубликованы", { status: 409 });

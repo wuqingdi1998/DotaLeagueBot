@@ -210,6 +210,39 @@ jobs:
               sleep 3
             done
 
+            # Keep lobby previews paused until the new bot image is running.
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+              "UPDATE channel_announcement_outbox
+               SET available_at = NOW()
+               WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''
+                 AND status = '\''pending'\''"'
+
+            for attempt in $(seq 1 30); do
+              lobby_preview_delivery="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                    || '\''|'\'' ||
+                    COUNT(*) FILTER (WHERE status <> '\''sent'\'')
+                 FROM channel_announcement_outbox
+                 WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''"')"
+              if [ "$lobby_preview_delivery" = "14|0" ]; then
+                echo "Delivered season 9 lobby preview announcements: 14"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT dedupe_key, status, attempts, last_error
+                   FROM channel_announcement_outbox
+                   WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''
+                   ORDER BY id"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             scheduled_announcements="$(docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
               "SELECT COUNT(*) || '\''|'\'' ||

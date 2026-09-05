@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 ANNOUNCEMENT_ASSET_ROOT = (
-    Path(__file__).resolve().parents[1] / "assets" / "league-registration"
+    Path(__file__).resolve().parents[1] / "assets" / "channel-announcements"
 )
 
 

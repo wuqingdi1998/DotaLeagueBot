@@ -234,7 +234,7 @@ def test_production_bot_image_contains_announcement_images() -> None:
         encoding="utf-8"
     )
 
-    assert "COPY anounce/Reg/ ./assets/league-registration/" in dockerfile
+    assert "COPY anounce/Reg/ ./assets/channel-announcements/" in dockerfile
     assert compose.count("dockerfile: bot/Dockerfile") == 2
     assert "docker build --tag dotaleaguebot-bot:deploy --file bot/Dockerfile ." in deploy
     assert "Delivered season 9 preview announcements: 14" in deploy
