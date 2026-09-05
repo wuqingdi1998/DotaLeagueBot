@@ -78,7 +78,12 @@ describe("Boosty page", () => {
     expect(comparison).toContain(
       'className="boosty-external-button boosty-action-button"',
     );
-    expect(headerStyles).toContain(".boosty-action-button");
+    expect(headerStyles).toMatch(
+      /\.boosty-action-button\s*\{[^}]*background:\s*rgba\(241, 95, 44, 0\.12\);[^}]*color:\s*#e65322;/,
+    );
+    expect(headerStyles).toMatch(
+      /\.boosty-action-button:hover\s*\{[^}]*background:\s*#f15f2c;[^}]*color:\s*#fff;/,
+    );
   });
 
   it("switches the wide comparison to cards on smaller screens", () => {
