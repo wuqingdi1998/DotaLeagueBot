@@ -47,9 +47,9 @@ export function SupporterGallery({
         <p className="boosty-supporters-empty">Список суппортеров пока пуст.</p>
       )}
 
-      {!directory.isComplete && directory.supporters.length > 0 && (
+      {!directory.isComplete && (
         <p className="boosty-supporters-note">
-          Discord временно недоступен, поэтому показаны сохранённые участники.
+          Discord временно недоступен. Список может быть неполным.
         </p>
       )}
     </section>
