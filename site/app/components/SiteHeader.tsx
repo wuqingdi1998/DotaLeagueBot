@@ -178,7 +178,7 @@ export function SiteHeader({
           {mobileMenuOpen ? <FiX /> : <FiMenu />}
         </button>
         <Link
-          className="boosty-button"
+          className="boosty-button boosty-action-button"
           href="/boosty"
           aria-label="Преимущества подписки Boosty"
         >

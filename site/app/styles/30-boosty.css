@@ -1,7 +1,7 @@
 .boosty-hero {
   position: relative;
   overflow: hidden;
-  padding: 34px
+  padding: 62px
     max(clamp(24px, 7vw, 110px), calc((100% - var(--site-content-max)) / 2))
     64px;
   background:
@@ -10,53 +10,24 @@
     var(--surface-soft);
 }
 
-.boosty-hero::after {
-  position: absolute;
-  right: max(4vw, 30px);
-  bottom: -130px;
-  width: 390px;
-  height: 390px;
-  border: 50px solid rgba(0, 195, 255, 0.08);
-  border-radius: 50%;
-  content: "";
+.boosty-hero-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.62fr);
+  align-items: center;
+  gap: clamp(36px, 6vw, 94px);
 }
 
 .boosty-external-button {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  min-height: 48px;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid rgba(255, 145, 0, 0.46);
-  border-radius: 13px;
-  padding: 0 17px;
-  background: linear-gradient(135deg, #ffbb31, #ff8a00);
-  color: #12283a;
-  font-size: 15px;
-  font-weight: 800;
-  box-shadow: 0 13px 30px rgba(255, 138, 0, 0.2);
-  transition: transform 160ms ease, box-shadow 160ms ease;
-}
-
-.boosty-external-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 17px 35px rgba(255, 138, 0, 0.28);
-}
-
-.boosty-external-button svg:first-child {
-  width: 21px;
-  height: 21px;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .boosty-hero-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 920px;
-  margin-top: 48px;
+  max-width: 880px;
 }
 
-.boosty-kicker,
 .boosty-section-heading > span {
   color: var(--blue);
   font-size: 13px;
@@ -66,10 +37,9 @@
 }
 
 .boosty-hero h1 {
-  max-width: 900px;
-  margin: 12px 0 18px;
+  margin: 0 0 20px;
   font-family: "5ka Sans Design", sans-serif;
-  font-size: clamp(48px, 6vw, 84px);
+  font-size: clamp(46px, 4.7vw, 72px);
   font-weight: 600;
   line-height: 0.98;
 }
@@ -82,8 +52,7 @@
   line-height: 1.65;
 }
 
-.boosty-benefits-section,
-.boosty-supporters {
+.boosty-benefits-section {
   width: 100%;
   max-width: var(--site-padded-content-max);
   margin-inline: auto;
@@ -93,6 +62,17 @@
 .boosty-section-heading {
   max-width: 760px;
   margin-bottom: 28px;
+}
+
+.boosty-benefits-heading {
+  max-width: none;
+}
+
+.boosty-benefits-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
 }
 
 .boosty-section-heading h2 {
@@ -225,14 +205,33 @@
 }
 
 .boosty-supporters {
-  padding-top: 20px;
-  padding-bottom: 100px;
+  min-width: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: 24px;
+  padding: 26px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  box-shadow: var(--shadow);
+}
+
+.boosty-supporters .boosty-section-heading {
+  margin-bottom: 18px;
+}
+
+.boosty-supporters .boosty-section-heading h2 {
+  font-size: clamp(32px, 3.2vw, 48px);
+}
+
+.boosty-supporters .boosty-section-heading p {
+  font-size: 14px;
 }
 
 .boosty-supporter-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 14px;
+  max-height: 340px;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .boosty-supporter-card {
@@ -241,8 +240,8 @@
   align-items: center;
   gap: 14px;
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 15px;
+  border-radius: 16px;
+  padding: 12px;
   background: var(--surface);
   box-shadow: 0 12px 32px rgba(5, 45, 70, 0.08);
 }
@@ -250,8 +249,8 @@
 .boosty-supporter-card img,
 .boosty-supporter-avatar-fallback {
   display: grid;
-  width: 58px;
-  height: 58px;
+  width: 52px;
+  height: 52px;
   flex: 0 0 auto;
   place-items: center;
   border: 2px solid rgba(240, 189, 41, 0.52);
@@ -382,27 +381,23 @@
   }
 }
 
+@media (max-width: 900px) {
+  .boosty-hero-content {
+    grid-template-columns: 1fr;
+  }
+
+  .boosty-supporter-grid {
+    max-height: none;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
   .boosty-hero {
-    padding: 22px 18px 42px;
-  }
-
-  .boosty-hero::after {
-    right: -170px;
-    bottom: -190px;
-  }
-
-  .boosty-external-button {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .boosty-hero-copy {
-    margin-top: 38px;
+    padding: 42px 18px;
   }
 
   .boosty-hero h1 {
-    margin-top: 10px;
     font-size: clamp(40px, 12vw, 58px);
   }
 
@@ -410,8 +405,7 @@
     font-size: 16px;
   }
 
-  .boosty-benefits-section,
-  .boosty-supporters {
+  .boosty-benefits-section {
     padding-right: 14px;
     padding-left: 14px;
   }
@@ -421,9 +415,18 @@
     padding-bottom: 48px;
   }
 
+  .boosty-benefits-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .boosty-external-button {
+    width: 100%;
+    justify-content: center;
+  }
+
   .boosty-supporters {
-    padding-top: 8px;
-    padding-bottom: 76px;
+    padding: 20px;
   }
 
   .boosty-plan-cards {

@@ -8,7 +8,7 @@ export function SupporterGallery({
   directory: SupporterDirectory;
 }) {
   return (
-    <section className="boosty-supporters" aria-labelledby="boosty-supporters-title">
+    <aside className="boosty-supporters" aria-labelledby="boosty-supporters-title">
       <div className="boosty-section-heading">
         <span>Спасибо за поддержку</span>
         <h2 id="boosty-supporters-title">Наши суппортеры</h2>
@@ -52,6 +52,6 @@ export function SupporterGallery({
           Discord временно недоступен. Список может быть неполным.
         </p>
       )}
-    </section>
+    </aside>
   );
 }

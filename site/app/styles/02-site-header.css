@@ -131,7 +131,7 @@
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
-.boosty-button {
+.boosty-action-button {
   display: inline-flex;
   min-height: 52px;
   align-items: center;
@@ -154,17 +154,17 @@
   font-size: 21px;
 }
 
-.boosty-button:hover {
+.boosty-action-button:hover {
   border-color: #f15f2c;
   background: #f15f2c;
   color: #fff;
 }
 
-[data-theme="dark"] .boosty-button {
+[data-theme="dark"] .boosty-action-button {
   color: #ff8157;
 }
 
-[data-theme="dark"] .boosty-button:hover {
+[data-theme="dark"] .boosty-action-button:hover {
   color: #fff;
 }
 

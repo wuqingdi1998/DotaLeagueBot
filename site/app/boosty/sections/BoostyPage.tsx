@@ -1,7 +1,7 @@
 import type { AuthUser } from "@/lib/auth";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { BoostyBenefits } from "../components/BoostyBenefits";
-import { SupporterGallery } from "../components/SupporterGallery";
+import { BoostyHero } from "../components/BoostyHero";
 import type { SupporterDirectory } from "../services/supporters";
 
 export function BoostyPage({
@@ -13,8 +13,8 @@ export function BoostyPage({
 }) {
   return (
     <PlatformShell user={user}>
+      <BoostyHero directory={directory} />
       <BoostyBenefits />
-      <SupporterGallery directory={directory} />
     </PlatformShell>
   );
 }
