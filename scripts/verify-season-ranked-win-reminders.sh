@@ -42,7 +42,8 @@ for attempt in $(seq 1 120); do
   delivery="$(docker compose exec -T db sh -c \
     'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
     "WITH expected AS (
-       SELECT COUNT(*)::int AS total
+       SELECT registration.player_id::bigint AS discord_id,
+              round.id::bigint AS round_id
        FROM season_round_registrations AS registration
        JOIN season_rounds AS round ON round.id = registration.round_id
        JOIN tournaments AS tournament ON tournament.id = round.tournament_id
@@ -60,6 +61,15 @@ for attempt in $(seq 1 120); do
            ranked_wins.primary_wins < settings.primary_role_wins_required
            OR ranked_wins.secondary_wins < settings.secondary_role_wins_required
          )
+     ), expected_delivery AS (
+       SELECT COUNT(*)::int AS total,
+              COUNT(*) FILTER (WHERE notification.id IS NULL)::int AS missing
+       FROM expected
+       LEFT JOIN notification_outbox AS notification
+         ON notification.discord_id = expected.discord_id
+        AND notification.season_round_id = expected.round_id
+        AND notification.event_type =
+              '\''season_ranked_wins_first_round_catch_up'\''
      ), delivered AS (
        SELECT COUNT(*)::int AS total,
               COUNT(*) FILTER (WHERE status = '\''sent'\'')::int AS sent,
@@ -68,12 +78,12 @@ for attempt in $(seq 1 120); do
        FROM notification_outbox
        WHERE event_type = '\''season_ranked_wins_first_round_catch_up'\''
      )
-     SELECT expected.total || '\''|'\'' || delivered.total || '\''|'\''
+     SELECT expected_delivery.total || '\''|'\'' || delivered.total || '\''|'\''
        || delivered.sent || '\''|'\'' || delivered.failed || '\''|'\''
-       || delivered.pending
-     FROM expected CROSS JOIN delivered"')"
-  IFS='|' read -r expected total sent failed pending <<< "$delivery"
-  if [ "$expected" -gt 0 ] && [ "$total" -eq "$expected" ] && [ "$pending" -eq 0 ]; then
+       || delivered.pending || '\''|'\'' || expected_delivery.missing
+     FROM expected_delivery CROSS JOIN delivered"')"
+  IFS='|' read -r expected total sent failed pending missing <<< "$delivery"
+  if [ "$expected" -gt 0 ] && [ "$total" -gt 0 ] && [ "$missing" -eq 0 ] && [ "$pending" -eq 0 ]; then
     echo "First-round catch-up delivered: $sent sent, $failed failed"
     exit 0
   fi
