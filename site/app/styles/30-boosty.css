@@ -1,0 +1,436 @@
+.boosty-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 34px
+    max(clamp(24px, 7vw, 110px), calc((100% - var(--site-content-max)) / 2))
+    64px;
+  background:
+    radial-gradient(circle at 86% 18%, rgba(0, 195, 255, 0.2), transparent 30%),
+    radial-gradient(circle at 72% 78%, rgba(179, 78, 232, 0.14), transparent 28%),
+    var(--surface-soft);
+}
+
+.boosty-hero::after {
+  position: absolute;
+  right: max(4vw, 30px);
+  bottom: -130px;
+  width: 390px;
+  height: 390px;
+  border: 50px solid rgba(0, 195, 255, 0.08);
+  border-radius: 50%;
+  content: "";
+}
+
+.boosty-external-button {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 145, 0, 0.46);
+  border-radius: 13px;
+  padding: 0 17px;
+  background: linear-gradient(135deg, #ffbb31, #ff8a00);
+  color: #12283a;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 13px 30px rgba(255, 138, 0, 0.2);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.boosty-external-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 17px 35px rgba(255, 138, 0, 0.28);
+}
+
+.boosty-external-button svg:first-child {
+  width: 21px;
+  height: 21px;
+}
+
+.boosty-hero-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 920px;
+  margin-top: 48px;
+}
+
+.boosty-kicker,
+.boosty-section-heading > span {
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.boosty-hero h1 {
+  max-width: 900px;
+  margin: 12px 0 18px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(48px, 6vw, 84px);
+  font-weight: 600;
+  line-height: 0.98;
+}
+
+.boosty-hero p {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.65;
+}
+
+.boosty-benefits-section,
+.boosty-supporters {
+  width: 100%;
+  max-width: var(--site-padded-content-max);
+  margin-inline: auto;
+  padding: 64px clamp(24px, 7vw, 110px);
+}
+
+.boosty-section-heading {
+  max-width: 760px;
+  margin-bottom: 28px;
+}
+
+.boosty-section-heading h2 {
+  margin: 8px 0 9px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(36px, 4vw, 58px);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.boosty-section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.boosty-benefits-matrix {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.boosty-matrix-head,
+.boosty-matrix-row {
+  display: grid;
+  grid-template-columns: minmax(250px, 1.8fr) repeat(8, minmax(96px, 0.72fr));
+}
+
+.boosty-matrix-head > *,
+.boosty-matrix-row > * {
+  min-width: 0;
+  border-right: 1px solid var(--line);
+}
+
+.boosty-matrix-head > :last-child,
+.boosty-matrix-row > :last-child {
+  border-right: 0;
+}
+
+.boosty-matrix-head > strong {
+  display: flex;
+  align-items: flex-end;
+  padding: 22px;
+  background: var(--surface-soft);
+  font-size: 17px;
+}
+
+.boosty-plan-heading {
+  --plan-color: var(--blue);
+  display: flex;
+  min-height: 148px;
+  align-items: center;
+  justify-content: flex-start;
+  flex-direction: column;
+  border-top: 7px solid var(--plan-color);
+  padding: 15px 8px 12px;
+  text-align: center;
+}
+
+.boosty-plan-heading > span {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.boosty-plan-heading > strong {
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.boosty-plan-heading > b {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.boosty-plan-heading > small {
+  margin-top: 3px;
+  color: var(--quiet);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.boosty-matrix-row {
+  min-height: 68px;
+  border-top: 1px solid var(--line);
+}
+
+.boosty-matrix-row > strong {
+  display: flex;
+  align-items: center;
+  padding: 14px 22px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.boosty-matrix-row > span {
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--surface-soft) 68%, transparent);
+}
+
+.boosty-benefit-check {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 8px;
+  background: #36c98b;
+  color: #fff;
+  box-shadow: 0 7px 15px rgba(54, 201, 139, 0.24);
+}
+
+.boosty-benefit-check svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 3;
+}
+
+.boosty-plan-cards {
+  display: none;
+}
+
+.boosty-supporters {
+  padding-top: 20px;
+  padding-bottom: 100px;
+}
+
+.boosty-supporter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+}
+
+.boosty-supporter-card {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 15px;
+  background: var(--surface);
+  box-shadow: 0 12px 32px rgba(5, 45, 70, 0.08);
+}
+
+.boosty-supporter-card img,
+.boosty-supporter-avatar-fallback {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 2px solid rgba(240, 189, 41, 0.52);
+  border-radius: 17px;
+  background: linear-gradient(135deg, #ffcf49, #ef8d21);
+  color: #192839;
+  font-size: 22px;
+  font-weight: 800;
+  object-fit: cover;
+}
+
+.boosty-supporter-card > div {
+  min-width: 0;
+}
+
+.boosty-supporter-card strong {
+  display: block;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boosty-supporter-card div > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #d59a00;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.boosty-supporters-empty,
+.boosty-supporters-note {
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  margin: 0;
+  padding: 22px;
+  background: var(--surface);
+  color: var(--muted);
+}
+
+.boosty-supporters-note {
+  border: 0;
+  padding: 15px 0 0;
+  background: transparent;
+  font-size: 13px;
+}
+
+@media (max-width: 1360px) {
+  .boosty-matrix-head,
+  .boosty-matrix-row {
+    grid-template-columns: minmax(220px, 1.6fr) repeat(8, minmax(88px, 0.7fr));
+  }
+
+  .boosty-plan-heading > span {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 1180px) {
+  .boosty-benefits-matrix {
+    display: none;
+  }
+
+  .boosty-plan-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .boosty-plan-card {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: 0 14px 38px rgba(5, 45, 70, 0.09);
+  }
+
+  .boosty-plan-card .boosty-plan-heading {
+    min-height: auto;
+    align-items: flex-start;
+    padding: 18px 20px;
+    text-align: left;
+  }
+
+  .boosty-plan-card .boosty-plan-heading > span {
+    min-height: 0;
+    font-size: 18px;
+  }
+
+  .boosty-plan-card .boosty-plan-heading > strong,
+  .boosty-plan-card .boosty-plan-heading > b {
+    font-size: 14px;
+  }
+
+  .boosty-plan-card .boosty-plan-heading > small {
+    font-size: 13px;
+  }
+
+  .boosty-plan-card ul {
+    display: grid;
+    gap: 11px;
+    margin: 0;
+    padding: 0 20px 22px;
+    list-style: none;
+  }
+
+  .boosty-plan-card li {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .boosty-plan-card li svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    border-radius: 6px;
+    padding: 2px;
+    background: #36c98b;
+    color: #fff;
+    stroke-width: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .boosty-hero {
+    padding: 22px 18px 42px;
+  }
+
+  .boosty-hero::after {
+    right: -170px;
+    bottom: -190px;
+  }
+
+  .boosty-external-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .boosty-hero-copy {
+    margin-top: 38px;
+  }
+
+  .boosty-hero h1 {
+    margin-top: 10px;
+    font-size: clamp(40px, 12vw, 58px);
+  }
+
+  .boosty-hero p {
+    font-size: 16px;
+  }
+
+  .boosty-benefits-section,
+  .boosty-supporters {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .boosty-benefits-section {
+    padding-top: 44px;
+    padding-bottom: 48px;
+  }
+
+  .boosty-supporters {
+    padding-top: 8px;
+    padding-bottom: 76px;
+  }
+
+  .boosty-plan-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .boosty-supporter-grid {
+    grid-template-columns: 1fr;
+  }
+}

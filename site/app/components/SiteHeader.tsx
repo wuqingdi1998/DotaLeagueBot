@@ -177,16 +177,14 @@ export function SiteHeader({
         >
           {mobileMenuOpen ? <FiX /> : <FiMenu />}
         </button>
-        <a
+        <Link
           className="boosty-button"
-          href="https://boosty.to/linkenssphere"
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Открыть Linken's Sphere на Boosty"
+          href="/boosty"
+          aria-label="Преимущества подписки Boosty"
         >
           <SiBoosty aria-hidden="true" />
           <span>Boosty</span>
-        </a>
+        </Link>
         <button
           className="theme-button"
           type="button"

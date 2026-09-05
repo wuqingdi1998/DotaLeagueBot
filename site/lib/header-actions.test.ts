@@ -32,7 +32,7 @@ describe("site header actions", () => {
     expect(actions.indexOf("boosty-button")).toBeLessThan(
       actions.indexOf("theme-button"),
     );
-    expect(actions).toContain("https://boosty.to/linkenssphere");
+    expect(actions).toContain('href="/boosty"');
   });
 
   it("uses a generic login icon on mobile and Discord icon on desktop", () => {
