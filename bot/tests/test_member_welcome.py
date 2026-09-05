@@ -72,6 +72,12 @@ def test_preview_retry_waits_for_new_bot_before_queuing_for_frokeng() -> None:
         / "migrations"
         / "0113_member_welcome_link_preview.sql"
     ).read_text(encoding="utf-8")
+    mention_preview = (
+        Path(__file__).parents[1]
+        / "database"
+        / "migrations"
+        / "0114_member_welcome_mention_preview.sql"
+    ).read_text(encoding="utf-8")
     deployment = (
         Path(__file__).parents[2] / ".github" / "workflows" / "deploy.yml"
     ).read_text(encoding="utf-8")
@@ -84,6 +90,9 @@ def test_preview_retry_waits_for_new_bot_before_queuing_for_frokeng() -> None:
     assert "'member_welcome_preview'" in corrected_link_preview
     assert "311247030422863882" in corrected_link_preview
     assert "'cancelled'" in corrected_link_preview
+    assert "'member_welcome_preview'" in mention_preview
+    assert "311247030422863882" in mention_preview
+    assert "'cancelled'" in mention_preview
     activation = "SET status = '\\''pending'\\'', available_at = NOW()"
     assert activation in deployment
     assert deployment.index(activation) < deployment.index(
