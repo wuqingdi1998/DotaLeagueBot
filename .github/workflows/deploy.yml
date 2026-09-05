@@ -375,6 +375,42 @@ jobs:
               sleep 3
             done
 
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+              "UPDATE notification_outbox
+               SET status = '\''pending'\'', available_at = NOW()
+               WHERE discord_id = 311247030422863882
+                 AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
+                 AND status = '\''cancelled'\''"'
+
+            for attempt in $(seq 1 30); do
+              corrected_ranked_win_preview_status="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT status
+                 FROM notification_outbox
+                 WHERE discord_id = 311247030422863882
+                   AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
+                 ORDER BY id DESC
+                 LIMIT 1"')"
+              if [ "$corrected_ranked_win_preview_status" = "sent" ]; then
+                echo "Delivered corrected season 9 ranked-win reminder preview to frokeng"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT status, attempts, last_error
+                   FROM notification_outbox
+                   WHERE discord_id = 311247030422863882
+                     AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
+                   ORDER BY id DESC
+                   LIMIT 1"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             outreach_schedule="$(docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
               "SELECT COUNT(*)
