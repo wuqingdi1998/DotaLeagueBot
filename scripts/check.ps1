@@ -21,7 +21,7 @@ try {
     Invoke-CheckedCommand $Python -m ruff check .
     Invoke-CheckedCommand $Python -m pip_audit -r requirements.txt
     Invoke-CheckedCommand $Python -m compileall -q .
-    Invoke-CheckedCommand $Python -m mypy database/core.py database/migrate.py cogs/website_bridge.py utils/website_notifications.py
+    Invoke-CheckedCommand $Python -m mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py utils/website_notifications.py
     Invoke-CheckedCommand $Python -m pytest --cov=. --cov-report=term-missing
 }
 finally {

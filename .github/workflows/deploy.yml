@@ -38,7 +38,7 @@ jobs:
           python -m compileall -q .
           pip-audit -r requirements.txt
           ruff check .
-          mypy database/core.py database/migrate.py cogs/website_bridge.py utils/website_notifications.py
+          mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py utils/website_notifications.py
           python -m pytest
       - name: Check site
         working-directory: site
@@ -334,6 +334,43 @@ jobs:
                      )
                    ORDER BY id"'
                 docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
+            outreach_schedule="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*)
+                  || '\''|'\'' ||
+                  COALESCE(
+                    to_char(
+                      MAX(scheduled_at) AT TIME ZONE '\''Europe/Moscow'\'',
+                      '\''YYYY-MM-DD HH24:MI'\''
+                    ),
+                    '\''missing'\''
+                  )
+                  || '\''|'\'' || COALESCE(MAX(batch_size)::text, '\''missing'\'')
+                  || '\''|'\'' || COALESCE(
+                    MAX(batch_interval_seconds)::text,
+                    '\''missing'\''
+                  )
+               FROM direct_message_campaigns
+               WHERE campaign_key = '\''season-nine-round-one-outreach'\''"')"
+            if [ "$outreach_schedule" != "1|2026-09-05 12:00|10|10" ]; then
+              echo "Season 9 outreach schedule is invalid: $outreach_schedule" >&2
+              exit 1
+            fi
+            echo "Scheduled season 9 direct messages for 12:00 MSK"
+
+            for attempt in $(seq 1 30); do
+              bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
+              if [[ "$bot_logs" == *"Загружен ког: season_nine_outreach.py"* ]]; then
+                echo "Season 9 outreach worker is running"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                printf '%s\n' "$bot_logs"
                 exit 1
               fi
               sleep 3
