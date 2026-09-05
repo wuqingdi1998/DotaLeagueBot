@@ -53,18 +53,33 @@ def test_only_human_member_from_configured_server_gets_welcome() -> None:
     assert should_send_member_welcome(bot_member, "123") is False
 
 
-def test_preview_migration_queues_one_message_for_frokeng() -> None:
-    migration = (
+def test_preview_retry_waits_for_new_bot_before_queuing_for_frokeng() -> None:
+    initial_migration = (
         Path(__file__).parents[1]
         / "database"
         / "migrations"
         / "0111_member_welcome_preview.sql"
     ).read_text(encoding="utf-8")
+    retry_migration = (
+        Path(__file__).parents[1]
+        / "database"
+        / "migrations"
+        / "0112_member_welcome_preview_retry.sql"
+    ).read_text(encoding="utf-8")
     deployment = (
         Path(__file__).parents[2] / ".github" / "workflows" / "deploy.yml"
     ).read_text(encoding="utf-8")
 
-    assert "'member_welcome_preview'" in migration
-    assert "311247030422863882" in migration
+    assert "'member_welcome_preview'" in initial_migration
+    assert "311247030422863882" in initial_migration
+    assert "'member_welcome_preview'" in retry_migration
+    assert "311247030422863882" in retry_migration
+    assert "'cancelled'" in retry_migration
+    activation = "SET status = '\\''pending'\\'', available_at = NOW()"
+    assert activation in deployment
+    assert deployment.index(activation) < deployment.index(
+        "for attempt in $(seq 1 30); do",
+        deployment.index(activation),
+    )
     assert "welcome_preview_status" in deployment
     assert "Delivered member welcome preview to frokeng" in deployment

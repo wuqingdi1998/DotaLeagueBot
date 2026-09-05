@@ -222,6 +222,16 @@ jobs:
             fi
             echo "Scheduled season 9 registration announcements: 28"
 
+            # Keep the preview paused until the newly deployed bot is running.
+            # Otherwise the outgoing version can consume it during migration.
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+              "UPDATE notification_outbox
+               SET status = '\''pending'\'', available_at = NOW()
+               WHERE event_type = '\''member_welcome_preview'\''
+                 AND discord_id = 311247030422863882
+                 AND status = '\''cancelled'\''"'
+
             for attempt in $(seq 1 30); do
               welcome_preview_status="$(docker compose exec -T db sh -c \
                 'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
