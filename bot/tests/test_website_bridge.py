@@ -11,6 +11,15 @@ from utils.website_notifications import (
 BRIDGE = (
     Path(__file__).parents[1] / "cogs" / "website_bridge.py"
 ).read_text(encoding="utf-8")
+SEASON_NINE_PREVIEW_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0117_season_nine_direct_message_previews.sql"
+)
+DEPLOYMENT = (
+    Path(__file__).parents[2] / ".github" / "workflows" / "deploy.yml"
+).read_text(encoding="utf-8")
 
 
 def test_notification_embed_uses_brand_color() -> None:
@@ -87,3 +96,23 @@ def test_bridge_queues_season_round_checkin_messages_and_missing_report() -> Non
     assert "INTERVAL '10 minutes'" in BRIDGE
     assert "Не прошли чек-ин:" in BRIDGE
     assert "ON CONFLICT DO NOTHING" in BRIDGE
+
+
+def test_season_nine_previews_are_limited_to_frokeng_and_use_masked_links() -> None:
+    preview_migration = SEASON_NINE_PREVIEW_MIGRATION.read_text(encoding="utf-8")
+
+    assert preview_migration.count("311247030422863882") == 1
+    assert "[**Сайт**](https://lsesports.ru/)" in preview_migration
+    assert (
+        "[**Первый тур**](https://lsesports.ru/tournaments/"
+        "league-season-9?round=1)"
+    ) in preview_migration
+    assert "[**Регистрация**](https://discord.com/channels/" in preview_migration
+    assert "@everyone" not in preview_migration
+    assert "guild" not in preview_migration.lower()
+    assert "FROM players" not in preview_migration
+    assert "SELECT discord_id" not in preview_migration
+    assert "'cancelled'" in preview_migration
+    assert "season_nine_registered_player_preview" in DEPLOYMENT
+    assert "season_nine_unregistered_member_preview" in DEPLOYMENT
+    assert "Delivered both season 9 direct message previews to frokeng" in DEPLOYMENT

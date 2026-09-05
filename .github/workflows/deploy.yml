@@ -293,5 +293,51 @@ jobs:
               sleep 3
             done
 
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+              "UPDATE notification_outbox
+               SET status = '\''pending'\'', available_at = NOW()
+               WHERE discord_id = 311247030422863882
+                 AND event_type IN (
+                   '\''season_nine_registered_player_preview'\'',
+                   '\''season_nine_unregistered_member_preview'\''
+                 )
+                 AND status = '\''cancelled'\''"'
+
+            for attempt in $(seq 1 30); do
+              season_nine_preview_delivery="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                    || '\''|'\'' ||
+                    COUNT(*) FILTER (WHERE status = '\''failed'\'')
+                    || '\''|'\'' ||
+                    COUNT(*)
+                 FROM notification_outbox
+                 WHERE discord_id = 311247030422863882
+                   AND event_type IN (
+                     '\''season_nine_registered_player_preview'\'',
+                     '\''season_nine_unregistered_member_preview'\''
+                   )"')"
+              if [ "$season_nine_preview_delivery" = "2|0|2" ]; then
+                echo "Delivered both season 9 direct message previews to frokeng"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT event_type, status, attempts, last_error
+                   FROM notification_outbox
+                   WHERE discord_id = 311247030422863882
+                     AND event_type IN (
+                       '\''season_nine_registered_player_preview'\'',
+                       '\''season_nine_unregistered_member_preview'\''
+                     )
+                   ORDER BY id"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             docker image prune --force
             docker compose ps
