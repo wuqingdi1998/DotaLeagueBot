@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { FaStar } from "react-icons/fa";
@@ -102,7 +104,7 @@ export function RuneChallenge({
     setIsSaving(true);
     setMessage("");
     try {
-      const response = await fetch("/api/compendium/rune-challenge/selection", {
+      const response = await fetchSiteRequest("/api/compendium/rune-challenge/selection", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ heroId: Number(selectedHeroId) }),
@@ -138,7 +140,7 @@ export function RuneChallenge({
     setIsChecking(true);
     setMessage("");
     try {
-      const response = await fetch("/api/compendium/rune-challenge/check", {
+      const response = await fetchSiteRequest("/api/compendium/rune-challenge/check", {
         method: "POST",
       });
       const result = (await response.json()) as {

@@ -1,3 +1,4 @@
+import { after } from "next/server";
 import { requireSession } from "@/lib/auth";
 import type { FearlessDraftCommand } from "@/app/fearless-draft/model/snapshot";
 import {
@@ -106,7 +107,6 @@ export async function POST(request: Request) {
       case "MAKE_CHOICE":
         if (!("choice" in command)) throw new DraftRequestError("Выбор не указан");
         await makeDraftChoice(user.discordId, command.choice);
-        await advanceBotDraft(user.discordId);
         break;
       case "SELECT_HERO":
         if (!("heroId" in command) || !("expectedVersion" in command)) {
@@ -117,7 +117,6 @@ export async function POST(request: Request) {
           Number(command.heroId),
           Number(command.expectedVersion),
         );
-        await advanceBotDraft(user.discordId);
         break;
       case "HIGHLIGHT_HERO":
         if (!("heroId" in command) || !("expectedVersion" in command)) {
@@ -142,11 +141,9 @@ export async function POST(request: Request) {
         break;
       case "READY_FOR_NEXT_MAP":
         await markReadyForNextDraftMap(user.discordId);
-        await advanceBotDraft(user.discordId);
         break;
       case "REQUEST_SERIES_END":
         await requestDraftSeriesEnd(user.discordId);
-        await advanceBotDraft(user.discordId);
         break;
       case "RESPOND_SERIES_END":
         if (
@@ -165,6 +162,20 @@ export async function POST(request: Request) {
         break;
       default:
         throw new DraftRequestError("Неизвестное действие");
+    }
+    const shouldAdvanceBot = [
+      "START_BOT", "START_BOT2", "MAKE_CHOICE", "SELECT_HERO",
+      "READY_FOR_NEXT_MAP", "REQUEST_SERIES_END",
+    ].includes(command.action ?? "");
+    if (shouldAdvanceBot) {
+      after(async () => {
+        try {
+          await advanceBotDraft(user.discordId);
+          publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
+        } catch (error) {
+          console.error("Bot follow-up failed after saved draft action", error);
+        }
+      });
     }
     if (command.action !== "HIGHLIGHT_HERO") {
       publishLiveUpdate(fearlessDraftChannel(seasonMatchId));

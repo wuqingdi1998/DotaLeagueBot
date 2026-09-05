@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useState } from "react";
 import type {
   SeasonCalendarEvent,
@@ -15,7 +17,7 @@ async function calendarEventRequest(
   method: "POST" | "PATCH" | "DELETE",
   body: Record<string, unknown>,
 ) {
-  const response = await fetch("/api/calendar-events", {
+  const response = await fetchSiteRequest("/api/calendar-events", {
     method,
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),

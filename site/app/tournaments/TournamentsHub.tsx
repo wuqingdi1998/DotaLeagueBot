@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -49,7 +51,7 @@ function useTournamentList() {
 
   const reload = useCallback(async () => {
     try {
-      const response = await fetch("/api/tournaments", { cache: "no-store" });
+      const response = await fetchSiteRequest("/api/tournaments", { cache: "no-store" });
       const result = (await response.json()) as TournamentListResponse & {
         error?: string;
       };
@@ -270,7 +272,7 @@ export function TournamentsDirectory() {
   );
 
   async function changeStatus(id: number, status: TournamentStatus) {
-    const response = await fetch("/api/tournaments", {
+    const response = await fetchSiteRequest("/api/tournaments", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id, status }),

@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useState } from "react";
 import { FiCopy } from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
@@ -20,7 +22,7 @@ export function TournamentClonePanel() {
     }
     setIsCloning(true);
     try {
-      const response = await fetch("/api/admin/tournament-clone", {
+      const response = await fetchSiteRequest("/api/admin/tournament-clone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tournamentId }),

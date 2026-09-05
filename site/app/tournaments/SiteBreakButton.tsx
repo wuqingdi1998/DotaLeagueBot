@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useEffect, useState } from "react";
 import { FiCoffee } from "react-icons/fi";
 
@@ -14,7 +16,7 @@ export function SiteBreakButton() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    void fetch("/api/admin/site-break", { cache: "no-store" })
+    void fetchSiteRequest("/api/admin/site-break", { cache: "no-store" })
       .then(async (response) => {
         const result = (await response.json()) as SiteBreakResponse;
         if (!response.ok) throw new Error(result.error);
@@ -37,7 +39,7 @@ export function SiteBreakButton() {
     setIsLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/admin/site-break", {
+      const response = await fetchSiteRequest("/api/admin/site-break", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ isBreakEnabled: nextIsBreakEnabled }),

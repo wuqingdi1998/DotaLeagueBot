@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useState } from "react";
 import type { Tournament, TournamentGroup } from "../model/types";
 
@@ -32,7 +34,7 @@ export function GroupSettingsEditor({
   async function save(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    const response = await fetch("/api/admin/groups", {
+    const response = await fetchSiteRequest("/api/admin/groups", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

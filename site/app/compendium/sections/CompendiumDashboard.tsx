@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -69,7 +71,7 @@ export function CompendiumDashboard({
     if (checkingQuestId || rerollingQuestId) return;
     setCheckingQuestId(questId);
     try {
-      const response = await fetch(
+      const response = await fetchSiteRequest(
         `/api/compendium/daily-quests/${questId}/check`,
         { method: "POST" },
       );
@@ -115,7 +117,7 @@ export function CompendiumDashboard({
     if (checkingQuestId || rerollingQuestId || data.rerollsRemaining < 1) return;
     setRerollingQuestId(questId);
     try {
-      const response = await fetch(
+      const response = await fetchSiteRequest(
         `/api/compendium/daily-quests/${questId}/reroll`,
         { method: "POST" },
       );
@@ -157,7 +159,7 @@ export function CompendiumDashboard({
     if (submittingMatchId) return;
     setSubmittingMatchId(matchId);
     try {
-      const response = await fetch(`/api/compendium/predictions/${matchId}`, {
+      const response = await fetchSiteRequest(`/api/compendium/predictions/${matchId}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ score }),
@@ -187,7 +189,7 @@ export function CompendiumDashboard({
     if (checkingStarRaceDate || checkingQuestId || rerollingQuestId) return;
     setCheckingStarRaceDate(dateKey);
     try {
-      const response = await fetch(
+      const response = await fetchSiteRequest(
         `/api/compendium/star-race/quests/${dateKey}/check`,
         { method: "POST" },
       );
@@ -247,7 +249,7 @@ export function CompendiumDashboard({
     if (submittingFinalPrediction) return;
     setSubmittingFinalPrediction(true);
     try {
-      const response = await fetch("/api/compendium/star-race/final-prediction", {
+      const response = await fetchSiteRequest("/api/compendium/star-race/final-prediction", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ position }),

@@ -1,5 +1,7 @@
 "use client";
 
+import { logoutAndReload } from "@/lib/logout-action";
+
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -429,10 +431,7 @@ export function TournamentModals() {
                   ))}
                 <button
                   className="secondary-button"
-                  onClick={async () => {
-                    await fetch("/api/auth/logout", { method: "POST" });
-                    window.location.reload();
-                  }}
+                  onClick={logoutAndReload}
                 >
                   Выйти
                 </button>

@@ -18,8 +18,10 @@ www.{$SITE_DOMAIN:lsesports.ru} {
 	}
 
 	reverse_proxy site:3000 {
-		lb_try_duration 10s
+		# Dial failures are safe to retry for every method; sent writes are not.
+		lb_try_duration 30s
 		lb_try_interval 250ms
+		lb_retry_match method GET HEAD
 	}
 
 	log {

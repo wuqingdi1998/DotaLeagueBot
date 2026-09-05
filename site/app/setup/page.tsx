@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { FaDiscord } from "react-icons/fa";
@@ -67,7 +69,7 @@ export default function SetupPage() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    void fetch("/api/auth/session", { cache: "no-store" })
+    void fetchSiteRequest("/api/auth/session", { cache: "no-store" })
       .then((response) => response.json())
       .then((result: { user: SessionUser | null }) => setUser(result.user))
       .finally(() => setLoaded(true));
@@ -77,7 +79,7 @@ export default function SetupPage() {
     event.preventDefault();
     setSaving(true);
     setError("");
-    const response = await fetch("/api/tournament", {
+    const response = await fetchSiteRequest("/api/tournament", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

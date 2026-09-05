@@ -1,5 +1,7 @@
 "use client";
 
+import { logoutAndReload } from "@/lib/logout-action";
+
 import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -246,13 +248,7 @@ export function SiteHeader({
                 </Link>
                 <button
                   type="button"
-                  onClick={async () => {
-                    try {
-                      await fetch("/api/auth/logout", { method: "POST" });
-                    } finally {
-                      window.location.reload();
-                    }
-                  }}
+                  onClick={logoutAndReload}
                 >
                   Выйти из профиля
                 </button>

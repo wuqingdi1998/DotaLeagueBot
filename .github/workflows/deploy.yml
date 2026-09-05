@@ -158,7 +158,11 @@ jobs:
               pm2 save
             fi
 
+            if docker compose ps --status running proxy | grep -q proxy; then
+              bash scripts/reload-site-proxy.sh
+            fi
             docker compose up -d --no-deps --remove-orphans bot site proxy
+            bash scripts/reload-site-proxy.sh
 
             for attempt in $(seq 1 30); do
               if docker compose exec -T site node -e \

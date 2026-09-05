@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import Image from "next/image";
 import { useState } from "react";
 import { FaStar } from "react-icons/fa";
@@ -147,7 +149,7 @@ export function CurrentQuestCards({
     setPendingKey(key);
     setMessage(null);
     try {
-      const response = await fetch(
+      const response = await fetchSiteRequest(
         `/api/admin/compendium-base/participants/${participant.discordId}/complete`,
         {
           method: "POST",

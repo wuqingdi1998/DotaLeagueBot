@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import { useServerClock } from "@/hooks/useServerClock";
@@ -67,7 +69,7 @@ export function useTournamentController() {
   );
   const loadData = useCallback(async () => {
     try {
-      const response = await fetch(
+      const response = await fetchSiteRequest(
         `/api/tournament?slug=${encodeURIComponent(tournamentSlug)}`,
         { cache: "no-store" },
       );
@@ -202,7 +204,7 @@ export function useTournamentController() {
     formData.set("emblem", teamEmblem);
 
     try {
-      const response = await fetch("/api/applications", {
+      const response = await fetchSiteRequest("/api/applications", {
         method: "POST",
         body: formData,
       });
@@ -229,7 +231,7 @@ export function useTournamentController() {
     id: number,
     status: TeamApplication["status"],
   ) {
-    const response = await fetch("/api/applications", {
+    const response = await fetchSiteRequest("/api/applications", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id, status }),
@@ -251,7 +253,7 @@ export function useTournamentController() {
     if (!window.confirm(`Удалить отклонённую заявку команды «${teamName}»?`)) {
       return;
     }
-    const response = await fetch(`/api/applications?id=${id}`, {
+    const response = await fetchSiteRequest(`/api/applications?id=${id}`, {
       method: "DELETE",
     });
     const result = (await response.json()) as { error?: string };
@@ -267,7 +269,7 @@ export function useTournamentController() {
     applicationId: number,
     invitationStatus: "accepted" | "declined",
   ) {
-    const response = await fetch("/api/applications", {
+    const response = await fetchSiteRequest("/api/applications", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id: applicationId, invitationStatus }),
@@ -288,7 +290,7 @@ export function useTournamentController() {
 
   async function generateGroups(action: "form" | "shuffle" = "form") {
     if (!data) return;
-    const response = await fetch("/api/admin/groups", {
+    const response = await fetchSiteRequest("/api/admin/groups", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -312,7 +314,7 @@ export function useTournamentController() {
   async function createMatch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!data) return;
-    const response = await fetch("/api/admin/matches", {
+    const response = await fetchSiteRequest("/api/admin/matches", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -360,7 +362,7 @@ export function useTournamentController() {
       return;
     }
 
-    const response = await fetch("/api/admin/matches", {
+    const response = await fetchSiteRequest("/api/admin/matches", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify(resultPayload.payload),
@@ -376,7 +378,7 @@ export function useTournamentController() {
     if (!window.confirm(`Удалить матч ${match.team_a} — ${match.team_b}?`)) {
       return;
     }
-    const response = await fetch(`/api/admin/matches?id=${match.id}`, {
+    const response = await fetchSiteRequest(`/api/admin/matches?id=${match.id}`, {
       method: "DELETE",
     });
     const result = (await response.json()) as { error?: string };
@@ -395,7 +397,7 @@ export function useTournamentController() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const rawPlacement = String(form.get("placement") ?? "").trim();
-    const response = await fetch("/api/admin/tournament-results", {
+    const response = await fetchSiteRequest("/api/admin/tournament-results", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -416,7 +418,7 @@ export function useTournamentController() {
   async function transferCaptain(applicationId: number) {
     const newCaptainId = captainChoices[applicationId];
     if (!newCaptainId) return;
-    const response = await fetch("/api/applications", {
+    const response = await fetchSiteRequest("/api/applications", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id: applicationId, newCaptainId }),

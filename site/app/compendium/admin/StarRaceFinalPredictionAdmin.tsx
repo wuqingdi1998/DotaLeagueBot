@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useState } from "react";
 import type { ReactNode } from "react";
 import type { FinalPredictionRecord } from "../services/star-race-final-prediction-repository";
@@ -19,7 +21,7 @@ export function StarRaceFinalPredictionAdmin({
     setIsSaving(true);
     setMessage("");
     try {
-      const response = await fetch("/api/admin/compendium-star-race-final-prediction", {
+      const response = await fetchSiteRequest("/api/admin/compendium-star-race-final-prediction", {
         method,
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),

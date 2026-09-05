@@ -1,11 +1,13 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useState } from "react";
 import { FiTrash2, FiX } from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
 
 async function deleteTournament(tournamentId: number, password: string) {
-  const response = await fetch("/api/admin/tournament-delete", {
+  const response = await fetchSiteRequest("/api/admin/tournament-delete", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tournamentId, password }),

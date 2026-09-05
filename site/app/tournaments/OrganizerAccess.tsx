@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
@@ -33,7 +35,7 @@ export function OrganizerAccess({
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/auth/organizer", {
+      const response = await fetchSiteRequest("/api/auth/organizer", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ password }),
@@ -56,7 +58,7 @@ export function OrganizerAccess({
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/auth/organizer", {
+      const response = await fetchSiteRequest("/api/auth/organizer", {
         method: "DELETE",
       });
       if (response.ok) {

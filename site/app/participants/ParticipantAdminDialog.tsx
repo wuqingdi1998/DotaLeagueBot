@@ -1,12 +1,14 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { FiArchive, FiX } from "react-icons/fi";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 
 async function playerAdminRequest(payload: Record<string, unknown>) {
-  const response = await fetch("/api/admin/players", {
+  const response = await fetchSiteRequest("/api/admin/players", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

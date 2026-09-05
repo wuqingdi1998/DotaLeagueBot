@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useState } from "react";
 import { FiX } from "react-icons/fi";
 import { tournamentTextFields } from "@/lib/tournament-form";
@@ -52,7 +54,7 @@ export function TournamentForm({
     setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/tournament", {
+      const response = await fetchSiteRequest("/api/tournament", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

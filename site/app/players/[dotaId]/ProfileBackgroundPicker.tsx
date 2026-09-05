@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useEffect, useRef, useState } from "react";
 import type {
   ChangeEvent,
@@ -223,7 +225,7 @@ export function ProfileBackgroundPicker({
           type: "image/jpeg",
         }),
       );
-      const response = await fetch(`/api/players/${dotaId}/background`, {
+      const response = await fetchSiteRequest(`/api/players/${dotaId}/background`, {
         method: "PUT",
         body: formData,
       });
@@ -248,7 +250,7 @@ export function ProfileBackgroundPicker({
     setSaving(true);
     setError("");
     try {
-      const response = await fetch(`/api/players/${dotaId}/background`, {
+      const response = await fetchSiteRequest(`/api/players/${dotaId}/background`, {
         method: "DELETE",
       });
       const result = (await response.json().catch(() => ({}))) as {

@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useRef, useState } from "react";
 import { FiSave } from "react-icons/fi";
 import { PrizesEditor } from "./admin/content-editor/PrizesEditor";
@@ -102,7 +104,7 @@ export function TournamentContentEditor({
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/tournament-content", {
+      const response = await fetchSiteRequest("/api/admin/tournament-content", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

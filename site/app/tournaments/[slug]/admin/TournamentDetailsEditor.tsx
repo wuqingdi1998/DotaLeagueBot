@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { tournamentTextFields } from "@/lib/tournament-form";
@@ -34,7 +36,7 @@ export function TournamentDetailsEditor({
     setSaving(true);
 
     try {
-      const response = await fetch("/api/tournament", {
+      const response = await fetchSiteRequest("/api/tournament", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(draft),

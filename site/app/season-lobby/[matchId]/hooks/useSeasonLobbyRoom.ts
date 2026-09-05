@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
   SeasonLobbyRoomCommand,
@@ -14,10 +16,11 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
   const [isSending, setIsSending] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const fallbackTimer = useRef<number | null>(null);
+  const sendingRef = useRef(false);
   const endpoint = `/api/season/lobby-room/${initialSnapshot.matchId}`;
 
   const reload = useCallback(async () => {
-    const response = await fetch(endpoint, { cache: "no-store" });
+    const response = await fetchSiteRequest(endpoint, { cache: "no-store" });
     const body = (await response.json()) as SeasonLobbyRoomSnapshot & ErrorResponse;
     if (!response.ok) {
       throw new Error(body.error ?? "Не удалось обновить комнату");
@@ -28,7 +31,13 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
   useEffect(() => {
     const events = new EventSource(`${endpoint}/events`);
     const receiveSnapshot = (event: MessageEvent<string>) => {
-      setSnapshot(JSON.parse(event.data) as SeasonLobbyRoomSnapshot);
+      try {
+        setSnapshot(JSON.parse(event.data) as SeasonLobbyRoomSnapshot);
+      } catch {
+        setIsConnected(false);
+        void reload().catch(() => undefined);
+        return;
+      }
       setError("");
       setIsConnected(true);
       if (fallbackTimer.current !== null) {
@@ -56,9 +65,11 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
   }, [endpoint, reload]);
 
   const send = useCallback(async (command: SeasonLobbyRoomCommand) => {
+    if (sendingRef.current) return false;
+    sendingRef.current = true;
     setIsSending(true);
     try {
-      const response = await fetch(endpoint, {
+      const response = await fetchSiteRequest(endpoint, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(command),
@@ -68,13 +79,16 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
         throw new Error(body.error ?? "Действие не выполнено");
       }
       setError("");
-      if (!isConnected) await reload();
+      if (!isConnected) {
+        await reload().catch(() => setError("Действие сохранено. Не удалось обновить экран"));
+      }
       return true;
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Действие не выполнено");
       await reload().catch(() => undefined);
       return false;
     } finally {
+      sendingRef.current = false;
       setIsSending(false);
     }
   }, [endpoint, isConnected, reload]);

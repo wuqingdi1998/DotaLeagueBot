@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import {
   type KeyboardEvent,
   type PointerEvent,
@@ -207,7 +209,7 @@ export function TournamentBracket({
     setSavingMatchId(matchId);
     setLayoutMessage("");
     try {
-      const response = await fetch("/api/admin/bracket-layout", {
+      const response = await fetchSiteRequest("/api/admin/bracket-layout", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -330,7 +332,7 @@ export function TournamentBracket({
     }
     setLayoutMessage("Возвращаем автоматическую расстановку…");
     try {
-      const response = await fetch("/api/admin/bracket-layout", {
+      const response = await fetchSiteRequest("/api/admin/bracket-layout", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ tournamentId, reset: true }),

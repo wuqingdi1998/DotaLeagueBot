@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import Link from "next/link";
 import { useState } from "react";
 import { FiArrowLeft, FiPlus } from "react-icons/fi";
@@ -86,7 +88,7 @@ export function PredictionAdmin({
     setIsSaving(true);
     setMessage("");
     try {
-      const response = await fetch("/api/admin/compendium-predictions", {
+      const response = await fetchSiteRequest("/api/admin/compendium-predictions", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -134,7 +136,7 @@ export function PredictionAdmin({
     setMessage("");
     try {
       const score = results[matchId];
-      const response = await fetch("/api/admin/compendium-predictions", {
+      const response = await fetchSiteRequest("/api/admin/compendium-predictions", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ matchId, score }),
@@ -164,7 +166,7 @@ export function PredictionAdmin({
     setIsSaving(true);
     setMessage("");
     try {
-      const response = await fetch("/api/admin/compendium-predictions", {
+      const response = await fetchSiteRequest("/api/admin/compendium-predictions", {
         method: "DELETE",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(input),

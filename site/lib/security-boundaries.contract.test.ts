@@ -63,7 +63,7 @@ describe("site security boundaries", () => {
 
   it("retries page requests while the site restarts during publication", () => {
     expect(caddyfile).toMatch(
-      /reverse_proxy site:3000\s*\{[\s\S]*lb_try_duration 10s/,
+      /reverse_proxy site:3000\s*\{[\s\S]*lb_try_duration 30s/,
     );
   });
 

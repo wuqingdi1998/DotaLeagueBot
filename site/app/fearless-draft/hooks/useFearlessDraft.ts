@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isDraftCommandConfirmed } from "../model/command-confirmation";
+import { unavailableDataMessage } from "@/lib/site-request";
 import type {
   FearlessDraftCommand,
   FearlessDraftSnapshot,
@@ -22,6 +24,7 @@ export function useFearlessDraft(
   const [isSending, setIsSending] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const fallbackTimer = useRef<number | null>(null);
+  const sendingRef = useRef(false);
 
   const reload = useCallback(async () => {
     const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
@@ -33,6 +36,7 @@ export function useFearlessDraft(
       "Не удалось обновить драфт",
     );
     setSnapshot(body);
+    return body;
   }, [seasonMatchId]);
 
   useEffect(() => {
@@ -55,6 +59,10 @@ export function useFearlessDraft(
     };
     events.addEventListener("snapshot", receiveSnapshot as EventListener);
     events.onopen = () => setIsConnected(true);
+    events.addEventListener("server-error", () => {
+      setIsConnected(false);
+      setError(unavailableDataMessage);
+    });
     events.onerror = () => {
       setIsConnected(false);
       if (fallbackTimer.current === null) {
@@ -73,6 +81,8 @@ export function useFearlessDraft(
   }, [reload, seasonMatchId]);
 
   const send = useCallback(async (command: FearlessDraftCommand) => {
+    if (sendingRef.current) return false;
+    sendingRef.current = true;
     setIsSending(true);
     try {
       const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
@@ -87,16 +97,23 @@ export function useFearlessDraft(
         { allowEmptySuccess: true },
       );
       setError("");
-      if (!isConnected) await reload();
+      if (!isConnected) {
+        await reload().catch(() => setError("Действие сохранено. Не удалось обновить экран"));
+      }
       return true;
     } catch (reason) {
+      const current = await reload().catch(() => null);
+      if (current && isDraftCommandConfirmed(command, snapshot, current)) {
+        setError("");
+        return true;
+      }
       setError(draftRequestErrorMessage(reason, "Действие не выполнено"));
-      await reload().catch(() => undefined);
       return false;
     } finally {
+      sendingRef.current = false;
       setIsSending(false);
     }
-  }, [isConnected, reload, seasonMatchId]);
+  }, [isConnected, reload, seasonMatchId, snapshot]);
 
   return { snapshot, error, isSending, isConnected, send };
 }

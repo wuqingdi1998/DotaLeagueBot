@@ -1,11 +1,13 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ArchiveIdentityProfile } from "@/lib/player-identity-admin";
 
 async function submitAdminAction(payload: Record<string, unknown>) {
-  const response = await fetch("/api/admin/players", {
+  const response = await fetchSiteRequest("/api/admin/players", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

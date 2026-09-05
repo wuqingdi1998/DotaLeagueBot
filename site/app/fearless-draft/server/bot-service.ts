@@ -148,7 +148,6 @@ export async function startBotDraft(
       [playerId],
     );
   });
-  await advanceBotDraft(playerId);
 }
 
 export async function advanceBotDraft(playerId: string): Promise<void> {

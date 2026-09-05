@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { LinkedArchiveProfile } from "@/lib/player-profile-organizer";
@@ -19,7 +21,7 @@ export function LinkedArchiveProfilesCard({
     setPendingPlayerId(profile.playerId);
     setError("");
     try {
-      const response = await fetch("/api/admin/players", {
+      const response = await fetchSiteRequest("/api/admin/players", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

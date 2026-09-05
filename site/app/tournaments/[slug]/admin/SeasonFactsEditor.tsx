@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useRef, useState } from "react";
 import {
   FiArrowDown,
@@ -87,7 +89,7 @@ export function SeasonFactsEditor({
     setSaving(true);
     setMessage("");
     try {
-      const response = await fetch("/api/admin/season-facts", {
+      const response = await fetchSiteRequest("/api/admin/season-facts", {
         method: "PUT",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({

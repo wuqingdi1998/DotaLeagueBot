@@ -6,23 +6,7 @@ export type SeasonMutationResponse = {
   requiresConfirmation?: boolean;
 };
 
-export const seasonRequestTimeoutMs = 20_000;
-
-export async function fetchSeasonRequest(
-  input: RequestInfo | URL,
-  init: RequestInit,
-) {
-  const controller = new AbortController();
-  const timeout = globalThis.setTimeout(
-    () => controller.abort(),
-    seasonRequestTimeoutMs,
-  );
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    globalThis.clearTimeout(timeout);
-  }
-}
+export { fetchSiteRequest as fetchSeasonRequest } from "../../../../lib/site-request";
 
 export async function readSeasonMutationResponse(
   response: Response,

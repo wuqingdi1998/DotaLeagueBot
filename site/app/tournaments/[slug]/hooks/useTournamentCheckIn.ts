@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { useMemo } from "react";
 import { tournamentCheckInWindow } from "@/lib/tournament-check-in";
 import { announcePlayerActionNotificationsChanged } from "@/lib/player-action-notification-events";
@@ -45,7 +47,7 @@ export function useTournamentCheckIn({
 
   async function checkIn(applicationId: number) {
     if (!data) return;
-    const response = await fetch("/api/check-in", {
+    const response = await fetchSiteRequest("/api/check-in", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({

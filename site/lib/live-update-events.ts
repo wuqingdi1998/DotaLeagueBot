@@ -14,7 +14,13 @@ function channels(): Map<string, Set<LiveUpdateListener>> {
 }
 
 export function publishLiveUpdate(channel: string): void {
-  for (const listener of channels().get(channel) ?? []) listener();
+  for (const listener of channels().get(channel) ?? []) {
+    try {
+      listener();
+    } catch (error) {
+      console.error("Live update listener failed after a saved action", { channel, error });
+    }
+  }
 }
 
 export function subscribeToLiveUpdates(

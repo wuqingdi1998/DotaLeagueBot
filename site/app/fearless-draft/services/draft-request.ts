@@ -6,23 +6,7 @@ type DraftResponseOptions = {
   allowEmptySuccess?: boolean;
 };
 
-export const draftRequestTimeoutMs = 20_000;
-
-export async function fetchDraftRequest(
-  input: RequestInfo | URL,
-  init?: RequestInit,
-): Promise<Response> {
-  const controller = new AbortController();
-  const timeout = globalThis.setTimeout(
-    () => controller.abort(),
-    draftRequestTimeoutMs,
-  );
-  try {
-    return await fetch(input, { ...init, signal: controller.signal });
-  } finally {
-    globalThis.clearTimeout(timeout);
-  }
-}
+export { fetchSiteRequest as fetchDraftRequest } from "../../../lib/site-request";
 
 export async function readDraftResponse<T extends object>(
   response: Response,

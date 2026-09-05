@@ -1,5 +1,7 @@
 "use client";
 
+import { fetchSiteRequest } from "@/lib/site-request";
+
 import { FormEvent, useMemo, useState } from "react";
 
 const roles = [
@@ -87,7 +89,7 @@ export function ArchiveRosterEditor({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    const response = await fetch("/api/admin/archive-rosters", {
+    const response = await fetchSiteRequest("/api/admin/archive-rosters", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -116,7 +118,7 @@ export function ArchiveRosterEditor({
 
   async function removeTeam() {
     if (!team || !window.confirm(`Удалить команду ${team.team_name}?`)) return;
-    const response = await fetch(`/api/admin/archive-rosters?id=${team.id}`, {
+    const response = await fetchSiteRequest(`/api/admin/archive-rosters?id=${team.id}`, {
       method: "DELETE",
     });
     const result = (await response.json()) as { error?: string };
