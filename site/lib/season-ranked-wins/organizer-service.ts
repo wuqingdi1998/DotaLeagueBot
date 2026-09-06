@@ -1,4 +1,5 @@
 import { one, transaction, type query } from "@/lib/db";
+import type { QueryResultRow } from "pg";
 import { calculateRankedWinSnapshot, parsePlayerPositions, SEASON_RANKED_WIN_WINDOW_DAYS } from "./model";
 import { fetchDotaBuffMonthlyRankedMatches } from "./dotabuff-month";
 import { manualRankedWinSnapshot, type parseRankedWinUpdate } from "./organizer-model";
@@ -49,11 +50,14 @@ export async function updateOrganizerRankedWins(
        FOR UPDATE OF registration`, [update.roundId, update.playerId],
     );
     if (!registration.rowCount) throw new Response("Регистрация игрока не найдена", { status: 404 });
-    const currentTarget = await playerWinTarget(update.playerId);
+    const execute: typeof query = async (sql, values) => (await client.query(sql, [...(values ?? [])])).rows;
+    async function fetchOne<T extends QueryResultRow>(sql: string, values?: readonly unknown[]): Promise<T | null> {
+      return (await execute<T>(sql, values))[0] ?? null;
+    }
+    const currentTarget = await playerWinTarget(update.playerId, fetchOne);
     if (currentTarget.positions !== target.positions || currentTarget.dota_id !== target.dota_id) {
       throw new Response("Профиль игрока изменился. Обновите страницу и повторите запрос", { status: 409 });
     }
-    const execute: typeof query = async (sql, values) => (await client.query(sql, [...(values ?? [])])).rows;
     const isSaved = await savePlayerRankedWins(update.playerId, snapshot, {
       source: update.source, isOrganizer: true, execute,
     });

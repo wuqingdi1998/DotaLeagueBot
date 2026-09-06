@@ -36,8 +36,11 @@ function snapshotFromRow(row: RankedWinCheckRow): RankedWinSnapshot {
   };
 }
 
-export async function playerWinTarget(playerId: string): Promise<PlayerWinTarget> {
-  const target = await one<PlayerWinTarget>(
+export async function playerWinTarget(
+  playerId: string,
+  fetchOne: typeof one = one,
+): Promise<PlayerWinTarget> {
+  const target = await fetchOne<PlayerWinTarget>(
     `SELECT player.discord_id::text AS player_id,
        COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
        COALESCE(NULLIF(current_player.positions, ''), player.positions)
