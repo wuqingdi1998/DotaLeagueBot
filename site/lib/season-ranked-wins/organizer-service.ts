@@ -5,6 +5,7 @@ import { fetchDotaBuffMonthlyRankedMatches } from "./dotabuff-month";
 import { manualRankedWinSnapshot, type parseRankedWinUpdate } from "./organizer-model";
 import { playerWinTarget, savePlayerRankedWins } from "./repository";
 import { calculateSeasonRankedWins, SeasonRankedWinsError } from "./service";
+import { hasUnresolvedBrowserWins } from "./browser-import";
 
 export async function updateOrganizerRankedWins(
   update: NonNullable<ReturnType<typeof parseRankedWinUpdate>>,
@@ -29,6 +30,16 @@ export async function updateOrganizerRankedWins(
     snapshot = manualRankedWinSnapshot(positions, update.primaryWins, update.secondaryWins, now);
   } else if (update.source === "stratz") {
     snapshot = await calculateSeasonRankedWins({ dotaId: target.dota_id, positions: target.positions, now });
+  } else if (update.browserImport) {
+    if (update.browserImport.dotaId !== target.dota_id) {
+      throw new Response("История Dotabuff принадлежит другому игроку", { status: 400 });
+    }
+    const matches = update.browserImport.matches.map((match) => ({ ...match, startedAt: new Date(match.startedAt) }));
+    const checkedAt = new Date(update.browserImport.startedAt);
+    if (hasUnresolvedBrowserWins(matches, checkedAt)) {
+      throw new Response("У части побед Dotabuff не указал роль. Прежние значения сохранены", { status: 422 });
+    }
+    snapshot = calculateRankedWinSnapshot({ matches, positions, now: checkedAt });
   } else {
     try {
       const matches = await fetchDotaBuffMonthlyRankedMatches(target.dota_id, now);
@@ -59,15 +70,21 @@ export async function updateOrganizerRankedWins(
       throw new Response("Профиль игрока изменился. Обновите страницу и повторите запрос", { status: 409 });
     }
     const isSaved = await savePlayerRankedWins(update.playerId, snapshot, {
-      source: update.source, isOrganizer: true, execute,
+      source: update.source, execute,
     });
-    if (!isSaved) throw new Response("Победы уже обновлены другим запросом. Обновите страницу", { status: 409 });
+    if (!isSaved) {
+      const message = update.source === "stratz"
+        ? "Победы, полученные через Dotabuff или введённые вручную, зафиксированы и не обновляются через STRATZ"
+        : "Победы уже обновлены другим запросом. Обновите страницу";
+      throw new Response(message, { status: 409 });
+    }
     await client.query(
       `INSERT INTO tournament_audit_log
        (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
        VALUES ($1, $2, 'update', 'season_ranked_wins', $3, $4::jsonb)`,
       [registration.rows[0].tournament_id, actorDiscordId, update.playerId,
-        JSON.stringify({ roundId: update.roundId, source: update.source, ...snapshot })],
+        JSON.stringify({ roundId: update.roundId, source: update.source,
+          ...(update.browserImport ? { collectionMethod: "organizer_browser" } : {}), ...snapshot })],
     );
     return { ok: true, rankedWins: snapshot };
   });

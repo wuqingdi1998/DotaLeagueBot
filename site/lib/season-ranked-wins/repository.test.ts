@@ -34,6 +34,16 @@ describe("season ranked wins repository", () => {
     expect(mocks.query).not.toHaveBeenCalled();
   });
 
+  it("preserves Dotabuff wins without contacting Stratz", async () => {
+    mocks.one.mockReset().mockResolvedValue({
+      primary_role: 1, secondary_role: 3, primary_wins: 9, secondary_wins: 4,
+      checked_at: new Date("2026-09-06T10:00:00Z"),
+    });
+    await expect(refreshPlayerRankedWins("100")).resolves.toMatchObject({ primaryWins: 9, secondaryWins: 4 });
+    expect(mocks.calculateSeasonRankedWins).not.toHaveBeenCalled();
+    expect(mocks.query).not.toHaveBeenCalled();
+  });
+
   it("does not overwrite the previous snapshot when Stratz fails", async () => {
     mocks.calculateSeasonRankedWins.mockRejectedValue(
       new Error("Stratz unavailable"),

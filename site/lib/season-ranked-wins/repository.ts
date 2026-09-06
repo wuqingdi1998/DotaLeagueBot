@@ -65,9 +65,8 @@ export async function playerWinTarget(
 export async function savePlayerRankedWins(
   playerId: string,
   snapshot: RankedWinSnapshot,
-  { source = "stratz", isOrganizer = false, execute = query }: {
+  { source = "stratz", execute = query }: {
     source?: RankedWinUpdateSource;
-    isOrganizer?: boolean;
     execute?: typeof query;
   } = {},
 ): Promise<boolean> {
@@ -84,7 +83,8 @@ export async function savePlayerRankedWins(
          checked_at = EXCLUDED.checked_at,
          source = EXCLUDED.source
      WHERE season_ranked_win_checks.checked_at <= EXCLUDED.checked_at
-       AND ($8 OR season_ranked_win_checks.source <> 'manual')
+       AND (EXCLUDED.source <> 'stratz'
+         OR season_ranked_win_checks.source NOT IN ('manual', 'dotabuff'))
      RETURNING player_id`,
     [
       playerId,
@@ -94,19 +94,18 @@ export async function savePlayerRankedWins(
       snapshot.secondaryWins,
       snapshot.checkedAt,
       source,
-      isOrganizer,
     ],
   );
   return saved.length > 0;
 }
 
 async function performPlayerRefresh(playerId: string): Promise<RankedWinSnapshot> {
-  const manual = await one<RankedWinCheckRow>(
+  const fixed = await one<RankedWinCheckRow>(
     `SELECT primary_role::int, secondary_role::int, primary_wins::int,
        secondary_wins::int, checked_at FROM season_ranked_win_checks
-     WHERE player_id = $1 AND source = 'manual'`, [playerId],
+     WHERE player_id = $1 AND source IN ('manual', 'dotabuff')`, [playerId],
   );
-  if (manual) return snapshotFromRow(manual);
+  if (fixed) return snapshotFromRow(fixed);
   const target = await playerWinTarget(playerId);
   const snapshot = await calculateSeasonRankedWins({
     dotaId: target.dota_id,

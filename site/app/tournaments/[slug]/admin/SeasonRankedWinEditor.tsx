@@ -7,6 +7,7 @@ import { MAX_MANUAL_RANKED_WINS, type RankedWinUpdateSource } from "@/lib/season
 import { useTournament } from "../hooks/TournamentContext";
 import { useRankedWinEditor } from "../hooks/useRankedWinEditor";
 import type { SeasonRoundRegistration } from "../model/season-types";
+import { DotabuffExtensionHelp } from "./DotabuffExtensionHelp";
 
 export function SeasonRankedWinEditor({ registration }: { registration: SeasonRoundRegistration }) {
   const { season, setToast } = useTournament();
@@ -52,7 +53,7 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
           </button>
           <button type="button" className="secondary-button" disabled={isSaving || !positions}
             onClick={() => void save("dotabuff")}>
-            {editor.pendingSource === "dotabuff" ? "Загрузка Dotabuff…" : "Dotabuff"}
+            {editor.pendingSource === "dotabuff" ? "Проверка Dotabuff…" : "Dotabuff"}
           </button>
           <button type="button" className="secondary-button" disabled={isSaving || !positions}
             aria-expanded={editor.isManual} onClick={() => editor.setIsManual(true)}>
@@ -81,7 +82,11 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
           </form>
         )}
         {editor.error && <p className="season-ranked-win-error" role="alert">{editor.error}</p>}
-        {isSaving && <p role="status">Обновляем статистику…</p>}
+        {editor.needsExtension && <DotabuffExtensionHelp />}
+        {isSaving && <p role="status">{editor.progress || "Обновляем статистику…"}</p>}
+        {editor.isAwaitingBrowser && (
+          <button type="button" className="secondary-button" onClick={editor.cancelBrowser}>Отменить проверку</button>
+        )}
       </dialog>
     </>
   );

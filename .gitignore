@@ -17,6 +17,7 @@ league_test.db
 postgres_data/
 uploads_data/
 site/.data/
+site/public/downloads/linkens-dotabuff-helper.zip
 site/.next/
 site/node_modules/
 site/coverage/

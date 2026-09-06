@@ -1,27 +1,9 @@
-import { dotabuffPosition, fetchDotaBuffMatchPage } from "./dotabuff";
+import { fetchDotaBuffMatchPage } from "./dotabuff";
+import { dotabuffMonthlyMatchesFromHtml } from "./dotabuff-parser";
+export { dotabuffMonthlyMatchesFromHtml } from "./dotabuff-parser";
 import { SEASON_RANKED_WIN_WINDOW_DAYS, type RankedMatchCandidate } from "./model";
 
 const MAX_MONTHLY_PAGES = 20;
-
-/** Only complete, recognizable match histories may replace a saved count. */
-export function dotabuffMonthlyMatchesFromHtml(html: string): RankedMatchCandidate[] {
-  const matches: RankedMatchCandidate[] = [];
-  for (const row of html.match(/<tr\b[\s\S]*?<\/tr>/gi) ?? []) {
-    const matchId = row.match(/href=["'][^"']*\/matches\/(\d+)/i)?.[1];
-    if (!matchId) continue;
-    const date = row.match(/<time\b[^>]*datetime=["']([^"']+)["']/i)?.[1];
-    const startedAt = new Date(date ?? "");
-    const result = row.replace(/<[^>]+>/g, " ").match(/\b(Won|Lost|Abandoned)\s+Match\b/i)?.[1];
-    if (!Number.isFinite(startedAt.getTime()) || !result) {
-      throw new Error("DotaBuff match date or result is missing");
-    }
-    matches.push({ matchId, startedAt, won: result.toLowerCase() === "won", role: dotabuffPosition(row) });
-  }
-  if (!matches.length && !/No matches found|No matches to display/i.test(html)) {
-    throw new Error("DotaBuff match history is unavailable");
-  }
-  return matches;
-}
 
 export async function fetchDotaBuffMonthlyRankedMatches(dotaId: string, now: Date) {
   const matches = new Map<string, RankedMatchCandidate>();

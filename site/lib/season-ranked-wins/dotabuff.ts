@@ -1,35 +1,9 @@
 import type { DotaPosition } from "./model";
+import { dotabuffPosition } from "./dotabuff-parser";
+export { dotabuffPosition } from "./dotabuff-parser";
 
-const DOTABUFF_ORIGIN = "https://www.dotabuff.com";
+import { DOTABUFF_ORIGIN } from "./browser-import";
 const MAX_DOTABUFF_PAGES = 5;
-
-function textContent(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;|&#160;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-export function dotabuffPosition(rowHtml: string): DotaPosition | null {
-  const rowText = textContent(rowHtml);
-  const searchableRow = `${rowText} ${rowHtml}`;
-  const isCore = /\bCore\b|role[-_ ]core/i.test(searchableRow);
-  const isSupport = /\bSupport\b|role[-_ ]support/i.test(searchableRow);
-  const isSafeLane = /Safe Lane/i.test(searchableRow);
-  const isMidLane = /Mid Lane/i.test(searchableRow);
-  const isOffLane = /Off Lane/i.test(searchableRow);
-
-  if (isCore && isSafeLane) return 1;
-  if (isCore && isMidLane) return 2;
-  if (isCore && isOffLane) return 3;
-  if (isSupport && isOffLane) return 4;
-  if (isSupport && isSafeLane) return 5;
-  return null;
-}
 
 export async function fetchDotaBuffMatchPage(dotaId: string, page: number, isMonthly = false): Promise<string> {
   const url = new URL(`/players/${encodeURIComponent(dotaId)}/matches`, DOTABUFF_ORIGIN);

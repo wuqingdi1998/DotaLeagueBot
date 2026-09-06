@@ -6,6 +6,8 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "build:dotabuff-extension": "node scripts/build-dotabuff-extension.mjs",
+    "prebuild": "npm run build:dotabuff-extension",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -25,13 +27,16 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.2.1",
+    "@types/chrome": "^0.2.9",
     "@types/node": "22.19.19",
     "@types/pg": "^8.15.6",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitest/coverage-v8": "^4.0.18",
+    "esbuild": "^0.28.2",
     "eslint": "9.39.4",
     "eslint-config-next": "16.2.11",
+    "fflate": "^0.8.3",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "vitest": "^4.0.18"

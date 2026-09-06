@@ -1,4 +1,5 @@
 import { parsePlayerPositions, SEASON_RANKED_WIN_BUTTON_TTL_MS, type RankedWinSnapshot } from "./model";
+import { parseDotabuffBrowserImport } from "./browser-import";
 
 export const RANKED_WIN_UPDATE_SOURCES = ["stratz", "dotabuff", "manual"] as const;
 export type RankedWinUpdateSource = (typeof RANKED_WIN_UPDATE_SOURCES)[number];
@@ -19,12 +20,15 @@ export function parseRankedWinUpdate(value: unknown) {
   const positions = typeof body.positions === "string" ? parsePlayerPositions(body.positions) : null;
   if (!positions || positions.primaryRole === positions.secondaryRole) return null;
   if (body.source === "manual" && (!isRankedWinCount(body.primaryWins) || !isRankedWinCount(body.secondaryWins))) return null;
+  const browserImport = body.browserImport === undefined ? undefined : parseDotabuffBrowserImport(body.browserImport);
+  if (browserImport === null || (browserImport && body.source !== "dotabuff")) return null;
   return {
     roundId: body.roundId, playerId: body.playerId,
     source: body.source as RankedWinUpdateSource,
     positions: body.positions as string,
     primaryWins: body.primaryWins as number,
     secondaryWins: body.secondaryWins as number,
+    ...(browserImport ? { browserImport } : {}),
   };
 }
 

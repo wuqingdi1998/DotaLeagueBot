@@ -1,4 +1,5 @@
 import type { RankedWinUpdateSource } from "@/lib/season-ranked-wins/organizer-model";
+import type { DotabuffBrowserImport } from "@/lib/season-ranked-wins/browser-import";
 import { fetchSeasonRequest, readSeasonMutationResponse } from "./season-request";
 
 export async function saveRankedWinUpdate(body: {
@@ -8,6 +9,7 @@ export async function saveRankedWinUpdate(body: {
   source: RankedWinUpdateSource;
   primaryWins?: number;
   secondaryWins?: number;
+  browserImport?: DotabuffBrowserImport;
 }) {
   const response = await fetchSeasonRequest("/api/admin/season/ranked-wins", {
     method: "POST", headers: { "content-type": "application/json" },
