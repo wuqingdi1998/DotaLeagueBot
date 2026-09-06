@@ -82,9 +82,10 @@ export function SiteHeader({
   discordUrl = "https://discord.gg/lsesports",
 }: SiteHeaderProps) {
   const pathname = usePathname();
-  const beginNavigation = useHeaderNavigation();
+  const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobileMenuVisible = mobileMenuOpen || isMobileAnimation;
   const { actionsRef, headerRef, navigationRef } =
     useHeaderActionCompaction();
 
@@ -176,12 +177,15 @@ export function SiteHeader({
         <button
           className="mobile-menu-button"
           type="button"
-          onClick={() => setMobileMenuOpen((current) => !current)}
-          aria-label={mobileMenuOpen ? "Закрыть меню" : "Открыть меню"}
-          aria-expanded={mobileMenuOpen}
+          onClick={() => {
+            cancelAnimation();
+            setMobileMenuOpen(!isMobileMenuVisible);
+          }}
+          aria-label={isMobileMenuVisible ? "Закрыть меню" : "Открыть меню"}
+          aria-expanded={isMobileMenuVisible}
           aria-controls="mobile-primary-navigation"
         >
-          {mobileMenuOpen ? <FiX /> : <FiMenu />}
+          {isMobileMenuVisible ? <FiX /> : <FiMenu />}
         </button>
         <Link
           className="boosty-button boosty-action-button"
@@ -274,7 +278,7 @@ export function SiteHeader({
         )}
       </div>
 
-      {mobileMenuOpen && (
+      {isMobileMenuVisible && (
         <nav
           className="mobile-navigation"
           id="mobile-primary-navigation"
@@ -284,7 +288,7 @@ export function SiteHeader({
             beginNavigation={beginNavigation}
             isActive={homeActive}
             href="/"
-            onAnimationComplete={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
           >
             Главная
           </HeaderNavigationLink>
@@ -292,7 +296,7 @@ export function SiteHeader({
             beginNavigation={beginNavigation}
             isActive={tournamentsActive}
             href="/tournaments"
-            onAnimationComplete={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
           >
             Турниры
           </HeaderNavigationLink>
@@ -300,7 +304,7 @@ export function SiteHeader({
             beginNavigation={beginNavigation}
             isActive={seasonActive}
             href="/season"
-            onAnimationComplete={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
           >
             Сезон
           </HeaderNavigationLink>
@@ -308,7 +312,7 @@ export function SiteHeader({
             beginNavigation={beginNavigation}
             isActive={calendarActive}
             href="/calendar"
-            onAnimationComplete={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
           >
             Календарь
           </HeaderNavigationLink>
@@ -316,7 +320,7 @@ export function SiteHeader({
             beginNavigation={beginNavigation}
             isActive={hallActive}
             href="/hall-of-fame"
-            onAnimationComplete={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
           >
             Зал славы
           </HeaderNavigationLink>
@@ -324,7 +328,7 @@ export function SiteHeader({
             beginNavigation={beginNavigation}
             isActive={participantsActive}
             href="/participants"
-            onAnimationComplete={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
           >
             Участники
           </HeaderNavigationLink>

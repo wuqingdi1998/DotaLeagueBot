@@ -1,21 +1,20 @@
 "use client";
 
-import { useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { createContext, useContext } from "react";
 
-/** Only the most recently clicked link may navigate when its animation finishes. */
+type HeaderNavigationContextValue = {
+  beginNavigation: (link: HTMLAnchorElement) => void;
+  cancelAnimation: () => void;
+  isMobileAnimation: boolean;
+};
+
+export const HeaderNavigationContext = createContext<HeaderNavigationContextValue>({
+  beginNavigation: () => {},
+  cancelAnimation: () => {},
+  isMobileAnimation: false,
+});
+
+/** Shares only the temporary visual effect, never page data or navigation. */
 export function useHeaderNavigation() {
-  const router = useRouter();
-  const latestRequest = useRef(0);
-
-  return useCallback((href: string, onComplete?: () => void) => {
-    const request = ++latestRequest.current;
-
-    return () => {
-      if (request !== latestRequest.current) return;
-      latestRequest.current += 1;
-      router.push(href);
-      onComplete?.();
-    };
-  }, [router]);
+  return useContext(HeaderNavigationContext);
 }

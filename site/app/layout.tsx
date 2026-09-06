@@ -4,6 +4,7 @@ import "./globals.css";
 import { LocalTimeHints } from "./components/LocalTimeHints";
 import { PreventSpaceScroll } from "./components/PreventSpaceScroll";
 import { SiteBreakWatcher } from "./components/SiteBreakWatcher";
+import { HeaderNavigationAnimation } from "./components/header/HeaderNavigationAnimation";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -56,7 +57,7 @@ export default function RootLayout({
         <LocalTimeHints />
         <PreventSpaceScroll />
         <SiteBreakWatcher />
-        {children}
+        <HeaderNavigationAnimation>{children}</HeaderNavigationAnimation>
       </body>
     </html>
   );
