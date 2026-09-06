@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { FiArrowDown, FiArrowUp, FiClock } from "react-icons/fi";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
@@ -22,6 +23,8 @@ import {
 } from "../model/season-registration";
 import type { SeasonRound } from "../model/season-types";
 import { SeasonRoundCheckIn } from "./SeasonRoundCheckIn";
+
+const SeasonRankedWinEditor = dynamic(() => import("../admin/SeasonRankedWinEditor").then((module) => module.SeasonRankedWinEditor));
 
 export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   const { data, season, startDiscordLogin } = useTournament();
@@ -171,7 +174,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
         <div className="season-registration-table">
           <div className="season-registration-columns">
             <span />
-            <span>Игрок</span>
+            <span className="season-registration-column-player">Игрок</span>
             <span>Тир</span>
             <span>Роли</span>
             <span className="season-registration-column-wins">
@@ -247,6 +250,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                       {SEASON_SECONDARY_ROLE_WINS_REQUIRED}
                     </span>
                   </a>
+                  {season.data?.isOrganizer && <SeasonRankedWinEditor registration={registration} />}
                 </span>
                 <time dateTime={registration.created_at}>
                   <FiClock aria-hidden="true" />

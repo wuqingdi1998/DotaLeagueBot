@@ -14,7 +14,7 @@ function textContent(html: string): string {
     .trim();
 }
 
-function dotabuffPosition(rowHtml: string): DotaPosition | null {
+export function dotabuffPosition(rowHtml: string): DotaPosition | null {
   const rowText = textContent(rowHtml);
   const searchableRow = `${rowText} ${rowHtml}`;
   const isCore = /\bCore\b|role[-_ ]core/i.test(searchableRow);
@@ -22,14 +22,35 @@ function dotabuffPosition(rowHtml: string): DotaPosition | null {
   const isSafeLane = /Safe Lane/i.test(searchableRow);
   const isMidLane = /Mid Lane/i.test(searchableRow);
   const isOffLane = /Off Lane/i.test(searchableRow);
-  const isRoaming = /Roaming/i.test(searchableRow);
 
   if (isCore && isSafeLane) return 1;
   if (isCore && isMidLane) return 2;
   if (isCore && isOffLane) return 3;
-  if (isSupport && (isOffLane || isRoaming)) return 4;
+  if (isSupport && isOffLane) return 4;
   if (isSupport && isSafeLane) return 5;
   return null;
+}
+
+export async function fetchDotaBuffMatchPage(dotaId: string, page: number, isMonthly = false): Promise<string> {
+  const url = new URL(`/players/${encodeURIComponent(dotaId)}/matches`, DOTABUFF_ORIGIN);
+  url.searchParams.set("lobby_type", "ranked_matchmaking");
+  url.searchParams.set("page", String(page));
+  if (isMonthly) url.searchParams.set("date", "month");
+  const response = await fetch(url, {
+    cache: "no-store",
+    headers: {
+      Accept: "text/html,application/xhtml+xml",
+      "Accept-Language": "en-US,en;q=0.9",
+      "User-Agent": "Linkens-Sphere-Season-Win-Checker/1.0",
+    },
+    signal: AbortSignal.timeout(3_000),
+  });
+  if (!response.ok) throw new Error(`DotaBuff returned HTTP ${response.status}`);
+  const html = await response.text();
+  if (/cf-chl-|Just a moment/i.test(html)) {
+    throw new Error("DotaBuff returned an anti-bot challenge");
+  }
+  return html;
 }
 
 function matchIdsFromHtml(html: string): string[] {
@@ -69,30 +90,7 @@ export async function fetchDotaBuffRolesForMatches({
   if (!requestedMatchIds.size) return foundRoles;
 
   for (let page = 1; page <= MAX_DOTABUFF_PAGES; page += 1) {
-    const url = new URL(
-      `/players/${encodeURIComponent(dotaId)}/matches`,
-      DOTABUFF_ORIGIN,
-    );
-    url.searchParams.set("lobby_type", "ranked_matchmaking");
-    url.searchParams.set("page", String(page));
-
-    const response = await fetch(url, {
-      cache: "no-store",
-      headers: {
-        Accept: "text/html,application/xhtml+xml",
-        "Accept-Language": "en-US,en;q=0.9",
-        "User-Agent": "Linkens-Sphere-Season-Win-Checker/1.0",
-      },
-      signal: AbortSignal.timeout(3_000),
-    });
-    if (!response.ok) {
-      throw new Error(`DotaBuff returned HTTP ${response.status}`);
-    }
-
-    const html = await response.text();
-    if (/cf-chl-|Just a moment/i.test(html)) {
-      throw new Error("DotaBuff returned an anti-bot challenge");
-    }
+    const html = await fetchDotaBuffMatchPage(dotaId, page);
 
     for (const [matchId, role] of dotabuffRolesFromHtml(
       html,

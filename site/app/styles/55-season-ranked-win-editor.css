@@ -1,0 +1,94 @@
+.season-ranked-win-settings {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 15px;
+  height: 28px;
+  justify-content: center;
+  margin-left: 8px;
+  vertical-align: middle;
+  width: 28px;
+}
+
+.season-ranked-win-settings:hover,
+.season-ranked-win-settings:focus-visible {
+  color: var(--text);
+  outline: 2px solid var(--line-strong);
+  outline-offset: 2px;
+}
+
+.season-ranked-win-dialog {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+  margin: auto;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 28px;
+  text-align: left;
+  white-space: normal;
+  width: min(520px, calc(100vw - 32px));
+}
+
+.season-ranked-win-dialog::backdrop {
+  background: rgb(0 0 0 / 65%);
+}
+
+.season-ranked-win-dialog h3 {
+  font-size: 20px;
+  margin: 0 24px 8px 0;
+  overflow-wrap: anywhere;
+}
+
+.season-ranked-win-dialog p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.season-ranked-win-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.season-ranked-win-form {
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.season-ranked-win-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.season-ranked-win-form input {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  color: var(--text);
+  font: inherit;
+  min-width: 0;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+.season-ranked-win-dialog .season-ranked-win-error {
+  color: var(--text);
+  border-left: 3px solid #c53645;
+  padding-left: 10px;
+}
+
+@media (max-width: 600px) {
+  .season-ranked-win-dialog { padding: 22px 18px; }
+  .season-ranked-win-sources { flex-direction: column; }
+  .season-ranked-win-settings { height: 32px; width: 32px; }
+}

@@ -123,6 +123,10 @@
   text-align: center;
 }
 
+.season-registration-columns .season-registration-column-player {
+  text-align: left;
+}
+
 .season-registration-column-wins {
   grid-column: 6;
 }

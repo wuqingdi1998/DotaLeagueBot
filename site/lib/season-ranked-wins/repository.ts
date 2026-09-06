@@ -5,6 +5,7 @@ import {
   type RankedWinSnapshot,
 } from "./model";
 import { calculateSeasonRankedWins, SeasonRankedWinsError } from "./service";
+import type { RankedWinUpdateSource } from "./organizer-model";
 
 type PlayerWinTarget = {
   player_id: string;
@@ -35,7 +36,7 @@ function snapshotFromRow(row: RankedWinCheckRow): RankedWinSnapshot {
   };
 }
 
-async function playerWinTarget(playerId: string): Promise<PlayerWinTarget> {
+export async function playerWinTarget(playerId: string): Promise<PlayerWinTarget> {
   const target = await one<PlayerWinTarget>(
     `SELECT player.discord_id::text AS player_id,
        COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
@@ -58,21 +59,30 @@ async function playerWinTarget(playerId: string): Promise<PlayerWinTarget> {
   return target;
 }
 
-async function savePlayerRankedWins(
+export async function savePlayerRankedWins(
   playerId: string,
   snapshot: RankedWinSnapshot,
-): Promise<void> {
-  await query(
+  { source = "stratz", isOrganizer = false, execute = query }: {
+    source?: RankedWinUpdateSource;
+    isOrganizer?: boolean;
+    execute?: typeof query;
+  } = {},
+): Promise<boolean> {
+  const saved = await execute(
     `INSERT INTO season_ranked_win_checks
        (player_id, primary_role, secondary_role, primary_wins,
-        secondary_wins, checked_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
+        secondary_wins, checked_at, source)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)
      ON CONFLICT (player_id) DO UPDATE
      SET primary_role = EXCLUDED.primary_role,
          secondary_role = EXCLUDED.secondary_role,
          primary_wins = EXCLUDED.primary_wins,
          secondary_wins = EXCLUDED.secondary_wins,
-         checked_at = EXCLUDED.checked_at`,
+         checked_at = EXCLUDED.checked_at,
+         source = EXCLUDED.source
+     WHERE season_ranked_win_checks.checked_at <= EXCLUDED.checked_at
+       AND ($8 OR season_ranked_win_checks.source <> 'manual')
+     RETURNING player_id`,
     [
       playerId,
       snapshot.primaryRole,
@@ -80,18 +90,34 @@ async function savePlayerRankedWins(
       snapshot.primaryWins,
       snapshot.secondaryWins,
       snapshot.checkedAt,
+      source,
+      isOrganizer,
     ],
   );
+  return saved.length > 0;
 }
 
 async function performPlayerRefresh(playerId: string): Promise<RankedWinSnapshot> {
+  const manual = await one<RankedWinCheckRow>(
+    `SELECT primary_role::int, secondary_role::int, primary_wins::int,
+       secondary_wins::int, checked_at FROM season_ranked_win_checks
+     WHERE player_id = $1 AND source = 'manual'`, [playerId],
+  );
+  if (manual) return snapshotFromRow(manual);
   const target = await playerWinTarget(playerId);
   const snapshot = await calculateSeasonRankedWins({
     dotaId: target.dota_id,
     positions: target.positions,
   });
-  await savePlayerRankedWins(playerId, snapshot);
-  return snapshot;
+  const isSaved = await savePlayerRankedWins(playerId, snapshot);
+  if (isSaved) return snapshot;
+  const current = await one<RankedWinCheckRow>(
+    `SELECT primary_role::int, secondary_role::int, primary_wins::int,
+       secondary_wins::int, checked_at FROM season_ranked_win_checks
+     WHERE player_id = $1`, [playerId],
+  );
+  if (!current) throw new SeasonRankedWinsError("Повторите обновление побед");
+  return snapshotFromRow(current);
 }
 
 export async function refreshPlayerRankedWins(
