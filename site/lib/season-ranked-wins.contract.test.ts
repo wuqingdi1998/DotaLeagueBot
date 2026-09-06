@@ -73,6 +73,9 @@ describe("season ranked wins contract", () => {
     );
     expect(registrationStyles).toContain(".season-registration-win.met");
     expect(registrationStyles).toContain(".season-registration-win.missing");
+    expect(seasonRoute).toContain("ranked_wins.source AS wins_source");
+    expect(registrationSection).toContain('source === "manual"');
+    expect(registrationStyles).toContain(".season-registration-win.manual");
   });
 
   it("uses Stratz for the match list and DotaBuff only for missing roles", () => {

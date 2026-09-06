@@ -23,6 +23,7 @@ const registrations: SeasonRoundRegistration[] = [
     primary_wins: null,
     secondary_wins: null,
     wins_checked_at: null,
+    wins_source: null,
   },
   {
     round_id: 1,
@@ -39,6 +40,7 @@ const registrations: SeasonRoundRegistration[] = [
     primary_wins: 10,
     secondary_wins: 4,
     wins_checked_at: "2026-08-17T10:05:00.000Z",
+    wins_source: "stratz",
   },
 ];
 

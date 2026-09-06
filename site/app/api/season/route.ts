@@ -269,7 +269,8 @@ export async function GET(request: Request) {
            ranked_wins.secondary_role::int,
            ranked_wins.primary_wins::int,
            ranked_wins.secondary_wins::int,
-           ranked_wins.checked_at AS wins_checked_at
+           ranked_wins.checked_at AS wins_checked_at,
+           ranked_wins.source AS wins_source
          FROM season_round_registrations registration
          JOIN season_rounds round ON round.id = registration.round_id
          JOIN players player ON player.discord_id = registration.player_id

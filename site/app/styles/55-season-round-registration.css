@@ -283,12 +283,20 @@
   color: #c53645;
 }
 
+.season-registration-win.manual {
+  color: #b68316;
+}
+
 .site-shell[data-theme="dark"] .season-registration-win.met {
   color: #5ed79b;
 }
 
 .site-shell[data-theme="dark"] .season-registration-win.missing {
   color: #ff7180;
+}
+
+.site-shell[data-theme="dark"] .season-registration-win.manual {
+  color: #ffe27a;
 }
 
 .season-registration-wins a:hover {

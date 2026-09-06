@@ -21,7 +21,10 @@ import {
   type SeasonRegistrationDirection,
   type SeasonRegistrationSort,
 } from "../model/season-registration";
-import type { SeasonRound } from "../model/season-types";
+import type {
+  SeasonRound,
+  SeasonRoundRegistration as SeasonRoundRegistrationData,
+} from "../model/season-types";
 import { SeasonRoundCheckIn } from "./SeasonRoundCheckIn";
 
 const SeasonRankedWinEditor = dynamic(() => import("../admin/SeasonRankedWinEditor").then((module) => module.SeasonRankedWinEditor));
@@ -228,12 +231,15 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                     href={buildStratzRankedMatchesUrl(registration.dota_id)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Открыть рейтинговые матчи игрока за 30 дней на STRATZ"
+                    title={registration.wins_source === "manual"
+                      ? "Победы введены вручную и зафиксированы"
+                      : "Открыть рейтинговые матчи игрока за 30 дней на STRATZ"}
                   >
                     <span
                       className={`season-registration-win ${rankedWinRequirementClass(
                         registration.primary_wins,
                         SEASON_PRIMARY_ROLE_WINS_REQUIRED,
+                        registration.wins_source,
                       )}`}
                     >
                       Осн. {registration.primary_wins ?? "—"}/
@@ -244,6 +250,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                       className={`season-registration-win ${rankedWinRequirementClass(
                         registration.secondary_wins,
                         SEASON_SECONDARY_ROLE_WINS_REQUIRED,
+                        registration.wins_source,
                       )}`}
                     >
                       Доп. {registration.secondary_wins ?? "—"}/
@@ -269,7 +276,12 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   );
 }
 
-function rankedWinRequirementClass(wins: number | null, required: number) {
+function rankedWinRequirementClass(
+  wins: number | null,
+  required: number,
+  source: SeasonRoundRegistrationData["wins_source"],
+) {
+  if (source === "manual") return "manual";
   return wins !== null && wins >= required ? "met" : "missing";
 }
 

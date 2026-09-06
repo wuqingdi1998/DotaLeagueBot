@@ -95,4 +95,5 @@ export type RoundRegistrationRow = {
   primary_wins: number | null;
   secondary_wins: number | null;
   wins_checked_at: string | null;
+  wins_source: "stratz" | "dotabuff" | "manual" | null;
 };
