@@ -17,6 +17,9 @@ const roomQuery = source(
 const transfer = source(
   "../app/season-lobby/[matchId]/server/captain-transfer.ts",
 );
+const captainReplacement = source(
+  "../app/season-lobby/[matchId]/server/captain-replacement.ts",
+);
 const hostAction = source(
   "../app/api/admin/season/season-lobby-host-actions.ts",
 );
@@ -150,7 +153,7 @@ describe("season lobby room contract", () => {
     expect(fearlessSnapshot).not.toContain("import { one, query, transaction }");
     expect(roomScreen).toContain("FearlessDraftScreen");
     expect(transfer).toContain("Передать полномочия может только действующий капитан");
-    expect(transfer).toContain("UPDATE draft_maps SET");
-    expect(transfer).toContain("UPDATE season_match_participants");
+    expect(captainReplacement).toContain("UPDATE draft_maps SET");
+    expect(captainReplacement).toContain("UPDATE season_match_participants");
   });
 });

@@ -35,6 +35,8 @@ export type SeasonSubstitution = {
   incoming_dota_id: string;
   incoming_nickname: string;
   incoming_avatar_url: string | null;
+  incoming_tier?: number | null;
+  incoming_is_captain?: boolean;
   team_side: "a" | "b";
   technical_loss: boolean;
   note: string | null;

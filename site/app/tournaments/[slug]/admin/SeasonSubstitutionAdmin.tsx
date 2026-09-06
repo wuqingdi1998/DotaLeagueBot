@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FiEdit3, FiTrash2 } from "react-icons/fi";
 import { useTournament } from "../hooks/TournamentContext";
 import type { SeasonMatch } from "../model/season-types";
+import { canSubstituteOnSecondMap } from "@/lib/season-substitution";
 import {
   SeasonAdminPlayerPicker,
   type SeasonAdminPlayerOption,
@@ -12,7 +13,7 @@ import { SeasonLobbyHostButton } from "./SeasonLobbyHostButton";
 
 export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
   const { season } = useTournament();
-  const [gameId, setGameId] = useState("");
+  const [gameNumber, setGameNumber] = useState("");
   const [outgoingPlayerId, setOutgoingPlayerId] = useState("");
   const [incomingPlayer, setIncomingPlayer] =
     useState<SeasonAdminPlayerOption | null>(null);
@@ -20,10 +21,10 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
   const [pickerRevision, setPickerRevision] = useState(0);
   const [editingSubstitutionId, setEditingSubstitutionId] =
     useState<number | null>(null);
-  const secondGame = match.games.find((game) => game.game_number === 2);
+  const canUseSecondMap = match.best_of >= 2 && canSubstituteOnSecondMap(match.games);
 
   function resetForm() {
-    setGameId("");
+    setGameNumber("");
     setOutgoingPlayerId("");
     setIncomingPlayer(null);
     setNote("");
@@ -36,7 +37,7 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
       entity: "substitution",
       id: editingSubstitutionId,
       matchId: match.id,
-      gameId: gameId || null,
+      gameNumber: gameNumber || null,
       outgoingPlayerId,
       incomingPlayerId: incomingPlayer?.discord_id,
       note,
@@ -45,7 +46,7 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
   }
 
   function editSubstitution(substitution: SeasonMatch["substitutions"][number]) {
-    setGameId(substitution.game_number === 2 ? String(substitution.game_id) : "");
+    setGameNumber(substitution.game_number === 2 ? "2" : "");
     setOutgoingPlayerId(substitution.outgoing_player_id);
     setIncomingPlayer({
       discord_id: substitution.incoming_player_id,
@@ -66,16 +67,18 @@ export function SeasonSubstitutionAdmin({ match }: { match: SeasonMatch }) {
           До первой карты новый игрок считается полноценным участником без
           штрафа. Замена на второй карте даёт выбывшему техническое поражение,
           5 огоньков и пропуск следующего тура; новый игрок получает +1 p только
-          при победе своей команды на второй карте.
+          при победе своей команды на второй карте. Оформить её можно после
+          сохранения хостом победителя и ID первой карты. Новый игрок сразу
+          получает доступ в комнату и драфт своей команды.
         </p>
       </div>
       <div className="season-inline-admin-form">
         <label>
           <span>Когда произошла замена</span>
-          <select value={gameId} onChange={(event) => setGameId(event.target.value)}>
-            <option value="">До первой карты — полноценный игрок</option>
-            {secondGame && (
-              <option value={secondGame.id}>На второй карте — со штрафом</option>
+          <select value={gameNumber} onChange={(event) => setGameNumber(event.target.value)}>
+            <option value="">До первой карты – полноценный игрок</option>
+            {canUseSecondMap && (
+              <option value="2">На второй карте – со штрафом</option>
             )}
           </select>
         </label>

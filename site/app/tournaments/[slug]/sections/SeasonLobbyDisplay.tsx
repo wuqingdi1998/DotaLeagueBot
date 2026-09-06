@@ -8,6 +8,7 @@ import { seasonMatchLinks } from "@/lib/season";
 import { groupSeasonFinalMedalists } from "@/lib/season-finals";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import type { SeasonMatch, SeasonRound } from "../model/season-types";
+import { seasonTeamLineup, type SeasonLineupPlayer } from "../model/season-lineup";
 import type { ReactNode } from "react";
 
 export function SeasonLobbyList({
@@ -79,8 +80,8 @@ function SeasonMatchCard({
     player: SeasonMatch["participants"][number],
   ) => ReactNode;
 }) {
-  const teamA = match.participants.filter((player) => player.team_side === "a");
-  const teamB = match.participants.filter((player) => player.team_side === "b");
+  const teamA = seasonTeamLineup(match, "a");
+  const teamB = seasonTeamLineup(match, "b");
   const scheduledAt = lobbyScheduledAt ?? match.scheduled_at;
   return (
     <article className="season-match-card" id={`season-match-${match.id}`}>
@@ -283,13 +284,14 @@ function SeasonTemporaryTeam({
 }: {
   match: SeasonMatch;
   name: string;
-  players: SeasonMatch["participants"];
+  players: SeasonLineupPlayer[];
   participantAction?: (
     match: SeasonMatch,
     player: SeasonMatch["participants"][number],
   ) => ReactNode;
 }) {
   const recordedTiers = players
+    .filter((player) => !player.isFormerPlayer)
     .map((player) => player.tier_snapshot)
     .filter((tier): tier is number => tier !== null);
   const tierTotal = recordedTiers.reduce((total, tier) => total + tier, 0);
@@ -305,7 +307,7 @@ function SeasonTemporaryTeam({
       </header>
       <ul>
         {players.map((player) => (
-          <li key={player.player_id}>
+          <li key={player.player_id} className={player.isFormerPlayer ? "season-former-player" : undefined}>
             <AvatarImage
               source={player.avatar_url}
               width={36}
@@ -314,17 +316,20 @@ function SeasonTemporaryTeam({
               fallback={<i>{player.nickname.slice(0, 1).toUpperCase()}</i>}
             />
             <span>
-              <PlayerProfileLink
-                className="season-player-profile-link"
-                dotaId={player.dota_id}
-                nickname={player.nickname}
-              >
-                <strong>{player.nickname}</strong>
-              </PlayerProfileLink>
+              <span className="season-lineup-player-name">
+                <PlayerProfileLink
+                  className="season-player-profile-link"
+                  dotaId={player.dota_id}
+                  nickname={player.nickname}
+                >
+                  <strong>{player.isFormerPlayer ? <s>{player.nickname}</s> : player.nickname}</strong>
+                </PlayerProfileLink>
+                {player.mapLabel && <small className="season-player-map-label">{player.mapLabel}</small>}
+              </span>
               {player.is_captain && <small>Капитан</small>}
             </span>
             <span className="season-player-row-actions">
-              {participantAction?.(match, player)}
+              {!player.isFormerPlayer && participantAction?.(match, player)}
               <small className="player-tier">тир {player.tier_snapshot ?? "—"}</small>
             </span>
           </li>

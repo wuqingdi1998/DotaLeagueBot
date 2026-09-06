@@ -249,7 +249,30 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 16px;
+  white-space: normal;
+}
+
+.season-lineup-player-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 6px;
+  min-width: 0;
+}
+
+.season-lineup-player-name .season-player-profile-link {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.season-player-map-label {
+  color: var(--muted);
+  font-size: 13px;
   white-space: nowrap;
+}
+
+.season-former-player .season-player-profile-link {
+  color: var(--muted);
 }
 
 .season-temporary-team .season-player-meta {

@@ -1,5 +1,10 @@
 import { transaction } from "@/lib/db";
 import { requiredId, textValue } from "./season-admin-model";
+import { resolveSubstitutionGame } from "./season-substitution-game";
+import {
+  lockSeasonSubstitutionRoster,
+  syncSeasonSubstitutionRoster,
+} from "@/app/season-lobby/[matchId]/server/substitution-roster";
 import {
   addSeasonParticipant,
   resolveSeasonPlayer,
@@ -7,17 +12,13 @@ import {
 
 const secondMapSubstitutionPenaltyFires = 5;
 
-function optionalId(value: unknown, label: string) {
-  return value ? requiredId(value, label) : null;
-}
-
 async function substitutionValues(
   client: import("pg").PoolClient,
   body: Record<string, unknown>,
   excludedSubstitutionId: number | null = null,
 ) {
   const matchId = requiredId(body.matchId, "матч");
-  const gameId = optionalId(body.gameId, "карта");
+  const gameId = await resolveSubstitutionGame(client, matchId, body);
   const outgoing = await resolveSeasonPlayer(client, body.outgoingPlayerId);
   const incoming = await resolveSeasonPlayer(client, body.incomingPlayerId);
   if (outgoing.discord_id === incoming.discord_id) {
@@ -149,6 +150,10 @@ export async function createSeasonSubstitution(
   body: Record<string, unknown>,
 ) {
   return transaction(async (client) => {
+    const before = await lockSeasonSubstitutionRoster(client, requiredId(body.matchId, "матч"));
+    if ((body.gameId || body.gameNumber) && before.bestOf < 2) {
+      throw new Response("В этом матче нет второй карты", { status: 400 });
+    }
     const values = await substitutionValues(client, body);
     await addSeasonParticipant(
       client,
@@ -175,6 +180,7 @@ export async function createSeasonSubstitution(
         values.penaltyFires,
       ],
     );
+    await syncSeasonSubstitutionRoster(client, before);
     return { ok: true, id: created.rows[0].id };
   });
 }
@@ -184,16 +190,24 @@ export async function updateSeasonSubstitution(
 ) {
   const id = requiredId(body.id, "замена");
   return transaction(async (client) => {
+    const before = await lockSeasonSubstitutionRoster(client, requiredId(body.matchId, "матч"));
     const existing = await client.query<{
+      match_id: number;
       penalty_event_id: number | null;
       penalty_fire_count: number;
     }>(
-      `SELECT penalty_event_id::int, penalty_fire_count::int
+      `SELECT match_id::int, penalty_event_id::int, penalty_fire_count::int
        FROM season_match_substitutions WHERE id = $1 FOR UPDATE`,
       [id],
     );
     if (!existing.rowCount) {
       throw new Response("Замена не найдена", { status: 404 });
+    }
+    if (existing.rows[0].match_id !== before.matchId) {
+      throw new Response("Нельзя переносить замену в другой матч", { status: 400 });
+    }
+    if ((body.gameId || body.gameNumber) && before.bestOf < 2) {
+      throw new Response("В этом матче нет второй карты", { status: 400 });
     }
     const values = await substitutionValues(client, body, id);
     await addSeasonParticipant(
@@ -230,6 +244,7 @@ export async function updateSeasonSubstitution(
     if (!updated.rowCount) {
       throw new Response("Замена не найдена", { status: 404 });
     }
+    await syncSeasonSubstitutionRoster(client, before);
     return { ok: true };
   });
 }
@@ -239,6 +254,11 @@ export async function deleteSeasonSubstitution(
 ) {
   const id = requiredId(body.id, "замена");
   return transaction(async (client) => {
+    const existing = await client.query<{ match_id: number }>(
+      "SELECT match_id::int FROM season_match_substitutions WHERE id = $1", [id],
+    );
+    if (!existing.rows[0]) throw new Response("Замена не найдена", { status: 404 });
+    const before = await lockSeasonSubstitutionRoster(client, existing.rows[0].match_id);
     const removed = await client.query(
       `DELETE FROM season_match_substitutions WHERE id = $1
        RETURNING id, penalty_event_id::int, penalty_fire_count::int`,
@@ -252,6 +272,7 @@ export async function deleteSeasonSubstitution(
       removed.rows[0].penalty_event_id,
       removed.rows[0].penalty_fire_count,
     );
+    await syncSeasonSubstitutionRoster(client, before);
     return { ok: true };
   });
 }

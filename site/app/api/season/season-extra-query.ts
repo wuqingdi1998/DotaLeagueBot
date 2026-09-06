@@ -32,6 +32,8 @@ export type SubstitutionRow = {
   incoming_dota_id: string;
   incoming_nickname: string;
   incoming_avatar_url: string | null;
+  incoming_tier: number | null;
+  incoming_is_captain: boolean;
   team_side: "a" | "b";
   technical_loss: boolean;
   note: string | null;
@@ -130,6 +132,17 @@ export async function loadSeasonExtras(
            NULLIF(current_incoming.avatar_url, ''),
            incoming.avatar_url
          ) AS incoming_avatar_url,
+         COALESCE(NULLIF(incoming.internal_rating, 0),
+           CASE WHEN incoming.rank_tier >= 10 THEN incoming.rank_tier / 10
+             WHEN incoming.rank_tier > 0 THEN incoming.rank_tier END
+         )::int AS incoming_tier,
+         EXISTS (
+           SELECT 1 FROM season_match_rooms room
+           WHERE room.match_id = substitution.match_id
+             AND substitution.incoming_player_id IN (
+               room.team_a_captain_id, room.team_b_captain_id
+             )
+         ) AS incoming_is_captain,
          substitution.team_side, substitution.technical_loss,
          substitution.note
        FROM season_match_substitutions substitution

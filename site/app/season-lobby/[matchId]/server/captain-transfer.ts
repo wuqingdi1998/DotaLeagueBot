@@ -4,6 +4,7 @@ import {
   hasActiveSeries,
   lockDraftPlayers,
 } from "@/app/fearless-draft/server/database";
+import { replaceSeasonDraftCaptain } from "./captain-replacement";
 import { SeasonLobbyRoomError } from "./errors";
 
 type TransferTarget = {
@@ -98,63 +99,10 @@ async function changeSeasonLobbyCaptain(
       );
     }
 
-    await client.query(
-      `UPDATE draft_maps SET
-         coin_toss_winner_id = CASE
-           WHEN coin_toss_winner_id = $2 THEN $3 ELSE coin_toss_winner_id END,
-         first_chooser_id = CASE
-           WHEN first_chooser_id = $2 THEN $3 ELSE first_chooser_id END,
-         radiant_player_id = CASE
-           WHEN radiant_player_id = $2 THEN $3 ELSE radiant_player_id END,
-         first_pick_player_id = CASE
-           WHEN first_pick_player_id = $2 THEN $3 ELSE first_pick_player_id END,
-         version = version + 1
-       WHERE series_id = $1`,
-      [target.series_id, currentCaptainId, newCaptainId],
-    );
-    await client.query(
-      `UPDATE draft_actions SET actor_id = $2
-       WHERE map_id IN (SELECT id FROM draft_maps WHERE series_id = $1)
-         AND actor_id = $3`,
-      [target.series_id, newCaptainId, currentCaptainId],
-    );
-    const captainColumn = currentCaptainId === target.player1_id
-      ? "player1_id"
-      : "player2_id";
-    const dismissedColumn = currentCaptainId === target.player1_id
-      ? "player1_dismissed_at"
-      : "player2_dismissed_at";
-    await client.query(
-      `UPDATE draft_series SET
-         ${captainColumn} = $2,
-         ${dismissedColumn} = NULL,
-         map1_coin_toss_winner_id = CASE
-           WHEN map1_coin_toss_winner_id = $3 THEN $2
-           ELSE map1_coin_toss_winner_id END,
-         end_requested_by = CASE
-           WHEN end_requested_by = $3 THEN $2 ELSE end_requested_by END,
-         updated_at = NOW()
-       WHERE id = $1`,
-      [target.series_id, newCaptainId, currentCaptainId],
-    );
-    await client.query(
-      `UPDATE season_match_participants
-       SET is_captain = player_id = $3
-       WHERE match_id = $1 AND team_side = $2`,
-      [matchId, target.team_side, newCaptainId],
-    );
-    const roomCaptainColumn = target.team_side === "a"
-      ? "team_a_captain_id"
-      : "team_b_captain_id";
-    await client.query(
-      `UPDATE season_match_rooms
-       SET ${roomCaptainColumn} = $2, updated_at = NOW()
-       WHERE match_id = $1`,
-      [matchId, newCaptainId],
-    );
-    await client.query(
-      "DELETE FROM draft_presence WHERE player_id = $1",
-      [currentCaptainId],
+    await replaceSeasonDraftCaptain(
+      client, matchId,
+      { id: target.series_id, player1_id: target.player1_id },
+      target.team_side, currentCaptainId, newCaptainId,
     );
   });
 }
