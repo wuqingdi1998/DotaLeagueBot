@@ -13,7 +13,7 @@ type NavigationAnimation = {
   style: NavigationAnimationStyle;
 };
 
-/** Lives in the root layout so a page replacement cannot restart the flame. */
+/** Lives in the root layout so a page replacement cannot restart the light sweep. */
 export function HeaderNavigationAnimation({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [animation, setAnimation] = useState<NavigationAnimation | null>(null);
@@ -84,7 +84,7 @@ export function HeaderNavigationAnimation({ children }: { children: ReactNode })
             if (event.target === event.currentTarget) cancelAnimation();
           }}
         >
-          <span className="header-navigation-fire"><i /><i /><i /><i /><i /><i /><i /></span>
+          <span className="header-navigation-light" />
           <span className="header-navigation-animation-label">{animation.label}</span>
           <span className="header-navigation-animation-fill">
             <span className="header-navigation-animation-label">{animation.label}</span>
