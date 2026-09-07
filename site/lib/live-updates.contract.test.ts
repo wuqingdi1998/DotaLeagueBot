@@ -21,7 +21,9 @@ describe("live room updates", () => {
     expect(draftRoute).toContain(
       "publishLiveUpdate(fearlessDraftChannel(seasonMatchId))",
     );
+    expect(draftRoute).not.toContain('command.action !== "HIGHLIGHT_HERO"');
     expect(draftEvents).toContain("subscribeToLiveUpdates");
+    expect(draftEvents).toContain("draftUpdateIntervalMs");
   });
 
   it("publishes lobby chat and actions immediately", () => {

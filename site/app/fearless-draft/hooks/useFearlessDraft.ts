@@ -12,6 +12,7 @@ import {
   fetchDraftRequest,
   readDraftResponse,
 } from "../services/draft-request";
+import { createDraftHighlightQueue } from "../services/highlight-queue";
 
 type CommandResponse = { error?: string };
 
@@ -25,6 +26,9 @@ export function useFearlessDraft(
   const [isConnected, setIsConnected] = useState(false);
   const fallbackTimer = useRef<number | null>(null);
   const sendingRef = useRef(false);
+  const [queueDraftHighlight] = useState(
+    () => createDraftHighlightQueue<FearlessDraftCommand>(),
+  );
 
   const reload = useCallback(async () => {
     const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
@@ -80,10 +84,7 @@ export function useFearlessDraft(
     };
   }, [reload, seasonMatchId]);
 
-  const send = useCallback(async (command: FearlessDraftCommand) => {
-    if (sendingRef.current) return false;
-    sendingRef.current = true;
-    setIsSending(true);
+  const executeCommand = useCallback(async (command: FearlessDraftCommand) => {
     try {
       const suffix = seasonMatchId ? `?seasonMatchId=${seasonMatchId}` : "";
       const response = await fetchDraftRequest(`/api/fearless-draft${suffix}`, {
@@ -109,11 +110,23 @@ export function useFearlessDraft(
       }
       setError(draftRequestErrorMessage(reason, "Действие не выполнено"));
       return false;
+    }
+  }, [isConnected, reload, seasonMatchId, snapshot]);
+
+  const send = useCallback(async (command: FearlessDraftCommand) => {
+    if (command.action === "HIGHLIGHT_HERO") {
+      return queueDraftHighlight(command, executeCommand);
+    }
+    if (sendingRef.current) return false;
+    sendingRef.current = true;
+    setIsSending(true);
+    try {
+      return await executeCommand(command);
     } finally {
       sendingRef.current = false;
       setIsSending(false);
     }
-  }, [isConnected, reload, seasonMatchId, snapshot]);
+  }, [executeCommand, queueDraftHighlight]);
 
   return { snapshot, error, isSending, isConnected, send };
 }

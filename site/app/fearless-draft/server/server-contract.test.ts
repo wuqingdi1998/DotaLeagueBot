@@ -10,6 +10,10 @@ const database = readFileSync(
   resolve(process.cwd(), "app/fearless-draft/server/database.ts"),
   "utf8",
 );
+const snapshotService = readFileSync(
+  resolve(process.cwd(), "app/fearless-draft/server/snapshot-service.ts"),
+  "utf8",
+);
 const agreements = readFileSync(
   resolve(process.cwd(), "app/fearless-draft/server/agreement-service.ts"),
   "utf8",
@@ -86,11 +90,13 @@ describe("Fearless Draft server safety contract", () => {
     expect(footer).toContain('href="/fearless-draft"');
   });
 
-  it("stores the current player's highlight privately for pick timeout fallback", () => {
+  it("stores the current player's highlight for timeout fallback and team preview", () => {
     expect(route).toContain('case "HIGHLIGHT_HERO"');
     expect(service).toContain("highlightDraftHero");
     expect(service).toContain("map.preview_hero_id");
     expect(database).toContain("preview_hero_id::int");
+    expect(snapshotService).toContain("previewHeroId: map.preview_hero_id");
+    expect(snapshotService).toContain("canViewDraftHeroPreview");
   });
 
   it("uses one cryptographically random thousand-segment toss for maps one and three", () => {

@@ -310,8 +310,9 @@ describe("Fearless Draft board interface", () => {
     expect(interactions).toContain(".fearless-hero-confirm button.ban:not(:disabled):hover");
   });
 
-  it("shows the selected hero only in the selecting player's current gray slot", () => {
+  it("shows the selected hero in the current gray slot for the captain's team", () => {
     expect(activeDraft).toContain("localPreviewHeroId");
+    expect(activeDraft).toContain("map.previewHeroId");
     expect(activeDraft).toContain("onPreviewHeroIdChange");
     expect(heroGrid).toContain('action: "HIGHLIGHT_HERO"');
     expect(teamPanel).toContain("previewHeroId");

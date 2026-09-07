@@ -54,7 +54,7 @@ export function ActiveDraft({
   const { map } = series;
   const localPreviewHeroId = localPreview?.version === map.version
     ? localPreview.heroId
-    : null;
+    : map.previewHeroId;
   const radiantPlayerId = map.radiantPlayerId ?? series.player1.id;
   const firstPickPlayerId = map.firstPickPlayerId ?? series.player1.id;
   const radiant = radiantPlayerId === series.player1.id

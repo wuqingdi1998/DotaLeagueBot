@@ -1,6 +1,9 @@
 import type { DraftSequenceStep } from "./types";
 
 export const DRAFT_RESERVE_SECONDS = 130;
+export const DRAFT_SYNC_INTERVAL_MS = 250;
+export const DRAFT_FINAL_RESERVE_SYNC_INTERVAL_MS = 100;
+export const DRAFT_FINAL_RESERVE_SYNC_SECONDS = 5;
 
 export const DRAFT_SEQUENCE: readonly DraftSequenceStep[] = [
   { actor: "FIRST", type: "BAN", phase: "FIRST_BANS", baseDurationSeconds: 15 },

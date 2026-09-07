@@ -8,18 +8,20 @@ import {
   fearlessDraftChannel,
   subscribeToLiveUpdates,
 } from "@/lib/live-update-events";
+import { DRAFT_SYNC_INTERVAL_MS } from
+  "@/app/fearless-draft/model/config";
+import { draftUpdateIntervalMs } from
+  "@/app/fearless-draft/model/update-interval";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-const updateIntervalMs = 1_250;
 
 export async function GET(request: Request) {
   try {
     const user = await requireSession();
     const seasonMatchId = fearlessSeasonMatchId(request);
     const encoder = new TextEncoder();
-    let timer: ReturnType<typeof setInterval> | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     let isLoading = false;
     let isClosed = false;
     let reloadQueued = false;
@@ -27,15 +29,34 @@ export async function GET(request: Request) {
 
     const stream = new ReadableStream({
       async start(controller) {
+        const scheduleNextUpdate = (intervalMs: number) => {
+          if (timer) clearTimeout(timer);
+          timer = setTimeout(() => void pushSnapshot(), intervalMs);
+        };
         const pushSnapshot = async () => {
           if (isLoading) {
             reloadQueued = true;
             return;
           }
           isLoading = true;
+          let nextIntervalMs = DRAFT_SYNC_INTERVAL_MS;
           try {
             const snapshot = await loadFearlessDraftSnapshot(user, {
               seasonMatchId,
+            });
+            const map = snapshot.series?.map;
+            const currentActorReserveSeconds = !map
+              ? null
+              : map.currentActorId === snapshot.series?.player1.id
+                ? map.player1ReserveSeconds
+                : map.currentActorId === snapshot.series?.player2.id
+                  ? map.player2ReserveSeconds
+                  : null;
+            nextIntervalMs = draftUpdateIntervalMs({
+              stepStartedAt: map?.stepStartedAt ?? null,
+              baseDurationSeconds: map?.baseDurationSeconds ?? null,
+              reserveSeconds: currentActorReserveSeconds,
+              serverNow: snapshot.serverNow,
             });
             if (isClosed) return;
             controller.enqueue(
@@ -52,6 +73,8 @@ export async function GET(request: Request) {
             if (reloadQueued && !isClosed) {
               reloadQueued = false;
               void pushSnapshot();
+            } else if (!isClosed) {
+              scheduleNextUpdate(nextIntervalMs);
             }
           }
         };
@@ -60,11 +83,10 @@ export async function GET(request: Request) {
           () => void pushSnapshot(),
         );
         await pushSnapshot();
-        timer = setInterval(() => void pushSnapshot(), updateIntervalMs);
         request.signal.addEventListener("abort", () => {
           isClosed = true;
           unsubscribe();
-          if (timer) clearInterval(timer);
+          if (timer) clearTimeout(timer);
           try {
             controller.close();
           } catch {
@@ -75,7 +97,7 @@ export async function GET(request: Request) {
       cancel() {
         isClosed = true;
         unsubscribe();
-        if (timer) clearInterval(timer);
+        if (timer) clearTimeout(timer);
       },
     });
 

@@ -27,6 +27,7 @@ import { loadLobbyPreviewPlayers } from "./lobby-preview-service";
 import { SEASON_LOBBY_PRESENCE_TTL_SECONDS } from "@/lib/season-lobby-room";
 import { loadVisibleDraftHeroSuggestions } from "./suggestion-service";
 import { playerServerName } from "@/lib/security";
+import { canViewDraftHeroPreview } from "../model/preview-visibility";
 
 type PlayerRow = {
   id: string;
@@ -75,6 +76,7 @@ type MapRow = {
   step_started_at: Date | null;
   player1_reserve_seconds: number;
   player2_reserve_seconds: number;
+  preview_hero_id: number | null;
   version: number;
   created_at: Date;
 };
@@ -228,6 +230,7 @@ async function loadSeries(
             radiant_player_id::text, first_pick_player_id::text,
             current_step::int, step_started_at,
             player1_reserve_seconds::float8, player2_reserve_seconds::float8,
+            preview_hero_id::int,
             version::int, created_at
      FROM draft_maps WHERE series_id = $1 AND map_number = $2`,
     [series.id, series.current_map],
@@ -339,6 +342,7 @@ async function loadSeries(
       stepStartedAt: map.step_started_at?.toISOString() ?? null,
       player1ReserveSeconds: map.player1_reserve_seconds,
       player2ReserveSeconds: map.player2_reserve_seconds,
+      previewHeroId: map.preview_hero_id,
       actions,
       heroSuggestions: [],
       unavailableHeroIds: unavailableResult.rows.map((row) => row.hero_id),
@@ -441,10 +445,18 @@ export async function loadFearlessDraftSnapshot(
         }
       : series;
     if (displayedSeries) {
+      const canViewPreview = canViewDraftHeroPreview(
+        user.discordId,
+        displayedSeries.map.currentActorId,
+        lobbyPlayers,
+      );
       displayedSeries = {
         ...displayedSeries,
         map: {
           ...displayedSeries.map,
+          previewHeroId: canViewPreview
+            ? displayedSeries.map.previewHeroId
+            : null,
           heroSuggestions: await loadVisibleDraftHeroSuggestions(
             client,
             displayedSeries.map.id,

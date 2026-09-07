@@ -201,9 +201,10 @@ describe("Fearless Draft tree panel", () => {
     expect(38).toBeLessThan(44);
   });
 
-  it("shows the local gray preview and current-stage shimmer in the tree", () => {
+  it("shows the synchronized gray preview and current-stage shimmer in the tree", () => {
     expect(activeDraft).toContain("currentStep={map.currentStep}");
     expect(activeDraft).toContain("previewHeroId={localPreviewHeroId}");
+    expect(activeDraft).toContain(": map.previewHeroId");
     expect(history).toContain("currentStep={currentStep}");
     expect(history).toContain("previewHeroId={previewHeroId}");
     expect(draftTree).toContain('isCurrent ? "current-action"');

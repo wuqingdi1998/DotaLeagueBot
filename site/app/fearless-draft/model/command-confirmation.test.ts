@@ -19,7 +19,7 @@ function snapshot(): FearlessDraftSnapshot {
         secondChoice: null, radiantPlayerId: null, firstPickPlayerId: null,
         currentStep: 0, version: 1, currentActorId: null, currentAction: null,
         currentPhase: null, baseDurationSeconds: null, stepStartedAt: null,
-        player1ReserveSeconds: 60, player2ReserveSeconds: 60, actions: [],
+        player1ReserveSeconds: 60, player2ReserveSeconds: 60, previewHeroId: null, actions: [],
         heroSuggestions: [], unavailableHeroIds: [], createdAt: "",
       },
     },

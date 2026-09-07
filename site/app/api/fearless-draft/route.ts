@@ -177,9 +177,7 @@ export async function POST(request: Request) {
         }
       });
     }
-    if (command.action !== "HIGHLIGHT_HERO") {
-      publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
-    }
+    publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
     return Response.json({ ok: true });
   } catch (error) {
     return draftRouteErrorResponse(error, "Действие не выполнено");

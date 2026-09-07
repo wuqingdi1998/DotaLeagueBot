@@ -75,6 +75,7 @@ export type DraftMapSnapshot = {
   stepStartedAt: string | null;
   player1ReserveSeconds: number;
   player2ReserveSeconds: number;
+  previewHeroId: number | null;
   actions: DraftActionSnapshot[];
   heroSuggestions: DraftHeroSuggestion[];
   unavailableHeroIds: number[];
