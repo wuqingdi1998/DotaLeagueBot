@@ -1,4 +1,6 @@
 import type { PoolClient } from "pg";
+import { applyConfiguredSeasonLobbyTeamNames } from
+  "./season-lobby-team-name-settings";
 
 export type SeasonLobbyReference = {
   id: number;
@@ -61,6 +63,7 @@ export async function insertSeasonLobby(
      VALUES ($1, 'Левая команда', 'Правая команда', 2, 'draft', 1)`,
     [lobby.rows[0].id],
   );
+  await applyConfiguredSeasonLobbyTeamNames(client, [lobby.rows[0].id]);
   return lobby.rows[0].id;
 }
 
@@ -83,4 +86,5 @@ export async function renameAndOrderSeasonLobbies(
       [lobbyId, names[index], index + 1],
     );
   }
+  await applyConfiguredSeasonLobbyTeamNames(client, orderedLobbyIds);
 }

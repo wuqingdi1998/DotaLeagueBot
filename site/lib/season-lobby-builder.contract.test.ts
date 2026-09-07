@@ -37,6 +37,15 @@ const optimizationActions = source(
 const configurationStore = source(
   "../app/api/admin/season/season-lobby-configuration-store.ts",
 );
+const matchActions = source(
+  "../app/api/admin/season/season-match-actions.ts",
+);
+const teamNameSettings = source(
+  "../app/api/admin/season/season-lobby-team-name-settings.ts",
+);
+const teamNameMigration = source(
+  "../../bot/database/migrations/0125_season_nine_lobby_team_names.sql",
+);
 
 describe("season lobby builder contract", () => {
   it("stores configuration status and exact team slots", () => {
@@ -72,6 +81,17 @@ describe("season lobby builder contract", () => {
     expect(configurationStore).toContain("Самое нижнее лобби");
     expect(actions).toContain("team_a_count = 5");
     expect(actions).toContain("team_b_count = 5");
+  });
+
+  it("keeps the configured season 9 team names in every regular round", () => {
+    expect(teamNameMigration).toContain("Верхнее лобби', 'Викинги', 'Самураи");
+    expect(teamNameMigration).toContain("Среднее лобби', 'Монголы', 'Ацтеки");
+    expect(teamNameMigration).toContain("Нижнее лобби', 'Крестоносцы', 'Спартанцы");
+    expect(teamNameMigration).toContain("tournament.slug = 'league-season-9'");
+    expect(teamNameMigration).toContain("round.round_kind = 'regular'");
+    expect(teamNameSettings).toContain("season_lobby_team_name_settings");
+    expect(configurationStore).toContain("applyConfiguredSeasonLobbyTeamNames");
+    expect(matchActions).toContain("applyConfiguredSeasonLobbyTeamNames");
   });
 
   it("keeps draft lineups private and exposes published lineups", () => {

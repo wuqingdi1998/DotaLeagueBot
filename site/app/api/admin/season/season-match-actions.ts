@@ -11,6 +11,8 @@ import {
   textValue,
 } from "./season-admin-model";
 import { validateSeasonMatchParticipantEligibility } from "./season-match-participant-validation";
+import { applyConfiguredSeasonLobbyTeamNames } from
+  "./season-lobby-team-name-settings";
 
 const matchStatuses = ["draft", "published", "completed", "cancelled"] as const;
 const matchResults = ["team_a", "draw", "team_b"] as const;
@@ -263,6 +265,7 @@ export async function createSeasonMatch(
         values.status,
       ],
     );
+    await applyConfiguredSeasonLobbyTeamNames(client, [lobbyId]);
     await replaceParticipants(
       client,
       created.rows[0].id,
@@ -317,6 +320,7 @@ export async function updateSeasonMatch(
     const updated = await client.query<{
       tournament_id: number;
       round_kind: "regular" | "finals";
+      lobby_id: number;
     }>(
       `UPDATE season_matches match
        SET scheduled_at = $2, team_a_name = $3, team_b_name = $4,
@@ -325,7 +329,8 @@ export async function updateSeasonMatch(
        FROM season_lobbies lobby, season_rounds round
        WHERE match.id = $1 AND lobby.id = match.lobby_id
          AND round.id = lobby.round_id
-       RETURNING round.tournament_id::int, round.round_kind`,
+       RETURNING round.tournament_id::int, round.round_kind,
+         lobby.id::int AS lobby_id`,
       [
         id,
         values.scheduledAt,
@@ -341,6 +346,7 @@ export async function updateSeasonMatch(
     if (!updated.rowCount) {
       throw new Response("Матч не найден", { status: 404 });
     }
+    await applyConfiguredSeasonLobbyTeamNames(client, [updated.rows[0].lobby_id]);
     const finalError = validateSeasonFinalMatch({
       roundKind: updated.rows[0].round_kind,
       status: values.status,
