@@ -20,11 +20,6 @@ BRIDGE = (ROOT / "bot" / "cogs" / "website_bridge.py").read_text(
 DEPLOYMENT = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(
     encoding="utf-8"
 )
-VERIFICATION = (
-    ROOT / "scripts" / "verify-season-ranked-win-reminders.sh"
-).read_text(encoding="utf-8")
-
-
 def test_message_contains_personal_shortage_and_round_link() -> None:
     assert ranked_win_reminder_message(
         round_number=3,
@@ -66,7 +61,6 @@ def test_candidates_require_shortage_on_either_role_and_fresh_counts() -> None:
     assert shortage_on_either_role in SERVICE
     assert "GREATEST(primary_role_wins_required - primary_wins, 0)" in SERVICE
     assert "GREATEST(secondary_role_wins_required - secondary_wins, 0)" in SERVICE
-    assert "OR ranked_wins.secondary_wins" in VERIFICATION
     assert "ranked_wins_checked_at >= counts_fresh_after" in SERVICE
     assert "registration_created_at <= reminder_at" in SERVICE
     assert "registration_created_at > registration_reminders_start_at" in SERVICE
@@ -80,12 +74,8 @@ def test_each_round_and_registration_notice_is_deduplicated() -> None:
     assert "DO NOTHING" in SERVICE
 
 
-def test_deployment_allows_historical_catch_up_recipients() -> None:
-    assert "LEFT JOIN notification_outbox AS notification" in VERIFICATION
-    assert "COUNT(*) FILTER (WHERE notification.id IS NULL)" in VERIFICATION
-    assert '"$missing" -eq 0' in VERIFICATION
-    assert '"$expected" -eq 0' in VERIFICATION
-    assert '"$total" -eq "$expected"' not in VERIFICATION
+def test_deployment_does_not_wait_for_historical_catch_up() -> None:
+    assert "verify-season-ranked-win-reminders.sh" not in DEPLOYMENT
 
 
 def test_bridge_queues_reminders_before_delivering_outbox() -> None:

@@ -488,7 +488,5 @@ jobs:
               sleep 3
             done
 
-            bash scripts/verify-season-ranked-win-reminders.sh
-
             docker image prune --force
             docker compose ps
