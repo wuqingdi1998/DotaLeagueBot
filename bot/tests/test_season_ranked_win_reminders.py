@@ -84,6 +84,7 @@ def test_deployment_allows_historical_catch_up_recipients() -> None:
     assert "LEFT JOIN notification_outbox AS notification" in VERIFICATION
     assert "COUNT(*) FILTER (WHERE notification.id IS NULL)" in VERIFICATION
     assert '"$missing" -eq 0' in VERIFICATION
+    assert '"$expected" -eq 0' in VERIFICATION
     assert '"$total" -eq "$expected"' not in VERIFICATION
 
 

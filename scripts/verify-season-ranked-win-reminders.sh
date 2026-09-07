@@ -83,9 +83,11 @@ for attempt in $(seq 1 120); do
        || delivered.pending || '\''|'\'' || expected_delivery.missing
      FROM expected_delivery CROSS JOIN delivered"')"
   IFS='|' read -r expected total sent failed pending missing <<< "$delivery"
-  if [ "$expected" -gt 0 ] && [ "$total" -gt 0 ] && [ "$missing" -eq 0 ] && [ "$pending" -eq 0 ]; then
-    echo "First-round catch-up delivered: $sent sent, $failed failed"
-    exit 0
+  if [ "$missing" -eq 0 ] && [ "$pending" -eq 0 ]; then
+    if [ "$expected" -eq 0 ] || [ "$total" -gt 0 ]; then
+      echo "First-round catch-up delivered: $sent sent, $failed failed"
+      exit 0
+    fi
   fi
   sleep 5
 done
