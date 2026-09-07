@@ -1,6 +1,8 @@
 export type SeasonLobbyRoomStatus =
   | "waiting"
-  | "voting"
+  | "captain_interest"
+  | "captain_voting"
+  | "captain_tiebreak"
   | "drafting"
   | "playing"
   | "break"
@@ -18,7 +20,21 @@ export type SeasonLobbyRoomPlayer = {
   isCaptain: boolean;
   isHost: boolean;
   isOnline: boolean;
+  hasAnsweredCaptainInterest: boolean;
+  wantsCaptain: boolean | null;
   hasVoted: boolean;
+};
+
+export type SeasonLobbyCaptainBallot = {
+  voterPlayerId: string;
+  candidatePlayerId: string;
+  isAutomatic: boolean;
+};
+
+export type SeasonLobbyCaptainTiebreak = {
+  voterPlayerId: string;
+  candidatePlayerIds: [string, string];
+  selectedCandidateId: string | null;
 };
 
 export type SeasonLobbyRoomMessage = {
@@ -49,6 +65,11 @@ export type SeasonLobbyRoomSnapshot = {
   allPlayersOnline: boolean;
   players: SeasonLobbyRoomPlayer[];
   messages: SeasonLobbyRoomMessage[];
+  captainStageDeadlineAt: string | null;
+  ownCaptainInterest: boolean | null;
+  captainCandidateIds: string[];
+  captainBallots: SeasonLobbyCaptainBallot[];
+  captainTiebreak: SeasonLobbyCaptainTiebreak | null;
   ownVoteCandidateId: string | null;
   teamVoteCount: number;
   teamPlayerCount: number;
@@ -59,6 +80,7 @@ export type SeasonLobbyRoomSnapshot = {
 export type SeasonLobbyRoomCommand =
   | { action: "SEND_MESSAGE"; message: string }
   | { action: "START_VOTING"; force: boolean }
+  | { action: "ANSWER_CAPTAIN_INTEREST"; wantsCaptain: boolean }
   | {
       action: "START_WITH_CAPTAINS";
       teamACaptainId: string;
@@ -66,6 +88,7 @@ export type SeasonLobbyRoomCommand =
       force: boolean;
     }
   | { action: "VOTE_CAPTAIN"; candidatePlayerId: string }
+  | { action: "VOTE_CAPTAIN_TIEBREAK"; candidatePlayerId: string }
   | { action: "TRANSFER_CAPTAIN"; newCaptainPlayerId: string }
   | {
       action: "SET_CAPTAIN";

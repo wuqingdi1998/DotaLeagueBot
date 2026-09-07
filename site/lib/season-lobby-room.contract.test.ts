@@ -8,6 +8,9 @@ function source(path: string) {
 const migration = source(
   "../../bot/database/migrations/0087_season_lobby_rooms.sql",
 );
+const captainSelectionMigration = source(
+  "../../bot/database/migrations/0126_three_stage_captain_voting.sql",
+);
 const roomCommands = source(
   "../app/season-lobby/[matchId]/server/room-commands.ts",
 );
@@ -43,6 +46,18 @@ const roomEvents = source(
 const organizerCaptainControls = source(
   "../app/season-lobby/[matchId]/components/OrganizerCaptainControls.tsx",
 );
+const roomAccess = source(
+  "../app/season-lobby/[matchId]/server/room-access.ts",
+);
+const captainVoting = source(
+  "../app/season-lobby/[matchId]/components/CaptainVoting.tsx",
+);
+const captainSelection = source(
+  "../app/season-lobby/[matchId]/server/captain-selection.ts",
+);
+const captainSelectionActions = source(
+  "../app/season-lobby/[matchId]/server/captain-selection-actions.ts",
+);
 const seasonRoute = source("../app/api/season/route.ts");
 const fearlessSnapshot = source(
   "../app/fearless-draft/server/snapshot-service.ts",
@@ -55,7 +70,7 @@ describe("season lobby room contract", () => {
     expect(roomQuery).toContain("lobby_configuration_status = 'published'");
     expect(roomQuery).toContain("match.status <> 'completed'");
     expect(roomCommands).toContain("if (actor.isAdmin)");
-    expect(roomCommands).toContain(
+    expect(roomAccess).toContain(
       "match.status NOT IN ('cancelled', 'completed')",
     );
     expect(roomCommands).toContain(
@@ -74,11 +89,11 @@ describe("season lobby room contract", () => {
 
   it("lets the assigned host or organizer start and checks all ten players", () => {
     expect(hostAction).toContain("participant.player_id = $2");
-    expect(roomCommands).toContain(
+    expect(captainSelectionActions).toContain(
       "room.host_player_id !== actor.discordId",
     );
-    expect(roomCommands).toContain("counts.online_count !== 10");
-    expect(roomCommands).toContain("is_force_started = $2");
+    expect(roomAccess).toContain("counts.online_count !== 10");
+    expect(captainSelectionActions).toContain("is_force_started = $2");
     expect(lobbyDisplay).toContain("Войти в лобби");
   });
 
@@ -138,10 +153,17 @@ describe("season lobby room contract", () => {
     expect(roomScreen).not.toContain("Связь активна");
   });
 
-  it("requires every player to vote before creating the linked draft", () => {
-    expect(roomCommands).toContain("counts.vote_count === 10");
-    expect(roomCommands).toContain("chooseSeasonLobbyCaptain");
-    expect(roomCommands).toContain("season_match_id");
+  it("runs three timed captain-selection stages and keeps each choice", () => {
+    expect(captainSelectionMigration).toContain("captain_interest");
+    expect(captainSelectionMigration).toContain("captain_voting");
+    expect(captainSelectionMigration).toContain("captain_tiebreak");
+    expect(captainSelectionMigration).toContain("season_match_captain_preferences");
+    expect(captainSelectionMigration).toContain("season_match_captain_tiebreaks");
+    expect(captainSelection).toContain("SEASON_CAPTAIN_STAGE_SECONDS");
+    expect(captainSelection).toContain("advanceCaptainSelection");
+    expect(captainVoting).toContain("Вы хотите быть капитаном?");
+    expect(captainVoting).toContain("Выберите капитана");
+    expect(captainVoting).toContain("season-room-voter-avatar");
     expect(migration).toContain("PRIMARY KEY (match_id, voter_player_id)");
   });
 

@@ -9,7 +9,15 @@ import {
 import { SeasonLobbyRoomError } from "./errors";
 
 type LockedGameResultRoom = {
-  status: "waiting" | "voting" | "drafting" | "playing" | "break" | "completed";
+  status:
+    | "waiting"
+    | "captain_interest"
+    | "captain_voting"
+    | "captain_tiebreak"
+    | "drafting"
+    | "playing"
+    | "break"
+    | "completed";
   host_player_id: string | null;
   best_of: number;
   tournament_id: number;

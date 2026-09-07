@@ -3,7 +3,8 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 function source(relativePath: string): string {
-  return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8");
+  return fs.readFileSync(path.join(process.cwd(), relativePath), "utf8")
+    .replaceAll("\r\n", "\n");
 }
 
 describe("season registration table layout", () => {

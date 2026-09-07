@@ -87,6 +87,13 @@ SEASON_LOBBY_ROOM_MIGRATION = (
     / "0087_season_lobby_rooms.sql"
 ).read_text(encoding="utf-8")
 
+THREE_STAGE_CAPTAIN_VOTING_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0126_three_stage_captain_voting.sql"
+).read_text(encoding="utf-8")
+
 TEST_SEASON_ROUND_TIME_FIX = (
     Path(__file__).parents[1]
     / "database"
@@ -612,6 +619,21 @@ def test_season_lobby_rooms_keep_host_presence_chat_and_votes() -> None:
     assert "season_match_id BIGINT" in SEASON_LOBBY_ROOM_MIGRATION
     assert "season_match_room_players" in SEASON_LOBBY_ROOM_MIGRATION
     assert "REFERENCES players(discord_id)" in SEASON_LOBBY_ROOM_MIGRATION
+
+
+def test_three_stage_captain_voting_is_persistent() -> None:
+    assert "captain_interest" in THREE_STAGE_CAPTAIN_VOTING_MIGRATION
+    assert "captain_voting" in THREE_STAGE_CAPTAIN_VOTING_MIGRATION
+    assert "captain_tiebreak" in THREE_STAGE_CAPTAIN_VOTING_MIGRATION
+    assert "captain_stage_deadline_at TIMESTAMPTZ" in (
+        THREE_STAGE_CAPTAIN_VOTING_MIGRATION
+    )
+    assert "season_match_captain_preferences" in (
+        THREE_STAGE_CAPTAIN_VOTING_MIGRATION
+    )
+    assert "season_match_captain_tiebreaks" in (
+        THREE_STAGE_CAPTAIN_VOTING_MIGRATION
+    )
 
 
 def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> None:

@@ -1,0 +1,217 @@
+.season-room-voting-heading {
+  min-width: 0;
+}
+
+.season-room-voting-timer {
+  display: inline-flex;
+  min-width: 92px;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+  gap: 7px;
+  margin-left: auto;
+  border: 1px solid color-mix(in srgb, var(--blue) 35%, var(--line));
+  border-radius: 999px;
+  padding: 9px 12px;
+  background: color-mix(in srgb, var(--blue) 9%, var(--surface));
+  color: var(--blue-strong);
+  font-size: 14px;
+}
+
+.season-room-stage-timer {
+  min-width: 48px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.season-room-interest-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px));
+  justify-content: center;
+  gap: 12px;
+  padding: 24px 20px;
+}
+
+.season-room-interest-actions button {
+  min-height: 58px;
+  border: 1px solid color-mix(in srgb, var(--blue) 45%, var(--line-strong));
+  border-radius: 14px;
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px rgba(69, 198, 226, 0.18);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.season-room-interest-actions button:hover:not(:disabled),
+.season-room-interest-actions button.selected.yes {
+  border-color: #2fc579;
+  background: color-mix(in srgb, #2fc579 12%, var(--surface));
+}
+
+.season-room-interest-actions button.selected.no {
+  border-color: var(--blue);
+  background: var(--surface-soft);
+  box-shadow: inset 0 0 0 1px rgba(69, 198, 226, 0.16);
+}
+
+.season-room-voting footer strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #249b60;
+  font-size: 13px;
+}
+
+.season-room-candidate-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.season-room-candidate-grid.tiebreak {
+  grid-template-columns: repeat(2, minmax(0, 240px));
+  justify-content: center;
+}
+
+.season-room-candidate-card {
+  display: grid;
+  min-width: 0;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--blue) 42%, var(--line));
+  border-radius: 14px;
+  padding: 13px;
+  background: color-mix(in srgb, var(--blue) 10%, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+}
+
+.season-room-candidate-card:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.season-room-candidate-card:hover:not(:disabled),
+.season-room-candidate-card.selected {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 9%, var(--surface));
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--blue) 12%, transparent);
+}
+
+.season-room-candidate-name {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.season-room-candidate-name > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.season-room-candidate-name strong {
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-room-candidate-name small,
+.season-room-candidate-voters small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-room-candidate-name > svg {
+  color: var(--blue-strong);
+  font-size: 20px;
+}
+
+.season-room-candidate-avatar,
+i.season-room-candidate-avatar {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-size: 18px;
+  font-style: normal;
+  object-fit: cover;
+}
+
+.season-room-candidate-voters {
+  display: flex;
+  min-height: 28px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.season-room-candidate-voters > span {
+  display: inline-flex;
+}
+
+.season-room-voter-avatar,
+i.season-room-voter-avatar {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-size: 13px;
+  font-style: normal;
+  object-fit: cover;
+}
+
+.season-room-captain-resolved {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.season-room-captain-resolved strong {
+  font-size: 17px;
+}
+
+.season-room-captain-resolved span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .season-room-voting > header {
+    flex-wrap: wrap;
+  }
+
+  .season-room-voting-heading {
+    flex: 1 1 calc(100% - 40px);
+  }
+
+  .season-room-voting-timer {
+    width: 100%;
+    margin-left: 36px;
+  }
+
+  .season-room-candidate-grid,
+  .season-room-candidate-grid.tiebreak {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .season-room-interest-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

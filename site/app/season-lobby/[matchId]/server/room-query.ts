@@ -5,6 +5,8 @@ import {
   SEASON_LOBBY_PRESENCE_TTL_SECONDS,
 } from "@/lib/season-lobby-room";
 import type {
+  SeasonLobbyCaptainBallot,
+  SeasonLobbyCaptainTiebreak,
   SeasonLobbyRoomMessage,
   SeasonLobbyRoomPlayer,
   SeasonLobbyRoomSnapshot,
@@ -12,6 +14,7 @@ import type {
 } from "../model/types";
 import { SeasonLobbyRoomError } from "./errors";
 import { playerServerName } from "@/lib/security";
+import { advanceCaptainSelection } from "./captain-selection";
 
 type RoomTargetRow = {
   match_id: number;
@@ -30,6 +33,7 @@ type RoomStateRow = {
   is_force_started: boolean;
   draft_series_id: number | null;
   current_game_number: number | null;
+  captain_stage_deadline_at: Date | null;
 };
 
 type RoomMessageRow = Omit<SeasonLobbyRoomMessage, "createdAt"> & {
@@ -40,6 +44,14 @@ type RoomPlayerRow = Omit<SeasonLobbyRoomPlayer, "serverName"> & {
   realName: string | null;
   serverPlayerName: string;
   positions: string | null;
+};
+
+type CaptainTiebreakRow = {
+  voterPlayerId: string;
+  candidateOneId: string;
+  candidateTwoId: string;
+  selectedCandidateId: string | null;
+  teamSide: "a" | "b";
 };
 
 async function loadRoomTarget(
@@ -108,6 +120,7 @@ export async function loadSeasonLobbyRoomSnapshot(
        ON CONFLICT (match_id) DO NOTHING`,
       [matchId],
     );
+    await advanceCaptainSelection(client, matchId);
     if (target.current_user_team_side) {
       await client.query(
         `INSERT INTO season_match_room_presence(match_id, player_id)
@@ -118,10 +131,17 @@ export async function loadSeasonLobbyRoomSnapshot(
       );
     }
 
-    const [stateResult, playerResult, messageResult, ownVoteResult] =
+    const [
+      stateResult,
+      playerResult,
+      messageResult,
+      ballotResult,
+      tiebreakResult,
+    ] =
       await Promise.all([
         client.query<RoomStateRow>(
           `SELECT room.status, room.is_force_started,
+             room.captain_stage_deadline_at,
              series.id::int AS draft_series_id,
              series.current_map::int AS current_game_number
            FROM season_match_rooms room
@@ -154,6 +174,8 @@ export async function loadSeasonLobbyRoomSnapshot(
              room_player.player_id = match.host_player_id AS "isHost",
              presence.heartbeat_at >= NOW()
                - ($2::int * INTERVAL '1 second') AS "isOnline",
+             preference.player_id IS NOT NULL AS "hasAnsweredCaptainInterest",
+             preference.wants_to_be_captain AS "wantsCaptain",
              vote.voter_player_id IS NOT NULL AS "hasVoted"
            FROM season_match_room_players room_player
            JOIN season_match_participants participant
@@ -175,6 +197,9 @@ export async function loadSeasonLobbyRoomSnapshot(
            LEFT JOIN season_match_captain_votes vote
              ON vote.match_id = room_player.match_id
             AND vote.voter_player_id = room_player.player_id
+           LEFT JOIN season_match_captain_preferences preference
+             ON preference.match_id = room_player.match_id
+            AND preference.player_id = room_player.player_id
            WHERE room_player.match_id = $1
            ORDER BY room_player.team_side,
              room_player.slot_number NULLS LAST, room_player.player_id`,
@@ -193,11 +218,23 @@ export async function loadSeasonLobbyRoomSnapshot(
            ORDER BY message.id`,
           [matchId, SEASON_LOBBY_CHAT_LIMIT],
         ),
-        client.query<{ candidate_player_id: string }>(
-          `SELECT candidate_player_id::text
+        client.query<SeasonLobbyCaptainBallot>(
+          `SELECT voter_player_id::text AS "voterPlayerId",
+             candidate_player_id::text AS "candidatePlayerId",
+             is_automatic AS "isAutomatic"
            FROM season_match_captain_votes
-           WHERE match_id = $1 AND voter_player_id = $2`,
-          [matchId, user.discordId],
+           WHERE match_id = $1`,
+          [matchId],
+        ),
+        client.query<CaptainTiebreakRow>(
+          `SELECT voter_player_id::text AS "voterPlayerId",
+             candidate_one_id::text AS "candidateOneId",
+             candidate_two_id::text AS "candidateTwoId",
+             selected_candidate_id::text AS "selectedCandidateId",
+             team_side AS "teamSide"
+           FROM season_match_captain_tiebreaks
+           WHERE match_id = $1`,
+          [matchId],
         ),
       ]);
 
@@ -212,6 +249,26 @@ export async function loadSeasonLobbyRoomSnapshot(
     const ownTeam = players.filter(
       (player) => player.teamSide === target.current_user_team_side,
     );
+    const ownTeamIds = new Set(ownTeam.map((player) => player.playerId));
+    const captainBallots = ballotResult.rows.filter(
+      (ballot) => ownTeamIds.has(ballot.voterPlayerId),
+    );
+    const ownPlayer = ownTeam.find(
+      (player) => player.playerId === user.discordId,
+    );
+    const tiebreak = tiebreakResult.rows.find(
+      (item) => item.teamSide === target.current_user_team_side,
+    );
+    const captainTiebreak: SeasonLobbyCaptainTiebreak | null = tiebreak
+      ? {
+          voterPlayerId: tiebreak.voterPlayerId,
+          candidatePlayerIds: [
+            tiebreak.candidateOneId,
+            tiebreak.candidateTwoId,
+          ],
+          selectedCandidateId: tiebreak.selectedCandidateId,
+        }
+      : null;
     return {
       serverNow: new Date().toISOString(),
       matchId: target.match_id,
@@ -235,8 +292,17 @@ export async function loadSeasonLobbyRoomSnapshot(
         ...message,
         createdAt: message.createdAt.toISOString(),
       })),
-      ownVoteCandidateId:
-        ownVoteResult.rows[0]?.candidate_player_id ?? null,
+      captainStageDeadlineAt:
+        state.captain_stage_deadline_at?.toISOString() ?? null,
+      ownCaptainInterest: ownPlayer?.wantsCaptain ?? null,
+      captainCandidateIds: ownTeam.filter(
+        (player) => player.wantsCaptain === true,
+      ).map((player) => player.playerId),
+      captainBallots,
+      captainTiebreak,
+      ownVoteCandidateId: captainBallots.find(
+        (ballot) => ballot.voterPlayerId === user.discordId,
+      )?.candidatePlayerId ?? null,
       teamVoteCount: ownTeam.filter((player) => player.hasVoted).length,
       teamPlayerCount: ownTeam.length,
       draftSeriesId: state.draft_series_id,

@@ -36,13 +36,22 @@ export async function substitutionTestDatabase() {
       penalty_event_id bigint, penalty_fire_count integer, updated_at timestamptz);
     CREATE TABLE season_match_rooms (match_id bigint PRIMARY KEY, status text,
       team_a_captain_id bigint, team_b_captain_id bigint, is_force_started boolean DEFAULT false,
-      updated_at timestamptz);
+      voting_started_at timestamptz, draft_started_at timestamptz,
+      captain_stage_deadline_at timestamptz, updated_at timestamptz);
     CREATE TABLE season_match_room_presence (match_id bigint, player_id bigint,
       heartbeat_at timestamptz DEFAULT now(), PRIMARY KEY(match_id, player_id));
     CREATE TABLE season_match_room_messages (id bigserial PRIMARY KEY, match_id bigint,
       player_id bigint, message text, created_at timestamptz);
     CREATE TABLE season_match_captain_votes (match_id bigint, voter_player_id bigint,
-      candidate_player_id bigint);
+      candidate_player_id bigint, team_side char(1), is_automatic boolean DEFAULT false,
+      created_at timestamptz DEFAULT now(), PRIMARY KEY(match_id, voter_player_id));
+    CREATE TABLE season_match_captain_preferences (match_id bigint, player_id bigint,
+      team_side char(1), wants_to_be_captain boolean, responded_at timestamptz DEFAULT now(),
+      PRIMARY KEY(match_id, player_id));
+    CREATE TABLE season_match_captain_tiebreaks (match_id bigint, team_side char(1),
+      voter_player_id bigint, candidate_one_id bigint, candidate_two_id bigint,
+      selected_candidate_id bigint, responded_at timestamptz,
+      PRIMARY KEY(match_id, team_side));
     CREATE TABLE player_identity_members (player_id bigint, identity_id bigint);
     CREATE TABLE player_identities (id bigint, registered_player_id bigint);
     CREATE TABLE draft_series (id bigserial PRIMARY KEY, season_match_id bigint,
@@ -78,6 +87,7 @@ export async function seedSubstitutionMatch(db: PGlite) {
       season_match_participants, season_participants, season_match_games,
       season_penalty_events, season_match_substitutions, season_match_rooms,
       season_match_room_presence, season_match_room_messages, season_match_captain_votes,
+      season_match_captain_preferences, season_match_captain_tiebreaks,
       draft_series, draft_maps, draft_actions, draft_presence, draft_hero_suggestions,
       tournament_audit_log RESTART IDENTITY CASCADE;
     INSERT INTO players (discord_id, steam_id32, ingame_name, internal_rating)

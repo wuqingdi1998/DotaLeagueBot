@@ -7,10 +7,14 @@ import {
 } from "@/app/season-lobby/[matchId]/server/captain-transfer";
 import {
   sendSeasonLobbyMessage,
-  startSeasonLobbyVoting,
   startSeasonLobbyWithCaptains,
-  voteForSeasonLobbyCaptain,
 } from "@/app/season-lobby/[matchId]/server/room-commands";
+import {
+  answerCaptainInterest,
+  startSeasonLobbyCaptainSelection,
+  voteForSeasonLobbyCaptain,
+  voteForSeasonLobbyCaptainTiebreak,
+} from "@/app/season-lobby/[matchId]/server/captain-selection-actions";
 import { reportSeasonLobbyGameResult } from
   "@/app/season-lobby/[matchId]/server/game-result-service";
 import {
@@ -76,10 +80,16 @@ export async function POST(
     if (command.action === "SEND_MESSAGE") {
       await sendSeasonLobbyMessage(matchId, user, command.message);
     } else if (command.action === "START_VOTING") {
-      await startSeasonLobbyVoting(
+      await startSeasonLobbyCaptainSelection(
         matchId,
         user,
         command.force === true,
+      );
+    } else if (command.action === "ANSWER_CAPTAIN_INTEREST") {
+      await answerCaptainInterest(
+        matchId,
+        user.discordId,
+        command.wantsCaptain,
       );
     } else if (command.action === "START_WITH_CAPTAINS") {
       await startSeasonLobbyWithCaptains(
@@ -91,6 +101,12 @@ export async function POST(
       );
     } else if (command.action === "VOTE_CAPTAIN") {
       await voteForSeasonLobbyCaptain(
+        matchId,
+        user.discordId,
+        command.candidatePlayerId,
+      );
+    } else if (command.action === "VOTE_CAPTAIN_TIEBREAK") {
+      await voteForSeasonLobbyCaptainTiebreak(
         matchId,
         user.discordId,
         command.candidatePlayerId,

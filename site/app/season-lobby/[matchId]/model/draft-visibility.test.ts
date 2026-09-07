@@ -10,7 +10,13 @@ describe("season lobby draft visibility", () => {
     (status) => expect(shouldShowSeasonLobbyDraft(status)).toBe(true),
   );
 
-  it.each(["waiting", "voting", "completed"] as const)(
+  it.each([
+    "waiting",
+    "captain_interest",
+    "captain_voting",
+    "captain_tiebreak",
+    "completed",
+  ] as const)(
     "hides the draft while the room is %s",
     (status) => expect(shouldShowSeasonLobbyDraft(status)).toBe(false),
   );

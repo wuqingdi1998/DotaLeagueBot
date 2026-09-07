@@ -36,7 +36,13 @@ export function OrganizerCaptainControls({
 
   if (
     !snapshot.isOrganizer ||
-    !["waiting", "voting", "drafting"].includes(snapshot.status)
+    ![
+      "waiting",
+      "captain_interest",
+      "captain_voting",
+      "captain_tiebreak",
+      "drafting",
+    ].includes(snapshot.status)
   ) {
     return null;
   }
