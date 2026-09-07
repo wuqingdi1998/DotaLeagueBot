@@ -7,6 +7,7 @@ from discord import ui
 
 # Импортируем сервис и модели
 from services.profile_change_service import ProfileChangeService
+from services.profile_service import ProfileService
 from database.models import Player
 from utils.nickname_validator import NICKNAME_MAX_LENGTH, validate_nickname
 
@@ -66,7 +67,7 @@ class ChangeNickModal(ui.Modal, title="Смена никнейма"):
                     old_nick, remaining = result if isinstance(result, tuple) else ("Неизвестно", "?")
 
                     # Получаем обновленного игрока для синхронизации
-                    player = await service.get_player_by_id(interaction.user.id)
+                    player = await ProfileService(session).get_player(interaction.user.id)
 
                     if player:
                         # Обновляем профиль в Discord (вызываем метод из кога)
@@ -150,7 +151,7 @@ class ChangeRolesModal(ui.Modal, title="Смена позиций"):
 
                 if success:
                     # Обновляем профиль в дискорде
-                    player = await service.get_player_by_id(interaction.user.id)
+                    player = await ProfileService(session).get_player(interaction.user.id)
                     if player:
                         await self.cog.update_discord_profile(interaction.user, player)
                         msg += "\n*(Роли Discord обновлены)*"

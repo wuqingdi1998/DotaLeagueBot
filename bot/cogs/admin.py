@@ -542,20 +542,10 @@ class Admin(commands.Cog):
     @app_commands.command(name="setup_profile_panel", description="Создать панель управления профилем")
     @app_commands.checks.has_permissions(administrator=True)
     async def setup_profile_panel(self, interaction: discord.Interaction):
-        # Импортируем нашу View (поправь путь импорта)
         from cogs.ui.profile_menu import ProfileManageView
+        from cogs.ui.profile_panel import build_profile_panel_embed
 
-        embed = discord.Embed(
-            title="⚙️ Управление профилем игрока",
-            description=(
-                "Здесь вы можете обновить свои данные для текущего сезона.\n\n"
-                "🔹 До **6 сентября, 10:00 МСК** ник и игровые позиции "
-                "можно менять **без ограничений**.\n"
-                "🔹 После этого доступно по **1 смене** ника и игровых "
-                "позиций.\n\n"
-            ),
-            color=discord.Color.blue()
-        )
+        embed = build_profile_panel_embed()
 
         await interaction.channel.send(embed=embed, view=ProfileManageView())
         await interaction.response.send_message("✅ Панель создана!", ephemeral=True)
