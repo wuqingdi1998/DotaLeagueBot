@@ -96,8 +96,9 @@ export function SiteHeader({
   }
 
   const homeActive = pathname === "/";
-  const seasonActive = pathname.startsWith("/season");
-  const tournamentsActive = pathname.startsWith("/tournaments");
+  const seasonActive = pathname === "/season" || pathname.startsWith("/season/");
+  const tournamentsActive =
+    pathname.startsWith("/tournaments") || pathname.startsWith("/season-lobby/");
   const calendarActive = pathname.startsWith("/calendar");
   const hallActive = pathname.startsWith("/hall-of-fame");
   const participantsActive = pathname.startsWith("/participants");
