@@ -24,8 +24,6 @@ describe("architecture boundaries", () => {
     const files = [
       ...collectFiles(new URL("../app", import.meta.url), /\.(ts|tsx)$/),
       ...collectFiles(new URL(".", import.meta.url), /\.(ts|tsx)$/),
-      ...collectFiles(new URL("../extensions", import.meta.url), /\.ts$/),
-      ...collectFiles(new URL("../scripts", import.meta.url), /\.mjs$/),
     ];
     const oversized = files
       .map((file) => ({

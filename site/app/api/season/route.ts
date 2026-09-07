@@ -31,7 +31,6 @@ import type {
 } from "./season-route-model";
 
 export const dynamic = "force-dynamic";
-
 export async function GET(request: Request) {
   const user = await getSession();
   const isOrganizer = user?.isAdmin === true;
@@ -286,6 +285,7 @@ export async function GET(request: Request) {
           AND checkin.player_id = registration.player_id
          LEFT JOIN season_ranked_win_checks ranked_wins
            ON ranked_wins.player_id = registration.player_id
+          AND ranked_wins.round_id = registration.round_id
          WHERE round.tournament_id = $1 ${visibility}
          ORDER BY round.round_number, registration.created_at,
            registration.player_id`,
@@ -481,10 +481,10 @@ export async function GET(request: Request) {
         standingModifiers,
       )
     : null;
-  const myRankedWins = user
-    ? await freshPlayerRankedWins(user.discordId)
+  const selectedRound = rounds.find((round) => round.id === requestedRound);
+  const myRankedWins = user && selectedRound
+    ? await freshPlayerRankedWins(selectedRound.id, user.discordId)
     : null;
-
   return Response.json({
     generatedAt: generatedAt.toISOString(),
     rounds: nestedRounds,

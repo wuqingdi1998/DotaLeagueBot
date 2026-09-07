@@ -59,6 +59,7 @@ async def queue_due_ranked_win_reminders(
                   ON settings.tournament_id = tournament.id
                 JOIN season_ranked_win_checks AS ranked_wins
                   ON ranked_wins.player_id = registration.player_id
+                 AND ranked_wins.round_id = registration.round_id
                 WHERE round.round_kind = 'regular'
                   AND round.is_visible = TRUE
                   AND round.scheduled_at IS NOT NULL

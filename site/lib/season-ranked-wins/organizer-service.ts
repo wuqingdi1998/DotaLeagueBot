@@ -1,11 +1,9 @@
 import { one, transaction, type query } from "@/lib/db";
 import type { QueryResultRow } from "pg";
-import { calculateRankedWinSnapshot, parsePlayerPositions, SEASON_RANKED_WIN_WINDOW_DAYS } from "./model";
-import { fetchDotaBuffMonthlyRankedMatches } from "./dotabuff-month";
+import { parsePlayerPositions } from "./model";
 import { manualRankedWinSnapshot, type parseRankedWinUpdate } from "./organizer-model";
 import { playerWinTarget, savePlayerRankedWins } from "./repository";
-import { calculateSeasonRankedWins, SeasonRankedWinsError } from "./service";
-import { hasUnresolvedBrowserWins } from "./browser-import";
+import { calculateSeasonRankedWins } from "./service";
 
 export async function updateOrganizerRankedWins(
   update: NonNullable<ReturnType<typeof parseRankedWinUpdate>>,
@@ -28,28 +26,8 @@ export async function updateOrganizerRankedWins(
   let snapshot;
   if (update.source === "manual") {
     snapshot = manualRankedWinSnapshot(positions, update.primaryWins, update.secondaryWins, now);
-  } else if (update.source === "stratz") {
-    snapshot = await calculateSeasonRankedWins({ dotaId: target.dota_id, positions: target.positions, now });
-  } else if (update.browserImport) {
-    if (update.browserImport.dotaId !== target.dota_id) {
-      throw new Response("История Dotabuff принадлежит другому игроку", { status: 400 });
-    }
-    const matches = update.browserImport.matches.map((match) => ({ ...match, startedAt: new Date(match.startedAt) }));
-    const checkedAt = new Date(update.browserImport.startedAt);
-    if (hasUnresolvedBrowserWins(matches, checkedAt)) {
-      throw new Response("У части побед Dotabuff не указал роль. Прежние значения сохранены", { status: 422 });
-    }
-    snapshot = calculateRankedWinSnapshot({ matches, positions, now: checkedAt });
   } else {
-    try {
-      const matches = await fetchDotaBuffMonthlyRankedMatches(target.dota_id, now);
-      snapshot = calculateRankedWinSnapshot({ matches, positions, now });
-    } catch (error) {
-      console.warn("Organizer Dotabuff wins lookup failed", {
-        reason: error instanceof Error ? error.message : "unknown",
-      });
-      throw new SeasonRankedWinsError(`Dotabuff не вернул полную статистику за ${SEASON_RANKED_WIN_WINDOW_DAYS} дней. Прежние значения сохранены. Попробуйте позже или внесите победы вручную`);
-    }
+    snapshot = await calculateSeasonRankedWins({ dotaId: target.dota_id, positions: target.positions, now });
   }
   return transaction(async (client) => {
     const registration = await client.query<{ tournament_id: number }>(
@@ -69,7 +47,7 @@ export async function updateOrganizerRankedWins(
     if (currentTarget.positions !== target.positions || currentTarget.dota_id !== target.dota_id) {
       throw new Response("Профиль игрока изменился. Обновите страницу и повторите запрос", { status: 409 });
     }
-    const isSaved = await savePlayerRankedWins(update.playerId, snapshot, {
+    const isSaved = await savePlayerRankedWins(update.roundId, update.playerId, snapshot, {
       source: update.source, execute,
     });
     if (!isSaved) {
@@ -84,7 +62,7 @@ export async function updateOrganizerRankedWins(
        VALUES ($1, $2, 'update', 'season_ranked_wins', $3, $4::jsonb)`,
       [registration.rows[0].tournament_id, actorDiscordId, update.playerId,
         JSON.stringify({ roundId: update.roundId, source: update.source,
-          ...(update.browserImport ? { collectionMethod: "organizer_browser" } : {}), ...snapshot })],
+          ...snapshot })],
     );
     return { ok: true, rankedWins: snapshot };
   });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildDotabuffRankedMatchesUrl,
   buildStratzRankedMatchesUrl,
   formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
@@ -86,6 +87,12 @@ describe("season registration list", () => {
   it("opens the player's Stratz matches filtered to ranked games for 30 days", () => {
     expect(buildStratzRankedMatchesUrl("301109815")).toBe(
       "https://stratz.com/players/301109815?duration=MONTH&durationAmount=1&lobbyTypeIds=7",
+    );
+  });
+
+  it("opens the player's Dotabuff matches filtered to ranked games for one month", () => {
+    expect(buildDotabuffRankedMatchesUrl("301109815")).toBe(
+      "https://www.dotabuff.com/players/301109815/matches?lobby_type=ranked_matchmaking&date=month",
     );
   });
 

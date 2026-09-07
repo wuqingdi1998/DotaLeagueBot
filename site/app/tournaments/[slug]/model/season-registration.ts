@@ -57,6 +57,13 @@ export function buildStratzRankedMatchesUrl(dotaId: string) {
   );
 }
 
+export function buildDotabuffRankedMatchesUrl(dotaId: string) {
+  return (
+    `https://www.dotabuff.com/players/${encodeURIComponent(dotaId)}/matches` +
+    "?lobby_type=ranked_matchmaking&date=month"
+  );
+}
+
 export function formatSeasonRankedWinsRefreshCountdown(
   registrations: SeasonRoundRegistration[],
   currentTime: number,

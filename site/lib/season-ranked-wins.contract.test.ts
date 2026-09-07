@@ -14,6 +14,9 @@ const incompleteSnapshotReset = source(
 const stratzOnlySnapshotReset = source(
   "../../bot/database/migrations/0096_reset_ranked_wins_for_stratz_only.sql",
 );
+const roundScopedSnapshots = source(
+  "../../bot/database/migrations/0126_scope_ranked_wins_to_round.sql",
+);
 const registrationRoute = source("../app/api/season/registration/route.ts");
 const refreshRoute = source(
   "../app/api/internal/season/ranked-wins/route.ts",
@@ -29,7 +32,7 @@ const rankedWinService = source("./season-ranked-wins/service.ts");
 const rankedWinModel = source("./season-ranked-wins/model.ts");
 
 describe("season ranked wins contract", () => {
-  it("stores one freshly recalculated snapshot per player", () => {
+  it("stores one freshly recalculated snapshot per player and round", () => {
     expect(migration).toContain(
       "CREATE TABLE IF NOT EXISTS season_ranked_win_checks",
     );
@@ -43,6 +46,8 @@ describe("season ranked wins contract", () => {
     expect(stratzOnlySnapshotReset).toContain(
       "DELETE FROM season_ranked_win_checks",
     );
+    expect(roundScopedSnapshots).toContain("ADD COLUMN round_id BIGINT");
+    expect(roundScopedSnapshots).toContain("PRIMARY KEY (round_id, player_id)");
   });
 
   it("refreshes after registration and through the protected scheduler route", () => {
@@ -53,6 +58,7 @@ describe("season ranked wins contract", () => {
 
   it("returns wins in the list without continuous Stratz calls", () => {
     expect(seasonRoute).toContain("LEFT JOIN season_ranked_win_checks");
+    expect(seasonRoute).toContain("ranked_wins.round_id = registration.round_id");
     expect(seasonRoute).toContain("freshPlayerRankedWins");
     expect(registrationSection).toContain("Рейтинговые победы за 30 дней");
     expect(registrationSection).toContain(

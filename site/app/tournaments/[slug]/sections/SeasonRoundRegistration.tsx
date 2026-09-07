@@ -132,7 +132,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                 className="secondary-button compact season-ranked-wins-button"
                 type="button"
                 disabled={season.checkingRankedWins || hasFreshRankedWins}
-                onClick={() => void season.checkMyRankedWins()}
+                onClick={() => void season.checkMyRankedWins(round.id)}
               >
                 {rankedWinsButtonLabel(
                   season.checkingRankedWins,

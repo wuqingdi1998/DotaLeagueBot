@@ -13,6 +13,8 @@ type PlayerWinTarget = {
   positions: string | null;
 };
 
+type RoundPlayerWinTarget = PlayerWinTarget & { round_id: number };
+
 type RankedWinCheckRow = {
   primary_role: number;
   secondary_role: number;
@@ -63,6 +65,7 @@ export async function playerWinTarget(
 }
 
 export async function savePlayerRankedWins(
+  roundId: number,
   playerId: string,
   snapshot: RankedWinSnapshot,
   { source = "stratz", execute = query }: {
@@ -72,10 +75,10 @@ export async function savePlayerRankedWins(
 ): Promise<boolean> {
   const saved = await execute(
     `INSERT INTO season_ranked_win_checks
-       (player_id, primary_role, secondary_role, primary_wins,
+       (round_id, player_id, primary_role, secondary_role, primary_wins,
         secondary_wins, checked_at, source)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (player_id) DO UPDATE
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     ON CONFLICT (round_id, player_id) DO UPDATE
      SET primary_role = EXCLUDED.primary_role,
          secondary_role = EXCLUDED.secondary_role,
          primary_wins = EXCLUDED.primary_wins,
@@ -87,6 +90,7 @@ export async function savePlayerRankedWins(
          OR season_ranked_win_checks.source NOT IN ('manual', 'dotabuff'))
      RETURNING player_id`,
     [
+      roundId,
       playerId,
       snapshot.primaryRole,
       snapshot.secondaryRole,
@@ -99,11 +103,12 @@ export async function savePlayerRankedWins(
   return saved.length > 0;
 }
 
-async function performPlayerRefresh(playerId: string): Promise<RankedWinSnapshot> {
+async function performPlayerRefresh(roundId: number, playerId: string): Promise<RankedWinSnapshot> {
   const fixed = await one<RankedWinCheckRow>(
     `SELECT primary_role::int, secondary_role::int, primary_wins::int,
        secondary_wins::int, checked_at FROM season_ranked_win_checks
-     WHERE player_id = $1 AND source IN ('manual', 'dotabuff')`, [playerId],
+     WHERE round_id = $1 AND player_id = $2
+       AND source IN ('manual', 'dotabuff')`, [roundId, playerId],
   );
   if (fixed) return snapshotFromRow(fixed);
   const target = await playerWinTarget(playerId);
@@ -111,26 +116,28 @@ async function performPlayerRefresh(playerId: string): Promise<RankedWinSnapshot
     dotaId: target.dota_id,
     positions: target.positions,
   });
-  const isSaved = await savePlayerRankedWins(playerId, snapshot);
+  const isSaved = await savePlayerRankedWins(roundId, playerId, snapshot);
   if (isSaved) return snapshot;
   const current = await one<RankedWinCheckRow>(
     `SELECT primary_role::int, secondary_role::int, primary_wins::int,
        secondary_wins::int, checked_at FROM season_ranked_win_checks
-     WHERE player_id = $1`, [playerId],
+     WHERE round_id = $1 AND player_id = $2`, [roundId, playerId],
   );
   if (!current) throw new SeasonRankedWinsError("Повторите обновление побед");
   return snapshotFromRow(current);
 }
 
 export async function refreshPlayerRankedWins(
+  roundId: number,
   playerId: string,
 ): Promise<RankedWinSnapshot> {
-  const pending = pendingPlayerRefreshes.get(playerId);
+  const refreshKey = `${roundId}:${playerId}`;
+  const pending = pendingPlayerRefreshes.get(refreshKey);
   if (pending) return pending;
-  const refresh = performPlayerRefresh(playerId).finally(() => {
-    pendingPlayerRefreshes.delete(playerId);
+  const refresh = performPlayerRefresh(roundId, playerId).finally(() => {
+    pendingPlayerRefreshes.delete(refreshKey);
   });
-  pendingPlayerRefreshes.set(playerId, refresh);
+  pendingPlayerRefreshes.set(refreshKey, refresh);
   return refresh;
 }
 
@@ -146,28 +153,29 @@ export async function refreshRoundRegistrationRankedWins(
     [roundId, playerId],
   );
   if (!registration?.is_registered) return null;
-  return refreshPlayerRankedWins(playerId);
+  return refreshPlayerRankedWins(roundId, playerId);
 }
 
 export async function freshPlayerRankedWins(
+  roundId: number,
   playerId: string,
 ): Promise<RankedWinSnapshot | null> {
   const row = await one<RankedWinCheckRow>(
     `SELECT primary_role::int, secondary_role::int,
        primary_wins::int, secondary_wins::int, checked_at
      FROM season_ranked_win_checks
-     WHERE player_id = $1
+     WHERE round_id = $1 AND player_id = $2
        AND checked_at > NOW() - INTERVAL '5 minutes'`,
-    [playerId],
+    [roundId, playerId],
   );
   return row ? snapshotFromRow(row) : null;
 }
 
-async function refreshTargetBatch(targets: PlayerWinTarget[]): Promise<number> {
+async function refreshTargetBatch(targets: RoundPlayerWinTarget[]): Promise<number> {
   let refreshed = 0;
   for (const target of targets) {
     try {
-      await refreshPlayerRankedWins(target.player_id);
+      await refreshPlayerRankedWins(target.round_id, target.player_id);
       refreshed += 1;
     } catch (error) {
       console.error("Season ranked wins refresh failed", {
@@ -183,8 +191,8 @@ export async function refreshRegisteredSeasonRankedWins(): Promise<{
   checked: number;
   refreshed: number;
 }> {
-  const targets = await query<PlayerWinTarget>(
-    `SELECT DISTINCT ON (registration.player_id)
+  const targets = await query<RoundPlayerWinTarget>(
+    `SELECT registration.round_id::int,
        registration.player_id::text,
        COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
        COALESCE(NULLIF(current_player.positions, ''), player.positions)
@@ -205,7 +213,7 @@ export async function refreshRegisteredSeasonRankedWins(): Promise<{
        AND season_round_status_at(round.scheduled_at, round.status)
          IN ('planned', 'active')
        AND round.is_visible = TRUE
-     ORDER BY registration.player_id, round.scheduled_at DESC NULLS LAST`,
+     ORDER BY registration.round_id, registration.player_id`,
   );
   const batches = [targets.filter((_, index) => index % 2 === 0), targets.filter((_, index) => index % 2 === 1)];
   const refreshed = (

@@ -16,7 +16,10 @@ describe("organizer ranked win input", () => {
     { ...update, positions: "1/1" }, { ...update, positions: "1/6" }])("rejects malformed request", (body) => {
     expect(parseRankedWinUpdate(body)).toBeNull();
   });
-  it.each(["stratz", "dotabuff"])("accepts %s refresh without manual counts", (source) => {
-    expect(parseRankedWinUpdate({ ...update, source, primaryWins: undefined, secondaryWins: undefined })).toMatchObject({ source });
+  it("accepts a Stratz refresh without manual counts", () => {
+    expect(parseRankedWinUpdate({ ...update, source: "stratz", primaryWins: undefined, secondaryWins: undefined })).toMatchObject({ source: "stratz" });
+  });
+  it("rejects Dotabuff as an update source", () => {
+    expect(parseRankedWinUpdate({ ...update, source: "dotabuff" })).toBeNull();
   });
 });

@@ -2,7 +2,7 @@ import type { DotaPosition } from "./model";
 import { dotabuffPosition } from "./dotabuff-parser";
 export { dotabuffPosition } from "./dotabuff-parser";
 
-import { DOTABUFF_ORIGIN } from "./browser-import";
+const DOTABUFF_ORIGIN = "https://www.dotabuff.com";
 const MAX_DOTABUFF_PAGES = 5;
 
 export async function fetchDotaBuffMatchPage(dotaId: string, page: number, isMonthly = false): Promise<string> {

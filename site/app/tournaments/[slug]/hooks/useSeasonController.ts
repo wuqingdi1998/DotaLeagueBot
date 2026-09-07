@@ -212,12 +212,14 @@ export function useSeasonController({
     }
   }
 
-  async function checkMyRankedWins() {
+  async function checkMyRankedWins(roundId: number) {
     if (checkingRankedWins) return;
     setCheckingRankedWins(true);
     try {
       const response = await fetchSeasonRequest("/api/season/ranked-wins", {
         method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ roundId }),
       });
       const result = await readSeasonMutationResponse(response);
       if (!response.ok) {

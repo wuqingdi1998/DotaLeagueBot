@@ -6,8 +6,8 @@ import { parsePlayerPositions, SEASON_RANKED_WIN_WINDOW_DAYS } from "@/lib/seaso
 import { MAX_MANUAL_RANKED_WINS, type RankedWinUpdateSource } from "@/lib/season-ranked-wins/organizer-model";
 import { useTournament } from "../hooks/TournamentContext";
 import { useRankedWinEditor } from "../hooks/useRankedWinEditor";
+import { buildDotabuffRankedMatchesUrl } from "../model/season-registration";
 import type { SeasonRoundRegistration } from "../model/season-types";
-import { DotabuffExtensionHelp } from "./DotabuffExtensionHelp";
 
 export function SeasonRankedWinEditor({ registration }: { registration: SeasonRoundRegistration }) {
   const { season, setToast } = useTournament();
@@ -51,10 +51,11 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
             onClick={() => void save("stratz")}>
             {editor.pendingSource === "stratz" ? "Загрузка STRATZ…" : "STRATZ"}
           </button>
-          <button type="button" className="secondary-button" disabled={isSaving || !positions}
-            onClick={() => void save("dotabuff")}>
-            {editor.pendingSource === "dotabuff" ? "Проверка Dotabuff…" : "Dotabuff"}
-          </button>
+          <a className="secondary-button"
+            href={buildDotabuffRankedMatchesUrl(registration.dota_id)}
+            target="_blank" rel="noopener noreferrer">
+            Dotabuff
+          </a>
           <button type="button" className="secondary-button" disabled={isSaving || !positions}
             aria-expanded={editor.isManual} onClick={() => editor.setIsManual(true)}>
             Внести вручную
@@ -75,18 +76,14 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
                 value={editor.secondaryWins} disabled={isSaving}
                 onChange={(event) => editor.setSecondaryWins(event.target.value)} />
             </label>
-            <p>Ручные значения сохранятся до следующего обновления организатором через шестерёнку.</p>
+            <p>Ручные значения фиксируются только для этого тура.</p>
             <button type="submit" className="primary-button" disabled={isSaving}>
               {editor.pendingSource === "manual" ? "Сохраняем…" : "Сохранить победы"}
             </button>
           </form>
         )}
         {editor.error && <p className="season-ranked-win-error" role="alert">{editor.error}</p>}
-        {editor.needsExtension && <DotabuffExtensionHelp />}
-        {isSaving && <p role="status">{editor.progress || "Обновляем статистику…"}</p>}
-        {editor.isAwaitingBrowser && (
-          <button type="button" className="secondary-button" onClick={editor.cancelBrowser}>Отменить проверку</button>
-        )}
+        {isSaving && <p role="status">Обновляем статистику…</p>}
       </dialog>
     </>
   );

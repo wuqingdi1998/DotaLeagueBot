@@ -29,7 +29,7 @@ describe("season ranked wins repository", () => {
       primary_role: 1, secondary_role: 3, primary_wins: 12, secondary_wins: 0,
       checked_at: new Date("2026-09-06T10:00:00Z"),
     });
-    await expect(refreshPlayerRankedWins("100")).resolves.toMatchObject({ primaryWins: 12, secondaryWins: 0 });
+    await expect(refreshPlayerRankedWins(7, "100")).resolves.toMatchObject({ primaryWins: 12, secondaryWins: 0 });
     expect(mocks.calculateSeasonRankedWins).not.toHaveBeenCalled();
     expect(mocks.query).not.toHaveBeenCalled();
   });
@@ -39,7 +39,7 @@ describe("season ranked wins repository", () => {
       primary_role: 1, secondary_role: 3, primary_wins: 9, secondary_wins: 4,
       checked_at: new Date("2026-09-06T10:00:00Z"),
     });
-    await expect(refreshPlayerRankedWins("100")).resolves.toMatchObject({ primaryWins: 9, secondaryWins: 4 });
+    await expect(refreshPlayerRankedWins(7, "100")).resolves.toMatchObject({ primaryWins: 9, secondaryWins: 4 });
     expect(mocks.calculateSeasonRankedWins).not.toHaveBeenCalled();
     expect(mocks.query).not.toHaveBeenCalled();
   });
@@ -49,9 +49,21 @@ describe("season ranked wins repository", () => {
       new Error("Stratz unavailable"),
     );
 
-    await expect(refreshPlayerRankedWins("100")).rejects.toThrow(
+    await expect(refreshPlayerRankedWins(7, "100")).rejects.toThrow(
       "Stratz unavailable",
     );
     expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("looks up a fixed snapshot only inside the requested round", async () => {
+    mocks.one.mockReset().mockResolvedValue({
+      primary_role: 1, secondary_role: 3, primary_wins: 12, secondary_wins: 0,
+      checked_at: new Date("2026-09-06T10:00:00Z"),
+    });
+    await refreshPlayerRankedWins(8, "100");
+    expect(mocks.one).toHaveBeenCalledWith(
+      expect.stringContaining("WHERE round_id = $1 AND player_id = $2"),
+      [8, "100"],
+    );
   });
 });
