@@ -264,11 +264,18 @@ export function TournamentsDirectory() {
   const { data, loading, error, reload } = useTournamentList();
   const [createOpen, setCreateOpen] = useState(false);
   const [filter, setFilter] = useState<TournamentDirectoryFilter>("all");
+  const [shouldHideArchivedTournaments, setShouldHideArchivedTournaments] =
+    useState(false);
   const [toast, setToast] = useState("");
 
   const visibleTournaments = useMemo(
-    () => filterTournamentSummaries(data.tournaments, filter),
-    [data.tournaments, filter],
+    () =>
+      filterTournamentSummaries(
+        data.tournaments,
+        filter,
+        shouldHideArchivedTournaments,
+      ),
+    [data.tournaments, filter, shouldHideArchivedTournaments],
   );
 
   async function changeStatus(id: number, status: TournamentStatus) {
@@ -307,23 +314,35 @@ export function TournamentsDirectory() {
 
       <section className="directory-content">
         <div className="directory-toolbar">
-          <div className="directory-filters" role="tablist">
-            {(
-              [
-                ["all", "Все"],
-                ["seasonal", "Сезонные"],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                className={filter === value ? "active" : ""}
-                onClick={() => setFilter(value)}
-                role="tab"
-                aria-selected={filter === value}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="directory-filter-controls">
+            <div className="directory-filters" role="tablist">
+              {(
+                [
+                  ["all", "Все"],
+                  ["seasonal", "Сезонные"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  className={filter === value ? "active" : ""}
+                  onClick={() => setFilter(value)}
+                  role="tab"
+                  aria-selected={filter === value}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <label className="archive-filter-checkbox">
+              <input
+                type="checkbox"
+                checked={shouldHideArchivedTournaments}
+                onChange={(event) =>
+                  setShouldHideArchivedTournaments(event.target.checked)
+                }
+              />
+              <span>Скрыть архивные турниры</span>
+            </label>
           </div>
           <span>{visibleTournaments.length} событий</span>
         </div>

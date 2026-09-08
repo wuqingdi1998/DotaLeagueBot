@@ -54,9 +54,11 @@ describe("tournament directory contract", () => {
     expect(tournamentCard).toContain("Сезонный");
   });
 
-  it("offers only all and seasonal directory filters", () => {
+  it("offers all, seasonal, and archived tournament filters", () => {
     expect(tournamentDirectory).toContain('["all", "Все"]');
     expect(tournamentDirectory).toContain('["seasonal", "Сезонные"]');
+    expect(tournamentDirectory).toContain('type="checkbox"');
+    expect(tournamentDirectory).toContain("Скрыть архивные турниры");
     expect(tournamentDirectory).not.toContain("Текущие и будущие");
     expect(tournamentDirectory).not.toContain('["archive", "Архив"]');
   });

@@ -39,13 +39,16 @@ export type TournamentDirectoryFilter = "all" | "seasonal";
 export function filterTournamentSummaries(
   tournaments: TournamentSummary[],
   filter: TournamentDirectoryFilter,
+  shouldHideArchivedTournaments = false,
 ) {
-  if (filter === "seasonal") {
-    return tournaments.filter(
-      (tournament) => isSeasonalTournament(tournament.tournament_type),
-    );
-  }
-  return tournaments;
+  return tournaments.filter((tournament) => {
+    const matchesDirectoryFilter =
+      filter === "all" || isSeasonalTournament(tournament.tournament_type);
+    const matchesArchiveFilter =
+      !shouldHideArchivedTournaments || tournament.status !== "archived";
+
+    return matchesDirectoryFilter && matchesArchiveFilter;
+  });
 }
 
 export type NewTournament = {
