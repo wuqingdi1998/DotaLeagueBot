@@ -136,7 +136,8 @@ jobs:
             install -d -m 0775 -o 1001 -g 1001 \
               uploads_data \
               uploads_data/team-emblems \
-              uploads_data/profile-backgrounds
+              uploads_data/profile-backgrounds \
+              uploads_data/discord-avatars
             chown -R 1001:1001 uploads_data
 
             mkdir -p backups

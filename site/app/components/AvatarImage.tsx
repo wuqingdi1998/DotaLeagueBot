@@ -2,6 +2,7 @@
 
 import Image, { type ImageProps } from "next/image";
 import { useState, type ReactNode } from "react";
+import { resilientAvatarUrl } from "@/lib/avatar-url";
 
 type AvatarImageProps = Omit<ImageProps, "onError" | "src"> & {
   fallback: ReactNode;
@@ -20,11 +21,13 @@ export function AvatarImage({
     return <>{fallback}</>;
   }
 
+  const imageSource = resilientAvatarUrl(source);
+
   return (
     <Image
       {...imageProps}
       alt={alt}
-      src={source}
+      src={imageSource}
       onError={() => setFailedSource(source)}
     />
   );

@@ -6,6 +6,7 @@ function source(relativePath: string) {
 }
 
 const avatarComponent = source("../app/components/AvatarImage.tsx");
+const avatarRoute = source("../app/api/discord-avatars/route.ts");
 const nextConfig = source("../next.config.ts");
 const avatarConsumers = [
   "../app/components/SiteHeader.tsx",
@@ -37,6 +38,13 @@ describe("player avatar failure handling", () => {
     for (const consumer of avatarConsumers) {
       expect(consumer).toContain("AvatarImage");
     }
+  });
+
+  it("serves Discord avatars from a persistent same-site cache", () => {
+    expect(avatarComponent).toContain("resilientAvatarUrl(source)");
+    expect(avatarRoute).toContain("loadDiscordAvatar");
+    expect(avatarRoute).toContain('process.env.UPLOADS_DIR');
+    expect(avatarRoute).toContain('"x-avatar-cache"');
   });
 
   it("allows both Discord image hosts used by stored avatar links", () => {
