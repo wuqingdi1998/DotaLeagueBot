@@ -169,9 +169,16 @@ export function SiteHeader({
         >
           Участники
         </HeaderNavigationLink>
-        <a href={discordUrl} target="_blank" rel="noreferrer">
-          Наш Discord <FiArrowUpRight aria-hidden="true" />
-        </a>
+        <HeaderNavigationLink
+          beginNavigation={beginNavigation}
+          isActive={false}
+          href={discordUrl}
+          target="_blank"
+          rel="noreferrer"
+          endIcon={<FiArrowUpRight aria-hidden="true" />}
+        >
+          Наш Discord
+        </HeaderNavigationLink>
       </nav>
 
       <div className="header-actions" ref={actionsRef}>
@@ -333,14 +340,17 @@ export function SiteHeader({
           >
             Участники
           </HeaderNavigationLink>
-          <a
+          <HeaderNavigationLink
+            beginNavigation={beginNavigation}
+            isActive={false}
             href={discordUrl}
             target="_blank"
             rel="noreferrer"
-            onClick={() => setMobileMenuOpen(false)}
+            onSelect={() => setMobileMenuOpen(false)}
+            endIcon={<FiArrowUpRight aria-hidden="true" />}
           >
-            Наш Discord <FiArrowUpRight aria-hidden="true" />
-          </a>
+            Наш Discord
+          </HeaderNavigationLink>
         </nav>
       )}
       <Suspense fallback={null}>

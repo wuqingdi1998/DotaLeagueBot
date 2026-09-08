@@ -14,6 +14,23 @@
   display: inline-block;
 }
 
+.header-navigation-hover-light {
+  position: absolute;
+  inset: 0 0 var(--navigation-bottom, 0px);
+  border-radius: 12px 12px 0 0;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--blue) 26%, transparent), color-mix(in srgb, var(--blue) 9%, transparent) 62%, transparent);
+  opacity: 0;
+  pointer-events: none;
+  transform: scaleY(0.08);
+  transform-origin: top;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .header-navigation-link:hover .header-navigation-hover-light {
+    animation: navigation-light-fall 420ms ease-out both;
+  }
+}
+
 .header-navigation-link::before,
 .header-navigation-animation-fill {
   position: absolute;
@@ -58,6 +75,7 @@
 }
 
 .header-navigation-link[data-navigation-overlay] .header-navigation-label,
+.header-navigation-link[data-navigation-overlay] .header-navigation-hover-light,
 .header-navigation-link[data-navigation-overlay]::before,
 .header-navigation-link[data-navigation-overlay]::after {
   visibility: hidden;
@@ -130,6 +148,12 @@
   45% { opacity: 0.38; transform: translateY(-187.5%); }
   70% { opacity: 0.15; transform: translateY(-250%); }
   100% { opacity: 0; transform: translateY(-280%); }
+}
+
+@keyframes navigation-light-fall {
+  0% { opacity: 0; transform: scaleY(0.08); }
+  65% { opacity: 1; transform: scaleY(1.04); }
+  100% { opacity: 1; transform: scaleY(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {

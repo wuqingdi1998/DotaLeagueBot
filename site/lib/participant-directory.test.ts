@@ -107,7 +107,7 @@ describe("hall of fame and participant directory", () => {
   it("adds the participant directory after the hall of fame in both menus", () => {
     const desktopHall = header.indexOf('href="/hall-of-fame"');
     const desktopParticipants = header.indexOf('href="/participants"');
-    const desktopDiscord = header.indexOf("<a href={discordUrl}");
+    const desktopDiscord = header.indexOf("href={discordUrl}");
     expect(desktopHall).toBeLessThan(desktopParticipants);
     expect(desktopParticipants).toBeLessThan(desktopDiscord);
     expect(header.match(/href="\/participants"/g)).toHaveLength(2);

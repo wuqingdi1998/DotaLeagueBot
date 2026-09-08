@@ -1,11 +1,54 @@
+import { readFileSync } from "node:fs";
 import type { MouseEvent } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { HeaderNavigationLink } from "../app/components/header/HeaderNavigationLink";
 import { measureNavigationAnimation } from "../app/components/header/navigation-animation-geometry";
 
+const header = readFileSync(
+  new URL("../app/components/SiteHeader.tsx", import.meta.url),
+  "utf8",
+);
+const headerStyles = readFileSync(
+  new URL("../app/styles/02-site-header.css", import.meta.url),
+  "utf8",
+);
+const navigationStyles = readFileSync(
+  new URL("../app/styles/02-header-navigation.css", import.meta.url),
+  "utf8",
+);
+
 afterEach(() => vi.unstubAllGlobals());
 
 describe("header navigation", () => {
+  it("reduces the desktop header by 15 pixels on both sides without changing its content", () => {
+    expect(headerStyles).toMatch(
+      /\.site-header\s*\{[^}]*--header-block-padding:\s*2px;[^}]*min-height:\s*76px;/,
+    );
+  });
+
+  it("uses the shared navigation effect for Discord links", () => {
+    expect(header.match(/<HeaderNavigationLink/g)).toHaveLength(14);
+    expect(header.match(/target="_blank"/g)).toHaveLength(2);
+  });
+
+  it("sweeps a text-neutral light from top to bottom on hover", () => {
+    expect(navigationStyles).toMatch(
+      /\.header-navigation-hover-light\s*\{[^}]*background:\s*linear-gradient\(to bottom,/,
+    );
+    expect(navigationStyles).toMatch(
+      /\.header-navigation-link:hover \.header-navigation-hover-light\s*\{[^}]*animation:\s*navigation-light-fall/,
+    );
+    expect(navigationStyles).toMatch(
+      /\.header-navigation-hover-light\s*\{[^}]*transform-origin:\s*top;/,
+    );
+    expect(navigationStyles).toMatch(
+      /@keyframes navigation-light-fall\s*\{[^}]*scaleY\(0\.08\)[\s\S]*scaleY\(1\)/,
+    );
+    expect(navigationStyles).not.toMatch(
+      /\.header-navigation-link:hover[^,{]*\.header-navigation-label\s*\{[^}]*color:/,
+    );
+  });
+
   it("starts the visual effect without preventing or deferring the link's navigation", () => {
     const beginNavigation = vi.fn();
     const onSelect = vi.fn();

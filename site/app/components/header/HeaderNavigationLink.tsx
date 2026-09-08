@@ -7,16 +7,22 @@ type HeaderNavigationLinkProps = {
   href: string;
   isActive: boolean;
   children: ReactNode;
+  endIcon?: ReactNode;
   beginNavigation: (link: HTMLAnchorElement) => void;
   onSelect?: () => void;
+  target?: "_blank";
+  rel?: string;
 };
 
 export function HeaderNavigationLink({
   href,
   isActive,
   children,
+  endIcon,
   beginNavigation,
   onSelect,
+  target,
+  rel,
 }: HeaderNavigationLinkProps) {
   function ignite(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -31,8 +37,12 @@ export function HeaderNavigationLink({
       prefetch={false}
       aria-current={isActive ? "page" : undefined}
       onClick={ignite}
+      target={target}
+      rel={rel}
     >
+      <span className="header-navigation-hover-light" aria-hidden="true" />
       <span className="header-navigation-label">{children}</span>
+      {endIcon}
     </Link>
   );
 }

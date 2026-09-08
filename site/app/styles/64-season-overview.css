@@ -1,7 +1,7 @@
 .season-overview {
   display: grid;
   gap: 24px;
-  min-height: calc(100svh - 106px);
+  min-height: calc(100svh - 76px);
   padding: 30px clamp(24px, 5vw, 76px) 48px;
   overflow-x: clip;
   background:
