@@ -428,6 +428,18 @@
   font: inherit;
 }
 
+.organizer-password-field { position: relative; }
+.organizer-password-field input { width: 100%; padding-right: 54px; }
+.organizer-password-visibility {
+  position: absolute; right: 5px; bottom: 5px; display: grid;
+  width: 40px; height: 40px; place-items: center; border: 0; border-radius: 9px;
+  background: transparent; color: var(--muted); cursor: pointer;
+}
+.organizer-password-visibility:hover,
+.organizer-password-visibility:focus-visible {
+  background: var(--surface-blue); color: var(--blue); outline: 2px solid var(--blue);
+}
+
 .organizer-password-form .primary-button,
 .organizer-modal-actions .primary-button,
 .organizer-modal-actions .secondary-button {

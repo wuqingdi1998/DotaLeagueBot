@@ -6,7 +6,7 @@ import { FormEvent, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
-import { FiLogOut, FiShield, FiX } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiLogOut, FiShield, FiX } from "react-icons/fi";
 
 const SiteBreakButton = dynamic(
   () => import("./SiteBreakButton").then((module) => module.SiteBreakButton),
@@ -27,6 +27,7 @@ export function OrganizerAccess({
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -155,17 +156,30 @@ export function OrganizerAccess({
                   турнирами введите отдельный пароль организатора.
                 </p>
                 <form className="organizer-password-form" onSubmit={activate}>
-                  <label>
-                    <span>Пароль организатора</span>
-                    <input
-                      required
-                      minLength={12}
-                      type="password"
-                      autoComplete="current-password"
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                    />
-                  </label>
+                  <div className="organizer-password-field">
+                    <label>
+                      <span>Пароль организатора</span>
+                      <input
+                        required
+                        minLength={12}
+                        type={isPasswordVisible ? "text" : "password"}
+                        autoComplete="current-password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
+                      />
+                    </label>
+                    <button
+                      className="organizer-password-visibility"
+                      type="button"
+                      aria-label={
+                        isPasswordVisible ? "Скрыть пароль" : "Показать пароль"
+                      }
+                      aria-pressed={isPasswordVisible}
+                      onClick={() => setIsPasswordVisible((visible) => !visible)}
+                    >
+                      {isPasswordVisible ? <FiEyeOff /> : <FiEye />}
+                    </button>
+                  </div>
                   {error && <p className="field-error">{error}</p>}
                   <button
                     className="primary-button"
