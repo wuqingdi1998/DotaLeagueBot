@@ -491,3 +491,21 @@ jobs:
 
             docker image prune --force
             docker compose ps
+      - name: Verify public site externally
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --retry 12 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
+            --max-time 30 https://lsesports.ru/api/health |
+            grep -q '"ok":true'
+
+          avatar_headers="$(mktemp)"
+          trap 'rm -f "$avatar_headers"' EXIT
+          curl --fail --silent --show-error \
+            --retry 12 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
+            --max-time 30 --output /dev/null --dump-header "$avatar_headers" \
+            --get --data-urlencode \
+            'source=https://cdn.discordapp.com/embed/avatars/0.png?size=128' \
+            https://lsesports.ru/api/discord-avatars
+          grep -qi '^content-type: image/' "$avatar_headers"
+          grep -qi '^x-avatar-cache: ' "$avatar_headers"

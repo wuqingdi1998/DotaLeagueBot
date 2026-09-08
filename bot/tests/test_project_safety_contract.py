@@ -42,3 +42,14 @@ def test_deploy_recovers_space_left_by_interrupted_releases() -> None:
     assert workflow.index("docker image prune --all --force") < workflow.index(
         "Transfer production images"
     )
+
+
+def test_deploy_checks_public_health_and_avatar_delivery_externally() -> None:
+    workflow = (PROJECT_ROOT / ".github" / "workflows" / "deploy.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Verify public site externally" in workflow
+    assert "https://lsesports.ru/api/health" in workflow
+    assert "https://lsesports.ru/api/discord-avatars" in workflow
+    assert "--data-urlencode" in workflow
