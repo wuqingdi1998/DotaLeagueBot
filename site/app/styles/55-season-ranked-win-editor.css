@@ -35,7 +35,7 @@
   padding: 28px;
   text-align: left;
   white-space: normal;
-  width: min(520px, calc(100vw - 32px));
+  width: min(600px, calc(100vw - 32px));
 }
 
 .season-ranked-win-dialog::backdrop {
