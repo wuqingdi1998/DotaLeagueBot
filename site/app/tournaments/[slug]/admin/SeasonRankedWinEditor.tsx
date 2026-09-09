@@ -15,7 +15,7 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const positions = parsePlayerPositions(registration.positions);
-  const isSaving = editor.pendingSource !== null;
+  const isSaving = editor.pendingSource !== null || editor.isSendingWarning;
   if (!season.data?.isOrganizer) return null;
 
   async function save(source: RankedWinUpdateSource) {
@@ -23,6 +23,15 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
       dialogRef.current?.close();
       setToast(`Победы ${registration.nickname} обновлены`);
     }
+  }
+
+  async function sendWarning() {
+    const result = await editor.sendWarning();
+    if (!result) return;
+    dialogRef.current?.close();
+    setToast(result.alreadySent
+      ? `Предупреждение ${registration.nickname} уже отправлялось`
+      : `Предупреждение ${registration.nickname} отправлено`);
   }
 
   return (
@@ -60,6 +69,12 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
             aria-expanded={editor.isManual} onClick={() => editor.setIsManual(true)}>
             Внести вручную
           </button>
+          <button type="button" className="secondary-button season-ranked-win-warning-button"
+            disabled={isSaving} title="Отправить предупреждение о рейтинговых победах"
+            aria-label={`Предупредить ${registration.nickname}`}
+            onClick={() => void sendWarning()}>
+            {editor.isSendingWarning ? "…" : "!"}
+          </button>
         </div>
         {!positions && <p role="alert">Сначала укажите две роли в профиле игрока</p>}
         {editor.isManual && positions && (
@@ -83,7 +98,8 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
           </form>
         )}
         {editor.error && <p className="season-ranked-win-error" role="alert">{editor.error}</p>}
-        {isSaving && <p role="status">Обновляем статистику…</p>}
+        {editor.pendingSource && <p role="status">Обновляем статистику…</p>}
+        {editor.isSendingWarning && <p role="status">Отправляем предупреждение…</p>}
       </dialog>
     </>
   );

@@ -1,4 +1,5 @@
 export type SeasonMutationResponse = {
+  alreadySent?: boolean;
   error?: string;
   id?: number;
   isCheckedIn?: boolean;

@@ -30,6 +30,12 @@ const registrationStyles = source(
 );
 const rankedWinService = source("./season-ranked-wins/service.ts");
 const rankedWinModel = source("./season-ranked-wins/model.ts");
+const rankedWinEditor = source(
+  "../app/tournaments/[slug]/admin/SeasonRankedWinEditor.tsx",
+);
+const rankedWinWarningClient = source(
+  "../app/tournaments/[slug]/services/ranked-win-warning.ts",
+);
 
 describe("season ranked wins contract", () => {
   it("stores one freshly recalculated snapshot per player and round", () => {
@@ -91,5 +97,14 @@ describe("season ranked wins contract", () => {
     expect(rankedWinService).not.toContain("fetchDotaBuffRankedMatches");
     expect(rankedWinModel).not.toContain("RankedWinSource");
     expect(rankedWinService).toContain("findRankedWinsWithoutRoles");
+  });
+
+  it("gives organizers a fourth manual warning action", () => {
+    expect(rankedWinEditor).toContain("sendWarning");
+    expect(rankedWinEditor).toContain('aria-label={`Предупредить ${registration.nickname}`');
+    expect(rankedWinEditor).toContain('"!"');
+    expect(rankedWinWarningClient).toContain(
+      '"/api/admin/season/ranked-win-warning"',
+    );
   });
 });

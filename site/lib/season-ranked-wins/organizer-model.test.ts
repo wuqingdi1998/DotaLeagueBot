@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { parseRankedWinUpdate } from "./organizer-model";
+import {
+  parseRankedWinUpdate,
+  parseRankedWinWarningTarget,
+} from "./organizer-model";
 
 const update = { roundId: 3, playerId: "123456789012345678", source: "manual", positions: "1/5", primaryWins: 10, secondaryWins: 0 };
 
@@ -21,5 +24,14 @@ describe("organizer ranked win input", () => {
   });
   it("rejects Dotabuff as an update source", () => {
     expect(parseRankedWinUpdate({ ...update, source: "dotabuff" })).toBeNull();
+  });
+
+  it("accepts only a valid player and round for a manual warning", () => {
+    expect(parseRankedWinWarningTarget({ roundId: 3, playerId: update.playerId }))
+      .toEqual({ roundId: 3, playerId: update.playerId });
+    expect(parseRankedWinWarningTarget({ roundId: 0, playerId: update.playerId }))
+      .toBeNull();
+    expect(parseRankedWinWarningTarget({ roundId: 3, playerId: "player" }))
+      .toBeNull();
   });
 });

@@ -59,6 +59,19 @@
   gap: 8px;
 }
 
+.season-ranked-win-warning-button {
+  border-color: #c53645;
+  color: #c53645;
+  font-size: 1.05rem;
+  font-weight: 900;
+  min-width: 44px;
+}
+
+.site-shell[data-theme="dark"] .season-ranked-win-warning-button {
+  border-color: #ff7180;
+  color: #ff7180;
+}
+
 .season-ranked-win-form {
   display: grid;
   gap: 14px;

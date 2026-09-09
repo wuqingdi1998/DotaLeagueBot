@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { isRankedWinCount, type RankedWinUpdateSource } from "@/lib/season-ranked-wins/organizer-model";
 import type { SeasonRoundRegistration } from "../model/season-types";
 import { saveRankedWinUpdate } from "../services/ranked-win-update";
+import { sendRankedWinWarning } from "../services/ranked-win-warning";
 
 export function useRankedWinEditor(registration: SeasonRoundRegistration, onSaved: () => Promise<void>) {
   const [isManual, setIsManual] = useState(false);
@@ -11,6 +12,7 @@ export function useRankedWinEditor(registration: SeasonRoundRegistration, onSave
   const [primaryWins, setPrimaryWins] = useState("");
   const [secondaryWins, setSecondaryWins] = useState("");
   const [error, setError] = useState("");
+  const [isSendingWarning, setIsSendingWarning] = useState(false);
   const isSavingRef = useRef(false);
 
   function reset() {
@@ -47,6 +49,28 @@ export function useRankedWinEditor(registration: SeasonRoundRegistration, onSave
     }
   }
 
+  async function sendWarning(): Promise<{ alreadySent: boolean } | null> {
+    if (isSavingRef.current) return null;
+    isSavingRef.current = true;
+    setError("");
+    setIsSendingWarning(true);
+    try {
+      return await sendRankedWinWarning({
+        roundId: registration.round_id,
+        playerId: registration.player_id,
+      });
+    } catch (error) {
+      setError(error instanceof Error
+        ? error.message
+        : "Не удалось отправить предупреждение");
+      return null;
+    } finally {
+      isSavingRef.current = false;
+      setIsSendingWarning(false);
+    }
+  }
+
   return { isManual, setIsManual, pendingSource, primaryWins, setPrimaryWins,
-    secondaryWins, setSecondaryWins, error, reset, save };
+    secondaryWins, setSecondaryWins, error, isSendingWarning, reset, save,
+    sendWarning };
 }

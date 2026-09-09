@@ -38,7 +38,7 @@ jobs:
           python -m compileall -q .
           pip-audit -r requirements.txt
           ruff check .
-          mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py services/season_ranked_win_reminders.py utils/website_notifications.py
+          mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py utils/website_notifications.py
           python -m pytest
       - name: Check site
         working-directory: site
@@ -150,6 +150,7 @@ jobs:
 
             docker compose config --quiet
             docker compose up -d db
+            docker compose stop bot
             docker compose run --rm migrate
 
             # The old deployment used PM2. Stop it only after the new images build.
