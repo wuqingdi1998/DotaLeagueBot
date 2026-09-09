@@ -97,6 +97,7 @@
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   box-shadow: var(--shadow);
 }
+.fearless-choice-screen { box-sizing: border-box; }
 
 .fearless-section-heading {
   display: flex;
@@ -388,6 +389,7 @@
 .fearless-map-two-choice strong { color: var(--text); }
 
 .fearless-decision-card {
+  box-sizing: border-box;
   max-width: 720px;
   margin: 28px auto 0;
   border: 1px solid var(--line);
@@ -396,10 +398,30 @@
   background: var(--surface-soft);
 }
 
-.fearless-decision-player { display: flex; align-items: center; gap: 14px; }
-.fearless-decision-player > div { display: flex; flex-direction: column; gap: 4px; }
-.fearless-decision-player span { color: var(--muted); font-size: 12px; text-transform: uppercase; }
-.fearless-decision-card > p { color: var(--muted); }
+.fearless-choice-participants {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fearless-choice-participant {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.fearless-choice-participant.right { flex-direction: row-reverse; text-align: right; }
+.fearless-choice-participant.active { border-color: var(--line-strong); background: var(--surface-blue); }
+.fearless-choice-participant > div { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.fearless-choice-participant span { color: var(--blue-soft); font-size: 12px; text-transform: uppercase; }
+.fearless-choice-participant strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fearless-choice-participant small { color: var(--muted); font-size: 13px; }
+.fearless-choice-participant small.chosen { color: var(--text); font-weight: 700; }
 
 .fearless-choice-buttons {
   display: grid;
@@ -448,5 +470,8 @@
   .fearless-waiting-list > article > button { width: 100%; }
   .fearless-invitation-actions button { flex: 1; }
   .fearless-series-meta { align-items: flex-start; flex-direction: column; }
+  .fearless-choice-participants { grid-template-columns: 1fr; }
+  .fearless-choice-participant { padding: 10px; }
+  .fearless-choice-participant .fearless-player-avatar { width: 40px; height: 40px; flex-basis: 40px; }
   .fearless-choice-buttons { grid-template-columns: 1fr; }
 }

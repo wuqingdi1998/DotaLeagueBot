@@ -10,6 +10,9 @@ const localeHook = source("app/fearless-draft/hooks/useDraftLocale.tsx");
 const translations = source("app/fearless-draft/model/i18n.ts");
 const screen = source("app/fearless-draft/FearlessDraftScreen.tsx");
 const fullscreenToggle = source("app/fearless-draft/components/DraftFullscreenToggle.tsx");
+const choiceParticipant = source(
+  "app/fearless-draft/components/DraftChoiceParticipant.tsx",
+);
 const board = source("app/styles/51-fearless-draft-board.css");
 const viewToggles = source("app/styles/51-fearless-draft-view-toggles.css");
 
@@ -86,12 +89,11 @@ describe("Fearless Draft language switch", () => {
   it("keeps hero names, player names and Bo formats unchanged", () => {
     const heroGrid = source("app/fearless-draft/components/HeroGrid.tsx");
     const queue = source("app/fearless-draft/sections/DraftQueue.tsx");
-    const choices = source("app/fearless-draft/sections/DraftChoices.tsx");
     expect(heroGrid).toContain("selectedHero.name");
     expect(heroGrid).toContain("aria-label={hero.name}");
     expect(queue).toContain("invitation.format");
     expect(queue).toContain('["BO2", "BO3"]');
-    expect(choices).toContain("decisionPlayer.name");
+    expect(choiceParticipant).toContain("player.name");
   });
 
   it("reserves the same space for the Bans label in both languages", () => {

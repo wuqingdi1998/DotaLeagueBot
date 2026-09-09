@@ -22,6 +22,18 @@ describe("Fearless Draft translations", () => {
     expect(JSON.stringify(DRAFT_TRANSLATIONS)).not.toContain('"BO3"');
   });
 
+  it("names the viewer's captain correctly during the choice stage", () => {
+    expect(DRAFT_TRANSLATIONS.ru.waitingCaptainDecision).toBe(
+      "Ожидаем решение вашего капитана",
+    );
+    expect(DRAFT_TRANSLATIONS.en.waitingCaptainDecision).toBe(
+      "Waiting for your captain's decision",
+    );
+    expect(DRAFT_TRANSLATIONS.uk.waitingCaptainDecision).toBe(
+      "Очікуємо на рішення вашого капітана",
+    );
+  });
+
   it("translates known server errors for English and Ukrainian", () => {
     const message = "Сейчас ход соперника";
     expect(translateDraftError(message, "ru")).toBe(message);

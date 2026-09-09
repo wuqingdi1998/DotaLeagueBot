@@ -62,7 +62,7 @@ describe("Fearless Draft fullscreen layout", () => {
       /:fullscreen \.fearless-choice-buttons button\s*\{[^}]*min-height:\s*72px;[^}]*font-size:\s*20px;[^}]*white-space:\s*nowrap;/,
     );
     expect(fullscreenStyles).toMatch(
-      /:fullscreen \.fearless-decision-player \.fearless-player-avatar\s*\{[^}]*width:\s*76px;[^}]*height:\s*76px;/,
+      /:fullscreen \.fearless-choice-participant \.fearless-player-avatar\s*\{[^}]*width:\s*76px;[^}]*height:\s*76px;/,
     );
   });
 

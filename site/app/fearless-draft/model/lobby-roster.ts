@@ -1,5 +1,17 @@
 import type { DraftLobbyPlayer } from "./snapshot";
 
+export function areDraftLobbyTeammates(
+  players: readonly DraftLobbyPlayer[],
+  firstPlayerId: string,
+  secondPlayerId: string,
+): boolean {
+  const firstPlayer = players.find((player) => player.id === firstPlayerId);
+  const secondPlayer = players.find((player) => player.id === secondPlayerId);
+  return Boolean(
+    firstPlayer && secondPlayer && firstPlayer.teamSide === secondPlayer.teamSide,
+  );
+}
+
 export function draftLobbyTeamForCaptain(
   players: DraftLobbyPlayer[],
   captainId: string,

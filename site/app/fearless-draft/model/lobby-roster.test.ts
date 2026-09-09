@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { DraftLobbyPlayer } from "./snapshot";
-import { draftLobbyTeamForCaptain } from "./lobby-roster";
+import {
+  areDraftLobbyTeammates,
+  draftLobbyTeamForCaptain,
+} from "./lobby-roster";
 
 const players: DraftLobbyPlayer[] = [
   { id: "a1", dotaId: "1", name: "A1", avatarUrl: null, teamSide: "a", isOnline: true, slotNumber: 2 },
@@ -24,5 +27,11 @@ describe("season lobby roster placement", () => {
 
   it("does not guess a team when the captain is absent", () => {
     expect(draftLobbyTeamForCaptain(players, "missing")).toEqual([]);
+  });
+
+  it("distinguishes a captain from the viewer's opposing captain", () => {
+    expect(areDraftLobbyTeammates(players, "a2", "a1")).toBe(true);
+    expect(areDraftLobbyTeammates(players, "a2", "b1")).toBe(false);
+    expect(areDraftLobbyTeammates(players, "missing", "a1")).toBe(false);
   });
 });

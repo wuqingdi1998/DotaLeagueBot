@@ -5,7 +5,7 @@ import { FiCheckCircle } from "react-icons/fi";
 import { DraftCoinToss, type CoinTossStage } from "../components/DraftCoinToss";
 import { DraftAvatarPreloader } from "../components/DraftAvatarPreloader";
 import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
-import { PlayerAvatar } from "../components/PlayerAvatar";
+import { DraftChoiceParticipant } from "../components/DraftChoiceParticipant";
 import { useServerNow } from "../hooks/useServerNow";
 import { useDraftStageScroll } from "../hooks/useDraftStageScroll";
 import {
@@ -19,6 +19,7 @@ import type {
 } from "../model/snapshot";
 import type { DraftChoice } from "../model/types";
 import { useDraftLocale } from "../hooks/useDraftLocale";
+import { areDraftLobbyTeammates } from "../model/lobby-roster";
 
 function coinTossStage(elapsedMs: number): CoinTossStage {
   if (elapsedMs < COIN_FLIP_DURATION_MS) return "FLIPPING";
@@ -79,6 +80,23 @@ export function DraftChoices({
     RADIANT: text.choiceRadiant,
     DIRE: text.choiceDire,
   };
+  const isViewerInLobby = Boolean(
+    lobbyPlayers?.some((player) => player.id === userId),
+  );
+  const isDecisionByOwnCaptain = Boolean(
+    lobbyPlayers && areDraftLobbyTeammates(lobbyPlayers, userId, decisionPlayer.id),
+  );
+  const waitingDecisionLabel = isDecisionByOwnCaptain
+    ? text.waitingCaptainDecision
+    : isViewerInLobby
+      ? text.waitingOpponentCaptainDecision
+      : text.waitingDecision;
+  const firstChoiceLabel = map.firstChoice
+    ? `${text.chose}: ${choiceLabels[map.firstChoice]}`
+    : null;
+  const secondChoiceLabel = map.secondChoice
+    ? `${text.chose}: ${choiceLabels[map.secondChoice]}`
+    : null;
 
   return (
     <section className="fearless-choice-screen">
@@ -126,18 +144,24 @@ export function DraftChoices({
 
       {isCoinRevealed && (
         <div className="fearless-decision-card">
-          <div className="fearless-decision-player">
-            <PlayerAvatar player={decisionPlayer} freezeAnimation />
-            <div>
-              <span>{isFirstDecision ? text.firstChoice : text.responseChoice}</span>
-              <strong>{decisionPlayer.name}</strong>
-            </div>
+          <div className="fearless-choice-participants">
+            <DraftChoiceParticipant
+              player={firstChooser}
+              orderLabel={text.choosesFirst}
+              statusLabel={isFirstDecision ? text.choosingNow : text.firstChoiceComplete}
+              choiceLabel={firstChoiceLabel}
+              alignment="left"
+              isActive={isFirstDecision}
+            />
+            <DraftChoiceParticipant
+              player={secondChooser}
+              orderLabel={text.choosesSecond}
+              statusLabel={isFirstDecision ? text.waitingFirstChoice : text.choosingNow}
+              choiceLabel={secondChoiceLabel}
+              alignment="right"
+              isActive={!isFirstDecision}
+            />
           </div>
-          {!isFirstDecision && map.firstChoice && (
-            <p>
-              {firstChooser.name} {text.chose}: <strong>{choiceLabels[map.firstChoice]}</strong>
-            </p>
-          )}
           {decisionPlayer.id === userId ? (
             <div className="fearless-choice-buttons">
               {choices.map((choice) => (
@@ -153,7 +177,7 @@ export function DraftChoices({
             </div>
           ) : (
             <div className="fearless-waiting-choice">
-              <i /> {text.waitingDecision}
+              <i /> {waitingDecisionLabel}
             </div>
           )}
         </div>
