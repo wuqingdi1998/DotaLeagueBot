@@ -25,13 +25,13 @@
 
   .brand > span {
     min-width: 0;
-    gap: 4px;
+    gap: 2px;
     overflow: hidden;
   }
 
   .brand img {
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     border-radius: 11px;
   }
 
