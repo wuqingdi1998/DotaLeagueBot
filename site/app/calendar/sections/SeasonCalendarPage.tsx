@@ -15,9 +15,11 @@ const CalendarEventEditor = dynamic(
 );
 
 export function SeasonCalendarPage({
+  currentMoscowDate,
   initialEvents,
   isOrganizer,
 }: {
+  currentMoscowDate: string;
   initialEvents: SeasonCalendarEvent[];
   isOrganizer: boolean;
 }) {
@@ -44,7 +46,10 @@ export function SeasonCalendarPage({
             события.
           </span>
         </div>
-        <CalendarGrid events={events} />
+        <CalendarGrid
+          currentMoscowDate={currentMoscowDate}
+          events={events}
+        />
         {isOrganizer && (
           <CalendarEventEditor
             events={events}

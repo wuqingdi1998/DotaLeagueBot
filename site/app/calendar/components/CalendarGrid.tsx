@@ -16,7 +16,21 @@ function eventAccessibleLabel(event: SeasonCalendarEvent) {
   return `${date}: ${event.title}`;
 }
 
-export function CalendarGrid({ events }: { events: SeasonCalendarEvent[] }) {
+function calendarDayClassName(
+  date: string | null,
+  currentMoscowDate: string,
+) {
+  if (!date) return "calendar-day is-empty";
+  return `calendar-day${date === currentMoscowDate ? " is-today" : ""}`;
+}
+
+export function CalendarGrid({
+  currentMoscowDate,
+  events,
+}: {
+  currentMoscowDate: string;
+  events: SeasonCalendarEvent[];
+}) {
   const months = buildSeasonCalendarMonths(events);
 
   return (
@@ -39,7 +53,10 @@ export function CalendarGrid({ events }: { events: SeasonCalendarEvent[] }) {
           >
             {month.days.map((day, cellIndex) => (
               <div
-                className={day.date ? "calendar-day" : "calendar-day is-empty"}
+                aria-current={
+                  day.date === currentMoscowDate ? "date" : undefined
+                }
+                className={calendarDayClassName(day.date, currentMoscowDate)}
                 key={day.date ?? `empty-${cellIndex}`}
                 role="gridcell"
               >

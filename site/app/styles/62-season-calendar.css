@@ -296,6 +296,17 @@
   opacity: 0.48;
 }
 
+.calendar-day.is-today::before {
+  position: absolute;
+  z-index: 4;
+  inset: 3px;
+  border: 3px solid var(--blue);
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--surface) 80%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
 .calendar-day:hover .calendar-event-fills,
 .calendar-day:focus-within .calendar-event-fills {
   z-index: 70;

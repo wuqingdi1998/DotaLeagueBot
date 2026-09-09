@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { getSession } from "@/lib/auth";
+import { moscowDateKey } from "@/lib/moscow-date-time";
 import { SeasonCalendarPage } from "./sections/SeasonCalendarPage";
 import { listSeasonCalendarEvents } from "./services/calendar-events";
 
@@ -12,13 +13,18 @@ export const metadata: Metadata = {
 };
 
 export default async function CalendarPage() {
+  const currentMoscowDate = moscowDateKey();
   const [user, events] = await Promise.all([
     getSession(),
     listSeasonCalendarEvents(),
   ]);
   return (
     <PlatformShell user={user}>
-      <SeasonCalendarPage initialEvents={events} isOrganizer={Boolean(user?.isAdmin)} />
+      <SeasonCalendarPage
+        currentMoscowDate={currentMoscowDate}
+        initialEvents={events}
+        isOrganizer={Boolean(user?.isAdmin)}
+      />
     </PlatformShell>
   );
 }
