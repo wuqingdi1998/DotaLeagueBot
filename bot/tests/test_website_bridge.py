@@ -94,6 +94,8 @@ def test_bridge_queues_season_round_checkin_messages_and_missing_report() -> Non
     assert "AND checkin.player_id IS NULL" in BRIDGE
     assert "INTERVAL '2 hours'" in BRIDGE
     assert "INTERVAL '10 minutes'" in BRIDGE
+    assert "Неподтверждение участия не отменяет участие в туре." in BRIDGE
+    assert "вне зависимости от прохождения или непрохождения чек ина!" in BRIDGE
     assert "Не прошли чек-ин:" in BRIDGE
     assert "ON CONFLICT DO NOTHING" in BRIDGE
 
