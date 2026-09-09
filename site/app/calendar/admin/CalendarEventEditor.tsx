@@ -5,6 +5,7 @@ import { FiEdit2, FiPlus, FiTrash2, FiX } from "react-icons/fi";
 import {
   calendarEventColors,
   calendarEventTitleMaxLength,
+  calendarEventUrlMaxLength,
   parseSeasonCalendarEventInput,
   seasonCalendar,
   SeasonCalendarValidationError,
@@ -37,6 +38,7 @@ export function CalendarEventEditor({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [date, setDate] = useState<string>(seasonCalendar.firstDate);
   const [title, setTitle] = useState("");
+  const [url, setUrl] = useState("");
   const [color, setColor] = useState<string>(calendarEventColors[0]);
   const [message, setMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -45,6 +47,7 @@ export function CalendarEventEditor({
     setEditingId(null);
     setDate(seasonCalendar.firstDate);
     setTitle("");
+    setUrl("");
     setColor(calendarEventColors[0]);
   }
 
@@ -52,6 +55,7 @@ export function CalendarEventEditor({
     setEditingId(event.id);
     setDate(event.date);
     setTitle(event.title);
+    setUrl(event.url ?? "");
     setColor(event.color);
     setMessage("");
   }
@@ -61,7 +65,7 @@ export function CalendarEventEditor({
     setIsSaving(true);
     setMessage("");
     try {
-      const input = parseSeasonCalendarEventInput({ date, title, color });
+      const input = parseSeasonCalendarEventInput({ date, title, color, url });
       await onSave(input, editingId);
       setMessage(editingId ? "Событие обновлено" : "Событие добавлено");
       resetForm();
@@ -105,7 +109,7 @@ export function CalendarEventEditor({
       </div>
 
       <form className="calendar-event-form" onSubmit={submitEvent}>
-        <label>
+        <label className="calendar-date-field">
           <span>Дата</span>
           <input
             type="date"
@@ -117,14 +121,24 @@ export function CalendarEventEditor({
           />
         </label>
         <label className="calendar-title-field">
-          <span>Название ивента</span>
+          <span>Текст при наведении</span>
           <input
             type="text"
             value={title}
             maxLength={calendarEventTitleMaxLength}
-            placeholder="Например: Старт регистрации"
+            placeholder="Например: Старт регистрации Fastcup 1"
             onChange={(event) => setTitle(event.target.value)}
             required
+          />
+        </label>
+        <label className="calendar-link-field">
+          <span>Ссылка при нажатии (необязательно)</span>
+          <input
+            type="url"
+            value={url}
+            maxLength={calendarEventUrlMaxLength}
+            placeholder="https://..."
+            onChange={(event) => setUrl(event.target.value)}
           />
         </label>
         <fieldset className="calendar-color-field">
@@ -178,6 +192,7 @@ export function CalendarEventEditor({
                 <span className="calendar-editor-event-copy">
                   <strong>{event.title}</strong>
                   <small>{eventDateLabel(event.date)}</small>
+                  {event.url && <small className="calendar-editor-event-link">Есть ссылка</small>}
                 </span>
                 <button
                   type="button"

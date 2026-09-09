@@ -331,6 +331,10 @@
   cursor: help;
 }
 
+.calendar-event-fill.is-linked {
+  cursor: pointer;
+}
+
 .calendar-event-fill:first-child {
   border-left: 0;
 }

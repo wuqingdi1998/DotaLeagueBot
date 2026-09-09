@@ -8,6 +8,7 @@ export const seasonCalendar = {
 } as const;
 
 export const calendarEventTitleMaxLength = 80;
+export const calendarEventUrlMaxLength = 2048;
 
 export const calendarEventColors = [
   "#00C3FF",
@@ -60,6 +61,7 @@ export type SeasonCalendarEvent = {
   date: string;
   title: string;
   color: string;
+  url: string | null;
 };
 
 export type SeasonCalendarEventInput = Omit<SeasonCalendarEvent, "id">;
@@ -195,6 +197,7 @@ export function parseSeasonCalendarEventInput(
   const title = typeof candidate.title === "string" ? candidate.title.trim() : "";
   const date = typeof candidate.date === "string" ? candidate.date : "";
   const color = typeof candidate.color === "string" ? candidate.color.toUpperCase() : "";
+  const url = typeof candidate.url === "string" ? candidate.url.trim() : "";
 
   if (!title) {
     throw new SeasonCalendarValidationError("Укажите название события");
@@ -221,5 +224,22 @@ export function parseSeasonCalendarEventInput(
   if (!/^#[0-9A-F]{6}$/.test(color)) {
     throw new SeasonCalendarValidationError("Выберите корректный цвет события");
   }
-  return { title, date, color };
+  if (url.length > calendarEventUrlMaxLength) {
+    throw new SeasonCalendarValidationError(
+      `Ссылка должна быть не длиннее ${calendarEventUrlMaxLength} символов`,
+    );
+  }
+  if (url) {
+    try {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+        throw new Error("UNSUPPORTED_CALENDAR_EVENT_URL_PROTOCOL");
+      }
+    } catch {
+      throw new SeasonCalendarValidationError(
+        "Укажите полную ссылку, начинающуюся с http:// или https://",
+      );
+    }
+  }
+  return { title, date, color, url: url || null };
 }

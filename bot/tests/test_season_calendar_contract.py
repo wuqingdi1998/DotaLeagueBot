@@ -7,6 +7,12 @@ MIGRATION = (
     / "migrations"
     / "0092_season_calendar_events.sql"
 ).read_text(encoding="utf-8")
+LINK_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0130_calendar_event_links.sql"
+).read_text(encoding="utf-8")
 
 
 def test_calendar_events_keep_season_date_title_color_and_editors() -> None:
@@ -17,3 +23,9 @@ def test_calendar_events_keep_season_date_title_color_and_editors() -> None:
     assert "color CHAR(7) NOT NULL" in MIGRATION
     assert "created_by BIGINT" in MIGRATION
     assert "updated_by BIGINT" in MIGRATION
+
+
+def test_calendar_events_allow_optional_http_and_https_links() -> None:
+    assert "ADD COLUMN link_url VARCHAR(2048)" in LINK_MIGRATION
+    assert "link_url IS NULL" in LINK_MIGRATION
+    assert "^https?://" in LINK_MIGRATION

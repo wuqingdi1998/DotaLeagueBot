@@ -53,9 +53,12 @@ describe("season nine calendar contract", () => {
 
   it("fills half of event days with hover and keyboard labels", () => {
     expect(page).toContain("listSeasonCalendarEvents");
-    expect(grid).toContain('className="calendar-event-fill"');
-    expect(grid).toContain("data-tooltip={event.title}");
-    expect(grid).toContain("aria-label={eventAccessibleLabel(event)}");
+    expect(grid).toContain("calendar-event-fill${event.url");
+    expect(grid).toContain('"data-tooltip": event.title');
+    expect(grid).toContain('"aria-label": eventAccessibleLabel(event)');
+    expect(grid).toContain("href={event.url}");
+    expect(grid).toContain('target="_blank"');
+    expect(grid).toContain('rel="noopener noreferrer"');
     expect(calendarStyles).toMatch(
       /\.calendar-event-fills\s*\{[^}]*position:\s*absolute;[^}]*height:\s*50%;/,
     );
@@ -132,7 +135,8 @@ describe("season nine calendar contract", () => {
   it("shows the editor only to organizers and protects all changes", () => {
     expect(page).toContain("isOrganizer={Boolean(user?.isAdmin)}");
     expect(editor).toContain("Цвет заливки");
-    expect(editor).toContain("Название ивента");
+    expect(editor).toContain("Текст при наведении");
+    expect(editor).toContain("Ссылка при нажатии (необязательно)");
     expect(route.match(/requireAdmin\(\)/g)).toHaveLength(3);
     expect(route).toContain("createSeasonCalendarEvent");
     expect(route).toContain("updateSeasonCalendarEvent");

@@ -27,6 +27,7 @@ describe("season calendar", () => {
       date: "2026-10-18",
       title: "Финал кубка",
       color: "#7C5CFC",
+      url: "https://example.com/tournaments/final",
     };
     const october = buildSeasonCalendarMonths([event])[1];
     expect(october.days.find((day) => day.date === event.date)?.events).toEqual([
@@ -70,13 +71,20 @@ describe("season calendar", () => {
         date: "2026-12-31",
         title: "  Гранд-финал  ",
         color: "#00c3ff",
+        url: "  https://discord.com/channels/1/2/3  ",
       }),
-    ).toEqual({ date: "2026-12-31", title: "Гранд-финал", color: "#00C3FF" });
+    ).toEqual({
+      date: "2026-12-31",
+      title: "Гранд-финал",
+      color: "#00C3FF",
+      url: "https://discord.com/channels/1/2/3",
+    });
     expect(() =>
       parseSeasonCalendarEventInput({
         date: "2027-01-01",
         title: "Позднее событие",
         color: "#00C3FF",
+        url: "",
       }),
     ).toThrow(SeasonCalendarValidationError);
     expect(() =>
@@ -84,7 +92,26 @@ describe("season calendar", () => {
         date: "2026-10-99",
         title: "Неверная дата",
         color: "#00C3FF",
+        url: null,
       }),
     ).toThrow(SeasonCalendarValidationError);
+  });
+
+  it("keeps links optional and accepts only full web links", () => {
+    expect(
+      parseSeasonCalendarEventInput({
+        date: "2026-10-18",
+        title: "Финал кубка",
+        color: "#7C5CFC",
+      }).url,
+    ).toBeNull();
+    expect(() =>
+      parseSeasonCalendarEventInput({
+        date: "2026-10-18",
+        title: "Финал кубка",
+        color: "#7C5CFC",
+        url: "discord://channels/1/2/3",
+      }),
+    ).toThrow("http:// или https://");
   });
 });

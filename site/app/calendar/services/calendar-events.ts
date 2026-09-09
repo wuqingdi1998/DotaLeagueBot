@@ -10,6 +10,7 @@ type CalendarEventRow = {
   event_date: string;
   title: string;
   color: string;
+  link_url: string | null;
 };
 
 function calendarEventFromRow(row: CalendarEventRow): SeasonCalendarEvent {
@@ -18,12 +19,13 @@ function calendarEventFromRow(row: CalendarEventRow): SeasonCalendarEvent {
     date: row.event_date,
     title: row.title,
     color: row.color.toUpperCase(),
+    url: row.link_url,
   };
 }
 
 export async function listSeasonCalendarEvents(): Promise<SeasonCalendarEvent[]> {
   const rows = await query<CalendarEventRow>(
-    `SELECT id, event_date::text, title, color
+    `SELECT id, event_date::text, title, color, link_url
      FROM season_calendar_events
      WHERE season_number = $1
        AND event_date BETWEEN $2::date AND $3::date
@@ -39,15 +41,16 @@ export async function createSeasonCalendarEvent(
 ): Promise<SeasonCalendarEvent> {
   const row = await one<CalendarEventRow>(
     `INSERT INTO season_calendar_events (
-       season_number, event_date, title, color, created_by, updated_by
+       season_number, event_date, title, color, link_url, created_by, updated_by
      )
-     VALUES ($1, $2::date, $3, $4, $5, $5)
-     RETURNING id, event_date::text, title, color`,
+     VALUES ($1, $2::date, $3, $4, $5, $6, $6)
+     RETURNING id, event_date::text, title, color, link_url`,
     [
       seasonCalendar.seasonNumber,
       input.date,
       input.title,
       input.color,
+      input.url,
       organizerDiscordId,
     ],
   );
@@ -65,14 +68,16 @@ export async function updateSeasonCalendarEvent(
      SET event_date = $1::date,
          title = $2,
          color = $3,
-         updated_by = $4,
+         link_url = $4,
+         updated_by = $5,
          updated_at = NOW()
-     WHERE id = $5 AND season_number = $6
-     RETURNING id, event_date::text, title, color`,
+     WHERE id = $6 AND season_number = $7
+     RETURNING id, event_date::text, title, color, link_url`,
     [
       input.date,
       input.title,
       input.color,
+      input.url,
       organizerDiscordId,
       id,
       seasonCalendar.seasonNumber,

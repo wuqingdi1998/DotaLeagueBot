@@ -47,16 +47,25 @@ export function CalendarGrid({ events }: { events: SeasonCalendarEvent[] }) {
                   <>
                     <span className="calendar-day-number">{day.dayNumber}</span>
                     <span className="calendar-event-fills">
-                      {day.events.map((event) => (
-                        <button
-                          className="calendar-event-fill"
-                          key={event.id}
-                          type="button"
-                          style={{ backgroundColor: event.color }}
-                          aria-label={eventAccessibleLabel(event)}
-                          data-tooltip={event.title}
-                        />
-                      ))}
+                      {day.events.map((event) => {
+                        const sharedProps = {
+                          className: `calendar-event-fill${event.url ? " is-linked" : ""}`,
+                          style: { backgroundColor: event.color },
+                          "aria-label": eventAccessibleLabel(event),
+                          "data-tooltip": event.title,
+                        };
+                        return event.url ? (
+                          <a
+                            {...sharedProps}
+                            href={event.url}
+                            key={event.id}
+                            rel="noopener noreferrer"
+                            target="_blank"
+                          />
+                        ) : (
+                          <button {...sharedProps} key={event.id} type="button" />
+                        );
+                      })}
                     </span>
                   </>
                 )}
