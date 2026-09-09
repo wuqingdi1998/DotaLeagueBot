@@ -17,6 +17,15 @@ const tournamentDirectoryStyles = source(
   "../app/styles/11-tournament-directory.css",
 );
 const tournamentStatusStyles = source("../app/styles/10-community-home.css");
+const tournamentPreferenceMigration = source(
+  "../../bot/database/migrations/0128_tournament_directory_preferences.sql",
+);
+const tournamentPreferenceRoute = source(
+  "../app/api/tournament-directory-preferences/route.ts",
+);
+const tournamentPreferenceHook = source(
+  "../app/tournaments/hooks/useTournamentArchivePreference.ts",
+);
 
 describe("tournament directory contract", () => {
   it("loads season participant and round totals", () => {
@@ -61,6 +70,23 @@ describe("tournament directory contract", () => {
     expect(tournamentDirectory).toContain("Скрыть архивные турниры");
     expect(tournamentDirectory).not.toContain("Текущие и будущие");
     expect(tournamentDirectory).not.toContain('["archive", "Архив"]');
+  });
+
+  it("restores and saves the archive checkbox for each logged-in participant", () => {
+    expect(tournamentPreferenceMigration).toContain(
+      "should_hide_archived_tournaments BOOLEAN NOT NULL DEFAULT FALSE",
+    );
+    expect(tournamentListRoute).toMatch(
+      /loadTournamentDirectoryPreferences\(\s*user\?\.discordId \?\? null,?\s*\)/,
+    );
+    expect(tournamentPreferenceRoute).toContain("requireSession()");
+    expect(tournamentPreferenceRoute).toContain(
+      "saveTournamentDirectoryPreferences",
+    );
+    expect(tournamentPreferenceHook).toContain(
+      '"/api/tournament-directory-preferences"',
+    );
+    expect(tournamentDirectory).toContain("useTournamentArchivePreference");
   });
 
   it("positions card details directly after descriptions of any length", () => {

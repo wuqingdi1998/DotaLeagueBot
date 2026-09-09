@@ -32,9 +32,14 @@ export type TournamentSummary = {
 export type TournamentListResponse = {
   tournaments: TournamentSummary[];
   user: SessionUser | null;
+  preferences: TournamentDirectoryPreferences;
 };
 
 export type TournamentDirectoryFilter = "all" | "seasonal";
+
+export type TournamentDirectoryPreferences = {
+  shouldHideArchivedTournaments: boolean;
+};
 
 export function filterTournamentSummaries(
   tournaments: TournamentSummary[],

@@ -35,6 +35,7 @@ import {
   type TournamentListResponse,
 } from "./hub/tournament-hub-model";
 import { TournamentStatusBadge } from "./hub/TournamentStatusBadge";
+import { useTournamentArchivePreference } from "./hooks/useTournamentArchivePreference";
 
 const TournamentForm = dynamic(
   () => import("./hub/TournamentForm").then((module) => module.TournamentForm),
@@ -45,6 +46,7 @@ function useTournamentList() {
   const [data, setData] = useState<TournamentListResponse>({
     tournaments: [],
     user: null,
+    preferences: { shouldHideArchivedTournaments: false },
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -264,9 +266,18 @@ export function TournamentsDirectory() {
   const { data, loading, error, reload } = useTournamentList();
   const [createOpen, setCreateOpen] = useState(false);
   const [filter, setFilter] = useState<TournamentDirectoryFilter>("all");
-  const [shouldHideArchivedTournaments, setShouldHideArchivedTournaments] =
-    useState(false);
   const [toast, setToast] = useState("");
+  const {
+    shouldHideArchivedTournaments,
+    isSavingPreference,
+    isPreferenceReady,
+    changeShouldHideArchivedTournaments,
+  } = useTournamentArchivePreference({
+    playerId: data.user?.discordId ?? null,
+    savedShouldHideArchivedTournaments:
+      data.preferences.shouldHideArchivedTournaments,
+    isLoading: loading,
+  });
 
   const visibleTournaments = useMemo(
     () =>
@@ -293,6 +304,18 @@ export function TournamentsDirectory() {
         : result.error ?? "Не удалось изменить статус",
     );
     if (response.ok) await reload();
+  }
+
+  async function changeArchivePreference(nextValue: boolean) {
+    try {
+      await changeShouldHideArchivedTournaments(nextValue);
+    } catch (reason) {
+      setToast(
+        reason instanceof Error
+          ? reason.message
+          : "Не удалось сохранить настройку турниров",
+      );
+    }
   }
 
   return (
@@ -337,8 +360,9 @@ export function TournamentsDirectory() {
               <input
                 type="checkbox"
                 checked={shouldHideArchivedTournaments}
+                disabled={!isPreferenceReady || isSavingPreference}
                 onChange={(event) =>
-                  setShouldHideArchivedTournaments(event.target.checked)
+                  void changeArchivePreference(event.target.checked)
                 }
               />
               <span>Скрыть архивные турниры</span>

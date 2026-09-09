@@ -5,13 +5,14 @@ import {
 } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
 import { isTournamentStatus } from "@/lib/tournaments";
+import { loadTournamentDirectoryPreferences } from "@/app/tournaments/services/tournament-directory-preferences";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const user = await getSession();
   const draftFilter = user?.isAdmin ? "" : "WHERE t.status <> 'draft'";
-  const tournaments = await query<Record<string, unknown>>(
+  const tournamentsPromise = query<Record<string, unknown>>(
     `SELECT
        t.id::int,
        t.slug,
@@ -55,8 +56,15 @@ export async function GET() {
        CASE WHEN t.status = 'planned' THEN t.start_at END ASC,
        t.end_at DESC`,
   );
+  const preferencesPromise = loadTournamentDirectoryPreferences(
+    user?.discordId ?? null,
+  );
+  const [tournaments, preferences] = await Promise.all([
+    tournamentsPromise,
+    preferencesPromise,
+  ]);
 
-  return Response.json({ tournaments, user });
+  return Response.json({ tournaments, user, preferences });
 }
 
 export async function PATCH(request: Request) {
