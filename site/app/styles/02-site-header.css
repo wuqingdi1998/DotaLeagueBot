@@ -32,14 +32,16 @@
 }
 
 .brand img {
-  width: 52px;
-  height: 52px;
+  width: 56px;
+  height: 56px;
   flex: 0 0 auto;
   border-radius: 15px;
   box-shadow: 0 8px 25px rgba(0, 195, 255, 0.22);
 }
 
 .site-header .brand img {
+  width: 52px;
+  height: 52px;
   box-shadow: none;
 }
 
@@ -58,11 +60,15 @@
 }
 
 .brand small {
-  margin-top: 3px;
+  margin-top: 6px;
   color: var(--muted);
   font-size: 15.5px;
   font-weight: 600;
   letter-spacing: 0.04em;
+}
+
+.site-header .brand small {
+  margin-top: 3px;
 }
 
 .header-center {
