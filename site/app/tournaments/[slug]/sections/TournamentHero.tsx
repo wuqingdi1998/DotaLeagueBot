@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { formatMoscowYear } from "@/lib/moscow-date-time";
 import type { CSSProperties } from "react";
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { dayCountLabel } from "@/lib/countdown";
 import { isPastTournament } from "@/lib/tournaments";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
@@ -12,6 +12,7 @@ import {
   formatTournamentShortDateRange,
 } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
+import { useTournamentHeroVisibility } from "../hooks/useTournamentHeroVisibility";
 import { formatDayMonth } from "../model/formatters";
 
 export function TournamentHero() {
@@ -21,7 +22,15 @@ export function TournamentHero() {
     openTournamentTab,
     registrationAvailable,
     season,
+    setToast,
   } = useTournament();
+  const { isCollapsed, isSaving, toggleHeroVisibility } =
+    useTournamentHeroVisibility({
+      initialIsCollapsed: data?.heroPreference.isCollapsed ?? false,
+      playerId: data?.user?.discordId ?? null,
+      tournamentId: data?.tournament.id ?? null,
+      onSaveError: setToast,
+    });
   if (!data) return null;
 
   const { tournament } = data;
@@ -54,8 +63,17 @@ export function TournamentHero() {
         : `Вы ${isPast ? "не участвовали" : "не участвуете"} в этом турнире`;
 
   return (
-    <>
-      <section className="hero" id="top">
+    <div
+      className={`tournament-hero-shell${isCollapsed ? " is-collapsed" : ""}`}
+    >
+      <div className="tournament-hero-collapse-region">
+        <div
+          className="tournament-hero-collapse-content"
+          id="tournament-hero-content"
+          aria-hidden={isCollapsed}
+          inert={isCollapsed ? true : undefined}
+        >
+          <section className="hero" id="top">
         <div className="hero-orb hero-orb-one" />
         <div className="hero-orb hero-orb-two" />
         <div className="hero-content">
@@ -177,42 +195,61 @@ export function TournamentHero() {
             <p>{participationMessage}</p>
           </div>}
         </div>
-      </section>
+          </section>
 
-      {isSeasonal ? (
-        <section
-          className="quick-facts season-quick-facts"
-          aria-label="Информация о сезоне"
-          style={
-            {
-              "--season-fact-count": data.seasonFacts.length,
-            } as CSSProperties
-          }
-        >
-          {data.seasonFacts.map((fact) => (
-            <div key={fact.id}>
-              <span>{fact.value}</span>
-              <strong>{fact.label}</strong>
-            </div>
-          ))}
-        </section>
-      ) : (
-        <section
-          className={`quick-facts${
-            competitionStages.length === 2 ? " quick-facts-two" : ""
-          }`}
-          aria-label="Этапы турнира"
-        >
-          {competitionStages.map((stage, index) => (
-            <div key={stage.key}>
-              <span>{index + 1}</span>
-              <strong>{stage.description}</strong>
-            </div>
-          ))}
-        </section>
-      )}
+          {isSeasonal ? (
+            <section
+              className="quick-facts season-quick-facts"
+              aria-label="Информация о сезоне"
+              style={
+                {
+                  "--season-fact-count": data.seasonFacts.length,
+                } as CSSProperties
+              }
+            >
+              {data.seasonFacts.map((fact) => (
+                <div key={fact.id}>
+                  <span>{fact.value}</span>
+                  <strong>{fact.label}</strong>
+                </div>
+              ))}
+            </section>
+          ) : (
+            <section
+              className={`quick-facts${
+                competitionStages.length === 2 ? " quick-facts-two" : ""
+              }`}
+              aria-label="Этапы турнира"
+            >
+              {competitionStages.map((stage, index) => (
+                <div key={stage.key}>
+                  <span>{index + 1}</span>
+                  <strong>{stage.description}</strong>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+      </div>
 
-    </>
+      <button
+        type="button"
+        className="tournament-hero-toggle"
+        onClick={() => void toggleHeroVisibility()}
+        disabled={isSaving}
+        aria-busy={isSaving}
+        aria-controls="tournament-hero-content"
+        aria-expanded={!isCollapsed}
+        aria-label={
+          isCollapsed ? "Развернуть шапку турнира" : "Свернуть шапку турнира"
+        }
+        title={
+          isCollapsed ? "Развернуть шапку турнира" : "Свернуть шапку турнира"
+        }
+      >
+        {isCollapsed ? <FiChevronDown /> : <FiChevronUp />}
+      </button>
+    </div>
   );
 }
 

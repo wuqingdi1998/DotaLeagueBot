@@ -186,6 +186,9 @@ export type TournamentSiteData = {
   }>;
   scheduleDays: TournamentScheduleDay[];
   seasonFacts: TournamentSeasonFact[];
+  heroPreference: {
+    isCollapsed: boolean;
+  };
   registrationCaptainTier: number | null;
   user: {
     discordId: string;

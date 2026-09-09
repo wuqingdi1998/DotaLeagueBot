@@ -1,6 +1,9 @@
 import { getSession } from "@/lib/auth";
 import { one, query } from "@/lib/db";
 import { defaultSeasonFacts } from "@/lib/season-facts";
+import {
+  loadTournamentHeroPreference,
+} from "@/app/tournaments/[slug]/services/tournament-hero-preferences";
 export { POST } from "./tournament-create";
 export { PATCH } from "./tournament-update";
 
@@ -164,6 +167,7 @@ export async function GET(request: Request) {
     scheduleDays,
     scheduleEntries,
     seasonFacts,
+    heroPreference,
   ] =
     await Promise.all([
       query<ApplicationRow>(
@@ -386,6 +390,7 @@ export async function GET(request: Request) {
          ORDER BY sort_order, id`,
         [tournament.id],
       ),
+      loadTournamentHeroPreference(user?.discordId ?? null, tournament.id),
     ]);
 
   const membersByApplication = new Map<number, MemberRow[]>();
@@ -428,6 +433,7 @@ export async function GET(request: Request) {
       entries: scheduleEntries.filter((entry) => entry.day_id === day.id),
     })),
     seasonFacts: resolvedSeasonFacts,
+    heroPreference,
     registrationCaptainTier: registrationCaptain?.tier ?? null,
     user,
     invitations,
