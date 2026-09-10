@@ -15,6 +15,15 @@ const fastCupCard = source("../app/season/components/FastCupCard.tsx");
 const leagueCupCard = source(
   "../app/season/components/LeagueCupOverviewCard.tsx",
 );
+const linkEditor = source(
+  "../app/season/admin/SeasonTournamentLinkEditor.tsx",
+);
+const linkRoute = source(
+  "../app/api/admin/season-tournament-links/route.ts",
+);
+const linkService = source(
+  "../app/season/services/season-tournament-links.ts",
+);
 const model = source("../app/season/model/season-overview-model.ts");
 const styles = source("../app/styles/64-season-overview.css");
 const secondaryStyles = source(
@@ -126,6 +135,20 @@ describe("season overview page", () => {
     expect(`${page}${section}${fastCupCard}${model}`).not.toContain("—");
   });
 
+  it("lets only an organizer add every missing tournament link", () => {
+    expect(page).toContain("isOrganizer={Boolean(user?.isAdmin)}");
+    expect(section).toContain("isOrganizer && !leagueCupHref");
+    expect(fastCupSection).toContain("isOrganizer && !tournamentHref");
+    expect(linkEditor).toContain("FiEdit3");
+    expect(linkEditor).toContain("Ссылка на турнир");
+    expect(linkEditor).toContain("router.refresh()");
+    expect(linkEditor).toContain("if (isSaved) return null");
+    expect(linkRoute).toContain("requireAdmin");
+    expect(linkRoute).toContain("normalizeSeasonTournamentHref");
+    expect(linkService).toContain("site_settings");
+    expect(linkService).toContain("updated_by");
+  });
+
   it("uses balanced desktop grids and isolates its styles", () => {
     expect(page).toContain("hasFooter={false}");
     expect(styles).toMatch(
@@ -152,6 +175,7 @@ describe("season overview page", () => {
     const layout = source("../app/season/layout.tsx");
     expect(layout).toContain("season-route.css");
     expect(layout).toContain("65-season-secondary-overview.css");
+    expect(layout).toContain("66-season-link-editor.css");
     expect(layout).not.toContain("66-season-overview-desktop.css");
     expect(seasonRule).toContain("Читабельность важнее");
     expect(seasonRule).toContain("Весь текст на странице не меньше 13 px");

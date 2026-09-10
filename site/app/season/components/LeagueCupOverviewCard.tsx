@@ -1,7 +1,17 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
 import { FiArrowRight, FiAward, FiCalendar, FiStar, FiUserCheck } from "react-icons/fi";
 import { leagueCupOverview } from "../model/season-overview-model";
 
-export function LeagueCupOverviewCard() {
+type LeagueCupOverviewCardProps = {
+  tournamentHref: string | null;
+  linkEditor?: ReactNode;
+};
+
+export function LeagueCupOverviewCard({
+  tournamentHref,
+  linkEditor,
+}: LeagueCupOverviewCardProps) {
   return (
     <article className="season-feature-card season-cup-card">
       <div className="season-card-heading">
@@ -45,13 +55,21 @@ export function LeagueCupOverviewCard() {
       </div>
 
       <div className="season-card-action">
-        <span
-          className="season-tournament-link is-disabled"
-          aria-disabled="true"
-        >
-          Открыть кубок
-          <FiArrowRight aria-hidden="true" />
-        </span>
+        {tournamentHref ? (
+          <Link className="season-tournament-link" href={tournamentHref}>
+            Открыть кубок
+            <FiArrowRight aria-hidden="true" />
+          </Link>
+        ) : (
+          <span
+            className="season-tournament-link is-disabled"
+            aria-disabled="true"
+          >
+            Открыть кубок
+            <FiArrowRight aria-hidden="true" />
+          </span>
+        )}
+        {linkEditor}
       </div>
     </article>
   );

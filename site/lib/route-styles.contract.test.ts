@@ -41,6 +41,7 @@ describe("route-specific styles", () => {
     const seasonLayout = source("../app/season/layout.tsx");
     expect(seasonLayout).toContain("season-route.css");
     expect(seasonLayout).toContain("65-season-secondary-overview.css");
+    expect(seasonLayout).toContain("66-season-link-editor.css");
   });
 
   it("loads mobile tournament rules after the desktop tournament modules", () => {

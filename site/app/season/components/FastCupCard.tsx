@@ -1,8 +1,19 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { FiArrowRight } from "react-icons/fi";
 import type { FastCupOverview } from "../model/season-overview-model";
 
-export function FastCupCard({ cup }: { cup: FastCupOverview }) {
+type FastCupCardProps = {
+  cup: FastCupOverview;
+  tournamentHref: string | null;
+  linkEditor?: ReactNode;
+};
+
+export function FastCupCard({
+  cup,
+  tournamentHref,
+  linkEditor,
+}: FastCupCardProps) {
   const content = (
     <>
       <h3>{cup.title}</h3>
@@ -12,23 +23,26 @@ export function FastCupCard({ cup }: { cup: FastCupOverview }) {
         <span>Турнир для Boosty подписчиков</span>
         <strong>Призовой фонд – {cup.prize}</strong>
       </div>
-      <span
-        className={`fast-cup-open-link${cup.tournamentHref ? "" : " is-disabled"}`}
-        aria-disabled={cup.tournamentHref ? undefined : "true"}
-      >
-        Открыть турнир <FiArrowRight aria-hidden="true" />
-      </span>
+      <div className="fast-cup-action">
+        <span
+          className={`fast-cup-open-link${tournamentHref ? "" : " is-disabled"}`}
+          aria-disabled={tournamentHref ? undefined : "true"}
+        >
+          Открыть турнир <FiArrowRight aria-hidden="true" />
+        </span>
+        {linkEditor}
+      </div>
     </>
   );
 
   return (
     <article
-      className={`fast-cup-card is-${cup.accent}${cup.tournamentHref ? "" : " is-disabled"}`}
+      className={`fast-cup-card is-${cup.accent}${tournamentHref ? "" : " is-disabled"}`}
     >
-      {cup.tournamentHref ? (
+      {tournamentHref ? (
         <Link
           className="fast-cup-card-link"
-          href={cup.tournamentHref}
+          href={tournamentHref}
           aria-label={`Открыть ${cup.title}`}
         >
           {content}

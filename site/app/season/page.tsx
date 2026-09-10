@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
 import { getSession } from "@/lib/auth";
+import { getSeasonTournamentLinks } from "./services/season-tournament-links";
 import { SeasonOverviewPage } from "./sections/SeasonOverviewPage";
 
 export const metadata: Metadata = {
@@ -10,11 +11,17 @@ export const metadata: Metadata = {
 };
 
 export default async function SeasonPage() {
-  const user = await getSession();
+  const [user, tournamentLinks] = await Promise.all([
+    getSession(),
+    getSeasonTournamentLinks(),
+  ]);
 
   return (
     <PlatformShell user={user} hasFooter={false}>
-      <SeasonOverviewPage />
+      <SeasonOverviewPage
+        isOrganizer={Boolean(user?.isAdmin)}
+        tournamentLinks={tournamentLinks}
+      />
     </PlatformShell>
   );
 }

@@ -1,0 +1,102 @@
+.season-card-action {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.season-link-edit-button,
+.season-link-editor-controls button {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--blue-deep);
+  cursor: pointer;
+  font-size: 18px;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.season-link-edit-button:hover,
+.season-link-editor-controls button:hover {
+  border-color: var(--blue-strong);
+  background: var(--surface-blue);
+  color: var(--blue-strong);
+}
+
+.season-link-edit-button:focus-visible,
+.season-link-editor-controls button:focus-visible,
+.season-link-editor input:focus-visible {
+  outline: 3px solid rgba(0, 195, 255, 0.28);
+  outline-offset: 2px;
+}
+
+.season-link-editor {
+  display: grid;
+  width: 100%;
+  flex: 1 0 100%;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.season-link-editor > label {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.season-link-editor-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.season-link-editor input {
+  min-width: 0;
+  height: 44px;
+  flex: 1 1 auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  padding: 0 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.season-link-editor input::placeholder {
+  color: var(--muted);
+}
+
+.season-link-edit-button:disabled,
+.season-link-editor-controls button:disabled,
+.season-link-editor input:disabled {
+  cursor: wait;
+  opacity: 0.62;
+}
+
+.season-link-editor-error {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.fast-cup-action .season-link-editor-controls {
+  flex-wrap: wrap;
+}
+
+.fast-cup-action .season-link-editor input {
+  flex-basis: 100%;
+}
+
+@media (max-width: 700px) {
+  .season-card-action .season-link-edit-button {
+    width: 100%;
+    flex-basis: 100%;
+  }
+}

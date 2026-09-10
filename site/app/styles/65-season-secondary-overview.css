@@ -155,10 +155,17 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  margin-top: auto;
   color: var(--blue-deep);
   font-size: 13px;
   font-weight: 700;
+}
+
+.fast-cup-action {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
 }
 
 .fast-cup-open-link svg {
