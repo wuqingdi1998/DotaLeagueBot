@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchStratzRankedMatches, stratzMatchesFromPayload } from "./stratz";
 
+const roundStartsAt = new Date("2026-09-10T18:00:00.000Z");
+
 describe("Stratz season ranked wins", () => {
   it("uses the exact position and victory reported for the requested player", () => {
     const matches = stratzMatchesFromPayload(
@@ -82,7 +84,7 @@ describe("Stratz season ranked wins", () => {
       }),
     );
 
-    await fetchStratzRankedMatches("20");
+    await fetchStratzRankedMatches("20", roundStartsAt);
 
     expect(timeoutSpy).toHaveBeenCalledWith(45_000);
     const request = fetchSpy.mock.calls[0]?.[1];
@@ -105,7 +107,7 @@ describe("Stratz season ranked wins", () => {
         ),
       );
 
-    const matchesPromise = fetchStratzRankedMatches("20");
+    const matchesPromise = fetchStratzRankedMatches("20", roundStartsAt);
     await vi.runAllTimersAsync();
 
     await expect(matchesPromise).resolves.toEqual([]);
@@ -121,7 +123,9 @@ describe("Stratz season ranked wins", () => {
       ),
     );
 
-    await expect(fetchStratzRankedMatches("20")).resolves.toEqual([]);
+    await expect(
+      fetchStratzRankedMatches("20", roundStartsAt),
+    ).resolves.toEqual([]);
   });
 
   it("does not treat a GraphQL error with an empty list as zero wins", async () => {
@@ -136,7 +140,7 @@ describe("Stratz season ranked wins", () => {
       ),
     );
 
-    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+    await expect(fetchStratzRankedMatches("20", roundStartsAt)).rejects.toThrow(
       "Stratz did not return the first match page",
     );
   });
@@ -172,7 +176,7 @@ describe("Stratz season ranked wins", () => {
     );
 
     await expect(
-      fetchStratzRankedMatches("20", new Date("2026-08-27T12:00:00.000Z")),
+      fetchStratzRankedMatches("20", roundStartsAt),
     ).resolves.toMatchObject([{ matchId: "150", role: 1, won: true }]);
   });
 
@@ -182,7 +186,7 @@ describe("Stratz season ranked wins", () => {
       new Response(JSON.stringify({ data: { player: null } }), { status: 200 }),
     );
 
-    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+    await expect(fetchStratzRankedMatches("20", roundStartsAt)).rejects.toThrow(
       "Stratz did not return the first match page",
     );
   });
@@ -211,7 +215,7 @@ describe("Stratz season ranked wins", () => {
       .mockResolvedValueOnce(new Response("unavailable", { status: 503 }));
 
     await expect(
-      fetchStratzRankedMatches("20", new Date("2026-08-27T12:00:00.000Z")),
+      fetchStratzRankedMatches("20", roundStartsAt),
     ).resolves.toMatchObject([{ matchId: "200", role: 3, won: true }]);
   });
 
@@ -221,7 +225,7 @@ describe("Stratz season ranked wins", () => {
       new Response("unavailable", { status: 503 }),
     );
 
-    await expect(fetchStratzRankedMatches("20")).rejects.toThrow(
+    await expect(fetchStratzRankedMatches("20", roundStartsAt)).rejects.toThrow(
       "Stratz match page 1 returned HTTP 503",
     );
   });

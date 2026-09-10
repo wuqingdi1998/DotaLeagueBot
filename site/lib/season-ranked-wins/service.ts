@@ -9,15 +9,17 @@ import { fetchStratzRankedMatches } from "./stratz";
 export class SeasonRankedWinsError extends Error {}
 
 export async function calculateSeasonRankedWins({
+  checkedAt,
   dotaId,
-  now,
   positions,
+  windowEndsAt,
 }: {
+  checkedAt?: Date;
   dotaId: string;
-  now?: Date;
   positions: string | null;
+  windowEndsAt: Date;
 }) {
-  const requestStartedAt = now ?? new Date();
+  const requestStartedAt = checkedAt ?? new Date();
   const parsedPositions = parsePlayerPositions(positions);
   if (!parsedPositions) {
     throw new SeasonRankedWinsError(
@@ -27,7 +29,7 @@ export async function calculateSeasonRankedWins({
 
   let matches: Awaited<ReturnType<typeof fetchStratzRankedMatches>>;
   try {
-    matches = await fetchStratzRankedMatches(dotaId, requestStartedAt);
+    matches = await fetchStratzRankedMatches(dotaId, windowEndsAt);
   } catch (error) {
     console.warn("Stratz ranked wins lookup failed", {
       reason: error instanceof Error ? error.message : "unknown",
@@ -39,7 +41,7 @@ export async function calculateSeasonRankedWins({
 
   const winsWithoutRoles = findRankedWinsWithoutRoles({
     matches,
-    now: requestStartedAt,
+    windowEndsAt,
   });
   if (winsWithoutRoles.length) {
     try {
@@ -60,8 +62,9 @@ export async function calculateSeasonRankedWins({
   }
 
   return calculateRankedWinSnapshot({
+    checkedAt: requestStartedAt,
     matches,
-    now: requestStartedAt,
     positions: parsedPositions,
+    windowEndsAt,
   });
 }

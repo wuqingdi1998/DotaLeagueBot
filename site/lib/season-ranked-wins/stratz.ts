@@ -146,14 +146,15 @@ async function requestStratzMatchPage({
 
 export async function fetchStratzRankedMatches(
   dotaId: string,
-  now = new Date(),
+  windowEndsAt: Date,
 ): Promise<RankedMatchCandidate[]> {
   const token = process.env.STRATZ_TOKEN?.trim();
   if (!token || !/^\d{1,10}$/.test(dotaId)) {
     throw new Error("Stratz is not configured or the Dota ID is invalid");
   }
   const cutoff = new Date(
-    now.getTime() - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
+    windowEndsAt.getTime()
+      - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
   );
   const matches: RankedMatchCandidate[] = [];
   let hasCompletedPage = false;

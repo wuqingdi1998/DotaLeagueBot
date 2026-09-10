@@ -16,13 +16,20 @@ const input = {
   roundId: 1, playerId: "100", positions: "1/5", source: "manual" as const,
   primaryWins: 14, secondaryWins: 0,
 };
+const roundStartsAt = new Date("2026-09-10T18:00:00.000Z");
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.one.mockResolvedValue({ player_id: "100" });
+  mocks.one.mockResolvedValue({
+    player_id: "100",
+    scheduled_at: roundStartsAt,
+  });
   mocks.target.mockResolvedValue({ dota_id: "200", positions: "1/5" });
   mocks.transaction.mockImplementation((callback) => callback({ query: mocks.query }));
-  mocks.query.mockResolvedValue({ rowCount: 1, rows: [{ tournament_id: 9 }] });
+  mocks.query.mockResolvedValue({
+    rowCount: 1,
+    rows: [{ scheduled_at: roundStartsAt, tournament_id: 9 }],
+  });
   mocks.save.mockResolvedValue(true);
 });
 
@@ -47,7 +54,10 @@ describe("organizer win changes", () => {
     mocks.stratz.mockResolvedValue({ primaryWins: 15, secondaryWins: 4 });
     await updateOrganizerRankedWins({ ...input, source: "stratz" }, "999");
     expect(mocks.stratz).toHaveBeenCalledWith({
-      dotaId: "200", positions: "1/5", now: expect.any(Date),
+      checkedAt: expect.any(Date),
+      dotaId: "200",
+      positions: "1/5",
+      windowEndsAt: roundStartsAt,
     });
     expect(mocks.save).toHaveBeenCalledWith(
       1, "100", { primaryWins: 15, secondaryWins: 4 },

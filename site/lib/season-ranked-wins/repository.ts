@@ -13,7 +13,14 @@ type PlayerWinTarget = {
   positions: string | null;
 };
 
-type RoundPlayerWinTarget = PlayerWinTarget & { round_id: number };
+type RoundPlayerWinTarget = PlayerWinTarget & {
+  round_id: number;
+  window_ends_at: Date;
+};
+
+type RoundRankedWinWindowRow = {
+  window_ends_at: Date | null;
+};
 
 type RankedWinCheckRow = {
   primary_role: number;
@@ -103,7 +110,24 @@ export async function savePlayerRankedWins(
   return saved.length > 0;
 }
 
-async function performPlayerRefresh(roundId: number, playerId: string): Promise<RankedWinSnapshot> {
+async function rankedWinWindowEndsAt(roundId: number): Promise<Date> {
+  const round = await one<RoundRankedWinWindowRow>(
+    `SELECT scheduled_at AS window_ends_at
+     FROM season_rounds
+     WHERE id = $1`,
+    [roundId],
+  );
+  if (!round?.window_ends_at) {
+    throw new SeasonRankedWinsError("У выбранного тура не указано время старта");
+  }
+  return round.window_ends_at;
+}
+
+async function performPlayerRefresh(
+  roundId: number,
+  playerId: string,
+  knownWindowEndsAt?: Date,
+): Promise<RankedWinSnapshot> {
   const fixed = await one<RankedWinCheckRow>(
     `SELECT primary_role::int, secondary_role::int, primary_wins::int,
        secondary_wins::int, checked_at FROM season_ranked_win_checks
@@ -111,10 +135,16 @@ async function performPlayerRefresh(roundId: number, playerId: string): Promise<
        AND source IN ('manual', 'dotabuff')`, [roundId, playerId],
   );
   if (fixed) return snapshotFromRow(fixed);
-  const target = await playerWinTarget(playerId);
+  const [target, windowEndsAt] = await Promise.all([
+    playerWinTarget(playerId),
+    knownWindowEndsAt
+      ? Promise.resolve(knownWindowEndsAt)
+      : rankedWinWindowEndsAt(roundId),
+  ]);
   const snapshot = await calculateSeasonRankedWins({
     dotaId: target.dota_id,
     positions: target.positions,
+    windowEndsAt,
   });
   const isSaved = await savePlayerRankedWins(roundId, playerId, snapshot);
   if (isSaved) return snapshot;
@@ -130,11 +160,16 @@ async function performPlayerRefresh(roundId: number, playerId: string): Promise<
 export async function refreshPlayerRankedWins(
   roundId: number,
   playerId: string,
+  windowEndsAt?: Date,
 ): Promise<RankedWinSnapshot> {
   const refreshKey = `${roundId}:${playerId}`;
   const pending = pendingPlayerRefreshes.get(refreshKey);
   if (pending) return pending;
-  const refresh = performPlayerRefresh(roundId, playerId).finally(() => {
+  const refresh = performPlayerRefresh(
+    roundId,
+    playerId,
+    windowEndsAt,
+  ).finally(() => {
     pendingPlayerRefreshes.delete(refreshKey);
   });
   pendingPlayerRefreshes.set(refreshKey, refresh);
@@ -175,7 +210,11 @@ async function refreshTargetBatch(targets: RoundPlayerWinTarget[]): Promise<numb
   let refreshed = 0;
   for (const target of targets) {
     try {
-      await refreshPlayerRankedWins(target.round_id, target.player_id);
+      await refreshPlayerRankedWins(
+        target.round_id,
+        target.player_id,
+        target.window_ends_at,
+      );
       refreshed += 1;
     } catch (error) {
       console.error("Season ranked wins refresh failed", {
@@ -194,6 +233,7 @@ export async function refreshRegisteredSeasonRankedWins(): Promise<{
   const targets = await query<RoundPlayerWinTarget>(
     `SELECT registration.round_id::int,
        registration.player_id::text,
+       round.scheduled_at AS window_ends_at,
        COALESCE(current_player.steam_id32, player.steam_id32)::text AS dota_id,
        COALESCE(NULLIF(current_player.positions, ''), player.positions)
          AS positions
@@ -212,6 +252,7 @@ export async function refreshRegisteredSeasonRankedWins(): Promise<{
        AND tournament.status IN ('registration', 'active')
        AND season_round_status_at(round.scheduled_at, round.status)
          IN ('planned', 'active')
+       AND round.scheduled_at IS NOT NULL
        AND round.is_visible = TRUE
      ORDER BY registration.round_id, registration.player_id`,
   );

@@ -10,14 +10,18 @@ export async function updateOrganizerRankedWins(
   actorDiscordId: string,
 ) {
   const now = new Date();
-  const registration = await one(
-    `SELECT registration.player_id FROM season_round_registrations registration
+  const registration = await one<{ player_id: string; scheduled_at: Date | null }>(
+    `SELECT registration.player_id::text, round.scheduled_at
+     FROM season_round_registrations registration
      JOIN season_rounds round ON round.id = registration.round_id
      JOIN tournaments tournament ON tournament.id = round.tournament_id
      WHERE registration.round_id = $1 AND registration.player_id = $2
        AND tournament.tournament_type = 'seasonal'`, [update.roundId, update.playerId],
   );
   if (!registration) throw new Response("Регистрация игрока не найдена", { status: 404 });
+  if (update.source === "stratz" && !registration.scheduled_at) {
+    throw new Response("У выбранного тура не указано время старта", { status: 409 });
+  }
   const target = await playerWinTarget(update.playerId);
   const positions = parsePlayerPositions(target.positions);
   if (!positions || target.positions !== update.positions) {
@@ -27,18 +31,36 @@ export async function updateOrganizerRankedWins(
   if (update.source === "manual") {
     snapshot = manualRankedWinSnapshot(positions, update.primaryWins, update.secondaryWins, now);
   } else {
-    snapshot = await calculateSeasonRankedWins({ dotaId: target.dota_id, positions: target.positions, now });
+    snapshot = await calculateSeasonRankedWins({
+      checkedAt: now,
+      dotaId: target.dota_id,
+      positions: target.positions,
+      windowEndsAt: registration.scheduled_at as Date,
+    });
   }
   return transaction(async (client) => {
-    const registration = await client.query<{ tournament_id: number }>(
-      `SELECT round.tournament_id::int FROM season_round_registrations registration
+    const currentRegistration = await client.query<{
+      scheduled_at: Date | null;
+      tournament_id: number;
+    }>(
+      `SELECT round.tournament_id::int, round.scheduled_at
+       FROM season_round_registrations registration
        JOIN season_rounds round ON round.id = registration.round_id
        JOIN tournaments tournament ON tournament.id = round.tournament_id
        WHERE registration.round_id = $1 AND registration.player_id = $2
          AND tournament.tournament_type = 'seasonal'
        FOR UPDATE OF registration`, [update.roundId, update.playerId],
     );
-    if (!registration.rowCount) throw new Response("Регистрация игрока не найдена", { status: 404 });
+    if (!currentRegistration.rowCount) throw new Response("Регистрация игрока не найдена", { status: 404 });
+    if (
+      currentRegistration.rows[0].scheduled_at?.getTime()
+      !== registration.scheduled_at?.getTime()
+    ) {
+      throw new Response(
+        "Время старта тура изменилось. Повторите обновление побед",
+        { status: 409 },
+      );
+    }
     const execute: typeof query = async (sql, values) => (await client.query(sql, [...(values ?? [])])).rows;
     async function fetchOne<T extends QueryResultRow>(sql: string, values?: readonly unknown[]): Promise<T | null> {
       return (await execute<T>(sql, values))[0] ?? null;
@@ -60,7 +82,7 @@ export async function updateOrganizerRankedWins(
       `INSERT INTO tournament_audit_log
        (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
        VALUES ($1, $2, 'update', 'season_ranked_wins', $3, $4::jsonb)`,
-      [registration.rows[0].tournament_id, actorDiscordId, update.playerId,
+      [currentRegistration.rows[0].tournament_id, actorDiscordId, update.playerId,
         JSON.stringify({ roundId: update.roundId, source: update.source,
           ...snapshot })],
     );

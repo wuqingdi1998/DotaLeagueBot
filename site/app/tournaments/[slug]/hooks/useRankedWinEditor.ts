@@ -49,21 +49,22 @@ export function useRankedWinEditor(registration: SeasonRoundRegistration, onSave
     }
   }
 
-  async function sendWarning(): Promise<{ alreadySent: boolean } | null> {
-    if (isSavingRef.current) return null;
+  async function sendWarning(): Promise<boolean> {
+    if (isSavingRef.current) return false;
     isSavingRef.current = true;
     setError("");
     setIsSendingWarning(true);
     try {
-      return await sendRankedWinWarning({
+      await sendRankedWinWarning({
         roundId: registration.round_id,
         playerId: registration.player_id,
       });
+      return true;
     } catch (error) {
       setError(error instanceof Error
         ? error.message
         : "Не удалось отправить предупреждение");
-      return null;
+      return false;
     } finally {
       isSavingRef.current = false;
       setIsSendingWarning(false);

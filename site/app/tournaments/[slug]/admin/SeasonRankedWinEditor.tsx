@@ -26,12 +26,9 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
   }
 
   async function sendWarning() {
-    const result = await editor.sendWarning();
-    if (!result) return;
+    if (!await editor.sendWarning()) return;
     dialogRef.current?.close();
-    setToast(result.alreadySent
-      ? `Предупреждение ${registration.nickname} уже отправлялось`
-      : `Предупреждение ${registration.nickname} отправлено`);
+    setToast(`Предупреждение ${registration.nickname} отправлено`);
   }
 
   return (
@@ -54,7 +51,9 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
           <FiX aria-hidden="true" />
         </button>
         <h3 id={titleId}>Победы {registration.nickname}</h3>
-        <p>Рейтинговые победы за последние {SEASON_RANKED_WIN_WINDOW_DAYS} дней</p>
+        <p>
+          Рейтинговые победы за {SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура
+        </p>
         <div className="season-ranked-win-sources">
           <button type="button" className="secondary-button" disabled={isSaving || !positions}
             onClick={() => void save("stratz")}>

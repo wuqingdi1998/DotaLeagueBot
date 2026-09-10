@@ -37,12 +37,14 @@ describe("manual ranked win warning", () => {
       .mockResolvedValueOnce({ rowCount: 1, rows: [] });
 
     await expect(queueOrganizerRankedWinWarning(target, "999"))
-      .resolves.toEqual({ ok: true, alreadySent: false });
+      .resolves.toEqual({ ok: true });
     expect(mocks.query.mock.calls[1][0]).toContain("INSERT INTO notification_outbox");
     expect(mocks.query.mock.calls[1][1]).toEqual([
       "100",
       3,
-      "season_ranked_wins_manual_warning",
+      expect.stringMatching(
+        /^season_ranked_wins_manual_warning:[0-9a-f-]{36}$/,
+      ),
       "Внимание!",
       RANKED_WIN_WARNING_MESSAGE,
     ]);
@@ -54,14 +56,26 @@ describe("manual ranked win warning", () => {
     ]);
   });
 
-  it("does not add a duplicate warning for the same player and round", async () => {
+  it("queues a new warning after every organizer click", async () => {
     mocks.query
       .mockResolvedValueOnce({ rowCount: 1, rows: [{ tournament_id: 9 }] })
-      .mockResolvedValueOnce({ rowCount: 0, rows: [] });
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: "77" }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ tournament_id: 9 }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [{ id: "78" }] })
+      .mockResolvedValueOnce({ rowCount: 1, rows: [] });
 
     await expect(queueOrganizerRankedWinWarning(target, "999"))
-      .resolves.toEqual({ ok: true, alreadySent: true });
-    expect(mocks.query).toHaveBeenCalledTimes(2);
+      .resolves.toEqual({ ok: true });
+    await expect(queueOrganizerRankedWinWarning(target, "999"))
+      .resolves.toEqual({ ok: true });
+
+    const firstEventType = mocks.query.mock.calls[1][1][2];
+    const secondEventType = mocks.query.mock.calls[4][1][2];
+    expect(firstEventType).not.toBe(secondEventType);
+    expect(mocks.query.mock.calls[1][0]).not.toContain("ON CONFLICT");
+    expect(mocks.query.mock.calls[4][0]).not.toContain("ON CONFLICT");
+    expect(mocks.query).toHaveBeenCalledTimes(6);
   });
 
   it("rejects players who are not registered for a future regular round", async () => {

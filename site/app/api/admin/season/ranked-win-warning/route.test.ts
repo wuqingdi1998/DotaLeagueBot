@@ -25,7 +25,7 @@ function request(value: unknown) {
 beforeEach(() => {
   vi.resetAllMocks();
   mocks.requireAdmin.mockResolvedValue({ discordId: "999" });
-  mocks.queue.mockResolvedValue({ ok: true, alreadySent: false });
+  mocks.queue.mockResolvedValue({ ok: true });
 });
 
 describe("organizer ranked win warning access", () => {

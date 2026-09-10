@@ -8,6 +8,7 @@ import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useServerClock } from "@/hooks/useServerClock";
 import {
   SEASON_PRIMARY_ROLE_WINS_REQUIRED,
+  SEASON_RANKED_WIN_WINDOW_DAYS,
   SEASON_SECONDARY_ROLE_WINS_REQUIRED,
   type RankedWinSnapshot,
 } from "@/lib/season-ranked-wins/model";
@@ -182,7 +183,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
             <span>Роли</span>
             <span className="season-registration-column-wins">
               <span className="season-registration-refresh-timer" tabIndex={0}>
-                Рейтинговые победы за 30 дней
+                Рейтинговые победы за {SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура
                 <span
                   className="season-registration-refresh-tooltip"
                   role="tooltip"
@@ -233,7 +234,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                     rel="noopener noreferrer"
                     title={registration.wins_source === "manual"
                       ? "Победы введены вручную и зафиксированы"
-                      : "Открыть рейтинговые матчи игрока за 30 дней на STRATZ"}
+                      : `Открыть рейтинговые матчи игрока за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура на STRATZ`}
                   >
                     <span
                       className={`season-registration-win ${rankedWinRequirementClass(
@@ -290,7 +291,9 @@ function rankedWinsButtonLabel(
   snapshot: RankedWinSnapshot | null,
 ) {
   if (isLoading) return "Загружаем победы…";
-  if (!snapshot) return "Мои рейтинговые победы за 30 дней";
+  if (!snapshot) {
+    return `Мои рейтинговые победы за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура`;
+  }
   return `Осн. (${snapshot.primaryRole}) ${snapshot.primaryWins}/${SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. (${snapshot.secondaryRole}) ${snapshot.secondaryWins}/${SEASON_SECONDARY_ROLE_WINS_REQUIRED}`;
 }
 

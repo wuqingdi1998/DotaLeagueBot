@@ -1,6 +1,6 @@
 export const SEASON_PRIMARY_ROLE_WINS_REQUIRED = 10;
 export const SEASON_SECONDARY_ROLE_WINS_REQUIRED = 4;
-export const SEASON_RANKED_WIN_WINDOW_DAYS = 30;
+export const SEASON_RANKED_WIN_WINDOW_DAYS = 31;
 export const SEASON_RANKED_WIN_BUTTON_TTL_MS = 5 * 60 * 1_000;
 
 export type DotaPosition = 1 | 2 | 3 | 4 | 5;
@@ -35,15 +35,17 @@ export function parsePlayerPositions(positions: string | null): {
 }
 
 export function calculateRankedWinSnapshot({
+  checkedAt,
   matches,
-  now,
   positions,
+  windowEndsAt,
 }: {
+  checkedAt: Date;
   matches: RankedMatchCandidate[];
-  now: Date;
   positions: { primaryRole: DotaPosition; secondaryRole: DotaPosition };
+  windowEndsAt: Date;
 }): RankedWinSnapshot {
-  const uniqueMatches = mergeRankedWinsInWindow({ matches, now });
+  const uniqueMatches = mergeRankedWinsInWindow({ matches, windowEndsAt });
 
   let primaryWins = 0;
   let secondaryWins = 0;
@@ -56,39 +58,44 @@ export function calculateRankedWinSnapshot({
     ...positions,
     primaryWins,
     secondaryWins,
-    checkedAt: now.toISOString(),
+    checkedAt: checkedAt.toISOString(),
     availableUntil: new Date(
-      now.getTime() + SEASON_RANKED_WIN_BUTTON_TTL_MS,
+      checkedAt.getTime() + SEASON_RANKED_WIN_BUTTON_TTL_MS,
     ).toISOString(),
   };
 }
 
 export function findRankedWinsWithoutRoles({
   matches,
-  now,
+  windowEndsAt,
 }: {
   matches: RankedMatchCandidate[];
-  now: Date;
+  windowEndsAt: Date;
 }): string[] {
-  return [...mergeRankedWinsInWindow({ matches, now }).values()]
+  return [...mergeRankedWinsInWindow({ matches, windowEndsAt }).values()]
     .filter((match) => match.role === null)
     .map((match) => match.matchId);
 }
 
 function mergeRankedWinsInWindow({
   matches,
-  now,
+  windowEndsAt,
 }: {
   matches: RankedMatchCandidate[];
-  now: Date;
+  windowEndsAt: Date;
 }): Map<string, RankedMatchCandidate> {
   const cutoff = new Date(
-    now.getTime() - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
+    windowEndsAt.getTime()
+      - SEASON_RANKED_WIN_WINDOW_DAYS * 24 * 60 * 60 * 1_000,
   );
   const uniqueMatches = new Map<string, RankedMatchCandidate>();
 
   for (const match of matches) {
-    if (!match.won || match.startedAt < cutoff || match.startedAt > now) {
+    if (
+      !match.won
+      || match.startedAt < cutoff
+      || match.startedAt > windowEndsAt
+    ) {
       continue;
     }
     const existing = uniqueMatches.get(match.matchId);

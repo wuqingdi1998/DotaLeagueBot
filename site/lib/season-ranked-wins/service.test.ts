@@ -8,6 +8,7 @@ import { fetchDotaBuffRolesForMatches } from "./dotabuff";
 import { fetchStratzRankedMatches } from "./stratz";
 
 const now = new Date("2026-08-27T12:00:00.000Z");
+const roundStartsAt = new Date("2026-09-10T18:00:00.000Z");
 
 describe("season ranked wins service", () => {
   beforeEach(() => vi.resetAllMocks());
@@ -23,9 +24,17 @@ describe("season ranked wins service", () => {
     ]);
 
     await expect(
-      calculateSeasonRankedWins({ dotaId: "20", now, positions: "3/4" }),
+      calculateSeasonRankedWins({
+        checkedAt: now,
+        dotaId: "20",
+        positions: "3/4",
+        windowEndsAt: roundStartsAt,
+      }),
     ).resolves.toMatchObject({ primaryWins: 1, secondaryWins: 0 });
-    expect(fetchStratzRankedMatches).toHaveBeenCalledOnce();
+    expect(fetchStratzRankedMatches).toHaveBeenCalledWith(
+      "20",
+      roundStartsAt,
+    );
     expect(fetchDotaBuffRolesForMatches).not.toHaveBeenCalled();
   });
 
@@ -43,7 +52,12 @@ describe("season ranked wins service", () => {
     );
 
     await expect(
-      calculateSeasonRankedWins({ dotaId: "20", now, positions: "3/4" }),
+      calculateSeasonRankedWins({
+        checkedAt: now,
+        dotaId: "20",
+        positions: "3/4",
+        windowEndsAt: roundStartsAt,
+      }),
     ).resolves.toMatchObject({ primaryWins: 1, secondaryWins: 0 });
     expect(fetchDotaBuffRolesForMatches).toHaveBeenCalledWith({
       dotaId: "20",
@@ -71,7 +85,12 @@ describe("season ranked wins service", () => {
     );
 
     await expect(
-      calculateSeasonRankedWins({ dotaId: "20", now, positions: "3/4" }),
+      calculateSeasonRankedWins({
+        checkedAt: now,
+        dotaId: "20",
+        positions: "3/4",
+        windowEndsAt: roundStartsAt,
+      }),
     ).resolves.toMatchObject({ primaryWins: 1, secondaryWins: 0 });
   });
 
@@ -87,7 +106,12 @@ describe("season ranked wins service", () => {
     vi.mocked(fetchDotaBuffRolesForMatches).mockResolvedValue(new Map());
 
     await expect(
-      calculateSeasonRankedWins({ dotaId: "20", now, positions: "3/4" }),
+      calculateSeasonRankedWins({
+        checkedAt: now,
+        dotaId: "20",
+        positions: "3/4",
+        windowEndsAt: roundStartsAt,
+      }),
     ).resolves.toMatchObject({ primaryWins: 0, secondaryWins: 0 });
   });
 
@@ -95,7 +119,12 @@ describe("season ranked wins service", () => {
     vi.mocked(fetchStratzRankedMatches).mockRejectedValue(new Error("timeout"));
 
     await expect(
-      calculateSeasonRankedWins({ dotaId: "20", now, positions: "3/4" }),
+      calculateSeasonRankedWins({
+        checkedAt: now,
+        dotaId: "20",
+        positions: "3/4",
+        windowEndsAt: roundStartsAt,
+      }),
     ).rejects.toBeInstanceOf(SeasonRankedWinsError);
   });
 });

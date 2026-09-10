@@ -66,9 +66,11 @@ describe("season ranked wins contract", () => {
     expect(seasonRoute).toContain("LEFT JOIN season_ranked_win_checks");
     expect(seasonRoute).toContain("ranked_wins.round_id = registration.round_id");
     expect(seasonRoute).toContain("freshPlayerRankedWins");
-    expect(registrationSection).toContain("Рейтинговые победы за 30 дней");
     expect(registrationSection).toContain(
-      "Мои рейтинговые победы за 30 дней",
+      "Рейтинговые победы за {SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура",
+    );
+    expect(registrationSection).toContain(
+      "Мои рейтинговые победы за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура",
     );
     expect(registrationSection).toContain("SEASON_PRIMARY_ROLE_WINS_REQUIRED");
     expect(registrationSection).toContain(

@@ -1,7 +1,8 @@
 import { transaction } from "@/lib/db";
 import type { parseRankedWinWarningTarget } from "./organizer-model";
 
-const RANKED_WIN_WARNING_EVENT_TYPE = "season_ranked_wins_manual_warning";
+const RANKED_WIN_WARNING_EVENT_TYPE_PREFIX =
+  "season_ranked_wins_manual_warning";
 const RANKED_WIN_WARNING_TITLE = "Внимание!";
 
 export const RANKED_WIN_WARNING_MESSAGE =
@@ -14,6 +15,7 @@ export async function queueOrganizerRankedWinWarning(
   target: NonNullable<ReturnType<typeof parseRankedWinWarningTarget>>,
   actorDiscordId: string,
 ) {
+  const eventType = `${RANKED_WIN_WARNING_EVENT_TYPE_PREFIX}:${crypto.randomUUID()}`;
   return transaction(async (client) => {
     const registration = await client.query<{ tournament_id: number }>(
       `SELECT round.tournament_id::int
@@ -41,20 +43,15 @@ export async function queueOrganizerRankedWinWarning(
       `INSERT INTO notification_outbox
          (discord_id, event_type, title, message, season_round_id)
        VALUES ($1, $3, $4, $5, $2)
-       ON CONFLICT (discord_id, season_round_id, event_type)
-         WHERE season_round_id IS NOT NULL
-       DO NOTHING
        RETURNING id`,
       [
         target.playerId,
         target.roundId,
-        RANKED_WIN_WARNING_EVENT_TYPE,
+        eventType,
         RANKED_WIN_WARNING_TITLE,
         RANKED_WIN_WARNING_MESSAGE,
       ],
     );
-    if (!notification.rowCount) return { ok: true, alreadySent: true };
-
     await client.query(
       `INSERT INTO tournament_audit_log
          (tournament_id, actor_discord_id, action, entity_type, entity_id, details)
@@ -69,6 +66,6 @@ export async function queueOrganizerRankedWinWarning(
         }),
       ],
     );
-    return { ok: true, alreadySent: false };
+    return { ok: true };
   });
 }

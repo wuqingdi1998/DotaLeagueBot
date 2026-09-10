@@ -16,5 +16,5 @@ export async function sendRankedWinWarning(body: {
   if (!response.ok) {
     throw new Error(result.error ?? "Не удалось отправить предупреждение");
   }
-  return { alreadySent: Boolean(result.alreadySent) };
+  return { ok: true };
 }

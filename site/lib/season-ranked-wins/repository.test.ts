@@ -17,11 +17,16 @@ import { refreshPlayerRankedWins } from "./repository";
 describe("season ranked wins repository", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.one.mockResolvedValueOnce(null).mockResolvedValue({
-      player_id: "100",
-      dota_id: "301109815",
-      positions: "1/3",
-    });
+    mocks.one
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        player_id: "100",
+        dota_id: "301109815",
+        positions: "1/3",
+      })
+      .mockResolvedValueOnce({
+        window_ends_at: new Date("2026-09-10T18:00:00Z"),
+      });
   });
 
   it("preserves manually entered wins without contacting Stratz", async () => {
@@ -53,6 +58,26 @@ describe("season ranked wins repository", () => {
       "Stratz unavailable",
     );
     expect(mocks.query).not.toHaveBeenCalled();
+  });
+
+  it("anchors a Stratz refresh to the selected round start", async () => {
+    mocks.calculateSeasonRankedWins.mockResolvedValue({
+      primaryRole: 1,
+      secondaryRole: 3,
+      primaryWins: 9,
+      secondaryWins: 4,
+      checkedAt: "2026-09-01T10:00:00.000Z",
+      availableUntil: "2026-09-01T10:05:00.000Z",
+    });
+    mocks.query.mockResolvedValue([{ player_id: "100" }]);
+
+    await refreshPlayerRankedWins(7, "100");
+
+    expect(mocks.calculateSeasonRankedWins).toHaveBeenCalledWith({
+      dotaId: "301109815",
+      positions: "1/3",
+      windowEndsAt: new Date("2026-09-10T18:00:00Z"),
+    });
   });
 
   it("looks up a fixed snapshot only inside the requested round", async () => {
