@@ -77,13 +77,13 @@ describe("season nine calendar contract", () => {
     expect(calendarStyles).not.toContain("calendar-event-dot");
   });
 
-  it("highlights the current day using the server's Moscow date", () => {
+  it("marks the current day with a top-right dot using Moscow date", () => {
     expect(page).toContain("moscowDateKey()");
     expect(page).toContain("currentMoscowDate={currentMoscowDate}");
     expect(grid).toContain('date === currentMoscowDate ? " is-today" : ""');
     expect(grid).toContain('day.date === currentMoscowDate ? "date" : undefined');
     expect(calendarStyles).toMatch(
-      /\.calendar-day\.is-today::before\s*\{[^}]*border:\s*3px solid var\(--blue\);/,
+      /\.calendar-day\.is-today::before\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*width:\s*10px;[^}]*height:\s*10px;[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--blue\);/,
     );
   });
 

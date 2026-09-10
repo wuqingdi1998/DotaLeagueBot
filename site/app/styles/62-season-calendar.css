@@ -299,10 +299,13 @@
 .calendar-day.is-today::before {
   position: absolute;
   z-index: 4;
-  inset: 3px;
-  border: 3px solid var(--blue);
-  border-radius: 8px;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--surface) 80%, transparent);
+  top: 8px;
+  right: 8px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 0 2px var(--surface);
   content: "";
   pointer-events: none;
 }
