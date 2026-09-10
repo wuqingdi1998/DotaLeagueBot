@@ -21,6 +21,8 @@ import {
 } from "./season-lobby-optimization-actions";
 import { queueSeasonLobbyPublishedAnnouncement } from
   "./season-lobby-announcement-actions";
+import { syncSeasonRoundLobbyNotifications } from
+  "./season-lobby-notification-actions";
 
 const configurationActions = [
   "create",
@@ -357,11 +359,13 @@ export async function updateSeasonLobbyConfiguration(
       }
       await setConfigurationStatus(client, roundId, "published");
       await queueSeasonLobbyPublishedAnnouncement(client, roundId);
+      await syncSeasonRoundLobbyNotifications(client, roundId);
     } else if (action === "unpublish") {
       if (status !== "published") {
         throw new Response("Лобби сейчас не опубликованы", { status: 409 });
       }
       await setConfigurationStatus(client, roundId, "locked");
+      await syncSeasonRoundLobbyNotifications(client, roundId);
     }
 
     await client.query(

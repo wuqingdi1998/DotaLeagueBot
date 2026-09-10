@@ -1,5 +1,7 @@
 import { transaction } from "@/lib/db";
 import { requiredId } from "./season-admin-model";
+import { syncSeasonLobbyNotifications } from
+  "./season-lobby-notification-actions";
 
 export async function setSeasonLobbyHost(
   body: Record<string, unknown>,
@@ -41,6 +43,7 @@ export async function setSeasonLobbyHost(
       "UPDATE season_matches SET host_player_id = $2, updated_at = NOW() WHERE id = $1",
       [matchId, playerId],
     );
+    await syncSeasonLobbyNotifications(client, matchId);
     await client.query(
       `INSERT INTO tournament_audit_log
         (tournament_id, actor_discord_id, action, entity_type, entity_id,

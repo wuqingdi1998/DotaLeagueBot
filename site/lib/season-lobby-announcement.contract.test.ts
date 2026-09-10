@@ -17,6 +17,15 @@ const migration = source(
 const reportMigration = source(
   "../../bot/database/migrations/0116_season_lobby_announcement_reports.sql",
 );
+const startNotificationMigration = source(
+  "../../bot/database/migrations/0132_season_lobby_start_notifications.sql",
+);
+const hostActions = source(
+  "../app/api/admin/season/season-lobby-host-actions.ts",
+);
+const roundActions = source(
+  "../app/api/admin/season/season-round-actions.ts",
+);
 const dockerfile = source("../../bot/Dockerfile");
 const deploy = source("../../.github/workflows/deploy.yml");
 
@@ -76,5 +85,25 @@ describe("season lobby announcement contract", () => {
         ),
       ).toBe(true);
     }
+  });
+
+  it("keeps lobby start messages synchronized after every schedule change", () => {
+    expect(actions).toContain(
+      "syncSeasonRoundLobbyNotifications(client, roundId)",
+    );
+    expect(hostActions).toContain(
+      "syncSeasonLobbyNotifications(client, matchId)",
+    );
+    expect(roundActions).toContain(
+      "syncSeasonLobbyGroupNotifications(client, id)",
+    );
+    expect(startNotificationMigration).toContain(
+      "lobby.scheduled_at - INTERVAL '5 minutes'",
+    );
+    expect(startNotificationMigration).toContain("ELSE lobby.scheduled_at");
+    expect(startNotificationMigration).toContain(
+      "Матч скоро начнется! Вы – хост лобби",
+    );
+    expect(startNotificationMigration).not.toContain("—");
   });
 });

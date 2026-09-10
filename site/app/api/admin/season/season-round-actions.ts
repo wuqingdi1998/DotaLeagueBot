@@ -6,6 +6,8 @@ import {
   seasonRoundCount,
   textValue,
 } from "./season-admin-model";
+import { syncSeasonLobbyGroupNotifications } from
+  "./season-lobby-notification-actions";
 
 const roundStatuses = ["planned", "active", "completed", "cancelled"] as const;
 const lobbyStatuses = [
@@ -214,21 +216,25 @@ export async function createSeasonLobby(body: Record<string, unknown>) {
 export async function updateSeasonLobby(body: Record<string, unknown>) {
   const id = requiredId(body.id, "лобби");
   const status = enumValue(body.status, lobbyStatuses, "статус лобби");
-  const updated = await query<{ id: number }>(
-    `UPDATE season_lobbies
-     SET name = $2, status = $3, scheduled_at = $4, updated_at = NOW()
-     WHERE id = $1 RETURNING id::int`,
-    [
-      id,
-      textValue(body.name, "Лобби"),
-      status,
-      optionalDate(body.scheduledAt),
-    ],
-  );
-  if (!updated.length) {
-    throw new Response("Лобби не найдено", { status: 404 });
-  }
-  return { ok: true };
+  return transaction(async (client) => {
+    const updated = await client.query<{ id: number }>(
+      `UPDATE season_lobbies lobby
+       SET name = $2, status = $3, scheduled_at = $4, updated_at = NOW()
+       WHERE lobby.id = $1
+       RETURNING lobby.id::int`,
+      [
+        id,
+        textValue(body.name, "Лобби"),
+        status,
+        optionalDate(body.scheduledAt),
+      ],
+    );
+    if (!updated.rowCount) {
+      throw new Response("Лобби не найдено", { status: 404 });
+    }
+    await syncSeasonLobbyGroupNotifications(client, id);
+    return { ok: true };
+  });
 }
 
 export async function deleteSeasonLobby(body: Record<string, unknown>) {

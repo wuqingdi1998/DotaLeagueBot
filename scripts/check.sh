@@ -8,7 +8,7 @@ cd "$ROOT/bot"
 "$PYTHON" -m ruff check .
 "$PYTHON" -m pip_audit -r requirements.txt
 "$PYTHON" -m compileall -q .
-"$PYTHON" -m mypy database/core.py database/migrate.py cogs/website_bridge.py utils/website_notifications.py
+"$PYTHON" -m mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py services/season_lobby_notifications.py services/season_nine_outreach.py utils/website_notifications.py
 "$PYTHON" -m pytest --cov=. --cov-report=term-missing
 
 cd ../site

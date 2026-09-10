@@ -74,6 +74,8 @@ export async function substitutionTestDatabase() {
     CREATE TABLE draft_presence (player_id bigint);
     CREATE TABLE tournament_audit_log (tournament_id bigint, actor_discord_id bigint,
       action text, entity_type text, entity_id text, details jsonb);
+    CREATE FUNCTION sync_season_lobby_notifications(bigint)
+      RETURNS void LANGUAGE sql AS 'SELECT NULL::void';
   `);
   await db.exec(readFileSync(new URL(
     "../../../bot/database/migrations/0124_season_second_map_substitutions.sql", import.meta.url,

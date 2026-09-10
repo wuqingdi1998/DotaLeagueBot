@@ -490,6 +490,58 @@ jobs:
               sleep 3
             done
 
+            for attempt in $(seq 1 30); do
+              bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
+              if [[ "$bot_logs" == *"Загружен ког: season_lobby_notifications.py"* ]]; then
+                echo "Season lobby notification worker is running"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                printf '%s\n' "$bot_logs"
+                exit 1
+              fi
+              sleep 3
+            done
+
+            uncovered_lobby_notifications="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*)
+               FROM season_match_room_players participant
+               JOIN season_matches match ON match.id = participant.match_id
+               JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+               JOIN season_rounds round ON round.id = lobby.round_id
+               JOIN season_lobby_announcement_settings settings
+                 ON settings.tournament_id = round.tournament_id
+               WHERE round.round_kind = '\''regular'\''
+                 AND round.lobby_configuration_status = '\''published'\''
+                 AND lobby.scheduled_at > NOW()
+                 AND match.host_player_id IS NOT NULL
+                 AND EXISTS (
+                   SELECT 1 FROM season_match_room_players host
+                   WHERE host.match_id = match.id
+                     AND host.player_id = match.host_player_id
+                 )
+                 AND (
+                   match.dota_lobby_password IS NULL
+                   OR NOT EXISTS (
+                     SELECT 1
+                     FROM season_lobby_notification_outbox notification
+                     WHERE notification.match_id = match.id
+                       AND notification.discord_id = participant.player_id
+                       AND notification.audience = CASE
+                         WHEN participant.player_id = match.host_player_id
+                           THEN '\''host'\''
+                         ELSE '\''player'\''
+                       END
+                       AND notification.status IN ('\''pending'\'', '\''sent'\'')
+                   )
+                 )"')"
+            if [ "$uncovered_lobby_notifications" != "0" ]; then
+              echo "Season lobby notifications are incomplete: $uncovered_lobby_notifications" >&2
+              exit 1
+            fi
+            echo "Season lobby start notifications are scheduled"
+
             docker image prune --force
             docker compose ps
       - name: Verify public site externally

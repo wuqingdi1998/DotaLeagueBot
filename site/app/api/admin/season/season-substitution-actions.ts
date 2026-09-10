@@ -9,6 +9,8 @@ import {
   addSeasonParticipant,
   resolveSeasonPlayer,
 } from "./season-admin-player";
+import { syncSeasonLobbyNotifications } from
+  "./season-lobby-notification-actions";
 
 const secondMapSubstitutionPenaltyFires = 5;
 
@@ -181,6 +183,7 @@ export async function createSeasonSubstitution(
       ],
     );
     await syncSeasonSubstitutionRoster(client, before);
+    await syncSeasonLobbyNotifications(client, values.matchId);
     return { ok: true, id: created.rows[0].id };
   });
 }
@@ -245,6 +248,7 @@ export async function updateSeasonSubstitution(
       throw new Response("Замена не найдена", { status: 404 });
     }
     await syncSeasonSubstitutionRoster(client, before);
+    await syncSeasonLobbyNotifications(client, values.matchId);
     return { ok: true };
   });
 }
@@ -273,6 +277,7 @@ export async function deleteSeasonSubstitution(
       removed.rows[0].penalty_fire_count,
     );
     await syncSeasonSubstitutionRoster(client, before);
+    await syncSeasonLobbyNotifications(client, before.matchId);
     return { ok: true };
   });
 }
