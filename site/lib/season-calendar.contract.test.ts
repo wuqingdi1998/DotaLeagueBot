@@ -36,6 +36,10 @@ const calendarStyles = readFileSync(
   new URL("../app/styles/62-season-calendar.css", import.meta.url),
   "utf8",
 );
+const calendarTodayStyles = readFileSync(
+  new URL("../app/styles/62-season-calendar-today.css", import.meta.url),
+  "utf8",
+);
 const headerStyles = readFileSync(
   new URL("../app/styles/02-site-header.css", import.meta.url),
   "utf8",
@@ -77,13 +81,17 @@ describe("season nine calendar contract", () => {
     expect(calendarStyles).not.toContain("calendar-event-dot");
   });
 
-  it("marks the current day with a top-right dot using Moscow date", () => {
+  it("marks the current Moscow day with a large pulsing green light", () => {
     expect(page).toContain("moscowDateKey()");
     expect(page).toContain("currentMoscowDate={currentMoscowDate}");
     expect(grid).toContain('date === currentMoscowDate ? " is-today" : ""');
     expect(grid).toContain('day.date === currentMoscowDate ? "date" : undefined');
-    expect(calendarStyles).toMatch(
-      /\.calendar-day\.is-today::before\s*\{[^}]*top:\s*8px;[^}]*right:\s*8px;[^}]*width:\s*10px;[^}]*height:\s*10px;[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--blue\);/,
+    expect(calendarTodayStyles).toMatch(
+      /\.calendar-day\.is-today::before\s*\{[^}]*top:\s*7px;[^}]*right:\s*7px;[^}]*width:\s*16px;[^}]*height:\s*16px;[^}]*border-radius:\s*50%;[^}]*background:\s*#18c88c;[^}]*animation:\s*calendar-today-pulse 1\.8s ease-in-out infinite;/,
+    );
+    expect(calendarTodayStyles).toContain("@keyframes calendar-today-pulse");
+    expect(calendarTodayStyles).toMatch(
+      /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*animation:\s*none;/,
     );
   });
 

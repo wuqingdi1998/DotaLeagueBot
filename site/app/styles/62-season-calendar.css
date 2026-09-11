@@ -296,20 +296,6 @@
   opacity: 0.48;
 }
 
-.calendar-day.is-today::before {
-  position: absolute;
-  z-index: 4;
-  top: 8px;
-  right: 8px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--blue);
-  box-shadow: 0 0 0 2px var(--surface);
-  content: "";
-  pointer-events: none;
-}
-
 .calendar-day:hover .calendar-event-fills,
 .calendar-day:focus-within .calendar-event-fills {
   z-index: 70;

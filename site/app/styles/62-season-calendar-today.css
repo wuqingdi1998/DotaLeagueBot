@@ -1,0 +1,41 @@
+.calendar-day.is-today::before {
+  position: absolute;
+  z-index: 4;
+  top: 7px;
+  right: 7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #18c88c;
+  box-shadow:
+    0 0 0 2px var(--surface),
+    0 0 9px rgb(24 200 140 / 78%);
+  content: "";
+  pointer-events: none;
+  animation: calendar-today-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes calendar-today-pulse {
+  0%,
+  100% {
+    opacity: 0.72;
+    transform: scale(0.82);
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 5px rgb(24 200 140 / 58%);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow:
+      0 0 0 2px var(--surface),
+      0 0 14px rgb(24 200 140 / 95%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-day.is-today::before {
+    animation: none;
+  }
+}
