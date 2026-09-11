@@ -79,3 +79,13 @@ def test_lobby_schedule_uses_one_password_and_requested_delivery_times() -> None
     assert "подождите немного – хост создаёт его" in MIGRATION
     assert "|| '/season-lobby/' || match.id" in MIGRATION
     assert "UNIQUE (match_id, discord_id, audience)" in MIGRATION
+
+
+def test_notification_worker_opens_and_closes_the_game_category() -> None:
+    cog = (
+        ROOT / "bot" / "cogs" / "season_lobby_notifications.py"
+    ).read_text(encoding="utf-8")
+
+    assert "open_category_for_due_host_notifications" in cog
+    assert "close_category_after_completed_rounds" in cog
+    assert "next_season_game_category_change_at" in cog
