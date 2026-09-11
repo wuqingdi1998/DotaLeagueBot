@@ -16,6 +16,9 @@ const seasonRoute = source("../app/api/season/route.ts");
 const builder = source(
   "../app/tournaments/[slug]/admin/SeasonLobbyBuilder.tsx",
 );
+const optimizationMenu = source(
+  "../app/tournaments/[slug]/admin/SeasonLobbyOptimizationMenu.tsx",
+);
 const reserve = source(
   "../app/tournaments/[slug]/admin/SeasonLobbyReserve.tsx",
 );
@@ -30,6 +33,9 @@ const lobbyDisplay = source(
 );
 const builderStyles = source(
   "../app/styles/56-season-lobby-builder.css",
+);
+const optimizationMenuStyles = source(
+  "../app/styles/56-season-lobby-optimization-menu.css",
 );
 const optimizationActions = source(
   "../app/api/admin/season/season-lobby-optimization-actions.ts",
@@ -147,7 +153,7 @@ describe("season lobby builder contract", () => {
     const reserveComponent = builder.indexOf("<SeasonLobbyReserve", lobbies);
 
     expect(builder).toContain("Оптимальный состав");
-    expect(builder).toContain('mutate("optimize")');
+    expect(builder).toContain('mutate("optimize",');
     expect(builder).toContain("По тиру сверху вниз");
     expect(builder).toContain('mutate("sortTier")');
     expect(reserveComponent).toBeGreaterThan(lobbies);
@@ -156,6 +162,24 @@ describe("season lobby builder contract", () => {
     expect(optimizationActions).toContain("registration.created_at");
     expect(optimizationActions).toContain("reservePlayerIds");
     expect(optimizationActions).toContain("sortSeasonLobbyTeamByTier");
+  });
+
+  it("opens five lineup choices without removing the primary button action", () => {
+    expect(optimizationMenu).toContain("Оптимальный состав");
+    expect(optimizationMenu).toContain("Оптимальный состав 2");
+    expect(optimizationMenu).toContain("Оптимальный состав 3");
+    expect(optimizationMenu).toContain("Играли вместе");
+    expect(optimizationMenu).toContain("Челлендж");
+    expect(optimizationMenu).toContain('selectVariant("optimal")');
+    expect(builder).toContain("optimizationVariant: variant");
+    expect(optimizationMenuStyles).toContain(
+      ".season-builder-optimization-menu:hover .season-builder-optimization-options",
+    );
+    expect(optimizationMenuStyles).toContain(
+      ".season-builder-optimization-menu:focus-within .season-builder-optimization-options",
+    );
+    expect(optimizationActions).toContain("loadRecentTeammatePairs");
+    expect(optimizationActions).toContain("previous.round_number < current.round_number");
   });
 
   it("shows circular tier badges in reserve and assigned lobby slots", () => {

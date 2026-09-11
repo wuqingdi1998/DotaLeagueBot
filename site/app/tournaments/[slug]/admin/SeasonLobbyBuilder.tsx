@@ -12,12 +12,12 @@ import {
   FiMinus,
   FiPlus,
   FiSend,
-  FiZap,
   FiX,
 } from "react-icons/fi";
 import {
   MAX_SEASON_LOBBY_COUNT,
   SEASON_LOBBY_SIZE,
+  type SeasonLobbyOptimizationVariant,
 } from "@/lib/season-lobby-optimization";
 import { useTournament } from "../hooks/TournamentContext";
 import type {
@@ -26,6 +26,10 @@ import type {
   SeasonRound,
 } from "../model/season-types";
 import { SeasonLobbyReserve } from "./SeasonLobbyReserve";
+import {
+  SeasonLobbyOptimizationMenu,
+  seasonLobbyOptimizationLabel,
+} from "./SeasonLobbyOptimizationMenu";
 import { SeasonLobbyScheduleEditor } from "./SeasonLobbyScheduleEditor";
 
 type TeamSide = "a" | "b";
@@ -95,6 +99,17 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
     void mutate("assign", { playerId, matchId, teamSide, slotNumber });
   }
 
+  function requestOptimization(variant: SeasonLobbyOptimizationVariant) {
+    const label = seasonLobbyOptimizationLabel(variant);
+    if (
+      window.confirm(
+        `Заменить текущую ручную расстановку вариантом «${label}»?`,
+      )
+    ) {
+      void mutate("optimize", { optimizationVariant: variant });
+    }
+  }
+
   if (round.lobby_configuration_status === "none") {
     return (
       <section className="season-lobby-builder season-lobby-builder-empty">
@@ -135,29 +150,15 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       {isEditing && (
         <div className="season-builder-optimization">
           <span>
-            Оптимальный состав показывает предполагаемые позиции 1–5 сверху
-            вниз. Затем можно отдельно упорядочить строки по тиру.
+            Нажмите для обычного оптимального состава или наведите, чтобы
+            выбрать другой вариант. Позиции 1–5 показаны сверху вниз.
           </span>
           <div className="season-builder-optimization-actions">
-            <button
-              className="secondary-button compact"
-              type="button"
-              disabled={
-                round.registrations.length < SEASON_LOBBY_SIZE ||
-                Boolean(busyAction)
-              }
-              onClick={() => {
-                if (
-                  window.confirm(
-                    "Заменить текущую ручную расстановку оптимальным составом?",
-                  )
-                ) {
-                  void mutate("optimize");
-                }
-              }}
-            >
-              <FiZap aria-hidden="true" /> Оптимальный состав
-            </button>
+            <SeasonLobbyOptimizationMenu
+              busy={Boolean(busyAction)}
+              disabled={round.registrations.length < SEASON_LOBBY_SIZE}
+              onOptimize={requestOptimization}
+            />
             <button
               className="secondary-button compact"
               type="button"

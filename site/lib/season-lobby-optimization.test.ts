@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   optimizeSeasonLobbyPlayers,
+  seasonLobbyTeammatePairKey,
   sortSeasonLobbyTeamByTier,
   type SeasonLobbyOptimizationPlayer,
 } from "./season-lobby-optimization";
@@ -16,6 +17,50 @@ function player(
     positions: `${primaryRole}/${secondaryRole}`,
     tierSnapshot,
   };
+}
+
+function teamMembershipSignature(
+  plan: ReturnType<typeof optimizeSeasonLobbyPlayers>,
+) {
+  return plan.lobbies.map((lobby) =>
+    lobby.placements
+      .filter(({ teamSide }) => teamSide === "a")
+      .map(({ playerId }) => playerId)
+      .sort()
+      .join(","),
+  ).join("|");
+}
+
+function repeatedPairCount(
+  plan: ReturnType<typeof optimizeSeasonLobbyPlayers>,
+  teammatePairs: ReadonlySet<string>,
+) {
+  return plan.lobbies.reduce((total, lobby) => {
+    for (const teamSide of ["a", "b"] as const) {
+      const team = lobby.placements.filter(
+        (placement) => placement.teamSide === teamSide,
+      );
+      for (let firstIndex = 0; firstIndex < team.length; firstIndex += 1) {
+        for (
+          let secondIndex = firstIndex + 1;
+          secondIndex < team.length;
+          secondIndex += 1
+        ) {
+          if (
+            teammatePairs.has(
+              seasonLobbyTeammatePairKey(
+                team[firstIndex].playerId,
+                team[secondIndex].playerId,
+              ),
+            )
+          ) {
+            total += 1;
+          }
+        }
+      }
+    }
+    return total;
+  }, 0);
 }
 
 describe("season lobby optimization", () => {
@@ -232,6 +277,112 @@ describe("season lobby optimization", () => {
       );
     });
     expect(Math.max(...opposingTierGaps)).toBeGreaterThan(1);
+  });
+
+  it("offers second and third distinct plans under the same optimal rules", () => {
+    const players = Array.from({ length: 10 }, (_, index) =>
+      player(index, 8, (index % 5) + 1),
+    );
+    const plans = (["optimal", "optimal2", "optimal3"] as const).map(
+      (variant) => optimizeSeasonLobbyPlayers(players, 1, { variant }),
+    );
+
+    expect(new Set(plans.map(teamMembershipSignature))).toHaveLength(3);
+    for (const plan of plans) {
+      const teamTotals = (["a", "b"] as const).map((teamSide) =>
+        plan.lobbies[0].placements
+          .filter((placement) => placement.teamSide === teamSide)
+          .reduce((sum, placement) => sum + placement.tierSnapshot, 0),
+      );
+      expect(Math.abs(teamTotals[0] - teamTotals[1])).toBeLessThanOrEqual(1);
+      expect(
+        plan.lobbies[0].placements.every(
+          (placement) => placement.slotNumber === placement.primaryRole,
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("reduces pairs who were teammates in the immediately previous round", () => {
+    const players = Array.from({ length: 10 }, (_, index) =>
+      player(index, 8, (index % 5) + 1),
+    );
+    const optimal = optimizeSeasonLobbyPlayers(players, 1);
+    const recentTeammatePairs = new Set<string>();
+    for (const teamSide of ["a", "b"] as const) {
+      const team = optimal.lobbies[0].placements.filter(
+        (placement) => placement.teamSide === teamSide,
+      );
+      for (let firstIndex = 0; firstIndex < team.length; firstIndex += 1) {
+        for (
+          let secondIndex = firstIndex + 1;
+          secondIndex < team.length;
+          secondIndex += 1
+        ) {
+          recentTeammatePairs.add(
+            seasonLobbyTeammatePairKey(
+              team[firstIndex].playerId,
+              team[secondIndex].playerId,
+            ),
+          );
+        }
+      }
+    }
+
+    const together = optimizeSeasonLobbyPlayers(players, 1, {
+      recentTeammatePairs,
+      variant: "together",
+    });
+
+    expect(repeatedPairCount(together, recentTeammatePairs)).toBeLessThan(
+      repeatedPairCount(optimal, recentTeammatePairs),
+    );
+  });
+
+  it("mixes tiers in challenge lobbies while keeping team and core sums close", () => {
+    const tiers = [12, 12, 11, 11, 10, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 5, 4, 4, 3, 3];
+    const players = tiers.map((tier, index) =>
+      player(index, tier, (index % 5) + 1),
+    );
+    const standard = optimizeSeasonLobbyPlayers(players, 2);
+    const challenge = optimizeSeasonLobbyPlayers(players, 2, {
+      variant: "challenge",
+    });
+
+    const standardRanges = standard.lobbies.map(({ placements }) => {
+      const lobbyTiers = placements.map(({ tierSnapshot }) => tierSnapshot);
+      return Math.max(...lobbyTiers) - Math.min(...lobbyTiers);
+    });
+    const challengeRanges = challenge.lobbies.map(({ placements }) => {
+      const lobbyTiers = placements.map(({ tierSnapshot }) => tierSnapshot);
+      return Math.max(...lobbyTiers) - Math.min(...lobbyTiers);
+    });
+
+    expect(challenge.lobbies.every(({ placements }) => placements.length === 10))
+      .toBe(true);
+    expect(Math.min(...challengeRanges)).toBeGreaterThan(
+      Math.max(...standardRanges),
+    );
+    for (const lobby of challenge.lobbies) {
+      const teams = (["a", "b"] as const).map((teamSide) => {
+        const placements = lobby.placements.filter(
+          (placement) => placement.teamSide === teamSide,
+        );
+        return {
+          coreTier: placements
+            .filter(({ slotNumber }) => slotNumber <= 3)
+            .reduce((sum, placement) => sum + placement.tierSnapshot, 0),
+          totalTier: placements.reduce(
+            (sum, placement) => sum + placement.tierSnapshot,
+            0,
+          ),
+        };
+      });
+      expect(Math.abs(teams[0].totalTier - teams[1].totalTier))
+        .toBeLessThanOrEqual(1);
+      expect(Math.abs(teams[0].coreTier - teams[1].coreTier))
+        .toBeLessThanOrEqual(2);
+    }
   });
 
   it("sorts only one team by tier from highest to lowest", () => {

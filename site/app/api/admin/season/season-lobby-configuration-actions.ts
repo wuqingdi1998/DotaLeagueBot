@@ -7,7 +7,10 @@ import {
   type SeasonLobbySlot,
   type SeasonLobbyTeamSide,
 } from "@/lib/season-lobby-assignment";
-import { MAX_SEASON_LOBBY_COUNT } from "@/lib/season-lobby-optimization";
+import {
+  MAX_SEASON_LOBBY_COUNT,
+  SEASON_LOBBY_OPTIMIZATION_VARIANTS,
+} from "@/lib/season-lobby-optimization";
 import { enumValue, requiredId } from "./season-admin-model";
 import {
   insertSeasonLobby,
@@ -317,6 +320,13 @@ export async function updateSeasonLobbyConfiguration(
     configurationActions,
     "действие с лобби",
   );
+  const optimizationVariant = action === "optimize"
+    ? enumValue(
+        body.optimizationVariant ?? "optimal",
+        SEASON_LOBBY_OPTIMIZATION_VARIANTS,
+        "вариант состава",
+      )
+    : null;
   return transaction(async (client) => {
     const round = await lockRoundConfiguration(client, roundId);
     const status = round.lobby_configuration_status;
@@ -337,8 +347,12 @@ export async function updateSeasonLobbyConfiguration(
       if (action === "add") await addLobby(client, roundId);
       if (action === "remove") await removeLobby(client, roundId);
       if (action === "assign") await assignPlayer(client, roundId, body);
-      if (action === "optimize") {
-        await optimizeSeasonLobbyConfiguration(client, roundId);
+      if (action === "optimize" && optimizationVariant) {
+        await optimizeSeasonLobbyConfiguration(
+          client,
+          roundId,
+          optimizationVariant,
+        );
       }
       if (action === "sortTier") {
         await sortSeasonLobbyConfigurationByTier(client, roundId);
@@ -378,7 +392,7 @@ export async function updateSeasonLobbyConfiguration(
         actorDiscordId,
         action,
         String(roundId),
-        JSON.stringify({ statusBefore: status }),
+        JSON.stringify({ statusBefore: status, optimizationVariant }),
       ],
     );
     return { ok: true };

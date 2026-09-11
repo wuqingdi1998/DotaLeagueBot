@@ -1,0 +1,108 @@
+.season-builder-optimization-menu {
+  display: flex;
+  position: relative;
+  z-index: 20;
+}
+
+.season-builder-optimization .season-builder-optimization-trigger {
+  border-radius: 999px 0 0 999px;
+}
+
+.season-builder-optimization .season-builder-optimization-toggle {
+  border-radius: 0 999px 999px 0;
+  justify-content: center;
+  margin-left: -1px;
+  padding-inline: 9px;
+}
+
+.season-builder-optimization-options {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  display: grid;
+  min-width: 230px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% - 1px);
+  transform: translateY(-4px);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease,
+    visibility 120ms ease;
+  visibility: hidden;
+  z-index: 100;
+}
+
+.season-builder-optimization-menu:hover .season-builder-optimization-options,
+.season-builder-optimization-menu:focus-within .season-builder-optimization-options,
+.season-builder-optimization-menu.open .season-builder-optimization-options {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.season-builder-optimization .season-builder-optimization-option {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  justify-content: flex-start;
+  min-height: 40px;
+  padding: 9px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.season-builder-optimization-option + .season-builder-optimization-option {
+  border-top: 1px solid var(--line);
+}
+
+.season-builder-optimization .season-builder-optimization-option:hover,
+.season-builder-optimization .season-builder-optimization-option:focus-visible {
+  background: rgba(103, 216, 239, 0.12);
+  color: #73dff3;
+  outline: none;
+}
+
+@media (max-width: 680px) {
+  .season-builder-optimization-menu {
+    width: 100%;
+  }
+
+  .season-builder-optimization .season-builder-optimization-trigger {
+    flex: 1 1 auto;
+    width: auto;
+  }
+
+  .season-builder-optimization .season-builder-optimization-toggle {
+    flex: 0 0 42px;
+    width: 42px;
+  }
+
+  .season-builder-optimization-options {
+    left: 0;
+    min-width: 0;
+    right: 0;
+  }
+
+  .season-builder-optimization-menu.open,
+  .season-builder-optimization-menu:focus-within {
+    flex-wrap: wrap;
+  }
+
+  .season-builder-optimization-menu.open .season-builder-optimization-options,
+  .season-builder-optimization-menu:focus-within .season-builder-optimization-options {
+    flex: 1 0 100%;
+    margin-top: 6px;
+    position: static;
+  }
+}
