@@ -38,7 +38,7 @@ jobs:
           python -m compileall -q .
           pip-audit -r requirements.txt
           ruff check .
-          mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/season_lobby_deadlines.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py services/durable_scheduler.py services/season_round_channel_sync.py services/season_lobby_notifications.py services/season_nine_outreach.py services/titan_checkup_service.py utils/website_notifications.py
+          mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/season_lobby_deadlines.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py services/durable_scheduler.py services/season_game_channel_access.py services/season_round_channel_sync.py services/season_lobby_notifications.py services/season_nine_outreach.py services/titan_checkup_service.py utils/website_notifications.py
           python -m pytest
       - name: Check site
         working-directory: site
