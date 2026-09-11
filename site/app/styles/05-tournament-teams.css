@@ -172,17 +172,24 @@
 
 .tournament-checkin-card {
   display: flex;
+  min-width: 0;
   min-height: 130px;
   grid-column: 1 / -1;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
+  padding: 24px;
 }
 
 .tournament-checkin-copy {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 18px;
+}
+
+.tournament-checkin-copy > div {
+  min-width: 0;
 }
 
 .tournament-checkin-copy > svg {

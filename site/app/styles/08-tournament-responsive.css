@@ -148,6 +148,12 @@
   .tournament-checkin-card {
     align-items: stretch;
     flex-direction: column;
+    padding: 20px;
+  }
+
+  .tournament-checkin-copy h3,
+  .tournament-checkin-copy p {
+    overflow-wrap: anywhere;
   }
 
   .tournament-checkin-card .primary-button,
