@@ -14,7 +14,6 @@ import type {
 } from "../model/types";
 import { SeasonLobbyRoomError } from "./errors";
 import { playerServerName } from "@/lib/security";
-import { advanceCaptainSelection } from "./captain-selection";
 
 type RoomTargetRow = {
   match_id: number;
@@ -120,7 +119,6 @@ export async function loadSeasonLobbyRoomSnapshot(
        ON CONFLICT (match_id) DO NOTHING`,
       [matchId],
     );
-    await advanceCaptainSelection(client, matchId);
     if (target.current_user_team_side) {
       await client.query(
         `INSERT INTO season_match_room_presence(match_id, player_id)

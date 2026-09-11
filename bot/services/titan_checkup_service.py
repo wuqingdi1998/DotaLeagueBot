@@ -23,6 +23,20 @@ class CheckupDeadline:
 
 
 class TitanCheckupService:
+    async def next_expiry_at(self) -> datetime | None:
+        async with async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    SELECT MIN(expires_at)
+                    FROM titan_checkup_requests
+                    WHERE status IN ('sent', 'ready')
+                      AND expires_at IS NOT NULL
+                    """
+                )
+            )
+            return result.scalar_one_or_none()
+
     async def recipients(self) -> list[TitanRecipient]:
         async with async_session() as session:
             rows = await session.execute(

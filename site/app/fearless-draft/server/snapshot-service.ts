@@ -16,9 +16,6 @@ import type {
   WaitingDraftPlayer,
 } from "../model/snapshot";
 import type { DraftChoice, DraftFormat } from "../model/types";
-import { settleExpiredDraft } from "./series-service";
-import { advanceBotDraft } from "./bot-service";
-import { settleExpiredDraftEndRequests } from "./agreement-service";
 import { draftEndRequestExpiresAt } from "../model/agreement";
 import { databaseNow } from "./database-clock";
 import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
@@ -357,14 +354,7 @@ export async function loadFearlessDraftSnapshot(
   user: AuthUser,
   options: { seasonMatchId?: number } = {},
 ): Promise<FearlessDraftSnapshot> {
-  await settleExpiredDraftEndRequests();
-  await settleExpiredDraft(user.discordId, options.seasonMatchId);
-  await advanceBotDraft(user.discordId);
   return transaction(async (client) => {
-    await client.query(
-      `UPDATE draft_invitations SET status = 'EXPIRED', responded_at = NOW()
-       WHERE status = 'PENDING' AND expires_at <= NOW()`,
-    );
     await client.query(
       `DELETE FROM draft_queue
        WHERE heartbeat_at < NOW() - ($1::int * INTERVAL '1 second')`,

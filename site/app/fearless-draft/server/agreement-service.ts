@@ -11,16 +11,18 @@ import { databaseNow } from "./database-clock";
 import { randomCoinTossResult } from "./coin-toss";
 import { DraftRequestError } from "./errors";
 
-export async function settleExpiredDraftEndRequests(): Promise<void> {
-  await query(
+export async function settleExpiredDraftEndRequests(): Promise<(number | null)[]> {
+  const rows = await query<{ season_match_id: number | null }>(
     `UPDATE draft_series
      SET status = 'ABANDONED', end_requested_by = NULL,
          end_requested_at = NULL, updated_at = NOW()
      WHERE status = ANY($1::text[])
        AND end_requested_by IS NOT NULL
-       AND end_requested_at <= NOW() - ($2::int * INTERVAL '1 minute')`,
+       AND end_requested_at <= NOW() - ($2::int * INTERVAL '1 minute')
+     RETURNING season_match_id::int`,
     [["CHOOSING", "DRAFTING", "MAP_COMPLETE"], DRAFT_END_REQUEST_TTL_MINUTES],
   );
+  return rows.map((row) => row.season_match_id);
 }
 
 export async function requestDraftSeriesEnd(playerId: string): Promise<void> {

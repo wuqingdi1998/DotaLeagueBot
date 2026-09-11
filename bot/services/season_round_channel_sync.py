@@ -23,7 +23,7 @@ LIVE_EVENTS_CATEGORY_ID = int(
 async def _delete_expired_round_channels(
     session: AsyncSession,
     category: discord.CategoryChannel,
-) -> None:
+) -> int:
     result = await session.execute(
         text(
             """
@@ -37,6 +37,7 @@ async def _delete_expired_round_channels(
             """
         )
     )
+    failure_count = 0
     for round_row in result.mappings():
         try:
             await delete_season_round_discord_channel(
@@ -66,10 +67,12 @@ async def _delete_expired_round_channels(
                 {"round_id": round_row["id"]},
             )
         except (discord.HTTPException, asyncio.TimeoutError, RuntimeError) as error:
+            failure_count += 1
             print(
                 "[ROUND-CHANNELS] Failed to delete channel "
                 f"for round {round_row['id']}: {error}"
             )
+    return failure_count
 
 
 async def _replace_managed_members(
@@ -110,7 +113,7 @@ async def _replace_managed_members(
 async def _ensure_active_round_channels(
     session: AsyncSession,
     category: discord.CategoryChannel,
-) -> None:
+) -> int:
     result = await session.execute(
         text(
             """
@@ -150,6 +153,7 @@ async def _ensure_active_round_channels(
             """
         )
     )
+    failure_count = 0
     for round_row in result.mappings():
         target = SeasonRoundDiscordChannelTarget(
             round_id=round_row["id"],
@@ -178,16 +182,18 @@ async def _ensure_active_round_channels(
                 session, target.round_id, target.participant_ids
             )
         except (discord.HTTPException, asyncio.TimeoutError, RuntimeError) as error:
+            failure_count += 1
             print(
                 "[ROUND-CHANNELS] Failed to sync channel "
                 f"for round {target.round_id}: {error}"
             )
+    return failure_count
 
 
 async def sync_season_round_discord_channels(
     bot: discord.Client,
     session: AsyncSession,
-) -> None:
+) -> int:
     await session.execute(
         text(
             """
@@ -206,6 +212,7 @@ async def sync_season_round_discord_channels(
         )
     except (discord.HTTPException, asyncio.TimeoutError, RuntimeError) as error:
         print(f"[ROUND-CHANNELS] Live events category is unavailable: {error}")
-        return
-    await _delete_expired_round_channels(session, category)
-    await _ensure_active_round_channels(session, category)
+        return 1
+    delete_failures = await _delete_expired_round_channels(session, category)
+    ensure_failures = await _ensure_active_round_channels(session, category)
+    return delete_failures + ensure_failures

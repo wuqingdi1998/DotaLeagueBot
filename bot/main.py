@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 # 👇 ИМПОРТИРУЕМ БАЗУ И СЕРВИСЫ
 from database.core import init_db, async_session
 from cogs.ui.profile_menu import ProfileManageView
+from services.durable_scheduler import DurableScheduler, ScheduledEventJob
 
 # Загружаем переменные из .env
 load_dotenv()
@@ -30,6 +31,20 @@ class LeagueBot(commands.Bot):
 
         # 3. Заготовки для атрибутов
         self.session_maker = None
+        self.scheduled_event_jobs: list[ScheduledEventJob] = []
+        self.durable_scheduler: DurableScheduler | None = None
+        self.scheduler_task: asyncio.Task[None] | None = None
+
+    async def _run_scheduled_events(self) -> None:
+        await self.wait_until_ready()
+        if self.durable_scheduler is not None:
+            await self.durable_scheduler.run()
+
+    async def close(self) -> None:
+        if self.scheduler_task is not None:
+            self.scheduler_task.cancel()
+            await asyncio.gather(self.scheduler_task, return_exceptions=True)
+        await super().close()
 
     async def setup_hook(self):
         print("🔄 Запуск setup_hook...")
@@ -54,6 +69,13 @@ class LeagueBot(commands.Bot):
                         print(f"❌ Не удалось загрузить {filename}: {e}")
         else:
             print("⚠️ Папка cogs не найдена!")
+
+        self.durable_scheduler = DurableScheduler(self.scheduled_event_jobs)
+        self.scheduler_task = asyncio.create_task(self._run_scheduled_events())
+        print(
+            "⏰ Надёжное расписание запущено: "
+            f"{len(self.scheduled_event_jobs)} обработчиков."
+        )
 
         # --- 3. Регистрация Кнопок (Persistent Views) ---
         self.add_view(ProfileManageView())

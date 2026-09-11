@@ -286,35 +286,13 @@ async function loadSelectableHeroTurn(
   return { series, map, now };
 }
 
-export async function settleExpiredDraft(
-  playerId: string,
-  seasonMatchId?: number,
-): Promise<void> {
-  await transaction(async (client) => {
-    const active = await client.query<{ id: number }>(
-      `SELECT id::int FROM draft_series
-       WHERE status = 'DRAFTING'
-         AND (
-           (player1_id = $1 OR player2_id = $1)
-           OR (
-             season_match_id = $2
-             AND EXISTS (
-               SELECT 1 FROM season_match_room_players participant
-               WHERE participant.match_id = season_match_id
-                 AND participant.player_id = $1
-             )
-           )
-         )
-       ORDER BY updated_at DESC LIMIT 1`,
-      [playerId, seasonMatchId ?? null],
-    );
-    if (!active.rows[0]) return;
-    const { series, map } = await loadLockedDraftSeriesById(
-      client,
-      active.rows[0].id,
-    );
+export async function settleExpiredDraftSeries(
+  seriesId: number,
+): Promise<boolean> {
+  return transaction(async (client) => {
+    const { series, map } = await loadLockedDraftSeriesById(client, seriesId);
     const now = await databaseNow(client);
-    await resolveExpiredStep(client, series, map, now);
+    return resolveExpiredStep(client, series, map, now);
   });
 }
 

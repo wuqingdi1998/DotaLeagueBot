@@ -11,11 +11,8 @@ from cogs.ui.titan_checkup import (
     TitanCheckupView,
     resolved_titan_checkup_view,
 )
-from services.titan_checkup_service import (
-    CheckupDeadline,
-    TitanCheckupService,
-    TitanRecipient,
-)
+from services.durable_scheduler import register_scheduled_job
+from services.titan_checkup_service import TitanCheckupService, TitanRecipient
 
 FROKENG_DISCORD_ID = 311247030422863882
 TITAN_SCREEN_CHANNEL_ID = 1533127829066092715
@@ -52,15 +49,29 @@ IGNORED_MESSAGE = "Актуализация не пройдена!"
 
 
 class TitanCheckup(commands.Cog):
+    name = "titan_checkup_expiry"
+
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
         self.service = TitanCheckupService()
-        self.expiry_tasks: dict[int, asyncio.Task[None]] = {}
 
-    async def cog_unload(self) -> None:
-        for task in self.expiry_tasks.values():
-            task.cancel()
-        self.expiry_tasks.clear()
+    async def process_due(self) -> None:
+        now = datetime.now(timezone.utc)
+        for request in await self.service.requests_awaiting_response():
+            if request.expires_at > now:
+                continue
+            ignored = await self.service.expire_ignored_request(request.request_id)
+            if ignored is not None:
+                await self._notify_player(ignored.player_id, IGNORED_MESSAGE)
+        for request in await self.service.requests_awaiting_images():
+            if request.expires_at > now:
+                continue
+            expired = await self.service.expire_request(request.request_id)
+            if expired is not None:
+                await self._notify_player(expired.player_id, TIMEOUT_MESSAGE)
+
+    async def next_due_at(self) -> datetime | None:
+        return await self.service.next_expiry_at()
 
     async def _is_frokeng(self, interaction: discord.Interaction) -> bool:
         if interaction.user.id != FROKENG_DISCORD_ID:
@@ -113,13 +124,11 @@ class TitanCheckup(commands.Cog):
             if user is None:
                 user = await self.bot.fetch_user(recipient.discord_id)
             sent = await user.send(CHECKUP_MESSAGE, view=TitanCheckupView())
-            pending_response = await self.service.mark_delivered(
+            await self.service.mark_delivered(
                 request_id,
                 sent.id,
                 CHECKUP_RESPONSE_TIMEOUT_SECONDS,
             )
-            if pending_response is not None:
-                self._schedule_response_expiry(pending_response)
             return True
         except (discord.Forbidden, discord.HTTPException, discord.NotFound):
             await self.service.mark_delivery_failed(request_id)
@@ -216,8 +225,6 @@ class TitanCheckup(commands.Cog):
                 view=resolved_titan_checkup_view(action),
             )
             await interaction.followup.send(READY_MESSAGE)
-            self._cancel_expiry(request.request_id)
-            self._schedule_image_expiry(request)
             return
         if action == "later":
             request_id = await self.service.mark_later(player_id, message_id)
@@ -231,7 +238,6 @@ class TitanCheckup(commands.Cog):
         if request_id is None:
             await self._already_processed(interaction)
             return
-        self._cancel_expiry(request_id)
         await interaction.response.edit_message(
             view=resolved_titan_checkup_view(action),
         )
@@ -243,69 +249,6 @@ class TitanCheckup(commands.Cog):
             "Этот запрос уже обработан или больше не действует.",
             ephemeral=True,
         )
-
-    @commands.Cog.listener()
-    async def on_ready(self) -> None:
-        for request in await self.service.requests_awaiting_response():
-            self._schedule_response_expiry(request)
-        for request in await self.service.requests_awaiting_images():
-            self._schedule_image_expiry(request)
-
-    def _schedule_response_expiry(self, request: CheckupDeadline) -> None:
-        if request.request_id in self.expiry_tasks:
-            return
-        self.expiry_tasks[request.request_id] = asyncio.create_task(
-            self._expire_response_after_delay(request),
-        )
-
-    def _schedule_image_expiry(self, request: CheckupDeadline) -> None:
-        if request.request_id in self.expiry_tasks:
-            return
-        self.expiry_tasks[request.request_id] = asyncio.create_task(
-            self._expire_image_after_delay(request),
-        )
-
-    def _cancel_expiry(self, request_id: int) -> None:
-        task = self.expiry_tasks.pop(request_id, None)
-        if task is not None:
-            task.cancel()
-
-    @staticmethod
-    def _seconds_until_expiry(request: CheckupDeadline) -> float:
-        return max(
-            0.0,
-            (request.expires_at - datetime.now(timezone.utc)).total_seconds(),
-        )
-
-    async def _expire_response_after_delay(
-        self,
-        request: CheckupDeadline,
-    ) -> None:
-        try:
-            await asyncio.sleep(self._seconds_until_expiry(request))
-            ignored = await self.service.expire_ignored_request(request.request_id)
-            if ignored is not None:
-                await self._notify_player(ignored.player_id, IGNORED_MESSAGE)
-        except asyncio.CancelledError:
-            raise
-        finally:
-            self._remove_finished_expiry(request.request_id)
-
-    async def _expire_image_after_delay(self, request: CheckupDeadline) -> None:
-        try:
-            await asyncio.sleep(self._seconds_until_expiry(request))
-            expired = await self.service.expire_request(request.request_id)
-            if expired is not None:
-                await self._notify_player(expired.player_id, TIMEOUT_MESSAGE)
-        except asyncio.CancelledError:
-            raise
-        finally:
-            self._remove_finished_expiry(request.request_id)
-
-    def _remove_finished_expiry(self, request_id: int) -> None:
-        current = asyncio.current_task()
-        if self.expiry_tasks.get(request_id) is current:
-            self.expiry_tasks.pop(request_id, None)
 
     async def _notify_player(self, player_id: int, message: str) -> None:
         try:
@@ -368,10 +311,11 @@ class TitanCheckup(commands.Cog):
         if not completed:
             await message.channel.send(TIMEOUT_MESSAGE)
             return
-        self._cancel_expiry(request.request_id)
         await message.channel.send("Скриншот отправлен frokeng.")
 
 
 async def setup(bot: commands.Bot) -> None:
-    await bot.add_cog(TitanCheckup(bot))
+    cog = TitanCheckup(bot)
+    await bot.add_cog(cog)
+    register_scheduled_job(bot, cog)
     bot.add_view(TitanCheckupView())

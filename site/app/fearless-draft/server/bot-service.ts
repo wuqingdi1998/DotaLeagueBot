@@ -205,3 +205,18 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
     );
   }
 }
+
+export async function advanceAllBotDrafts(): Promise<number> {
+  const rows = await query<{ player_id: string }>(
+    `SELECT DISTINCT CASE
+       WHEN player1_id = $1 THEN player2_id::text
+       ELSE player1_id::text
+     END AS player_id
+     FROM draft_series
+     WHERE (player1_id = $1 OR player2_id = $1)
+       AND status = ANY($2::text[])`,
+    [FEARLESS_DRAFT_BOT_PLAYER_ID, ["CHOOSING", "DRAFTING", "MAP_COMPLETE"]],
+  );
+  for (const row of rows) await advanceBotDraft(row.player_id);
+  return rows.length;
+}

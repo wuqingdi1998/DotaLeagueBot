@@ -2,14 +2,16 @@ from __future__ import annotations
 
 import asyncio
 import os
+from datetime import datetime
 
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 from sqlalchemy.engine import RowMapping
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.core import async_session
+from services.durable_scheduler import register_scheduled_job
 from services.season_round_channel_sync import sync_season_round_discord_channels
 from utils.website_notifications import notification_outbox_embed
 
@@ -17,12 +19,10 @@ from utils.website_notifications import notification_outbox_embed
 class WebsiteBridge(commands.Cog):
     """Delivers website events through the existing Discord bot."""
 
+    name = "website_bridge"
+
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.deliver_notifications.start()
-
-    async def cog_unload(self) -> None:
-        self.deliver_notifications.cancel()
 
     async def _delete_notification_message(
         self, user: discord.User, notification: RowMapping
@@ -187,10 +187,12 @@ class WebsiteBridge(commands.Cog):
             {"base_url": base_url},
         )
 
-    @tasks.loop(seconds=15)
-    async def deliver_notifications(self) -> None:
+    async def process_due(self) -> None:
         async with async_session() as session:
-            await sync_season_round_discord_channels(self.bot, session)
+            channel_failure_count = await sync_season_round_discord_channels(
+                self.bot,
+                session,
+            )
             await self._queue_tournament_checkins(session)
             await self._queue_season_round_checkins(session)
             await self._queue_season_round_missing_checkins(session)
@@ -285,12 +287,113 @@ class WebsiteBridge(commands.Cog):
                         },
                     )
             await session.commit()
+        if channel_failure_count:
+            raise RuntimeError(
+                f"Discord channel synchronization failures: {channel_failure_count}"
+            )
 
-    @deliver_notifications.before_loop
-    async def before_delivery(self) -> None:
-        await self.bot.wait_until_ready()
+    async def next_due_at(self) -> datetime | None:
+        async with async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    WITH tournament_starts AS (
+                        SELECT tournament_id, MIN(scheduled_at) AS first_match_at
+                        FROM tournament_matches
+                        GROUP BY tournament_id
+                    ), scheduled AS (
+                        SELECT MIN(available_at) AS due_at
+                        FROM notification_outbox
+                        WHERE status IN ('pending', 'delete_pending')
+
+                        UNION ALL
+
+                        SELECT start_time.first_match_at
+                            - (tournament.check_in_minutes || ' minutes')::interval
+                        FROM tournament_team_applications application
+                        JOIN tournaments tournament
+                          ON tournament.id = application.tournament_id
+                        JOIN tournament_starts start_time
+                          ON start_time.tournament_id = tournament.id
+                        WHERE application.status = 'approved'
+                          AND application.captain_discord_id IS NOT NULL
+                          AND tournament.status IN ('registration', 'active')
+                          AND start_time.first_match_at > NOW()
+                          AND NOT EXISTS (
+                              SELECT 1 FROM notification_outbox notification
+                              WHERE notification.application_id = application.id
+                                AND notification.event_type = 'tournament_check_in'
+                          )
+
+                        UNION ALL
+
+                        SELECT round.scheduled_at - INTERVAL '2 hours'
+                        FROM season_round_registrations registration
+                        JOIN season_rounds round ON round.id = registration.round_id
+                        JOIN tournaments tournament
+                          ON tournament.id = round.tournament_id
+                        LEFT JOIN season_round_checkins checkin
+                          ON checkin.round_id = registration.round_id
+                         AND checkin.player_id = registration.player_id
+                        WHERE round.round_kind = 'regular'
+                          AND round.is_visible = TRUE
+                          AND season_round_status_at(
+                              round.scheduled_at, round.status
+                          ) IN ('planned', 'active')
+                          AND tournament.status IN ('registration', 'active')
+                          AND NOW() < round.scheduled_at - INTERVAL '10 minutes'
+                          AND checkin.player_id IS NULL
+                          AND NOT EXISTS (
+                              SELECT 1 FROM notification_outbox notification
+                              WHERE notification.discord_id = registration.player_id
+                                AND notification.season_round_id = round.id
+                                AND notification.event_type =
+                                    'season_round_check_in_open'
+                          )
+
+                        UNION ALL
+
+                        SELECT round.scheduled_at - INTERVAL '10 minutes'
+                        FROM season_rounds round
+                        JOIN tournaments tournament
+                          ON tournament.id = round.tournament_id
+                        JOIN tournament_organizers organizer
+                          ON organizer.tournament_id = tournament.id
+                        WHERE round.round_kind = 'regular'
+                          AND round.is_visible = TRUE
+                          AND season_round_status_at(
+                              round.scheduled_at, round.status
+                          ) IN ('planned', 'active')
+                          AND tournament.status IN ('registration', 'active')
+                          AND NOW() < round.scheduled_at + INTERVAL '6 hours'
+                          AND NOT EXISTS (
+                              SELECT 1 FROM notification_outbox notification
+                              WHERE notification.discord_id = organizer.discord_id
+                                AND notification.season_round_id = round.id
+                                AND notification.event_type =
+                                    'season_round_check_in_missing'
+                          )
+
+                        UNION ALL
+
+                        SELECT CASE
+                            WHEN NOW() < round.scheduled_at THEN round.scheduled_at
+                            ELSE round.scheduled_at + INTERVAL '3 hours'
+                        END
+                        FROM season_rounds round
+                        WHERE round.round_kind = 'regular'
+                          AND round.status <> 'cancelled'
+                          AND NOW() < round.scheduled_at + INTERVAL '3 hours'
+                    )
+                    SELECT MIN(due_at) FROM scheduled
+                    """
+                )
+            )
+            return result.scalar_one_or_none()
 
 
 async def setup(bot: commands.Bot) -> None:
     if os.getenv("WEBSITE_NOTIFICATIONS_ENABLED", "true").lower() == "true":
-        await bot.add_cog(WebsiteBridge(bot))
+        cog = WebsiteBridge(bot)
+        await bot.add_cog(cog)
+        register_scheduled_job(bot, cog)

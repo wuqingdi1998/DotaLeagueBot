@@ -137,7 +137,9 @@ def test_campaign_is_scheduled_for_noon_in_batches_of_ten() -> None:
     assert "LIMIT :batch_size" in (
         ROOT / "bot" / "services" / "season_nine_outreach.py"
     ).read_text(encoding="utf-8")
-    assert "tasks.loop(seconds=2)" in COG
+    assert "register_scheduled_job(bot, cog)" in COG
+    assert "async def next_due_at" in COG
+    assert "tasks.loop(seconds=2)" not in COG
     assert "1|2026-09-05 12:00|10|10" in DEPLOYMENT
     assert "Season 9 outreach worker is running" in DEPLOYMENT
     assert "services/season_nine_outreach.py" in DEPLOYMENT

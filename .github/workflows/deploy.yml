@@ -38,7 +38,7 @@ jobs:
           python -m compileall -q .
           pip-audit -r requirements.txt
           ruff check .
-          mypy database/core.py database/migrate.py cogs/website_bridge.py cogs/season_nine_outreach.py services/season_nine_outreach.py utils/website_notifications.py
+          mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/season_lobby_deadlines.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py services/durable_scheduler.py services/season_round_channel_sync.py services/season_lobby_notifications.py services/season_nine_outreach.py services/titan_checkup_service.py utils/website_notifications.py
           python -m pytest
       - name: Check site
         working-directory: site
@@ -494,6 +494,21 @@ jobs:
               bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
               if [[ "$bot_logs" == *"Загружен ког: season_lobby_notifications.py"* ]]; then
                 echo "Season lobby notification worker is running"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                printf '%s\n' "$bot_logs"
+                exit 1
+              fi
+              sleep 3
+            done
+
+            for attempt in $(seq 1 30); do
+              bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
+              if [[ "$bot_logs" == *"[SCHEDULER] Connected to PostgreSQL event notifications."* \
+                && "$bot_logs" == *"Загружен ког: season_lobby_deadlines.py"* \
+                && "$bot_logs" == *"Загружен ког: fearless_draft_deadlines.py"* ]]; then
+                echo "Event-driven scheduler is connected"
                 break
               fi
               if [ "$attempt" -eq 30 ]; then
