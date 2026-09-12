@@ -32,6 +32,7 @@ const lobbyDisplay = source(
 const lobbyChat = source(
   "../app/season-lobby/[matchId]/components/LobbyChat.tsx",
 );
+const sharedMatchRoomChat = source("../app/components/MatchRoomChat.tsx");
 const lobbyEntryStyles = source(
   "../app/styles/60-season-lobby-entry-and-shell.css",
 );
@@ -128,9 +129,10 @@ describe("season lobby room contract", () => {
   });
 
   it("keeps chat level with five players and groups consecutive messages", () => {
-    expect(lobbyChat).toContain("previousMessage?.playerId === item.playerId");
-    expect(lobbyChat).toContain("item.avatarUrl");
-    expect(lobbyChat).toContain("!isContinuation");
+    expect(lobbyChat).toContain("MatchRoomChat");
+    expect(sharedMatchRoomChat).toContain("previousMessage?.playerId === item.playerId");
+    expect(sharedMatchRoomChat).toContain("item.avatarUrl");
+    expect(sharedMatchRoomChat).toContain("!isContinuation");
     expect(lobbyRoomStyles).toContain(
       "grid-template-rows: auto minmax(0, 1fr) auto auto",
     );
@@ -144,8 +146,8 @@ describe("season lobby room contract", () => {
   });
 
   it("uses the compact lobby chat and synchronization labels", () => {
-    expect(lobbyChat).toContain("<strong>Чат лобби</strong>");
-    expect(lobbyChat).not.toContain("Только для этих 10 игроков");
+    expect(sharedMatchRoomChat).toContain("<strong>Чат лобби</strong>");
+    expect(sharedMatchRoomChat).not.toContain("Только для этих 10 игроков");
     expect(roomScreen).not.toContain(
       "Здесь собираются только десять участников этого матча.",
     );

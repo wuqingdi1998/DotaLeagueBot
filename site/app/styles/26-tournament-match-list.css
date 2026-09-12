@@ -153,6 +153,24 @@
   width: 100%;
 }
 
+.match-room-link {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: var(--blue-gradient);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.match-room-link:hover {
+  transform: translateY(-1px);
+}
+
 @media (max-width: 1050px) {
   .match-row {
     grid-template-columns:

@@ -1,0 +1,180 @@
+.ordinary-room-overview {
+  align-items: stretch;
+}
+
+.ordinary-room-match-card,
+.ordinary-room-dispute {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.ordinary-room-teams {
+  display: grid;
+  min-height: 260px;
+  grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.ordinary-room-team {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 30px;
+  text-align: center;
+}
+
+.ordinary-room-team.side-a {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--blue) 13%, var(--surface)), transparent);
+}
+
+.ordinary-room-team.side-b {
+  background: linear-gradient(225deg, color-mix(in srgb, #d65b6e 12%, var(--surface)), transparent);
+}
+
+.ordinary-room-team > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.ordinary-room-team > strong {
+  font-size: clamp(20px, 2.4vw, 30px);
+  overflow-wrap: anywhere;
+}
+
+.ordinary-room-team > p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.ordinary-room-team > b {
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 58px;
+  line-height: 1;
+}
+
+.ordinary-room-versus {
+  align-self: center;
+  color: var(--quiet);
+  font-size: 28px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.ordinary-room-map-history {
+  display: grid;
+  margin: 0;
+  border-top: 1px solid var(--line);
+  padding: 0;
+  list-style: none;
+}
+
+.ordinary-room-map-history li {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr) auto;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 11px 16px;
+}
+
+.ordinary-room-map-history li:last-child {
+  border-bottom: 0;
+}
+
+.ordinary-room-map-history span,
+.ordinary-room-map-history small {
+  color: var(--muted);
+}
+
+.ordinary-room-dispute > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 21px;
+  background: rgba(214, 91, 110, 0.09);
+}
+
+.ordinary-room-dispute > header > svg {
+  flex: 0 0 auto;
+  color: #d65b6e;
+  font-size: 26px;
+}
+
+.ordinary-room-dispute header p,
+.ordinary-room-reports p {
+  margin: 3px 0 0;
+  color: var(--muted);
+}
+
+.ordinary-room-reports {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 20px;
+}
+
+.ordinary-room-reports article {
+  display: grid;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 13px;
+  background: var(--surface-soft);
+}
+
+.ordinary-room-reports span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.ordinary-room-dispute .season-room-result-form {
+  border: 0;
+  border-radius: 0;
+}
+
+@media (max-width: 720px) {
+  .ordinary-room-teams {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
+  }
+
+  .ordinary-room-team {
+    padding: 24px 10px;
+  }
+
+  .ordinary-room-team > b {
+    font-size: 46px;
+  }
+
+  .ordinary-room-map-history li {
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
+  .ordinary-room-map-history small {
+    grid-column: 2;
+  }
+
+  .ordinary-room-reports {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .ordinary-room-team > p {
+    font-size: 12px;
+  }
+
+  .ordinary-room-team > strong {
+    font-size: 18px;
+  }
+}

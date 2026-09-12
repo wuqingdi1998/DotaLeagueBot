@@ -17,7 +17,7 @@ const avatarConsumers = [
   "../app/compendium/sections/CompendiumLeaderboard.tsx",
   "../app/compendium/sections/CompendiumResults.tsx",
   "../app/fearless-draft/components/PlayerAvatar.tsx",
-  "../app/season-lobby/[matchId]/components/LobbyChat.tsx",
+  "../app/components/MatchRoomChat.tsx",
   "../app/season-lobby/[matchId]/components/LobbyPlayerTeams.tsx",
   "../app/tournaments/[slug]/admin/SeasonTeamSelection.tsx",
   "../app/tournaments/[slug]/components/TournamentModals.tsx",

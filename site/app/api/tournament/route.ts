@@ -101,7 +101,7 @@ export async function GET(request: Request) {
        check_in_minutes, group_format, playoff_format, final_format,
        max_team_tier::int, show_tiers,
        playoff_type, tournament_type, season_round_count::int,
-       season_activity_points_note,
+       season_activity_points_note, ordinary_match_rooms_enabled,
        discord_url, status, updated_at
      FROM tournaments
      ${tournamentFilter}
@@ -258,15 +258,29 @@ export async function GET(request: Request) {
            m.bracket_grid_column::int, m.bracket_grid_row::int,
            m.eliminated_team_application_id::int,
            m.winner_to_match_id::int, m.winner_to_slot,
-           m.loser_to_match_id::int, m.loser_to_slot
+           m.loser_to_match_id::int, m.loser_to_slot,
+           CASE WHEN tournaments.ordinary_match_rooms_enabled = TRUE
+             AND tournaments.tournament_type = 'ordinary'
+             AND m.status <> 'cancelled'
+             AND (m.status <> 'finished' OR EXISTS (
+               SELECT 1 FROM ordinary_match_rooms room
+               WHERE room.match_id = m.id AND room.status = 'completed'
+             ))
+             AND m.team_a_application_id IS NOT NULL
+             AND m.team_b_application_id IS NOT NULL
+             AND ($3::boolean OR $2::bigint IN (
+               a.captain_discord_id, b.captain_discord_id
+             ))
+             THEN '/match-room/' || m.id ELSE NULL END AS room_url
          FROM tournament_matches m
+         JOIN tournaments ON tournaments.id = m.tournament_id
          LEFT JOIN tournament_team_applications a
            ON a.id = m.team_a_application_id
          LEFT JOIN tournament_team_applications b
            ON b.id = m.team_b_application_id
          WHERE m.tournament_id = $1
          ORDER BY m.sort_order, m.scheduled_at`,
-        [tournament.id],
+        [tournament.id, user?.discordId ?? null, user?.isAdmin === true],
       ),
       query<Record<string, unknown>>(
         `WITH team_results AS (

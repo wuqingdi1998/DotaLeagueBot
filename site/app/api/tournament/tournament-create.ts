@@ -87,11 +87,11 @@ export async function POST(request: Request) {
           team_size, max_teams, region, server, check_in_minutes,
           group_format, playoff_format, final_format, discord_url, status,
           playoff_type, tournament_type, season_round_count,
-          max_team_tier, show_tiers
+          max_team_tier, show_tiers, ordinary_match_rooms_enabled
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
           $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
-          $24, $25, $26, $27
+          $24, $25, $26, $27, $28
         ) RETURNING id::int`,
         [
           slug,
@@ -101,6 +101,7 @@ export async function POST(request: Request) {
           seasonRoundCount,
           maximumTeamTier,
           showTiers,
+          tournamentType === "ordinary",
         ],
       );
       const id = result.rows[0].id;

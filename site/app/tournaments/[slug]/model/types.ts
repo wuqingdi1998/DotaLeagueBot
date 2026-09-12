@@ -15,6 +15,7 @@ export type Tournament = {
   tournament_type: TournamentType;
   season_round_count: number;
   season_activity_points_note: string | null;
+  ordinary_match_rooms_enabled: boolean;
   slug: string;
   name: string;
   eyebrow: string;
@@ -112,6 +113,7 @@ export type TournamentMatch = {
   best_of: number;
   sort_order: number;
   status: "scheduled" | "ready" | "live" | "finished" | "cancelled";
+  room_url?: string | null;
 };
 
 export type Standing = {

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { isPastTournament } from "@/lib/tournaments";
 import { useTournament } from "../hooks/TournamentContext";
 import {
@@ -112,6 +113,13 @@ export function MatchesPanel() {
                 />
               </div>
               <span className="best-of">BO{match.best_of}</span>
+              {match.room_url && (
+                <div className="match-actions">
+                  <Link className="match-room-link" href={match.room_url}>
+                    Войти в комнату
+                  </Link>
+                </div>
+              )}
               {match.decision_note && (
                 <p className="match-decision-note">{match.decision_note}</p>
               )}

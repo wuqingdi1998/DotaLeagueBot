@@ -47,3 +47,7 @@ export function fearlessDraftChannel(
 export function seasonLobbyChannel(matchId: number): string {
   return `season-lobby:${matchId}`;
 }
+
+export function ordinaryMatchRoomChannel(matchId: number): string {
+  return `ordinary-match-room:${matchId}`;
+}
