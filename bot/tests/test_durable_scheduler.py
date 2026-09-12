@@ -106,6 +106,7 @@ def test_database_changes_wake_every_persistent_scheduled_domain() -> None:
 def test_deferred_events_have_no_short_interval_polling_loops() -> None:
     deferred_files = (
         ROOT / "bot" / "cogs" / "channel_announcements.py",
+        ROOT / "bot" / "cogs" / "ordinary_tournament_team_channels.py",
         ROOT / "bot" / "cogs" / "website_bridge.py",
         ROOT / "bot" / "cogs" / "season_lobby_notifications.py",
         ROOT / "bot" / "cogs" / "season_nine_outreach.py",
