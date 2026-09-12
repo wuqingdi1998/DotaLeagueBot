@@ -11,6 +11,9 @@ const headerResponsive = source(
 );
 const compendium = source("../app/styles/compendium-route.css");
 const tournaments = source("../app/styles/tournaments-route.css");
+const tournamentSchedule = source(
+  "../app/styles/14-schedule-and-header.css",
+);
 const draft = source("../app/styles/fearless-draft-route.css");
 const calendar = source("../app/styles/calendar-route.css");
 const season = source("../app/styles/season-route.css");
@@ -59,5 +62,12 @@ describe("route-specific styles", () => {
     expect(
       playerDirectory.indexOf("12-player-profile-responsive.css"),
     ).toBeGreaterThan(playerDirectory.indexOf("12-player-profile.css"));
+  });
+
+  it("keeps shared site-header sizing out of tournament route styles", () => {
+    expect(tournamentSchedule).not.toContain(".site-header");
+    expect(tournamentSchedule).not.toContain(".header-actions");
+    expect(tournamentSchedule).not.toContain(".mobile-menu-button");
+    expect(tournamentSchedule).not.toContain(".theme-button");
   });
 });
