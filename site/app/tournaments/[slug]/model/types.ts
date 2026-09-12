@@ -125,7 +125,9 @@ export type Standing = {
   place: number;
   team_name: string;
   games: number;
+  series_wins: number;
   maps_won: number;
+  maps_lost: number;
 };
 
 export type TournamentGroup = {

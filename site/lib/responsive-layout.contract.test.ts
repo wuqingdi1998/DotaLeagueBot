@@ -38,7 +38,7 @@ describe("responsive tournament layouts", () => {
       /@media \(max-width: 370px\)[\s\S]*\.standing-row\s*\{[^}]*grid-template-columns:\s*28px minmax\(0, 1fr\) 44px 68px;/,
     );
     expect(standingsStyles).toMatch(
-      /@media \(max-width: 370px\)[\s\S]*\.standing-group \.standing-row\s*\{[^}]*grid-template-columns:\s*26px minmax\(0, 1fr\) 36px 36px 64px;/,
+      /@media \(max-width: 370px\)[\s\S]*\.standing-group \.standing-row\s*\{[^}]*grid-template-columns:\s*22px minmax\(0, 1fr\) 36px 46px 48px 62px;/,
     );
   });
 

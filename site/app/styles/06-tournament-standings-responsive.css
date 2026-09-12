@@ -14,8 +14,17 @@
   }
 
   .standing-group .standing-row {
-    grid-template-columns: 32px minmax(0, 1fr) 44px 44px 82px;
-    padding: 0 9px;
+    grid-template-columns: 24px minmax(0, 1fr) 40px 50px 50px 68px;
+    column-gap: 3px;
+    padding: 0 6px;
+  }
+
+  .standing-group .standing-head {
+    font-size: 12px;
+  }
+
+  .standing-group .standing-head > span {
+    padding: 0 2px;
   }
 
   .standing-outcome {
@@ -37,8 +46,9 @@
   }
 
   .standing-group .standing-row {
-    grid-template-columns: 26px minmax(0, 1fr) 36px 36px 64px;
-    padding: 0 6px;
+    grid-template-columns: 22px minmax(0, 1fr) 36px 46px 48px 62px;
+    column-gap: 2px;
+    padding: 0 3px;
   }
 
   .standing-team {

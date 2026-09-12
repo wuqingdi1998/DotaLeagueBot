@@ -41,7 +41,7 @@ export function GroupsPanel() {
           <h3>Турнирное положение</h3>
         </div>
         <span className="timezone">
-          Место определяется по выигранным картам
+          Место определяется по победам в матчах
         </span>
       </div>
       {adminMode && <GroupShuffleToolbar />}
@@ -54,6 +54,7 @@ export function GroupsPanel() {
                 <span>#</span>
                 <span>Команда</span>
                 <span>Матчи</span>
+                <span>Победы</span>
                 <span>Карты</span>
                 <span>Итог</span>
               </div>
@@ -77,7 +78,8 @@ export function GroupsPanel() {
                       <strong>{row.team_name}</strong>
                     </span>
                     <span>{row.games}</span>
-                    <strong>{row.maps_won}</strong>
+                    <strong>{row.series_wins}</strong>
+                    <span>({row.maps_won}–{row.maps_lost})</span>
                     <span
                       className={`standing-outcome${
                         eliminated ? " eliminated" : ""

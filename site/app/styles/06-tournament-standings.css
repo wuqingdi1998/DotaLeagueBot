@@ -22,7 +22,7 @@
 }
 
 .standing-group .standing-row {
-  grid-template-columns: 44px minmax(0, 1fr) 72px 72px 124px;
+  grid-template-columns: 40px minmax(0, 1fr) 58px 68px 68px 124px;
   padding: 0 15px;
 }
 
