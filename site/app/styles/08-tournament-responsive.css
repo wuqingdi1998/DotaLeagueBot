@@ -16,11 +16,6 @@
   .teams-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .community-section {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
 }
 
 @media (max-width: 760px) {
@@ -214,11 +209,6 @@
 
   .application-actions button {
     flex: 1;
-  }
-
-  .community-section {
-    min-height: auto;
-    padding: 56px 20px;
   }
 
   .modal-backdrop {
