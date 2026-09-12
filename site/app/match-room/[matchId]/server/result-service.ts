@@ -84,11 +84,12 @@ async function finalizeGame(
     [target.matchId, score.teamA, score.teamB, completed],
   );
   await client.query(
-    `UPDATE ordinary_match_rooms SET status = $2,
-       current_game_number = CASE WHEN $2 = 'completed' THEN current_game_number
+    `UPDATE ordinary_match_rooms
+     SET status = CASE WHEN $2::boolean THEN 'completed' ELSE 'active' END,
+       current_game_number = CASE WHEN $2::boolean THEN current_game_number
          ELSE current_game_number + 1 END, updated_at = NOW()
      WHERE match_id = $1`,
-    [target.matchId, completed ? "completed" : "active"],
+    [target.matchId, completed],
   );
   await recordAudit(client, target, actor, method === "organizer" ? "resolve_dispute" : "confirm_map", {
     gameNumber, dotaMatchId, winnerSide, score, completed,

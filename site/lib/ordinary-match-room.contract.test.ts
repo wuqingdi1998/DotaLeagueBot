@@ -43,6 +43,7 @@ describe("ordinary match room contract", () => {
     expect(results).toContain("ordinary_match_games");
     expect(results).toContain("team_a_score = $2");
     expect(results).toContain("team_b_score = $3");
+    expect(results).toContain("status = CASE WHEN $2::boolean");
     expect(screen).not.toContain("FearlessDraftScreen");
   });
 });
