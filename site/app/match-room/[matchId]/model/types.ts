@@ -47,4 +47,10 @@ export type MatchRoomSnapshot = {
 export type MatchRoomCommand =
   | { action: "SEND_MESSAGE"; message: string }
   | { action: "REPORT_GAME_RESULT"; dotaMatchId: string; winnerSide: WinnerSide }
-  | { action: "RESOLVE_DISPUTE"; dotaMatchId: string; winnerSide: WinnerSide };
+  | { action: "SET_GAME_RESULT"; dotaMatchId: string; winnerSide: WinnerSide }
+  | {
+      action: "EDIT_GAME_RESULT";
+      gameNumber: number;
+      dotaMatchId: string;
+      winnerSide: WinnerSide;
+    };

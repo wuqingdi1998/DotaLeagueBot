@@ -68,32 +68,44 @@ async function finalizeGame(
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [target.matchId, gameNumber, dotaMatchId, winnerSide, method, method === "organizer" ? actor.discordId : null],
   );
-  const games = await client.query<{ winnerSide: WinnerSide }>(
-    `SELECT winner_side AS "winnerSide" FROM ordinary_match_games
-     WHERE match_id = $1 ORDER BY game_number`,
+  const result = await synchronizeSeriesResult(client, target);
+  await recordAudit(client, target, actor, method === "organizer" ? "set_game_result" : "confirm_map", {
+    gameNumber, dotaMatchId, winnerSide, score: result.score,
+    completed: result.isCompleted,
+  });
+}
+
+async function synchronizeSeriesResult(
+  client: PoolClient,
+  target: RoomTarget,
+) {
+  const games = await client.query<{ gameNumber: number; winnerSide: WinnerSide }>(
+    `SELECT game_number::int AS "gameNumber", winner_side AS "winnerSide"
+     FROM ordinary_match_games WHERE match_id = $1 ORDER BY game_number`,
     [target.matchId],
   );
-  const score = seriesScore(games.rows.map((game) => game.winnerSide));
-  const completed = isSeriesComplete(target.bestOf, games.rows.map((game) => game.winnerSide));
+  const winners = games.rows.map((game) => game.winnerSide);
+  const score = seriesScore(winners);
+  const isCompleted = isSeriesComplete(target.bestOf, winners);
+  const currentGameNumber = isCompleted
+    ? Math.max(...games.rows.map((game) => game.gameNumber))
+    : games.rows.length + 1;
   await client.query(
     `UPDATE tournament_matches SET team_a_score = $2, team_b_score = $3,
        status = CASE WHEN $4 THEN 'finished' ELSE 'live' END,
        result_type = 'normal', team_a_result_label = NULL,
        team_b_result_label = NULL, decision_note = NULL, updated_at = NOW()
      WHERE id = $1`,
-    [target.matchId, score.teamA, score.teamB, completed],
+    [target.matchId, score.teamA, score.teamB, isCompleted],
   );
   await client.query(
     `UPDATE ordinary_match_rooms
-     SET status = CASE WHEN $2::boolean THEN 'completed' ELSE 'active' END,
-       current_game_number = CASE WHEN $2::boolean THEN current_game_number
-         ELSE current_game_number + 1 END, updated_at = NOW()
+     SET status = $2::varchar(16), current_game_number = $3::smallint,
+       updated_at = NOW()
      WHERE match_id = $1`,
-    [target.matchId, completed],
+    [target.matchId, isCompleted ? "completed" : "active", currentGameNumber],
   );
-  await recordAudit(client, target, actor, method === "organizer" ? "resolve_dispute" : "confirm_map", {
-    gameNumber, dotaMatchId, winnerSide, score, completed,
-  });
+  return { score, isCompleted };
 }
 
 export async function reportMatchRoomGame(
@@ -139,7 +151,7 @@ export async function reportMatchRoomGame(
   });
 }
 
-export async function resolveMatchRoomDispute(
+export async function setMatchRoomGameByOrganizer(
   matchId: number,
   actor: AuthUser,
   rawDotaMatchId: unknown,
@@ -150,7 +162,40 @@ export async function resolveMatchRoomDispute(
   await transaction(async (client) => {
     const target = await requireMatchRoom(client, matchId, actor, true);
     const room = await lockRoom(client, matchId);
-    if (room.status !== "disputed") throw new MatchRoomError("В этой карте нет активного спора", 409);
+    if (room.status === "completed") {
+      throw new MatchRoomError("Завершённую карту нужно исправлять через историю", 409);
+    }
     await finalizeGame(client, target, actor, room.currentGameNumber, input.dotaMatchId, input.winnerSide, "organizer");
+  });
+}
+
+export async function editMatchRoomGameByOrganizer(
+  matchId: number,
+  actor: AuthUser,
+  rawGameNumber: unknown,
+  rawDotaMatchId: unknown,
+  rawWinnerSide: unknown,
+) {
+  if (!actor.isAdmin) throw new MatchRoomError("Исправлять результат может только организатор", 403);
+  const gameNumber = Number(rawGameNumber);
+  if (!Number.isInteger(gameNumber) || gameNumber <= 0) {
+    throw new MatchRoomError("Некорректный номер карты");
+  }
+  const input = resultInput(rawDotaMatchId, rawWinnerSide);
+  await transaction(async (client) => {
+    const target = await requireMatchRoom(client, matchId, actor, true);
+    await lockRoom(client, matchId);
+    const updated = await client.query(
+      `UPDATE ordinary_match_games
+       SET dota_match_id = $3, winner_side = $4,
+         resolution_method = 'organizer', resolved_by = $5, resolved_at = NOW()
+       WHERE match_id = $1 AND game_number = $2`,
+      [matchId, gameNumber, input.dotaMatchId, input.winnerSide, actor.discordId],
+    );
+    if (!updated.rowCount) throw new MatchRoomError("Карта не найдена", 404);
+    const result = await synchronizeSeriesResult(client, target);
+    await recordAudit(client, target, actor, "edit_game_result", {
+      gameNumber, ...input, score: result.score, completed: result.isCompleted,
+    });
   });
 }

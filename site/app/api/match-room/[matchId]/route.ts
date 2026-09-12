@@ -3,7 +3,11 @@ import type { MatchRoomCommand } from "@/app/match-room/[matchId]/model/types";
 import { matchRoomErrorResponse, MatchRoomError } from "@/app/match-room/[matchId]/server/errors";
 import { sendMatchRoomMessage } from "@/app/match-room/[matchId]/server/message-service";
 import { loadMatchRoomSnapshot } from "@/app/match-room/[matchId]/server/room-query";
-import { reportMatchRoomGame, resolveMatchRoomDispute } from "@/app/match-room/[matchId]/server/result-service";
+import {
+  editMatchRoomGameByOrganizer,
+  reportMatchRoomGame,
+  setMatchRoomGameByOrganizer,
+} from "@/app/match-room/[matchId]/server/result-service";
 import { ordinaryMatchRoomChannel, publishLiveUpdate } from "@/lib/live-update-events";
 
 export const dynamic = "force-dynamic";
@@ -46,8 +50,16 @@ export async function POST(request: Request, context: { params: Promise<{ matchI
       await sendMatchRoomMessage(matchId, actor, command.message);
     } else if (command.action === "REPORT_GAME_RESULT") {
       await reportMatchRoomGame(matchId, actor, command.dotaMatchId, command.winnerSide);
-    } else if (command.action === "RESOLVE_DISPUTE") {
-      await resolveMatchRoomDispute(matchId, actor, command.dotaMatchId, command.winnerSide);
+    } else if (command.action === "SET_GAME_RESULT") {
+      await setMatchRoomGameByOrganizer(matchId, actor, command.dotaMatchId, command.winnerSide);
+    } else if (command.action === "EDIT_GAME_RESULT") {
+      await editMatchRoomGameByOrganizer(
+        matchId,
+        actor,
+        command.gameNumber,
+        command.dotaMatchId,
+        command.winnerSide,
+      );
     } else {
       throw new MatchRoomError("Неизвестное действие");
     }

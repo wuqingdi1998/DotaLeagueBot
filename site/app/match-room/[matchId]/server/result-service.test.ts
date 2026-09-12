@@ -6,7 +6,11 @@ import type { AuthUser } from "@/lib/auth";
 const mocks = vi.hoisted(() => ({ transaction: vi.fn() }));
 vi.mock("@/lib/db", () => ({ transaction: mocks.transaction }));
 
-import { reportMatchRoomGame, resolveMatchRoomDispute } from "./result-service";
+import {
+  editMatchRoomGameByOrganizer,
+  reportMatchRoomGame,
+  setMatchRoomGameByOrganizer,
+} from "./result-service";
 
 let db: PGlite;
 function actor(discordId: string, isAdmin = false): AuthUser {
@@ -115,7 +119,43 @@ describe("ordinary match result persistence", () => {
     await reportMatchRoomGame(100, captainA, "8995644936", "a");
     await reportMatchRoomGame(100, captainB, "8995644937", "b");
     expect((await db.query("SELECT status FROM ordinary_match_rooms")).rows[0]).toEqual({ status: "disputed" });
-    await resolveMatchRoomDispute(100, organizer, "8995644936", "a");
+    await setMatchRoomGameByOrganizer(100, organizer, "8995644936", "a");
     expect((await db.query("SELECT status FROM ordinary_match_rooms")).rows[0]).toEqual({ status: "completed" });
+  });
+
+  it("lets the organizer set a result before either captain reports", async () => {
+    await setMatchRoomGameByOrganizer(100, organizer, "8995644936", "a");
+    const match = await db.query<{ status: string; team_a_score: number; team_b_score: number }>(
+      "SELECT status, team_a_score::int, team_b_score::int FROM tournament_matches WHERE id = 100",
+    );
+    expect(match.rows[0]).toEqual({ status: "finished", team_a_score: 1, team_b_score: 0 });
+  });
+
+  it("lets the organizer correct a completed result and recalculates the score", async () => {
+    await setMatchRoomGameByOrganizer(100, organizer, "8995644936", "a");
+    await editMatchRoomGameByOrganizer(100, organizer, 1, "8995644937", "b");
+    const match = await db.query<{ status: string; team_a_score: number; team_b_score: number }>(
+      "SELECT status, team_a_score::int, team_b_score::int FROM tournament_matches WHERE id = 100",
+    );
+    const game = await db.query<{ dota_match_id: string; winner_side: string }>(
+      "SELECT dota_match_id, winner_side FROM ordinary_match_games WHERE match_id = 100",
+    );
+    expect(match.rows[0]).toEqual({ status: "finished", team_a_score: 0, team_b_score: 1 });
+    expect(game.rows[0]).toEqual({ dota_match_id: "8995644937", winner_side: "b" });
+  });
+
+  it("reopens map three when a corrected BO3 score becomes 1:1", async () => {
+    await db.exec("UPDATE tournament_matches SET best_of = 3 WHERE id = 100");
+    await setMatchRoomGameByOrganizer(100, organizer, "8995644936", "a");
+    await setMatchRoomGameByOrganizer(100, organizer, "8995644937", "a");
+    await editMatchRoomGameByOrganizer(100, organizer, 2, "8995644937", "b");
+    const room = await db.query<{ status: string; current_game_number: number }>(
+      "SELECT status, current_game_number::int FROM ordinary_match_rooms WHERE match_id = 100",
+    );
+    const match = await db.query<{ status: string; team_a_score: number; team_b_score: number }>(
+      "SELECT status, team_a_score::int, team_b_score::int FROM tournament_matches WHERE id = 100",
+    );
+    expect(room.rows[0]).toEqual({ status: "active", current_game_number: 3 });
+    expect(match.rows[0]).toEqual({ status: "live", team_a_score: 1, team_b_score: 1 });
   });
 });

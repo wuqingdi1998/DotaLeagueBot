@@ -12,6 +12,9 @@ const screen = source("../app/match-room/[matchId]/MatchRoomScreen.tsx");
 const resultControl = source(
   "../app/match-room/[matchId]/components/MatchResultControl.tsx",
 );
+const organizerControls = source(
+  "../app/match-room/[matchId]/components/OrganizerResultControls.tsx",
+);
 const matches = source("../app/tournaments/[slug]/sections/MatchesPanel.tsx");
 const tournamentApi = source("../app/api/tournament/route.ts");
 const tournamentCreate = source("../app/api/tournament/tournament-create.ts");
@@ -36,14 +39,22 @@ describe("ordinary match room contract", () => {
     expect(results).toContain('evaluation === "disputed"');
     expect(results).toContain("Разрешить спор может только организатор");
     expect(resultControl).toContain("Организатор рассматривает спор");
-    expect(resultControl).toContain("RESOLVE_DISPUTE");
+    expect(organizerControls).toContain("SET_GAME_RESULT");
+  });
+
+  it("lets an organizer submit without a dispute and edit completed maps", () => {
+    expect(results).toContain("setMatchRoomGameByOrganizer");
+    expect(results).toContain("editMatchRoomGameByOrganizer");
+    expect(organizerControls).toContain("Зафиксировать без подтверждений капитанов");
+    expect(organizerControls).toContain("EDIT_GAME_RESULT");
+    expect(organizerControls).toContain("Исправить карту");
   });
 
   it("stores agreed maps and automatically updates the series score", () => {
     expect(results).toContain("ordinary_match_games");
     expect(results).toContain("team_a_score = $2");
     expect(results).toContain("team_b_score = $3");
-    expect(results).toContain("status = CASE WHEN $2::boolean");
+    expect(results).toContain("status = $2::varchar(16)");
     expect(screen).not.toContain("FearlessDraftScreen");
   });
 });
