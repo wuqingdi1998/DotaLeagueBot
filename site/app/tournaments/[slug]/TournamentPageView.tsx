@@ -6,7 +6,7 @@ import { SiteHeader } from "@/app/components/SiteHeader";
 import { TournamentModals } from "./components/TournamentModals";
 import { useTournament } from "./hooks/TournamentContext";
 import { useTournamentActionTarget } from "./hooks/useTournamentActionTarget";
-import { CommunityFooter } from "./sections/CommunityFooter";
+import { TournamentFooter } from "./sections/TournamentFooter";
 import { MatchesPanel } from "./sections/MatchesPanel";
 import { OverviewPanel } from "./sections/OverviewPanel";
 import { TeamsPanel } from "./sections/TeamsPanel";
@@ -115,7 +115,7 @@ export function TournamentPageView() {
         {data.user?.isAdmin && <TournamentAdminPanel />}
       </section>
 
-      <CommunityFooter />
+      <TournamentFooter />
       <TournamentModals />
     </main>
   );

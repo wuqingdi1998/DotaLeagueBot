@@ -7,7 +7,7 @@ import { OrganizerAccess } from "../../OrganizerAccess";
 import { OrganizerArchiveLink } from "../../OrganizerArchiveLink";
 import { useTournament } from "../hooks/TournamentContext";
 
-export function CommunityFooter() {
+export function TournamentFooter() {
   const { data } = useTournament();
   if (!data) return null;
 

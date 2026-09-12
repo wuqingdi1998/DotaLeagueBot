@@ -8,7 +8,7 @@ function source(path: string) {
 const header = source("../app/components/SiteHeader.tsx");
 const platformShell = source("../app/tournaments/TournamentsHub.tsx");
 const tournamentFooter = source(
-  "../app/tournaments/[slug]/sections/CommunityFooter.tsx",
+  "../app/tournaments/[slug]/sections/TournamentFooter.tsx",
 );
 const organizerLink = source("../app/tournaments/OrganizerArchiveLink.tsx");
 const organizerArchive = source(

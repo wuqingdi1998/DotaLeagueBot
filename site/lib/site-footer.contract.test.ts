@@ -15,7 +15,7 @@ const platformShell = readFileSync(
 );
 const tournamentFooter = readFileSync(
   new URL(
-    "../app/tournaments/[slug]/sections/CommunityFooter.tsx",
+    "../app/tournaments/[slug]/sections/TournamentFooter.tsx",
     import.meta.url,
   ),
   "utf8",
