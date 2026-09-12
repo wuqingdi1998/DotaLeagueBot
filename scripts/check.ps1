@@ -21,7 +21,7 @@ try {
     Invoke-CheckedCommand $Python -m ruff check .
     Invoke-CheckedCommand $Python -m pip_audit -r requirements.txt
     Invoke-CheckedCommand $Python -m compileall -q .
-    Invoke-CheckedCommand $Python -m mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/season_lobby_deadlines.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py services/durable_scheduler.py services/season_game_channel_access.py services/season_round_channel_sync.py services/season_lobby_notifications.py services/season_nine_outreach.py services/titan_checkup_service.py utils/website_notifications.py
+    Invoke-CheckedCommand $Python -m mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/subscription_admin.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/season_lobby_deadlines.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py services/durable_scheduler.py services/season_game_channel_access.py services/season_round_channel_sync.py services/season_lobby_notifications.py services/season_nine_outreach.py services/subscription_role_grants.py services/titan_checkup_service.py utils/website_notifications.py
     Invoke-CheckedCommand $Python -m pytest --cov=. --cov-report=term-missing
 }
 finally {
