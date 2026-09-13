@@ -112,7 +112,7 @@
 .season-penalty-table-section > p {
   color: var(--muted);
   font-family: Montserrat, sans-serif;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .season-penalty-table-section > p {
@@ -137,9 +137,10 @@
 .season-penalty-table th {
   background: var(--surface-soft);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 
+.season-penalty-table th:first-child,
 .season-penalty-table td:first-child {
   text-align: left;
   font-weight: 800;

@@ -18,6 +18,7 @@ export type PenaltyEventRow = {
   round_number: number;
   fire_count: number;
   note: string | null;
+  created_at: string;
 };
 
 export type SubstitutionRow = {
@@ -93,7 +94,8 @@ export async function loadSeasonExtras(
            player.ingame_name
          ) AS nickname,
          event.round_id::int,
-         round.round_number::int, event.fire_count::int, event.note
+         round.round_number::int, event.fire_count::int, event.note,
+         event.created_at
        FROM season_penalty_events event
        JOIN players player ON player.discord_id = event.player_id
        LEFT JOIN season_participants season_player
@@ -102,7 +104,7 @@ export async function loadSeasonExtras(
        JOIN season_rounds round ON round.id = event.round_id
        WHERE event.tournament_id = $1 ${roundVisibility}
          AND round.round_kind = 'regular'
-       ORDER BY player.ingame_name, round.round_number`,
+       ORDER BY event.created_at DESC, event.id DESC`,
       [tournamentId],
     ),
     query<SubstitutionRow>(

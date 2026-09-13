@@ -2,17 +2,30 @@
 
 import { useState } from "react";
 import { FiArrowLeft, FiArrowRight, FiTrash2 } from "react-icons/fi";
+import {
+  sortSeasonPenaltyEvents,
+  type SeasonPenaltyEventOrder,
+} from "@/lib/season-penalty-event-order";
 import { useTournament } from "../hooks/TournamentContext";
+import {
+  SeasonAdminPlayerPicker,
+  type SeasonAdminPlayerOption,
+} from "./SeasonAdminPlayerPicker";
 
 export function SeasonDisciplineAdmin() {
   const { data, season } = useTournament();
   const [adjustmentPlayerId, setAdjustmentPlayerId] = useState("");
   const [adjustmentAmount, setAdjustmentAmount] = useState("1");
   const [adjustmentReason, setAdjustmentReason] = useState("");
-  const [penaltyPlayerId, setPenaltyPlayerId] = useState("");
+  const [penaltyPlayer, setPenaltyPlayer] =
+    useState<SeasonAdminPlayerOption | null>(null);
+  const [penaltyPlayerPickerRevision, setPenaltyPlayerPickerRevision] =
+    useState(0);
   const [penaltyRoundId, setPenaltyRoundId] = useState("");
   const [fireCount, setFireCount] = useState("0");
   const [penaltyNote, setPenaltyNote] = useState("");
+  const [penaltyOrder, setPenaltyOrder] =
+    useState<SeasonPenaltyEventOrder>("createdAt");
   const [finalistPlayerId, setFinalistPlayerId] = useState("");
   const [finalistSeed, setFinalistSeed] = useState("");
   const [finalistNote, setFinalistNote] = useState("");
@@ -28,6 +41,10 @@ export function SeasonDisciplineAdmin() {
   const tournamentId = data.tournament.id;
   const regularRounds = season.data.rounds.filter(
     (round) => round.round_kind === "regular",
+  );
+  const orderedPenaltyEvents = sortSeasonPenaltyEvents(
+    season.data.penaltyEvents,
+    penaltyOrder,
   );
 
   async function addAdjustment() {
@@ -48,13 +65,14 @@ export function SeasonDisciplineAdmin() {
     const result = await season.mutate("POST", {
       entity: "penalty",
       tournamentId,
-      playerId: penaltyPlayerId,
+      playerId: penaltyPlayer?.discord_id,
       roundId: penaltyRoundId,
       fireCount,
       note: penaltyNote,
     });
     if (result.ok) {
-      setPenaltyPlayerId("");
+      setPenaltyPlayer(null);
+      setPenaltyPlayerPickerRevision((current) => current + 1);
       setPenaltyNote("");
     }
   }
@@ -81,8 +99,8 @@ export function SeasonDisciplineAdmin() {
           <p className="card-kicker">Таблица сезона</p>
           <h3>Игроки, очки p, штрафы и финалы</h3>
           <p>
-            Игрока можно найти по Discord ID или Dota ID. После сохранения
-            таблица пересчитается автоматически.
+            Игрока можно найти по нику, Discord ID или Dota ID. После
+            сохранения таблица пересчитается автоматически.
           </p>
         </div>
       </div>
@@ -175,14 +193,11 @@ export function SeasonDisciplineAdmin() {
 
       <AdminBlock title="Штрафные огоньки">
         <div className="season-inline-admin-form">
-          <label>
-            <span>ID игрока</span>
-            <input
-              inputMode="numeric"
-              value={penaltyPlayerId}
-              onChange={(event) => setPenaltyPlayerId(event.target.value)}
-            />
-          </label>
+          <SeasonAdminPlayerPicker
+            key={penaltyPlayerPickerRevision}
+            label="Игрок"
+            onSelect={setPenaltyPlayer}
+          />
           <label>
             <span>Тур</span>
             <select
@@ -217,14 +232,27 @@ export function SeasonDisciplineAdmin() {
           <button
             className="secondary-button tournament-save-button"
             type="button"
+            disabled={!penaltyPlayer || !penaltyRoundId}
             onClick={() => void savePenalty()}
           >
             Сохранить штраф
           </button>
         </div>
+        <label className="season-penalty-event-order">
+          <span>Сортировка списка</span>
+          <select
+            value={penaltyOrder}
+            onChange={(event) =>
+              setPenaltyOrder(event.target.value as SeasonPenaltyEventOrder)
+            }
+          >
+            <option value="createdAt">По времени добавления</option>
+            <option value="round">По турам и числу огоньков</option>
+          </select>
+        </label>
         <RecordList
           emptyText="Штрафных огоньков пока нет."
-          records={season.data.penaltyEvents.map((penalty) => ({
+          records={orderedPenaltyEvents.map((penalty) => ({
             id: penalty.id,
             title: `${penalty.nickname} · Тур ${penalty.round_number}`,
             value: `🔥 ${penalty.fire_count}${penalty.note ? ` · ${penalty.note}` : ""}`,

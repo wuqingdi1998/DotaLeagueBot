@@ -4,12 +4,16 @@ import { useState } from "react";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { SeasonStanding } from "@/lib/season";
+import { sortSeasonPenaltyEvents } from "@/lib/season-penalty-event-order";
 import {
   compareSeasonPenaltyStages,
   compareSeasonStandingPerformance,
 } from "@/lib/season-standings-order";
 import { useTournament } from "../hooks/TournamentContext";
-import type { SeasonRound } from "../model/season-types";
+import type {
+  SeasonPenaltyEvent,
+  SeasonRound,
+} from "../model/season-types";
 import { HorizontalDragScroll } from "../components/HorizontalDragScroll";
 
 export function SeasonStandingsPanel() {
@@ -83,7 +87,13 @@ export function SeasonStandingsPanel() {
               <StandingsTable rows={inactiveRows} rounds={rounds} />
             </section>
           )}
-          <SeasonPenaltyTable rows={standings} />
+          <SeasonPenaltyTable
+            events={season.data.penaltyEvents.filter((event) =>
+              rounds.some((round) => round.id === event.round_id) &&
+              event.fire_count > 0,
+            )}
+            rows={standings}
+          />
         </>
       )}
     </div>
@@ -244,7 +254,13 @@ function SeasonStandingsLegend() {
   );
 }
 
-function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
+function SeasonPenaltyTable({
+  events,
+  rows,
+}: {
+  events: SeasonPenaltyEvent[];
+  rows: SeasonStanding[];
+}) {
   const penalized = rows
     .filter((row) => row.penaltyFires > 0)
     .sort(compareSeasonPenaltyStages);
@@ -298,6 +314,38 @@ function SeasonPenaltyTable({ rows }: { rows: SeasonStanding[] }) {
         </table>
       </HorizontalDragScroll>
       )}
+      {events.length > 0 && <SeasonPenaltyHistory events={events} />}
+    </section>
+  );
+}
+
+function SeasonPenaltyHistory({ events }: { events: SeasonPenaltyEvent[] }) {
+  const orderedEvents = sortSeasonPenaltyEvents(events, "round");
+  return (
+    <section className="season-penalty-history">
+      <h5>История штрафных огоньков</h5>
+      <HorizontalDragScroll>
+        <table className="season-penalty-table season-penalty-history-table">
+          <thead>
+            <tr>
+              <th>Тур</th>
+              <th>Игрок</th>
+              <th>Огоньки</th>
+              <th>Причина</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orderedEvents.map((event) => (
+              <tr key={event.id}>
+                <td>Тур {event.round_number}</td>
+                <td>{event.nickname}</td>
+                <td>🔥 {event.fire_count}</td>
+                <td>{event.note || "Причина не указана"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </HorizontalDragScroll>
     </section>
   );
 }

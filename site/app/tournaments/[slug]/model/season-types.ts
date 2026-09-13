@@ -162,6 +162,7 @@ export type SeasonPenaltyEvent = {
   round_number: number;
   fire_count: number;
   note: string | null;
+  created_at: string;
 };
 
 export type SeasonFinalist = {

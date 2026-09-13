@@ -26,6 +26,9 @@ const horizontalDragScroll = source(
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
+const disciplineAdmin = source(
+  "../app/tournaments/[slug]/admin/SeasonDisciplineAdmin.tsx",
+);
 const rounds = [
   source("../app/tournaments/[slug]/sections/SeasonRoundsPanel.tsx"),
   source("../app/tournaments/[slug]/sections/SeasonLobbyDisplay.tsx"),
@@ -368,5 +371,20 @@ describe("season interface contract", () => {
   it("applies dedicated ordering to inactive and penalized players", () => {
     expect(standings).toContain("compareSeasonStandingPerformance");
     expect(standings).toContain("compareSeasonPenaltyStages");
+  });
+
+  it("searches penalty players by nickname and exposes both penalty list orders", () => {
+    expect(disciplineAdmin).toContain("SeasonAdminPlayerPicker");
+    expect(disciplineAdmin).toContain('value="createdAt"');
+    expect(disciplineAdmin).toContain('value="round"');
+    expect(disciplineAdmin).toContain("sortSeasonPenaltyEvents");
+    expect(extraQuery).toContain("event.created_at");
+  });
+
+  it("shows a public penalty history with rounds and reasons", () => {
+    expect(standings).toContain("История штрафных огоньков");
+    expect(standings).toContain("penaltyEvents");
+    expect(standings).toContain("Причина");
+    expect(standings).toContain("sortSeasonPenaltyEvents");
   });
 });

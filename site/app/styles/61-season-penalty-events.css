@@ -1,0 +1,69 @@
+/* Penalty event history and organizer ordering controls */
+
+.season-penalty-history {
+  min-width: 0;
+  margin-top: 22px;
+}
+
+.season-penalty-history .season-table-scroll {
+  min-width: 0;
+}
+
+.season-penalty-history h5 {
+  margin: 0 0 12px;
+  font-size: 18px;
+}
+
+.season-penalty-history-table {
+  min-width: 620px;
+}
+
+.season-penalty-history-table th:first-child,
+.season-penalty-history-table td:first-child {
+  text-align: center;
+}
+
+.season-penalty-history-table th:nth-child(2),
+.season-penalty-history-table td:nth-child(2) {
+  text-align: left;
+}
+
+.season-penalty-event-order {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 540px) {
+  .season-penalty-history-table {
+    min-width: 0;
+    table-layout: fixed;
+  }
+
+  .season-penalty-history-table th,
+  .season-penalty-history-table td {
+    padding: 9px 6px;
+    overflow-wrap: anywhere;
+  }
+
+  .season-penalty-history-table th:first-child {
+    width: 62px;
+  }
+
+  .season-penalty-history-table th:nth-child(2) {
+    width: 92px;
+  }
+
+  .season-penalty-history-table th:nth-child(3) {
+    width: 72px;
+  }
+
+  .season-penalty-event-order {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
