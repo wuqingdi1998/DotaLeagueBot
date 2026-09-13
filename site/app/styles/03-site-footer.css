@@ -11,6 +11,16 @@
   font-size: 15px;
 }
 
+.platform-shell.has-platform-footer {
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-footer {
+  flex: 0 0 120px;
+  margin-top: auto;
+}
+
 .site-footer .brand {
   opacity: 0.8;
 }
@@ -73,5 +83,9 @@
   .platform-footer-links {
     width: 100%;
     flex-wrap: wrap;
+  }
+
+  .platform-footer {
+    flex-basis: auto;
   }
 }

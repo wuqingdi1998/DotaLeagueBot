@@ -97,7 +97,10 @@ export function PlatformShell({
   }, []);
 
   return (
-    <main className="site-shell platform-shell" data-theme={theme}>
+    <main
+      className={`site-shell platform-shell${hasFooter ? " has-platform-footer" : ""}`}
+      data-theme={theme}
+    >
       <SiteHeader theme={theme} setTheme={setTheme} user={user} />
       {children}
       {hasFooter && (
