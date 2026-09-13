@@ -94,10 +94,46 @@ export type FastCupOverview = {
   title: string;
   prize: string;
   period: string;
+  startsOn: string;
+  endsOn: string;
   format: string;
   accent: "cd" | "sd" | "cm";
   tournamentHref: string | null;
 };
+
+type FastCupSchedule = Omit<FastCupOverview, "period">;
+
+const fastCupDayMonthFormatter = new Intl.DateTimeFormat("ru-RU", {
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+
+function fastCupDate(dateKey: string) {
+  return new Date(`${dateKey}T12:00:00Z`);
+}
+
+function formatFastCupPeriod(startsOn: string, endsOn: string) {
+  const startDate = fastCupDate(startsOn);
+  const endDate = fastCupDate(endsOn);
+  const year = endsOn.slice(0, 4);
+
+  if (startsOn.slice(0, 7) === endsOn.slice(0, 7)) {
+    const month = fastCupDayMonthFormatter
+      .format(endDate)
+      .replace(/^\d+\s+/, "");
+    return `${startDate.getUTCDate()}–${endDate.getUTCDate()} ${month} ${year}`;
+  }
+
+  return `${fastCupDayMonthFormatter.format(startDate)} – ${fastCupDayMonthFormatter.format(endDate)} ${year}`;
+}
+
+function defineFastCup(schedule: FastCupSchedule): FastCupOverview {
+  return {
+    ...schedule,
+    period: formatFastCupPeriod(schedule.startsOn, schedule.endsOn),
+  };
+}
 
 export const fastCupIntroduction = {
   descriptor: "Дополнительные открытые турниры",
@@ -107,49 +143,73 @@ export const fastCupIntroduction = {
 } as const;
 
 export const fastCupOverviews: readonly FastCupOverview[] = [
-  {
+  defineFastCup({
     linkId: "cd-fastcup-7",
     title: "Linken’s Sphere CD Fastcup #7",
     prize: "2 000 ₽",
-    period: "12–13 сентября 2026",
+    startsOn: "2026-09-12",
+    endsOn: "2026-09-13",
     format: "Capitan's Draft",
     accent: "cd",
     tournamentHref: null,
-  },
-  {
+  }),
+  defineFastCup({
     linkId: "sd-fastcup-2",
     title: "Linken’s Sphere SD Fastcup #2",
     prize: "2 000 ₽",
-    period: "26–27 сентября 2026",
+    startsOn: "2026-09-26",
+    endsOn: "2026-09-27",
     format: "Single Draft",
     accent: "sd",
     tournamentHref: null,
-  },
-  {
+  }),
+  defineFastCup({
     linkId: "fastcup-14",
     title: "Linken’s Sphere Fastcup #14",
     prize: "2 000 ₽",
-    period: "10–11 октября 2026",
+    startsOn: "2026-10-10",
+    endsOn: "2026-10-11",
     format: "Capitan's Mode",
     accent: "cm",
     tournamentHref: null,
-  },
-  {
+  }),
+  defineFastCup({
     linkId: "cd-fastcup-8",
     title: "Linken’s Sphere CD Fastcup #8",
     prize: "2 000 ₽",
-    period: "24–25 октября 2026",
+    startsOn: "2026-10-24",
+    endsOn: "2026-10-25",
     format: "Capitan's Draft",
     accent: "cd",
     tournamentHref: null,
-  },
-  {
+  }),
+  defineFastCup({
     linkId: "fastcup-15",
     title: "Linken’s Sphere Fastcup #15",
     prize: "2 000 ₽",
-    period: "5–6 декабря 2026",
+    startsOn: "2026-12-05",
+    endsOn: "2026-12-06",
     format: "Capitan's Mode",
     accent: "cm",
     tournamentHref: null,
-  },
+  }),
 ] as const;
+
+export function selectFeaturedFastCup(
+  currentDate: string,
+  cups: readonly FastCupOverview[] = fastCupOverviews,
+): FastCupOverview | null {
+  const chronologicalCups = [...cups].sort((first, second) =>
+    first.startsOn.localeCompare(second.startsOn),
+  );
+  const currentCup = chronologicalCups.find(
+    (cup) => cup.startsOn <= currentDate && currentDate <= cup.endsOn,
+  );
+  if (currentCup) return currentCup;
+
+  return (
+    chronologicalCups.find((cup) => cup.startsOn > currentDate) ??
+    chronologicalCups.at(-1) ??
+    null
+  );
+}

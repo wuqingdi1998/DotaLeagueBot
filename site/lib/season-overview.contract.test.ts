@@ -11,6 +11,9 @@ const section = source("../app/season/sections/SeasonOverviewPage.tsx");
 const fastCupSection = source(
   "../app/season/sections/FastCupsOverview.tsx",
 );
+const fastCupCarousel = source(
+  "../app/season/components/FastCupCarousel.tsx",
+);
 const fastCupCard = source("../app/season/components/FastCupCard.tsx");
 const leagueCupCard = source(
   "../app/season/components/LeagueCupOverviewCard.tsx",
@@ -99,9 +102,11 @@ describe("season overview page", () => {
     expect(model).toContain("Linken’s Sphere Fastcup #15");
     expect(model).toContain('period: "6 сентября – 20 декабря 2026"');
     expect(model).toContain('period: "2 ноября – 13 декабря 2026"');
-    expect(model).toContain('period: "12–13 сентября 2026"');
-    expect(model).toContain('period: "5–6 декабря 2026"');
-    expect(model.match(/period: "/g)).toHaveLength(7);
+    expect(model).toContain('startsOn: "2026-09-12"');
+    expect(model).toContain('endsOn: "2026-12-06"');
+    expect(model.match(/startsOn: "/g)).toHaveLength(5);
+    expect(model.match(/endsOn: "/g)).toHaveLength(5);
+    expect(model.match(/period: "/g)).toHaveLength(2);
     expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(5);
     expect(model.match(/format: "/g)).toHaveLength(5);
     expect(model.match(/^    accent: "/gm)).toHaveLength(5);
@@ -179,5 +184,24 @@ describe("season overview page", () => {
     expect(layout).not.toContain("66-season-overview-desktop.css");
     expect(seasonRule).toContain("Читабельность важнее");
     expect(seasonRule).toContain("Весь текст на странице не меньше 13 px");
+  });
+
+  it("centers the current or nearest future Fastcup in a mobile carousel", () => {
+    expect(page).toContain("moscowDateKey()");
+    expect(section).toContain("currentMoscowDate={currentMoscowDate}");
+    expect(fastCupSection).toContain("selectFeaturedFastCup");
+    expect(fastCupSection).toContain("FastCupCarousel");
+    expect(fastCupCarousel).toContain('matchMedia("(max-width: 760px)")');
+    expect(fastCupCarousel).toContain("requestAnimationFrame");
+    expect(fastCupCarousel).toContain("container.scrollTo");
+    expect(secondaryStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*\.fast-cups-grid\s*\{[^}]*display:\s*flex;[^}]*overflow-x:\s*auto;[^}]*scroll-snap-type:\s*x mandatory/,
+    );
+    expect(secondaryStyles).toMatch(
+      /@media \(max-width: 760px\)[\s\S]*\.fast-cup-card\s*\{[^}]*flex:\s*0 0 var\(--fast-cup-mobile-card-width\);[^}]*scroll-snap-align:\s*center/,
+    );
+    expect(secondaryStyles).toMatch(
+      /\.fast-cups-grid::-webkit-scrollbar\s*\{[^}]*display:\s*none/,
+    );
   });
 });

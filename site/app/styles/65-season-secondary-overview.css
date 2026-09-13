@@ -186,7 +186,33 @@
 
 @media (max-width: 760px) {
   .fast-cups-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    --fast-cup-mobile-card-width: clamp(220px, 74vw, 280px);
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+    gap: 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    padding-inline: calc(
+      (100% - var(--fast-cup-mobile-card-width)) / 2
+    );
+    scroll-padding-inline: calc(
+      (100% - var(--fast-cup-mobile-card-width)) / 2
+    );
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    touch-action: pan-x;
+  }
+
+  .fast-cups-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .fast-cup-card {
+    flex: 0 0 var(--fast-cup-mobile-card-width);
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
 }
 
@@ -209,10 +235,6 @@
 
   .fast-cups-heading .season-calendar-link {
     width: 100%;
-  }
-
-  .fast-cups-grid {
-    grid-template-columns: 1fr;
   }
 
   .fast-cup-card-link {

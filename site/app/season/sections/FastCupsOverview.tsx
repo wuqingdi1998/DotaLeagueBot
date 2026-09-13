@@ -2,21 +2,30 @@ import Link from "next/link";
 import { FiArrowRight } from "react-icons/fi";
 import { SeasonTournamentLinkEditor } from "../admin/SeasonTournamentLinkEditor";
 import { FastCupCard } from "../components/FastCupCard";
+import { FastCupCarousel } from "../components/FastCupCarousel";
 import {
   fastCupIntroduction,
   fastCupOverviews,
+  selectFeaturedFastCup,
   type SeasonTournamentLinks,
 } from "../model/season-overview-model";
 
 type FastCupsOverviewProps = {
+  currentMoscowDate: string;
   isOrganizer: boolean;
   tournamentLinks: SeasonTournamentLinks;
 };
 
 export function FastCupsOverview({
+  currentMoscowDate,
   isOrganizer,
   tournamentLinks,
 }: FastCupsOverviewProps) {
+  const featuredFastCup = selectFeaturedFastCup(currentMoscowDate);
+  const targetIndex = featuredFastCup
+    ? Math.max(0, fastCupOverviews.indexOf(featuredFastCup))
+    : 0;
+
   return (
     <section className="fast-cups-overview" aria-labelledby="fast-cups-title">
       <div className="fast-cups-heading">
@@ -37,7 +46,7 @@ export function FastCupsOverview({
           <FiArrowRight aria-hidden="true" />
         </Link>
       </div>
-      <div className="fast-cups-grid">
+      <FastCupCarousel targetIndex={targetIndex}>
         {fastCupOverviews.map((cup) => {
           const tournamentHref =
             tournamentLinks[cup.linkId] ?? cup.tournamentHref;
@@ -57,7 +66,7 @@ export function FastCupsOverview({
             />
           );
         })}
-      </div>
+      </FastCupCarousel>
     </section>
   );
 }

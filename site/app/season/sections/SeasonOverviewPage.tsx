@@ -13,11 +13,13 @@ import {
 import { FastCupsOverview } from "./FastCupsOverview";
 
 type SeasonOverviewPageProps = {
+  currentMoscowDate: string;
   isOrganizer: boolean;
   tournamentLinks: SeasonTournamentLinks;
 };
 
 export function SeasonOverviewPage({
+  currentMoscowDate,
   isOrganizer,
   tournamentLinks,
 }: SeasonOverviewPageProps) {
@@ -61,6 +63,7 @@ export function SeasonOverviewPage({
         />
       </div>
       <FastCupsOverview
+        currentMoscowDate={currentMoscowDate}
         isOrganizer={isOrganizer}
         tournamentLinks={tournamentLinks}
       />
