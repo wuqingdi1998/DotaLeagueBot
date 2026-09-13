@@ -246,7 +246,7 @@ export function CommunityHome() {
             <h3>Турниры</h3>
             <p>Анонсы, регистрация, расписание и результаты соревнований.</p>
           </article>
-          <article>
+          <article className="purpose-events-card">
             <FiUsers />
             <h3>Ивенты</h3>
             <p>Шоу-матчи, трансляции и другие события нашего сообщества.</p>

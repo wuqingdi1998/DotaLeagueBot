@@ -25,6 +25,18 @@ describe("community home hero", () => {
     );
   });
 
+  it("halves the heading and pulls it closer to the mobile menu", () => {
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero\s*\{[^}]*align-items:\s*start;[^}]*padding:\s*8px 18px 28px;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero > \.hero-orb\s*\{[^}]*display:\s*none;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero h1\s*\{[^}]*font-size:\s*clamp\(25px,\s*7\.5vw,\s*35px\);/,
+    );
+  });
+
   it("places the tournament directory link below the featured event card", () => {
     expect(component).toMatch(
       /featured-event-column[\s\S]*<aside className="featured-event-card">[\s\S]*<\/aside>\s*<Link\s*className="primary-button featured-tournaments-link"[\s\S]*Смотреть турниры/,

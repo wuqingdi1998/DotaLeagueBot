@@ -274,12 +274,17 @@
 
   .platform-hero {
     min-height: auto;
+    align-items: start;
     gap: 24px;
-    padding: 28px 18px;
+    padding: 8px 18px 28px;
+  }
+
+  .platform-hero > .hero-orb {
+    display: none;
   }
 
   .platform-hero h1 {
-    font-size: clamp(50px, 15vw, 70px);
+    font-size: clamp(25px, 7.5vw, 35px);
   }
 
   .platform-numbers {
@@ -315,16 +320,38 @@
     gap: 14px;
   }
 
-  .platform-purpose-title {
-    font-size: clamp(24px, 7.75vw, 38px);
+  .platform-purpose .platform-purpose-title {
+    font-size: 25px;
   }
 
   .purpose-grid {
-    margin-top: 38px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    margin-top: 19px;
+  }
+
+  .purpose-events-card {
+    display: none;
   }
 
   .purpose-grid article {
-    min-height: 210px;
+    min-height: 105px;
+    border-radius: 11px;
+    padding: 15px;
+  }
+
+  .purpose-grid article > svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .purpose-grid h3 {
+    margin: 23px 0 6px;
+    font-size: 12.5px;
+  }
+
+  .purpose-grid p {
+    font-size: 8px;
   }
 
   .directory-hero {

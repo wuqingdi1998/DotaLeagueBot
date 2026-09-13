@@ -27,7 +27,26 @@ describe("community home heading", () => {
 
   it("fits the second line on narrow phone screens", () => {
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.platform-purpose-title\s*\{[^}]*font-size:\s*clamp\(24px,\s*7\.75vw,\s*38px\);/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-purpose \.platform-purpose-title\s*\{[^}]*font-size:\s*25px;/,
+    );
+  });
+
+  it("uses two compact purpose cards and hides events on phones", () => {
+    expect(component).toContain('<article className="purpose-events-card">');
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);[^}]*gap:\s*9px;[^}]*margin-top:\s*19px;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-events-card\s*\{[^}]*display:\s*none;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid article\s*\{[^}]*min-height:\s*105px;[^}]*border-radius:\s*11px;[^}]*padding:\s*15px;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid h3\s*\{[^}]*font-size:\s*12\.5px;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid p\s*\{[^}]*font-size:\s*8px;/,
     );
   });
 });
