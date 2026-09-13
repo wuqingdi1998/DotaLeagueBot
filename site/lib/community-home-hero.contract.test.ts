@@ -27,13 +27,28 @@ describe("community home hero", () => {
 
   it("halves the heading and pulls it closer to the mobile menu", () => {
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero\s*\{[^}]*align-items:\s*start;[^}]*padding:\s*8px 18px 28px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero\s*\{[^}]*align-items:\s*start;[^}]*padding:\s*18px 18px 28px;/,
     );
     expect(styles).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero > \.hero-orb\s*\{[^}]*display:\s*none;/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero h1\s*\{[^}]*font-size:\s*clamp\(25px,\s*7\.5vw,\s*35px\);/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-hero h1\s*\{[^}]*font-size:\s*clamp\(25px,\s*7\.5vw,\s*35px\);[^}]*line-height:\s*1\.12;/,
+    );
+  });
+
+  it("places the tournament totals in a two-card row above a wide participant card", () => {
+    expect(component).toMatch(
+      /platform-number-participants[\s\S]*<strong>500\+<\/strong>[\s\S]*участников приняли участие в наших турнирах/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-numbers\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);[^}]*gap:\s*10px;/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-numbers div\s*\{[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*14px;[^}]*background:\s*var\(--surface\);/,
+    );
+    expect(styles).toMatch(
+      /@media \(max-width:\s*760px\)[\s\S]*\.platform-numbers \.platform-number-participants\s*\{[^}]*grid-column:\s*1 \/ -1;[^}]*grid-template-columns:\s*auto 1fr;/,
     );
   });
 

@@ -175,7 +175,7 @@ export function CommunityHome() {
               <strong>{archiveCount}</strong>
               <span>турниров проведено</span>
             </div>
-            <div>
+            <div className="platform-number-participants">
               <strong>500+</strong>
               <span>участников приняли участие в наших турнирах</span>
             </div>
