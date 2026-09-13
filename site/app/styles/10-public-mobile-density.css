@@ -1,0 +1,380 @@
+/* Shared compact rhythm for the primary public pages on phones. */
+
+@media (max-width: 760px) {
+  .platform-shell {
+    --mobile-page-inline: 18px;
+    --mobile-page-heading: 34px;
+    --mobile-page-copy: 15px;
+    --mobile-section-gap: 16px;
+    --mobile-card-padding: 18px;
+  }
+
+  .platform-shell .directory-hero,
+  .platform-shell .hall-hero,
+  .platform-shell .boosty-hero {
+    min-height: 0;
+    padding: 20px var(--mobile-page-inline) 22px;
+  }
+
+  .platform-shell .directory-hero h1,
+  .platform-shell .hall-hero h1,
+  .platform-shell .boosty-hero h1 {
+    margin-bottom: 8px;
+    font-size: var(--mobile-page-heading);
+    line-height: 1.05;
+  }
+
+  .platform-shell .directory-hero p:not(.eyebrow),
+  .platform-shell .hall-hero > p:last-child,
+  .platform-shell .boosty-hero p {
+    font-size: var(--mobile-page-copy);
+    line-height: 1.5;
+  }
+
+  .platform-shell .directory-hero {
+    gap: 12px;
+  }
+
+  .platform-shell .directory-content {
+    padding: 18px 12px 56px;
+  }
+
+  .platform-shell .directory-toolbar {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+
+  .platform-shell .directory-filter-controls {
+    gap: 8px;
+  }
+
+  .platform-shell .directory-filters {
+    min-width: 0;
+  }
+
+  .platform-shell .directory-filters button,
+  .platform-shell .archive-filter-checkbox {
+    min-height: 38px;
+    font-size: 13px;
+  }
+
+  .platform-shell .directory-filters button {
+    padding: 0 10px;
+  }
+
+  .platform-shell .archive-filter-checkbox {
+    gap: 7px;
+  }
+
+  .platform-shell .tournament-directory-grid {
+    gap: 14px;
+  }
+
+  .platform-shell .tournament-card {
+    min-height: 0;
+    border-radius: 18px;
+    padding: var(--mobile-card-padding);
+  }
+
+  .platform-shell .tournament-card-top {
+    gap: 8px;
+  }
+
+  .platform-shell .tournament-card-top h2 {
+    font-size: 28px;
+    line-height: 1.05;
+  }
+
+  .platform-shell .tournament-card-description {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .platform-shell .tournament-card-date {
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+
+  .platform-shell .tournament-card-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 16px 0;
+  }
+
+  .platform-shell .tournament-card-stats div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+    padding-left: 8px;
+  }
+
+  .platform-shell .tournament-card-stats dt,
+  .platform-shell .tournament-card-stats dd {
+    font-size: 13px;
+  }
+
+  .platform-shell .tournament-card-actions {
+    gap: 8px;
+  }
+
+  .platform-shell .tournament-card-actions > * {
+    width: auto;
+    min-height: 44px;
+    flex: 1 1 auto;
+  }
+
+  .platform-shell .season-overview {
+    min-height: 0;
+    gap: 14px;
+    padding: 18px 17px 30px;
+    font-size: 13px;
+  }
+
+  .platform-shell .season-overview-heading,
+  .platform-shell .season-overview-copy {
+    gap: 6px;
+  }
+
+  .platform-shell .season-overview-title-row {
+    gap: 8px;
+  }
+
+  .platform-shell .season-overview-heading h1 {
+    font-size: var(--mobile-page-heading);
+    line-height: 1;
+  }
+
+  .platform-shell .season-overview-title-row > span,
+  .platform-shell .season-title-calendar-link {
+    height: 34px;
+  }
+
+  .platform-shell .season-feature-card {
+    gap: 11px;
+    border-radius: 17px;
+    padding: 16px;
+  }
+
+  .platform-shell .season-card-heading,
+  .platform-shell .season-league-outcome {
+    gap: 11px;
+  }
+
+  .platform-shell .season-card-heading h2 {
+    font-size: 30px;
+    line-height: 1;
+  }
+
+  .platform-shell .season-format-badge {
+    padding: 7px 11px;
+  }
+
+  .platform-shell .season-registration-callout,
+  .platform-shell .season-scoring-line {
+    gap: 9px;
+    padding: 10px 12px;
+  }
+
+  .platform-shell .season-final-callout,
+  .platform-shell .season-prize {
+    padding: 12px 14px;
+  }
+
+  .platform-shell .season-calendar-link,
+  .platform-shell .season-tournament-link {
+    min-height: 42px;
+  }
+
+  .platform-shell .fast-cups-overview {
+    gap: 14px;
+    border-radius: 17px;
+    padding: 16px;
+  }
+
+  .platform-shell .fast-cup-card-link {
+    min-height: 148px;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .platform-shell .calendar-hero {
+    align-items: center;
+    gap: 12px;
+    padding: 20px var(--mobile-page-inline) 22px;
+  }
+
+  .platform-shell .calendar-hero-icon {
+    width: 44px;
+    height: 44px;
+    flex-basis: 44px;
+    border-radius: 13px;
+    font-size: 22px;
+  }
+
+  .platform-shell .calendar-hero p {
+    margin-bottom: 7px;
+    font-size: 13px;
+  }
+
+  .platform-shell .calendar-hero h1 {
+    font-size: var(--mobile-page-heading);
+    line-height: 1.05;
+  }
+
+  .platform-shell .calendar-hero span {
+    margin-top: 8px;
+    font-size: var(--mobile-page-copy);
+  }
+
+  .platform-shell .calendar-content {
+    padding: 18px 8px 48px;
+  }
+
+  .platform-shell .calendar-hint {
+    gap: 8px;
+    margin: 0 4px 14px;
+    padding: 9px 11px;
+    font-size: 13px;
+  }
+
+  .platform-shell .season-calendar-grid {
+    gap: 14px;
+  }
+
+  .platform-shell .season-calendar-month {
+    border-radius: 14px;
+    padding: 10px;
+  }
+
+  .platform-shell .season-calendar-month > header {
+    margin-bottom: 12px;
+  }
+
+  .platform-shell .season-calendar-month h2 {
+    font-size: 21px;
+  }
+
+  .platform-shell .calendar-day {
+    min-height: 52px;
+    padding: 6px 4px;
+  }
+
+  .platform-shell .hall-content {
+    padding: 16px 12px 56px;
+  }
+
+  .platform-shell .hall-search {
+    width: 100%;
+    min-height: 44px;
+    margin: 0 0 12px;
+    border-radius: 13px;
+    padding: 0 13px;
+  }
+
+  .platform-shell .hall-search input {
+    font-size: var(--mobile-page-copy);
+  }
+
+  .platform-shell .hall-medal-table {
+    --hall-head-height: 70px;
+    --hall-row-height: 56px;
+  }
+
+  .platform-shell .hall-table {
+    border-radius: 16px;
+  }
+
+  .platform-shell .hall-player img,
+  .platform-shell .hall-player i {
+    width: 34px;
+    height: 34px;
+  }
+
+  .platform-shell .participant-toolbar {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 8px;
+    margin: 0 0 12px;
+  }
+
+  .platform-shell .participant-toolbar .participant-search {
+    grid-column: 1 / -1;
+  }
+
+  .platform-shell .participant-toolbar > label:not(.hall-search, .participant-archive-toggle) {
+    min-width: 0;
+    flex: none;
+  }
+
+  .platform-shell .participant-toolbar select {
+    width: 100%;
+    min-height: 42px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .platform-shell .participant-archive-toggle {
+    grid-column: 1 / -1;
+    min-height: 42px;
+    font-size: 13px;
+  }
+
+  .platform-shell .participants-row {
+    min-height: 54px;
+  }
+
+  .platform-shell .boosty-hero-content {
+    gap: 18px;
+  }
+
+  .platform-shell .boosty-benefits-section {
+    padding: 28px 14px 48px;
+  }
+
+  .platform-shell .boosty-section-heading {
+    margin-bottom: 18px;
+  }
+
+  .platform-shell .boosty-benefits-title-row {
+    gap: 12px;
+  }
+
+  .platform-shell .boosty-section-heading h2,
+  .platform-shell .boosty-supporters .boosty-section-heading h2 {
+    font-size: 30px;
+  }
+
+  .platform-shell .boosty-section-heading p {
+    font-size: 14px;
+  }
+
+  .platform-shell .boosty-supporters {
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .platform-shell .boosty-plan-cards {
+    gap: 12px;
+  }
+
+  .platform-shell .boosty-plan-card .boosty-plan-heading {
+    padding: 14px 16px;
+  }
+
+  .platform-shell .boosty-plan-card ul {
+    gap: 9px;
+    padding: 0 16px 18px;
+  }
+}
+
+@media (max-width: 350px) {
+  .platform-shell .participant-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .platform-shell .participant-toolbar > label:nth-of-type(4) {
+    grid-column: 1 / -1;
+  }
+}
