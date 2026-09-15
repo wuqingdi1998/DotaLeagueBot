@@ -1,10 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { announcePlayerActionNotificationsChanged } from "@/lib/player-action-notification-events";
 import type { TournamentTab } from "../model/types";
 import type { SeasonData } from "../model/season-types";
+import {
+  tournamentRoundHref,
+  tournamentTabHref,
+} from "../model/tournament-route";
 import {
   fetchSeasonRequest,
   readSeasonMutationResponse,
@@ -12,16 +16,15 @@ import {
 
 export function useSeasonController({
   enabled,
-  setActiveTab,
   setMessage,
   slug,
 }: {
   enabled: boolean;
-  setActiveTab: (tab: TournamentTab) => void;
   setMessage: (message: string) => void;
   slug: string;
 }) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const requestedRound = Number(searchParams.get("round") || 0);
   const [data, setData] = useState<SeasonData | null>(null);
   const [error, setError] = useState("");
@@ -31,11 +34,10 @@ export function useSeasonController({
   );
   const [checkInRoundId, setCheckInRoundId] = useState<number | null>(null);
   const [checkingRankedWins, setCheckingRankedWins] = useState(false);
-  const [activeRoundNumber, setActiveRoundNumber] = useState<number | null>(
+  const activeRoundNumber =
     Number.isInteger(requestedRound) && requestedRound > 0
       ? requestedRound
-      : null,
-  );
+      : null;
 
   const load = useCallback(async () => {
     if (!enabled) {
@@ -90,23 +92,8 @@ export function useSeasonController({
     };
   }, [enabled, load]);
 
-  useEffect(() => {
-    if (enabled && requestedRound > 0 && Number.isInteger(requestedRound)) {
-      setActiveTab("round");
-    }
-  }, [enabled, requestedRound, setActiveTab]);
-
-  function replaceRoundQuery(roundNumber: number | null) {
-    const url = new URL(window.location.href);
-    if (roundNumber === null) url.searchParams.delete("round");
-    else url.searchParams.set("round", String(roundNumber));
-    window.history.replaceState({}, "", url);
-  }
-
   function openRound(roundNumber: number, matchId?: number) {
-    setActiveRoundNumber(roundNumber);
-    setActiveTab("round");
-    replaceRoundQuery(roundNumber);
+    router.push(tournamentRoundHref(slug, roundNumber), { scroll: false });
     window.requestAnimationFrame(() => {
       const targetId = matchId ? `season-match-${matchId}` : "tournament";
       document.getElementById(targetId)?.scrollIntoView({
@@ -122,9 +109,7 @@ export function useSeasonController({
       "overview" | "standings" | "admin"
     >,
   ) {
-    setActiveRoundNumber(null);
-    setActiveTab(tab);
-    replaceRoundQuery(null);
+    router.push(tournamentTabHref(slug, tab), { scroll: false });
   }
 
   async function mutate(
@@ -250,7 +235,6 @@ export function useSeasonController({
     openRound,
     openTab,
     registrationRoundId,
-    setActiveRoundNumber,
     updateRoundRegistration,
   };
 }

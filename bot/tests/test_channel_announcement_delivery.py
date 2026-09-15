@@ -39,6 +39,13 @@ SCHEDULE_SEASON_MIGRATION = (
     / "migrations"
     / "0106_schedule_season_nine_rounds.sql"
 ).read_text(encoding="utf-8")
+RESULT_ANNOUNCEMENT_MIGRATION = (
+    ROOT
+    / "bot"
+    / "database"
+    / "migrations"
+    / "0138_season_round_result_announcements.sql"
+).read_text(encoding="utf-8")
 
 
 class FakeChannel:
@@ -114,6 +121,28 @@ async def test_channel_announcement_sends_image_and_everyone_ping(
     assert channel.messages[0]["file"].filename == "Reg1.png"
     allowed_mentions = channel.messages[0]["allowed_mentions"]
     assert allowed_mentions.everyone is True
+    assert allowed_mentions.users is False
+    assert allowed_mentions.roles is False
+
+
+@pytest.mark.asyncio
+async def test_channel_announcement_without_everyone_disables_mass_mentions(
+    tmp_path: Path,
+) -> None:
+    image_path = tmp_path / "Rez3.png"
+    image_path.write_bytes(b"result-image")
+    channel = FakeChannel()
+    announcement = ChannelAnnouncement(
+        id=2,
+        channel_id=123,
+        content="Результаты и таблица после 3-го тура лиги",
+        attachment_name="Rez3.png",
+    )
+
+    await send_channel_announcement(FakeBot(channel), announcement, tmp_path)
+
+    allowed_mentions = channel.messages[0]["allowed_mentions"]
+    assert allowed_mentions.everyone is False
     assert allowed_mentions.users is False
     assert allowed_mentions.roles is False
 
@@ -235,8 +264,19 @@ def test_production_bot_image_contains_announcement_images() -> None:
     )
 
     assert "COPY anounce/Reg/ ./assets/channel-announcements/" in dockerfile
+    assert "COPY anounce/Rez/ ./assets/channel-announcements/" in dockerfile
     assert compose.count("dockerfile: bot/Dockerfile") == 2
     assert "docker build --tag dotaleaguebot-bot:deploy --file bot/Dockerfile ." in deploy
     assert "Delivered season 9 preview announcements: 14" in deploy
     assert 'if [ "$preview_delivery" = "14|0" ]' in deploy
     assert 'if [ "$scheduled_announcements" != "28|0" ]' in deploy
+
+
+def test_season_nine_result_announcements_start_with_round_three() -> None:
+    assert "1038761680521416754::BIGINT" in RESULT_ANNOUNCEMENT_MIGRATION
+    assert "'league-season-9'" in RESULT_ANNOUNCEMENT_MIGRATION
+    assert "'Rez'" in RESULT_ANNOUNCEMENT_MIGRATION
+    assert "first_round_number" in RESULT_ANNOUNCEMENT_MIGRATION
+    assert "    3" in RESULT_ANNOUNCEMENT_MIGRATION
+    for round_number in range(3, 15):
+        assert (ROOT / "anounce" / "Rez" / f"Rez{round_number}.png").is_file()

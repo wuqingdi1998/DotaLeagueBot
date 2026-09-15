@@ -3,7 +3,6 @@
 import { fetchSiteRequest } from "@/lib/site-request";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { useParams, useSearchParams } from "next/navigation";
 import { useServerClock } from "@/hooks/useServerClock";
 import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
 import { announcePlayerActionNotificationsChanged } from "@/lib/player-action-notification-events";
@@ -14,17 +13,16 @@ import { buildMatchResultPayload } from "../model/match-result-payload";
 import { startDiscordLogin } from "../services/discord-login";
 import { useSeasonController } from "./useSeasonController";
 import { useTournamentCheckIn } from "./useTournamentCheckIn";
+import { useTournamentRoute } from "./useTournamentRoute";
 import type { MatchDraft, RegistrationForm, TeamApplication } from "../model/types";
 import type { TournamentMatch, TournamentSiteData, TournamentTab } from "../model/types";
 
 export function useTournamentController() {
-  const params = useParams<{ slug: string }>();
-  const searchParams = useSearchParams();
-  const tournamentSlug = params.slug;
-  const manageRequested = searchParams.get("manage") === "1";
   const [data, setData] = useState<TournamentSiteData | null>(null);
   const [loadingError, setLoadingError] = useState("");
-  const [activeTab, setActiveTab] = useState<TournamentTab>("overview");
+  const { activeTab, setActiveTab, tournamentSlug } = useTournamentRoute(
+    Boolean(data?.user?.isAdmin),
+  );
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const [registrationOpen, setRegistrationOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
@@ -42,7 +40,6 @@ export function useTournamentController() {
   );
   const season = useSeasonController({
     enabled: data?.tournament.tournament_type === "seasonal",
-    setActiveTab,
     setMessage: setToast,
     slug: tournamentSlug,
   });
@@ -85,9 +82,6 @@ export function useTournamentController() {
       setAdminMode(Boolean(nextData.user?.isAdmin));
       setGroupCount(nextData.groups.length || 2);
       setTeamsPerGroup(nextData.groups[0]?.team_capacity ?? 4);
-      if (nextData.user?.isAdmin && manageRequested) {
-        setActiveTab("admin");
-      }
       if (nextData.user) {
         setRegistration((current) => ({
           ...current,
@@ -101,7 +95,7 @@ export function useTournamentController() {
         error instanceof Error ? error.message : "Ошибка загрузки",
       );
     }
-  }, [manageRequested, tournamentSlug]);
+  }, [tournamentSlug]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {

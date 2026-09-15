@@ -52,7 +52,7 @@ export function TournamentDetailsEditor({
 
       onMessage("Изменения турнира сохранены в базе");
       if (result.slug && result.slug !== tournament.slug) {
-        router.replace(`/tournaments/${result.slug}?manage=1`);
+        router.replace(`/tournaments/${result.slug}/admin`);
         return;
       }
       await onSaved();

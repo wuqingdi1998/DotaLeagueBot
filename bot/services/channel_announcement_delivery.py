@@ -97,7 +97,10 @@ async def send_channel_announcement(
             content=announcement.content,
             file=discord.File(image, filename=announcement.attachment_name),
             allowed_mentions=discord.AllowedMentions(
-                everyone=True,
+                everyone=(
+                    "@everyone" in announcement.content
+                    or "@here" in announcement.content
+                ),
                 users=False,
                 roles=False,
                 replied_user=False,

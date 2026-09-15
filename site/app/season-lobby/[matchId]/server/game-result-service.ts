@@ -7,6 +7,7 @@ import {
   type SeasonGameWinner,
 } from "../model/game-result";
 import { SeasonLobbyRoomError } from "./errors";
+import { queueCompletedSeasonRoundResultsAnnouncement } from "./round-results-announcement";
 
 type LockedGameResultRoom = {
   status:
@@ -164,6 +165,7 @@ export async function reportSeasonLobbyGameResult(
        )`,
       [seasonMatchId],
     );
+    await queueCompletedSeasonRoundResultsAnnouncement(client, seasonMatchId);
     await client.query(
       `INSERT INTO tournament_audit_log
         (tournament_id, actor_discord_id, action, entity_type, entity_id,

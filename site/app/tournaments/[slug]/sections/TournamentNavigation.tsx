@@ -114,7 +114,7 @@ export function TournamentNavigation() {
 }
 
 function SeasonTournamentNavigation() {
-  const { activeTab, adminMode, data, season, setActiveTab } = useTournament();
+  const { activeTab, adminMode, data, season } = useTournament();
   const rounds = season.data?.rounds ?? [];
   if (!data) return null;
 
@@ -156,10 +156,7 @@ function SeasonTournamentNavigation() {
           className={`admin-tab season-navigation-admin${
             activeTab === "admin" ? " active" : ""
           }`}
-          onClick={() => {
-            setActiveTab("admin");
-            season.openTab("admin");
-          }}
+          onClick={() => season.openTab("admin")}
           role="tab"
           aria-selected={activeTab === "admin"}
         >

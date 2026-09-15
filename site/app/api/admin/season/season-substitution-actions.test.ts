@@ -6,6 +6,10 @@ import { seedSubstitutionMatch, substitutionTestDatabase, testTransaction } from
 const mocks = vi.hoisted(() => ({ transaction: vi.fn(), query: vi.fn() }));
 vi.mock("@/lib/db", () => mocks);
 vi.mock("@/lib/season-final-awards", () => ({ syncSeasonFinalAwards: vi.fn() }));
+vi.mock(
+  "@/app/season-lobby/[matchId]/server/round-results-announcement",
+  () => ({ queueCompletedSeasonRoundResultsAnnouncement: vi.fn() }),
+);
 
 import { createSeasonSubstitution, deleteSeasonSubstitution, updateSeasonSubstitution } from "./season-substitution-actions";
 import { reportSeasonLobbyGameResult } from "@/app/season-lobby/[matchId]/server/game-result-service";
