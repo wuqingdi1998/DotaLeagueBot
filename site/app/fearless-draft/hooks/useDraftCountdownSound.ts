@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { draftCountdownCueSecond } from "../model/countdown-sound";
-import type { DraftTimerSnapshot } from "../model/timer";
+import { draftCountdownCueId } from "../model/countdown-sound";
 
 const DRAFT_COUNTDOWN_FREQUENCY_HZ = 880;
 const DRAFT_COUNTDOWN_DURATION_SECONDS = 0.09;
@@ -39,11 +38,15 @@ function playCountdownBeep(audioContext: AudioContext): void {
 export function useDraftCountdownSound(
   mapId: number,
   currentStep: number,
-  timer: DraftTimerSnapshot | null,
+  isCountdownWarning: boolean,
 ): void {
   const audioContextRef = useRef<AudioContext | null>(null);
   const playedCuesRef = useRef(new Set<string>());
-  const cueSecond = draftCountdownCueSecond(timer);
+  const cueId = draftCountdownCueId(
+    mapId,
+    currentStep,
+    isCountdownWarning,
+  );
 
   useEffect(() => {
     const enableSound = () => {
@@ -68,9 +71,8 @@ export function useDraftCountdownSound(
   }, []);
 
   useEffect(() => {
-    if (cueSecond === null) return;
+    if (cueId === null) return;
 
-    const cueId = `${mapId}:${currentStep}:${cueSecond}`;
     if (playedCuesRef.current.has(cueId)) return;
     playedCuesRef.current.add(cueId);
 
@@ -85,5 +87,5 @@ export function useDraftCountdownSound(
       return;
     }
     playCountdownBeep(audioContext);
-  }, [cueSecond, currentStep, mapId]);
+  }, [cueId]);
 }

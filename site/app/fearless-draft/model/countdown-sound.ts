@@ -1,19 +1,22 @@
 import type { DraftTimerSnapshot } from "./timer";
 
-export const DRAFT_COUNTDOWN_SOUND_SECONDS = 10;
+export const DRAFT_COUNTDOWN_WARNING_SECONDS = 10;
 
-export function draftCountdownCueSecond(
+export function isDraftCountdownWarning(
   timer: DraftTimerSnapshot | null,
-): number | null {
-  if (!timer || timer.isExpired) return null;
+): boolean {
+  if (!timer || timer.isExpired) return false;
 
-  const remainingSeconds = timer.isUsingReserve
-    ? timer.reserveRemainingSeconds
-    : timer.reserveRemainingSeconds === 0
-      ? timer.baseRemainingSeconds
-      : null;
-  if (remainingSeconds === null || remainingSeconds <= 0) return null;
+  const remainingSeconds = timer.baseRemainingSeconds
+    + timer.reserveRemainingSeconds;
+  return remainingSeconds > 0
+    && remainingSeconds <= DRAFT_COUNTDOWN_WARNING_SECONDS;
+}
 
-  const cueSecond = Math.ceil(remainingSeconds);
-  return cueSecond <= DRAFT_COUNTDOWN_SOUND_SECONDS ? cueSecond : null;
+export function draftCountdownCueId(
+  mapId: number,
+  currentStep: number,
+  isCountdownWarning: boolean,
+): string | null {
+  return isCountdownWarning ? `${mapId}:${currentStep}` : null;
 }

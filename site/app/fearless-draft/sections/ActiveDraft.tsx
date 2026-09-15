@@ -17,6 +17,7 @@ import { DraftHistory } from "./DraftHistory";
 import { useDraftLocale } from "../hooks/useDraftLocale";
 import { draftLobbyTeamForCaptain } from "../model/lobby-roster";
 import { draftSeriesMapCount } from "../model/series";
+import { isDraftCountdownWarning } from "../model/countdown-sound";
 
 function otherPlayer(series: DraftSeriesSnapshot, playerId: string): DraftPlayer {
   return series.player1.id === playerId ? series.player2 : series.player1;
@@ -72,10 +73,13 @@ export function ActiveDraft({
     ? map.player1ReserveSeconds
     : map.player2ReserveSeconds;
   const clock = useDraftClock(map, serverNow, storedCurrentReserve);
+  const isCountdownWarning = isDraftCountdownWarning(
+    map.status === "DRAFTING" ? clock : null,
+  );
   useDraftCountdownSound(
     map.id,
     map.currentStep,
-    map.status === "DRAFTING" ? clock : null,
+    isCountdownWarning,
   );
   const player1Reserve = currentActor?.id === series.player1.id && clock
     ? clock.reserveRemainingSeconds
@@ -98,14 +102,8 @@ export function ActiveDraft({
   const direReserve = dire.id === series.player1.id
     ? player1Reserve
     : player2Reserve;
-  const isReserveWarning = Boolean(
-    clock && (
-      (clock.isUsingReserve && clock.reserveRemainingSeconds <= 10)
-      || (clock.reserveRemainingSeconds === 0 && clock.baseRemainingSeconds <= 10)
-    ),
-  );
-  const isRadiantReserveWarning = isReserveWarning && currentActor?.id === radiant.id;
-  const isDireReserveWarning = isReserveWarning && currentActor?.id === dire.id;
+  const isRadiantReserveWarning = isCountdownWarning && currentActor?.id === radiant.id;
+  const isDireReserveWarning = isCountdownWarning && currentActor?.id === dire.id;
   const displayedClockSeconds = clock
     ? clock.isUsingReserve ? clock.reserveRemainingSeconds : clock.baseRemainingSeconds
     : null;

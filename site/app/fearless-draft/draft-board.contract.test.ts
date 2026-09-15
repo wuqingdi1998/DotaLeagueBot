@@ -464,13 +464,12 @@ describe("Fearless Draft board interface", () => {
     expect(imagePreloader).toContain("image.decode().then(resolve, resolve)");
   });
 
-  it("keeps reserve warnings while the clock is displayed above the tree", () => {
+  it("starts the final countdown warning from the shared time rule", () => {
     expect(treeStyles).toContain("min-height: 66px");
     expect(treeStyles).toContain("min-block-size: 13px");
     expect(lobbyRoster).toContain("height: 50px");
-    expect(activeDraft).toContain("const isReserveWarning");
-    expect(activeDraft).toContain("clock.reserveRemainingSeconds === 0");
-    expect(activeDraft).toContain("clock.baseRemainingSeconds <= 10");
+    expect(activeDraft).toContain("isDraftCountdownWarning(");
+    expect(activeDraft).toContain("isCountdownWarning && currentActor?.id");
     expect(teamPanel).toContain("isReserveWarning");
     expect(interactions).toContain("@keyframes fearless-reserve-warning");
   });
