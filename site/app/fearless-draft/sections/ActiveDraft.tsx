@@ -9,6 +9,7 @@ import type {
   FearlessDraftCommand,
 } from "../model/snapshot";
 import { useDraftClock } from "../hooks/useDraftClock";
+import { useDraftCountdownSound } from "../hooks/useDraftCountdownSound";
 import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { DraftTeamPanel } from "../components/DraftTeamPanel";
 import { HeroGrid } from "../components/HeroGrid";
@@ -71,6 +72,11 @@ export function ActiveDraft({
     ? map.player1ReserveSeconds
     : map.player2ReserveSeconds;
   const clock = useDraftClock(map, serverNow, storedCurrentReserve);
+  useDraftCountdownSound(
+    map.id,
+    map.currentStep,
+    map.status === "DRAFTING" ? clock : null,
+  );
   const player1Reserve = currentActor?.id === series.player1.id && clock
     ? clock.reserveRemainingSeconds
     : map.player1ReserveSeconds;
