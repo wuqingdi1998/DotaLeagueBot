@@ -216,6 +216,39 @@ jobs:
               sleep 3
             done
 
+            # Release only previews for rounds that still have future result posts.
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+              "UPDATE channel_announcement_outbox
+               SET available_at = NOW()
+               WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''
+                 AND status = '\''pending'\''"'
+
+            for attempt in $(seq 1 30); do
+              result_preview_delivery="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                    || '\''|'\'' ||
+                    COUNT(*) FILTER (WHERE status <> '\''sent'\'')
+                 FROM channel_announcement_outbox
+                 WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''"')"
+              if [ "$result_preview_delivery" = "12|0" ]; then
+                echo "Delivered season 9 result previews: 12"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT dedupe_key, status, attempts, last_error
+                   FROM channel_announcement_outbox
+                   WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''
+                   ORDER BY id"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             # Keep lobby previews paused until the new bot image is running.
             docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \

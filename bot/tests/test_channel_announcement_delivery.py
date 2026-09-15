@@ -46,6 +46,13 @@ RESULT_ANNOUNCEMENT_MIGRATION = (
     / "migrations"
     / "0138_season_round_result_announcements.sql"
 ).read_text(encoding="utf-8")
+RESULT_PREVIEW_MIGRATION = (
+    ROOT
+    / "bot"
+    / "database"
+    / "migrations"
+    / "0139_season_nine_result_announcement_previews.sql"
+).read_text(encoding="utf-8")
 
 
 class FakeChannel:
@@ -280,3 +287,18 @@ def test_season_nine_result_announcements_start_with_round_three() -> None:
     assert "    3" in RESULT_ANNOUNCEMENT_MIGRATION
     for round_number in range(3, 15):
         assert (ROOT / "anounce" / "Rez" / f"Rez{round_number}.png").is_file()
+
+
+def test_result_previews_cover_only_future_rounds() -> None:
+    assert "1461860575259660408::BIGINT" in RESULT_PREVIEW_MIGRATION
+    assert "settings.first_round_number" in RESULT_PREVIEW_MIGRATION
+    assert "season9-results-preview-round-%s" in RESULT_PREVIEW_MIGRATION
+    assert "'infinity'::TIMESTAMPTZ" in RESULT_PREVIEW_MIGRATION
+    assert "?round=%s" in RESULT_PREVIEW_MIGRATION
+    assert "/standings" in RESULT_PREVIEW_MIGRATION
+    assert "@everyone" not in RESULT_PREVIEW_MIGRATION
+    deploy = (ROOT / ".github" / "workflows" / "deploy.yml").read_text(
+        encoding="utf-8"
+    )
+    assert "Delivered season 9 result previews: 12" in deploy
+    assert 'if [ "$result_preview_delivery" = "12|0" ]' in deploy
