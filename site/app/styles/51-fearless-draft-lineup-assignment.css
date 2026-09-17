@@ -1,0 +1,183 @@
+.fearless-lineup-assignment {
+  width: min(1180px, calc(100% - 36px));
+  margin: 22px auto 0;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.fearless-lineup-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+}
+
+.fearless-lineup-heading > div:first-child { min-width: 0; }
+.fearless-lineup-heading span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.fearless-lineup-heading h2 { margin: 5px 0 0; font-size: 26px; }
+.fearless-lineup-heading p {
+  max-width: 720px;
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.fearless-lineup-form {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.fearless-lineup-hero-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--surface-soft);
+}
+.fearless-lineup-hero-row img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 25 / 44;
+  border-radius: 9px;
+  object-fit: cover;
+}
+.fearless-lineup-hero-row > span {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fearless-lineup-hero-row select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 0 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+}
+.fearless-lineup-submit {
+  min-height: 46px;
+  grid-column: 1 / -1;
+  justify-self: center;
+  padding-inline: 28px;
+}
+
+.fearless-lineup-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+.fearless-lineup-team-result {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+.fearless-lineup-team-result > header {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-bottom: 1px solid var(--line);
+  padding: 12px;
+}
+.fearless-lineup-team-result > header span { color: var(--muted); font-size: 13px; }
+.fearless-lineup-team-result > header strong { font-size: 16px; }
+.fearless-lineup-team-result > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  padding: 9px;
+}
+.fearless-lineup-result-card { min-width: 0; }
+.fearless-lineup-result-card img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 25 / 44;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.fearless-lineup-result-card span,
+.fearless-lineup-result-card strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 5px;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fearless-lineup-result-card span { color: var(--muted); }
+.fearless-lineup-result-card strong {
+  overflow: visible;
+  color: var(--text);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.fearless-lineup-waiting {
+  display: flex;
+  min-height: 230px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+.fearless-lineup-waiting > svg { color: var(--blue); font-size: 30px; }
+.fearless-lineup-waiting > strong { font-size: 19px; }
+.fearless-lineup-waiting > p { margin: 0; color: var(--muted); font-size: 14px; }
+.fearless-lineup-waiting .fearless-lineup-team-result {
+  width: min(560px, 100%);
+  margin-top: 16px;
+  text-align: left;
+}
+.fearless-lineup-next-map { display: flex; margin: 18px auto 0; }
+
+.fearless-draft-stage:fullscreen .fearless-lineup-assignment {
+  width: min(1320px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+  .fearless-lineup-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fearless-lineup-results { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .fearless-lineup-assignment { width: calc(100% - 24px); padding: 14px; }
+  .fearless-lineup-heading h2 { font-size: 22px; }
+  .fearless-lineup-form { grid-template-columns: 1fr; }
+  .fearless-lineup-hero-row {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    align-items: center;
+  }
+  .fearless-lineup-hero-row img { grid-row: 1 / 3; }
+  .fearless-lineup-team-result > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

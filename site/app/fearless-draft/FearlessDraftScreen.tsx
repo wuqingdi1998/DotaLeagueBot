@@ -16,6 +16,7 @@ import { DraftAgreementPanel } from "./sections/DraftAgreementPanel";
 import { DraftLocaleProvider, useDraftLocale } from "./hooks/useDraftLocale";
 import { translateDraftError } from "./model/i18n";
 import { HeroImagePreloader } from "./components/HeroImagePreloader";
+import { DraftLineupAssignment } from "./sections/DraftLineupAssignment";
 
 export function FearlessDraftScreen({
   initialSnapshot,
@@ -118,6 +119,19 @@ function FearlessDraftContent({
               isFullscreenSupported={isFullscreenSupported}
               toggleFullscreen={toggleFullscreen}
               lobbyPlayers={activeLobbyPlayers}
+            />
+          ) : series.map.status === "LINEUP_ASSIGNMENT" ||
+            Boolean(series.map.lineupAssignment?.isRevealed) ? (
+            <DraftLineupAssignment
+              series={series}
+              userId={snapshot.user.id}
+              lobbyPlayers={activeLobbyPlayers}
+              isSending={isSending}
+              send={send}
+              isFullscreen={isFullscreen}
+              isFullscreenSupported={isFullscreenSupported}
+              toggleFullscreen={toggleFullscreen}
+              canAdvanceToNextMap={canAdvanceToNextMap}
             />
           ) : (
             <ActiveDraft

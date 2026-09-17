@@ -25,6 +25,7 @@ import { SEASON_LOBBY_PRESENCE_TTL_SECONDS } from "@/lib/season-lobby-room";
 import { loadVisibleDraftHeroSuggestions } from "./suggestion-service";
 import { playerServerName } from "@/lib/security";
 import { canViewDraftHeroPreview } from "../model/preview-visibility";
+import { loadDraftLineupAssignment } from "./lineup-assignment-service";
 
 type PlayerRow = {
   id: string;
@@ -342,6 +343,7 @@ async function loadSeries(
       previewHeroId: map.preview_hero_id,
       actions,
       heroSuggestions: [],
+      lineupAssignment: null,
       unavailableHeroIds: unavailableResult.rows.map((row) => row.hero_id),
       createdAt: map.created_at.toISOString(),
     },
@@ -454,6 +456,15 @@ export async function loadFearlessDraftSnapshot(
             lobbyPlayers,
             [displayedSeries.player1.id, displayedSeries.player2.id],
           ),
+          lineupAssignment: options.seasonMatchId && !displayedSeries.isLobbyPreview
+            ? await loadDraftLineupAssignment(
+                client,
+                displayedSeries.map.id,
+                [displayedSeries.player1.id, displayedSeries.player2.id],
+                user.discordId,
+                lobbyPlayers,
+              )
+            : null,
         },
       };
     }

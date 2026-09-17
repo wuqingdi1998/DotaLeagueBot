@@ -20,7 +20,7 @@ function snapshot(): FearlessDraftSnapshot {
         currentStep: 0, version: 1, currentActorId: null, currentAction: null,
         currentPhase: null, baseDurationSeconds: null, stepStartedAt: null,
         player1ReserveSeconds: 60, player2ReserveSeconds: 60, previewHeroId: null, actions: [],
-        heroSuggestions: [], unavailableHeroIds: [], createdAt: "",
+        heroSuggestions: [], lineupAssignment: null, unavailableHeroIds: [], createdAt: "",
       },
     },
   };
@@ -56,5 +56,20 @@ describe("confirmation after a lost draft response", () => {
       after.series!.map.actions = [{ ...action, ...change }];
       expect(isDraftCommandConfirmed(command, before, after)).toBe(false);
     }
+  });
+
+  it("recognizes a saved private lineup assignment for its captain", () => {
+    const before = snapshot();
+    const after = structuredClone(before);
+    after.series!.map.lineupAssignment = {
+      player1Submitted: false,
+      player2Submitted: true,
+      isRevealed: false,
+      assignments: [],
+    };
+    expect(isDraftCommandConfirmed({
+      action: "SUBMIT_LINEUP_ASSIGNMENT",
+      assignments: [],
+    }, before, after)).toBe(true);
   });
 });

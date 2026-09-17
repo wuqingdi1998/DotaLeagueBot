@@ -176,18 +176,23 @@ async function commitHeroAction(
       "DELETE FROM draft_hero_suggestions WHERE map_id = $1",
       [map.id],
     );
+    const mapStatus = series.season_match_id ? "LINEUP_ASSIGNMENT" : "COMPLETE";
     await client.query(
       `UPDATE draft_maps
-       SET current_step = $1, ${reserveColumn} = $2, status = 'COMPLETE',
-           preview_hero_id = NULL, completed_at = $3, version = version + 1
-       WHERE id = $4`,
-      [nextStep, timer.reserveRemaining, now, map.id],
+       SET current_step = $1, ${reserveColumn} = $2, status = $3::text,
+           preview_hero_id = NULL, step_started_at = NULL,
+           completed_at = CASE
+             WHEN $3::text = 'COMPLETE' THEN $4::timestamptz ELSE NULL
+           END,
+           version = version + 1
+       WHERE id = $5`,
+      [nextStep, timer.reserveRemaining, mapStatus, now, map.id],
     );
     const isSeriesComplete =
       (series.format === "BO2" && map.map_number === 2) ||
       (series.format === "BO3" && map.map_number === 3);
     const seriesStatus = series.season_match_id
-      ? "MAP_COMPLETE"
+      ? "DRAFTING"
       : isSeriesComplete
         ? "COMPLETE"
         : "MAP_COMPLETE";
@@ -196,14 +201,6 @@ async function commitHeroAction(
        SET status = $1, updated_at = $2 WHERE id = $3`,
       [seriesStatus, now, series.id],
     );
-    if (series.season_match_id) {
-      await client.query(
-        `UPDATE season_match_rooms
-         SET status = 'playing', updated_at = $2
-         WHERE match_id = $1`,
-        [series.season_match_id, now],
-      );
-    }
   } else {
     await client.query(
       `UPDATE draft_maps

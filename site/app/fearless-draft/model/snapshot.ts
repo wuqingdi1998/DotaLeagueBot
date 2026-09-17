@@ -34,6 +34,20 @@ export type DraftHeroSuggestion = {
   colorSlot: DraftTeamPlayerColorSlot;
 };
 
+export type DraftLineupAssignment = {
+  captainId: string;
+  heroId: number;
+  playerId: string;
+  playerName: string;
+};
+
+export type DraftLineupAssignmentSnapshot = {
+  player1Submitted: boolean;
+  player2Submitted: boolean;
+  isRevealed: boolean;
+  assignments: DraftLineupAssignment[];
+};
+
 export type WaitingDraftPlayer = DraftPlayer & {
   joinedAt: string;
 };
@@ -58,7 +72,8 @@ export type DraftActionSnapshot = {
 export type DraftMapSnapshot = {
   id: number;
   number: number;
-  status: "FIRST_DECISION" | "SECOND_DECISION" | "DRAFTING" | "COMPLETE";
+  status: "FIRST_DECISION" | "SECOND_DECISION" | "DRAFTING" |
+    "LINEUP_ASSIGNMENT" | "COMPLETE";
   coinTossWinnerId: string | null;
   coinTossSegment: number | null;
   firstChooserId: string;
@@ -78,6 +93,7 @@ export type DraftMapSnapshot = {
   previewHeroId: number | null;
   actions: DraftActionSnapshot[];
   heroSuggestions: DraftHeroSuggestion[];
+  lineupAssignment: DraftLineupAssignmentSnapshot | null;
   unavailableHeroIds: number[];
   createdAt: string;
 };
@@ -129,6 +145,10 @@ export type FearlessDraftCommand =
   | { action: "HIGHLIGHT_HERO"; heroId: number; expectedVersion: number }
   | { action: "TOGGLE_HERO_SUGGESTION"; heroId: number; expectedVersion: number }
   | { action: "SELECT_HERO"; heroId: number; expectedVersion: number }
+  | {
+      action: "SUBMIT_LINEUP_ASSIGNMENT";
+      assignments: { heroId: number; playerId: string }[];
+    }
   | { action: "READY_FOR_NEXT_MAP" }
   | { action: "REQUEST_SERIES_END" }
   | { action: "RESPOND_SERIES_END"; response: "ACCEPT" | "DECLINE" }

@@ -34,9 +34,12 @@ import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
 import { toggleDraftHeroSuggestion } from
   "@/app/fearless-draft/server/suggestion-service";
+import { submitDraftLineupAssignment } from
+  "@/app/fearless-draft/server/lineup-assignment-service";
 import {
   fearlessDraftChannel,
   publishLiveUpdate,
+  seasonLobbyChannel,
 } from "@/lib/live-update-events";
 
 export const dynamic = "force-dynamic";
@@ -139,6 +142,12 @@ export async function POST(request: Request) {
           seasonMatchId,
         );
         break;
+      case "SUBMIT_LINEUP_ASSIGNMENT":
+        if (!("assignments" in command) || !Array.isArray(command.assignments)) {
+          throw new DraftRequestError("Распределение героев не указано");
+        }
+        await submitDraftLineupAssignment(user.discordId, command.assignments);
+        break;
       case "READY_FOR_NEXT_MAP":
         await markReadyForNextDraftMap(user.discordId);
         break;
@@ -178,6 +187,9 @@ export async function POST(request: Request) {
       });
     }
     publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
+    if (seasonMatchId && command.action === "SUBMIT_LINEUP_ASSIGNMENT") {
+      publishLiveUpdate(seasonLobbyChannel(seasonMatchId));
+    }
     return Response.json({ ok: true });
   } catch (error) {
     return draftRouteErrorResponse(error, "Действие не выполнено");

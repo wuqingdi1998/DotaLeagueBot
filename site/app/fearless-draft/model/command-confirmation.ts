@@ -20,5 +20,13 @@ export function isDraftCommandConfirmed(
       && action.actorId === before.user.id && action.heroId === command.heroId
       && !action.isAutomatic);
   }
+  if (command.action === "SUBMIT_LINEUP_ASSIGNMENT") {
+    const lineup = map.lineupAssignment;
+    return before.user.id === after.series?.player1.id
+      ? Boolean(lineup?.player1Submitted)
+      : before.user.id === after.series?.player2.id
+        ? Boolean(lineup?.player2Submitted)
+        : false;
+  }
   return false;
 }
