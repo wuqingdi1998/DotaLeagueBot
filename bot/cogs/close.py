@@ -20,6 +20,10 @@ from services.close_announcement import (
     set_participant_entries as _set_participant_entries,
 )
 from services.close_registration import UNSET_TIER_MESSAGE, can_register_for_close
+from services.close_tournament import (
+    ensure_close_tournament,
+    sync_close_tournament_participants,
+)
 
 load_dotenv()
 log = logging.getLogger(__name__)
@@ -113,6 +117,8 @@ class Close(commands.Cog):
             ev.message_id = sent.id
             async with async_session() as session:
                 session.add(ev)
+                await session.flush()
+                await ensure_close_tournament(session, ev.id)
                 await session.commit()
         except Exception as e:
             return await interaction.followup.send(
@@ -170,6 +176,7 @@ class Close(commands.Cog):
                     if entry[0] != member_id
                 ]
                 _set_participant_entries(ev, participants)
+                await sync_close_tournament_participants(session, ev.id)
                 await session.commit()
                 channel_id = ev.channel_id
                 content = _build_content(ev, participants)
@@ -292,6 +299,7 @@ class Close(commands.Cog):
                     joined_at = int(datetime.now(timezone.utc).timestamp())
                     participants.append((participant_id, joined_at))
                     _set_participant_entries(ev, participants)
+                    await sync_close_tournament_participants(session, ev.id)
                     await session.commit()
 
                     # Снимок нужных полей, пока сессия открыта.

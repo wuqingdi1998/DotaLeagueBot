@@ -26,7 +26,7 @@ export function LobbyGameResult({
         <FiCheck aria-hidden="true" />
         <div>
           <strong>Матч завершён</strong>
-          <p>Результаты обеих карт сохранены и уже учтены в таблице лиги.</p>
+          <p>Результаты всех карт сохранены.</p>
         </div>
       </section>
     );

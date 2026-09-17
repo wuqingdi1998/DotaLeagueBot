@@ -51,6 +51,7 @@ describe("live second-map substitutions", () => {
     expect(await firstRow("SELECT fire_count FROM season_penalty_events")).toEqual({ fire_count: 5 });
     const room = await loadSeasonLobbyRoomSnapshot(viewer("10011"), 10);
     expect(room.status).toBe("break");
+    expect(room.usesFearlessDraft).toBe(true);
     expect(room.isHost).toBe(true);
     expect(room.currentUserTeamSide).toBe("a");
     expect(room.players).toHaveLength(10);

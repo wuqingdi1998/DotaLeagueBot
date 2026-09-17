@@ -19,6 +19,8 @@ export function buildBot3SeasonLobbySnapshot(
     teamAName: "Команда A",
     teamBName: "Команда B",
     bestOf: 3,
+    gameFormat: "Fearless Draft",
+    usesFearlessDraft: true,
     status: draft.series.status === "MAP_COMPLETE" ? "break" : "drafting",
     currentUserId: draft.user.id,
     currentUserTeamSide: "a",
@@ -62,4 +64,3 @@ export function buildBot3SeasonLobbySnapshot(
     currentGameNumber: draft.series.currentMap,
   };
 }
-

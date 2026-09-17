@@ -15,14 +15,16 @@ type EditableGame = {
 export function SeasonPublishedLobbyTools({
   lobby,
   isOpenByDefault = false,
+  showSubstitutions = true,
 }: {
   lobby: SeasonLobby;
   isOpenByDefault?: boolean;
+  showSubstitutions?: boolean;
 }) {
   const { season } = useTournament();
   const match = lobby.matches[0];
   const [games, setGames] = useState<EditableGame[]>(() =>
-    [1, 2].map((gameNumber) => {
+    Array.from({ length: match?.best_of ?? 2 }, (_, index) => index + 1).map((gameNumber) => {
       const game = match?.games.find((item) => item.game_number === gameNumber);
       return {
         gameNumber,
@@ -85,7 +87,7 @@ export function SeasonPublishedLobbyTools({
         <div>
           <h5>Результат лобби</h5>
           <p>
-            Изменение счёта или победителей карт сразу пересчитает таблицу сезона.
+            Изменение счёта или победителей карт сразу пересчитает результат матча.
           </p>
         </div>
         <div className="season-published-score-fields">
@@ -94,7 +96,7 @@ export function SeasonPublishedLobbyTools({
             <input
               type="number"
               min="0"
-              max="2"
+              max={match.best_of}
               value={teamAScore}
               onChange={(event) => setTeamAScore(event.target.value)}
             />
@@ -104,7 +106,7 @@ export function SeasonPublishedLobbyTools({
             <input
               type="number"
               min="0"
-              max="2"
+              max={match.best_of}
               value={teamBScore}
               onChange={(event) => setTeamBScore(event.target.value)}
             />
@@ -151,7 +153,7 @@ export function SeasonPublishedLobbyTools({
           {isSaving ? "Сохраняем…" : "Сохранить счёт и карты"}
         </button>
       </section>
-      <SeasonSubstitutionAdmin match={match} />
+      {showSubstitutions && <SeasonSubstitutionAdmin match={match} />}
     </details>
   );
 }

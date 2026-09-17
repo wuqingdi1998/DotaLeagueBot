@@ -16,6 +16,9 @@ export type Tournament = {
   season_round_count: number;
   season_activity_points_note: string | null;
   ordinary_match_rooms_enabled: boolean;
+  close_event_id: number | null;
+  close_message_id: string | null;
+  close_series: string | null;
   slug: string;
   name: string;
   eyebrow: string;

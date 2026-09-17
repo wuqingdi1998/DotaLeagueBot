@@ -103,6 +103,12 @@ export async function GET(request: Request) {
        max_team_tier::int, show_tiers,
        playoff_type, tournament_type, season_round_count::int,
        season_activity_points_note, ordinary_match_rooms_enabled,
+       (SELECT event.id::int FROM close_events event
+        WHERE event.tournament_id = tournaments.id) AS close_event_id,
+       (SELECT event.message_id::text FROM close_events event
+        WHERE event.tournament_id = tournaments.id) AS close_message_id,
+       (SELECT event.series FROM close_events event
+        WHERE event.tournament_id = tournaments.id) AS close_series,
        discord_url, status, updated_at
      FROM tournaments
      ${tournamentFilter}

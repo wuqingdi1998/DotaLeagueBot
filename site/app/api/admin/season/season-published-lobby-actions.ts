@@ -22,8 +22,9 @@ export async function savePublishedLobbyResult(
     const target = await client.query<{
       tournament_id: number;
       can_edit: boolean;
+      best_of: number;
     }>(
-      `SELECT round.tournament_id::int,
+      `SELECT round.tournament_id::int, match.best_of::int,
          (
            (round.round_kind = 'regular'
              AND round.lobby_configuration_status = 'published')
@@ -44,6 +45,12 @@ export async function savePublishedLobbyResult(
     }
     if (!target.rows[0].can_edit) {
       throw new Response("Сначала опубликуйте лобби", { status: 409 });
+    }
+    if (games.length !== target.rows[0].best_of) {
+      throw new Response(
+        `Для этого матча нужно указать ${target.rows[0].best_of} карт`,
+        { status: 400 },
+      );
     }
 
     for (const [index, game] of games.entries()) {

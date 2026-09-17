@@ -34,7 +34,13 @@ import { SeasonLobbyScheduleEditor } from "./SeasonLobbyScheduleEditor";
 
 type TeamSide = "a" | "b";
 
-export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
+export function SeasonLobbyBuilder({
+  round,
+  singleLobby = false,
+}: {
+  round: SeasonRound;
+  singleLobby?: boolean;
+}) {
   const { season } = useTournament();
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState("");
@@ -52,6 +58,9 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
   const unassignedRegistrations = round.registrations.filter(
     (registration) => !assignedPlayerIds.has(registration.player_id),
   );
+  const editorTitle = singleLobby
+    ? "Редактор лобби клоза"
+    : "Редактор лобби этого тура";
   if (!season.data?.isOrganizer || round.round_kind !== "regular") return null;
 
   async function mutate(action: string, extra: Record<string, unknown> = {}) {
@@ -115,10 +124,11 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       <section className="season-lobby-builder season-lobby-builder-empty">
         <div>
           <p className="card-kicker">Скрыто от участников</p>
-          <h4>Редактор лобби этого тура</h4>
+          <h4>{editorTitle}</h4>
           <p>
-            Кнопка создаст «Верхнее лобби» и «Нижнее лобби» с двумя
-            командами по 5 слотов.
+            {singleLobby
+              ? "Кнопка создаст один матч с двумя командами по 5 слотов."
+              : "Кнопка создаст «Верхнее лобби» и «Нижнее лобби» с двумя командами по 5 слотов."}
           </p>
         </div>
         <button
@@ -139,7 +149,7 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       <header className="season-lobby-builder-heading">
         <div>
           <p className="card-kicker">Скрыто от участников</p>
-          <h4>Редактор лобби этого тура</h4>
+          <h4>{editorTitle}</h4>
           <p>{configurationStatusText(round.lobby_configuration_status)}</p>
         </div>
         <span className={`season-builder-status ${round.lobby_configuration_status}`}>
@@ -199,25 +209,29 @@ export function SeasonLobbyBuilder({ round }: { round: SeasonRound }) {
       <div className="season-builder-actions">
         {isEditing && (
           <>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={
-                round.lobbies.length >= MAX_SEASON_LOBBY_COUNT ||
-                Boolean(busyAction)
-              }
-              onClick={() => void mutate("add")}
-            >
-              <FiPlus /> Добавить ещё одно лобби
-            </button>
-            <button
-              className="secondary-button"
-              type="button"
-              disabled={round.lobbies.length <= 1 || Boolean(busyAction)}
-              onClick={removeOneLobby}
-            >
-              <FiMinus /> Удалить одно лобби
-            </button>
+            {!singleLobby && (
+              <>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={
+                    round.lobbies.length >= MAX_SEASON_LOBBY_COUNT ||
+                    Boolean(busyAction)
+                  }
+                  onClick={() => void mutate("add")}
+                >
+                  <FiPlus /> Добавить ещё одно лобби
+                </button>
+                <button
+                  className="secondary-button"
+                  type="button"
+                  disabled={round.lobbies.length <= 1 || Boolean(busyAction)}
+                  onClick={removeOneLobby}
+                >
+                  <FiMinus /> Удалить одно лобби
+                </button>
+              </>
+            )}
             <button
               className="primary-button"
               type="button"

@@ -55,6 +55,32 @@ export function TournamentNavigation() {
     setActiveTab,
   } = useTournament();
   if (!data) return null;
+  if (data.tournament.close_event_id) {
+    return (
+      <div className="tabs tournament-tabs close-tournament-tabs" role="tablist">
+        <div className="tournament-tabs-main">
+          <button
+            className={activeTab === "overview" ? "active" : ""}
+            onClick={() => setActiveTab("overview")}
+            role="tab"
+            aria-selected={activeTab === "overview"}
+          >
+            Матч
+          </button>
+        </div>
+        {adminMode && (
+          <button
+            className={`admin-tab${activeTab === "admin" ? " active" : ""}`}
+            onClick={() => setActiveTab("admin")}
+            role="tab"
+            aria-selected={activeTab === "admin"}
+          >
+            Управление
+          </button>
+        )}
+      </div>
+    );
+  }
   if (data.tournament.tournament_type === "seasonal") {
     return <SeasonTournamentNavigation />;
   }

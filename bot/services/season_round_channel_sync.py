@@ -137,6 +137,10 @@ async def _ensure_active_round_channels(
                    ) AS managed_participant_ids
             FROM season_rounds round
             WHERE round.scheduled_at IS NOT NULL
+              AND NOT EXISTS (
+                  SELECT 1 FROM close_events close_event
+                  WHERE close_event.tournament_id = round.tournament_id
+              )
               AND NOW() < round.scheduled_at + INTERVAL '3 hours'
               AND (
                   round.discord_channel_id IS NOT NULL

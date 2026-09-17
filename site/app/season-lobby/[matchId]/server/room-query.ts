@@ -23,6 +23,8 @@ type RoomTargetRow = {
   team_a_name: string;
   team_b_name: string;
   best_of: number;
+  game_format: string;
+  uses_fearless_draft: boolean;
   host_player_id: string | null;
   current_user_team_side: "a" | "b" | null;
 };
@@ -64,12 +66,18 @@ async function loadRoomTarget(
     `SELECT match.id::int AS match_id, tournament.slug AS tournament_slug,
        round.round_number::int, lobby.name AS lobby_name,
        match.team_a_name, match.team_b_name, match.best_of::int,
+       CASE WHEN close_event.id IS NULL THEN 'Fearless Draft'
+         ELSE tournament.format END AS game_format,
+       (close_event.id IS NULL OR tournament.format = 'Fearless Draft')
+         AS uses_fearless_draft,
        match.host_player_id::text,
        viewer.team_side AS current_user_team_side
      FROM season_matches match
      JOIN season_lobbies lobby ON lobby.id = match.lobby_id
      JOIN season_rounds round ON round.id = lobby.round_id
      JOIN tournaments tournament ON tournament.id = round.tournament_id
+     LEFT JOIN close_events close_event
+       ON close_event.tournament_id = tournament.id
      LEFT JOIN season_match_room_players viewer
        ON viewer.match_id = match.id AND viewer.player_id = $2
      WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
@@ -141,7 +149,13 @@ export async function loadSeasonLobbyRoomSnapshot(
           `SELECT room.status, room.is_force_started,
              room.captain_stage_deadline_at,
              series.id::int AS draft_series_id,
-             series.current_map::int AS current_game_number
+             COALESCE(
+               series.current_map::int,
+               (SELECT COUNT(*)::int + 1
+                FROM season_match_games game
+                WHERE game.match_id = room.match_id
+                  AND game.status = 'completed')
+             ) AS current_game_number
            FROM season_match_rooms room
            LEFT JOIN draft_series series ON series.season_match_id = room.match_id
            WHERE room.match_id = $1`,
@@ -276,6 +290,8 @@ export async function loadSeasonLobbyRoomSnapshot(
       teamAName: target.team_a_name,
       teamBName: target.team_b_name,
       bestOf: target.best_of,
+      gameFormat: target.game_format,
+      usesFearlessDraft: target.uses_fearless_draft,
       status: state.status,
       currentUserId: user.discordId,
       currentUserTeamSide: target.current_user_team_side,

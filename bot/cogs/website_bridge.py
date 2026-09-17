@@ -119,6 +119,10 @@ class WebsiteBridge(commands.Cog):
                  AND checkin.player_id = registration.player_id
                 WHERE round.round_kind = 'regular'
                   AND round.is_visible = TRUE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM close_events close_event
+                      WHERE close_event.tournament_id = tournament.id
+                  )
                   AND season_round_status_at(round.scheduled_at, round.status)
                       IN ('planned', 'active')
                   AND tournament.status IN ('registration', 'active')
@@ -174,6 +178,10 @@ class WebsiteBridge(commands.Cog):
                 ) missing ON TRUE
                 WHERE round.round_kind = 'regular'
                   AND round.is_visible = TRUE
+                  AND NOT EXISTS (
+                      SELECT 1 FROM close_events close_event
+                      WHERE close_event.tournament_id = tournament.id
+                  )
                   AND season_round_status_at(round.scheduled_at, round.status)
                       IN ('planned', 'active')
                   AND tournament.status IN ('registration', 'active')
@@ -181,6 +189,74 @@ class WebsiteBridge(commands.Cog):
                   AND NOW() < round.scheduled_at + INTERVAL '6 hours'
                 ON CONFLICT (discord_id, season_round_id, event_type)
                   WHERE season_round_id IS NOT NULL
+                DO NOTHING
+                """
+            ),
+            {"base_url": base_url},
+        )
+
+    async def _queue_close_start_notifications(
+        self, session: AsyncSession
+    ) -> None:
+        base_url = (os.getenv("PUBLIC_BASE_URL") or "https://lsesports.ru").rstrip("/")
+        await session.execute(
+            text(
+                """
+                UPDATE tournaments tournament
+                SET status = CASE
+                      WHEN to_timestamp(event.start_ts) > NOW() THEN 'registration'
+                      WHEN to_timestamp(event.start_ts) + INTERVAL '6 hours' > NOW()
+                        THEN 'active'
+                      ELSE 'finished'
+                    END,
+                    status_label = CASE
+                      WHEN to_timestamp(event.start_ts) > NOW() THEN 'Регистрация'
+                      WHEN to_timestamp(event.start_ts) + INTERVAL '6 hours' > NOW()
+                        THEN 'Идёт сейчас'
+                      ELSE 'Завершён'
+                    END,
+                    updated_at = NOW()
+                FROM close_events event
+                WHERE event.tournament_id = tournament.id
+                  AND tournament.status <> 'archived'
+                  AND tournament.status IS DISTINCT FROM CASE
+                    WHEN to_timestamp(event.start_ts) > NOW() THEN 'registration'
+                    WHEN to_timestamp(event.start_ts) + INTERVAL '6 hours' > NOW()
+                      THEN 'active'
+                    ELSE 'finished'
+                  END
+                """
+            )
+        )
+        await session.execute(
+            text(
+                """
+                INSERT INTO notification_outbox (
+                    discord_id, event_type, title, message, action_url,
+                    close_event_id
+                )
+                SELECT player.discord_id,
+                       'close_started',
+                       'Клоз начинается!',
+                       'Вы участвуете в клозе. Откройте турнир, чтобы увидеть '
+                           || 'составы и войти в игровое лобби.',
+                       :base_url || '/tournaments/' || tournament.slug,
+                       event.id
+                FROM close_events event
+                JOIN tournaments tournament ON tournament.id = event.tournament_id
+                CROSS JOIN LATERAL (
+                    SELECT CASE WHEN value ~ '^[0-9]{5,20}$'
+                        THEN value::BIGINT END AS player_id
+                    FROM regexp_split_to_table(
+                        COALESCE(event.participant_ids, ''), ','
+                    ) value
+                    WHERE value ~ '^[0-9]{5,20}$'
+                ) participant
+                JOIN players player ON player.discord_id = participant.player_id
+                WHERE NOW() >= to_timestamp(event.start_ts)
+                  AND NOW() < to_timestamp(event.start_ts) + INTERVAL '6 hours'
+                ON CONFLICT (discord_id, close_event_id, event_type)
+                  WHERE close_event_id IS NOT NULL
                 DO NOTHING
                 """
             ),
@@ -196,6 +272,7 @@ class WebsiteBridge(commands.Cog):
             await self._queue_tournament_checkins(session)
             await self._queue_season_round_checkins(session)
             await self._queue_season_round_missing_checkins(session)
+            await self._queue_close_start_notifications(session)
             result = await session.execute(
                 text(
                     """
@@ -337,6 +414,10 @@ class WebsiteBridge(commands.Cog):
                          AND checkin.player_id = registration.player_id
                         WHERE round.round_kind = 'regular'
                           AND round.is_visible = TRUE
+                          AND NOT EXISTS (
+                              SELECT 1 FROM close_events close_event
+                              WHERE close_event.tournament_id = tournament.id
+                          )
                           AND season_round_status_at(
                               round.scheduled_at, round.status
                           ) IN ('planned', 'active')
@@ -361,6 +442,10 @@ class WebsiteBridge(commands.Cog):
                           ON organizer.tournament_id = tournament.id
                         WHERE round.round_kind = 'regular'
                           AND round.is_visible = TRUE
+                          AND NOT EXISTS (
+                              SELECT 1 FROM close_events close_event
+                              WHERE close_event.tournament_id = tournament.id
+                          )
                           AND season_round_status_at(
                               round.scheduled_at, round.status
                           ) IN ('planned', 'active')
@@ -384,6 +469,20 @@ class WebsiteBridge(commands.Cog):
                         WHERE round.round_kind = 'regular'
                           AND round.status <> 'cancelled'
                           AND NOW() < round.scheduled_at + INTERVAL '3 hours'
+
+                        UNION ALL
+
+                        SELECT to_timestamp(event.start_ts)
+                        FROM close_events event
+                        WHERE event.tournament_id IS NOT NULL
+                          AND to_timestamp(event.start_ts) > NOW()
+
+                        UNION ALL
+
+                        SELECT to_timestamp(event.start_ts) + INTERVAL '6 hours'
+                        FROM close_events event
+                        WHERE event.tournament_id IS NOT NULL
+                          AND to_timestamp(event.start_ts) + INTERVAL '6 hours' > NOW()
                     )
                     SELECT MIN(due_at) FROM scheduled
                     """

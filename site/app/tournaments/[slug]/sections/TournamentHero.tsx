@@ -34,10 +34,13 @@ export function TournamentHero() {
   if (!data) return null;
 
   const { tournament } = data;
-  const isSeasonal = tournament.tournament_type === "seasonal";
+  const isCloseTournament = Boolean(tournament.close_event_id);
+  const isSeasonal =
+    tournament.tournament_type === "seasonal" && !isCloseTournament;
   const isPast = isPastTournament(tournament.status);
   const canRegister =
     !isSeasonal &&
+    !isCloseTournament &&
     tournament.status === "registration" &&
     registrationAvailable;
   const competitionStages = tournamentCompetitionStages(tournament);
@@ -92,6 +95,13 @@ export function TournamentHero() {
               <button className="primary-button" onClick={openRegistration}>
                 Зарегистрировать команду <FiArrowRight />
               </button>
+            ) : isCloseTournament ? (
+              <button
+                className="primary-button"
+                onClick={() => openTournamentTab("overview")}
+              >
+                Открыть матч <FiArrowRight />
+              </button>
             ) : isSeasonal ? (
               <button
                 className="primary-button"
@@ -114,15 +124,19 @@ export function TournamentHero() {
                 <FiArrowRight />
               </button>
             )}
-            <button
-              className="secondary-button"
-              onClick={() => openTournamentTab("overview")}
-            >
-              Подробнее о турнире
-            </button>
+            {!isCloseTournament && (
+              <button
+                className="secondary-button"
+                onClick={() => openTournamentTab("overview")}
+              >
+                Подробнее о турнире
+              </button>
+            )}
           </div>
           <p className="hero-footnote">
-            {isSeasonal
+            {isCloseTournament
+              ? `${tournament.format} · BO${tournament.close_series ?? 2} · один матч`
+              : isSeasonal
               ? `${tournament.season_round_count} туров · ${
                   season.data?.participants.length ?? 0
                 } участников`
@@ -174,15 +188,19 @@ export function TournamentHero() {
               </strong>
             </div>
             <div>
-              <small>{isSeasonal ? "Туры" : "Слотов"}</small>
+              <small>
+                {isCloseTournament ? "Матч" : isSeasonal ? "Туры" : "Слотов"}
+              </small>
               <strong>
-                {isSeasonal
+                {isCloseTournament
+                  ? `BO${tournament.close_series ?? 2}`
+                  : isSeasonal
                   ? tournament.season_round_count
                   : `${tournament.max_teams} команд`}
               </strong>
             </div>
           </div>
-          {!isSeasonal && <div
+          {!isSeasonal && !isCloseTournament && <div
             className={`poster-participation${
               participationConfirmed
                 ? " confirmed"
@@ -197,7 +215,16 @@ export function TournamentHero() {
         </div>
           </section>
 
-          {isSeasonal ? (
+          {isCloseTournament ? (
+            <section className="quick-facts close-quick-facts" aria-label="Информация о клозе">
+              <div><span>1</span><strong>Один матч без турнирной сетки</strong></div>
+              <div>
+                <span>{season.data?.participants.length ?? 0}</span>
+                <strong>Игроков из анонса Discord</strong>
+              </div>
+              <div><span>BO{tournament.close_series ?? 2}</span><strong>{tournament.format}</strong></div>
+            </section>
+          ) : isSeasonal ? (
             <section
               className="quick-facts season-quick-facts"
               aria-label="Информация о сезоне"

@@ -16,6 +16,8 @@ export function LobbyStartControls({
   send: (command: SeasonLobbyRoomCommand) => Promise<boolean>;
 }) {
   if (snapshot.status !== "waiting") return null;
+  const startAction: "START_VOTING" | "START_MATCH" =
+    snapshot.usesFearlessDraft ? "START_VOTING" : "START_MATCH";
   const onlineCount = snapshot.players.filter((player) => player.isOnline).length;
   if (!snapshot.isHost && !snapshot.isOrganizer) {
     const host = snapshot.players.find((player) => player.isHost);
@@ -38,7 +40,9 @@ export function LobbyStartControls({
         <strong>{onlineCount}/10 игроков в сети</strong>
         <p>
           {snapshot.isOrganizer
-            ? "Можно запустить голосование обычным способом или принудительно."
+            ? snapshot.usesFearlessDraft
+              ? "Можно запустить выбор капитанов обычным способом или принудительно."
+              : "Можно запустить матч обычным способом или принудительно."
             : "Обычный старт доступен, когда все лампочки зелёные."}
         </p>
       </div>
@@ -47,7 +51,7 @@ export function LobbyStartControls({
           className="primary-button"
           type="button"
           disabled={isSending || !snapshot.allPlayersOnline}
-          onClick={() => void send({ action: "START_VOTING", force: false })}
+          onClick={() => void send({ action: startAction, force: false })}
         >
           <FiPlay aria-hidden="true" /> Старт
         </button>
@@ -57,9 +61,9 @@ export function LobbyStartControls({
           disabled={isSending}
           onClick={() => {
             if (window.confirm(
-              "Запустить голосование, даже если сайт считает некоторых игроков не в сети?",
+              `Запустить ${snapshot.usesFearlessDraft ? "выбор капитанов" : "матч"}, даже если сайт считает некоторых игроков не в сети?`,
             )) {
-              void send({ action: "START_VOTING", force: true });
+              void send({ action: startAction, force: true });
             }
           }}
         >

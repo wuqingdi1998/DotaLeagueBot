@@ -6,8 +6,8 @@ export type PublishedSeasonGame = {
 };
 
 function publishedGames(value: unknown): PublishedSeasonGame[] {
-  if (!Array.isArray(value) || value.length !== 2) {
-    throw new Error("Укажите данные двух карт");
+  if (!Array.isArray(value) || value.length < 1 || value.length > 3) {
+    throw new Error("Укажите данные всех карт матча (от одной до трёх)");
   }
   return value.map((item) => {
     const game = item as Record<string, unknown>;
@@ -22,24 +22,24 @@ function publishedGames(value: unknown): PublishedSeasonGame[] {
   });
 }
 
-function score(value: unknown, label: string) {
+function score(value: unknown, label: string, maximum: number) {
   const result = Number(value);
-  if (!Number.isInteger(result) || result < 0 || result > 2) {
-    throw new Error(`${label} должен быть целым числом от 0 до 2`);
+  if (!Number.isInteger(result) || result < 0 || result > maximum) {
+    throw new Error(`${label} должен быть целым числом от 0 до ${maximum}`);
   }
   return result;
 }
 
 export function publishedLobbyResultValues(body: Record<string, unknown>) {
   const games = publishedGames(body.games);
-  const teamAScore = score(body.teamAScore, "Счёт команды A");
-  const teamBScore = score(body.teamBScore, "Счёт команды B");
+  const teamAScore = score(body.teamAScore, "Счёт команды A", games.length);
+  const teamBScore = score(body.teamBScore, "Счёт команды B", games.length);
   const calculated = seasonSeriesScore(games.map((game) => game.winnerSide));
   if (
     calculated.teamAScore !== teamAScore ||
     calculated.teamBScore !== teamBScore
   ) {
-    throw new Error("Счёт не совпадает с победителями двух карт");
+    throw new Error("Счёт не совпадает с победителями карт");
   }
   return { calculated, games, teamAScore, teamBScore };
 }

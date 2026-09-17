@@ -35,9 +35,11 @@ export function SeasonLobbyRoomScreen({
     (player) =>
       player.teamSide === snapshot.currentUserTeamSide && player.isCaptain,
   );
-  const tournamentRoundUrl =
-    `/tournaments/${snapshot.tournamentSlug}?round=${snapshot.roundNumber}`;
-  const shouldShowDraft = shouldShowSeasonLobbyDraft(snapshot.status);
+  const tournamentRoundUrl = snapshot.tournamentSlug.startsWith("close-")
+    ? `/tournaments/${snapshot.tournamentSlug}`
+    : `/tournaments/${snapshot.tournamentSlug}?round=${snapshot.roundNumber}`;
+  const shouldShowDraft = snapshot.usesFearlessDraft &&
+    shouldShowSeasonLobbyDraft(snapshot.status);
 
   useEffect(() => {
     if (snapshot.status === "completed") {
@@ -64,9 +66,9 @@ export function SeasonLobbyRoomScreen({
           <Link
             href={tournamentRoundUrl}
           >
-            <FiArrowLeft aria-hidden="true" /> Вернуться к туру
+            <FiArrowLeft aria-hidden="true" /> Вернуться к {snapshot.tournamentSlug.startsWith("close-") ? "клозу" : "туру"}
           </Link>
-          <span>Игровое лобби · BO{snapshot.bestOf}</span>
+          <span>{snapshot.gameFormat} · BO{snapshot.bestOf}</span>
           <h1>{snapshot.lobbyName}</h1>
         </div>
         <div className={`season-room-connection ${isConnected ? "online" : "reconnecting"}`}>
@@ -93,19 +95,19 @@ export function SeasonLobbyRoomScreen({
         isSending={isSending}
         send={send}
       />
-      <OrganizerCaptainControls
+      {snapshot.usesFearlessDraft && <OrganizerCaptainControls
         snapshot={snapshot}
         isSending={isSending}
         send={send}
-      />
-      {snapshot.currentUserTeamSide && (
+      />}
+      {snapshot.usesFearlessDraft && snapshot.currentUserTeamSide && (
         <CaptainVoting
           snapshot={snapshot}
           isSending={isSending}
           send={send}
         />
       )}
-      {snapshot.currentUserTeamSide && (
+      {snapshot.usesFearlessDraft && snapshot.currentUserTeamSide && (
         <CaptainTransfer
           snapshot={snapshot}
           isSending={isSending}

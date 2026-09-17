@@ -83,7 +83,7 @@ describe("season round operations", () => {
     expect(lobbyTools).toContain("Сохранить счёт и карты");
     expect(lobbyTools).toContain("winnerSide");
     expect(lobbyTools).toContain("SeasonSubstitutionAdmin");
-    expect(lobbyResult).toContain("value.length !== 2");
+    expect(lobbyResult).toContain("value.length < 1 || value.length > 3");
     expect(lobbyActions).toContain("ON CONFLICT (match_id, game_number)");
     expect(lobbyActions).toContain("team_a_score = $2");
     expect(lobbyActions).toContain("winner_side = EXCLUDED.winner_side");

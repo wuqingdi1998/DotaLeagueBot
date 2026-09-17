@@ -30,6 +30,8 @@ export async function GET() {
        t.status,
        t.tournament_type,
        t.season_round_count::int,
+       (SELECT event.id::int FROM close_events event
+        WHERE event.tournament_id = t.id) AS close_event_id,
        COALESCE((
          SELECT COUNT(*)::int
          FROM season_participants participant

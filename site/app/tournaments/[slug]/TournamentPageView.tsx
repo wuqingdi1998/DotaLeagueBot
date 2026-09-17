@@ -8,6 +8,7 @@ import { useTournament } from "./hooks/TournamentContext";
 import { useTournamentActionTarget } from "./hooks/useTournamentActionTarget";
 import { TournamentFooter } from "./sections/TournamentFooter";
 import { MatchesPanel } from "./sections/MatchesPanel";
+import { CloseTournamentOverview } from "./sections/CloseTournamentOverview";
 import { OverviewPanel } from "./sections/OverviewPanel";
 import { TeamsPanel } from "./sections/TeamsPanel";
 import {
@@ -100,18 +101,24 @@ export function TournamentPageView() {
       <TournamentHero />
 
       <section className="tournament-section" id="tournament">
-        <TournamentInvitations />
+        {!data.tournament.close_event_id && <TournamentInvitations />}
         <TournamentHeading />
         <TournamentNavigation />
-        <OverviewPanel />
-        <SeasonOverviewPanel />
-        <SeasonStandingsPanel />
-        <SeasonRoundPanel />
-        <TeamsPanel />
-        <MatchesPanel />
-        <GroupsPanel />
-        <PlayoffsPanel />
-        <RulesPanel />
+        {data.tournament.close_event_id ? (
+          <CloseTournamentOverview />
+        ) : (
+          <>
+            <OverviewPanel />
+            <SeasonOverviewPanel />
+            <SeasonStandingsPanel />
+            <SeasonRoundPanel />
+            <TeamsPanel />
+            <MatchesPanel />
+            <GroupsPanel />
+            <PlayoffsPanel />
+            <RulesPanel />
+          </>
+        )}
         {data.user?.isAdmin && <TournamentAdminPanel />}
       </section>
 

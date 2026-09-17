@@ -52,7 +52,7 @@ describe("tournament directory contract", () => {
       "isSeasonLeague(tournament.tournament_type)",
     );
     expect(tournamentCard).toContain(
-      'isSeasonLeagueTournament ? "Участники" : "Команды"',
+      'isSeasonLeagueTournament || isCloseTournament ? "Участники" : "Команды"',
     );
     expect(tournamentCard).toContain(
       'isSeasonLeagueTournament ? "Туры" : "Результаты"',

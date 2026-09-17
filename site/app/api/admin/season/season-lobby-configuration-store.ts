@@ -50,6 +50,7 @@ export async function insertSeasonLobby(
   roundId: number,
   name: string,
   sortOrder: number,
+  bestOf = 2,
 ) {
   const lobby = await client.query<{ id: number }>(
     `INSERT INTO season_lobbies (round_id, name, sort_order, status)
@@ -60,8 +61,8 @@ export async function insertSeasonLobby(
   await client.query(
     `INSERT INTO season_matches
        (lobby_id, team_a_name, team_b_name, best_of, status, sort_order)
-     VALUES ($1, 'Левая команда', 'Правая команда', 2, 'draft', 1)`,
-    [lobby.rows[0].id],
+     VALUES ($1, 'Левая команда', 'Правая команда', $2, 'draft', 1)`,
+    [lobby.rows[0].id, bestOf],
   );
   await applyConfiguredSeasonLobbyTeamNames(client, [lobby.rows[0].id]);
   return lobby.rows[0].id;

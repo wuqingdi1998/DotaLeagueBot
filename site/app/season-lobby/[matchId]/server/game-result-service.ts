@@ -22,9 +22,10 @@ type LockedGameResultRoom = {
   host_player_id: string | null;
   best_of: number;
   tournament_id: number;
-  series_id: number;
+  series_id: number | null;
   current_map: number;
-  map_status: string;
+  map_status: string | null;
+  uses_fearless_draft: boolean;
 };
 
 function dotaMatchId(value: unknown): string {
@@ -57,16 +58,22 @@ export async function reportSeasonLobbyGameResult(
     const roomResult = await client.query<LockedGameResultRoom>(
       `SELECT room.status, match.host_player_id::text, match.best_of::int,
          round.tournament_id::int, series.id::int AS series_id,
-         series.current_map::int, map.status AS map_status
+         COALESCE(
+           series.current_map::int,
+           (SELECT COUNT(*)::int + 1 FROM season_match_games game
+            WHERE game.match_id = match.id AND game.status = 'completed')
+         ) AS current_map,
+         map.status AS map_status,
+         (series.id IS NOT NULL) AS uses_fearless_draft
        FROM season_match_rooms room
        JOIN season_matches match ON match.id = room.match_id
        JOIN season_lobbies lobby ON lobby.id = match.lobby_id
        JOIN season_rounds round ON round.id = lobby.round_id
-       JOIN draft_series series ON series.season_match_id = match.id
-       JOIN draft_maps map ON map.series_id = series.id
+       LEFT JOIN draft_series series ON series.season_match_id = match.id
+       LEFT JOIN draft_maps map ON map.series_id = series.id
          AND map.map_number = series.current_map
        WHERE room.match_id = $1
-       FOR UPDATE OF room, match, series, map`,
+       FOR UPDATE OF room, match`,
       [seasonMatchId],
     );
     const room = roomResult.rows[0];
@@ -85,7 +92,7 @@ export async function reportSeasonLobbyGameResult(
         403,
       );
     }
-    if (room.map_status !== "COMPLETE") {
+    if (room.uses_fearless_draft && room.map_status !== "COMPLETE") {
       throw new SeasonLobbyRoomError("Драфт карты ещё не завершён", 409);
     }
 
@@ -101,12 +108,14 @@ export async function reportSeasonLobbyGameResult(
     );
 
     if (!isFinalSeasonGame(room.current_map, room.best_of)) {
-      await client.query(
-        `UPDATE season_match_rooms
-         SET status = 'break', updated_at = NOW()
-         WHERE match_id = $1`,
-        [seasonMatchId],
-      );
+      if (room.uses_fearless_draft) {
+        await client.query(
+          `UPDATE season_match_rooms
+           SET status = 'break', updated_at = NOW()
+           WHERE match_id = $1`,
+          [seasonMatchId],
+        );
+      }
       return;
     }
 
@@ -140,12 +149,14 @@ export async function reportSeasonLobbyGameResult(
         score.result,
       ],
     );
-    await client.query(
-      `UPDATE draft_series
-       SET status = 'COMPLETE', updated_at = NOW()
-       WHERE id = $1`,
-      [room.series_id],
-    );
+    if (room.series_id !== null) {
+      await client.query(
+        `UPDATE draft_series
+         SET status = 'COMPLETE', updated_at = NOW()
+         WHERE id = $1`,
+        [room.series_id],
+      );
+    }
     await client.query(
       `UPDATE season_match_rooms
        SET status = 'completed', updated_at = NOW()

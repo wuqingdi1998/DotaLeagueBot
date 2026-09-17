@@ -23,6 +23,7 @@ export type TournamentSummary = {
   status: TournamentStatus;
   tournament_type: TournamentType;
   season_round_count: number;
+  close_event_id: number | null;
   participant_count: number;
   team_count: number;
   match_count: number;
@@ -48,7 +49,10 @@ export function filterTournamentSummaries(
 ) {
   return tournaments.filter((tournament) => {
     const matchesDirectoryFilter =
-      filter === "all" || isSeasonalTournament(tournament.tournament_type);
+      filter === "all" || (
+        tournament.close_event_id === null &&
+        isSeasonalTournament(tournament.tournament_type)
+      );
     const matchesArchiveFilter =
       !shouldHideArchivedTournaments || tournament.status !== "archived";
 

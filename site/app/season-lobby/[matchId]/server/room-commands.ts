@@ -126,3 +126,47 @@ export async function startSeasonLobbyWithCaptains(
     await createSeasonLobbyDraft(client, matchId, room.best_of, captains);
   });
 }
+
+export async function startSeasonLobbyWithoutDraft(
+  matchId: number,
+  actor: RoomActor,
+  isForced: boolean,
+): Promise<void> {
+  await transaction(async (client) => {
+    const room = await lockRoom(client, matchId);
+    if (actor.isAdmin) {
+      await requireOrganizerLobby(client, matchId);
+    } else {
+      await participantSide(client, matchId, actor.discordId);
+      if (room.host_player_id !== actor.discordId) {
+        throw new SeasonLobbyRoomError("Начать может только хост лобби", 403);
+      }
+    }
+    if (room.status !== "waiting") {
+      throw new SeasonLobbyRoomError("Матч уже запущен", 409);
+    }
+    const format = await client.query<{ game_format: string }>(
+      `SELECT tournament.format AS game_format
+       FROM season_matches match
+       JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+       JOIN season_rounds round ON round.id = lobby.round_id
+       JOIN tournaments tournament ON tournament.id = round.tournament_id
+       WHERE match.id = $1`,
+      [matchId],
+    );
+    if (!format.rows[0] || !["CM", "CD", "SD"].includes(format.rows[0].game_format)) {
+      throw new SeasonLobbyRoomError(
+        "Прямой старт доступен только для форматов CM, CD и SD",
+        409,
+      );
+    }
+    await requireReadyTeams(client, matchId, isForced);
+    await client.query(
+      `UPDATE season_match_rooms
+       SET status = 'playing', is_force_started = $2,
+         draft_started_at = NOW(), updated_at = NOW()
+       WHERE match_id = $1`,
+      [matchId, isForced],
+    );
+  });
+}

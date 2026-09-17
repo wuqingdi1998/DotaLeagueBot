@@ -1,0 +1,94 @@
+.close-tournament-panel,
+.close-admin-panel {
+  display: grid;
+  gap: 20px;
+}
+
+.close-tournament-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.close-tournament-facts > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 10px;
+  align-items: center;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.close-tournament-facts svg {
+  grid-row: 1 / 3;
+  font-size: 22px;
+  color: var(--blue);
+}
+
+.close-tournament-facts span,
+.close-participants-card small {
+  color: var(--muted);
+}
+
+.close-participants-card {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface);
+}
+
+.close-participants-card header,
+.close-settings-form {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.close-participants-card ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.close-participants-card li {
+  display: grid;
+  grid-template-columns: 24px 40px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.close-participants-card em {
+  color: var(--muted);
+  font-style: normal;
+}
+
+.close-settings-form {
+  margin-top: 18px;
+}
+
+.close-settings-form label {
+  display: grid;
+  flex: 1;
+  gap: 7px;
+}
+
+@media (max-width: 760px) {
+  .close-tournament-facts,
+  .close-participants-card ul {
+    grid-template-columns: 1fr;
+  }
+
+  .close-settings-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

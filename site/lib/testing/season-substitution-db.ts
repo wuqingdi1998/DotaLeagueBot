@@ -11,7 +11,11 @@ export async function substitutionTestDatabase() {
       internal_rating integer, rank_tier integer, is_archived boolean DEFAULT false,
       avatar_url text, real_name text, positions text
     );
-    CREATE TABLE tournaments (id bigint PRIMARY KEY, slug text, tournament_type text);
+    CREATE TABLE tournaments (
+      id bigint PRIMARY KEY, slug text, tournament_type text,
+      format text DEFAULT 'Fearless Draft'
+    );
+    CREATE TABLE close_events (id bigint PRIMARY KEY, tournament_id bigint);
     CREATE TABLE season_rounds (id bigint PRIMARY KEY, tournament_id bigint,
       round_number integer, is_visible boolean, round_kind text, lobby_configuration_status text);
     CREATE TABLE season_lobbies (id bigint PRIMARY KEY, round_id bigint, name text,
@@ -86,7 +90,7 @@ export async function substitutionTestDatabase() {
 
 export async function seedSubstitutionMatch(db: PGlite) {
   await db.exec(`
-    TRUNCATE players, tournaments, season_rounds, season_lobbies, season_matches,
+    TRUNCATE players, close_events, tournaments, season_rounds, season_lobbies, season_matches,
       season_match_participants, season_participants, season_match_games,
       season_penalty_events, season_match_substitutions, season_match_rooms,
       season_match_room_presence, season_match_room_messages, season_match_captain_votes,
@@ -95,7 +99,8 @@ export async function seedSubstitutionMatch(db: PGlite) {
       tournament_audit_log RESTART IDENTITY CASCADE;
     INSERT INTO players (discord_id, steam_id32, ingame_name, internal_rating)
       SELECT id, id + 100, 'Player ' || id, 6 FROM generate_series(10001, 10012) AS id;
-    INSERT INTO tournaments VALUES (40, 'test-season', 'seasonal');
+    INSERT INTO tournaments (id, slug, tournament_type)
+      VALUES (40, 'test-season', 'seasonal');
     INSERT INTO season_rounds VALUES (30, 40, 1, true, 'regular', 'published');
     INSERT INTO season_lobbies (id, round_id, name) VALUES (20, 30, 'Нижнее лобби');
     INSERT INTO season_matches (id, lobby_id, best_of, status, host_player_id, team_a_name, team_b_name)

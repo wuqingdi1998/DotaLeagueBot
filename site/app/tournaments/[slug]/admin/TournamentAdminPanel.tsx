@@ -3,6 +3,7 @@
 import { TournamentContentEditor } from "../TournamentContentEditor";
 import { useTournament } from "../hooks/TournamentContext";
 import { ApplicationsAdmin } from "./ApplicationsAdmin";
+import { CloseTournamentAdmin } from "./CloseTournamentAdmin";
 import { MatchCreateForm } from "./MatchCreateForm";
 import { MatchResultsList } from "./MatchResultsList";
 import { SeasonAdminPanel } from "./SeasonAdminPanel";
@@ -28,6 +29,13 @@ export function TournamentAdminPanel() {
     setToast,
   } = useTournament();
   if (!data || activeTab !== "admin" || !adminMode) return null;
+  if (data.tournament.close_event_id) {
+    return (
+      <div className="tab-panel admin-panel close-admin-panel">
+        <CloseTournamentAdmin />
+      </div>
+    );
+  }
   const isSeasonal = data.tournament.tournament_type === "seasonal";
 
   return (

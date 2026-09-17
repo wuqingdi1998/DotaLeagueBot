@@ -47,6 +47,8 @@ type RoundConfiguration = {
   tournament_id: number;
   round_kind: "regular" | "finals";
   lobby_configuration_status: ConfigurationStatus;
+  is_close: boolean;
+  best_of: number;
 };
 
 type ParticipantAssignment = {
@@ -60,9 +62,12 @@ type ParticipantAssignment = {
 async function lockRoundConfiguration(client: PoolClient, roundId: number) {
   const result = await client.query<RoundConfiguration>(
     `SELECT round.id::int, round.tournament_id::int, round.round_kind,
-       round.lobby_configuration_status
+       round.lobby_configuration_status,
+       (event.id IS NOT NULL) AS is_close,
+       CASE WHEN event.series IN ('1', '2', '3') THEN event.series::int ELSE 2 END AS best_of
      FROM season_rounds round
      JOIN tournaments tournament ON tournament.id = round.tournament_id
+     LEFT JOIN close_events event ON event.tournament_id = tournament.id
      WHERE round.id = $1 AND tournament.tournament_type = 'seasonal'
      FOR UPDATE OF round`,
     [roundId],
@@ -77,19 +82,21 @@ async function lockRoundConfiguration(client: PoolClient, roundId: number) {
   return round;
 }
 
-async function createConfiguration(client: PoolClient, roundId: number) {
-  const existing = await loadSeasonLobbyReferences(client, roundId);
+async function createConfiguration(client: PoolClient, round: RoundConfiguration) {
+  const existing = await loadSeasonLobbyReferences(client, round.id);
   if (existing.length) {
     throw new Response("В этом туре уже есть лобби", { status: 409 });
   }
-  const names = seasonLobbyNames(2);
-  await insertSeasonLobby(client, roundId, names[0], 1);
-  await insertSeasonLobby(client, roundId, names[1], 2);
+  const names = seasonLobbyNames(round.is_close ? 1 : 2);
+  await insertSeasonLobby(client, round.id, names[0], 1, round.best_of);
+  if (!round.is_close) {
+    await insertSeasonLobby(client, round.id, names[1], 2, round.best_of);
+  }
   await client.query(
     `UPDATE season_rounds
      SET lobby_configuration_status = 'editing', updated_at = NOW()
      WHERE id = $1`,
-    [roundId],
+    [round.id],
   );
 }
 
@@ -335,12 +342,17 @@ export async function updateSeasonLobbyConfiguration(
       if (status !== "none") {
         throw new Response("Конструктор лобби уже создан", { status: 409 });
       }
-      await createConfiguration(client, roundId);
+      await createConfiguration(client, round);
     } else if (
       ["add", "remove", "assign", "optimize", "sortTier"].includes(action)
     ) {
       if (status !== "editing") {
         throw new Response("Сначала включите редактирование лобби", {
+          status: 409,
+        });
+      }
+      if (round.is_close && (action === "add" || action === "remove")) {
+        throw new Response("Для клоза доступно только одно лобби", {
           status: 409,
         });
       }

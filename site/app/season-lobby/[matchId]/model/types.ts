@@ -55,6 +55,8 @@ export type SeasonLobbyRoomSnapshot = {
   teamAName: string;
   teamBName: string;
   bestOf: number;
+  gameFormat: string;
+  usesFearlessDraft: boolean;
   status: SeasonLobbyRoomStatus;
   currentUserId: string;
   currentUserTeamSide: "a" | "b" | null;
@@ -80,6 +82,7 @@ export type SeasonLobbyRoomSnapshot = {
 export type SeasonLobbyRoomCommand =
   | { action: "SEND_MESSAGE"; message: string }
   | { action: "START_VOTING"; force: boolean }
+  | { action: "START_MATCH"; force: boolean }
   | { action: "ANSWER_CAPTAIN_INTEREST"; wantsCaptain: boolean }
   | {
       action: "START_WITH_CAPTAINS";

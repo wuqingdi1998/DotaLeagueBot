@@ -29,8 +29,11 @@ export function TournamentCard({
   onStatusChange: (id: number, status: TournamentStatus) => Promise<void>;
 }) {
   const isPast = isPastTournament(tournament.status);
-  const isSeasonLeagueTournament = isSeasonLeague(tournament.tournament_type);
-  const hasSeasonalBadge = isSeasonalTournament(tournament.tournament_type);
+  const isCloseTournament = tournament.close_event_id !== null;
+  const isSeasonLeagueTournament =
+    !isCloseTournament && isSeasonLeague(tournament.tournament_type);
+  const hasSeasonalBadge =
+    !isCloseTournament && isSeasonalTournament(tournament.tournament_type);
 
   return (
     <article className={`tournament-card status-${tournament.status}`}>
@@ -39,6 +42,9 @@ export function TournamentCard({
         <div className="tournament-card-badges">
           {hasSeasonalBadge && (
             <span className="tournament-seasonal-badge">Сезонный</span>
+          )}
+          {isCloseTournament && (
+            <span className="tournament-seasonal-badge">Клоз</span>
           )}
           <TournamentStatusBadge status={tournament.status} />
         </div>
@@ -56,9 +62,9 @@ export function TournamentCard({
           <dd>{tournament.format}</dd>
         </div>
         <div>
-          <dt>{isSeasonLeagueTournament ? "Участники" : "Команды"}</dt>
+          <dt>{isSeasonLeagueTournament || isCloseTournament ? "Участники" : "Команды"}</dt>
           <dd>
-            {isSeasonLeagueTournament ? (
+            {isSeasonLeagueTournament || isCloseTournament ? (
               tournament.participant_count
             ) : (
               <>
@@ -69,9 +75,11 @@ export function TournamentCard({
           </dd>
         </div>
         <div>
-          <dt>{isSeasonLeagueTournament ? "Туры" : "Результаты"}</dt>
+          <dt>{isCloseTournament ? "Матч" : isSeasonLeagueTournament ? "Туры" : "Результаты"}</dt>
           <dd>
-            {isSeasonLeagueTournament
+            {isCloseTournament
+              ? "1"
+              : isSeasonLeagueTournament
               ? tournament.season_round_count
               : `${tournament.finished_match_count} из ${tournament.match_count} матчей`}
           </dd>

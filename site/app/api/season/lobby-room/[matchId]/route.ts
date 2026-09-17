@@ -7,6 +7,7 @@ import {
 } from "@/app/season-lobby/[matchId]/server/captain-transfer";
 import {
   sendSeasonLobbyMessage,
+  startSeasonLobbyWithoutDraft,
   startSeasonLobbyWithCaptains,
 } from "@/app/season-lobby/[matchId]/server/room-commands";
 import {
@@ -81,6 +82,12 @@ export async function POST(
       await sendSeasonLobbyMessage(matchId, user, command.message);
     } else if (command.action === "START_VOTING") {
       await startSeasonLobbyCaptainSelection(
+        matchId,
+        user,
+        command.force === true,
+      );
+    } else if (command.action === "START_MATCH") {
+      await startSeasonLobbyWithoutDraft(
         matchId,
         user,
         command.force === true,

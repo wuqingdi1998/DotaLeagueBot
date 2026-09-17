@@ -10,11 +10,13 @@ function tournament(
   id: number,
   tournamentType: TournamentSummary["tournament_type"],
   status: TournamentStatus = "active",
+  closeEventId: number | null = null,
 ) {
   return {
     id,
     tournament_type: tournamentType,
     status,
+    close_event_id: closeEventId,
   } as TournamentSummary;
 }
 
@@ -30,9 +32,10 @@ describe("tournament directory filters", () => {
   });
 
   it("shows only marked seasonal tournaments in the seasonal filter", () => {
+    const close = tournament(4, "seasonal", "active", 15);
     expect(
       filterTournamentSummaries(
-        [ordinary, seasonal, seasonalCup],
+        [ordinary, seasonal, seasonalCup, close],
         "seasonal",
       ),
     ).toEqual([seasonal, seasonalCup]);
