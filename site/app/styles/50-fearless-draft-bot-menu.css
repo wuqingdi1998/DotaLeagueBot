@@ -1,0 +1,83 @@
+.fearless-bot-menu {
+  position: relative;
+}
+
+.fearless-bot-menu > summary {
+  cursor: pointer;
+  list-style: none;
+  white-space: nowrap;
+}
+
+.fearless-bot-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.fearless-bot-menu-chevron {
+  transition: transform 160ms ease;
+}
+
+.fearless-bot-menu-options {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% - 1px);
+  right: 0;
+  display: grid;
+  gap: 6px;
+  min-width: 190px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 9px 8px 8px;
+  background: var(--surface);
+  box-shadow: 0 16px 32px rgb(0 0 0 / 24%);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 140ms ease;
+}
+
+.fearless-bot-menu-options button {
+  width: 100%;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+
+.fearless-bot-menu:hover .fearless-bot-menu-options,
+.fearless-bot-menu:focus-within .fearless-bot-menu-options,
+.fearless-bot-menu[open] .fearless-bot-menu-options {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.fearless-bot-menu:hover .fearless-bot-menu-chevron,
+.fearless-bot-menu:focus-within .fearless-bot-menu-chevron,
+.fearless-bot-menu[open] .fearless-bot-menu-chevron {
+  transform: rotate(180deg);
+}
+
+@media (max-width: 760px) {
+  .fearless-bot-menu,
+  .fearless-bot-menu > summary {
+    width: 100%;
+  }
+
+  .fearless-bot-menu-options {
+    position: static;
+    display: none;
+    width: 100%;
+    min-width: 0;
+    margin-top: 6px;
+    padding: 6px;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .fearless-bot-menu[open] .fearless-bot-menu-options {
+    display: grid;
+  }
+}

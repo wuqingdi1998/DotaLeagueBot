@@ -22,16 +22,20 @@ const seasonLobbyPreviewMigration = source(
   "../bot/database/migrations/0141_fearless_draft_season_lobby_preview.sql",
 );
 const bot3Page = source("app/fearless-draft/bot3/SeasonLobbyBot3Screen.tsx");
+const botMenuStyles = source("app/styles/50-fearless-draft-bot-menu.css");
 
-describe("Fearless Draft organizer bot mode", () => {
-  it("shows the Bot button only to an organizer", () => {
-    expect(queue).toContain("snapshot.isOrganizer");
+describe("Fearless Draft bot mode", () => {
+  it("offers one simulation menu to every signed-in player", () => {
+    expect(queue).toContain('className="fearless-bot-menu"');
+    expect(queue).toContain("text.botSimulation");
+    expect(queue).not.toContain("snapshot.isOrganizer");
     expect(queue).toContain('{ action: "START_BOT" }');
     expect(queue).toContain("<FiCpu /> {text.bot}");
-    expect(snapshot).toContain("isOrganizer: user.isAdmin");
+    expect(botMenuStyles).toContain(".fearless-bot-menu:hover");
+    expect(botMenuStyles).toContain(".fearless-bot-menu[open]");
   });
 
-  it("offers Bot2 as an organizer-only tournament lobby preview", () => {
+  it("offers Bot2 as a tournament lobby preview", () => {
     expect(queue).toContain('{ action: "START_BOT2" }');
     expect(queue).toContain("<FiUsers /> {text.bot2}");
     expect(route).toContain('case "START_BOT2"');
@@ -51,9 +55,9 @@ describe("Fearless Draft organizer bot mode", () => {
     expect(bot3Page).toContain("Все 10 игроков в сети");
   });
 
-  it("requires organizer rights on the server", () => {
+  it("allows every signed-in player to start all bot modes", () => {
     expect(route).toContain('case "START_BOT"');
-    expect(route).toContain("if (!user.isAdmin)");
+    expect(route).not.toContain("if (!user.isAdmin)");
     expect(route).toContain("await startBotDraft(user.discordId)");
   });
 

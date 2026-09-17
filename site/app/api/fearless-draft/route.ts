@@ -63,21 +63,12 @@ export async function POST(request: Request) {
     const command = (await request.json()) as Partial<FearlessDraftCommand>;
     switch (command.action) {
       case "START_BOT":
-        if (!user.isAdmin) {
-          throw new DraftRequestError("Режим с ботом доступен только организатору", 403);
-        }
         await startBotDraft(user.discordId);
         break;
       case "START_BOT2":
-        if (!user.isAdmin) {
-          throw new DraftRequestError("Режим с ботом доступен только организатору", 403);
-        }
         await startBotDraft(user.discordId, "BO3", "lobby-preview");
         break;
       case "START_BOT3":
-        if (!user.isAdmin) {
-          throw new DraftRequestError("Режим с ботом доступен только организатору", 403);
-        }
         await startBotDraft(user.discordId, "BO3", "season-lobby-preview");
         break;
       case "JOIN_QUEUE":
