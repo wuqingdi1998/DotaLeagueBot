@@ -50,6 +50,7 @@ type SeriesRow = {
   status: DraftSeriesSnapshot["status"];
   current_map: number;
   is_lobby_preview: boolean;
+  is_season_lobby_preview: boolean;
   map1_coin_toss_winner_id: string;
   end_requested_by: string | null;
   end_requested_at: Date | null;
@@ -183,7 +184,8 @@ async function loadSeries(
 ): Promise<DraftSeriesSnapshot | null> {
   const seriesResult = await client.query<SeriesRow>(
     `SELECT id::int, player1_id::text, player2_id::text, format, status,
-            current_map::int, is_lobby_preview, map1_coin_toss_winner_id::text,
+            current_map::int, is_lobby_preview, is_season_lobby_preview,
+            map1_coin_toss_winner_id::text,
             end_requested_by::text, end_requested_at,
             player1_ready_for_next_map, player2_ready_for_next_map,
             created_at, updated_at
@@ -304,6 +306,7 @@ async function loadSeries(
     status: series.status,
     currentMap: series.current_map,
     isLobbyPreview: series.is_lobby_preview,
+    isSeasonLobbyPreview: series.is_season_lobby_preview,
     map1CoinTossWinnerId: series.map1_coin_toss_winner_id,
     player1,
     player2,
@@ -456,7 +459,8 @@ export async function loadFearlessDraftSnapshot(
             lobbyPlayers,
             [displayedSeries.player1.id, displayedSeries.player2.id],
           ),
-          lineupAssignment: options.seasonMatchId && !displayedSeries.isLobbyPreview
+          lineupAssignment: displayedSeries.isSeasonLobbyPreview ||
+              (options.seasonMatchId && !displayedSeries.isLobbyPreview)
             ? await loadDraftLineupAssignment(
                 client,
                 displayedSeries.map.id,

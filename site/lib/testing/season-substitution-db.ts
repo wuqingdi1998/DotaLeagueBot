@@ -58,6 +58,7 @@ export async function substitutionTestDatabase() {
       player1_id bigint, player2_id bigint, current_map integer DEFAULT 1,
       status text DEFAULT 'MAP_COMPLETE', format text DEFAULT 'BO2',
       is_lobby_preview boolean DEFAULT false,
+      is_season_lobby_preview boolean DEFAULT false,
       map1_coin_toss_winner_id bigint, player1_dismissed_at timestamptz,
       player2_dismissed_at timestamptz, end_requested_by bigint, end_requested_at timestamptz,
       player1_ready_for_next_map boolean DEFAULT false,

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useMemo, useState } from "react";
-import { FiCheck, FiLock } from "react-icons/fi";
+import { FiArrowRight, FiCheck, FiLock } from "react-icons/fi";
 import { DraftFullscreenToggle } from "../components/DraftFullscreenToggle";
 import { useDraftLocale } from "../hooks/useDraftLocale";
 import { FEARLESS_DRAFT_HEROES_BY_ID } from "../model/heroes";
@@ -123,6 +123,12 @@ export function DraftLineupAssignment({
     if (isSaved) setIsLocallySubmitted(true);
   };
 
+  const dismissCompletedPreview = async () => {
+    if (await send({ action: "DISMISS_COMPLETE" })) {
+      window.location.assign("/fearless-draft");
+    }
+  };
+
   return (
     <section className="fearless-lineup-assignment">
       <header className="fearless-lineup-heading">
@@ -218,6 +224,17 @@ export function DraftLineupAssignment({
         >
           <FiCheck aria-hidden="true" />
           {ownReady ? text.waitingOpponent : `${text.readyForMap} ${series.map.number + 1}`}
+        </button>
+      )}
+      {lineup?.isRevealed && isCaptain && series.isSeasonLobbyPreview &&
+        series.status === "COMPLETE" && (
+        <button
+          className="primary-button fearless-lineup-next-map"
+          type="button"
+          disabled={isSending}
+          onClick={() => void dismissCompletedPreview()}
+        >
+          {text.returnToQueue} <FiArrowRight aria-hidden="true" />
         </button>
       )}
     </section>

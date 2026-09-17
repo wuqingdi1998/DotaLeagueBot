@@ -11,6 +11,8 @@ import {
 } from "./lineup-assignment-service";
 import { selectDraftHero } from "./series-service";
 import type { DraftLobbyPlayer } from "../model/snapshot";
+import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
+import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
 
 let database: PGlite;
 const captains = ["10001", "10006"] as const;
@@ -57,7 +59,14 @@ async function queryClient(): Promise<PoolClient> {
 beforeAll(async () => {
   database = new PGlite();
   await database.exec(`
-    CREATE TABLE players (discord_id bigint PRIMARY KEY, ingame_name text);
+    CREATE TABLE players (
+      discord_id bigint PRIMARY KEY, ingame_name text, steam_id32 bigint,
+      real_name text, positions text, avatar_url text,
+      is_archived boolean DEFAULT false
+    );
+    CREATE TABLE web_sessions (
+      discord_id bigint, discord_avatar_url text, created_at timestamptz DEFAULT now()
+    );
     CREATE TABLE season_match_rooms (match_id bigint PRIMARY KEY, status text, updated_at timestamptz);
     CREATE TABLE season_match_room_players (
       match_id bigint, player_id bigint, team_side char(1), slot_number integer
@@ -67,7 +76,8 @@ beforeAll(async () => {
       status text, current_map integer, map1_coin_toss_winner_id bigint,
       end_requested_by bigint, end_requested_at timestamptz,
       player1_ready_for_next_map boolean, player2_ready_for_next_map boolean,
-      season_match_id bigint, updated_at timestamptz
+      season_match_id bigint, is_season_lobby_preview boolean DEFAULT false,
+      updated_at timestamptz
     );
     CREATE TABLE draft_maps (
       id bigserial PRIMARY KEY, series_id bigint, map_number integer, status text,
@@ -100,8 +110,8 @@ beforeEach(async () => {
       draft_series, draft_maps, draft_actions, draft_lineup_assignments
       , draft_hero_suggestions
       RESTART IDENTITY;
-    INSERT INTO players
-      SELECT id, 'Player ' || id FROM generate_series(10001, 10010) AS id;
+    INSERT INTO players(discord_id, ingame_name, steam_id32)
+      SELECT id, 'Player ' || id, id FROM generate_series(10001, 10010) AS id;
     INSERT INTO season_match_rooms VALUES (10, 'drafting', NOW());
     INSERT INTO season_match_room_players
       SELECT 10, id, CASE WHEN id < 10006 THEN 'a' ELSE 'b' END,
@@ -109,7 +119,7 @@ beforeEach(async () => {
       FROM generate_series(10001, 10010) AS id;
     INSERT INTO draft_series VALUES (
       1, 10001, 10006, 'BO2', 'DRAFTING', 1, 10001,
-      NULL, NULL, FALSE, FALSE, 10, NOW()
+      NULL, NULL, FALSE, FALSE, 10, FALSE, NOW()
     );
     INSERT INTO draft_maps VALUES (
       1, 1, 1, 'LINEUP_ASSIGNMENT', 10001, 1, 'RADIANT', 'FIRST',
@@ -205,5 +215,60 @@ describe("season Fearless Draft lineup assignment", () => {
     expect((await database.query(
       "SELECT COUNT(*)::int AS count FROM draft_lineup_assignments",
     )).rows[0]).toEqual({ count: 0 });
+  });
+
+  it("uses the Bot3 roster for private assignments without creating a real season match", async () => {
+    await database.exec(`
+      INSERT INTO players(
+        discord_id, ingame_name, steam_id32, is_archived
+      ) VALUES (${FEARLESS_DRAFT_BOT_PLAYER_ID}, 'Hidden bot', 0, TRUE);
+      UPDATE draft_series SET player2_id = ${FEARLESS_DRAFT_BOT_PLAYER_ID},
+        season_match_id = NULL, is_season_lobby_preview = TRUE;
+      UPDATE draft_maps SET first_pick_player_id = 10001;
+      TRUNCATE draft_actions;
+      INSERT INTO draft_actions(map_id, step, actor_id, action_type, hero_id)
+        SELECT 1, id - 1,
+          CASE WHEN id <= 5 THEN 10001 ELSE ${FEARLESS_DRAFT_BOT_PLAYER_ID} END,
+          'PICK', id
+        FROM generate_series(1, 10) AS id;
+    `);
+    const client = await queryClient();
+    const roster = await loadLobbyPreviewPlayersByViewerId(client, "10001", 1);
+    const teamA = roster.filter((player) => player.teamSide === "a");
+    const teamB = roster.filter((player) => player.teamSide === "b");
+    await submitDraftLineupAssignment(
+      FEARLESS_DRAFT_BOT_PLAYER_ID,
+      teamB.map((player, index) => ({ heroId: index + 6, playerId: player.id })),
+    );
+    const hidden = await loadDraftLineupAssignment(
+      client,
+      1,
+      ["10001", FEARLESS_DRAFT_BOT_PLAYER_ID],
+      "10001",
+      roster,
+    );
+    expect(hidden).toMatchObject({
+      player1Submitted: false,
+      player2Submitted: true,
+      isRevealed: false,
+      assignments: [],
+    });
+
+    await submitDraftLineupAssignment(
+      "10001",
+      teamA.map((player, index) => ({ heroId: index + 1, playerId: player.id })),
+    );
+    const revealed = await loadDraftLineupAssignment(
+      client,
+      1,
+      ["10001", FEARLESS_DRAFT_BOT_PLAYER_ID],
+      "10001",
+      roster,
+    );
+    expect(revealed.assignments).toHaveLength(10);
+    expect(revealed.assignments.some((item) => item.playerName === "Hidden bot"))
+      .toBe(false);
+    expect((await database.query("SELECT status FROM draft_series")).rows[0])
+      .toEqual({ status: "MAP_COMPLETE" });
   });
 });

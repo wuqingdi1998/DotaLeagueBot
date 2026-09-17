@@ -12,6 +12,7 @@ export default async function FearlessDraftPage() {
     redirect("/api/auth/discord?returnTo=%2Ffearless-draft");
   }
   const snapshot = await loadFearlessDraftSnapshot(user);
+  if (snapshot.series?.isSeasonLobbyPreview) redirect("/fearless-draft/bot3");
   return (
     <PlatformShell user={user}>
       <FearlessDraftScreen initialSnapshot={snapshot} />

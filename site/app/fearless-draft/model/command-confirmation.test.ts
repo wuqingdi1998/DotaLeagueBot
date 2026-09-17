@@ -10,7 +10,8 @@ function snapshot(): FearlessDraftSnapshot {
     isWaiting: false, waitingPlayers: [], invitations: [],
     series: {
       id: 1, format: "BO3", status: "CHOOSING", currentMap: 1,
-      isLobbyPreview: false, map1CoinTossWinnerId: player1.id, player1, player2,
+      isLobbyPreview: false, isSeasonLobbyPreview: false,
+      map1CoinTossWinnerId: player1.id, player1, player2,
       player1Connected: true, player2Connected: true, player1ReadyForNextMap: false,
       player2ReadyForNextMap: false, endRequest: null, createdAt: "", updatedAt: "",
       map: {

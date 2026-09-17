@@ -9,6 +9,8 @@ import { hasActiveSeries, lockDraftPlayers } from "./database";
 import { DraftRequestError } from "./errors";
 import { randomCoinTossResult } from "./coin-toss";
 import { makeDraftChoice, selectDraftHero } from "./series-service";
+import { submitDraftLineupAssignment } from "./lineup-assignment-service";
+import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
 
 type BotSeriesState = {
   status: string;
@@ -24,11 +26,13 @@ type BotSeriesState = {
   first_pick_player_id: string | null;
   current_step: number;
   version: number;
+  series_id: number;
+  is_season_lobby_preview: boolean;
 };
 
 const heroIds = ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id);
 const formats: DraftFormat[] = ["BO2", "BO3"];
-type BotDraftMode = "single" | "lobby-preview";
+type BotDraftMode = "single" | "lobby-preview" | "season-lobby-preview";
 
 function randomItem<T>(items: readonly T[]): T {
   return items[randomInt(items.length)];
@@ -36,10 +40,12 @@ function randomItem<T>(items: readonly T[]): T {
 
 async function loadBotSeriesState(playerId: string): Promise<BotSeriesState | null> {
   return one<BotSeriesState>(
-    `SELECT series.status, series.player1_id::text, series.player2_id::text,
+    `SELECT series.id::int AS series_id, series.status,
+            series.player1_id::text, series.player2_id::text,
             series.end_requested_by::text,
             series.player1_ready_for_next_map,
             series.player2_ready_for_next_map,
+            series.is_season_lobby_preview,
             map.id::int AS map_id, map.status AS map_status,
             map.first_chooser_id::text, map.first_choice,
             map.first_pick_player_id::text, map.current_step::int,
@@ -124,15 +130,16 @@ export async function startBotDraft(
     const seriesResult = await client.query<{ id: number }>(
       `INSERT INTO draft_series
         (player1_id, player2_id, format, map1_coin_toss_winner_id,
-         is_lobby_preview)
-       VALUES ($1, $2, $3, $4, $5)
+         is_lobby_preview, is_season_lobby_preview)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id::int`,
       [
         playerId,
         FEARLESS_DRAFT_BOT_PLAYER_ID,
         format,
         toss.winnerId,
-        mode === "lobby-preview",
+        mode !== "single",
+        mode === "season-lobby-preview",
       ],
     );
     await client.query(
@@ -170,6 +177,29 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         await runBotAction(() => markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID));
         continue;
       }
+      return;
+    }
+    if (state.map_status === "LINEUP_ASSIGNMENT") {
+      if (!state.is_season_lobby_preview) return;
+      const roster = await transaction(async (client) =>
+        loadLobbyPreviewPlayersByViewerId(client, playerId, state.series_id)
+      );
+      const botPlayers = roster.filter((player) => player.teamSide === "b");
+      const pickedHeroes = await query<{ hero_id: number }>(
+        `SELECT hero_id::int FROM draft_actions
+         WHERE map_id = $1 AND actor_id = $2
+           AND action_type = 'PICK' AND hero_id IS NOT NULL
+         ORDER BY step`,
+        [state.map_id, FEARLESS_DRAFT_BOT_PLAYER_ID],
+      );
+      if (botPlayers.length !== 5 || pickedHeroes.length !== 5) return;
+      await runBotAction(() => submitDraftLineupAssignment(
+        FEARLESS_DRAFT_BOT_PLAYER_ID,
+        pickedHeroes.map((pick, index) => ({
+          heroId: pick.hero_id,
+          playerId: botPlayers[index].id,
+        })),
+      ));
       return;
     }
     if (state.map_status === "FIRST_DECISION") {

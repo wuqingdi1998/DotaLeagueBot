@@ -176,7 +176,10 @@ async function commitHeroAction(
       "DELETE FROM draft_hero_suggestions WHERE map_id = $1",
       [map.id],
     );
-    const mapStatus = series.season_match_id ? "LINEUP_ASSIGNMENT" : "COMPLETE";
+    const requiresLineupAssignment = Boolean(
+      series.season_match_id || series.is_season_lobby_preview,
+    );
+    const mapStatus = requiresLineupAssignment ? "LINEUP_ASSIGNMENT" : "COMPLETE";
     await client.query(
       `UPDATE draft_maps
        SET current_step = $1, ${reserveColumn} = $2, status = $3::text,
@@ -191,7 +194,7 @@ async function commitHeroAction(
     const isSeriesComplete =
       (series.format === "BO2" && map.map_number === 2) ||
       (series.format === "BO3" && map.map_number === 3);
-    const seriesStatus = series.season_match_id
+    const seriesStatus = requiresLineupAssignment
       ? "DRAFTING"
       : isSeriesComplete
         ? "COMPLETE"

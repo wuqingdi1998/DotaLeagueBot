@@ -74,6 +74,12 @@ export async function POST(request: Request) {
         }
         await startBotDraft(user.discordId, "BO3", "lobby-preview");
         break;
+      case "START_BOT3":
+        if (!user.isAdmin) {
+          throw new DraftRequestError("Режим с ботом доступен только организатору", 403);
+        }
+        await startBotDraft(user.discordId, "BO3", "season-lobby-preview");
+        break;
       case "JOIN_QUEUE":
         await joinDraftQueue(user.discordId);
         break;
@@ -173,8 +179,8 @@ export async function POST(request: Request) {
         throw new DraftRequestError("Неизвестное действие");
     }
     const shouldAdvanceBot = [
-      "START_BOT", "START_BOT2", "MAKE_CHOICE", "SELECT_HERO",
-      "READY_FOR_NEXT_MAP", "REQUEST_SERIES_END",
+      "START_BOT", "START_BOT2", "START_BOT3", "MAKE_CHOICE", "SELECT_HERO",
+      "SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP", "REQUEST_SERIES_END",
     ].includes(command.action ?? "");
     if (shouldAdvanceBot) {
       after(async () => {

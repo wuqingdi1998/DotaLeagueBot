@@ -18,6 +18,10 @@ const migration = source("../bot/database/migrations/0070_fearless_draft_bot_and
 const lobbyPreviewMigration = source(
   "../bot/database/migrations/0097_fearless_draft_lobby_preview.sql",
 );
+const seasonLobbyPreviewMigration = source(
+  "../bot/database/migrations/0141_fearless_draft_season_lobby_preview.sql",
+);
+const bot3Page = source("app/fearless-draft/bot3/SeasonLobbyBot3Screen.tsx");
 
 describe("Fearless Draft organizer bot mode", () => {
   it("shows the Bot button only to an organizer", () => {
@@ -33,6 +37,18 @@ describe("Fearless Draft organizer bot mode", () => {
     expect(route).toContain('case "START_BOT2"');
     expect(route).toContain('await startBotDraft(user.discordId, "BO3", "lobby-preview")');
     expect(lobbyPreviewMigration).toContain("is_lobby_preview");
+  });
+
+  it("offers Bot3 as a full seasonal lobby preview", () => {
+    expect(queue).toContain('{ action: "START_BOT3" }');
+    expect(queue).toContain("<FiZap /> {text.bot3}");
+    expect(route).toContain('case "START_BOT3"');
+    expect(route).toContain(
+      'await startBotDraft(user.discordId, "BO3", "season-lobby-preview")',
+    );
+    expect(seasonLobbyPreviewMigration).toContain("is_season_lobby_preview");
+    expect(bot3Page).toContain("<LobbyPlayerTeams snapshot={room} />");
+    expect(bot3Page).toContain("Все 10 игроков в сети");
   });
 
   it("requires organizer rights on the server", () => {
@@ -55,6 +71,12 @@ describe("Fearless Draft organizer bot mode", () => {
     expect(botService).toContain("true,");
     expect(botService).toContain("runBotAction");
     expect(route).toContain("await advanceBotDraft(user.discordId)");
+  });
+
+  it("instantly assigns the bot team's heroes in Bot3", () => {
+    expect(botService).toContain('state.map_status === "LINEUP_ASSIGNMENT"');
+    expect(botService).toContain("submitDraftLineupAssignment(");
+    expect(route).toContain('"SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP"');
   });
 
   it("fills the preview with the organizer and nine stable real profiles", () => {

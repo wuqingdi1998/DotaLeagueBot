@@ -11,6 +11,9 @@ import {
 import { loadLockedDraftSeries } from "./database";
 import { databaseNow } from "./database-clock";
 import { DraftRequestError } from "./errors";
+import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
+import { draftSeriesMapCount } from "../model/series";
+import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
 
 type LineupAssignmentRow = {
   captain_id: string;
@@ -69,7 +72,8 @@ export async function loadDraftLineupAssignment(
         captainId: row.captain_id,
         heroId: row.hero_id,
         playerId: row.player_id,
-        playerName: row.player_name,
+        playerName: lobbyPlayers?.find((player) => player.id === row.player_id)?.name
+          ?? row.player_name,
       })),
   };
 }
@@ -80,26 +84,43 @@ export async function submitDraftLineupAssignment(
 ): Promise<void> {
   await transaction(async (client) => {
     const { series, map } = await loadLockedDraftSeries(client, captainId);
-    if (!series.season_match_id || map.status !== "LINEUP_ASSIGNMENT") {
+    if (
+      (!series.season_match_id && !series.is_season_lobby_preview) ||
+      map.status !== "LINEUP_ASSIGNMENT"
+    ) {
       throw new DraftRequestError("Сейчас нельзя распределять героев", 409);
     }
-    const teamResult = await client.query<{ team_side: "a" | "b" }>(
-      `SELECT team_side
-       FROM season_match_room_players
-       WHERE match_id = $1 AND player_id = $2`,
-      [series.season_match_id, captainId],
-    );
-    const teamSide = teamResult.rows[0]?.team_side;
-    if (!teamSide) {
-      throw new DraftRequestError("Команда капитана не найдена", 403);
+    let teamPlayerIds: string[];
+    if (series.season_match_id) {
+      const teamResult = await client.query<{ team_side: "a" | "b" }>(
+        `SELECT team_side FROM season_match_room_players
+         WHERE match_id = $1 AND player_id = $2`,
+        [series.season_match_id, captainId],
+      );
+      const teamSide = teamResult.rows[0]?.team_side;
+      if (!teamSide) throw new DraftRequestError("Команда капитана не найдена", 403);
+      const playerResult = await client.query<{ player_id: string }>(
+        `SELECT player_id::text FROM season_match_room_players
+         WHERE match_id = $1 AND team_side = $2
+         ORDER BY slot_number NULLS LAST, player_id`,
+        [series.season_match_id, teamSide],
+      );
+      teamPlayerIds = playerResult.rows.map((row) => row.player_id);
+    } else {
+      const viewerId = series.player1_id === FEARLESS_DRAFT_BOT_PLAYER_ID
+        ? series.player2_id
+        : series.player1_id;
+      const roster = await loadLobbyPreviewPlayersByViewerId(
+        client,
+        viewerId,
+        series.id,
+      );
+      const captain = roster.find((player) => player.id === captainId);
+      if (!captain) throw new DraftRequestError("Команда капитана не найдена", 403);
+      teamPlayerIds = roster
+        .filter((player) => player.teamSide === captain.teamSide)
+        .map((player) => player.id);
     }
-    const playerResult = await client.query<{ player_id: string }>(
-      `SELECT player_id::text
-       FROM season_match_room_players
-       WHERE match_id = $1 AND team_side = $2
-       ORDER BY slot_number NULLS LAST, player_id`,
-      [series.season_match_id, teamSide],
-    );
     const heroResult = await client.query<{ hero_id: number }>(
       `SELECT hero_id::int
        FROM draft_actions
@@ -111,7 +132,7 @@ export async function submitDraftLineupAssignment(
     const validationError = validateDraftLineupSelection(
       assignments,
       heroResult.rows.map((row) => row.hero_id),
-      playerResult.rows.map((row) => row.player_id),
+      teamPlayerIds,
     );
     if (validationError) throw new DraftRequestError(validationError, 400);
     const existing = await client.query(
@@ -161,15 +182,19 @@ export async function submitDraftLineupAssignment(
        WHERE id = $2`,
       [now, map.id],
     );
+    const isPreviewComplete = series.is_season_lobby_preview &&
+      series.current_map >= draftSeriesMapCount(series.format);
     await client.query(
-      `UPDATE draft_series SET status = 'MAP_COMPLETE', updated_at = $1
-       WHERE id = $2`,
-      [now, series.id],
+      `UPDATE draft_series SET status = $1, updated_at = $2
+       WHERE id = $3`,
+      [isPreviewComplete ? "COMPLETE" : "MAP_COMPLETE", now, series.id],
     );
-    await client.query(
-      `UPDATE season_match_rooms SET status = 'playing', updated_at = $1
-       WHERE match_id = $2`,
-      [now, series.season_match_id],
-    );
+    if (series.season_match_id) {
+      await client.query(
+        `UPDATE season_match_rooms SET status = 'playing', updated_at = $1
+         WHERE match_id = $2`,
+        [now, series.season_match_id],
+      );
+    }
   });
 }
