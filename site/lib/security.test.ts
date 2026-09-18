@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   playerServerName,
+  scryptSecretHashMatches,
   secretHashMatches,
   secretMatches,
 } from "./security";
@@ -18,6 +19,16 @@ describe("organizer security", () => {
     expect(secretHashMatches("temporary secret", expectedHash)).toBe(true);
     expect(secretHashMatches("wrong secret", expectedHash)).toBe(false);
     expect(secretHashMatches("temporary secret", "invalid")).toBe(false);
+  });
+
+  it("compares a permanent secret with a salted slow hash", () => {
+    const expectedHash =
+      "scrypt$00112233445566778899aabbccddeeff$" +
+      "e31b1d2788131f347a11b363b4de499dfe76b11810704fc1b7116ff4726e8705" +
+      "37ead0de7fd6db10795e4af2bf17b39e49135e03193c41d3f77243eee869774f";
+    expect(scryptSecretHashMatches("permanent secret", expectedHash)).toBe(true);
+    expect(scryptSecretHashMatches("wrong secret", expectedHash)).toBe(false);
+    expect(scryptSecretHashMatches("permanent secret", "invalid")).toBe(false);
   });
 });
 

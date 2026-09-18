@@ -42,6 +42,8 @@ describe("site security boundaries", () => {
 
   it("keeps organizer access behind a separate password and short session", () => {
     expect(authSource).toContain('process.env.ORGANIZER_PASSWORD');
+    expect(authSource).toContain("organizer_passwords");
+    expect(authSource).toContain("scryptSecretHashMatches");
     expect(authSource).toContain("configuredPassword.length < 12");
     expect(authSource).toContain("organizerAttemptLimit = 5");
     expect(authSource).toContain("organizerSessionLifetimeHours = 12");

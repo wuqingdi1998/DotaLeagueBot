@@ -73,7 +73,8 @@ describe("season round operations", () => {
     expect(adminRoute.indexOf("confirmOrganizerPassword")).toBeLessThan(
       adminRoute.indexOf("deleteSeasonRoundRegistration(body"),
     );
-    expect(registrationAdmin).toContain('type="password"');
+    expect(registrationAdmin).toContain("<OrganizerPasswordField");
+    expect(registrationAdmin).toContain("password,");
     expect(registrationActions).toContain("manual_add");
     expect(registrationActions).not.toContain("new Date");
     expect(registrationActions).not.toContain("NOW() <");

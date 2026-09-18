@@ -19,8 +19,8 @@ describe("tournament deletion contract", () => {
     expect(route.indexOf("confirmOrganizerPassword")).toBeLessThan(
       route.indexOf("DELETE FROM tournaments"),
     );
-    expect(panel).toContain("Пароль организатора");
-    expect(panel).toContain('type="password"');
+    expect(panel).toContain("<OrganizerPasswordField");
+    expect(panel).toContain("value={password}");
   });
 
   it("deletes by tournament id and keeps a deletion audit record", () => {

@@ -4,6 +4,7 @@ import { fetchSiteRequest } from "@/lib/site-request";
 
 import { FormEvent, useState } from "react";
 import { FiTrash2, FiX } from "react-icons/fi";
+import { OrganizerPasswordField } from "@/app/components/OrganizerPasswordField";
 import { useTournament } from "../hooks/TournamentContext";
 
 async function deleteTournament(tournamentId: number, password: string) {
@@ -114,18 +115,12 @@ export function TournamentDeletePanel() {
               {isCloseTournament && " Анонс клоза в Discord удалён не будет."}
             </p>
             <form onSubmit={confirmDelete}>
-              <label>
-                <span>Пароль организатора</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete="current-password"
-                  autoFocus
-                  required
-                  disabled={isDeleting}
-                />
-              </label>
+              <OrganizerPasswordField
+                autoFocus
+                disabled={isDeleting}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
               {error && (
                 <p className="tournament-delete-error" role="alert">
                   {error}

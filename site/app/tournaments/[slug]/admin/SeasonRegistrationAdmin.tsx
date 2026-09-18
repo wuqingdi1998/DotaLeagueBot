@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { OrganizerPasswordField } from "@/app/components/OrganizerPasswordField";
 import { useTournament } from "../hooks/TournamentContext";
 import type {
   SeasonRound,
@@ -163,17 +164,11 @@ export function SeasonRegistrationAdmin({ round }: { round: SeasonRound }) {
               чек-ин. Уже опубликованный состав лобби автоматически не изменится.
             </p>
             <form onSubmit={removeRegistration}>
-              <label>
-                <span>Пароль организатора</span>
-                <input
-                  type="password"
-                  autoComplete="current-password"
-                  autoFocus
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </label>
+              <OrganizerPasswordField
+                autoFocus
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
               {removalError && (
                 <p className="season-registration-remove-error" role="alert">
                   {removalError}

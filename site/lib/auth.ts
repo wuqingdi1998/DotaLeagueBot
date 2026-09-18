@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { one, query } from "@/lib/db";
 import {
   playerServerName,
+  scryptSecretHashMatches,
   secretHashMatches,
   secretMatches,
 } from "@/lib/security";
@@ -50,6 +51,10 @@ type SessionRow = {
 type TemporaryOrganizerPasswordRow = {
   password_hash: string;
   expires_at: Date;
+};
+
+type PermanentOrganizerPasswordRow = {
+  password_hash: string;
 };
 
 export async function createOauthState(returnTo: string): Promise<string> {
@@ -241,12 +246,25 @@ async function verifyOrganizerPassword(
   const temporaryPassword = temporaryPasswords.find((password) =>
     secretHashMatches(suppliedPassword, password.password_hash),
   );
+  const permanentPasswords = await query<PermanentOrganizerPasswordRow>(
+    `SELECT password_hash
+     FROM organizer_passwords
+     WHERE is_active = TRUE
+     ORDER BY id`,
+  );
+  const storedPermanentPassword = permanentPasswords.some((password) =>
+    scryptSecretHashMatches(suppliedPassword, password.password_hash),
+  );
   const isPermanentPassword =
     configuredPassword.length >= 12 &&
     secretMatches(suppliedPassword, configuredPassword);
 
-  if (!isPermanentPassword && !temporaryPassword) {
-    if (configuredPassword.length < 12 && temporaryPasswords.length === 0) {
+  if (!isPermanentPassword && !storedPermanentPassword && !temporaryPassword) {
+    if (
+      configuredPassword.length < 12 &&
+      permanentPasswords.length === 0 &&
+      temporaryPasswords.length === 0
+    ) {
       throw new Response(
         "Пароль организатора ещё не настроен на сервере",
         { status: 503 },

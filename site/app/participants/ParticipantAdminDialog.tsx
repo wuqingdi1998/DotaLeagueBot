@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { FiArchive, FiX } from "react-icons/fi";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
+import { OrganizerPasswordField } from "@/app/components/OrganizerPasswordField";
 
 async function playerAdminRequest(payload: Record<string, unknown>) {
   const response = await fetchSiteRequest("/api/admin/players", {
@@ -176,16 +177,10 @@ export function ParticipantAdminDialog({
         {deleteStep === "password" && (
           <form className="participant-delete-confirm" onSubmit={confirmArchive}>
             <h3>Подтвердите действие</h3>
-            <label>
-              <span>Пароль организатора</span>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="current-password"
-                required
-              />
-            </label>
+            <OrganizerPasswordField
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
             <div>
               <button className="danger" type="submit" disabled={isSaving}>
                 {isSaving ? "Проверяем…" : "Перенести в архив"}
