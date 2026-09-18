@@ -33,7 +33,17 @@ describe("close tournament settings", () => {
   it("accepts a standard BO1 close", async () => {
     const response = await PATCH(request({
       tournamentId: 10,
-      format: "CM",
+      format: "Captain's Mode",
+      bestOf: 1,
+    }));
+    expect(response.status).toBe(200);
+    expect(mocks.transaction).toHaveBeenCalledOnce();
+  });
+
+  it("accepts another game mode", async () => {
+    const response = await PATCH(request({
+      tournamentId: 10,
+      format: "Другой режим",
       bestOf: 1,
     }));
     expect(response.status).toBe(200);

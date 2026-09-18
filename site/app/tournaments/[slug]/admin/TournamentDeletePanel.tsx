@@ -34,6 +34,7 @@ export function TournamentDeletePanel() {
   const [isDeleting, setIsDeleting] = useState(false);
   if (!data) return null;
   const tournament = data.tournament;
+  const isCloseTournament = Boolean(tournament.close_event_id);
 
   function closeDialog() {
     if (isDeleting) return;
@@ -66,8 +67,9 @@ export function TournamentDeletePanel() {
           <p className="card-kicker">Опасное действие</p>
           <h3>Удалить турнир</h3>
           <p>
-            Турнир, его команды, матчи, расписание и результаты будут удалены
-            без возможности восстановления.
+            {isCloseTournament
+              ? "Турнир клоза, его составы, матч и результат будут удалены без возможности восстановления. Анонс в Discord останется."
+              : "Турнир, его команды, матчи, расписание и результаты будут удалены без возможности восстановления."}
           </p>
         </div>
         <button
@@ -109,6 +111,7 @@ export function TournamentDeletePanel() {
             <p className="tournament-delete-warning">
               Отменить это действие будет невозможно. Для подтверждения введите
               пароль организатора.
+              {isCloseTournament && " Анонс клоза в Discord удалён не будет."}
             </p>
             <form onSubmit={confirmDelete}>
               <label>

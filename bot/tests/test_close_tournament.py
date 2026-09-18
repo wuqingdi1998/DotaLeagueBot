@@ -23,6 +23,19 @@ def test_close_announcement_creates_and_keeps_tournament_in_sync() -> None:
     assert "'seasonal', 1" in migration
 
 
+def test_close_formats_have_full_names_and_another_mode() -> None:
+    format_migration = source(
+        "bot/database/migrations/0143_close_tournament_format_names.sql"
+    )
+    service = source("bot/services/close_tournament.py")
+
+    assert "'Captain''s Mode'" in format_migration
+    assert "'Captain''s Draft'" in format_migration
+    assert "'Single Draft'" in format_migration
+    assert "'Другой режим'" in format_migration
+    assert "canonical_close_game_format(game_format)" in service
+
+
 def test_close_start_dm_uses_current_participants_and_tournament_link() -> None:
     bridge = source("bot/cogs/website_bridge.py")
 

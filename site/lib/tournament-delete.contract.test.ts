@@ -32,10 +32,20 @@ describe("tournament deletion contract", () => {
 
   it("places the destructive action last in tournament management", () => {
     expect(adminPanel).toContain("<TournamentDeletePanel />");
-    expect(adminPanel.indexOf("<TournamentDeletePanel />")).toBeGreaterThan(
+    expect(adminPanel.lastIndexOf("<TournamentDeletePanel />")).toBeGreaterThan(
       adminPanel.indexOf("<TournamentClonePanel />"),
     );
     expect(panel).toContain("Удалить безвозвратно");
     expect(panel).toContain('window.location.assign("/tournaments")');
+  });
+
+  it("keeps tournament deletion available in simplified close management", () => {
+    const closeBranch = adminPanel.slice(
+      adminPanel.indexOf("if (data.tournament.close_event_id)"),
+      adminPanel.indexOf("const isSeasonal"),
+    );
+    expect(closeBranch).toContain("<CloseTournamentAdmin />");
+    expect(closeBranch).toContain("<TournamentDeletePanel />");
+    expect(panel).toContain("Анонс клоза в Discord удалён не будет.");
   });
 });

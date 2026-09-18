@@ -35,7 +35,7 @@ describe("close tournament flow", () => {
     expect(store).toContain("bestOf = 2");
   });
 
-  it("starts CM, CD and SD without captain voting", () => {
+  it("starts every non-Fearless close format without captain voting", () => {
     const commands = source(
       "app/season-lobby/[matchId]/server/room-commands.ts",
     );
@@ -47,7 +47,7 @@ describe("close tournament flow", () => {
     );
 
     expect(commands).toContain("startSeasonLobbyWithoutDraft");
-    expect(commands).toContain('["CM", "CD", "SD"]');
+    expect(commands).toContain("isDirectCloseGameFormat");
     expect(roomRoute).toContain('command.action === "START_MATCH"');
     expect(screen).toContain("snapshot.usesFearlessDraft");
   });

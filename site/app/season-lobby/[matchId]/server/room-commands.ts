@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { transaction } from "@/lib/db";
+import { isDirectCloseGameFormat } from "@/lib/close-tournament";
 import { SEASON_LOBBY_CHAT_MAX_LENGTH } from "@/lib/season-lobby-room";
 import { createSeasonLobbyDraft } from "./captain-draft";
 import { SeasonLobbyRoomError } from "./errors";
@@ -154,9 +155,12 @@ export async function startSeasonLobbyWithoutDraft(
        WHERE match.id = $1`,
       [matchId],
     );
-    if (!format.rows[0] || !["CM", "CD", "SD"].includes(format.rows[0].game_format)) {
+    if (
+      !format.rows[0] ||
+      !isDirectCloseGameFormat(format.rows[0].game_format)
+    ) {
       throw new SeasonLobbyRoomError(
-        "Прямой старт доступен только для форматов CM, CD и SD",
+        "Прямой старт доступен только для обычных форматов клоза",
         409,
       );
     }

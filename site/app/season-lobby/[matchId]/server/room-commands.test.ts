@@ -37,9 +37,9 @@ beforeEach(async () => {
 });
 
 describe("standard close lobby", () => {
-  it("starts CM directly without captain voting or a draft series", async () => {
+  it("starts Captain's Mode directly without captain voting", async () => {
     await database.exec(`
-      UPDATE tournaments SET format = 'CM' WHERE id = 40;
+      UPDATE tournaments SET format = 'Captain''s Mode' WHERE id = 40;
       INSERT INTO close_events (id, tournament_id) VALUES (1, 40);
       UPDATE season_match_rooms SET status = 'waiting' WHERE match_id = 10;
       DELETE FROM draft_maps;
@@ -48,7 +48,7 @@ describe("standard close lobby", () => {
 
     const waitingRoom = await loadSeasonLobbyRoomSnapshot(host, 10);
     expect(waitingRoom).toMatchObject({
-      gameFormat: "CM",
+      gameFormat: "Captain's Mode",
       usesFearlessDraft: false,
       status: "waiting",
     });

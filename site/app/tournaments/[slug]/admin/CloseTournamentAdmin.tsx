@@ -14,7 +14,7 @@ export function CloseTournamentAdmin() {
   const [format, setFormat] = useState<CloseGameFormat>(
     closeGameFormats.includes(data?.tournament.format as CloseGameFormat)
       ? data?.tournament.format as CloseGameFormat
-      : "CM",
+      : "Captain's Mode",
   );
   const [bestOf, setBestOf] = useState(Number(data?.tournament.close_series ?? 2));
   const [isSaving, setIsSaving] = useState(false);

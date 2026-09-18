@@ -33,6 +33,7 @@ export function TournamentAdminPanel() {
     return (
       <div className="tab-panel admin-panel close-admin-panel">
         <CloseTournamentAdmin />
+        <TournamentDeletePanel />
       </div>
     );
   }
