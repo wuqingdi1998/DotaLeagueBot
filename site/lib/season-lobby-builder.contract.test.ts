@@ -16,6 +16,12 @@ const seasonRoute = source("../app/api/season/route.ts");
 const builder = source(
   "../app/tournaments/[slug]/admin/SeasonLobbyBuilder.tsx",
 );
+const builderLobby = source(
+  "../app/tournaments/[slug]/admin/SeasonLobbyBuilderLobby.tsx",
+);
+const winRateHints = source(
+  "../app/tournaments/[slug]/model/season-lobby-win-rate.ts",
+);
 const optimizationMenu = source(
   "../app/tournaments/[slug]/admin/SeasonLobbyOptimizationMenu.tsx",
 );
@@ -33,6 +39,9 @@ const lobbyDisplay = source(
 );
 const builderStyles = source(
   "../app/styles/56-season-lobby-builder.css",
+);
+const winRateStyles = source(
+  "../app/styles/56-season-lobby-win-rate.css",
 );
 const optimizationMenuStyles = source(
   "../app/styles/56-season-lobby-optimization-menu.css",
@@ -63,8 +72,8 @@ describe("season lobby builder contract", () => {
   it("shows tier and roles and highlights the current drop slot", () => {
     expect(seasonRoute).toContain("AS positions");
     expect(reserve).toContain("registration.positions");
-    expect(builder).toContain("player.positions");
-    expect(builder).toContain('" drag-over"');
+    expect(builderLobby).toContain("player.positions");
+    expect(builderLobby).toContain('" drag-over"');
     expect(reserve).toContain(
       'sortSeasonRegistrations(registrations, "tier", "descending")',
     );
@@ -119,8 +128,8 @@ describe("season lobby builder contract", () => {
   });
 
   it("lets the organizer set the visible start time without a draft badge", () => {
-    expect(builder).toContain("SeasonLobbyScheduleEditor");
-    expect(builder).toContain("<SeasonLobbyScheduleEditor lobby={lobby} />");
+    expect(builderLobby).toContain("SeasonLobbyScheduleEditor");
+    expect(builderLobby).toContain("<SeasonLobbyScheduleEditor lobby={lobby} />");
     expect(lobbyDisplay).toContain("lobbyScheduledAt={lobby.scheduled_at}");
     expect(lobbyDisplay).toContain("lobbyScheduledAt ?? match.scheduled_at");
     expect(lobbyDisplay).not.toContain("seasonLobbyStatusLabel");
@@ -132,10 +141,10 @@ describe("season lobby builder contract", () => {
   });
 
   it("keeps player labels aligned and uses the shared player colors", () => {
-    expect(builder).toContain(
+    expect(builderLobby).toContain(
       'className="season-builder-slot-tier season-builder-tier-badge"',
     );
-    expect(builder).toContain('className="season-builder-slot-roles"');
+    expect(builderLobby).toContain('className="season-builder-slot-roles"');
     expect(builderStyles).toContain("padding: 4px 12px");
     expect(builderStyles).toMatch(
       /\.season-builder-player-name[^}]*justify-content: flex-start;/,
@@ -186,11 +195,26 @@ describe("season lobby builder contract", () => {
     expect(reserve).toContain(
       'className="season-builder-player-tier season-builder-tier-badge"',
     );
-    expect(builder).toContain(
+    expect(builderLobby).toContain(
       'className="season-builder-slot-tier season-builder-tier-badge"',
     );
     expect(builderStyles).toMatch(
       /\.season-builder-tier-badge \{[\s\S]*?border-radius: 50%;/,
     );
+  });
+
+  it("shows seasonal win rates without feeding them into lineup optimization", () => {
+    expect(builder).toContain(
+      "season.data?.previewStandings ?? season.data?.standings",
+    );
+    expect(builder).toContain("showWinRates={!singleLobby}");
+    expect(builderLobby).toContain("season-builder-win-rate-badge");
+    expect(builderLobby).toContain("Средний винрейт пятёрки");
+    expect(winRateHints).toContain("MINIMUM_ROUNDS_FOR_REAL_WIN_RATE = 3");
+    expect(winRateHints).toContain('label: "~50%"');
+    expect(winRateStyles).toContain("color: var(--season-player-tier-color)");
+    expect(winRateStyles).toContain("min-width: 64px");
+    expect(optimizationActions).not.toContain("winRate");
+    expect(optimizationActions).not.toContain("playedRounds");
   });
 });
