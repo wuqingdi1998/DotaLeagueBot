@@ -63,7 +63,6 @@ function SeasonRecentMatch({
       <header className="season-recent-match-heading">
         <button type="button" onClick={onOpen}>
           <strong>{match.lobby_name}</strong>
-          <span>Открыть матч</span>
         </button>
         <SeasonRecentMapLinks games={match.games} bestOf={match.best_of} />
       </header>

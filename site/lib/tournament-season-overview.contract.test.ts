@@ -65,6 +65,7 @@ describe("season league overview", () => {
   });
 
   it("places STRATZ and Dotabuff map links beside every lobby name", () => {
+    expect(recentRound).not.toContain("Открыть матч");
     expect(recentRound).toContain("seasonMatchLinks(game.dota_match_id)");
     expect(recentRound).toContain("match.games");
     expect(recentRound).toContain("game?.game_number");

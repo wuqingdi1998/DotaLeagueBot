@@ -74,12 +74,6 @@
   text-align: left;
 }
 
-.season-recent-match-heading > button > span {
-  color: var(--blue-strong);
-  font-size: 13px;
-  font-weight: 750;
-}
-
 .season-recent-map-links,
 .season-recent-map-link-group {
   align-items: center;
@@ -325,7 +319,4 @@
     width: 48px;
   }
 
-  .season-recent-match-heading > button > span {
-    display: none;
-  }
 }
