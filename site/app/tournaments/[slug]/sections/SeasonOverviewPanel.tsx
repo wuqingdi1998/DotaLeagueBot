@@ -4,6 +4,8 @@ import Image from "next/image";
 import { FiCalendar } from "react-icons/fi";
 import { formatTournamentDayMonthRange } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
+import { latestFullyCompletedSeasonRound } from "../model/season-overview";
+import { SeasonRecentCompletedRound } from "./SeasonRecentCompletedRound";
 
 export function SeasonOverviewPanel() {
   const { activeTab, data, season } = useTournament();
@@ -20,17 +22,10 @@ export function SeasonOverviewPanel() {
   const publishedRounds = seasonData.rounds.filter(
     (round) => round.is_visible && round.round_kind === "regular",
   );
-  const orderedMatches = publishedRounds
-    .flatMap((round) => round.lobbies.flatMap((lobby) => lobby.matches))
-    .filter((match) => match.status === "completed")
-    .sort(
-      (left, right) =>
-        new Date(right.scheduled_at ?? 0).getTime() -
-        new Date(left.scheduled_at ?? 0).getTime(),
-    );
+  const latestCompletedRound = latestFullyCompletedSeasonRound(publishedRounds);
   const leaders = seasonData.standings
     .filter((row) => row.section === "active")
-    .slice(0, 5);
+    .slice(0, 10);
   const currentRound =
     publishedRounds.find((round) => round.status === "active") ??
     publishedRounds.toReversed().find((round) => round.status === "completed");
@@ -90,35 +85,23 @@ export function SeasonOverviewPanel() {
         />
       </section>
       <div className="season-overview-columns">
-        <section className="season-content-card">
+        <section className="season-content-card season-overview-recent-card">
           <p className="card-kicker">Последние результаты</p>
           <h3>Недавние матчи</h3>
-          {orderedMatches.length ? (
-            <div className="season-compact-results">
-              {orderedMatches.slice(0, 5).map((match) => (
-                <button
-                  key={match.id}
-                  onClick={() =>
-                    season.openRound(match.round_number, match.id)
-                  }
-                >
-                  <span>
-                    Тур {match.round_number} · {match.lobby_name}
-                  </span>
-                  <strong>
-                    {match.team_a_name} {match.team_a_score ?? "—"} :{" "}
-                    {match.team_b_score ?? "—"} {match.team_b_name}
-                  </strong>
-                </button>
-              ))}
-            </div>
+          {latestCompletedRound ? (
+            <SeasonRecentCompletedRound
+              round={latestCompletedRound}
+              onOpenMatch={(roundNumber, matchId) =>
+                season.openRound(roundNumber, matchId)
+              }
+            />
           ) : (
             <p className="season-empty-copy">
-              Завершённых опубликованных матчей пока нет.
+              Полностью завершённых опубликованных туров пока нет.
             </p>
           )}
         </section>
-        <section className="season-content-card">
+        <section className="season-content-card season-leaders-card">
           <p className="card-kicker">Лидеры</p>
           <h3>Краткая таблица</h3>
           {leaders.length ? (

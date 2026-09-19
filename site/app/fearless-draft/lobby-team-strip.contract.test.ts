@@ -20,21 +20,31 @@ const roster = source("app/fearless-draft/components/DraftLobbyTeamStrip.tsx");
 const serviceLogo = source(
   "app/fearless-draft/components/DraftProfileServiceLogo.tsx",
 );
+const commonServiceLogo = source(
+  "app/components/PlayerProfileServiceLogo.tsx",
+);
 const avatarPreloader = source(
   "app/fearless-draft/components/DraftAvatarPreloader.tsx",
 );
 const statisticsPopover = source(
   "app/fearless-draft/components/DraftPlayerStatisticsPopover.tsx",
 );
+const commonStatisticsPopover = source(
+  "app/components/PlayerStatisticsPopover.tsx",
+);
 const statisticsService = source(
   "app/fearless-draft/services/player-statistics.ts",
 );
+const commonStatisticsService = source("lib/player-statistics.ts");
 const lobbyPreviewService = source(
   "app/fearless-draft/server/lobby-preview-service.ts",
 );
 const playerProfile = source("lib/player-profile.ts");
 const stratzLogo = source("public/fearless-draft/stratz-logo.svg");
 const styles = source("app/styles/51-fearless-draft-lobby-roster.css");
+const commonPopoverStyles = source(
+  "app/styles/07-player-statistics-popover.css",
+);
 const routeStyles = source("app/styles/fearless-draft-route.css");
 
 describe("Fearless Draft season lobby team strip", () => {
@@ -84,10 +94,11 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(roster).toContain('<DraftProfileServiceLogo service="dotabuff" />');
     expect(roster).toContain("fearless-lobby-profile-ear left stratz");
     expect(roster).toContain("fearless-lobby-profile-ear right dotabuff");
-    expect(serviceLogo).toContain('service === "stratz"');
-    expect(serviceLogo).toContain('src="/fearless-draft/stratz-logo.svg"');
-    expect(serviceLogo).toContain('viewBox="0 0 450 448"');
-    expect(serviceLogo).toContain('aria-hidden="true"');
+    expect(serviceLogo).toContain("PlayerProfileServiceLogo");
+    expect(commonServiceLogo).toContain('service === "stratz"');
+    expect(commonServiceLogo).toContain('src="/fearless-draft/stratz-logo.svg"');
+    expect(commonServiceLogo).toContain('viewBox="0 0 450 448"');
+    expect(commonServiceLogo).toContain('aria-hidden="true"');
     expect(stratzLogo).toContain("data:image/png;base64,");
     expect(stratzLogo).toContain('stroke="#0aa9c6"');
     expect(styles).toContain(".fearless-lobby-profile-ear.stratz");
@@ -111,17 +122,19 @@ describe("Fearless Draft season lobby team strip", () => {
 
   it("shows the same six profile statistics when an avatar is hovered", () => {
     expect(roster).toContain("<DraftPlayerStatisticsPopover player={player} />");
-    expect(statisticsPopover).toContain("createPortal");
-    expect(statisticsPopover).toContain("onMouseEnter={showStatistics}");
-    expect(statisticsPopover).toContain("Турниров");
-    expect(statisticsPopover).toContain("Побед в турнирах");
-    expect(statisticsPopover).toContain("Призовых мест");
-    expect(statisticsPopover).toContain("Карт");
-    expect(statisticsPopover).toContain("Побед на картах");
-    expect(statisticsPopover).toContain("Победный процент");
-    expect(statisticsService).toContain("/api/players/");
+    expect(statisticsPopover).toContain("PlayerStatisticsPopover");
+    expect(commonStatisticsPopover).toContain("createPortal");
+    expect(commonStatisticsPopover).toContain("onMouseEnter: showStatistics");
+    expect(commonStatisticsPopover).toContain("Турниров");
+    expect(commonStatisticsPopover).toContain("Побед в турнирах");
+    expect(commonStatisticsPopover).toContain("Призовых мест");
+    expect(commonStatisticsPopover).toContain("Карт");
+    expect(commonStatisticsPopover).toContain("Побед на картах");
+    expect(commonStatisticsPopover).toContain("Победный процент");
+    expect(statisticsService).toContain("loadPlayerStatistics");
+    expect(commonStatisticsService).toContain("/api/players/");
     expect(playerProfile).toContain("winRate: mapWinRatePercent(mapStatistics)");
-    expect(styles).toContain(".fearless-lobby-statistics-popover");
+    expect(commonPopoverStyles).toContain(".player-statistics-popover");
   });
 
   it("shows every player's full server name in the avatar popover", () => {
@@ -130,8 +143,8 @@ describe("Fearless Draft season lobby team strip", () => {
     expect(lobbyPreviewService).toContain("serverName: user.serverName");
     expect(lobbyPreviewService).toContain("playerServerName(");
     expect(statisticsPopover).toContain("player.serverName ?? player.name");
-    expect(styles).toMatch(
-      /\.fearless-lobby-statistics-popover > header strong\s*\{[^}]*white-space:\s*normal;/,
+    expect(commonPopoverStyles).toMatch(
+      /\.player-statistics-popover > header strong\s*\{[^}]*white-space:\s*normal;/,
     );
   });
 

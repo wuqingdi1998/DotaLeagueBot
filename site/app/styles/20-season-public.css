@@ -236,7 +236,6 @@
   font-size: 30px;
 }
 
-.season-compact-results,
 .season-leaders {
   display: grid;
   gap: 8px;
@@ -244,7 +243,6 @@
   padding: 0;
 }
 
-.season-compact-results button,
 .season-leaders li {
   display: grid;
   min-width: 0;
@@ -257,16 +255,6 @@
   background: var(--surface-soft);
   color: var(--text);
   text-align: left;
-}
-
-.season-compact-results button {
-  cursor: pointer;
-}
-
-.season-compact-results button span {
-  grid-column: 1 / -1;
-  color: var(--muted);
-  font-size: 12px;
 }
 
 .season-leaders li {

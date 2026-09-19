@@ -1,0 +1,226 @@
+.season-overview-columns > .season-content-card {
+  height: 100%;
+}
+
+.season-overview-recent-card,
+.season-leaders-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.season-leaders-card .season-leaders {
+  flex: 1;
+  grid-template-rows: repeat(10, minmax(38px, 1fr));
+}
+
+.season-leaders-card .season-leaders li {
+  min-height: 38px;
+  padding: 7px 12px;
+}
+
+.season-recent-round {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.season-recent-round > header,
+.season-recent-match-heading,
+.season-recent-team > header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.season-recent-round > header {
+  gap: 12px;
+}
+
+.season-recent-round > header > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-recent-match {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: grid;
+  overflow: hidden;
+}
+
+.season-recent-match-heading {
+  background: color-mix(in srgb, var(--surface) 78%, transparent);
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  padding: 8px 11px;
+  text-align: left;
+  width: 100%;
+}
+
+.season-recent-match-heading > span {
+  color: var(--blue-strong);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.season-recent-match-teams {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 9px;
+}
+
+.season-recent-team {
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  min-width: 0;
+  padding: 8px;
+}
+
+.season-recent-team.winner {
+  border-color: color-mix(in srgb, #78e2a0 48%, var(--line));
+  box-shadow: inset 0 0 18px rgba(120, 226, 160, 0.06);
+}
+
+.season-recent-team > header {
+  gap: 8px;
+  min-width: 0;
+}
+
+.season-recent-team > header strong {
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-recent-team > header b {
+  color: var(--blue-strong);
+  font-size: 18px;
+}
+
+.season-recent-team.winner > header b {
+  color: #78e2a0;
+}
+
+.season-recent-team-players {
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(5, minmax(34px, 1fr));
+  margin-top: 7px;
+}
+
+.season-recent-player,
+.season-recent-player-avatar.unavailable {
+  height: 48px;
+  min-width: 0;
+  position: relative;
+}
+
+.season-recent-player-avatar {
+  align-items: center;
+  background: var(--surface);
+  border: 2px solid color-mix(in srgb, var(--blue) 48%, var(--line));
+  border-radius: 50%;
+  color: var(--text);
+  display: grid;
+  height: 42px;
+  justify-items: center;
+  margin: 0 auto;
+  overflow: hidden;
+  padding: 0;
+  text-decoration: none;
+  width: 42px;
+}
+
+.season-recent-player-avatar:hover,
+.season-recent-player-avatar:focus-visible {
+  border-color: var(--blue-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--blue) 24%, transparent);
+}
+
+.season-recent-player-avatar.unavailable {
+  align-items: center;
+  display: grid;
+  justify-items: center;
+  opacity: 0.72;
+}
+
+.season-recent-player-avatar-image {
+  border-radius: 50%;
+  display: grid;
+  height: 100%;
+  object-fit: cover;
+  place-items: center;
+  width: 100%;
+}
+
+.season-recent-player-avatar-image.fallback {
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.season-recent-service-link {
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  bottom: 0;
+  display: flex;
+  height: 18px;
+  justify-content: center;
+  overflow: hidden;
+  position: absolute;
+  width: 18px;
+  z-index: 3;
+}
+
+.season-recent-service-link.stratz {
+  background: #09a9c5;
+  left: 1px;
+}
+
+.season-recent-service-link.dotabuff {
+  background: #f23a1f;
+  right: 1px;
+}
+
+.season-recent-service-link:hover,
+.season-recent-service-link:focus-visible {
+  filter: brightness(1.16);
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+.season-recent-service-logo {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.season-recent-service-logo.stratz {
+  height: 13px;
+  width: 13px;
+}
+
+@media (max-width: 900px) {
+  .season-recent-match-teams {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .season-leaders-card .season-leaders {
+    grid-template-rows: none;
+  }
+
+  .season-recent-player-avatar {
+    height: 48px;
+    width: 48px;
+  }
+}
