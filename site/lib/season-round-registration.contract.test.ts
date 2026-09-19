@@ -28,6 +28,9 @@ const roundPanel = source(
 const registrationSection = source(
   "../app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
 );
+const registrationConfirmation = source(
+  "../app/tournaments/[slug]/components/SeasonRegistrationConfirmationDialog.tsx",
+);
 const registrationStyles = source(
   "../app/styles/55-season-round-registration.css",
 );
@@ -81,6 +84,21 @@ describe("season round registration contract", () => {
     expect(roundPanel).toContain("SeasonRoundRegistration");
     expect(registrationSection).toContain("Зарегистрироваться");
     expect(registrationSection).toContain("Отменить регистрацию");
+    expect(registrationSection).toContain(
+      "<SeasonRegistrationConfirmationDialog",
+    );
+    expect(registrationSection).toContain(
+      'aria-haspopup={round.is_registered ? undefined : "dialog"}',
+    );
+    expect(registrationConfirmation).toContain("Вы подтверждаете готовность");
+    expect(registrationConfirmation).toContain("SEASON_CANCELLATION_LEAD_HOURS");
+    expect(registrationConfirmation).toContain("SEASON_PRIMARY_ROLE_WINS_REQUIRED");
+    expect(registrationConfirmation).toContain("SEASON_SECONDARY_ROLE_WINS_REQUIRED");
+    expect(registrationConfirmation).toContain("SEASON_CHECK_IN_LEAD_HOURS");
+    expect(registrationConfirmation).toContain("@frokeng");
+    expect(registrationConfirmation).toContain("#правила");
+    expect(registrationConfirmation).toContain("Нет");
+    expect(registrationConfirmation).toContain('"Да"');
     expect(matchAdmin).toContain("round.registrations");
     expect(matchActions).toContain("validateSeasonMatchParticipantEligibility");
     expect(matchParticipantValidation).toContain("season_round_registrations");

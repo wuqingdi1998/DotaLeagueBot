@@ -34,6 +34,8 @@ import type {
   SeasonRound,
   SeasonRoundRegistration as SeasonRoundRegistrationData,
 } from "../model/season-types";
+import { SeasonRegistrationConfirmationDialog } from
+  "../components/SeasonRegistrationConfirmationDialog";
 import { SeasonRoundCheckIn } from "./SeasonRoundCheckIn";
 
 const SeasonRankedWinEditor = dynamic(() => import("../admin/SeasonRankedWinEditor").then((module) => module.SeasonRankedWinEditor));
@@ -43,6 +45,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   const [sort, setSort] = useState<SeasonRegistrationSort>("createdAt");
   const [direction, setDirection] =
     useState<SeasonRegistrationDirection>("ascending");
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const currentTime = useServerClock(season.data?.generatedAt);
   const registrations = useMemo(
     () => sortSeasonRegistrations(round.registrations, sort, direction),
@@ -88,6 +91,11 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
       ? "Отменить регистрацию"
       : "Отмена регистрации закрыта";
 
+  async function confirmRegistration() {
+    await season.updateRoundRegistration(round.id, false);
+    setIsConfirmationOpen(false);
+  }
+
   return (
     <section className="season-registration-section">
       <div className="season-round-registration">
@@ -127,12 +135,15 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
               }
               type="button"
               disabled={actionDisabled || season.registrationRoundId !== null}
-              onClick={() =>
-                void season.updateRoundRegistration(
-                  round.id,
-                  round.is_registered,
-                )
-              }
+              aria-haspopup={round.is_registered ? undefined : "dialog"}
+              aria-expanded={round.is_registered ? undefined : isConfirmationOpen}
+              onClick={() => {
+                if (round.is_registered) {
+                  void season.updateRoundRegistration(round.id, true);
+                } else {
+                  setIsConfirmationOpen(true);
+                }
+              }}
             >
               {season.registrationRoundId === round.id
                 ? "Сохраняем…"
@@ -158,6 +169,14 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
           </div>
         )}
       </div>
+
+      <SeasonRegistrationConfirmationDialog
+        isOpen={isConfirmationOpen}
+        isSubmitting={season.registrationRoundId === round.id}
+        round={round}
+        onConfirm={confirmRegistration}
+        onClose={() => setIsConfirmationOpen(false)}
+      />
 
       <SeasonRoundCheckIn currentTime={currentTime} round={round} />
 

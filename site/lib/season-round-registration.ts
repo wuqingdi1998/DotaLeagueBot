@@ -1,6 +1,9 @@
 const registrationLeadMilliseconds = 10 * 60 * 1_000;
-const cancellationLeadMilliseconds = 24 * 60 * 60 * 1_000;
-const checkInLeadMilliseconds = 2 * 60 * 60 * 1_000;
+export const SEASON_CANCELLATION_LEAD_HOURS = 24;
+export const SEASON_CHECK_IN_LEAD_HOURS = 2;
+const cancellationLeadMilliseconds =
+  SEASON_CANCELLATION_LEAD_HOURS * 60 * 60 * 1_000;
+const checkInLeadMilliseconds = SEASON_CHECK_IN_LEAD_HOURS * 60 * 60 * 1_000;
 const priorityRegistrationLeadMilliseconds = 5 * 24 * 60 * 60 * 1_000;
 const publicRegistrationLeadMilliseconds = 4 * 24 * 60 * 60 * 1_000;
 const firstRoundScheduledAt = "2026-09-06T18:00:00.000Z";

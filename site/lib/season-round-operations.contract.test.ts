@@ -50,7 +50,10 @@ describe("season round operations", () => {
   });
 
   it("opens check-in two hours before start and closes registration ten minutes before", () => {
-    expect(registrationRules).toContain("2 * 60 * 60 * 1_000");
+    expect(registrationRules).toContain("SEASON_CHECK_IN_LEAD_HOURS = 2");
+    expect(registrationRules).toContain(
+      "SEASON_CHECK_IN_LEAD_HOURS * 60 * 60 * 1_000",
+    );
     expect(registrationRules).toContain("10 * 60 * 1_000");
     expect(registrationRules).toContain("seasonRoundCheckInWindow");
   });

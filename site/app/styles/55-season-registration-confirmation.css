@@ -1,0 +1,89 @@
+.season-registration-confirmation-dialog {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  margin: auto;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 28px;
+  width: min(680px, calc(100vw - 32px));
+}
+
+.season-registration-confirmation-dialog::backdrop {
+  background: rgb(0 0 0 / 68%);
+}
+
+.season-registration-confirmation-dialog h3 {
+  font-size: 1.35rem;
+  margin: 0 0 12px;
+}
+
+.season-registration-confirmation-question {
+  color: var(--text);
+  font-size: 1rem;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.season-registration-confirmation-question strong {
+  color: #0e8cac;
+}
+
+.site-shell[data-theme="dark"]
+  .season-registration-confirmation-question strong {
+  color: #76e2f5;
+}
+
+.season-registration-confirmation-dialog ol {
+  display: grid;
+  gap: 12px;
+  list-style: decimal;
+  margin: 20px 0;
+  padding-left: 24px;
+}
+
+.season-registration-confirmation-dialog li {
+  color: var(--muted);
+  line-height: 1.55;
+  padding-left: 4px;
+}
+
+.season-registration-confirmation-dialog li::marker {
+  color: #0e8cac;
+  font-weight: 800;
+}
+
+.site-shell[data-theme="dark"]
+  .season-registration-confirmation-dialog li::marker {
+  color: #76e2f5;
+}
+
+.season-registration-confirmation-dialog li strong {
+  color: var(--text);
+}
+
+.season-registration-confirmation-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.season-registration-confirmation-actions button {
+  min-width: 110px;
+}
+
+@media (max-width: 600px) {
+  .season-registration-confirmation-dialog {
+    padding: 22px 18px;
+  }
+
+  .season-registration-confirmation-actions {
+    flex-direction: column-reverse;
+  }
+
+  .season-registration-confirmation-actions button {
+    width: 100%;
+  }
+}
