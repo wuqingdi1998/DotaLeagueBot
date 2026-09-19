@@ -47,7 +47,10 @@ jobs:
           go test ./...
           cd ../..
           npm ci
-          npm audit
+          # Keep the security gate mandatory during temporary npm maintenance.
+          npm audit --fetch-retries=20 \
+            --fetch-retry-mintimeout=30000 \
+            --fetch-retry-maxtimeout=30000
           npm run check
 
   deploy:

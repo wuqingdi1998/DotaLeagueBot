@@ -165,6 +165,12 @@ describe("season lobby room contract", () => {
     expect(captainSelection).toContain("advanceCaptainSelection");
     expect(captainVoting).toContain("Вы хотите быть капитаном?");
     expect(captainVoting).toContain("Выберите капитана");
+    expect(captainVoting).toContain("После подтверждения изменить ответ нельзя.");
+    expect(captainVoting).toContain("confirmation.pendingCandidate.nickname");
+    expect(captainSelectionActions).toContain(
+      "Голос уже зафиксирован и не может быть изменён",
+    );
+    expect(captainSelection).toContain("isTeamVotingComplete");
     expect(captainVoting).toContain("season-room-voter-avatar");
     expect(migration).toContain("PRIMARY KEY (match_id, voter_player_id)");
   });

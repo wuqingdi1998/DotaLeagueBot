@@ -48,7 +48,12 @@ jobs:
         working-directory: site/tools/arcana-replay-parser
         run: go test ./...
       - run: npm ci
-      - run: npm audit
+      - name: Audit dependencies
+        run: |
+          # Keep the security gate mandatory during temporary npm maintenance.
+          npm audit --fetch-retries=20 \
+            --fetch-retry-mintimeout=30000 \
+            --fetch-retry-maxtimeout=30000
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:coverage
