@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, type ReactNode } from "react";
 import { FiCheck, FiClock, FiUsers } from "react-icons/fi";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import type {
@@ -59,6 +60,59 @@ function VotingHeader({
   );
 }
 
+function ConfirmationPrompt({
+  question,
+  isSending,
+  onConfirm,
+  onCancel,
+}: {
+  question: ReactNode;
+  isSending: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="season-room-vote-confirmation" role="group">
+      <p>{question}</p>
+      <span>После подтверждения изменить ответ нельзя.</span>
+      <div>
+        <button type="button" disabled={isSending} onClick={onConfirm}>
+          Да
+        </button>
+        <button type="button" disabled={isSending} onClick={onCancel}>
+          Нет
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function useCandidateConfirmation(
+  action: "VOTE_CAPTAIN" | "VOTE_CAPTAIN_TIEBREAK",
+  send: CaptainVotingProps["send"],
+) {
+  const [pendingCandidate, setPendingCandidate] = useState<
+    SeasonLobbyRoomPlayer | null
+  >(null);
+  const [submittedCandidateId, setSubmittedCandidateId] = useState<string | null>(
+    null,
+  );
+  async function confirmCandidate() {
+    if (!pendingCandidate) return;
+    const candidateId = pendingCandidate.playerId;
+    if (await send({ action, candidatePlayerId: candidateId })) {
+      setSubmittedCandidateId(candidateId);
+      setPendingCandidate(null);
+    }
+  }
+  return {
+    pendingCandidate,
+    submittedCandidateId,
+    setPendingCandidate,
+    confirmCandidate,
+  };
+}
+
 function CandidateCard({
   candidate,
   ballots,
@@ -116,12 +170,26 @@ function CaptainInterest({
   isSending,
   send,
 }: CaptainVotingProps) {
+  const [pendingInterest, setPendingInterest] = useState<boolean | null>(null);
+  const [submittedInterest, setSubmittedInterest] = useState<boolean | null>(null);
   const team = snapshot.players.filter(
     (player) => player.teamSide === snapshot.currentUserTeamSide,
   );
+  const fixedInterest = snapshot.ownCaptainInterest ?? submittedInterest;
   const answerCount = team.filter(
     (player) => player.hasAnsweredCaptainInterest,
   ).length;
+  async function confirmInterest() {
+    if (pendingInterest === null) return;
+    const answer = pendingInterest;
+    if (await send({
+      action: "ANSWER_CAPTAIN_INTEREST",
+      wantsCaptain: answer,
+    })) {
+      setSubmittedInterest(answer);
+      setPendingInterest(null);
+    }
+  }
   return (
     <section className="season-room-voting">
       <VotingHeader
@@ -130,33 +198,38 @@ function CaptainInterest({
         title="Вы хотите быть капитаном?"
         description="Не ответившие до конца таймера автоматически выбирают «Нет»."
       />
-      <div className="season-room-interest-actions">
-        <button
-          className={snapshot.ownCaptainInterest === true ? "selected yes" : ""}
-          type="button"
-          disabled={isSending}
-          onClick={() => void send({
-            action: "ANSWER_CAPTAIN_INTEREST",
-            wantsCaptain: true,
-          })}
-        >
-          Да, хочу
-        </button>
-        <button
-          className={snapshot.ownCaptainInterest === false ? "selected no" : ""}
-          type="button"
-          disabled={isSending}
-          onClick={() => void send({
-            action: "ANSWER_CAPTAIN_INTEREST",
-            wantsCaptain: false,
-          })}
-        >
-          Нет
-        </button>
-      </div>
+      {pendingInterest === null ? (
+        <div className="season-room-interest-actions">
+          <button
+            className={fixedInterest === true ? "selected yes" : ""}
+            type="button"
+            disabled={isSending || fixedInterest !== null}
+            onClick={() => setPendingInterest(true)}
+          >
+            Да, хочу
+          </button>
+          <button
+            className={fixedInterest === false ? "selected no" : ""}
+            type="button"
+            disabled={isSending || fixedInterest !== null}
+            onClick={() => setPendingInterest(false)}
+          >
+            Нет
+          </button>
+        </div>
+      ) : (
+        <ConfirmationPrompt
+          question={<>Вы уверены, что хотите ответить <strong>
+            {pendingInterest ? "«Да, хочу»" : "«Нет»"}
+          </strong>?</>}
+          isSending={isSending}
+          onConfirm={() => void confirmInterest()}
+          onCancel={() => setPendingInterest(null)}
+        />
+      )}
       <footer>
         <span>Ответили: {answerCount}/{team.length}</span>
-        {snapshot.ownCaptainInterest !== null && (
+        {fixedInterest !== null && (
           <strong><FiCheck aria-hidden="true" /> Ответ сохранён</strong>
         )}
       </footer>
@@ -169,18 +242,22 @@ function CaptainChoice({
   isSending,
   send,
 }: CaptainVotingProps) {
+  const confirmation = useCandidateConfirmation("VOTE_CAPTAIN", send);
   const team = snapshot.players.filter(
     (player) => player.teamSide === snapshot.currentUserTeamSide,
   );
   const candidates = team.filter(
     (player) => snapshot.captainCandidateIds.includes(player.playerId),
   );
-  const canVote = snapshot.ownCaptainInterest === false && candidates.length > 1;
+  const captain = team.find((player) => player.isCaptain);
+  const fixedCandidateId = snapshot.ownVoteCandidateId ??
+    confirmation.submittedCandidateId;
+  const canVote = snapshot.ownCaptainInterest === false &&
+    candidates.length > 1 && !captain && fixedCandidateId === null;
   const eligibleVoters = team.filter((player) => player.wantsCaptain === false);
   const externalVoteCount = snapshot.captainBallots.filter(
     (ballot) => !ballot.isAutomatic,
   ).length;
-  const captain = team.find((player) => player.isCaptain);
   return (
     <section className="season-room-voting">
       <VotingHeader
@@ -191,7 +268,21 @@ function CaptainChoice({
           ? "Нажмите на одного из игроков, которые хотят стать капитаном."
           : "Кандидаты не голосуют на этом этапе: их голос уже отдан за себя."}
       />
-      {candidates.length > 1 ? (
+      {captain ? (
+        <div className="season-room-captain-resolved">
+          <strong>{captain.nickname} выбран капитаном</strong>
+          <span>Ожидаем завершения выбора в другой команде.</span>
+        </div>
+      ) : confirmation.pendingCandidate ? (
+        <ConfirmationPrompt
+          question={<>Выбрать <strong>
+            {confirmation.pendingCandidate.nickname}
+          </strong> капитаном?</>}
+          isSending={isSending}
+          onConfirm={() => void confirmation.confirmCandidate()}
+          onCancel={() => confirmation.setPendingCandidate(null)}
+        />
+      ) : candidates.length > 1 ? (
         <div className="season-room-candidate-grid">
           {candidates.map((candidate) => (
             <CandidateCard
@@ -199,25 +290,27 @@ function CaptainChoice({
               candidate={candidate}
               ballots={snapshot.captainBallots}
               players={team}
-              isSelected={snapshot.ownVoteCandidateId === candidate.playerId}
+              isSelected={fixedCandidateId === candidate.playerId}
               canSelect={canVote}
               isSending={isSending}
-              onSelect={() => void send({
-                action: "VOTE_CAPTAIN",
-                candidatePlayerId: candidate.playerId,
-              })}
+              onSelect={() => confirmation.setPendingCandidate(candidate)}
             />
           ))}
         </div>
       ) : (
         <div className="season-room-captain-resolved">
-          <strong>{captain?.nickname ?? "Капитан команды уже определён"}</strong>
+          <strong>Капитан команды уже определён</strong>
           <span>Ожидаем завершения выбора в другой команде.</span>
         </div>
       )}
       <footer>
         <span>Проголосовали: {externalVoteCount}/{eligibleVoters.length}</span>
-        {!canVote && candidates.length > 1 && <strong>Ваш голос учтён автоматически</strong>}
+        {fixedCandidateId && snapshot.ownCaptainInterest === false && (
+          <strong><FiCheck aria-hidden="true" /> Ваш голос зафиксирован</strong>
+        )}
+        {snapshot.ownCaptainInterest === true && candidates.length > 1 && (
+          <strong>Ваш голос учтён автоматически</strong>
+        )}
       </footer>
     </section>
   );
@@ -228,6 +321,7 @@ function CaptainTiebreak({
   isSending,
   send,
 }: CaptainVotingProps) {
+  const confirmation = useCandidateConfirmation("VOTE_CAPTAIN_TIEBREAK", send);
   const team = snapshot.players.filter(
     (player) => player.teamSide === snapshot.currentUserTeamSide,
   );
@@ -235,7 +329,11 @@ function CaptainTiebreak({
   const candidates = team.filter(
     (player) => tiebreak?.candidatePlayerIds.includes(player.playerId),
   );
-  const canVote = tiebreak?.voterPlayerId === snapshot.currentUserId;
+  const captain = team.find((player) => player.isCaptain);
+  const fixedCandidateId = tiebreak?.selectedCandidateId ??
+    confirmation.submittedCandidateId;
+  const canVote = tiebreak?.voterPlayerId === snapshot.currentUserId &&
+    fixedCandidateId === null && !captain;
   return (
     <section className="season-room-voting">
       <VotingHeader
@@ -246,7 +344,21 @@ function CaptainTiebreak({
           ? "Вы не получили внешний голос. Выберите капитана из двух лидеров."
           : "В вашей команде возникла особая ничья. Ожидаем решающий голос."}
       />
-      {tiebreak ? (
+      {captain ? (
+        <div className="season-room-captain-resolved">
+          <strong>{captain.nickname} выбран капитаном</strong>
+          <span>Ожидаем завершения выбора в другой команде.</span>
+        </div>
+      ) : confirmation.pendingCandidate ? (
+        <ConfirmationPrompt
+          question={<>Выбрать <strong>
+            {confirmation.pendingCandidate.nickname}
+          </strong> капитаном?</>}
+          isSending={isSending}
+          onConfirm={() => void confirmation.confirmCandidate()}
+          onCancel={() => confirmation.setPendingCandidate(null)}
+        />
+      ) : tiebreak ? (
         <div className="season-room-candidate-grid tiebreak">
           {candidates.map((candidate) => (
             <CandidateCard
@@ -254,14 +366,11 @@ function CaptainTiebreak({
               candidate={candidate}
               ballots={[]}
               players={team}
-              isSelected={tiebreak.selectedCandidateId === candidate.playerId}
+              isSelected={fixedCandidateId === candidate.playerId}
               canSelect={canVote}
               isSending={isSending}
               showVoters={false}
-              onSelect={() => void send({
-                action: "VOTE_CAPTAIN_TIEBREAK",
-                candidatePlayerId: candidate.playerId,
-              })}
+              onSelect={() => confirmation.setPendingCandidate(candidate)}
             />
           ))}
         </div>
@@ -286,6 +395,13 @@ export function CaptainVoting(props: CaptainVotingProps) {
     return <CaptainInterest {...props} />;
   }
   if (props.snapshot.status === "captain_voting") {
+    const hasOwnCaptain = props.snapshot.players.some(
+      (player) => player.teamSide === props.snapshot.currentUserTeamSide &&
+        player.isCaptain,
+    );
+    if (props.snapshot.captainTiebreak && !hasOwnCaptain) {
+      return <CaptainTiebreak {...props} />;
+    }
     return <CaptainChoice {...props} />;
   }
   if (props.snapshot.status === "captain_tiebreak") {

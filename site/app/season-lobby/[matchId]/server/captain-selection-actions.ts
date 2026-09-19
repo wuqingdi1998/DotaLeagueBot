@@ -95,16 +95,20 @@ export async function answerCaptainInterest(
       "Опрос о капитанстве уже завершён",
     )) return;
     const side = await participantSide(client, matchId, playerId);
-    await client.query(
+    const result = await client.query(
       `INSERT INTO season_match_captain_preferences
         (match_id, player_id, team_side, wants_to_be_captain)
        VALUES ($1, $2, $3, $4)
-       ON CONFLICT (match_id, player_id) DO UPDATE SET
-         team_side = EXCLUDED.team_side,
-         wants_to_be_captain = EXCLUDED.wants_to_be_captain,
-         responded_at = NOW()`,
+       ON CONFLICT (match_id, player_id) DO NOTHING
+       RETURNING player_id`,
       [matchId, playerId, side, wantsCaptain],
     );
+    if (!result.rowCount) {
+      throw new SeasonLobbyRoomError(
+        "Ответ уже зафиксирован и не может быть изменён",
+        409,
+      );
+    }
     await advanceCaptainSelection(client, matchId);
   });
 }
@@ -155,16 +159,20 @@ export async function voteForSeasonLobbyCaptain(
         403,
       );
     }
-    await client.query(
+    const vote = await client.query(
       `INSERT INTO season_match_captain_votes
         (match_id, voter_player_id, candidate_player_id, team_side, is_automatic)
        VALUES ($1, $2, $3, $4, FALSE)
-       ON CONFLICT (match_id, voter_player_id) DO UPDATE SET
-         candidate_player_id = EXCLUDED.candidate_player_id,
-         team_side = EXCLUDED.team_side, is_automatic = FALSE,
-         created_at = NOW()`,
+       ON CONFLICT (match_id, voter_player_id) DO NOTHING
+       RETURNING voter_player_id`,
       [matchId, voterPlayerId, candidatePlayerId, side],
     );
+    if (!vote.rowCount) {
+      throw new SeasonLobbyRoomError(
+        "Голос уже зафиксирован и не может быть изменён",
+        409,
+      );
+    }
     await advanceCaptainSelection(client, matchId);
   });
 }
@@ -179,22 +187,40 @@ export async function voteForSeasonLobbyCaptainTiebreak(
     throw new SeasonLobbyRoomError("Кандидат не найден", 404);
   }
   await transaction(async (client) => {
-    if (!await keepStageCurrent(
-      client,
-      matchId,
-      "captain_tiebreak",
-      "Решающая стадия уже завершена",
-    )) return;
-    const result = await client.query(
+    const room = await lockRoom(client, matchId);
+    if (!["captain_voting", "captain_tiebreak"].includes(room.status)) {
+      throw new SeasonLobbyRoomError("Решающая стадия уже завершена", 409);
+    }
+    await advanceCaptainSelection(client, matchId);
+    const currentRoom = await lockRoom(client, matchId);
+    if (!["captain_voting", "captain_tiebreak"].includes(currentRoom.status)) {
+      return;
+    }
+    const result = await client.query<{ team_side: "a" | "b" }>(
       `UPDATE season_match_captain_tiebreaks
        SET selected_candidate_id = $3, responded_at = NOW()
        WHERE match_id = $1 AND voter_player_id = $2
-         AND $3 IN (candidate_one_id, candidate_two_id)`,
+         AND selected_candidate_id IS NULL
+         AND $3 IN (candidate_one_id, candidate_two_id)
+       RETURNING team_side`,
       [matchId, voterPlayerId, candidatePlayerId],
     );
     if (!result.rowCount) {
-      throw new SeasonLobbyRoomError("Этот решающий голос вам недоступен", 403);
+      throw new SeasonLobbyRoomError(
+        "Решающий голос уже зафиксирован или вам недоступен",
+        409,
+      );
     }
+    const side = result.rows[0].team_side;
+    const captainColumn = side === "a"
+      ? "team_a_captain_id"
+      : "team_b_captain_id";
+    await client.query(
+      `UPDATE season_match_rooms
+       SET ${captainColumn} = $2, updated_at = NOW()
+       WHERE match_id = $1`,
+      [matchId, candidatePlayerId],
+    );
     await advanceCaptainSelection(client, matchId);
   });
 }

@@ -1,3 +1,5 @@
+import type { SeasonLobbyRoomStatus } from "./types";
+
 export const SEASON_CAPTAIN_STAGE_SECONDS = 60;
 
 export type CaptainSelectionPlayer = {
@@ -21,6 +23,27 @@ export type CaptainSelectionResult =
     };
 
 type RandomIndex = (length: number) => number;
+
+const captainSelectionStatuses = new Set<SeasonLobbyRoomStatus>([
+  "captain_interest",
+  "captain_voting",
+  "captain_tiebreak",
+]);
+
+export function isSelectedCaptainVisible(input: {
+  status: SeasonLobbyRoomStatus;
+  isOrganizer: boolean;
+  viewerTeamSide: "a" | "b" | null;
+  captainTeamSide: "a" | "b";
+  selectedCaptainCount: number;
+}): boolean {
+  if (
+    input.isOrganizer ||
+    !captainSelectionStatuses.has(input.status) ||
+    input.selectedCaptainCount !== 1
+  ) return true;
+  return input.viewerTeamSide === input.captainTeamSide;
+}
 
 function selectRandom<T>(items: T[], randomIndex: RandomIndex): T {
   const index = Math.max(0, Math.min(items.length - 1, randomIndex(items.length)));

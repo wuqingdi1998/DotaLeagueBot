@@ -56,6 +56,53 @@
   box-shadow: inset 0 0 0 1px rgba(69, 198, 226, 0.16);
 }
 
+.season-room-vote-confirmation {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px 20px;
+  text-align: center;
+}
+
+.season-room-vote-confirmation p {
+  margin: 0;
+  font-size: 17px;
+}
+
+.season-room-vote-confirmation > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.season-room-vote-confirmation > div {
+  display: grid;
+  width: min(100%, 360px);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.season-room-vote-confirmation button {
+  min-height: 46px;
+  border: 1px solid color-mix(in srgb, var(--blue) 45%, var(--line-strong));
+  border-radius: 12px;
+  background: var(--surface-soft);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.season-room-vote-confirmation button:first-child {
+  border-color: #2fc579;
+  background: color-mix(in srgb, #2fc579 12%, var(--surface));
+}
+
+.season-room-vote-confirmation button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .season-room-voting footer strong {
   display: inline-flex;
   align-items: center;

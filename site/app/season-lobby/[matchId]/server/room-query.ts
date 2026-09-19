@@ -12,6 +12,7 @@ import type {
   SeasonLobbyRoomSnapshot,
   SeasonLobbyRoomStatus,
 } from "../model/types";
+import { isSelectedCaptainVisible } from "../model/captain-selection";
 import { SeasonLobbyRoomError } from "./errors";
 import { playerServerName } from "@/lib/security";
 
@@ -251,10 +252,20 @@ export async function loadSeasonLobbyRoomSnapshot(
       ]);
 
     const state = stateResult.rows[0];
+    const selectedCaptainCount = playerResult.rows.filter(
+      (player) => player.isCaptain,
+    ).length;
     const players: SeasonLobbyRoomPlayer[] = playerResult.rows.map((row) => {
       const { realName, serverPlayerName, positions, ...player } = row;
       return {
         ...player,
+        isCaptain: player.isCaptain && isSelectedCaptainVisible({
+          status: state.status,
+          isOrganizer: user.isAdmin,
+          viewerTeamSide: target.current_user_team_side,
+          captainTeamSide: player.teamSide,
+          selectedCaptainCount,
+        }),
         serverName: playerServerName(realName, serverPlayerName, positions),
       };
     });

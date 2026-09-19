@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   automaticCaptainBallots,
+  isSelectedCaptainVisible,
   resolveCaptainSelection,
   resolveCaptainTiebreak,
   type CaptainSelectionPlayer,
@@ -132,5 +133,39 @@ describe("season lobby captain selection", () => {
       { playerId: "1", tier: 9 },
       { playerId: "2", tier: 9 },
     ], null, () => 1)).toBe("2");
+  });
+
+  it("shows an early captain only to that captain's team", () => {
+    expect(isSelectedCaptainVisible({
+      status: "captain_voting",
+      isOrganizer: false,
+      viewerTeamSide: "a",
+      captainTeamSide: "a",
+      selectedCaptainCount: 1,
+    })).toBe(true);
+    expect(isSelectedCaptainVisible({
+      status: "captain_voting",
+      isOrganizer: false,
+      viewerTeamSide: "b",
+      captainTeamSide: "a",
+      selectedCaptainCount: 1,
+    })).toBe(false);
+  });
+
+  it("shows captain results to organizers and after both teams finish", () => {
+    expect(isSelectedCaptainVisible({
+      status: "captain_tiebreak",
+      isOrganizer: true,
+      viewerTeamSide: null,
+      captainTeamSide: "a",
+      selectedCaptainCount: 1,
+    })).toBe(true);
+    expect(isSelectedCaptainVisible({
+      status: "drafting",
+      isOrganizer: false,
+      viewerTeamSide: "b",
+      captainTeamSide: "a",
+      selectedCaptainCount: 2,
+    })).toBe(true);
   });
 });

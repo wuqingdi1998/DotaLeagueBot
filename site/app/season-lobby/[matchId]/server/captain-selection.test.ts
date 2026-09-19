@@ -30,11 +30,13 @@ async function roomState() {
   return (await db.query<{
     status: string;
     deadline_seconds: number;
+    team_a_captain_id: string | null;
     team_b_captain_id: string | null;
   }>(
     `SELECT status,
        EXTRACT(EPOCH FROM captain_stage_deadline_at - NOW())::int
          AS deadline_seconds,
+       team_a_captain_id::text,
        team_b_captain_id::text
      FROM season_match_rooms WHERE match_id = 10`,
   )).rows[0];
@@ -60,6 +62,21 @@ beforeEach(async () => {
 });
 
 describe("three-stage captain selection workflow", () => {
+  it("fixes the first captain-interest answer immediately", async () => {
+    await startSeasonLobbyCaptainSelection(10, organizer, true);
+    await answerCaptainInterest(10, "10001", true);
+
+    await expect(
+      answerCaptainInterest(10, "10001", false),
+    ).rejects.toThrow("Ответ уже зафиксирован");
+    const preference = await db.query<{ wants_to_be_captain: boolean }>(
+      `SELECT wants_to_be_captain
+       FROM season_match_captain_preferences
+       WHERE match_id = 10 AND player_id = 10001`,
+    );
+    expect(preference.rows[0].wants_to_be_captain).toBe(true);
+  });
+
   it("turns missing interest answers into no and selects the highest tiers", async () => {
     await db.exec(`
       UPDATE season_match_participants
@@ -131,5 +148,34 @@ describe("three-stage captain selection workflow", () => {
       2,
       { teamA: "10002", teamB: "10006" },
     );
+  });
+
+  it("fixes each vote and reveals a team's captain as soon as that team finishes", async () => {
+    await startSeasonLobbyCaptainSelection(10, organizer, true);
+    const volunteers = new Set(["10001", "10002", "10006", "10007"]);
+    for (let id = 10001; id <= 10010; id += 1) {
+      await answerCaptainInterest(10, String(id), volunteers.has(String(id)));
+    }
+
+    await voteForSeasonLobbyCaptain(10, "10003", "10001");
+    await expect(
+      voteForSeasonLobbyCaptain(10, "10003", "10002"),
+    ).rejects.toThrow("Голос уже зафиксирован");
+    const fixedVote = await db.query<{ candidate_player_id: string }>(
+      `SELECT candidate_player_id::text
+       FROM season_match_captain_votes
+       WHERE match_id = 10 AND voter_player_id = 10003`,
+    );
+    expect(fixedVote.rows[0].candidate_player_id).toBe("10001");
+
+    await voteForSeasonLobbyCaptain(10, "10004", "10001");
+    await voteForSeasonLobbyCaptain(10, "10005", "10001");
+
+    expect(await roomState()).toMatchObject({
+      status: "captain_voting",
+      team_a_captain_id: "10001",
+      team_b_captain_id: null,
+    });
+    expect(mocks.createSeasonLobbyDraft).not.toHaveBeenCalled();
   });
 });

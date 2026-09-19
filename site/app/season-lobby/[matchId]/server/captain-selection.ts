@@ -105,6 +105,36 @@ async function isVotingComplete(client: PoolClient, matchId: number) {
   return result.rows[0].expected === result.rows[0].received;
 }
 
+async function isTeamVotingComplete(
+  client: PoolClient,
+  matchId: number,
+  side: TeamSide,
+) {
+  const result = await client.query<{ expected: number; received: number }>(
+    `WITH candidate_count AS (
+       SELECT COUNT(*)::int AS value
+       FROM season_match_captain_preferences
+       WHERE match_id = $1 AND team_side = $2
+         AND wants_to_be_captain = TRUE
+     ), eligible AS (
+       SELECT preference.player_id
+       FROM season_match_captain_preferences preference
+       CROSS JOIN candidate_count
+       WHERE preference.match_id = $1 AND preference.team_side = $2
+         AND preference.wants_to_be_captain = FALSE
+         AND candidate_count.value > 1
+     )
+     SELECT COUNT(eligible.player_id)::int AS expected,
+       COUNT(vote.voter_player_id)::int AS received
+     FROM eligible
+     LEFT JOIN season_match_captain_votes vote
+       ON vote.match_id = $1 AND vote.voter_player_id = eligible.player_id
+      AND vote.is_automatic = FALSE`,
+    [matchId, side],
+  );
+  return result.rows[0].expected === result.rows[0].received;
+}
+
 async function isTiebreakComplete(client: PoolClient, matchId: number) {
   const result = await client.query<{ pending: number }>(
     `SELECT COUNT(*) FILTER (WHERE selected_candidate_id IS NULL)::int AS pending
@@ -190,23 +220,35 @@ async function completeVotingStage(
   client: PoolClient,
   matchId: number,
   bestOf: number,
+  shouldResolveIncompleteVotes = false,
 ) {
   const room = await lockRoom(client, matchId);
   const state = await loadSelectionState(client, matchId);
+  const existingTiebreaks = await client.query<{ team_side: TeamSide }>(
+    `SELECT team_side FROM season_match_captain_tiebreaks
+     WHERE match_id = $1`,
+    [matchId],
+  );
+  const tiebreakSides = new Set(
+    existingTiebreaks.rows.map((row) => row.team_side),
+  );
   const captainIds: Record<TeamSide, string | null> = {
     a: room.team_a_captain_id,
     b: room.team_b_captain_id,
   };
-  let hasTiebreak = false;
   for (const side of ["a", "b"] as const) {
-    if (captainIds[side]) continue;
+    if (captainIds[side] || tiebreakSides.has(side)) continue;
+    if (
+      !shouldResolveIncompleteVotes &&
+      !await isTeamVotingComplete(client, matchId, side)
+    ) continue;
     const team = teamState(state, side);
     const result = resolveCaptainSelection(team.players, team.ballots, randomInt);
     if (result.kind === "captain") {
       captainIds[side] = result.captainPlayerId;
       continue;
     }
-    hasTiebreak = true;
+    tiebreakSides.add(side);
     await client.query(
       `INSERT INTO season_match_captain_tiebreaks
         (match_id, team_side, voter_player_id, candidate_one_id, candidate_two_id)
@@ -225,11 +267,20 @@ async function completeVotingStage(
       ],
     );
   }
-  if (!hasTiebreak && captainIds.a && captainIds.b) {
+  await client.query(
+    `UPDATE season_match_rooms
+     SET team_a_captain_id = $2, team_b_captain_id = $3, updated_at = NOW()
+     WHERE match_id = $1`,
+    [matchId, captainIds.a, captainIds.b],
+  );
+  if (captainIds.a && captainIds.b) {
     await createSeasonLobbyDraft(client, matchId, bestOf, {
       teamA: captainIds.a,
       teamB: captainIds.b,
     });
+    return;
+  }
+  if (!shouldResolveIncompleteVotes && !await isVotingComplete(client, matchId)) {
     return;
   }
   await client.query(
@@ -312,10 +363,9 @@ export async function advanceCaptainSelection(
   ) {
     await completeInterestStage(client, matchId, room.best_of);
   } else if (
-    room.status === "captain_voting" &&
-    (hasExpired || await isVotingComplete(client, matchId))
+    room.status === "captain_voting"
   ) {
-    await completeVotingStage(client, matchId, room.best_of);
+    await completeVotingStage(client, matchId, room.best_of, hasExpired);
   } else if (
     room.status === "captain_tiebreak" &&
     (hasExpired || await isTiebreakComplete(client, matchId))
