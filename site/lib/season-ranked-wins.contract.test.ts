@@ -25,6 +25,9 @@ const seasonRoute = source("../app/api/season/route.ts");
 const registrationSection = source(
   "../app/tournaments/[slug]/sections/SeasonRoundRegistration.tsx",
 );
+const registrationModel = source(
+  "../app/tournaments/[slug]/model/season-registration.ts",
+);
 const registrationStyles = source(
   "../app/styles/55-season-round-registration.css",
 );
@@ -70,6 +73,9 @@ describe("season ranked wins contract", () => {
       "Рейтинговые победы за {SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура",
     );
     expect(registrationSection).toContain(
+      "seasonRankedWinsButtonLabel",
+    );
+    expect(registrationModel).toContain(
       "Мои рейтинговые победы за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура",
     );
     expect(registrationSection).toContain("SEASON_PRIMARY_ROLE_WINS_REQUIRED");
@@ -99,6 +105,16 @@ describe("season ranked wins contract", () => {
     expect(rankedWinService).not.toContain("fetchDotaBuffRankedMatches");
     expect(rankedWinModel).not.toContain("RankedWinSource");
     expect(rankedWinService).toContain("findRankedWinsWithoutRoles");
+  });
+
+  it("shows admitted checks as pressed and marks manual fixed wins with a lock", () => {
+    expect(registrationSection).toContain("hasSeasonRankedWinAdmission");
+    expect(registrationSection).toContain('aria-pressed={hasRankedWinAdmission}');
+    expect(registrationSection).toContain('registration.wins_source === "manual"');
+    expect(registrationSection).toContain("<FiLock");
+    expect(registrationSection).toContain("SEASON_RANKED_WINS_ADMISSION_MESSAGE");
+    expect(registrationStyles).toContain(".season-ranked-wins-button.admitted");
+    expect(registrationStyles).toContain(".season-registration-fixed-wins");
   });
 
   it("gives organizers a fourth manual warning action", () => {

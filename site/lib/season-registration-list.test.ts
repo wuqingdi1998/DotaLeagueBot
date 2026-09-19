@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  SEASON_RANKED_WINS_ADMISSION_MESSAGE,
   buildDotabuffRankedMatchesUrl,
   buildStratzRankedMatchesUrl,
   formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
+  hasSeasonRankedWinAdmission,
+  seasonRankedWinsButtonLabel,
   sortSeasonRegistrations,
 } from "../app/tournaments/[slug]/model/season-registration";
 import type { SeasonRoundRegistration } from "../app/tournaments/[slug]/model/season-types";
@@ -93,6 +96,38 @@ describe("season registration list", () => {
   it("opens the player's Dotabuff matches filtered to ranked games for one month", () => {
     expect(buildDotabuffRankedMatchesUrl("301109815")).toBe(
       "https://www.dotabuff.com/players/301109815/matches?lobby_type=ranked_matchmaking&date=month",
+    );
+  });
+
+  it("replaces a successful ranked-win check with an admitted pressed state", () => {
+    const admittedSnapshot = {
+      primaryRole: 1 as const,
+      secondaryRole: 5 as const,
+      primaryWins: 10,
+      secondaryWins: 4,
+      checkedAt: "2026-08-17T10:05:00.000Z",
+      availableUntil: "2026-08-17T10:10:00.000Z",
+    };
+
+    expect(hasSeasonRankedWinAdmission(admittedSnapshot)).toBe(true);
+    expect(seasonRankedWinsButtonLabel(false, admittedSnapshot)).toBe(
+      SEASON_RANKED_WINS_ADMISSION_MESSAGE,
+    );
+  });
+
+  it("keeps the exact win counts when the admission requirements are not met", () => {
+    const insufficientSnapshot = {
+      primaryRole: 1 as const,
+      secondaryRole: 5 as const,
+      primaryWins: 9,
+      secondaryWins: 3,
+      checkedAt: "2026-08-17T10:05:00.000Z",
+      availableUntil: "2026-08-17T10:10:00.000Z",
+    };
+
+    expect(hasSeasonRankedWinAdmission(insufficientSnapshot)).toBe(false);
+    expect(seasonRankedWinsButtonLabel(false, insufficientSnapshot)).toBe(
+      "Осн. (1) 9/10 · Доп. (5) 3/4",
     );
   });
 

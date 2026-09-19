@@ -1,6 +1,15 @@
+import {
+  SEASON_PRIMARY_ROLE_WINS_REQUIRED,
+  SEASON_RANKED_WIN_WINDOW_DAYS,
+  SEASON_SECONDARY_ROLE_WINS_REQUIRED,
+  type RankedWinSnapshot,
+} from "@/lib/season-ranked-wins/model";
 import type { SeasonRoundRegistration } from "./season-types";
 
 const RANKED_WINS_REFRESH_INTERVAL_MS = 10 * 60 * 1_000;
+
+export const SEASON_RANKED_WINS_ADMISSION_MESSAGE =
+  "Ваши победы зафиксированы, вы допущены к участию";
 
 export type SeasonRegistrationSort = "createdAt" | "nickname" | "tier";
 export type SeasonRegistrationDirection = "ascending" | "descending";
@@ -62,6 +71,30 @@ export function buildDotabuffRankedMatchesUrl(dotaId: string) {
     `https://www.dotabuff.com/players/${encodeURIComponent(dotaId)}/matches` +
     "?lobby_type=ranked_matchmaking&date=month"
   );
+}
+
+export function hasSeasonRankedWinAdmission(
+  snapshot: RankedWinSnapshot | null,
+): boolean {
+  return Boolean(
+    snapshot
+      && snapshot.primaryWins >= SEASON_PRIMARY_ROLE_WINS_REQUIRED
+      && snapshot.secondaryWins >= SEASON_SECONDARY_ROLE_WINS_REQUIRED,
+  );
+}
+
+export function seasonRankedWinsButtonLabel(
+  isLoading: boolean,
+  snapshot: RankedWinSnapshot | null,
+): string {
+  if (isLoading) return "Загружаем победы…";
+  if (!snapshot) {
+    return `Мои рейтинговые победы за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура`;
+  }
+  if (hasSeasonRankedWinAdmission(snapshot)) {
+    return SEASON_RANKED_WINS_ADMISSION_MESSAGE;
+  }
+  return `Осн. (${snapshot.primaryRole}) ${snapshot.primaryWins}/${SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. (${snapshot.secondaryRole}) ${snapshot.secondaryWins}/${SEASON_SECONDARY_ROLE_WINS_REQUIRED}`;
 }
 
 export function formatSeasonRankedWinsRefreshCountdown(

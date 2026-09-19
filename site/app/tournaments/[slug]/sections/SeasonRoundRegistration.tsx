@@ -2,7 +2,13 @@
 
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { FiArrowDown, FiArrowUp, FiClock } from "react-icons/fi";
+import {
+  FiArrowDown,
+  FiArrowUp,
+  FiCheckCircle,
+  FiClock,
+  FiLock,
+} from "react-icons/fi";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useServerClock } from "@/hooks/useServerClock";
@@ -10,14 +16,16 @@ import {
   SEASON_PRIMARY_ROLE_WINS_REQUIRED,
   SEASON_RANKED_WIN_WINDOW_DAYS,
   SEASON_SECONDARY_ROLE_WINS_REQUIRED,
-  type RankedWinSnapshot,
 } from "@/lib/season-ranked-wins/model";
 import { useTournament } from "../hooks/TournamentContext";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import {
+  SEASON_RANKED_WINS_ADMISSION_MESSAGE,
   buildStratzRankedMatchesUrl,
   formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
+  hasSeasonRankedWinAdmission,
+  seasonRankedWinsButtonLabel,
   sortSeasonRegistrations,
   type SeasonRegistrationDirection,
   type SeasonRegistrationSort,
@@ -55,6 +63,8 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   const hasFreshRankedWins = Boolean(
     myRankedWins && currentTime < new Date(myRankedWins.availableUntil).getTime(),
   );
+  const freshRankedWins = hasFreshRankedWins ? myRankedWins : null;
+  const hasRankedWinAdmission = hasSeasonRankedWinAdmission(freshRankedWins);
 
   function changeSort(nextSort: SeasonRegistrationSort) {
     if (nextSort === sort) {
@@ -130,14 +140,18 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
             </button>
             {!round.is_registered && (
               <button
-                className="secondary-button compact season-ranked-wins-button"
+                className={`secondary-button compact season-ranked-wins-button${
+                  hasRankedWinAdmission ? " admitted" : ""
+                }`}
                 type="button"
                 disabled={season.checkingRankedWins || hasFreshRankedWins}
+                aria-pressed={hasRankedWinAdmission}
                 onClick={() => void season.checkMyRankedWins(round.id)}
               >
-                {rankedWinsButtonLabel(
+                {hasRankedWinAdmission && <FiCheckCircle aria-hidden="true" />}
+                {seasonRankedWinsButtonLabel(
                   season.checkingRankedWins,
-                  hasFreshRankedWins ? myRankedWins : null,
+                  freshRankedWins,
                 )}
               </button>
             )}
@@ -258,6 +272,16 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                       {SEASON_SECONDARY_ROLE_WINS_REQUIRED}
                     </span>
                   </a>
+                  {registration.wins_source === "manual" && (
+                    <span
+                      className="season-registration-fixed-wins"
+                      aria-label={SEASON_RANKED_WINS_ADMISSION_MESSAGE}
+                      title={SEASON_RANKED_WINS_ADMISSION_MESSAGE}
+                      tabIndex={0}
+                    >
+                      <FiLock aria-hidden="true" />
+                    </span>
+                  )}
                   {season.data?.isOrganizer && <SeasonRankedWinEditor registration={registration} />}
                 </span>
                 <time dateTime={registration.created_at}>
@@ -284,17 +308,6 @@ function rankedWinRequirementClass(
 ) {
   if (source === "manual") return "manual";
   return wins !== null && wins >= required ? "met" : "missing";
-}
-
-function rankedWinsButtonLabel(
-  isLoading: boolean,
-  snapshot: RankedWinSnapshot | null,
-) {
-  if (isLoading) return "Загружаем победы…";
-  if (!snapshot) {
-    return `Мои рейтинговые победы за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура`;
-  }
-  return `Осн. (${snapshot.primaryRole}) ${snapshot.primaryWins}/${SEASON_PRIMARY_ROLE_WINS_REQUIRED} · Доп. (${snapshot.secondaryRole}) ${snapshot.secondaryWins}/${SEASON_SECONDARY_ROLE_WINS_REQUIRED}`;
 }
 
 function SortButton({
