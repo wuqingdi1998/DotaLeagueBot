@@ -1,7 +1,9 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { seasonTeamLineup } from "./season-lineup";
+import { seasonTeamLineup, seasonTeamLineupSlots } from "./season-lineup";
 import { SeasonLobbyList } from "../sections/SeasonLobbyDisplay";
+import { SeasonRecentCompletedRound } from
+  "../sections/SeasonRecentCompletedRound";
 import type { SeasonMatch, SeasonRound } from "./season-types";
 import { canSubstituteOnSecondMap } from "@/lib/season-substitution";
 
@@ -34,12 +36,18 @@ describe("season lineup by map", () => {
       .toEqual([["Первый игрок", true, "(1-я карта)", 3], ["Второй игрок", false, "(2-я карта)", 3]]);
     expect(lineup[1]).toMatchObject({ dota_id: "201", is_host: true, is_captain: true, tier_snapshot: 6 });
     expect(seasonTeamLineup(match, "b")).toEqual([]);
+    expect(seasonTeamLineupSlots(match, "a")[0].players.map((player) => player.nickname))
+      .toEqual(["Первый игрок", "Второй игрок"]);
   });
 
   it("shows only the incoming player for a replacement before the whole match", () => {
     const fullMatch = { ...match, substitutions: [{ ...match.substitutions[0], game_number: null, game_id: null }] };
     expect(seasonTeamLineup(fullMatch, "a")).toHaveLength(1);
     expect(seasonTeamLineup(fullMatch, "a")[0]).toMatchObject({ nickname: "Второй игрок", mapLabel: null, isFormerPlayer: false });
+    expect(seasonTeamLineupSlots(fullMatch, "a")[0].players)
+      .toHaveLength(1);
+    expect(seasonTeamLineupSlots(fullMatch, "a")[0].players[0])
+      .toMatchObject({ nickname: "Второй игрок", mapLabel: null });
   });
 
   it("leaves an unchanged lineup intact", () => {
@@ -56,6 +64,43 @@ describe("season lineup by map", () => {
     expect(html).toContain("(2-я карта)");
     expect(html).toContain('href="/players/201"');
     expect(html).toContain('Сумма тиров</small><strong>6</strong>');
+  });
+
+  it("shows only the incoming player in the compact panel after a pre-match replacement", () => {
+    const fullMatch = {
+      ...match,
+      substitutions: [{
+        ...match.substitutions[0],
+        game_number: null,
+        game_id: null,
+      }],
+    };
+    const round = {
+      round_kind: "regular",
+      round_number: 1,
+      lobbies: [{ id: 20, sort_order: 3, matches: [fullMatch] }],
+    } as SeasonRound;
+    const html = renderToStaticMarkup(
+      <SeasonRecentCompletedRound round={round} onOpenMatch={() => undefined} />,
+    );
+    expect(html).toContain('href="/players/201"');
+    expect(html).not.toContain('href="/players/101"');
+  });
+
+  it("splits one compact avatar between first- and second-map players", () => {
+    const round = {
+      round_kind: "regular",
+      round_number: 1,
+      lobbies: [{ id: 20, sort_order: 3, matches: [match] }],
+    } as SeasonRound;
+    const html = renderToStaticMarkup(
+      <SeasonRecentCompletedRound round={round} onOpenMatch={() => undefined} />,
+    );
+    expect(html).toContain("season-recent-player-split");
+    expect(html).toContain('href="/players/101"');
+    expect(html).toContain('href="/players/201"');
+    expect(html).toContain("Первый игрок · 1-я карта");
+    expect(html).toContain("Второй игрок · 2-я карта");
   });
 });
 

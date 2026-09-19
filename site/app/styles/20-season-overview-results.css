@@ -198,6 +198,24 @@
   position: relative;
 }
 
+.season-recent-player-split {
+  background: var(--surface);
+  border: 2px solid color-mix(in srgb, var(--blue) 48%, var(--line));
+  border-radius: 50%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 42px;
+  margin: 0 auto;
+  overflow: hidden;
+  width: 42px;
+}
+
+.season-recent-player-split:hover,
+.season-recent-player-split:focus-within {
+  border-color: var(--blue-strong);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--blue) 24%, transparent);
+}
+
 .season-recent-player-avatar {
   align-items: center;
   background: var(--surface);
@@ -225,6 +243,49 @@
   display: grid;
   justify-items: center;
   opacity: 0.72;
+}
+
+.season-recent-player-split .season-recent-player-avatar {
+  border: 0;
+  border-radius: 0;
+  height: 100%;
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.season-recent-player-split .season-recent-player-avatar:hover,
+.season-recent-player-split .season-recent-player-avatar:focus-visible {
+  box-shadow: none;
+}
+
+.season-recent-player-split .first-map {
+  border-right: 1px solid var(--surface);
+}
+
+.season-recent-player-split .season-recent-player-avatar-image {
+  height: 100%;
+  max-width: none;
+  position: absolute;
+  top: 0;
+  width: 200%;
+}
+
+.season-recent-player-split .first-map .season-recent-player-avatar-image {
+  left: 0;
+}
+
+.season-recent-player-split .second-map .season-recent-player-avatar-image {
+  right: 0;
+}
+
+.season-recent-player-split .season-recent-player-avatar-image.fallback {
+  font-size: 13px;
+  left: 0;
+  right: auto;
+  width: 100%;
 }
 
 .season-recent-player-avatar-image {
@@ -255,6 +316,11 @@
   }
 
   .season-recent-player-avatar {
+    height: 48px;
+    width: 48px;
+  }
+
+  .season-recent-player-split {
     height: 48px;
     width: 48px;
   }

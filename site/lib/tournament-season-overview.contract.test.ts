@@ -42,8 +42,8 @@ describe("season league overview", () => {
 
   it("renders five linked circular player avatars without service buttons", () => {
     expect(recentRound).toContain(".slice(0, 5)");
-    expect(recentRound).toContain('player.team_side === "a"');
-    expect(recentRound).toContain('player.team_side === "b"');
+    expect(recentRound).toContain('seasonTeamLineupSlots(match, "a")');
+    expect(recentRound).toContain('seasonTeamLineupSlots(match, "b")');
     expect(recentRound).toContain('profileHref={`/players/${dotaId}`}');
     expect(recentRound).not.toContain("buildPlayerLinks");
     expect(styles).not.toContain("season-recent-service-link");
@@ -51,6 +51,17 @@ describe("season league overview", () => {
       /\.season-recent-player-avatar\s*\{[\s\S]*?border-radius: 50%;/,
     );
     expect(styles).toContain("grid-template-columns: repeat(5");
+  });
+
+  it("keeps compact lineups synchronized with substitutions", () => {
+    expect(recentRound).toContain("season-recent-player-split");
+    expect(recentRound).toContain('splitSide="first-map"');
+    expect(recentRound).toContain('splitSide="second-map"');
+    expect(recentRound).toContain('portalContainerSelector=".site-shell"');
+    expect(styles).toMatch(
+      /\.season-recent-player-split\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2,/,
+    );
+    expect(popoverStyles).toContain("background: var(--surface, #0d2434)");
   });
 
   it("places STRATZ and Dotabuff map links beside every lobby name", () => {

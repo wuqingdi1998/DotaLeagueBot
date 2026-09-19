@@ -8,9 +8,13 @@ import { seasonMatchLinks } from "@/lib/season";
 import type {
   SeasonGame,
   SeasonMatch,
-  SeasonMatchParticipant,
   SeasonRound,
 } from "../model/season-types";
+import {
+  seasonTeamLineupSlots,
+  type SeasonLineupPlayer,
+  type SeasonLineupSlot,
+} from "../model/season-lineup";
 
 export function SeasonRecentCompletedRound({
   onOpenMatch,
@@ -66,17 +70,13 @@ function SeasonRecentMatch({
       <div className="season-recent-match-teams">
         <SeasonRecentTeam
           name={match.team_a_name}
-          players={match.participants.filter(
-            (player) => player.team_side === "a",
-          )}
+          playerSlots={seasonTeamLineupSlots(match, "a")}
           score={match.team_a_score}
           isWinner={match.result === "team_a"}
         />
         <SeasonRecentTeam
           name={match.team_b_name}
-          players={match.participants.filter(
-            (player) => player.team_side === "b",
-          )}
+          playerSlots={seasonTeamLineupSlots(match, "b")}
           score={match.team_b_score}
           isWinner={match.result === "team_b"}
         />
@@ -165,18 +165,19 @@ function SeasonRecentMapServiceLink({
 function SeasonRecentTeam({
   isWinner,
   name,
-  players,
+  playerSlots,
   score,
 }: {
   isWinner: boolean;
   name: string;
-  players: SeasonMatchParticipant[];
+  playerSlots: SeasonLineupSlot[];
   score: number | null;
 }) {
-  const orderedPlayers = players
+  const orderedSlots = playerSlots
     .toSorted(
       (left, right) =>
-        (left.slot_number ?? 99) - (right.slot_number ?? 99),
+        (left.players[0]?.slot_number ?? 99) -
+        (right.players[0]?.slot_number ?? 99),
     )
     .slice(0, 5);
   return (
@@ -186,16 +187,52 @@ function SeasonRecentTeam({
         <b>{score ?? "–"}</b>
       </header>
       <div className="season-recent-team-players">
-        {orderedPlayers.map((player) => (
-          <SeasonRecentPlayer key={player.player_id} player={player} />
+        {orderedSlots.map((slot) => (
+          <SeasonRecentPlayerSlot
+            key={slot.players.map((player) => player.player_id).join(":")}
+            slot={slot}
+          />
         ))}
       </div>
     </section>
   );
 }
 
-function SeasonRecentPlayer({ player }: { player: SeasonMatchParticipant }) {
+function SeasonRecentPlayerSlot({ slot }: { slot: SeasonLineupSlot }) {
+  if (slot.players.length === 1) {
+    return <SeasonRecentPlayer player={slot.players[0]} />;
+  }
+  return (
+    <div
+      className="season-recent-player-split"
+      aria-label="Игроки первой и второй карт"
+    >
+      <SeasonRecentPlayer player={slot.players[0]} splitSide="first-map" />
+      <SeasonRecentPlayer player={slot.players[1]} splitSide="second-map" />
+    </div>
+  );
+}
+
+function SeasonRecentPlayer({
+  player,
+  splitSide,
+}: {
+  player: SeasonLineupPlayer;
+  splitSide?: "first-map" | "second-map";
+}) {
   const dotaId = normalizeDotaAccountId(player.dota_id);
+  const anchorClassName = [
+    "season-recent-player-avatar",
+    splitSide ? `split-half ${splitSide}` : "",
+  ].filter(Boolean).join(" ");
+  const mapLabel = splitSide === "first-map"
+    ? "1-я карта"
+    : splitSide === "second-map"
+      ? "2-я карта"
+      : null;
+  const displayedNickname = mapLabel
+    ? `${player.nickname} · ${mapLabel}`
+    : player.nickname;
   const avatar = (
     <AvatarImage
       className="season-recent-player-avatar-image"
@@ -214,8 +251,8 @@ function SeasonRecentPlayer({ player }: { player: SeasonMatchParticipant }) {
   if (!dotaId) {
     return (
       <span
-        className="season-recent-player-avatar unavailable"
-        title={`${player.nickname}: профиль не привязан`}
+        className={`${anchorClassName} unavailable`}
+        title={`${displayedNickname}: профиль не привязан`}
       >
         {avatar}
       </span>
@@ -223,9 +260,10 @@ function SeasonRecentPlayer({ player }: { player: SeasonMatchParticipant }) {
   }
   return (
     <PlayerStatisticsPopover
-      anchorClassName="season-recent-player-avatar"
+      anchorClassName={anchorClassName}
       dotaId={dotaId}
-      nickname={player.nickname}
+      nickname={displayedNickname}
+      portalContainerSelector=".site-shell"
       profileHref={`/players/${dotaId}`}
     >
       {avatar}
