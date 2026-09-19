@@ -225,6 +225,14 @@ describe("season Fearless Draft lineup assignment", () => {
       UPDATE draft_series SET player2_id = ${FEARLESS_DRAFT_BOT_PLAYER_ID},
         season_match_id = NULL, is_season_lobby_preview = TRUE;
       UPDATE draft_maps SET first_pick_player_id = 10001;
+      INSERT INTO draft_series VALUES (
+        2, 10002, ${FEARLESS_DRAFT_BOT_PLAYER_ID}, 'BO3', 'DRAFTING', 1, 10002,
+        NULL, NULL, FALSE, FALSE, NULL, TRUE, NOW() + INTERVAL '1 minute'
+      );
+      INSERT INTO draft_maps VALUES (
+        2, 2, 1, 'LINEUP_ASSIGNMENT', 10002, 1, 'RADIANT', 'FIRST',
+        10002, 10002, 24, NULL, 100, 100, NULL, 25, NULL
+      );
       TRUNCATE draft_actions;
       INSERT INTO draft_actions(map_id, step, actor_id, action_type, hero_id)
         SELECT 1, id - 1,
@@ -239,6 +247,7 @@ describe("season Fearless Draft lineup assignment", () => {
     await submitDraftLineupAssignment(
       FEARLESS_DRAFT_BOT_PLAYER_ID,
       teamB.map((player, index) => ({ heroId: index + 6, playerId: player.id })),
+      "10001",
     );
     const hidden = await loadDraftLineupAssignment(
       client,
@@ -268,7 +277,7 @@ describe("season Fearless Draft lineup assignment", () => {
     expect(revealed.assignments).toHaveLength(10);
     expect(revealed.assignments.some((item) => item.playerName === "Hidden bot"))
       .toBe(false);
-    expect((await database.query("SELECT status FROM draft_series")).rows[0])
+    expect((await database.query("SELECT status FROM draft_series WHERE id = 1")).rows[0])
       .toEqual({ status: "MAP_COMPLETE" });
   });
 });

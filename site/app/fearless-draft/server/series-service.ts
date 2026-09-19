@@ -21,10 +21,11 @@ const heroIds = new Set(ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id));
 export async function makeDraftChoice(
   playerId: string,
   choice: unknown,
+  opponentId?: string,
 ): Promise<void> {
   if (!isDraftChoice(choice)) throw new DraftRequestError("Некорректный выбор");
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, playerId);
+    const { series, map } = await loadLockedDraftSeries(client, playerId, opponentId);
     const secondChooserId = draftOpponentId(series, map.first_chooser_id);
     if (map.status === "FIRST_DECISION") {
       if (playerId !== map.first_chooser_id) {
@@ -260,8 +261,9 @@ async function loadSelectableHeroTurn(
   playerId: string,
   heroId: number,
   expectedVersion: number,
+  opponentId?: string,
 ) {
-  const { series, map } = await loadLockedDraftSeries(client, playerId);
+  const { series, map } = await loadLockedDraftSeries(client, playerId, opponentId);
   if (map.status !== "DRAFTING" || series.status !== "DRAFTING") {
     throw new DraftRequestError("Сейчас нельзя выбирать героя", 409);
   }
@@ -321,6 +323,7 @@ export async function selectDraftHero(
   heroId: number,
   expectedVersion: number,
   isAutomatic = false,
+  opponentId?: string,
 ): Promise<void> {
   validateHeroCommand(heroId, expectedVersion);
   await transaction(async (client) => {
@@ -329,6 +332,7 @@ export async function selectDraftHero(
       playerId,
       heroId,
       expectedVersion,
+      opponentId,
     );
     await commitHeroAction(client, series, map, heroId, isAutomatic, now);
   });

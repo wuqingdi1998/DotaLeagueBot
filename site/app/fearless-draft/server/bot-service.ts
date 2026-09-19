@@ -116,14 +116,8 @@ export async function startBotDraft(
   if (!formats.includes(format)) throw new DraftRequestError("Некорректный формат");
   await transaction(async (client) => {
     await lockDraftPlayers(client, [playerId, FEARLESS_DRAFT_BOT_PLAYER_ID]);
-    if (
-      (await hasActiveSeries(client, playerId)) ||
-      (await hasActiveSeries(client, FEARLESS_DRAFT_BOT_PLAYER_ID))
-    ) {
-      throw new DraftRequestError(
-        "Сначала завершите активный Fearless Draft или дождитесь освобождения бота",
-        409,
-      );
+    if (await hasActiveSeries(client, playerId)) {
+      throw new DraftRequestError("Сначала завершите активный Fearless Draft", 409);
     }
     const players = [playerId, FEARLESS_DRAFT_BOT_PLAYER_ID] as const;
     const toss = randomCoinTossResult(players);
@@ -164,7 +158,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
 
     if (state.end_requested_by && state.end_requested_by !== FEARLESS_DRAFT_BOT_PLAYER_ID) {
       await runBotAction(() =>
-        respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT")
+        respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", playerId)
       );
       return;
     }
@@ -174,7 +168,9 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         ? state.player1_ready_for_next_map
         : state.player2_ready_for_next_map;
       if (!isReady) {
-        await runBotAction(() => markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID));
+        await runBotAction(() =>
+          markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, playerId)
+        );
         continue;
       }
       return;
@@ -199,15 +195,18 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
           heroId: pick.hero_id,
           playerId: botPlayers[index].id,
         })),
+        playerId,
       ));
       return;
     }
     if (state.map_status === "FIRST_DECISION") {
       if (state.first_chooser_id !== FEARLESS_DRAFT_BOT_PLAYER_ID) return;
       await runBotAction(() =>
-        makeDraftChoice(FEARLESS_DRAFT_BOT_PLAYER_ID, randomItem([
-          "FIRST", "SECOND", "RADIANT", "DIRE",
-        ] as const))
+        makeDraftChoice(
+          FEARLESS_DRAFT_BOT_PLAYER_ID,
+          randomItem(["FIRST", "SECOND", "RADIANT", "DIRE"] as const),
+          playerId,
+        )
       );
       continue;
     }
@@ -217,7 +216,11 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         ? (["FIRST", "SECOND"] as const)
         : (["RADIANT", "DIRE"] as const);
       await runBotAction(() =>
-        makeDraftChoice(FEARLESS_DRAFT_BOT_PLAYER_ID, randomItem(choices))
+        makeDraftChoice(
+          FEARLESS_DRAFT_BOT_PLAYER_ID,
+          randomItem(choices),
+          playerId,
+        )
       );
       continue;
     }
@@ -231,6 +234,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         heroId,
         state.version,
         true,
+        playerId,
       )
     );
   }

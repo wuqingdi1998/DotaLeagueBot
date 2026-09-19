@@ -81,9 +81,10 @@ export async function loadDraftLineupAssignment(
 export async function submitDraftLineupAssignment(
   captainId: string,
   assignments: readonly DraftLineupSelection[],
+  opponentId?: string,
 ): Promise<void> {
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, captainId);
+    const { series, map } = await loadLockedDraftSeries(client, captainId, opponentId);
     if (
       (!series.season_match_id && !series.is_season_lobby_preview) ||
       map.status !== "LINEUP_ASSIGNMENT"

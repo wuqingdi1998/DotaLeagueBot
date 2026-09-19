@@ -61,15 +61,25 @@ describe("Fearless Draft bot mode", () => {
     expect(route).toContain("await startBotDraft(user.discordId)");
   });
 
-  it("uses one hidden archived player and prevents concurrent bot series", () => {
+  it("uses one hidden archived player without blocking another player's simulation", () => {
     expect(migration).toContain("9223372036854775806");
     expect(migration).toContain("is_archived");
-    expect(botService).toContain("hasActiveSeries(client, FEARLESS_DRAFT_BOT_PLAYER_ID)");
+    expect(botService).not.toContain(
+      "hasActiveSeries(client, FEARLESS_DRAFT_BOT_PLAYER_ID)",
+    );
+    expect(botService).toContain(
+      'respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", playerId)',
+    );
+    expect(botService).toContain(
+      "markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, playerId)",
+    );
   });
 
   it("randomly resolves bot choices, picks and bans through normal draft rules", () => {
     expect(botService).toContain("randomAvailableHeroId");
-    expect(botService).toContain("makeDraftChoice(FEARLESS_DRAFT_BOT_PLAYER_ID");
+    expect(botService).toMatch(
+      /makeDraftChoice\(\s*FEARLESS_DRAFT_BOT_PLAYER_ID,[\s\S]*?playerId,/,
+    );
     expect(botService).toContain("selectDraftHero(");
     expect(botService).toContain("state.version");
     expect(botService).toContain("true,");

@@ -48,9 +48,10 @@ export async function requestDraftSeriesEnd(playerId: string): Promise<void> {
 export async function respondToDraftSeriesEnd(
   playerId: string,
   response: "ACCEPT" | "DECLINE",
+  opponentId?: string,
 ): Promise<void> {
   await transaction(async (client) => {
-    const { series } = await loadLockedDraftSeries(client, playerId);
+    const { series } = await loadLockedDraftSeries(client, playerId, opponentId);
     if (!series.end_requested_by || !series.end_requested_at) {
       throw new DraftRequestError("Активного запроса на завершение нет", 409);
     }
@@ -85,9 +86,12 @@ export async function cancelDraftSeriesEnd(playerId: string): Promise<void> {
   });
 }
 
-export async function markReadyForNextDraftMap(playerId: string): Promise<void> {
+export async function markReadyForNextDraftMap(
+  playerId: string,
+  opponentId?: string,
+): Promise<void> {
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, playerId);
+    const { series, map } = await loadLockedDraftSeries(client, playerId, opponentId);
     if (series.status !== "MAP_COMPLETE" || map.status !== "COMPLETE") {
       throw new DraftRequestError("Текущая карта ещё не завершена", 409);
     }

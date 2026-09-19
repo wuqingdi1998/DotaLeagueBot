@@ -70,16 +70,18 @@ export async function hasActiveSeries(
 export async function currentSeriesId(
   client: PoolClient,
   playerId: string,
+  opponentId?: string,
 ): Promise<number> {
   const result = await client.query<{ id: number }>(
     `SELECT id::int
      FROM draft_series
      WHERE (player1_id = $1 OR player2_id = $1)
        AND status = ANY($2::text[])
+       AND ($3::bigint IS NULL OR player1_id = $3 OR player2_id = $3)
      ORDER BY updated_at DESC
      LIMIT 1
      FOR UPDATE`,
-    [playerId, activeSeriesStatuses],
+    [playerId, activeSeriesStatuses, opponentId ?? null],
   );
   const id = result.rows[0]?.id;
   if (!id) throw new DraftRequestError("Активная серия не найдена", 404);
@@ -89,8 +91,9 @@ export async function currentSeriesId(
 export async function loadLockedDraftSeries(
   client: PoolClient,
   playerId: string,
+  opponentId?: string,
 ): Promise<{ series: DraftSeriesRow; map: DraftMapRow }> {
-  const seriesId = await currentSeriesId(client, playerId);
+  const seriesId = await currentSeriesId(client, playerId, opponentId);
   return loadLockedDraftSeriesById(client, seriesId);
 }
 
