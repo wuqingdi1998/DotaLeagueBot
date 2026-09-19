@@ -26,28 +26,42 @@ describe("season league overview", () => {
     expect(styles).toContain("height: 100%");
   });
 
-  it("shows every lobby only from the latest fully completed public round", () => {
+  it("shows every lobby only from the latest fully completed public stage", () => {
     expect(overview).toContain("latestFullyCompletedSeasonRound");
     expect(overview).toContain("<SeasonRecentCompletedRound");
     expect(overviewModel).toContain('match.status === "completed"');
     expect(overviewModel).toContain("round.lobbies.length !== round.lobby_count");
+    expect(overviewModel).toContain("isFullyCompletedFinals");
+    expect(overviewModel).toContain('round.round_kind !== "finals"');
+    expect(overviewModel).toContain('round.status !== "completed"');
     expect(recentRound).toContain("round.lobbies");
     expect(recentRound).toContain(".flatMap((lobby) => lobby.matches)");
     expect(recentRound).toContain("match.team_a_score");
     expect(recentRound).toContain("match.team_b_score");
   });
 
-  it("renders five linked circular avatars per team with profile services", () => {
+  it("renders five linked circular player avatars without service buttons", () => {
     expect(recentRound).toContain(".slice(0, 5)");
     expect(recentRound).toContain('player.team_side === "a"');
     expect(recentRound).toContain('player.team_side === "b"');
     expect(recentRound).toContain('profileHref={`/players/${dotaId}`}');
-    expect(recentRound).toContain('service="stratz"');
-    expect(recentRound).toContain('service="dotabuff"');
+    expect(recentRound).not.toContain("buildPlayerLinks");
+    expect(styles).not.toContain("season-recent-service-link");
     expect(styles).toMatch(
       /\.season-recent-player-avatar\s*\{[\s\S]*?border-radius: 50%;/,
     );
     expect(styles).toContain("grid-template-columns: repeat(5");
+  });
+
+  it("places STRATZ and Dotabuff map links beside every lobby name", () => {
+    expect(recentRound).toContain("seasonMatchLinks(game.dota_match_id)");
+    expect(recentRound).toContain("match.games");
+    expect(recentRound).toContain("game?.game_number");
+    expect(recentRound).toContain('service="stratz"');
+    expect(recentRound).toContain('service="dotabuff"');
+    expect(recentRound).toContain("links?.stratz");
+    expect(recentRound).toContain("links?.dotaBuff");
+    expect(styles).toContain("season-recent-map-links");
   });
 
   it("reuses the six Fearless Draft statistics on hover", () => {

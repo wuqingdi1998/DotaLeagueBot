@@ -22,7 +22,9 @@ export function SeasonOverviewPanel() {
   const publishedRounds = seasonData.rounds.filter(
     (round) => round.is_visible && round.round_kind === "regular",
   );
-  const latestCompletedRound = latestFullyCompletedSeasonRound(publishedRounds);
+  const latestCompletedRound = latestFullyCompletedSeasonRound(
+    seasonData.rounds.filter((round) => round.is_visible),
+  );
   const leaders = seasonData.standings
     .filter((row) => row.section === "active")
     .slice(0, 10);

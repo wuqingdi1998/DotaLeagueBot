@@ -12,7 +12,12 @@ type SeasonOverviewRound = {
   lobbies: SeasonOverviewLobby[];
   round_kind: "regular" | "finals";
   round_number: number;
+  status: string;
 };
+
+function completedMatches(round: SeasonOverviewRound) {
+  return round.lobbies.flatMap((lobby) => lobby.matches);
+}
 
 function isFullyCompletedRegularRound(round: SeasonOverviewRound) {
   if (
@@ -23,18 +28,37 @@ function isFullyCompletedRegularRound(round: SeasonOverviewRound) {
   ) {
     return false;
   }
-  const matches = round.lobbies.flatMap((lobby) => lobby.matches);
+  const matches = completedMatches(round);
   return (
     matches.length === round.lobby_count &&
     matches.every((match) => match.status === "completed")
   );
 }
 
-/** Returns the newest public round only after every configured lobby is done. */
+function isFullyCompletedFinals(round: SeasonOverviewRound) {
+  if (
+    !round.is_visible ||
+    round.round_kind !== "finals" ||
+    round.status !== "completed"
+  ) {
+    return false;
+  }
+  const matches = completedMatches(round);
+  return (
+    matches.length === 2 &&
+    matches.every((match) => match.status === "completed")
+  );
+}
+
+function isFullyCompletedStage(round: SeasonOverviewRound) {
+  return isFullyCompletedRegularRound(round) || isFullyCompletedFinals(round);
+}
+
+/** Returns the newest public stage after every required match is completed. */
 export function latestFullyCompletedSeasonRound<
   Round extends SeasonOverviewRound,
 >(rounds: readonly Round[]): Round | undefined {
   return rounds
-    .filter(isFullyCompletedRegularRound)
+    .filter(isFullyCompletedStage)
     .toSorted((left, right) => right.round_number - left.round_number)[0];
 }

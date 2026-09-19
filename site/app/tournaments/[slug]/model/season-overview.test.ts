@@ -8,6 +8,7 @@ function round(
     isVisible?: boolean;
     lobbyCount?: number;
     roundKind?: "regular" | "finals";
+    status?: "planned" | "active" | "completed";
   } = {},
 ) {
   return {
@@ -19,6 +20,7 @@ function round(
     })),
     round_kind: options.roundKind ?? "regular" as const,
     round_number: roundNumber,
+    status: options.status ?? "completed" as const,
   };
 }
 
@@ -54,15 +56,43 @@ describe("season overview recent round", () => {
     expect(latestFullyCompletedSeasonRound([incompleteRound])).toBeUndefined();
   });
 
-  it("ignores hidden and finals rounds on the public league overview", () => {
+  it("ignores hidden rounds", () => {
     const publicRound = round(2, ["completed", "completed"]);
 
     expect(
       latestFullyCompletedSeasonRound([
         publicRound,
         round(3, ["completed", "completed"], { isVisible: false }),
-        round(4, ["completed"], { roundKind: "finals" }),
       ]),
     ).toBe(publicRound);
+  });
+
+  it("uses completed finals as the newest stage after both matches finish", () => {
+    const finals = round(15, ["completed", "completed"], {
+      lobbyCount: 2,
+      roundKind: "finals",
+      status: "completed",
+    });
+
+    expect(
+      latestFullyCompletedSeasonRound([
+        round(14, ["completed", "completed"]),
+        finals,
+      ]),
+    ).toBe(finals);
+  });
+
+  it("does not show finals before both matches and the stage are completed", () => {
+    const lastRegularRound = round(14, ["completed", "completed"]);
+
+    expect(
+      latestFullyCompletedSeasonRound([
+        lastRegularRound,
+        round(15, ["completed", "published"], {
+          roundKind: "finals",
+          status: "active",
+        }),
+      ]),
+    ).toBe(lastRegularRound);
   });
 });

@@ -50,21 +50,99 @@
 }
 
 .season-recent-match-heading {
+  align-items: center;
   background: color-mix(in srgb, var(--surface) 78%, transparent);
-  border: 0;
   border-bottom: 1px solid var(--line);
-  color: var(--text);
-  cursor: pointer;
-  font: inherit;
-  padding: 8px 11px;
-  text-align: left;
-  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 6px;
+  justify-content: space-between;
+  padding: 7px 10px;
 }
 
-.season-recent-match-heading > span {
+.season-recent-match-heading > button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  font: inherit;
+  gap: 8px;
+  min-width: 0;
+  padding: 1px;
+  text-align: left;
+}
+
+.season-recent-match-heading > button > span {
   color: var(--blue-strong);
   font-size: 13px;
   font-weight: 750;
+}
+
+.season-recent-map-links,
+.season-recent-map-link-group {
+  align-items: center;
+  display: flex;
+}
+
+.season-recent-map-links {
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.season-recent-map-link-group {
+  gap: 3px;
+}
+
+.season-recent-map-link-group > b {
+  color: var(--text);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  margin-right: 1px;
+}
+
+.season-recent-map-link {
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: flex;
+  height: 20px;
+  justify-content: center;
+  overflow: hidden;
+  width: 20px;
+}
+
+.season-recent-map-link.stratz {
+  background: #09a9c5;
+}
+
+.season-recent-map-link.dotabuff {
+  background: #f23a1f;
+}
+
+.season-recent-map-link.unavailable {
+  filter: grayscale(1);
+  opacity: 0.36;
+}
+
+.season-recent-map-link:hover,
+.season-recent-map-link:focus-visible {
+  filter: brightness(1.16);
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+.season-recent-map-logo {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.season-recent-map-logo.stratz {
+  height: 15px;
+  width: 15px;
 }
 
 .season-recent-match-teams {
@@ -114,7 +192,6 @@
   margin-top: 7px;
 }
 
-.season-recent-player,
 .season-recent-player-avatar.unavailable {
   height: 48px;
   min-width: 0;
@@ -166,48 +243,6 @@
   font-weight: 800;
 }
 
-.season-recent-service-link {
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  bottom: 0;
-  display: flex;
-  height: 18px;
-  justify-content: center;
-  overflow: hidden;
-  position: absolute;
-  width: 18px;
-  z-index: 3;
-}
-
-.season-recent-service-link.stratz {
-  background: #09a9c5;
-  left: 1px;
-}
-
-.season-recent-service-link.dotabuff {
-  background: #f23a1f;
-  right: 1px;
-}
-
-.season-recent-service-link:hover,
-.season-recent-service-link:focus-visible {
-  filter: brightness(1.16);
-  outline: 2px solid var(--text);
-  outline-offset: 1px;
-}
-
-.season-recent-service-logo {
-  display: block;
-  height: 100%;
-  width: 100%;
-}
-
-.season-recent-service-logo.stratz {
-  height: 13px;
-  width: 13px;
-}
-
 @media (max-width: 900px) {
   .season-recent-match-teams {
     grid-template-columns: minmax(0, 1fr);
@@ -222,5 +257,9 @@
   .season-recent-player-avatar {
     height: 48px;
     width: 48px;
+  }
+
+  .season-recent-match-heading > button > span {
+    display: none;
   }
 }
