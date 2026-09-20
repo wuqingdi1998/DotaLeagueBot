@@ -83,6 +83,15 @@ export function hasSeasonRankedWinAdmission(
   );
 }
 
+export function seasonRankedWinRequirementClass(
+  wins: number | null,
+  required: number,
+  source: SeasonRoundRegistration["wins_source"],
+): "manual" | "met" | "missing" {
+  if (wins === null || wins < required) return "missing";
+  return source === "manual" ? "manual" : "met";
+}
+
 export function seasonRankedWinsButtonLabel(
   isLoading: boolean,
   snapshot: RankedWinSnapshot | null,

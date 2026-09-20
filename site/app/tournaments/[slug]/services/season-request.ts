@@ -1,9 +1,12 @@
+import type { RankedWinSnapshot } from "@/lib/season-ranked-wins/model";
+
 export type SeasonMutationResponse = {
   error?: string;
   id?: number;
   isCheckedIn?: boolean;
   ok?: boolean;
   requiresConfirmation?: boolean;
+  rankedWins?: RankedWinSnapshot;
 };
 
 export { fetchSiteRequest as fetchSeasonRequest } from "../../../../lib/site-request";

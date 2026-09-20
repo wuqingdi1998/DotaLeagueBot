@@ -88,8 +88,22 @@ export async function savePlayerRankedWins(
      ON CONFLICT (round_id, player_id) DO UPDATE
      SET primary_role = EXCLUDED.primary_role,
          secondary_role = EXCLUDED.secondary_role,
-         primary_wins = EXCLUDED.primary_wins,
-         secondary_wins = EXCLUDED.secondary_wins,
+         primary_wins = CASE
+           WHEN season_ranked_win_checks.source = 'stratz'
+             AND EXCLUDED.source = 'stratz'
+             AND season_ranked_win_checks.primary_role = EXCLUDED.primary_role
+             AND season_ranked_win_checks.secondary_role = EXCLUDED.secondary_role
+           THEN GREATEST(season_ranked_win_checks.primary_wins, EXCLUDED.primary_wins)
+           ELSE EXCLUDED.primary_wins
+         END,
+         secondary_wins = CASE
+           WHEN season_ranked_win_checks.source = 'stratz'
+             AND EXCLUDED.source = 'stratz'
+             AND season_ranked_win_checks.primary_role = EXCLUDED.primary_role
+             AND season_ranked_win_checks.secondary_role = EXCLUDED.secondary_role
+           THEN GREATEST(season_ranked_win_checks.secondary_wins, EXCLUDED.secondary_wins)
+           ELSE EXCLUDED.secondary_wins
+         END,
          checked_at = EXCLUDED.checked_at,
          source = EXCLUDED.source
      WHERE season_ranked_win_checks.checked_at <= EXCLUDED.checked_at
@@ -146,8 +160,7 @@ async function performPlayerRefresh(
     positions: target.positions,
     windowEndsAt,
   });
-  const isSaved = await savePlayerRankedWins(roundId, playerId, snapshot);
-  if (isSaved) return snapshot;
+  await savePlayerRankedWins(roundId, playerId, snapshot);
   const current = await one<RankedWinCheckRow>(
     `SELECT primary_role::int, secondary_role::int, primary_wins::int,
        secondary_wins::int, checked_at FROM season_ranked_win_checks

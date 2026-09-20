@@ -11,7 +11,10 @@ export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
   try {
     const user = await requireSession();
-    const body = await request.json().catch(() => null) as { roundId?: unknown } | null;
+    const body = await request.json().catch(() => null) as {
+      forceRefresh?: unknown;
+      roundId?: unknown;
+    } | null;
     const roundId = Number(body?.roundId);
     if (!Number.isSafeInteger(roundId) || roundId <= 0) {
       return Response.json({ error: "Некорректный тур" }, { status: 400 });
@@ -26,8 +29,11 @@ export async function POST(request: Request) {
     if (!round) {
       return Response.json({ error: "Тур не найден" }, { status: 404 });
     }
-    const cached = await freshPlayerRankedWins(roundId, user.discordId);
-    const rankedWins = cached ?? (await refreshPlayerRankedWins(roundId, user.discordId));
+    const cached = body?.forceRefresh === true
+      ? null
+      : await freshPlayerRankedWins(roundId, user.discordId);
+    const rankedWins = cached
+      ?? (await refreshPlayerRankedWins(roundId, user.discordId));
     return Response.json({ ok: true, rankedWins });
   } catch (error) {
     if (error instanceof SeasonRankedWinsError) {

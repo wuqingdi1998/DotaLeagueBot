@@ -6,6 +6,7 @@ import {
   formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
   hasSeasonRankedWinAdmission,
+  seasonRankedWinRequirementClass,
   seasonRankedWinsButtonLabel,
   sortSeasonRegistrations,
 } from "../app/tournaments/[slug]/model/season-registration";
@@ -129,6 +130,13 @@ describe("season registration list", () => {
     expect(seasonRankedWinsButtonLabel(false, insufficientSnapshot)).toBe(
       "Осн. (1) 9/10 · Доп. (5) 3/4",
     );
+  });
+
+  it("colors fixed manual wins by each role threshold", () => {
+    expect(seasonRankedWinRequirementClass(10, 10, "manual")).toBe("manual");
+    expect(seasonRankedWinRequirementClass(4, 4, "manual")).toBe("manual");
+    expect(seasonRankedWinRequirementClass(9, 10, "manual")).toBe("missing");
+    expect(seasonRankedWinRequirementClass(3, 4, "manual")).toBe("missing");
   });
 
   it("counts down to the next ten-minute refresh from the latest completed check", () => {

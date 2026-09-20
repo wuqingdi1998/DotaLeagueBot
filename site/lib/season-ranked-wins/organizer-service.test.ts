@@ -23,13 +23,27 @@ beforeEach(() => {
   mocks.one.mockResolvedValue({
     player_id: "100",
     scheduled_at: roundStartsAt,
+    wins_source: null,
   });
   mocks.target.mockResolvedValue({ dota_id: "200", positions: "1/5" });
   mocks.transaction.mockImplementation((callback) => callback({ query: mocks.query }));
-  mocks.query.mockResolvedValue({
-    rowCount: 1,
-    rows: [{ scheduled_at: roundStartsAt, tournament_id: 9 }],
-  });
+  mocks.query.mockImplementation((sql: string) => Promise.resolve(
+    sql.includes("FROM season_ranked_win_checks")
+      ? {
+        rowCount: 1,
+        rows: [{
+          checked_at: roundStartsAt,
+          primary_role: 1,
+          primary_wins: 14,
+          secondary_role: 5,
+          secondary_wins: 0,
+        }],
+      }
+      : {
+        rowCount: 1,
+        rows: [{ scheduled_at: roundStartsAt, tournament_id: 9 }],
+      },
+  ));
   mocks.save.mockResolvedValue(true);
 });
 
@@ -71,6 +85,20 @@ describe("organizer win changes", () => {
       .rejects.toMatchObject({ status: 404 });
     expect(mocks.stratz).not.toHaveBeenCalled();
     expect(mocks.save).not.toHaveBeenCalled();
+  });
+
+  it("does not contact Stratz after wins were fixed manually", async () => {
+    mocks.one.mockResolvedValue({
+      player_id: "100",
+      scheduled_at: roundStartsAt,
+      wins_source: "manual",
+    });
+    await expect(updateOrganizerRankedWins(
+      { ...input, source: "stratz" },
+      "999",
+    )).rejects.toMatchObject({ status: 409 });
+    expect(mocks.target).not.toHaveBeenCalled();
+    expect(mocks.stratz).not.toHaveBeenCalled();
   });
 
   it("rejects a changed role selection", async () => {

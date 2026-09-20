@@ -19,10 +19,12 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
   if (!season.data?.isOrganizer) return null;
 
   async function save(source: RankedWinUpdateSource) {
-    if (await editor.save(source)) {
-      dialogRef.current?.close();
-      setToast(`Победы ${registration.nickname} обновлены`);
-    }
+    const rankedWins = await editor.save(source);
+    if (!rankedWins) return;
+    dialogRef.current?.close();
+    setToast(
+      `Победы ${registration.nickname}: основная – ${rankedWins.primaryWins}, дополнительная – ${rankedWins.secondaryWins}`,
+    );
   }
 
   async function sendWarning() {
@@ -55,9 +57,13 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
           Рейтинговые победы за {SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура
         </p>
         <div className="season-ranked-win-sources">
-          <button type="button" className="secondary-button" disabled={isSaving || !positions}
+          <button type="button" className="secondary-button" disabled={
+            isSaving || !positions || registration.wins_source === "manual"
+          }
             onClick={() => void save("stratz")}>
-            {editor.pendingSource === "stratz" ? "Загрузка STRATZ…" : "STRATZ"}
+            {registration.wins_source === "manual"
+              ? "Зафиксировано вручную"
+              : editor.pendingSource === "stratz" ? "Проверяем STRATZ…" : "STRATZ"}
           </button>
           <a className="secondary-button"
             href={buildDotabuffRankedMatchesUrl(registration.dota_id)}
@@ -97,7 +103,9 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
           </form>
         )}
         {editor.error && <p className="season-ranked-win-error" role="alert">{editor.error}</p>}
-        {editor.pendingSource && <p role="status">Обновляем статистику…</p>}
+        {editor.pendingSource && (
+          <p role="status">{editor.status || "Обновляем статистику…"}</p>
+        )}
         {editor.isSendingWarning && <p role="status">Отправляем предупреждение…</p>}
       </dialog>
     </>

@@ -13,6 +13,7 @@ import {
   fetchSeasonRequest,
   readSeasonMutationResponse,
 } from "../services/season-request";
+import { checkStratzWithRetries } from "../services/ranked-win-retry";
 
 export function useSeasonController({
   enabled,
@@ -34,6 +35,7 @@ export function useSeasonController({
   );
   const [checkInRoundId, setCheckInRoundId] = useState<number | null>(null);
   const [checkingRankedWins, setCheckingRankedWins] = useState(false);
+  const [rankedWinsStatus, setRankedWinsStatus] = useState("");
   const activeRoundNumber =
     Number.isInteger(requestedRound) && requestedRound > 0
       ? requestedRound
@@ -200,24 +202,36 @@ export function useSeasonController({
   async function checkMyRankedWins(roundId: number) {
     if (checkingRankedWins) return;
     setCheckingRankedWins(true);
+    setRankedWinsStatus("");
     try {
-      const response = await fetchSeasonRequest("/api/season/ranked-wins", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ roundId }),
+      const rankedWins = await checkStratzWithRetries({
+        onProgress: ({ message }) => setRankedWinsStatus(message),
+        check: async () => {
+          const response = await fetchSeasonRequest("/api/season/ranked-wins", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ roundId, forceRefresh: true }),
+          });
+          const result = await readSeasonMutationResponse(response);
+          if (!response.ok || !result.rankedWins) {
+            throw new Error(
+              result.error ?? "Не удалось проверить рейтинговые победы",
+            );
+          }
+          return result.rankedWins;
+        },
       });
-      const result = await readSeasonMutationResponse(response);
-      if (!response.ok) {
-        setMessage(
-          result.error ?? "Не удалось проверить рейтинговые победы",
-        );
-        return;
-      }
+      setMessage(
+        `Проверка завершена. Максимум: основная – ${rankedWins.primaryWins}, дополнительная – ${rankedWins.secondaryWins}`,
+      );
       await load();
-    } catch {
-      setMessage("Сервер недоступен. Попробуйте проверить победы ещё раз");
+    } catch (error) {
+      setMessage(error instanceof Error
+        ? error.message
+        : "Сервер недоступен. Попробуйте проверить победы ещё раз");
     } finally {
       setCheckingRankedWins(false);
+      setRankedWinsStatus("");
     }
   }
 
@@ -234,6 +248,7 @@ export function useSeasonController({
     mutate,
     openRound,
     openTab,
+    rankedWinsStatus,
     registrationRoundId,
     updateRoundRegistration,
   };

@@ -33,6 +33,10 @@ const registrationStyles = source(
 );
 const rankedWinService = source("./season-ranked-wins/service.ts");
 const rankedWinModel = source("./season-ranked-wins/model.ts");
+const rankedWinRepository = source("./season-ranked-wins/repository.ts");
+const rankedWinRetry = source(
+  "../app/tournaments/[slug]/services/ranked-win-retry.ts",
+);
 const rankedWinEditor = source(
   "../app/tournaments/[slug]/admin/SeasonRankedWinEditor.tsx",
 );
@@ -86,10 +90,10 @@ describe("season ranked wins contract", () => {
 
   it("colors primary and secondary win requirements independently", () => {
     expect(registrationSection).toMatch(
-      /rankedWinRequirementClass\(\s*registration\.primary_wins,\s*SEASON_PRIMARY_ROLE_WINS_REQUIRED/,
+      /seasonRankedWinRequirementClass\(\s*registration\.primary_wins,\s*SEASON_PRIMARY_ROLE_WINS_REQUIRED/,
     );
     expect(registrationSection).toMatch(
-      /rankedWinRequirementClass\(\s*registration\.secondary_wins,\s*SEASON_SECONDARY_ROLE_WINS_REQUIRED/,
+      /seasonRankedWinRequirementClass\(\s*registration\.secondary_wins,\s*SEASON_SECONDARY_ROLE_WINS_REQUIRED/,
     );
     expect(registrationStyles).toContain(".season-registration-win.met");
     expect(registrationStyles).toContain(".season-registration-win.missing");
@@ -105,6 +109,17 @@ describe("season ranked wins contract", () => {
     expect(rankedWinService).not.toContain("fetchDotaBuffRankedMatches");
     expect(rankedWinModel).not.toContain("RankedWinSource");
     expect(rankedWinService).toContain("findRankedWinsWithoutRoles");
+  });
+
+  it("repeats Stratz checks five times at three-second intervals", () => {
+    expect(rankedWinRetry).toContain("STRATZ_CHECK_ATTEMPTS = 5");
+    expect(rankedWinRetry).toContain("STRATZ_CHECK_INTERVAL_MS = 3_000");
+    expect(rankedWinRepository).toContain(
+      "GREATEST(season_ranked_win_checks.primary_wins, EXCLUDED.primary_wins)",
+    );
+    expect(rankedWinRepository).toContain(
+      "GREATEST(season_ranked_win_checks.secondary_wins, EXCLUDED.secondary_wins)",
+    );
   });
 
   it("shows admitted checks as pressed and marks manual fixed wins with a lock", () => {

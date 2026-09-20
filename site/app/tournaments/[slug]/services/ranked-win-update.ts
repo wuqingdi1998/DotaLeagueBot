@@ -15,4 +15,8 @@ export async function saveRankedWinUpdate(body: {
   });
   const result = await readSeasonMutationResponse(response);
   if (!response.ok) throw new Error(result.error ?? "Не удалось обновить победы");
+  if (!result.rankedWins) {
+    throw new Error("Сервер не вернул результат проверки побед");
+  }
+  return result.rankedWins;
 }

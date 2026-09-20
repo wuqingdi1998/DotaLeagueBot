@@ -70,6 +70,13 @@ describe("season ranked wins repository", () => {
       availableUntil: "2026-09-01T10:05:00.000Z",
     });
     mocks.query.mockResolvedValue([{ player_id: "100" }]);
+    mocks.one.mockResolvedValueOnce({
+      primary_role: 1,
+      secondary_role: 3,
+      primary_wins: 9,
+      secondary_wins: 4,
+      checked_at: new Date("2026-09-01T10:00:00.000Z"),
+    });
 
     await refreshPlayerRankedWins(7, "100");
 

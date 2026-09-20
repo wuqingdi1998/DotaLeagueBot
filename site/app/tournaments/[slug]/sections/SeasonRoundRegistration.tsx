@@ -25,15 +25,13 @@ import {
   formatSeasonRankedWinsRefreshCountdown,
   formatSeasonRegistrationMoment,
   hasSeasonRankedWinAdmission,
+  seasonRankedWinRequirementClass,
   seasonRankedWinsButtonLabel,
   sortSeasonRegistrations,
   type SeasonRegistrationDirection,
   type SeasonRegistrationSort,
 } from "../model/season-registration";
-import type {
-  SeasonRound,
-  SeasonRoundRegistration as SeasonRoundRegistrationData,
-} from "../model/season-types";
+import type { SeasonRound } from "../model/season-types";
 import { SeasonRegistrationConfirmationDialog } from
   "../components/SeasonRegistrationConfirmationDialog";
 import { SeasonRoundCheckIn } from "./SeasonRoundCheckIn";
@@ -68,6 +66,13 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
   );
   const freshRankedWins = hasFreshRankedWins ? myRankedWins : null;
   const hasRankedWinAdmission = hasSeasonRankedWinAdmission(freshRankedWins);
+  const myRegistration = data.user
+    ? round.registrations.find(
+      (registration) => registration.player_id === data.user?.discordId,
+    )
+    : null;
+  const hasFixedRankedWins = myRegistration?.wins_source === "manual"
+    || myRegistration?.wins_source === "dotabuff";
 
   function changeSort(nextSort: SeasonRegistrationSort) {
     if (nextSort === sort) {
@@ -155,15 +160,23 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                   hasRankedWinAdmission ? " admitted" : ""
                 }`}
                 type="button"
-                disabled={season.checkingRankedWins || hasFreshRankedWins}
+                disabled={
+                  season.checkingRankedWins
+                  || hasFreshRankedWins
+                  || hasFixedRankedWins
+                }
                 aria-pressed={hasRankedWinAdmission}
                 onClick={() => void season.checkMyRankedWins(round.id)}
               >
                 {hasRankedWinAdmission && <FiCheckCircle aria-hidden="true" />}
-                {seasonRankedWinsButtonLabel(
-                  season.checkingRankedWins,
-                  freshRankedWins,
-                )}
+                {hasFixedRankedWins
+                  ? myRegistration?.wins_source === "manual"
+                    ? "Победы зафиксированы вручную"
+                    : "Победы зафиксированы через Dotabuff"
+                  : season.rankedWinsStatus || seasonRankedWinsButtonLabel(
+                    season.checkingRankedWins,
+                    freshRankedWins,
+                  )}
               </button>
             )}
           </div>
@@ -270,7 +283,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                       : `Открыть рейтинговые матчи игрока за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура на STRATZ`}
                   >
                     <span
-                      className={`season-registration-win ${rankedWinRequirementClass(
+                      className={`season-registration-win ${seasonRankedWinRequirementClass(
                         registration.primary_wins,
                         SEASON_PRIMARY_ROLE_WINS_REQUIRED,
                         registration.wins_source,
@@ -281,7 +294,7 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                     </span>
                     <span aria-hidden="true"> · </span>
                     <span
-                      className={`season-registration-win ${rankedWinRequirementClass(
+                      className={`season-registration-win ${seasonRankedWinRequirementClass(
                         registration.secondary_wins,
                         SEASON_SECONDARY_ROLE_WINS_REQUIRED,
                         registration.wins_source,
@@ -318,15 +331,6 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
       )}
     </section>
   );
-}
-
-function rankedWinRequirementClass(
-  wins: number | null,
-  required: number,
-  source: SeasonRoundRegistrationData["wins_source"],
-) {
-  if (source === "manual") return "manual";
-  return wins !== null && wins >= required ? "met" : "missing";
 }
 
 function SortButton({
