@@ -8,6 +8,7 @@ import {
   hasSeasonRankedWinAdmission,
   seasonRankedWinRequirementClass,
   seasonRankedWinsButtonLabel,
+  shouldShowSeasonRankedWinsButton,
   sortSeasonRegistrations,
 } from "../app/tournaments/[slug]/model/season-registration";
 import type { SeasonRoundRegistration } from "../app/tournaments/[slug]/model/season-types";
@@ -130,6 +131,12 @@ describe("season registration list", () => {
     expect(seasonRankedWinsButtonLabel(false, insufficientSnapshot)).toBe(
       "Осн. (1) 9/10 · Доп. (5) 3/4",
     );
+  });
+
+  it("keeps the ranked-win button after registration for organizers", () => {
+    expect(shouldShowSeasonRankedWinsButton(true, true)).toBe(true);
+    expect(shouldShowSeasonRankedWinsButton(true, false)).toBe(false);
+    expect(shouldShowSeasonRankedWinsButton(false, false)).toBe(true);
   });
 
   it("colors fixed manual wins by each role threshold", () => {

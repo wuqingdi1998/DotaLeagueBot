@@ -27,6 +27,7 @@ import {
   hasSeasonRankedWinAdmission,
   seasonRankedWinRequirementClass,
   seasonRankedWinsButtonLabel,
+  shouldShowSeasonRankedWinsButton,
   sortSeasonRegistrations,
   type SeasonRegistrationDirection,
   type SeasonRegistrationSort,
@@ -154,7 +155,10 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                 ? "Сохраняем…"
                 : actionLabel}
             </button>
-            {!round.is_registered && (
+            {shouldShowSeasonRankedWinsButton(
+              round.is_registered,
+              Boolean(season.data?.isOrganizer),
+            ) && (
               <button
                 className={`secondary-button compact season-ranked-wins-button${
                   hasRankedWinAdmission ? " admitted" : ""

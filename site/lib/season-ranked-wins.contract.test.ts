@@ -79,6 +79,9 @@ describe("season ranked wins contract", () => {
     expect(registrationSection).toContain(
       "seasonRankedWinsButtonLabel",
     );
+    expect(registrationSection).toContain(
+      "shouldShowSeasonRankedWinsButton",
+    );
     expect(registrationModel).toContain(
       "Мои рейтинговые победы за ${SEASON_RANKED_WIN_WINDOW_DAYS} день до старта тура",
     );
@@ -129,6 +132,11 @@ describe("season ranked wins contract", () => {
     expect(registrationSection).toContain("<FiLock");
     expect(registrationSection).toContain("SEASON_RANKED_WINS_ADMISSION_MESSAGE");
     expect(registrationStyles).toContain(".season-ranked-wins-button.admitted");
+    expect(registrationStyles).toContain(
+      ".season-round-registration button.season-ranked-wins-button",
+    );
+    expect(registrationStyles).toContain("font-size: 0.8125rem");
+    expect(registrationStyles).toContain("white-space: normal");
     expect(registrationStyles).toContain(".season-registration-fixed-wins");
   });
 

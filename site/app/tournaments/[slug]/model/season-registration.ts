@@ -83,6 +83,13 @@ export function hasSeasonRankedWinAdmission(
   );
 }
 
+export function shouldShowSeasonRankedWinsButton(
+  isRegistered: boolean,
+  isOrganizer: boolean,
+): boolean {
+  return !isRegistered || isOrganizer;
+}
+
 export function seasonRankedWinRequirementClass(
   wins: number | null,
   required: number,

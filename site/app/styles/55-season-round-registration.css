@@ -27,6 +27,7 @@
 
 .season-round-registration small {
   color: var(--muted);
+  font-size: 0.8125rem;
   line-height: 1.45;
 }
 
@@ -44,8 +45,9 @@
   max-width: min(100%, 680px);
 }
 
-.season-ranked-wins-button {
-  font-size: 0.8rem;
+.season-round-registration button.season-ranked-wins-button {
+  font-size: 0.8125rem;
+  white-space: normal;
 }
 
 .season-ranked-wins-button.admitted {
