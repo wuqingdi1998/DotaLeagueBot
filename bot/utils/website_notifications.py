@@ -2,6 +2,9 @@ import discord
 
 
 MEMBER_WELCOME_PREVIEW_EVENT_TYPE = "member_welcome_preview"
+SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = (
+    "season_round_announcement_preview"
+)
 REGISTRATION_CHANNEL_URL = (
     "https://discord.com/channels/328205360466755584/1457019432034504776"
 )
@@ -47,3 +50,21 @@ def notification_outbox_embed(
     if event_type == MEMBER_WELCOME_PREVIEW_EVENT_TYPE:
         return member_welcome_embed()
     return notification_embed(title, message, action_url)
+
+
+def notification_outbox_message_kwargs(
+    event_type: str,
+    title: str,
+    message: str,
+    action_url: str | None,
+) -> dict[str, object]:
+    if event_type == SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE:
+        return {"content": message}
+    return {
+        "embed": notification_outbox_embed(
+            event_type,
+            title,
+            message,
+            action_url,
+        )
+    }

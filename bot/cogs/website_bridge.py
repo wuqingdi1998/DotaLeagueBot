@@ -12,8 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.core import async_session
 from services.durable_scheduler import register_scheduled_job
+from services.season_round_announcement import (
+    build_announcement_message,
+    get_season_round,
+)
 from services.season_round_channel_sync import sync_season_round_discord_channels
-from utils.website_notifications import notification_outbox_embed
+from utils.website_notifications import (
+    SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE,
+    notification_outbox_embed,
+    notification_outbox_message_kwargs,
+)
 
 
 class WebsiteBridge(commands.Cog):
@@ -277,7 +285,7 @@ class WebsiteBridge(commands.Cog):
                 text(
                     """
                     SELECT id, discord_id, event_type, title, message, action_url,
-                           status, discord_message_id
+                           status, discord_message_id, season_round_id
                     FROM notification_outbox
                     WHERE status IN ('pending', 'delete_pending')
                       AND available_at <= NOW()
@@ -307,14 +315,36 @@ class WebsiteBridge(commands.Cog):
                             {"id": notification["id"]},
                         )
                     else:
-                        sent_message = await user.send(
-                            embed=notification_outbox_embed(
+                        if (
+                            notification["event_type"]
+                            == SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE
+                        ):
+                            season_round = await get_season_round(
+                                session,
+                                int(notification["season_round_id"]),
+                            )
+                            if season_round is None:
+                                raise RuntimeError(
+                                    "Season round announcement preview has no round"
+                                )
+                            message_kwargs = notification_outbox_message_kwargs(
                                 notification["event_type"],
                                 notification["title"],
-                                notification["message"],
+                                build_announcement_message(season_round),
                                 notification["action_url"],
                             )
-                        )
+                            sent_message = await user.send(
+                                content=str(message_kwargs["content"])
+                            )
+                        else:
+                            sent_message = await user.send(
+                                embed=notification_outbox_embed(
+                                    notification["event_type"],
+                                    notification["title"],
+                                    notification["message"],
+                                    notification["action_url"],
+                                )
+                            )
                         await session.execute(
                             text(
                                 """
