@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import discord
 from sqlalchemy import text
@@ -18,6 +18,7 @@ ANNOUNCEMENT_ROLE_IDS = frozenset(
     }
 )
 DEFAULT_PUBLIC_BASE_URL = "https://lsesports.ru"
+MOSCOW_TIME_ZONE = timezone(timedelta(hours=3))
 
 
 @dataclass(frozen=True)
@@ -107,6 +108,9 @@ def build_announcement_message(
     public_base_url: str | None = None,
 ) -> str:
     start_timestamp = int(season_round.scheduled_at.timestamp())
+    moscow_time = season_round.scheduled_at.astimezone(MOSCOW_TIME_ZONE).strftime(
+        "%H:%M"
+    )
     base_url = (
         public_base_url
         or os.getenv("PUBLIC_BASE_URL")
@@ -119,7 +123,7 @@ def build_announcement_message(
     return (
         "Привет! У нас скоро состоится следующий тур серверной лиги.\n\n"
         f"Тур №{season_round.round_number} – {season_round.name}\n"
-        f"Начало: <t:{start_timestamp}:F>\n"
+        f"Начало: <t:{start_timestamp}:F> ({moscow_time} МСК)\n"
         f"До начала: <t:{start_timestamp}:R>\n"
         "Для участия нужны 10 рейтинговых побед на основной роли и 4 победы "
         "на дополнительной роли.\n"

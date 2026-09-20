@@ -494,7 +494,7 @@ jobs:
               "SELECT COUNT(*)
                FROM notification_outbox
                WHERE discord_id = 311247030422863882
-                 AND event_type = '\''season_round_announcement_preview'\''"')"
+                 AND event_type = '\''season_round_announcement_preview_moscow_time'\''"')"
             if [ "$season_round_preview_count" = "0" ]; then
               echo "No active seasonal league round; frokeng preview was not queued"
             else
@@ -503,7 +503,7 @@ jobs:
                 "UPDATE notification_outbox
                  SET status = '\''pending'\'', available_at = NOW()
                  WHERE discord_id = 311247030422863882
-                   AND event_type = '\''season_round_announcement_preview'\''
+                   AND event_type = '\''season_round_announcement_preview_moscow_time'\''
                    AND status = '\''cancelled'\''"'
 
               for attempt in $(seq 1 30); do
@@ -512,7 +512,7 @@ jobs:
                   "SELECT status
                    FROM notification_outbox
                    WHERE discord_id = 311247030422863882
-                     AND event_type = '\''season_round_announcement_preview'\''
+                     AND event_type = '\''season_round_announcement_preview_moscow_time'\''
                    ORDER BY id DESC
                    LIMIT 1"')"
                 if [ "$season_round_preview_status" = "sent" ]; then
@@ -525,7 +525,7 @@ jobs:
                     "SELECT status, attempts, last_error
                      FROM notification_outbox
                      WHERE discord_id = 311247030422863882
-                       AND event_type = '\''season_round_announcement_preview'\''
+                       AND event_type = '\''season_round_announcement_preview_moscow_time'\''
                      ORDER BY id DESC
                      LIMIT 1"'
                   docker compose logs --tail=200 bot

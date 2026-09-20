@@ -23,7 +23,7 @@ MIGRATION = (
     / "bot"
     / "database"
     / "migrations"
-    / "0145_season_round_announcement_preview.sql"
+    / "0146_season_round_announcement_moscow_preview.sql"
 )
 DEPLOYMENT = ROOT / ".github" / "workflows" / "deploy.yml"
 
@@ -33,7 +33,7 @@ def test_announcement_message_matches_approved_copy() -> None:
         id=91,
         round_number=3,
         name="Осенний разлом",
-        scheduled_at=datetime(2026, 9, 27, 15, 0, tzinfo=timezone.utc),
+        scheduled_at=datetime(2026, 9, 27, 18, 0, tzinfo=timezone.utc),
         tournament_slug="league-season-9",
     )
 
@@ -42,14 +42,28 @@ def test_announcement_message_matches_approved_copy() -> None:
     assert message == (
         "Привет! У нас скоро состоится следующий тур серверной лиги.\n\n"
         "Тур №3 – Осенний разлом\n"
-        "Начало: <t:1790521200:F>\n"
-        "До начала: <t:1790521200:R>\n"
+        "Начало: <t:1790532000:F> (21:00 МСК)\n"
+        "До начала: <t:1790532000:R>\n"
         "Для участия нужны 10 рейтинговых побед на основной роли и 4 победы "
         "на дополнительной роли.\n"
         "https://lsesports.ru/tournaments/league-season-9?round=3\n\n"
         "Если вы уже зарегистрированы, повторно регистрироваться не нужно. "
         "Не забудьте пройти чек-ин за 2 часа до начала тура."
     )
+
+
+def test_friday_round_shows_its_actual_moscow_time() -> None:
+    friday_round = UpcomingSeasonRound(
+        id=92,
+        round_number=4,
+        name="Пятничный тур",
+        scheduled_at=datetime(2026, 10, 2, 19, 0, tzinfo=timezone.utc),
+        tournament_slug="league-season-9",
+    )
+
+    message = build_announcement_message(friday_round)
+
+    assert "(22:00 МСК)" in message
 
 
 class _Guild:
@@ -107,7 +121,7 @@ def test_preview_is_queued_only_for_frokeng_and_next_regular_round() -> None:
     source = MIGRATION.read_text(encoding="utf-8")
 
     assert "311247030422863882::BIGINT" in source
-    assert "season_round_announcement_preview" in source
+    assert "season_round_announcement_preview_moscow_time" in source
     assert "tournament.status = 'active'" in source
     assert "round.round_kind = 'regular'" in source
     assert "round.scheduled_at > NOW()" in source
@@ -121,4 +135,4 @@ def test_deployment_sends_and_verifies_frokeng_preview() -> None:
     source = DEPLOYMENT.read_text(encoding="utf-8")
 
     assert "Delivered season round announcement preview to frokeng" in source
-    assert "season_round_announcement_preview" in source
+    assert "season_round_announcement_preview_moscow_time" in source
