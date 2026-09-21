@@ -1,5 +1,5 @@
 import { transaction } from "@/lib/db";
-import { calculateSeasonCooling } from "@/lib/season-cooling";
+import { calculateSeasonCooling, isSeasonCoolingRoundReady } from "@/lib/season-cooling";
 import { requiredId } from "./season-admin-model";
 import { resolveSeasonPlayer } from "./season-admin-player";
 
@@ -7,6 +7,8 @@ type CoolingRoundRow = {
   id: number;
   round_number: number;
   status: string;
+  match_count: number;
+  played_match_count: number;
 };
 
 type CoolingEventRow = {
@@ -28,11 +30,20 @@ export async function approveSeasonCooling(body: Record<string, unknown>) {
     }
     const [rounds, events, approvals] = await Promise.all([
       client.query<CoolingRoundRow>(
-        `SELECT id::int, round_number::int,
-           season_round_status_at(scheduled_at, status) AS status
-         FROM season_rounds
-         WHERE tournament_id = $1 AND round_kind = 'regular'
-         ORDER BY round_number`,
+        `SELECT round.id::int, round.round_number::int,
+           season_round_status_at(round.scheduled_at, round.status) AS status,
+           COUNT(match.id) FILTER (
+             WHERE match.status <> 'cancelled'
+           )::int AS match_count,
+           COUNT(match.id) FILTER (
+             WHERE match.status = 'completed'
+           )::int AS played_match_count
+         FROM season_rounds round
+         LEFT JOIN season_lobbies lobby ON lobby.round_id = round.id
+         LEFT JOIN season_matches match ON match.lobby_id = lobby.id
+         WHERE round.tournament_id = $1 AND round.round_kind = 'regular'
+         GROUP BY round.id
+         ORDER BY round.round_number`,
         [tournamentId],
       ),
       client.query<CoolingEventRow>(
@@ -54,7 +65,11 @@ export async function approveSeasonCooling(body: Record<string, unknown>) {
     const state = calculateSeasonCooling(
       rounds.rows.map((round) => ({
         roundNumber: round.round_number,
-        isCompleted: round.status === "completed",
+        isCompleted: isSeasonCoolingRoundReady(
+          round.status,
+          round.match_count,
+          round.played_match_count,
+        ),
       })),
       events.rows.map((event) => ({
         roundNumber: event.round_number,

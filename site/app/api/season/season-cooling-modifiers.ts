@@ -1,4 +1,4 @@
-import { calculateSeasonCooling } from "@/lib/season-cooling";
+import { calculateSeasonCooling, isSeasonCoolingRoundReady } from "@/lib/season-cooling";
 import { calculateSeasonPenalty } from "@/lib/season-discipline";
 import type { PenaltyCoolingRow, PenaltyEventRow } from "./season-extra-query";
 import type { RoundRow } from "./season-route-model";
@@ -19,7 +19,11 @@ export function seasonCoolingModifiers(
     const state = calculateSeasonCooling(
       regularRounds.map((round) => ({
         roundNumber: round.round_number,
-        isCompleted: round.status === "completed",
+        isCompleted: isSeasonCoolingRoundReady(
+          round.status,
+          round.match_count,
+          round.played_match_count,
+        ),
       })),
       events
         .filter((event) => event.player_id === playerId)

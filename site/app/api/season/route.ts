@@ -93,6 +93,9 @@ export async function GET(request: Request) {
            round.lobby_configuration_status,
            COUNT(DISTINCT lobby.id)::int AS lobby_count,
            COUNT(DISTINCT match.id) FILTER (
+             WHERE match.status <> 'cancelled'
+           )::int AS match_count,
+           COUNT(DISTINCT match.id) FILTER (
              WHERE match.status = 'completed'
            )::int AS played_match_count,
            COUNT(DISTINCT registration.player_id)::int AS registration_count,

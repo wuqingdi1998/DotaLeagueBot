@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateSeasonCooling } from "./season-cooling";
+import { calculateSeasonCooling, isSeasonCoolingRoundReady } from "./season-cooling";
 
 const rounds = Array.from({ length: 10 }, (_, index) => ({
   roundNumber: index + 1,
@@ -7,6 +7,13 @@ const rounds = Array.from({ length: 10 }, (_, index) => ({
 }));
 
 describe("season penalty cooling", () => {
+  it("waits for the last match result even after the round time has ended", () => {
+    expect(isSeasonCoolingRoundReady("completed", 4, 3)).toBe(false);
+    expect(isSeasonCoolingRoundReady("active", 4, 4)).toBe(false);
+    expect(isSeasonCoolingRoundReady("completed", 0, 0)).toBe(false);
+    expect(isSeasonCoolingRoundReady("completed", 4, 4)).toBe(true);
+  });
+
   it("waits for organizer approval after three clean completed rounds", () => {
     expect(calculateSeasonCooling(rounds.slice(0, 6), [{ roundNumber: 3, fires: 2 }], []))
       .toMatchObject({

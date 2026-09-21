@@ -10,6 +10,7 @@ export type RoundRow = {
   is_visible: boolean;
   round_kind: "regular" | "finals";
   lobby_count: number;
+  match_count: number;
   played_match_count: number;
   registration_count: number;
   is_registered: boolean;

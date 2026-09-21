@@ -7,7 +7,6 @@ import {
   type SeasonPenaltyEventOrder,
 } from "@/lib/season-penalty-event-order";
 import { useTournament } from "../hooks/TournamentContext";
-import { SeasonCoolingAdmin } from "./SeasonCoolingAdmin";
 import {
   SeasonAdminPlayerPicker,
   type SeasonAdminPlayerOption,
@@ -265,8 +264,6 @@ export function SeasonDisciplineAdmin() {
           }))}
         />
       </AdminBlock>
-
-      <SeasonCoolingAdmin />
 
       <AdminBlock title="Участники финалов">
         <p className="season-empty-copy">

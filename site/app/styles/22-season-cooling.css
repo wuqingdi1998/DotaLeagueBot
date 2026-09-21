@@ -1,0 +1,73 @@
+/* Cooling progress and organizer decision inside the season penalty table. */
+
+.season-cooling-heading {
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+.season-cooling-cell {
+  min-width: 145px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.season-cooling-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.season-cooling-alert {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  color: #f0bd29;
+  font-size: 21px;
+  cursor: pointer;
+}
+
+.site-shell[data-theme="light"] .season-cooling-alert {
+  color: #936000;
+}
+
+.season-cooling-alert:hover,
+.season-cooling-alert:focus-visible {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+}
+
+.season-cooling-options {
+  display: grid;
+  width: 190px;
+  gap: 6px;
+  margin: 8px auto 0;
+}
+
+.season-cooling-options button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.season-cooling-options button:hover,
+.season-cooling-options button:focus-visible {
+  border-color: var(--blue-strong);
+}
+
+.season-cooling-options button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
