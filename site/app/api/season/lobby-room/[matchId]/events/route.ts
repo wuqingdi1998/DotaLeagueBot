@@ -65,7 +65,13 @@ export async function GET(
               `event: snapshot\ndata: ${JSON.stringify(snapshot)}\n\n`,
             ));
           } catch (error) {
-            if (!isClosed) controller.enqueue(encoder.encode(
+            if (!isClosed && error instanceof SeasonLobbyRoomError && error.status === 403) {
+              controller.enqueue(encoder.encode("event: access-revoked\ndata: {}\n\n"));
+              isClosed = true;
+              unsubscribe();
+              if (timer) clearTimeout(timer);
+              controller.close();
+            } else if (!isClosed) controller.enqueue(encoder.encode(
               `event: server-error\ndata: ${JSON.stringify({
                 message: error instanceof Error ? error.message : "Ошибка обновления",
               })}\n\n`,

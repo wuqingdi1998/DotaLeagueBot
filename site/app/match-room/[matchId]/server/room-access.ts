@@ -47,6 +47,11 @@ export async function requireMatchRoom(
        AND tournament.ordinary_match_rooms_enabled = TRUE
        AND match.status <> 'cancelled'
        AND (match.status <> 'finished' OR existing_room.status = 'completed')
+       AND ($3::boolean OR (
+         tournament.status NOT IN ('finished', 'archived')
+         AND match.status <> 'finished'
+         AND COALESCE(existing_room.status, 'active') <> 'completed'
+       ))
        AND ($3::boolean OR $2 IN (team_a.captain_discord_id, team_b.captain_discord_id))
      ${lock ? "FOR UPDATE OF match" : ""}`,
     [matchId, actor.discordId, actor.isAdmin],

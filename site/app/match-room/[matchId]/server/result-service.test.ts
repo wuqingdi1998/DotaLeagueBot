@@ -11,6 +11,8 @@ import {
   reportMatchRoomGame,
   setMatchRoomGameByOrganizer,
 } from "./result-service";
+import { sendMatchRoomMessage } from "./message-service";
+import { requireMatchRoom } from "./room-access";
 
 let db: PGlite;
 function actor(discordId: string, isAdmin = false): AuthUser {
@@ -48,7 +50,7 @@ beforeAll(async () => {
     CREATE TABLE players (discord_id bigint PRIMARY KEY, ingame_name text);
     CREATE TABLE tournaments (
       id bigint PRIMARY KEY, slug text, name text, tournament_type text,
-      ordinary_match_rooms_enabled boolean
+      ordinary_match_rooms_enabled boolean, status text
     );
     CREATE TABLE tournament_team_applications (
       id bigint PRIMARY KEY, tournament_id bigint, team_name text,
@@ -64,6 +66,10 @@ beforeAll(async () => {
     CREATE TABLE ordinary_match_rooms (
       match_id bigint PRIMARY KEY, status text DEFAULT 'active',
       current_game_number smallint DEFAULT 1, updated_at timestamptz DEFAULT NOW()
+    );
+    CREATE TABLE ordinary_match_room_messages (
+      match_id bigint, player_id bigint, message text,
+      created_at timestamptz DEFAULT NOW()
     );
     CREATE TABLE ordinary_match_game_reports (
       match_id bigint, game_number smallint, captain_id bigint,
@@ -88,10 +94,11 @@ afterAll(async () => db.close());
 beforeEach(async () => {
   await db.exec(`
     TRUNCATE players, tournaments, tournament_team_applications,
-      tournament_matches, ordinary_match_rooms, ordinary_match_game_reports,
+      tournament_matches, ordinary_match_rooms, ordinary_match_room_messages,
+      ordinary_match_game_reports,
       ordinary_match_games, tournament_audit_log RESTART IDENTITY;
     INSERT INTO players VALUES (10001, 'Captain A'), (10002, 'Captain B'), (99999, 'Admin');
-    INSERT INTO tournaments VALUES (1, 'cup', 'Cup', 'ordinary', TRUE);
+    INSERT INTO tournaments VALUES (1, 'cup', 'Cup', 'ordinary', TRUE, 'active');
     INSERT INTO tournament_team_applications VALUES
       (11, 1, 'Team A', 10001, 'Captain A'),
       (12, 1, 'Team B', 10002, 'Captain B');
@@ -101,6 +108,22 @@ beforeEach(async () => {
 });
 
 describe("ordinary match result persistence", () => {
+  it("closes captain access and chat after the match result or tournament closure", async () => {
+    const client = { query: db.query.bind(db) } as unknown as PoolClient;
+    await expect(requireMatchRoom(client, 100, captainA)).resolves.toBeDefined();
+    await sendMatchRoomMessage(100, captainA, "Перед матчем");
+
+    await db.exec("UPDATE tournament_matches SET status = 'finished'; UPDATE ordinary_match_rooms SET status = 'completed';");
+    await expect(requireMatchRoom(client, 100, captainA)).rejects.toMatchObject({ status: 403 });
+    await expect(sendMatchRoomMessage(100, captainA, "После матча")).rejects.toMatchObject({ status: 403 });
+    await expect(requireMatchRoom(client, 100, organizer)).resolves.toBeDefined();
+
+    await db.exec("UPDATE tournament_matches SET status = 'scheduled'; UPDATE ordinary_match_rooms SET status = 'active'; UPDATE tournaments SET status = 'finished';");
+    await expect(requireMatchRoom(client, 100, captainA)).rejects.toMatchObject({ status: 403 });
+    await db.exec("UPDATE tournaments SET status = 'archived';");
+    await expect(requireMatchRoom(client, 100, captainB)).rejects.toMatchObject({ status: 403 });
+  });
+
   it("saves the first captain report and finishes on matching confirmation", async () => {
     await reportMatchRoomGame(100, captainA, "8995644936", "a");
     const waiting = await db.query<{ reports: number }>(

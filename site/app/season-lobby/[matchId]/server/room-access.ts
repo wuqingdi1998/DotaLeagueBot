@@ -46,8 +46,10 @@ export async function participantSide(
      JOIN season_matches match ON match.id = participant.match_id
      JOIN season_lobbies lobby ON lobby.id = match.lobby_id
      JOIN season_rounds round ON round.id = lobby.round_id
+     JOIN tournaments tournament ON tournament.id = round.tournament_id
      WHERE participant.match_id = $1 AND participant.player_id = $2
        AND match.status NOT IN ('cancelled', 'completed')
+       AND tournament.status NOT IN ('finished', 'archived')
        AND round.is_visible = TRUE
        AND (
          (round.round_kind = 'regular'

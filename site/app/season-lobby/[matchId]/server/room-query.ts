@@ -84,6 +84,7 @@ async function loadRoomTarget(
      WHERE match.id = $1 AND tournament.tournament_type = 'seasonal'
        AND match.status <> 'cancelled'
        AND ($4::boolean OR match.status <> 'completed')
+       AND ($3::boolean OR tournament.status NOT IN ('finished', 'archived'))
        AND (
          $3::boolean
          OR (

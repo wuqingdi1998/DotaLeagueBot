@@ -13,7 +13,7 @@ export async function substitutionTestDatabase() {
     );
     CREATE TABLE tournaments (
       id bigint PRIMARY KEY, slug text, tournament_type text,
-      format text DEFAULT 'Fearless Draft'
+      format text DEFAULT 'Fearless Draft', status text DEFAULT 'active'
     );
     CREATE TABLE close_events (id bigint PRIMARY KEY, tournament_id bigint);
     CREATE TABLE season_rounds (id bigint PRIMARY KEY, tournament_id bigint,

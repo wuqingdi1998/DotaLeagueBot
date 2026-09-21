@@ -31,7 +31,11 @@ describe("ordinary match room contract", () => {
     expect(access).toContain("captain_discord_id");
     expect(access).toContain("actor.isAdmin");
     expect(access).toContain("ordinary_match_rooms_enabled = TRUE");
+    expect(access).toContain("tournament.status NOT IN ('finished', 'archived')");
+    expect(access).toContain("match.status <> 'finished'");
+    expect(access).toContain("existing_room.status, 'active') <> 'completed'");
     expect(tournamentApi).toContain("room_url");
+    expect(tournamentApi).toContain("tournaments.status NOT IN ('finished', 'archived')");
     expect(matches).toContain("Войти в комнату");
   });
 

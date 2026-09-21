@@ -273,6 +273,14 @@ export async function GET(request: Request) {
                SELECT 1 FROM ordinary_match_rooms room
                WHERE room.match_id = m.id AND room.status = 'completed'
              ))
+             AND ($3::boolean OR (
+               tournaments.status NOT IN ('finished', 'archived')
+               AND m.status <> 'finished'
+               AND NOT EXISTS (
+                 SELECT 1 FROM ordinary_match_rooms room
+                 WHERE room.match_id = m.id AND room.status = 'completed'
+               )
+             ))
              AND m.team_a_application_id IS NOT NULL
              AND m.team_b_application_id IS NOT NULL
              AND ($3::boolean OR $2::bigint IN (

@@ -70,14 +70,17 @@ describe("season lobby room contract", () => {
     expect(roomQuery).toContain("$3::boolean");
     expect(roomQuery).toContain("lobby_configuration_status = 'published'");
     expect(roomQuery).toContain("match.status <> 'completed'");
+    expect(roomQuery).toContain("tournament.status NOT IN ('finished', 'archived')");
     expect(roomCommands).toContain("if (actor.isAdmin)");
     expect(roomAccess).toContain(
       "match.status NOT IN ('cancelled', 'completed')",
     );
+    expect(roomAccess).toContain("tournament.status NOT IN ('finished', 'archived')");
     expect(roomCommands).toContain(
       "await participantSide(client, matchId, actor.discordId)",
     );
     expect(seasonRoute).toContain("$3::boolean OR EXISTS");
+    expect(seasonRoute).toContain("!isPastTournament(tournament.status)");
     expect(seasonRoute).toContain(
       "match.status NOT IN ('cancelled', 'completed')",
     );

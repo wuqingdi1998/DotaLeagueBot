@@ -10,7 +10,7 @@ import {
 const mocks = vi.hoisted(() => ({ transaction: vi.fn() }));
 vi.mock("@/lib/db", () => mocks);
 
-import { startSeasonLobbyWithoutDraft } from "./room-commands";
+import { sendSeasonLobbyMessage, startSeasonLobbyWithoutDraft } from "./room-commands";
 import { loadSeasonLobbyRoomSnapshot } from "./room-query";
 
 const host: AuthUser = {
@@ -37,6 +37,18 @@ beforeEach(async () => {
 });
 
 describe("standard close lobby", () => {
+  it("closes the room and chat to participants when the tournament finishes or is archived", async () => {
+    await loadSeasonLobbyRoomSnapshot(host, 10);
+    await sendSeasonLobbyMessage(10, host, "До завершения");
+
+    await database.exec("UPDATE tournaments SET status = 'finished' WHERE id = 40;");
+    await expect(loadSeasonLobbyRoomSnapshot(host, 10)).rejects.toMatchObject({ status: 403 });
+    await expect(sendSeasonLobbyMessage(10, host, "После завершения")).rejects.toMatchObject({ status: 403 });
+
+    await database.exec("UPDATE tournaments SET status = 'archived' WHERE id = 40;");
+    await expect(loadSeasonLobbyRoomSnapshot(host, 10)).rejects.toMatchObject({ status: 403 });
+  });
+
   it("starts Captain's Mode directly without captain voting", async () => {
     await database.exec(`
       UPDATE tournaments SET format = 'Captain''s Mode' WHERE id = 40;

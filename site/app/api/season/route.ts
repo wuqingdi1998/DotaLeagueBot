@@ -17,6 +17,7 @@ import {
   seasonRoundPriorityRegistrationIsOpen,
 } from "@/lib/season-round-registration";
 import { freshPlayerRankedWins } from "@/lib/season-ranked-wins/repository";
+import { isPastTournament } from "@/lib/tournaments";
 import { loadSeasonExtras } from "./season-extra-query";
 import { seasonCoolingModifiers } from "./season-cooling-modifiers";
 import { hasPriorityRegistrationAccess, loadSeasonTournament } from "./season-route-access";
@@ -128,7 +129,8 @@ export async function GET(request: Request) {
            match.best_of::int, match.team_a_score::int,
            match.team_b_score::int, match.result, match.status,
            match.sort_order, match.host_player_id::text,
-           match.status NOT IN ('cancelled', 'completed') AND (
+           match.status NOT IN ('cancelled', 'completed')
+           AND ($3::boolean OR $4::boolean) AND (
              $3::boolean OR EXISTS (
                SELECT 1 FROM season_match_room_players room_participant
                WHERE room_participant.match_id = match.id
@@ -140,7 +142,8 @@ export async function GET(request: Request) {
          JOIN season_rounds round ON round.id = lobby.round_id
          WHERE round.tournament_id = $1 ${visibility} ${matchVisibility}
          ORDER BY round.round_number, lobby.sort_order, match.sort_order`,
-        [tournament.id, user?.discordId ?? null, isOrganizer],
+        [tournament.id, user?.discordId ?? null, isOrganizer,
+          !isPastTournament(tournament.status)],
       ),
       query<ParticipantRow>(
       `SELECT participant.match_id::int, participant.player_id::text,

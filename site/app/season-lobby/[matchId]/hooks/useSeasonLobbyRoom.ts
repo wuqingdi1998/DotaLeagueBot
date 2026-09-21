@@ -46,6 +46,9 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
       }
     };
     events.addEventListener("snapshot", receiveSnapshot as EventListener);
+    events.addEventListener("access-revoked", () => {
+      window.location.replace(`/tournaments/${initialSnapshot.tournamentSlug}`);
+    });
     events.onopen = () => setIsConnected(true);
     events.onerror = () => {
       setIsConnected(false);
@@ -62,7 +65,7 @@ export function useSeasonLobbyRoom(initialSnapshot: SeasonLobbyRoomSnapshot) {
         fallbackTimer.current = null;
       }
     };
-  }, [endpoint, reload]);
+  }, [endpoint, initialSnapshot.tournamentSlug, reload]);
 
   const send = useCallback(async (command: SeasonLobbyRoomCommand) => {
     if (sendingRef.current) return false;

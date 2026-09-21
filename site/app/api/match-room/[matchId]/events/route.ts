@@ -35,7 +35,15 @@ export async function GET(request: Request, context: { params: Promise<{ matchId
             initialSnapshot = null;
             if (!closed) controller.enqueue(encoder.encode(`event: snapshot\ndata: ${JSON.stringify(snapshot)}\n\n`));
           } catch (error) {
-            if (!closed) controller.enqueue(encoder.encode(`event: server-error\ndata: ${JSON.stringify({ message: error instanceof Error ? error.message : "Ошибка обновления" })}\n\n`));
+            if (!closed && error instanceof MatchRoomError && error.status === 403) {
+              controller.enqueue(encoder.encode("event: access-revoked\ndata: {}\n\n"));
+              closed = true;
+              unsubscribe();
+              if (timer) clearTimeout(timer);
+              controller.close();
+            } else if (!closed) {
+              controller.enqueue(encoder.encode(`event: server-error\ndata: ${JSON.stringify({ message: error instanceof Error ? error.message : "Ошибка обновления" })}\n\n`));
+            }
           } finally {
             loading = false;
             if (queued && !closed) { queued = false; void push(); }

@@ -38,6 +38,9 @@ export function useMatchRoom(initialSnapshot: MatchRoomSnapshot) {
       }
     };
     events.addEventListener("snapshot", receive as EventListener);
+    events.addEventListener("access-revoked", () => {
+      window.location.replace(`/tournaments/${initialSnapshot.tournamentSlug}`);
+    });
     events.onopen = () => setIsConnected(true);
     events.onerror = () => {
       setIsConnected(false);
@@ -49,7 +52,7 @@ export function useMatchRoom(initialSnapshot: MatchRoomSnapshot) {
       events.close();
       if (fallbackTimer.current !== null) window.clearInterval(fallbackTimer.current);
     };
-  }, [endpoint, reload]);
+  }, [endpoint, initialSnapshot.tournamentSlug, reload]);
 
   const send = useCallback(async (command: MatchRoomCommand) => {
     if (sending.current) return false;
