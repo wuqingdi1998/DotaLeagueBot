@@ -24,7 +24,6 @@ export function TournamentFooter() {
           <small>Esports community</small>
         </span>
       </a>
-      <p>Создано сообществом для сообщества · 2026</p>
       <OrganizerArchiveLink isOrganizer={data.user?.isAdmin ?? false} />
       <OrganizerAccess
         user={data.user}

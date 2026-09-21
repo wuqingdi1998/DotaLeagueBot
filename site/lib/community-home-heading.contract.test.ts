@@ -40,13 +40,13 @@ describe("community home heading", () => {
       /@media \(max-width:\s*760px\)[\s\S]*\.purpose-events-card\s*\{[^}]*display:\s*none;/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid article\s*\{[^}]*min-height:\s*105px;[^}]*border-radius:\s*11px;[^}]*padding:\s*15px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid article\s*\{[^}]*min-height:\s*170px;[^}]*border-radius:\s*11px;[^}]*padding:\s*16px;/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid h3\s*\{[^}]*font-size:\s*12\.5px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid h3\s*\{[^}]*font-size:\s*17px;/,
     );
     expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid p\s*\{[^}]*font-size:\s*8px;/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.purpose-grid p\s*\{[^}]*font-size:\s*13px;/,
     );
   });
 });

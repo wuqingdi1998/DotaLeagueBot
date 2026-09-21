@@ -354,23 +354,24 @@
   }
 
   .purpose-grid article {
-    min-height: 105px;
+    min-height: 170px;
     border-radius: 11px;
-    padding: 15px;
+    padding: 16px;
   }
 
   .purpose-grid article > svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 
   .purpose-grid h3 {
-    margin: 23px 0 6px;
-    font-size: 12.5px;
+    margin: 18px 0 8px;
+    font-size: 17px;
   }
 
   .purpose-grid p {
-    font-size: 8px;
+    font-size: 13px;
+    line-height: 1.45;
   }
 
   .directory-hero {
