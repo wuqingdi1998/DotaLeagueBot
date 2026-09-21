@@ -66,4 +66,34 @@ describe("season penalty cooling", () => {
     expect(calculateSeasonCooling(rounds, [{ roundNumber: 1, fires: 1 }], [4]))
       .toMatchObject({ remainingFires: 0, pendingRoundNumber: null });
   });
+
+  it.each([
+    { fires: 4, floor: 0 },
+    { fires: 9, floor: 5 },
+    { fires: 14, floor: 10 },
+    { fires: 19, floor: 15 },
+  ])("cools $fires fires only to the $floor floor", ({ fires, floor }) => {
+    const completedRounds = Array.from({ length: 1 + (fires - floor + 1) * 3 }, (_, index) => ({
+      roundNumber: index + 1,
+      isCompleted: true,
+    }));
+    const approvals = Array.from({ length: fires - floor + 1 }, (_, index) => 4 + index * 3);
+
+    expect(calculateSeasonCooling(
+      completedRounds,
+      [{ roundNumber: 1, fires }],
+      approvals,
+    )).toMatchObject({
+      remainingFires: floor,
+      progress: 0,
+      pendingRoundNumber: null,
+      appliedRoundNumbers: approvals.slice(0, -1),
+      invalidRoundNumbers: approvals.slice(-1),
+    });
+  });
+
+  it.each([5, 10, 15])("does not offer cooling at exactly %i fires", (fires) => {
+    expect(calculateSeasonCooling(rounds, [{ roundNumber: 1, fires }], []))
+      .toMatchObject({ remainingFires: fires, progress: 0, pendingRoundNumber: null });
+  });
 });

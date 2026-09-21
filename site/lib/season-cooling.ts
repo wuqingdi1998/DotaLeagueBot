@@ -1,3 +1,5 @@
+import { seasonExclusionStrikes, seasonPenaltyLimit } from "./season-discipline";
+
 export const seasonCoolingRoundLimit = 3;
 
 export type SeasonCoolingRound = {
@@ -45,7 +47,11 @@ export function calculateSeasonCooling(
       pendingRoundNumber = null;
       continue;
     }
-    if (!round.isCompleted || remainingFires === 0 || pendingRoundNumber !== null) {
+    const coolingFloor = Math.min(
+      (seasonExclusionStrikes - 1) * seasonPenaltyLimit,
+      Math.floor(remainingFires / seasonPenaltyLimit) * seasonPenaltyLimit,
+    );
+    if (!round.isCompleted || remainingFires <= coolingFloor || pendingRoundNumber !== null) {
       continue;
     }
     progress += 1;
