@@ -1,3 +1,9 @@
+import {
+  canFillSeasonLobbyRole,
+  primaryRoleShortfall,
+  type SeasonLobbyRoleHistory,
+} from "./season-lobby-role-policy";
+
 export type SeasonLobbyOptimizationPlayer = {
   playerId: string;
   positions: string | null;
@@ -29,6 +35,7 @@ export type SeasonLobbyOptimizationVariant =
 
 export type SeasonLobbyOptimizationOptions = {
   recentTeammatePairs?: ReadonlySet<string>;
+  roleHistory?: ReadonlyMap<string, SeasonLobbyRoleHistory>;
   variant?: SeasonLobbyOptimizationVariant;
 };
 
@@ -41,6 +48,7 @@ type SeasonLobbyTierSortablePlacement = {
 type PlayerWithRoles = SeasonLobbyOptimizationPlayer & {
   primaryRole: number | null;
   secondaryRole: number | null;
+  roleHistory?: SeasonLobbyRoleHistory;
 };
 
 type RankedLobbyPlayer = {
@@ -52,6 +60,7 @@ type TeamRoleAssignment = {
   coreTier: number;
   offRoleCount: number;
   placements: PlayerWithRoles[];
+  primaryRoleShortfall: number;
   secondaryRoleCount: number;
   supportTier: number;
   totalTier: number;
@@ -91,6 +100,7 @@ export function optimizeSeasonLobbyPlayers(
   const lobbies = lobbyGroups.map((lobbyPlayers) => ({
     placements: balanceLobbyPlayers(lobbyPlayers, {
       recentTeammatePairs: options.recentTeammatePairs ?? new Set<string>(),
+      roleHistory: options.roleHistory ?? new Map(),
       variant,
     }),
   }));
@@ -115,11 +125,7 @@ function seedChallengeLobbyGroups(
   );
   const pairCount = Math.floor(rankedPlayers.length / 2);
   for (let pairIndex = 0; pairIndex < pairCount; pairIndex += 1) {
-    const cycleIndex = Math.floor(pairIndex / lobbyCount);
-    const offset = pairIndex % lobbyCount;
-    const lobbyIndex = cycleIndex % 2 === 0
-      ? offset
-      : lobbyCount - offset - 1;
+    const lobbyIndex = pairIndex % lobbyCount;
     groups[lobbyIndex].push(
       rankedPlayers[pairIndex],
       rankedPlayers[rankedPlayers.length - pairIndex - 1],
@@ -136,23 +142,34 @@ function seedSeasonLobbyGroups(
     .map((player, registrationIndex) => ({ player, registrationIndex }))
     .sort(compareRankedLobbyPlayers);
   const supportPlayers = rankedPlayers.filter(({ player }) =>
-    isSupportPlayer(player),
+    (parseRoles(player.positions).primaryRole ?? 0) >= 4,
   );
   const otherPlayers = rankedPlayers.filter(
-    ({ player }) => !isSupportPlayer(player),
+    ({ player }) => (parseRoles(player.positions).primaryRole ?? 0) < 4,
   );
 
   return Array.from({ length: lobbyCount }, () => {
+    const dedicatedSupports = supportPlayers.splice(0, LOBBY_SUPPORT_COUNT);
+    const flexibleSupports = otherPlayers
+      .filter(({ player }) => isSupportPlayer(player))
+      .slice(0, LOBBY_SUPPORT_COUNT - dedicatedSupports.length);
+    for (const flexibleSupport of flexibleSupports) {
+      otherPlayers.splice(otherPlayers.indexOf(flexibleSupport), 1);
+    }
     const lobbyPlayers = [
-      ...supportPlayers.splice(0, LOBBY_SUPPORT_COUNT),
-      ...otherPlayers.splice(0, SEASON_LOBBY_SIZE - LOBBY_SUPPORT_COUNT),
+      ...dedicatedSupports,
+      ...flexibleSupports,
+      ...otherPlayers.splice(
+        0,
+        SEASON_LOBBY_SIZE - dedicatedSupports.length - flexibleSupports.length,
+      ),
     ];
     while (lobbyPlayers.length < SEASON_LOBBY_SIZE) {
       const strongestRemaining = [supportPlayers[0], otherPlayers[0]]
         .filter((entry): entry is RankedLobbyPlayer => Boolean(entry))
         .sort(compareRankedLobbyPlayers)[0];
       if (!strongestRemaining) break;
-      const source = isSupportPlayer(strongestRemaining.player)
+      const source = supportPlayers[0] === strongestRemaining
         ? supportPlayers
         : otherPlayers;
       const nextPlayer = source.shift();
@@ -204,6 +221,7 @@ function balanceLobbyPlayers(
   const playersWithRoles = players.map((player) => ({
     ...player,
     ...parseRoles(player.positions),
+    roleHistory: options.roleHistory.get(player.playerId),
   }));
   const candidates: LobbyTeamCandidate[] = [];
 
@@ -297,13 +315,19 @@ function fivePlayerTeamIndexes(playerCount: number) {
 }
 
 function teamRoleAssignments(players: PlayerWithRoles[]) {
-  return permutations(players).map((placements) => {
+  return permutations(players).flatMap((placements) => {
     let coreTier = 0;
     let offRoleCount = 0;
+    let roleShortfall = 0;
     let secondaryRoleCount = 0;
     let supportTier = 0;
     for (const [index, player] of placements.entries()) {
       const assignedRole = index + 1;
+      if (!canFillSeasonLobbyRole(player, assignedRole)) return [];
+      roleShortfall += primaryRoleShortfall(
+        player.roleHistory,
+        assignedRole === player.primaryRole,
+      );
       if (assignedRole === player.primaryRole) {
         // Primary roles are preferred and need no penalty.
       } else if (assignedRole === player.secondaryRole) {
@@ -314,14 +338,15 @@ function teamRoleAssignments(players: PlayerWithRoles[]) {
       if (assignedRole <= 3) coreTier += player.tierSnapshot;
       else supportTier += player.tierSnapshot;
     }
-    return {
+    return [{
       coreTier,
       offRoleCount,
       placements,
+      primaryRoleShortfall: roleShortfall,
       secondaryRoleCount,
       supportTier,
       totalTier: coreTier + supportTier,
-    };
+    }];
   });
 }
 
@@ -378,6 +403,7 @@ function assignmentScore(
   }
   if (options.variant === "challenge") {
     return [
+      left.primaryRoleShortfall + right.primaryRoleShortfall,
       left.offRoleCount + right.offRoleCount,
       Math.max(left.offRoleCount, right.offRoleCount),
       ...primaryRoleBalance,
@@ -391,11 +417,12 @@ function assignmentScore(
     ];
   }
   return [
+    left.primaryRoleShortfall + right.primaryRoleShortfall,
+    left.offRoleCount + right.offRoleCount,
+    Math.max(left.offRoleCount, right.offRoleCount),
     totalTierDifference > MAX_SEASON_TEAM_TIER_DIFFERENCE
       ? totalTierDifference
       : 0,
-    left.offRoleCount + right.offRoleCount,
-    Math.max(left.offRoleCount, right.offRoleCount),
     ...(options.variant === "together"
       ? [options.repeatedTeammateCount]
       : []),

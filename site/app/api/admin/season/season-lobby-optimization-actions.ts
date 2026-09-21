@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { loadSeasonLobbyRoleHistory } from "@/lib/season-lobby-role-history";
 import {
   MAX_SEASON_LOBBY_COUNT,
   optimizeSeasonLobbyPlayers,
@@ -66,8 +67,10 @@ export async function optimizeSeasonLobbyConfiguration(
   const recentTeammatePairs = variant === "together"
     ? await loadRecentTeammatePairs(client, roundId)
     : new Set<string>();
+  const roleHistory = await loadSeasonLobbyRoleHistory(client, roundId, players);
   const plan = optimizeSeasonLobbyPlayers(players, MAX_SEASON_LOBBY_COUNT, {
     recentTeammatePairs,
+    roleHistory,
     variant,
   });
   if (
@@ -76,7 +79,9 @@ export async function optimizeSeasonLobbyConfiguration(
     )
   ) {
     throw new Response(
-      "Не удалось собрать «Челлендж» с разницей сумм команд до 1 и коров до 2",
+      variant === "challenge"
+        ? "Не удалось собрать «Челлендж» с разницей сумм команд до 1 и коров до 2"
+        : "Не удалось распределить роли без назначения саппортов на кор-позиции. Проверьте состав участников.",
       { status: 409 },
     );
   }
