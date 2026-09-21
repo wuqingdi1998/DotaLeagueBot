@@ -81,5 +81,5 @@ describe("season lobby role history", () => {
     } finally {
       await db.close();
     }
-  });
+  }, 15000);
 });

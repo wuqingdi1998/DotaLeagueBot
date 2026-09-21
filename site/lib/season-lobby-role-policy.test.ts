@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { canFillSeasonLobbyRole, primaryRoleShortfall } from "./season-lobby-role-policy";
+import {
+  canFillSeasonLobbyRole,
+  primaryRoleShortfall,
+  seasonLobbyRoleBurden,
+} from "./season-lobby-role-policy";
 
 describe("season lobby role policy", () => {
   it("keeps a 5/4 support away from every core slot", () => {
@@ -26,5 +30,21 @@ describe("season lobby role policy", () => {
       primaryRoleShortfall(deficient, true),
     );
     expect(primaryRoleShortfall(stable, false)).toBe(0);
+  });
+
+  it("treats undeclared core swaps and stronger displaced players as bigger losses", () => {
+    const core = { primaryRole: 1, secondaryRole: 2, tierSnapshot: 9 };
+    const weakerCore = { ...core, tierSnapshot: 5 };
+
+    expect(seasonLobbyRoleBurden(core, 1)).toBe(0);
+    expect(seasonLobbyRoleBurden(core, 3)).toBeGreaterThan(
+      seasonLobbyRoleBurden(core, 2),
+    );
+    expect(seasonLobbyRoleBurden(core, 3)).toBeGreaterThan(
+      seasonLobbyRoleBurden(weakerCore, 3),
+    );
+    expect(seasonLobbyRoleBurden(
+      { primaryRole: 2, secondaryRole: 4, tierSnapshot: 9 }, 4,
+    )).toBeGreaterThan(seasonLobbyRoleBurden(core, 2));
   });
 });

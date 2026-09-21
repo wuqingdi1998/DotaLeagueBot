@@ -38,3 +38,18 @@ export function primaryRoleShortfall(
   const shortfall = Math.max(0, 7 * projectedMatches - 10 * projectedPrimaryMatches);
   return shortfall * shortfall;
 }
+
+/** A stronger player costs more to move, especially to an undeclared role. */
+export function seasonLobbyRoleBurden(
+  player: DeclaredRoles & { tierSnapshot: number },
+  assignedRole: number,
+): number {
+  if (assignedRole === player.primaryRole) return 0;
+  const tier = Math.max(0, Math.round(player.tierSnapshot));
+  if (assignedRole === player.secondaryRole) {
+    const crossesCoreSupport = player.primaryRole !== null &&
+      (player.primaryRole <= 3) !== (assignedRole <= 3);
+    return crossesCoreSupport ? 10 + tier * 2 : 4 + tier;
+  }
+  return 20 + tier * 2;
+}

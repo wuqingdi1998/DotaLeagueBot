@@ -2,29 +2,25 @@
 
 import { useState } from "react";
 import { FiChevronDown, FiZap } from "react-icons/fi";
-import type { SeasonLobbyOptimizationVariant } from
-  "@/lib/season-lobby-optimization";
+import {
+  OPTIMAL_SEASON_LOBBY_VARIANTS,
+  type SeasonLobbyOptimizationVariant,
+} from "@/lib/season-lobby-variants";
 
 const optimizationOptions: Array<{
   description: string;
   label: string;
   variant: SeasonLobbyOptimizationVariant;
 }> = [
-  {
-    description: "Текущий лучший баланс тиров и ролей",
-    label: "Оптимальный состав",
-    variant: "optimal",
-  },
-  {
-    description: "Следующий вариант с теми же правилами",
-    label: "Оптимальный состав 2",
-    variant: "optimal2",
-  },
-  {
-    description: "Третий вариант с теми же правилами",
-    label: "Оптимальный состав 3",
-    variant: "optimal3",
-  },
+  ...OPTIMAL_SEASON_LOBBY_VARIANTS.map((variant, index) => ({
+    description: index === 0
+      ? "Лучший баланс ролей и команд"
+      : `Отличающийся вариант №${index + 1} по тем же правилам`,
+    label: index === 0
+      ? "Оптимальный состав"
+      : `Оптимальный состав ${index + 1}`,
+    variant,
+  })),
   {
     description: "Снижает повторы команд из прошлого тура",
     label: "Играли вместе",

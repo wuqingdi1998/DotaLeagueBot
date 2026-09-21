@@ -279,15 +279,18 @@ describe("season lobby optimization", () => {
     expect(Math.max(...opposingTierGaps)).toBeGreaterThan(1);
   });
 
-  it("offers second and third distinct plans under the same optimal rules", () => {
+  it("offers nine distinct plans under the same optimal rules", () => {
     const players = Array.from({ length: 10 }, (_, index) =>
       player(index, 8, (index % 5) + 1),
     );
-    const plans = (["optimal", "optimal2", "optimal3"] as const).map(
+    const plans = ([
+      "optimal", "optimal2", "optimal3", "optimal4", "optimal5",
+      "optimal6", "optimal7", "optimal8", "optimal9",
+    ] as const).map(
       (variant) => optimizeSeasonLobbyPlayers(players, 1, { variant }),
     );
 
-    expect(new Set(plans.map(teamMembershipSignature))).toHaveLength(3);
+    expect(new Set(plans.map(teamMembershipSignature))).toHaveLength(9);
     for (const plan of plans) {
       const teamTotals = (["a", "b"] as const).map((teamSide) =>
         plan.lobbies[0].placements

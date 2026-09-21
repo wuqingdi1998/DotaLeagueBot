@@ -50,6 +50,40 @@ describe("season lobby role optimization", () => {
     expect(lobby.placements).toHaveLength(0);
   });
 
+  it("shares unavoidable core-role displacement between opponents", () => {
+    const players = [
+      ...Array.from({ length: 4 }, (_, index) => player(index, 8, 1, 2)),
+      ...Array.from({ length: 2 }, (_, index) => player(index + 4, 8, 3)),
+      ...Array.from({ length: 2 }, (_, index) => player(index + 6, 8, 4)),
+      ...Array.from({ length: 2 }, (_, index) => player(index + 8, 8, 5)),
+    ];
+
+    const [lobby] = optimizeSeasonLobbyPlayers(players, 1).lobbies;
+    const displacedCoreCounts = (["a", "b"] as const).map((teamSide) =>
+      lobby.placements.filter(({ primaryRole, slotNumber, teamSide: side }) =>
+        side === teamSide && primaryRole !== null &&
+        primaryRole <= 3 && primaryRole !== slotNumber,
+      ).length,
+    );
+
+    expect(lobby.placements).toHaveLength(10);
+    expect(displacedCoreCounts).toEqual([1, 1]);
+  });
+
+  it("rejects an unavoidable one-sided core displacement instead of adding a fake swap", () => {
+    const players = [
+      ...Array.from({ length: 3 }, (_, index) => player(index, 8, 1, 3)),
+      player(3, 8, 2, 3),
+      ...Array.from({ length: 2 }, (_, index) => player(index + 4, 8, 3)),
+      ...Array.from({ length: 2 }, (_, index) => player(index + 6, 8, 4)),
+      ...Array.from({ length: 2 }, (_, index) => player(index + 8, 8, 5)),
+    ];
+
+    const [lobby] = optimizeSeasonLobbyPlayers(players, 1).lobbies;
+
+    expect(lobby.placements).toHaveLength(0);
+  });
+
   it("rotates flexible cores back to primary roles using completed-match history", () => {
     const players = [
       player(0, 8, 2, 4),
