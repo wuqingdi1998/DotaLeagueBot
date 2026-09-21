@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import type { SeasonStanding } from "@/lib/season";
+import { seasonCoolingRoundLimit } from "@/lib/season-cooling";
 import { sortSeasonPenaltyEvents } from "@/lib/season-penalty-event-order";
 import {
   compareSeasonPenaltyStages,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/season-standings-order";
 import { useTournament } from "../hooks/TournamentContext";
 import type {
+  SeasonCoolingProgress,
   SeasonPenaltyEvent,
   SeasonRound,
 } from "../model/season-types";
@@ -88,6 +90,7 @@ export function SeasonStandingsPanel() {
             </section>
           )}
           <SeasonPenaltyTable
+            coolingProgress={season.data.coolingProgress}
             events={season.data.penaltyEvents.filter((event) =>
               rounds.some((round) => round.id === event.round_id) &&
               event.fire_count > 0,
@@ -255,29 +258,37 @@ function SeasonStandingsLegend() {
 }
 
 function SeasonPenaltyTable({
+  coolingProgress,
   events,
   rows,
 }: {
+  coolingProgress: SeasonCoolingProgress[];
   events: SeasonPenaltyEvent[];
   rows: SeasonStanding[];
 }) {
   const penalized = rows
     .filter((row) => row.penaltyFires > 0)
     .sort(compareSeasonPenaltyStages);
+  const coolingByPlayer = new Map(
+    coolingProgress.map((entry) => [entry.player_id, entry]),
+  );
   return (
     <section className="season-penalty-table-section">
       <h4>Штраф очков</h4>
       <p>
         Каждые 5 огоньков: −1 рейтинговое очко и пропуск следующего тура.
+        После {seasonCoolingRoundLimit} туров без новых огоньков организатор может снять один огонёк.
+        Уже назначенные штрафы за достигнутые лимиты сохраняются.
       </p>
       {!penalized.length ? (
         <p className="season-empty-copy">Штрафных огоньков пока нет.</p>
       ) : (
-      <HorizontalDragScroll>
+      <div className="season-table-scroll">
         <table className="season-penalty-table">
           <thead>
             <tr>
               <th>Игрок</th>
+              <th>Охлаждение</th>
               {["I", "II", "III", "IV"].map((stage) => (
                 <th key={stage}>Лимит {stage}</th>
               ))}
@@ -295,6 +306,7 @@ function SeasonPenaltyTable({
                     nickname={row.nickname}
                   />
                 </td>
+                <SeasonCoolingCell progress={coolingByPlayer.get(row.playerId)} />
                 {row.penaltyStages.map((value, index) => (
                   <td className={value === 5 ? "filled" : ""} key={index}>
                     {value === null ? "—" : `🔥 ${value}`}
@@ -312,11 +324,18 @@ function SeasonPenaltyTable({
             ))}
           </tbody>
         </table>
-      </HorizontalDragScroll>
+      </div>
       )}
       {events.length > 0 && <SeasonPenaltyHistory events={events} />}
     </section>
   );
+}
+
+function SeasonCoolingCell({ progress }: { progress?: SeasonCoolingProgress }) {
+  const label = progress?.pending_round_id
+    ? `${seasonCoolingRoundLimit}/${seasonCoolingRoundLimit} · ждёт решения`
+    : `${progress?.progress ?? 0}/${seasonCoolingRoundLimit}`;
+  return <td className="season-cooling-cell">{label}</td>;
 }
 
 function SeasonPenaltyHistory({ events }: { events: SeasonPenaltyEvent[] }) {
@@ -324,7 +343,7 @@ function SeasonPenaltyHistory({ events }: { events: SeasonPenaltyEvent[] }) {
   return (
     <section className="season-penalty-history">
       <h5>История штрафных огоньков</h5>
-      <HorizontalDragScroll>
+      <div className="season-table-scroll">
         <table className="season-penalty-table season-penalty-history-table">
           <thead>
             <tr>
@@ -345,7 +364,7 @@ function SeasonPenaltyHistory({ events }: { events: SeasonPenaltyEvent[] }) {
             ))}
           </tbody>
         </table>
-      </HorizontalDragScroll>
+      </div>
     </section>
   );
 }

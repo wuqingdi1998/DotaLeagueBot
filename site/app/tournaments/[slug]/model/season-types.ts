@@ -165,6 +165,22 @@ export type SeasonPenaltyEvent = {
   created_at: string;
 };
 
+export type SeasonPenaltyCooling = {
+  player_id: string;
+  round_id: number;
+  round_number: number;
+  approved_at: string;
+};
+
+export type SeasonCoolingProgress = {
+  player_id: string;
+  progress: number;
+  pending_round_id: number | null;
+  remaining_fires: number;
+  applied_round_numbers: number[];
+  invalid_round_numbers: number[];
+};
+
 export type SeasonFinalist = {
   player_id: string;
   dota_id: string;
@@ -183,6 +199,8 @@ export type SeasonData = {
   participants: SeasonPlayer[];
   pointAdjustments: SeasonPointAdjustment[];
   penaltyEvents: SeasonPenaltyEvent[];
+  penaltyCooling: SeasonPenaltyCooling[];
+  coolingProgress: SeasonCoolingProgress[];
   finalists: SeasonFinalist[];
   myRankedWins: RankedWinSnapshot | null;
   isOrganizer: boolean;

@@ -31,7 +31,7 @@ export function calculateSeasonPenalty(
   const suspendedRounds = new Set<number>();
 
   for (const event of orderedEvents) {
-    totalFires += Math.max(0, Math.trunc(event.fires));
+    totalFires = Math.max(0, totalFires + Math.trunc(event.fires));
     const nextStrikes = Math.min(
       seasonExclusionStrikes,
       Math.floor(totalFires / seasonPenaltyLimit),
@@ -46,20 +46,21 @@ export function calculateSeasonPenalty(
         .slice(0, newStrikes)
         .forEach((roundNumber) => suspendedRounds.add(roundNumber));
     }
-    previousStrikes = nextStrikes;
+    previousStrikes = Math.max(previousStrikes, nextStrikes);
   }
 
-  const strikes = Math.min(
-    seasonExclusionStrikes,
-    Math.floor(totalFires / seasonPenaltyLimit),
-  );
+  const strikes = previousStrikes;
   const remainder =
     strikes >= seasonExclusionStrikes
       ? 0
       : totalFires % seasonPenaltyLimit;
+  const currentFilledStages = Math.floor(totalFires / seasonPenaltyLimit);
+  const visibleRemainder = totalFires % seasonPenaltyLimit;
   const stages = Array.from({ length: seasonExclusionStrikes }, (_, index) => {
-    if (index < strikes) return seasonPenaltyLimit;
-    if (index === strikes && strikes < seasonExclusionStrikes) return remainder;
+    if (index < currentFilledStages) return seasonPenaltyLimit;
+    if (index === currentFilledStages && currentFilledStages < seasonExclusionStrikes) {
+      return visibleRemainder;
+    }
     return null;
   });
 

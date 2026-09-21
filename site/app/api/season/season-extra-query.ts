@@ -21,6 +21,13 @@ export type PenaltyEventRow = {
   created_at: string;
 };
 
+export type PenaltyCoolingRow = {
+  player_id: string;
+  round_id: number;
+  round_number: number;
+  approved_at: string;
+};
+
 export type SubstitutionRow = {
   id: number;
   match_id: number;
@@ -105,6 +112,15 @@ export async function loadSeasonExtras(
        WHERE event.tournament_id = $1 ${roundVisibility}
          AND round.round_kind = 'regular'
        ORDER BY event.created_at DESC, event.id DESC`,
+      [tournamentId],
+    ),
+    query<PenaltyCoolingRow>(
+      `SELECT cooling.player_id::text, cooling.round_id::int,
+         round.round_number::int, cooling.approved_at
+       FROM season_penalty_cooling cooling
+       JOIN season_rounds round ON round.id = cooling.round_id
+       WHERE cooling.tournament_id = $1 ${roundVisibility}
+       ORDER BY round.round_number, cooling.player_id`,
       [tournamentId],
     ),
     query<SubstitutionRow>(

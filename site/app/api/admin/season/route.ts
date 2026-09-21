@@ -38,6 +38,7 @@ import {
 } from "./season-registration-actions";
 import { savePublishedLobbyResult } from "./season-published-lobby-actions";
 import { setSeasonLobbyHost } from "./season-lobby-host-actions";
+import { approveSeasonCooling } from "./season-cooling-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +52,7 @@ type SeasonRequest = Record<string, unknown> & {
     | "participant"
     | "adjustment"
     | "penalty"
+    | "cooling"
     | "substitution"
     | "finalist"
     | "lobbyConfiguration"
@@ -122,6 +124,9 @@ export async function POST(request: Request) {
     }
     if (body.entity === "penalty") {
       return Response.json(await saveSeasonPenalty(body), { status: 201 });
+    }
+    if (body.entity === "cooling") {
+      return Response.json(await approveSeasonCooling(body), { status: 201 });
     }
     if (body.entity === "substitution") {
       return Response.json(await createSeasonSubstitution(body), { status: 201 });

@@ -207,10 +207,9 @@ describe("season interface contract", () => {
     expect(standings).toContain("season.openRound");
   });
 
-  it("drags seasonal tables without turning a drag into a click", () => {
-    expect(standings.match(/<HorizontalDragScroll/g)?.length).toBeGreaterThanOrEqual(
-      2,
-    );
+  it("drags standings but keeps the static penalty tables on the ordinary cursor", () => {
+    expect(standings.match(/<HorizontalDragScroll/g)?.length).toBe(1);
+    expect(standings).toContain('<div className="season-table-scroll">');
     expect(horizontalDragScroll).toContain("onPointerDown");
     expect(horizontalDragScroll).toContain(
       "if (Math.abs(movement) < dragThreshold) return;",

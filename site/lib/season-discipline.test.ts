@@ -50,6 +50,19 @@ describe("season penalty fires", () => {
       ).suspendedRoundNumbers,
     ).toEqual([3, 4]);
   });
+
+  it("removes a current fire without undoing a penalty already earned", () => {
+    expect(calculateSeasonPenalty([
+      { roundNumber: 1, fires: 5 },
+      { roundNumber: 4, fires: -1 },
+    ], [1, 2, 3, 4, 5])).toMatchObject({
+      totalFires: 4,
+      strikes: 1,
+      stages: [4, null, null, null],
+      suspendedRoundNumbers: [2],
+      pointAdjustment: -1,
+    });
+  });
 });
 
 describe("season substitutions and p adjustments", () => {

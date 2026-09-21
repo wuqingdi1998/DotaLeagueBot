@@ -5,7 +5,6 @@ import {
   type SeasonStandingIdentity,
   type SeasonStandingMatch,
 } from "@/lib/season";
-import { calculateSeasonPenalty } from "@/lib/season-discipline";
 import { deriveSeasonFinalMedals } from "@/lib/season-finals";
 import {
   seasonRoundCancellationDeadline,
@@ -19,6 +18,7 @@ import {
 } from "@/lib/season-round-registration";
 import { freshPlayerRankedWins } from "@/lib/season-ranked-wins/repository";
 import { loadSeasonExtras } from "./season-extra-query";
+import { seasonCoolingModifiers } from "./season-cooling-modifiers";
 import { hasPriorityRegistrationAccess, loadSeasonTournament } from "./season-route-access";
 import type {
   GameRow,
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
     games,
     seasonPlayers,
     roundRegistrations,
-    [pointAdjustments, penaltyEvents, substitutions, finalists],
+    [pointAdjustments, penaltyEvents, penaltyCooling, substitutions, finalists],
   ] =
     await Promise.all([
       query<RoundRow>(
@@ -419,20 +419,11 @@ export async function GET(request: Request) {
   );
   const regularRounds = rounds.filter((round) => round.round_kind === "regular");
   const publicRounds = regularRounds.filter((round) => round.is_visible);
-  const penaltyStates = [
-    ...new Set(penaltyEvents.map((event) => event.player_id)),
-  ].map((playerId) => {
-    const state = calculateSeasonPenalty(
-      penaltyEvents
-        .filter((event) => event.player_id === playerId)
-        .map((event) => ({
-          roundNumber: event.round_number,
-          fires: event.fire_count,
-        })),
-      regularRounds.map((round) => round.round_number),
-    );
-    return { playerId, ...state };
-  });
+  const { coolingProgress, penaltyStates } = seasonCoolingModifiers(
+    rounds,
+    penaltyEvents,
+    penaltyCooling,
+  );
   const standingModifiers = {
     adjustments: pointAdjustments.map((adjustment) => ({
       playerId: adjustment.player_id,
@@ -493,6 +484,8 @@ export async function GET(request: Request) {
     participants: seasonPlayers,
     pointAdjustments: isOrganizer ? pointAdjustments : [],
     penaltyEvents: isOrganizer ? penaltyEvents : [],
+    penaltyCooling: isOrganizer ? penaltyCooling : [],
+    coolingProgress,
     finalists: finalistsWithMedals,
     myRankedWins,
     isOrganizer,

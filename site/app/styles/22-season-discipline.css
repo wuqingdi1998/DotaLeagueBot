@@ -152,6 +152,37 @@
   font-weight: 800;
 }
 
+.season-cooling-cell {
+  min-width: 145px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.season-cooling-admin > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.season-admin-record-list article > .season-cooling-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.season-cooling-history h5 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.season-cooling-history p {
+  margin: 5px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .season-substitutions {
   display: grid;
   gap: 8px;
