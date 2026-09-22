@@ -27,7 +27,7 @@
 }
 
 .season-host-select.selected {
-  cursor: default;
+  cursor: pointer;
 }
 
 .season-enter-lobby-button {

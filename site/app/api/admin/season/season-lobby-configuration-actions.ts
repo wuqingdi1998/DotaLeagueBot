@@ -383,6 +383,22 @@ export async function updateSeasonLobbyConfiguration(
       if (status !== "locked") {
         throw new Response("Сначала зафиксируйте лобби", { status: 409 });
       }
+      const missingHosts = await client.query(
+        `SELECT match.id
+         FROM season_matches match
+         JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+         WHERE lobby.round_id = $1
+           AND EXISTS (SELECT 1 FROM season_match_room_players participant
+                       WHERE participant.match_id = match.id)
+           AND match.host_player_id IS NULL
+         LIMIT 1`,
+        [roundId],
+      );
+      if (missingHosts.rowCount) {
+        throw new Response("Перед публикацией назначьте хоста каждого лобби", {
+          status: 409,
+        });
+      }
       await setConfigurationStatus(client, roundId, "published");
       await queueSeasonLobbyPublishedAnnouncement(client, roundId);
       await syncSeasonRoundLobbyNotifications(client, roundId);

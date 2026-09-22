@@ -340,6 +340,25 @@
   white-space: nowrap;
 }
 
+.season-builder-player-name {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+
+.season-builder-player-name > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.season-builder-player-name .season-host-select {
+  flex: none;
+  height: 28px;
+  width: 28px;
+}
+
 .season-builder-slot-tier,
 .season-builder-slot-roles {
   font-size: 0.74rem;

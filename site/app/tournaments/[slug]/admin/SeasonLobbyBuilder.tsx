@@ -189,6 +189,7 @@ export function SeasonLobbyBuilder({
         {round.lobbies.map((lobby) => (
           <SeasonLobbyBuilderLobby
             busy={Boolean(busyAction)}
+            canSelectHost={round.lobby_configuration_status === "locked"}
             isEditing={isEditing}
             key={lobby.id}
             lobby={lobby}

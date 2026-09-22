@@ -25,11 +25,12 @@ export function SeasonLobbyHostButton({
     <button
       className={`season-host-select ${player.is_host ? "selected" : ""}`}
       type="button"
-      disabled={isSaving || player.is_host}
-      title={player.is_host ? "Хост лобби" : `Назначить ${player.nickname} хостом`}
-      aria-label={player.is_host ? "Хост лобби" : `Назначить ${player.nickname} хостом`}
+      disabled={isSaving || match.status === "completed" || match.status === "cancelled"}
+      title={player.is_host ? "Отменить назначение хоста" : `Назначить ${player.nickname} хостом`}
+      aria-label={player.is_host ? `Отменить назначение ${player.nickname} хостом` : `Назначить ${player.nickname} хостом`}
       onClick={async () => {
         if (isSaving) return;
+        if (player.is_host && !window.confirm("Отменить назначение хоста?")) return;
         setIsSaving(true);
         try {
           await season.mutate(
@@ -37,9 +38,11 @@ export function SeasonLobbyHostButton({
             {
               entity: "lobbyHost",
               matchId: match.id,
-              playerId: player.player_id,
+              playerId: player.is_host ? null : player.player_id,
             },
-            `${player.nickname} назначен хостом лобби`,
+            player.is_host
+              ? "Назначение хоста отменено"
+              : `${player.nickname} назначен хостом лобби`,
           );
         } finally {
           setIsSaving(false);

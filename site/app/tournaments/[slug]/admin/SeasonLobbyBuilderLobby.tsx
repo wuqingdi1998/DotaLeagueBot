@@ -12,11 +12,13 @@ import type {
   SeasonMatchParticipant,
 } from "../model/season-types";
 import { SeasonLobbyScheduleEditor } from "./SeasonLobbyScheduleEditor";
+import { SeasonLobbyHostButton } from "./SeasonLobbyHostButton";
 
 type TeamSide = "a" | "b";
 
 export function SeasonLobbyBuilderLobby({
   busy,
+  canSelectHost,
   isEditing,
   lobby,
   onAssign,
@@ -27,6 +29,7 @@ export function SeasonLobbyBuilderLobby({
   standingsByPlayerId,
 }: {
   busy: boolean;
+  canSelectHost: boolean;
   isEditing: boolean;
   lobby: SeasonLobby;
   onAssign: (playerId: string, matchId: number, side: TeamSide, slot: number) => void;
@@ -54,9 +57,10 @@ export function SeasonLobbyBuilderLobby({
         {(["a", "b"] as const).map((side) => (
           <BuilderTeam
             busy={busy}
+            canSelectHost={canSelectHost}
             isEditing={isEditing}
             key={side}
-            matchId={match.id}
+            match={match}
             name={side === "a" ? "Левая команда" : "Правая команда"}
             onAssign={onAssign}
             onSelect={onSelect}
@@ -77,8 +81,9 @@ export function SeasonLobbyBuilderLobby({
 
 function BuilderTeam({
   busy,
+  canSelectHost,
   isEditing,
-  matchId,
+  match,
   name,
   onAssign,
   onSelect,
@@ -90,8 +95,9 @@ function BuilderTeam({
   standingsByPlayerId,
 }: {
   busy: boolean;
+  canSelectHost: boolean;
   isEditing: boolean;
-  matchId: number;
+  match: SeasonLobby["matches"][number];
   name: string;
   onAssign: (playerId: string, matchId: number, side: TeamSide, slot: number) => void;
   onSelect: (playerId: string) => void;
@@ -137,7 +143,7 @@ function BuilderTeam({
             onClick={() => {
               if (!isEditing || busy) return;
               if (selectedPlayerId) {
-                onAssign(selectedPlayerId, matchId, side, slotNumber);
+                onAssign(selectedPlayerId, match.id, side, slotNumber);
               } else if (player) onSelect(player.player_id);
             }}
             onDragStart={(event) => {
@@ -175,14 +181,21 @@ function BuilderTeam({
               setDragOverSlot(null);
               const playerId = event.dataTransfer.getData("text/plain");
               if (isEditing && playerId) {
-                onAssign(playerId, matchId, side, slotNumber);
+                onAssign(playerId, match.id, side, slotNumber);
               }
             }}
           >
             <span>{slotNumber}</span>
             {player ? (
               <>
-                <strong>{player.nickname}</strong>
+                <strong className="season-builder-player-name">
+                  <span>{player.nickname}</span>
+                  {canSelectHost && (
+                    <span onClick={(event) => event.stopPropagation()}>
+                      <SeasonLobbyHostButton match={match} player={player} />
+                    </span>
+                  )}
+                </strong>
                 <small className="season-builder-slot-tier season-builder-tier-badge">
                   {player.tier_snapshot ?? "—"}
                 </small>

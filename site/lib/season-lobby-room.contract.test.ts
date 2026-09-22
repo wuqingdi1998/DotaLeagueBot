@@ -92,7 +92,8 @@ describe("season lobby room contract", () => {
   });
 
   it("lets the assigned host or organizer start and checks all ten players", () => {
-    expect(hostAction).toContain("participant.player_id = $2");
+    expect(hostAction).toContain("WHERE match_id = $1 AND player_id = $2");
+    expect(hostAction).toContain("lobby_configuration_status IN ('locked', 'published')");
     expect(captainSelectionActions).toContain(
       "room.host_player_id !== actor.discordId",
     );
