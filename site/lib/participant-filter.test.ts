@@ -135,4 +135,17 @@ describe("participant directory filters", () => {
       }),
     ).toEqual([manual]);
   });
+
+  it("finds a current participant by a remembered nickname", () => {
+    const renamed = {
+      ...player("DDD", 8, 2, 1),
+      aliases: ["Confuse"],
+    };
+    expect(
+      filterParticipantDirectory([renamed], {
+        ...defaultFilters,
+        search: "confuse",
+      }),
+    ).toEqual([renamed]);
+  });
 });

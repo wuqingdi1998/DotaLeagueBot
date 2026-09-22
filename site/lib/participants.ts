@@ -110,13 +110,23 @@ export async function loadParticipantDirectory(
       AND identity.registered_player_id = player.discord_id
      LEFT JOIN LATERAL (
        SELECT ARRAY_AGG(
-         DISTINCT member.nickname_snapshot
-         ORDER BY member.nickname_snapshot
+         DISTINCT source.nickname
+         ORDER BY source.nickname
        ) FILTER (
-         WHERE LOWER(member.nickname_snapshot) <> LOWER(player.ingame_name)
+         WHERE LOWER(BTRIM(source.nickname)) <>
+           LOWER(BTRIM(player.ingame_name))
        ) AS names
-       FROM player_identity_members member
-       WHERE member.identity_id = identity.id
+       FROM (
+         SELECT member.nickname_snapshot AS nickname
+         FROM player_identity_members member
+         WHERE member.identity_id = identity.id
+         UNION
+         SELECT history.nickname
+         FROM player_identity_members member
+         JOIN player_nickname_history history
+           ON history.player_id = member.player_id
+         WHERE member.identity_id = identity.id
+       ) source
      ) alias ON TRUE
      LEFT JOIN LATERAL (
        SELECT session.discord_avatar_url

@@ -171,6 +171,14 @@ describe("hall of fame and participant directory", () => {
     expect(participantsLoader).toContain("if (!dotaId) return []");
   });
 
+  it("searches every remembered nickname of a registered participant", () => {
+    expect(participantsLoader).toContain("JOIN player_nickname_history history");
+    expect(participantsLoader).toContain(
+      "ON history.player_id = member.player_id",
+    );
+    expect(participantsLoader).toContain("SELECT history.nickname");
+  });
+
   it("matches tier badges to profile buttons and keeps medals compact", () => {
     expect(directoryStyles).toMatch(
       /\.participant-tier\s*\{[^}]*width:\s*42px;[^}]*height:\s*42px;[^}]*border:\s*1px solid var\(--line-strong\);[^}]*border-radius:\s*50%;[^}]*background:\s*var\(--surface-soft\);[^}]*color:\s*var\(--text\);/,
