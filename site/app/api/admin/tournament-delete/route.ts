@@ -1,5 +1,5 @@
 import {
-  confirmOrganizerPassword,
+  confirmSensitiveOrganizerAction,
   requireAdmin,
   responseFromAuthError,
 } from "@/lib/auth";
@@ -8,6 +8,7 @@ import { transaction } from "@/lib/db";
 type TournamentDeleteRequest = {
   tournamentId?: number;
   password?: string;
+  confirmed?: boolean;
 };
 
 export async function DELETE(request: Request) {
@@ -30,7 +31,7 @@ export async function DELETE(request: Request) {
       );
     }
 
-    const admin = await confirmOrganizerPassword(body.password ?? "");
+    const admin = await confirmSensitiveOrganizerAction(body);
     const deletedTournament = await transaction(async (client) => {
       const result = await client.query<{
         id: number;

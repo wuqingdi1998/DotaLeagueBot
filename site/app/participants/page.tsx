@@ -34,6 +34,7 @@ export default async function ParticipantsPage() {
           players={players}
           isOrganizer={user?.isAdmin ?? false}
           organizerDotaId={user?.dotaId ?? null}
+          requiresPasswordConfirmation={user?.organizerAccess === "password"}
         />
       </section>
     </PlatformShell>

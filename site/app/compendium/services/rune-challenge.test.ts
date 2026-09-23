@@ -42,6 +42,7 @@ const user = {
   positions: "1/2",
   serverName: "Player 1/2",
   isAdmin: false,
+  organizerAccess: null,
 };
 
 function state(selectedAt: Date) {

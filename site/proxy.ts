@@ -6,7 +6,7 @@ import {
 } from "@/lib/auth-session";
 import { isSiteBreakBypassPath } from "@/lib/site-break-paths";
 import { decideSiteBreakAccess } from "@/lib/site-break-policy";
-import { hasOrganizerSession, isSiteBreakEnabled } from "@/lib/site-break";
+import { hasOrganizerAccess, isSiteBreakEnabled } from "@/lib/site-break";
 
 function clientAddress(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -57,9 +57,9 @@ export async function proxy(request: NextRequest) {
   }
   if (!breakEnabled) return NextResponse.next();
 
-  let hasOrganizerAccess = false;
+  let organizerAccessGranted = false;
   try {
-    hasOrganizerAccess = await hasOrganizerSession({
+    organizerAccessGranted = await hasOrganizerAccess({
       playerSessionToken: request.cookies.get(playerSessionCookie)?.value ?? null,
       organizerSessionToken:
         request.cookies.get(organizerSessionCookie)?.value ?? null,
@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
 
   const decision = decideSiteBreakAccess({
     isBreakEnabled: breakEnabled,
-    hasOrganizerAccess,
+    hasOrganizerAccess: organizerAccessGranted,
     isApiRequest: pathname.startsWith("/api/"),
   });
   if (decision === "allow") return NextResponse.next();

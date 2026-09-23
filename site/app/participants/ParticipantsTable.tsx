@@ -25,10 +25,12 @@ export function ParticipantsTable({
   players,
   isOrganizer,
   organizerDotaId,
+  requiresPasswordConfirmation,
 }: {
   players: ParticipantDirectoryPlayer[];
   isOrganizer: boolean;
   organizerDotaId: string | null;
+  requiresPasswordConfirmation: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<number | null>(null);
@@ -188,6 +190,7 @@ export function ParticipantsTable({
         <ParticipantAdminDialog
           player={editedPlayer}
           canArchive={editedPlayer.dotaId !== organizerDotaId}
+          requiresPasswordConfirmation={requiresPasswordConfirmation}
           onClose={() => setEditedPlayer(null)}
         />
       )}

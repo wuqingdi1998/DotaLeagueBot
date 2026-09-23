@@ -7,7 +7,7 @@ import {
   updateParticipantTier,
 } from "@/lib/player-identity-admin";
 import {
-  confirmOrganizerPassword,
+  confirmSensitiveOrganizerAction,
   requireAdmin,
   responseFromAuthError,
 } from "@/lib/auth";
@@ -20,6 +20,7 @@ type PlayerAdminRequest = {
   targetPlayerId?: string;
   nickname?: string;
   password?: string;
+  confirmed?: boolean;
   tier?: number | string;
 };
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as PlayerAdminRequest;
     const admin =
       body.action === "archive"
-        ? await confirmOrganizerPassword(body.password ?? "")
+        ? await confirmSensitiveOrganizerAction(body)
         : await requireAdmin();
 
     switch (body.action) {

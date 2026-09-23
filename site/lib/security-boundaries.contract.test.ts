@@ -40,7 +40,9 @@ describe("site security boundaries", () => {
     }
   });
 
-  it("keeps organizer access behind a separate password and short session", () => {
+  it("separates trusted Discord access from short password sessions", () => {
+    expect(authSource).toContain("trusted_organizers");
+    expect(authSource).toContain("organizerAccessMethod");
     expect(authSource).toContain('process.env.ORGANIZER_PASSWORD');
     expect(authSource).toContain("organizer_passwords");
     expect(authSource).toContain("scryptSecretHashMatches");

@@ -22,6 +22,7 @@ const substitution = { matchId: 10, gameNumber: 2, outgoingPlayerId: "10001", in
 const viewer = (discordId: string): AuthUser => ({
   discordId, dotaId: discordId, username: "Player", avatarUrl: null,
   playerName: "Player", realName: null, positions: null, serverName: "Player", isAdmin: false,
+  organizerAccess: null,
 });
 const finishFirstMap = () => reportSeasonLobbyGameResult(10, viewer("10001"), "8986462059", "a");
 const firstRow = async (sql: string) => (await db.query(sql)).rows[0];

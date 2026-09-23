@@ -23,6 +23,7 @@ const host: AuthUser = {
   positions: null,
   serverName: "Host",
   isAdmin: false,
+  organizerAccess: null,
 };
 
 let database: PGlite;

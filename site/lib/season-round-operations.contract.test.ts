@@ -71,12 +71,13 @@ describe("season round operations", () => {
     expect(registrationActions).toContain("INSERT INTO season_round_checkins");
   });
 
-  it("requires a fresh organizer password only for manual registration removal", () => {
-    expect(adminRoute).toContain("confirmOrganizerPassword");
-    expect(adminRoute.indexOf("confirmOrganizerPassword")).toBeLessThan(
+  it("confirms manual registration removal according to organizer access", () => {
+    expect(adminRoute).toContain("confirmSensitiveOrganizerAction");
+    expect(adminRoute.indexOf("confirmSensitiveOrganizerAction")).toBeLessThan(
       adminRoute.indexOf("deleteSeasonRoundRegistration(body"),
     );
     expect(registrationAdmin).toContain("<OrganizerPasswordField");
+    expect(registrationAdmin).toContain("requiresPasswordConfirmation");
     expect(registrationAdmin).toContain("password,");
     expect(registrationActions).toContain("manual_add");
     expect(registrationActions).not.toContain("new Date");

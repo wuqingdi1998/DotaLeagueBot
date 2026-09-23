@@ -34,6 +34,7 @@ const user = {
   positions: null,
   serverName: "Player",
   isAdmin: true,
+  organizerAccess: "trusted" as const,
 };
 
 describe("star race final prediction", () => {

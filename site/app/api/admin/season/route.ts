@@ -1,4 +1,4 @@
-import { confirmOrganizerPassword, requireAdmin } from "@/lib/auth";
+import { confirmSensitiveOrganizerAction, requireAdmin } from "@/lib/auth";
 import {
   createSeasonGame,
   createSeasonMatch,
@@ -60,6 +60,7 @@ type SeasonRequest = Record<string, unknown> & {
     | "publishedLobby"
     | "lobbyHost";
   password?: string;
+  confirmed?: boolean;
 };
 
 async function seasonErrorResponse(error: unknown) {
@@ -195,7 +196,7 @@ export async function DELETE(request: Request) {
     const body = (await request.json()) as SeasonRequest;
     const admin =
       body.entity === "registration"
-        ? await confirmOrganizerPassword(body.password ?? "")
+        ? await confirmSensitiveOrganizerAction(body)
         : await requireAdmin();
     if (body.entity === "lobby") return Response.json(await deleteSeasonLobby(body));
     if (body.entity === "match") {

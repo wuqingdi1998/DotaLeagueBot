@@ -35,28 +35,36 @@ export async function setSiteBreakEnabled(
   return nextState;
 }
 
-export async function hasOrganizerSession(input: {
+export async function hasOrganizerAccess(input: {
   playerSessionToken: string | null;
   organizerSessionToken: string | null;
 }): Promise<boolean> {
-  if (!input.playerSessionToken || !input.organizerSessionToken) return false;
+  if (!input.playerSessionToken) return false;
   const result = await one<{ is_organizer: boolean }>(
     `SELECT EXISTS (
        SELECT 1
        FROM web_sessions participant_session
-       JOIN web_organizer_sessions organizer_session
-         ON organizer_session.discord_id = participant_session.discord_id
        JOIN players player
          ON player.discord_id = participant_session.discord_id
+       LEFT JOIN trusted_organizers trusted
+         ON trusted.discord_id = participant_session.discord_id
+       LEFT JOIN web_organizer_sessions organizer_session
+         ON organizer_session.discord_id = participant_session.discord_id
+        AND organizer_session.token_hash = $2
+        AND organizer_session.expires_at > NOW()
        WHERE participant_session.token_hash = $1
          AND participant_session.expires_at > NOW()
-         AND organizer_session.token_hash = $2
-         AND organizer_session.expires_at > NOW()
          AND player.is_archived = FALSE
+         AND (
+           trusted.discord_id IS NOT NULL
+           OR organizer_session.token_hash IS NOT NULL
+         )
      ) AS is_organizer`,
     [
       sessionTokenHash(input.playerSessionToken),
-      sessionTokenHash(input.organizerSessionToken),
+      input.organizerSessionToken
+        ? sessionTokenHash(input.organizerSessionToken)
+        : "",
     ],
   );
   return result?.is_organizer ?? false;

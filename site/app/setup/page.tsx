@@ -13,6 +13,7 @@ type SessionUser = {
   username: string;
   playerName: string;
   isAdmin: boolean;
+  organizerAccess: "trusted" | "password" | null;
 };
 
 const initialTournament = {

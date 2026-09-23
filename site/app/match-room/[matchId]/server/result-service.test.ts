@@ -26,6 +26,7 @@ function actor(discordId: string, isAdmin = false): AuthUser {
     positions: null,
     serverName: "Test",
     isAdmin,
+    organizerAccess: isAdmin ? "trusted" : null,
   };
 }
 const captainA = actor("10001");

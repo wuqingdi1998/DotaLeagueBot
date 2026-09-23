@@ -207,6 +207,7 @@ export type TournamentSiteData = {
     positions: string | null;
     serverName: string;
     isAdmin: boolean;
+    organizerAccess: "trusted" | "password" | null;
   } | null;
   invitations: Array<{
     application_id: number;

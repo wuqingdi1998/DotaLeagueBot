@@ -14,12 +14,13 @@ const adminPanel = source(
 );
 
 describe("tournament deletion contract", () => {
-  it("requires a fresh organizer password before permanent deletion", () => {
-    expect(route).toContain("confirmOrganizerPassword");
-    expect(route.indexOf("confirmOrganizerPassword")).toBeLessThan(
+  it("confirms permanent deletion according to organizer access", () => {
+    expect(route).toContain("confirmSensitiveOrganizerAction");
+    expect(route.indexOf("confirmSensitiveOrganizerAction")).toBeLessThan(
       route.indexOf("DELETE FROM tournaments"),
     );
     expect(panel).toContain("<OrganizerPasswordField");
+    expect(panel).toContain("requiresPasswordConfirmation");
     expect(panel).toContain("value={password}");
   });
 

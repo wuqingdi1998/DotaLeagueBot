@@ -34,6 +34,7 @@ const administrator = {
   positions: null,
   serverName: "Organizer",
   isAdmin: true,
+  organizerAccess: "trusted" as const,
 };
 
 beforeEach(() => {

@@ -31,10 +31,12 @@ async function playerAdminRequest(payload: Record<string, unknown>) {
 export function ParticipantAdminDialog({
   player,
   canArchive,
+  requiresPasswordConfirmation,
   onClose,
 }: {
   player: ParticipantDirectoryPlayer;
   canArchive: boolean;
+  requiresPasswordConfirmation: boolean;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -71,8 +73,7 @@ export function ParticipantAdminDialog({
     }
   }
 
-  async function confirmArchive(event: FormEvent) {
-    event.preventDefault();
+  async function archivePlayer() {
     setIsSaving(true);
     setError("");
     try {
@@ -80,6 +81,7 @@ export function ParticipantAdminDialog({
         action: "archive",
         playerId: player.discordId,
         password,
+        confirmed: !requiresPasswordConfirmation,
       });
       router.refresh();
       onClose();
@@ -92,6 +94,11 @@ export function ParticipantAdminDialog({
     } finally {
       setIsSaving(false);
     }
+  }
+
+  function confirmArchive(event: FormEvent) {
+    event.preventDefault();
+    void archivePlayer();
   }
 
   return (
@@ -163,11 +170,22 @@ export function ParticipantAdminDialog({
               <button
                 className="danger"
                 type="button"
-                onClick={() => setDeleteStep("password")}
+                onClick={() => {
+                  if (requiresPasswordConfirmation) {
+                    setDeleteStep("password");
+                    return;
+                  }
+                  void archivePlayer();
+                }}
+                disabled={isSaving}
               >
-                Да
+                {isSaving ? "Переносим…" : "Да"}
               </button>
-              <button type="button" onClick={() => setDeleteStep("none")}>
+              <button
+                type="button"
+                onClick={() => setDeleteStep("none")}
+                disabled={isSaving}
+              >
                 Нет
               </button>
             </div>

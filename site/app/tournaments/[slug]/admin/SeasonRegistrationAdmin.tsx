@@ -14,7 +14,7 @@ import {
 } from "./SeasonAdminPlayerPicker";
 
 export function SeasonRegistrationAdmin({ round }: { round: SeasonRound }) {
-  const { season } = useTournament();
+  const { data, season } = useTournament();
   const [selectedPlayer, setSelectedPlayer] =
     useState<SeasonAdminPlayerOption | null>(null);
   const [tierSnapshot, setTierSnapshot] = useState("");
@@ -24,6 +24,8 @@ export function SeasonRegistrationAdmin({ round }: { round: SeasonRound }) {
   const [removalError, setRemovalError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [pickerRevision, setPickerRevision] = useState(0);
+  const requiresPasswordConfirmation =
+    data?.user?.organizerAccess === "password";
   if (!season.data?.isOrganizer) return null;
 
   function selectPlayer(player: SeasonAdminPlayerOption | null) {
@@ -68,6 +70,7 @@ export function SeasonRegistrationAdmin({ round }: { round: SeasonRound }) {
           roundId: round.id,
           playerId: removalTarget.player_id,
           password,
+          confirmed: !requiresPasswordConfirmation,
         },
         `${removalTarget.nickname} удалён из регистрации`,
       );
@@ -164,11 +167,13 @@ export function SeasonRegistrationAdmin({ round }: { round: SeasonRound }) {
               чек-ин. Уже опубликованный состав лобби автоматически не изменится.
             </p>
             <form onSubmit={removeRegistration}>
-              <OrganizerPasswordField
-                autoFocus
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              {requiresPasswordConfirmation && (
+                <OrganizerPasswordField
+                  autoFocus
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              )}
               {removalError && (
                 <p className="season-registration-remove-error" role="alert">
                   {removalError}

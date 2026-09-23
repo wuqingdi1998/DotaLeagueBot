@@ -23,7 +23,7 @@ describe("site-wide organizer break", () => {
 
   it("blocks pages and APIs while preserving organizer recovery", () => {
     expect(proxy).toContain("isSiteBreakEnabled");
-    expect(proxy).toContain("hasOrganizerSession");
+    expect(proxy).toContain("hasOrganizerAccess");
     expect(proxy).toContain('breakUrl.pathname = "/break"');
     expect(proxy).toContain("pathname.startsWith(\"/api/\")");
     expect(proxy).toContain("isSiteBreakBypassPath");

@@ -102,11 +102,12 @@ describe("player identities and archive safety", () => {
     expect(adminService).not.toMatch(/DELETE FROM players/);
   });
 
-  it("requires a fresh organizer password for archiving", () => {
+  it("confirms archiving according to the organizer access method", () => {
     expect(adminRoute).toContain(
       'body.action === "archive"',
     );
-    expect(adminRoute).toContain("confirmOrganizerPassword");
+    expect(adminRoute).toContain("confirmSensitiveOrganizerAction");
+    expect(participantAdminDialog).toContain("requiresPasswordConfirmation");
     expect(adminService).toContain(
       "Нельзя перенести в архив собственный профиль организатора",
     );

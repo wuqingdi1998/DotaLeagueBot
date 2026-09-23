@@ -18,6 +18,11 @@ import {
   playerSessionCookie,
   sessionTokenHash,
 } from "@/lib/auth-session";
+import {
+  organizerAccessMethod,
+  requiresFreshOrganizerPassword,
+  type OrganizerAccessMethod,
+} from "@/lib/organizer-access";
 
 const oauthStateCookie = "ls_oauth_state";
 const sessionLifetimeDays = 30;
@@ -35,6 +40,7 @@ export type AuthUser = {
   positions: string | null;
   serverName: string;
   isAdmin: boolean;
+  organizerAccess: OrganizerAccessMethod;
 };
 
 type SessionRow = {
@@ -45,7 +51,8 @@ type SessionRow = {
   ingame_name: string;
   real_name: string | null;
   positions: string | null;
-  is_admin: boolean;
+  is_trusted_organizer: boolean;
+  has_password_organizer_session: boolean;
 };
 
 type TemporaryOrganizerPasswordRow = {
@@ -115,8 +122,8 @@ export async function createSession(input: {
   username: string;
   avatarUrl: string | null;
 }): Promise<void> {
-  // Every Discord login starts in ordinary participant mode. Organizer access
-  // is always a separate, explicit password step.
+  // Password-based access never survives a fresh Discord login. Trusted
+  // organizers regain access from the durable Discord allowlist in getSession.
   await deleteOrganizerSession();
   await query("DELETE FROM web_sessions WHERE expires_at <= NOW()");
   const token = randomBytes(32).toString("base64url");
@@ -162,15 +169,16 @@ export async function getSession(): Promise<AuthUser | null> {
        p.ingame_name,
        p.real_name,
        p.positions,
-       EXISTS (
-         SELECT 1
-         FROM web_organizer_sessions organizer
-         WHERE organizer.token_hash = $2
-           AND organizer.discord_id = s.discord_id
-           AND organizer.expires_at > NOW()
-       ) AS is_admin
+       trusted.discord_id IS NOT NULL AS is_trusted_organizer,
+       organizer.token_hash IS NOT NULL AS has_password_organizer_session
      FROM web_sessions s
      JOIN players p ON p.discord_id = s.discord_id
+     LEFT JOIN trusted_organizers trusted
+       ON trusted.discord_id = s.discord_id
+     LEFT JOIN web_organizer_sessions organizer
+       ON organizer.token_hash = $2
+      AND organizer.discord_id = s.discord_id
+      AND organizer.expires_at > NOW()
      WHERE s.token_hash = $1
        AND s.expires_at > NOW()
        AND p.is_archived = FALSE`,
@@ -180,6 +188,10 @@ export async function getSession(): Promise<AuthUser | null> {
     ],
   );
   if (!row) return null;
+  const accessMethod = organizerAccessMethod(
+    row.is_trusted_organizer,
+    row.has_password_organizer_session,
+  );
   return {
     discordId: row.discord_id,
     dotaId: row.dota_id,
@@ -193,7 +205,8 @@ export async function getSession(): Promise<AuthUser | null> {
       row.ingame_name,
       row.positions,
     ),
-    isAdmin: row.is_admin,
+    isAdmin: accessMethod !== null,
+    organizerAccess: accessMethod,
   };
 }
 
@@ -284,11 +297,15 @@ async function verifyOrganizerPassword(
   return temporaryPassword?.expires_at ?? null;
 }
 
-export async function confirmOrganizerPassword(
-  suppliedPassword: string,
+export async function confirmSensitiveOrganizerAction(
+  confirmation: { password?: string; confirmed?: boolean },
 ): Promise<AuthUser> {
   const user = await requireAdmin();
-  await verifyOrganizerPassword(user, suppliedPassword);
+  if (requiresFreshOrganizerPassword(user.organizerAccess)) {
+    await verifyOrganizerPassword(user, confirmation.password ?? "");
+  } else if (confirmation.confirmed !== true) {
+    throw new Response("Подтвердите действие", { status: 400 });
+  }
   return user;
 }
 
@@ -296,6 +313,9 @@ export async function createOrganizerSession(
   suppliedPassword: string,
 ): Promise<AuthUser> {
   const user = await requireSession();
+  if (user.organizerAccess === "trusted") {
+    return { ...user, isAdmin: true, organizerAccess: "trusted" };
+  }
   const temporaryPasswordExpiresAt = await verifyOrganizerPassword(
     user,
     suppliedPassword,
@@ -323,7 +343,7 @@ export async function createOrganizerSession(
     expires: expiresAt,
     path: "/",
   });
-  return { ...user, isAdmin: true };
+  return { ...user, isAdmin: true, organizerAccess: "password" };
 }
 
 export async function deleteOrganizerSession(): Promise<void> {

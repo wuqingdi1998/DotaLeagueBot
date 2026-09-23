@@ -7,11 +7,19 @@ import { FiTrash2, FiX } from "react-icons/fi";
 import { OrganizerPasswordField } from "@/app/components/OrganizerPasswordField";
 import { useTournament } from "../hooks/TournamentContext";
 
-async function deleteTournament(tournamentId: number, password: string) {
+async function deleteTournament(
+  tournamentId: number,
+  password: string,
+  requiresPasswordConfirmation: boolean,
+) {
   const response = await fetchSiteRequest("/api/admin/tournament-delete", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tournamentId, password }),
+    body: JSON.stringify({
+      tournamentId,
+      password,
+      confirmed: !requiresPasswordConfirmation,
+    }),
   });
   const responseText = await response.text();
   let body: { error?: string } | null = null;
@@ -36,6 +44,8 @@ export function TournamentDeletePanel() {
   if (!data) return null;
   const tournament = data.tournament;
   const isCloseTournament = Boolean(tournament.close_event_id);
+  const requiresPasswordConfirmation =
+    data.user?.organizerAccess === "password";
 
   function closeDialog() {
     if (isDeleting) return;
@@ -49,7 +59,11 @@ export function TournamentDeletePanel() {
     setIsDeleting(true);
     setError("");
     try {
-      await deleteTournament(tournament.id, password);
+      await deleteTournament(
+        tournament.id,
+        password,
+        requiresPasswordConfirmation,
+      );
       window.location.assign("/tournaments");
     } catch (requestError) {
       setError(
@@ -110,17 +124,20 @@ export function TournamentDeletePanel() {
             <p className="card-kicker">Безвозвратное удаление</p>
             <h2 id="tournament-delete-title">Удалить {tournament.name}?</h2>
             <p className="tournament-delete-warning">
-              Отменить это действие будет невозможно. Для подтверждения введите
-              пароль организатора.
+              {requiresPasswordConfirmation
+                ? "Отменить это действие будет невозможно. Для подтверждения введите пароль организатора."
+                : "Отменить это действие будет невозможно. Подтвердите удаление кнопкой ниже."}
               {isCloseTournament && " Анонс клоза в Discord удалён не будет."}
             </p>
             <form onSubmit={confirmDelete}>
-              <OrganizerPasswordField
-                autoFocus
-                disabled={isDeleting}
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
+              {requiresPasswordConfirmation && (
+                <OrganizerPasswordField
+                  autoFocus
+                  disabled={isDeleting}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                />
+              )}
               {error && (
                 <p className="tournament-delete-error" role="alert">
                   {error}

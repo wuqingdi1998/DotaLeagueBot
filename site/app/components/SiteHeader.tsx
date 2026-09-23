@@ -34,6 +34,7 @@ export type SessionUser = {
   positions: string | null;
   serverName: string;
   isAdmin: boolean;
+  organizerAccess: "trusted" | "password" | null;
 };
 
 type SiteHeaderProps = {

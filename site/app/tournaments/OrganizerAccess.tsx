@@ -16,6 +16,7 @@ const SiteBreakButton = dynamic(
 
 type OrganizerUser = {
   isAdmin: boolean;
+  organizerAccess: "trusted" | "password" | null;
 } | null;
 
 export function OrganizerAccess({
@@ -83,7 +84,11 @@ export function OrganizerAccess({
           onClick={() => setOpen(true)}
         >
           <FiShield aria-hidden="true" />
-          {user?.isAdmin ? "Организатор · активен" : "Режим организатора"}
+          {user?.organizerAccess === "trusted"
+            ? "Организатор · постоянный доступ"
+            : user?.isAdmin
+              ? "Организатор · активен"
+              : "Режим организатора"}
         </button>
         {user?.isAdmin && <SiteBreakButton />}
       </div>
@@ -125,10 +130,15 @@ export function OrganizerAccess({
               </>
             ) : user.isAdmin ? (
               <>
-                <h2 id="organizer-title">Режим организатора активен</h2>
+                <h2 id="organizer-title">
+                  {user.organizerAccess === "trusted"
+                    ? "Постоянный доступ организатора"
+                    : "Режим организатора активен"}
+                </h2>
                 <p className="modal-intro">
-                  Управление турнирами открыто на 12 часов. Профиль участника
-                  при этом остаётся обычным Discord-профилем.
+                  {user.organizerAccess === "trusted"
+                    ? "Ваш Discord-профиль имеет постоянные права управления. Опасные действия подтверждаются отдельным вопросом."
+                    : "Управление турнирами открыто на 12 часов. Для опасных действий пароль потребуется ввести повторно."}
                 </p>
                 <div className="organizer-modal-actions">
                   <button
@@ -138,14 +148,16 @@ export function OrganizerAccess({
                   >
                     Открыть управление
                   </button>
-                  <button
-                    className="secondary-button"
-                    type="button"
-                    onClick={() => void deactivate()}
-                    disabled={saving}
-                  >
-                    <FiLogOut /> Выйти из режима
-                  </button>
+                  {user.organizerAccess === "password" && (
+                    <button
+                      className="secondary-button"
+                      type="button"
+                      onClick={() => void deactivate()}
+                      disabled={saving}
+                    >
+                      <FiLogOut /> Выйти из режима
+                    </button>
+                  )}
                 </div>
               </>
             ) : (
