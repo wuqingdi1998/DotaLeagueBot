@@ -1,0 +1,123 @@
+.october-compendium-base-hero {
+  border: 1px solid rgba(90, 182, 226, 0.22);
+  border-radius: 26px;
+  padding: clamp(30px, 5vw, 60px);
+  background: linear-gradient(120deg, #102f43, #092231);
+  color: #f3faff;
+}
+
+.october-compendium-base-hero h1 {
+  font-size: clamp(40px, 5vw, 68px);
+}
+
+.october-compendium-base-hero > p {
+  max-width: 800px;
+  margin: 0;
+  color: #c5dce8;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.october-compendium-base-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+.october-compendium-base-summary span {
+  border: 1px solid rgba(151, 218, 250, 0.24);
+  border-radius: 999px;
+  padding: 8px 14px;
+  color: #d2effd;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.october-compendium-base-weeks {
+  display: grid;
+  gap: 26px;
+  margin-top: 26px;
+}
+
+.october-compendium-base-week {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+}
+
+.october-compendium-base-week > header {
+  padding: 28px 30px 18px;
+}
+
+.october-compendium-base-week h2 {
+  margin: 8px 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(27px, 3vw, 38px);
+  font-weight: 600;
+}
+
+.october-compendium-base-week header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.october-compendium-base-prizes {
+  padding: 0 30px 24px;
+}
+
+.october-compendium-base-quests {
+  border-top: 1px solid var(--line);
+}
+
+.october-compendium-base-quests article {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 60px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 30px;
+}
+
+.october-compendium-base-quests article + article {
+  border-top: 1px solid var(--line);
+}
+
+.october-compendium-base-quest-date {
+  display: grid;
+  gap: 4px;
+  color: var(--blue);
+  font-size: 13px;
+}
+
+.october-compendium-base-quests h3 {
+  margin: 0 0 5px;
+  font-size: 17px;
+}
+
+.october-compendium-base-quests b {
+  justify-content: end;
+}
+
+@media (max-width: 650px) {
+  .october-compendium-base-week > header {
+    padding: 24px 20px 18px;
+  }
+
+  .october-compendium-base-prizes {
+    padding: 0 20px 20px;
+  }
+
+  .october-compendium-base-quests article {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    padding: 18px 20px;
+  }
+
+  .october-compendium-base-quest-date {
+    grid-column: span 2;
+    display: flex;
+    gap: 8px;
+  }
+}

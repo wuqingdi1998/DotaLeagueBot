@@ -1,0 +1,461 @@
+.october-compendium-page {
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(40, 150, 206, 0.14), transparent 30%),
+    radial-gradient(circle at 4% 50%, rgba(98, 72, 167, 0.11), transparent 35%),
+    var(--bg);
+  color: var(--text);
+}
+
+.october-compendium-wrap {
+  width: min(100% - 48px, 1220px);
+  margin: 0 auto;
+  padding: 40px 0 100px;
+}
+
+.october-compendium-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 26px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.october-compendium-back:hover,
+.october-compendium-back:focus-visible {
+  color: var(--blue);
+}
+
+.october-compendium-hero {
+  position: relative;
+  display: grid;
+  min-height: 450px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(90, 182, 226, 0.22);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 78% 48%, rgba(55, 176, 237, 0.22), transparent 34%),
+    linear-gradient(130deg, #102f43, #092231 70%);
+  box-shadow: 0 32px 70px rgba(2, 13, 25, 0.19);
+  color: #f3faff;
+}
+
+.october-compendium-hero-copy {
+  position: relative;
+  z-index: 1;
+  padding: clamp(38px, 6vw, 76px);
+}
+
+.october-compendium-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(101, 218, 255, 0.42);
+  border-radius: 999px;
+  padding: 8px 13px;
+  background: rgba(67, 174, 229, 0.12);
+  color: #82ddff;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.october-compendium-hero h1,
+.october-compendium-base-hero h1 {
+  margin: 26px 0 20px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(50px, 6vw, 88px);
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.october-compendium-hero h1 em {
+  color: #67d5ff;
+  font-style: normal;
+}
+
+.october-compendium-hero-copy > p {
+  max-width: 560px;
+  margin: 0;
+  color: #c5dce8;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.october-compendium-hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 30px;
+}
+
+.october-compendium-hero-actions a,
+.october-compendium-section-heading.with-action > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 13px;
+  padding: 14px 18px;
+  background: #23a8e7;
+  color: #041c2a;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.october-compendium-hero-actions a:hover,
+.october-compendium-section-heading.with-action > a:hover {
+  transform: translateY(-2px);
+  background: #64d4ff;
+}
+
+.october-compendium-hero-actions > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #a7c4d1;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.october-compendium-hero-art {
+  position: relative;
+  display: grid;
+  min-height: 450px;
+  place-items: center;
+}
+
+.october-compendium-orbit {
+  position: absolute;
+  width: 330px;
+  height: 330px;
+  border: 1px solid rgba(95, 207, 255, 0.22);
+  border-radius: 50%;
+}
+
+.october-compendium-orbit.orbit-two {
+  width: 260px;
+  height: 260px;
+  border-color: rgba(95, 207, 255, 0.39);
+  box-shadow: 0 0 90px rgba(29, 162, 232, 0.17);
+}
+
+.october-compendium-emblem {
+  display: grid;
+  width: 190px;
+  height: 190px;
+  place-items: center;
+  border: 1px solid rgba(142, 224, 255, 0.5);
+  border-radius: 42px;
+  background: linear-gradient(135deg, #2e9ccc, #0d3c59);
+  box-shadow: 0 28px 70px rgba(2, 18, 31, 0.48), inset 0 1px 20px rgba(255, 255, 255, 0.15);
+  transform: rotate(-10deg);
+}
+
+.october-compendium-emblem svg {
+  width: 88px;
+  height: 88px;
+  color: #c8f3ff;
+  transform: rotate(10deg);
+}
+
+.october-compendium-hero-art > span {
+  position: absolute;
+  right: 16%;
+  bottom: 15%;
+  color: rgba(139, 222, 255, 0.44);
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 48px;
+}
+
+.october-compendium-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 22px 0 70px;
+}
+
+.october-compendium-facts > div {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  background: var(--surface);
+}
+
+.october-compendium-facts svg {
+  grid-row: span 2;
+  width: 24px;
+  height: 24px;
+  color: var(--blue);
+}
+
+.october-compendium-facts span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.october-compendium-facts strong {
+  font-size: 17px;
+}
+
+.october-compendium-section {
+  margin-top: 70px;
+}
+
+.october-compendium-section-heading {
+  margin-bottom: 22px;
+}
+
+.october-compendium-section-heading > span,
+.october-compendium-section-heading > div > span,
+.october-compendium-base-week > header > span {
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.october-compendium-section-heading h2 {
+  margin: 8px 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(30px, 3.5vw, 46px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.october-compendium-section-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.october-compendium-section-heading.with-action {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.october-compendium-section-heading.with-action > a {
+  flex-shrink: 0;
+}
+
+.october-compendium-mechanics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.october-compendium-mechanics article,
+.october-compendium-week-quests article {
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px;
+  background: var(--surface);
+}
+
+.october-compendium-mechanics article > span {
+  color: var(--blue);
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 30px;
+}
+
+.october-compendium-mechanics h3,
+.october-compendium-week-quests h3,
+.october-compendium-base-quests h3 {
+  margin: 12px 0 8px;
+  font-size: 21px;
+}
+
+.october-compendium-mechanics p,
+.october-compendium-week-quests p,
+.october-compendium-base-quests p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.october-compendium-race-rules {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 24px;
+  border: 1px solid rgba(60, 169, 222, 0.28);
+  border-radius: 20px;
+  padding: 24px;
+  background: var(--surface-blue);
+}
+
+.october-compendium-race-rules > p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.october-compendium-prizes,
+.october-compendium-base-prizes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.october-compendium-prizes > div,
+.october-compendium-base-prizes > div {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: var(--surface);
+}
+
+.october-compendium-prizes svg,
+.october-compendium-base-prizes svg {
+  color: var(--blue);
+}
+
+.october-compendium-prizes span,
+.october-compendium-prizes small,
+.october-compendium-base-prizes span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.october-compendium-prizes strong,
+.october-compendium-base-prizes strong {
+  font-size: 14px;
+}
+
+.october-compendium-week-quests {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.october-compendium-week-quests article {
+  position: relative;
+  min-height: 190px;
+  padding-right: 80px;
+}
+
+.october-compendium-week-quests article > div {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: var(--blue);
+  font-size: 13px;
+}
+
+.october-compendium-week-quests b,
+.october-compendium-base-quests b {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--blue);
+}
+
+.october-compendium-week-quests b {
+  position: absolute;
+  top: 23px;
+  right: 24px;
+}
+
+.october-compendium-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 46px;
+  border-top: 1px solid var(--line);
+  padding-top: 24px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.october-compendium-footer-note p {
+  margin: 0;
+}
+
+@media (max-width: 850px) {
+  .october-compendium-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .october-compendium-hero-art {
+    display: none;
+  }
+
+  .october-compendium-race-rules {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 650px) {
+  .october-compendium-wrap {
+    width: min(100% - 32px, 1220px);
+    padding: 26px 0 72px;
+  }
+
+  .october-compendium-hero {
+    min-height: 0;
+    border-radius: 22px;
+  }
+
+  .october-compendium-hero-copy {
+    padding: 32px 24px;
+  }
+
+  .october-compendium-hero h1 {
+    font-size: clamp(46px, 12vw, 64px);
+  }
+
+  .october-compendium-hero-copy > p {
+    font-size: 15px;
+  }
+
+  .october-compendium-hero-actions a {
+    width: 100%;
+  }
+
+  .october-compendium-facts,
+  .october-compendium-mechanics,
+  .october-compendium-week-quests {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .october-compendium-facts {
+    margin-bottom: 50px;
+  }
+
+  .october-compendium-section {
+    margin-top: 50px;
+  }
+
+  .october-compendium-section-heading.with-action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .october-compendium-week-quests article {
+    min-height: 0;
+  }
+
+}
