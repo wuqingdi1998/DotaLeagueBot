@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FiArrowLeft, FiArrowRight, FiCalendar, FiGift, FiLock, FiStar } from "react-icons/fi";
-import type { StarRaceWeekDefinition } from "@/app/compendium/model/star-race";
+import { OCTOBER_COMPENDIUM_DATE_LABEL, type OctoberCompendiumWeekDefinition } from "../model/plan";
 
 const familiarActivities = [
   {
@@ -23,7 +23,7 @@ const familiarActivities = [
 export function OctoberCompendiumPreview({
   week,
 }: {
-  week: StarRaceWeekDefinition;
+  week: OctoberCompendiumWeekDefinition;
 }) {
   return (
     <main className="october-compendium-page">
@@ -56,7 +56,7 @@ export function OctoberCompendiumPreview({
         </section>
 
         <div className="october-compendium-facts" aria-label="План события">
-          <div><FiCalendar aria-hidden="true" /><span>Период</span><strong>5–25 октября 2026</strong></div>
+          <div><FiCalendar aria-hidden="true" /><span>Период</span><strong>{OCTOBER_COMPENDIUM_DATE_LABEL}</strong></div>
           <div><FiStar aria-hidden="true" /><span>Недельных гонок</span><strong>3</strong></div>
           <div><FiGift aria-hidden="true" /><span>Призовых мест</span><strong>2 в каждой гонке</strong></div>
         </div>
@@ -101,8 +101,7 @@ export function OctoberCompendiumPreview({
                 <div key={prize.place}>
                   <FiGift aria-hidden="true" />
                   <span>{prize.place}-е место</span>
-                  <strong>Игровой предмет</strong>
-                  <small>Какой именно – выберем позже</small>
+                  <strong>{prize.title}</strong>
                 </div>
               ))}
             </div>

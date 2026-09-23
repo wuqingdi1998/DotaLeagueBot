@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FiArrowRight, FiAward, FiBookOpen, FiStar } from "react-icons/fi";
+import { OCTOBER_COMPENDIUM_DATE_LABEL } from "../compendium-october/model/plan";
 
 const archivePages = [
   {
@@ -19,7 +20,7 @@ const archivePages = [
   {
     href: "/organizer/compendium-october",
     title: "Новый компендиум",
-    description: "Закрытый план на 5–25 октября: три недели, задания и гонки за звёздами.",
+    description: `Закрытый план на ${OCTOBER_COMPENDIUM_DATE_LABEL}: три недели, задания и гонки за звёздами.`,
     icon: FiStar,
     badge: "Будущий апдейт",
   },

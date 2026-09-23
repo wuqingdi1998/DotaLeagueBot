@@ -1,12 +1,22 @@
 import type { StarRaceQuestDefinition, StarRaceQuestRequirement } from "@/app/compendium/model/star-race";
 
+export type OctoberRaceQuestDefinition = Omit<
+  StarRaceQuestDefinition,
+  "title" | "description" | "rewardStars" | "requirement"
+> & {
+  readonly title: string;
+  readonly description: string;
+  readonly rewardStars: number;
+  readonly requirement: StarRaceQuestRequirement;
+};
+
 function raceQuest(
   dateKey: string,
   title: string,
   description: string,
   rewardStars: number,
   requirement: StarRaceQuestRequirement,
-): StarRaceQuestDefinition {
+): OctoberRaceQuestDefinition {
   const date = new Date(`${dateKey}T12:00:00Z`);
   const weekday = new Intl.DateTimeFormat("ru-RU", {
     timeZone: "UTC",
@@ -28,7 +38,7 @@ function raceQuest(
   };
 }
 
-export const OCTOBER_FIRST_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
+export const OCTOBER_FIRST_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
   raceQuest(
     "2026-10-05", "Первый шаг",
     "Выиграйте один рейтинговый матч на любом герое.", 2,
@@ -66,7 +76,7 @@ export const OCTOBER_FIRST_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   ),
 ];
 
-export const OCTOBER_SECOND_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
+export const OCTOBER_SECOND_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
   raceQuest(
     "2026-10-12", "Новый круг",
     "Выиграйте два рейтинговых матча за день.", 3,
@@ -104,7 +114,7 @@ export const OCTOBER_SECOND_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
   ),
 ];
 
-export const OCTOBER_THIRD_RACE_QUESTS: readonly StarRaceQuestDefinition[] = [
+export const OCTOBER_THIRD_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
   raceQuest(
     "2026-10-19", "Решающий отрезок",
     "Выиграйте два рейтинговых матча за день.", 3,

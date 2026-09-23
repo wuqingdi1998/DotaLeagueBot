@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FiArrowLeft, FiGift, FiLock, FiStar } from "react-icons/fi";
-import { OCTOBER_COMPENDIUM_WEEKS } from "../model/plan";
+import { OCTOBER_COMPENDIUM_DATE_LABEL, OCTOBER_COMPENDIUM_WEEKS } from "../model/plan";
 
 export function OctoberCompendiumBase() {
   return (
@@ -19,7 +19,7 @@ export function OctoberCompendiumBase() {
             до их публикации для участников.
           </p>
           <div className="october-compendium-base-summary">
-            <span>5–25 октября 2026</span>
+            <span>{OCTOBER_COMPENDIUM_DATE_LABEL}</span>
             <span>3 гонки</span>
             <span>21 задание</span>
           </div>
@@ -38,7 +38,7 @@ export function OctoberCompendiumBase() {
                   <div key={prize.place}>
                     <FiGift aria-hidden="true" />
                     <strong>{prize.place}-е место</strong>
-                    <span>Один игровой предмет · выбор позже</span>
+                    <span>{prize.title}</span>
                   </div>
                 ))}
               </div>
@@ -53,7 +53,7 @@ export function OctoberCompendiumBase() {
                       <h3>{quest.title}</h3>
                       <p>{quest.description}</p>
                     </div>
-                    <b aria-label={`${quest.rewardStars} звёзд`}>
+                    <b aria-label={`${quest.rewardStars} ${[2, 3, 4].includes(quest.rewardStars) ? "звезды" : "звёзд"}`}>
                       <FiStar aria-hidden="true" /> {quest.rewardStars}
                     </b>
                   </article>

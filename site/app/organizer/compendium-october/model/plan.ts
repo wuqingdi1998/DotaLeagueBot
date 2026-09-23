@@ -3,17 +3,23 @@ import {
   OCTOBER_FIRST_RACE_QUESTS,
   OCTOBER_SECOND_RACE_QUESTS,
   OCTOBER_THIRD_RACE_QUESTS,
+  type OctoberRaceQuestDefinition,
 } from "./race-quests";
+
+export type OctoberCompendiumWeekDefinition = Omit<StarRaceWeekDefinition, "quests"> & {
+  readonly quests: readonly OctoberRaceQuestDefinition[];
+};
 
 export const OCTOBER_COMPENDIUM_START_AT = "2026-10-05T00:00:00+03:00";
 export const OCTOBER_COMPENDIUM_END_AT = "2026-10-26T00:00:00+03:00";
+export const OCTOBER_COMPENDIUM_DATE_LABEL = "5–25 октября 2026";
 
 const unannouncedPrizes = [
-  { place: 1, title: "Предмет за 1-е место – объявим позже", imageUrl: null },
-  { place: 2, title: "Предмет за 2-е место – объявим позже", imageUrl: null },
+  { place: 1, title: "Игровой предмет · выбор позже", imageUrl: null },
+  { place: 2, title: "Игровой предмет · выбор позже", imageUrl: null },
 ] as const;
 
-export const OCTOBER_COMPENDIUM_WEEKS: readonly StarRaceWeekDefinition[] = [
+export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberCompendiumWeekDefinition[] = [
   {
     id: "2026-10-05",
     title: "Гонка за звёздами · Разгон",
@@ -43,7 +49,7 @@ export const OCTOBER_COMPENDIUM_WEEKS: readonly StarRaceWeekDefinition[] = [
   },
 ];
 
-export function octoberRaceForMoment(now: Date): StarRaceWeekDefinition {
+export function octoberRaceForMoment(now: Date): OctoberCompendiumWeekDefinition {
   const nowMs = now.getTime();
   return OCTOBER_COMPENDIUM_WEEKS.find(
     (week) => nowMs >= Date.parse(week.startsAt) && nowMs < Date.parse(week.endsAt),
