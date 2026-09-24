@@ -4,3 +4,16 @@
   font-size: 14px;
   line-height: 1.55;
 }
+
+.october-compendium-preview .compendium-reward-milestones {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.october-compendium-preview .compendium-reward-milestones article {
+  min-height: 0;
+}
+
+.october-compendium-base .compendium-base-back {
+  display: flex;
+  width: fit-content;
+}

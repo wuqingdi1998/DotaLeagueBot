@@ -6,7 +6,7 @@ import { OctoberRacePreview } from "./OctoberActivityPreview";
 
 export function OctoberCompendiumBase() {
   return (
-    <main className="compendium-base-page">
+    <main className="compendium-base-page october-compendium-base">
       <section className="compendium-base-hero">
         <Link href="/organizer/compendium-october" className="compendium-base-back">
           <FiArrowLeft aria-hidden="true" /> Вернуться в компендиум
