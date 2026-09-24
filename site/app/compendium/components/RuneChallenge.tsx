@@ -76,12 +76,14 @@ export function RuneChallenge({
   rewardStars,
   resetCountdown,
   onStarsChange,
+  isPreview = false,
 }: {
   initialChallenge: RuneChallengeData;
   currentTimeMs: number;
   rewardStars: number;
   resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
+  isPreview?: boolean;
 }) {
   const [challenge, setChallenge] = useState(initialChallenge);
   const [selectedHeroId, setSelectedHeroId] = useState("");
@@ -179,7 +181,7 @@ export function RuneChallenge({
   }
 
   return (
-    <section className={`compendium-rune-challenge${challenge.hasAccess ? "" : " locked"}`}>
+    <section className={`compendium-rune-challenge${challenge.hasAccess || isPreview ? "" : " locked"}`}>
       <div className="compendium-rune-heading">
         <div>
           <span>Ежедневное задание для подписчиков</span>
@@ -193,7 +195,15 @@ export function RuneChallenge({
         </div>
       </div>
 
-      {!challenge.hasAccess ? (
+      {isPreview ? (
+        <div className="compendium-rune-locked-message">
+          <FiLock aria-hidden="true" />
+          <div>
+            <strong>Испытание появится при открытии компендиума</strong>
+            <p>Подписчик выбирает любимого героя и получает звёзды за победу на нём в рейтинговом матче. Героя можно сменить через 7 дней. В закрытой версии выбор и начисление звёзд недоступны.</p>
+          </div>
+        </div>
+      ) : !challenge.hasAccess ? (
         <div className="compendium-rune-locked-message">
           <FiLock aria-hidden="true" />
           <div>

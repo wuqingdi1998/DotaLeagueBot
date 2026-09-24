@@ -218,6 +218,45 @@ function StarRaceProgress({
   );
 }
 
+function StarRaceCounter({
+  race,
+  isPreview,
+}: {
+  race: StarRaceData;
+  isPreview: boolean;
+}) {
+  const content = (
+    <>
+      <FaStar aria-hidden="true" />
+      <span className="compendium-star-race-total-label">Ваш результат</span>
+      <strong className="compendium-star-race-total-value">
+        {isPreview ? "—" : race.personalStars ?? 0}
+      </strong>
+      <span className="compendium-star-race-rank-label">Ваше место в гонке</span>
+      <strong className="compendium-star-race-rank-value">
+        {race.personalRank ?? "—"}
+      </strong>
+      {!isPreview && <FiArrowRight aria-hidden="true" />}
+    </>
+  );
+  if (isPreview) {
+    return (
+      <div className="compendium-star-race-counter" aria-label="Гонка ещё не открыта, результат и место появятся после старта">
+        {content}
+      </div>
+    );
+  }
+  return (
+    <Link
+      className="compendium-star-race-counter"
+      href="/compendium/star-race"
+      aria-label={`Открыть рейтинг гонки: ваш результат — ${race.personalStars ?? 0} звёзд, ваше место — ${race.personalRank ?? "пока без места"}`}
+    >
+      {content}
+    </Link>
+  );
+}
+
 export function CompendiumStarRace({
   race,
   currentTimeMs,
@@ -226,6 +265,8 @@ export function CompendiumStarRace({
   onCheck,
   isSubmittingPrediction,
   onSubmitPrediction,
+  isPreview = false,
+  sectionId = "compendium-star-race",
 }: {
   race: StarRaceData;
   currentTimeMs: number;
@@ -234,11 +275,15 @@ export function CompendiumStarRace({
   onCheck: (dateKey: string) => void;
   isSubmittingPrediction: boolean;
   onSubmitPrediction: (position: number) => void;
+  isPreview?: boolean;
+  sectionId?: string;
 }) {
   const router = useRouter();
   const automaticCheckKey = useRef<string | null>(null);
   const activeQuest = race.quests.find((quest) => quest.phase === "active");
-  const countdownTarget = race.isDetailsVisible
+  const countdownTarget = isPreview
+    ? null
+    : race.isDetailsVisible
     ? activeQuest?.endsAt ?? null
     : race.startsAt;
   const countdown = countdownTarget
@@ -282,7 +327,7 @@ export function CompendiumStarRace({
   ]);
 
   return (
-    <section className="compendium-star-race" id="compendium-star-race">
+    <section className="compendium-star-race" id={sectionId}>
       <div className="compendium-star-race-heading">
         <div>
           <span>{race.dateLabel} · отдельный недельный зачёт</span>
@@ -301,26 +346,7 @@ export function CompendiumStarRace({
       ) : (
         <>
           <div className="compendium-star-race-summary">
-            <Link
-              className="compendium-star-race-counter"
-              href="/compendium/star-race"
-              aria-label={`Открыть рейтинг гонки: ваш результат — ${race.personalStars ?? 0} звёзд, ваше место — ${race.personalRank ?? "пока без места"}`}
-            >
-              <FaStar aria-hidden="true" />
-              <span className="compendium-star-race-total-label">
-                Ваш результат
-              </span>
-              <strong className="compendium-star-race-total-value">
-                {race.personalStars ?? 0}
-              </strong>
-              <span className="compendium-star-race-rank-label">
-                Ваше место в гонке
-              </span>
-              <strong className="compendium-star-race-rank-value">
-                {race.personalRank ?? "—"}
-              </strong>
-              <FiArrowRight aria-hidden="true" />
-            </Link>
+            <StarRaceCounter race={race} isPreview={isPreview} />
             <div className="compendium-star-race-rules">
               <FiInfo aria-hidden="true" />
               <div>
@@ -330,6 +356,9 @@ export function CompendiumStarRace({
                   {STAR_RACE_EXCLUSION_RULES.map((rule) => (
                     <li key={rule}>{rule}</li>
                   ))}
+                  {isPreview && (
+                    <li>При равенстве звёзд выше тот, кто выполнил больше заданий гонки. Если равенство осталось, место определит жеребьёвка.</li>
+                  )}
                 </ul>
               </div>
             </div>

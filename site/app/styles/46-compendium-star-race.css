@@ -107,11 +107,11 @@
 .compendium-star-race-counter {
   transition: transform 160ms ease, border-color 160ms ease;
 }
-.compendium-star-race-counter:hover {
+.compendium-star-race-counter[href]:hover {
   border-color: color-mix(in srgb, var(--star-race-gold) 70%, transparent);
   transform: translateY(-2px);
 }
-.compendium-star-race-counter:focus-visible {
+.compendium-star-race-counter[href]:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--star-race-gold) 34%, transparent);
   outline-offset: 3px;
 }

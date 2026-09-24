@@ -8,6 +8,7 @@ import {
   OCTOBER_COMPENDIUM_WEEKS,
   octoberRaceForMoment,
 } from "./plan";
+import { octoberDailyQuestSamples, octoberRacePreviewData } from "./preview";
 
 describe("October compendium draft", () => {
   it("covers every Moscow day from October 5 through October 25 without gaps", () => {
@@ -74,5 +75,33 @@ describe("October compendium draft", () => {
       expect(page).toContain("robots: { index: false, follow: false }");
       expect(page).not.toContain('"use client"');
     }
+  });
+
+  it("shows the old daily-card layout with clearly illustrative hero sets", () => {
+    const quests = octoberDailyQuestSamples();
+    expect(quests).toHaveLength(3);
+    expect(quests.map((quest) => quest.position)).toEqual([1, 2, 3]);
+    expect(quests.every((quest) => quest.heroes.length === 6 && quest.completion === null))
+      .toBe(true);
+    expect(new Set(quests.flatMap((quest) => quest.heroes.map((hero) => hero.id))).size)
+      .toBe(18);
+  });
+
+  it("passes October races to the existing race display without active actions", () => {
+    for (const week of OCTOBER_COMPENDIUM_WEEKS) {
+      const preview = octoberRacePreviewData(week);
+      expect(preview.isDetailsVisible).toBe(true);
+      expect(preview.prizes).toHaveLength(2);
+      expect(preview.quests.map((quest) => quest.dateKey))
+        .toEqual(week.quests.map((quest) => quest.dateKey));
+      expect(preview.quests.every((quest) =>
+        quest.phase === "upcoming" && quest.completion === null && quest.progress === null,
+      )).toBe(true);
+    }
+    const activityPreview = readFileSync(new URL("../sections/OctoberActivityPreview.tsx", import.meta.url), "utf8");
+    expect(activityPreview).toContain("<CompendiumStarRace");
+    expect(activityPreview).toContain("<QuestCard");
+    expect(activityPreview).toContain("<RuneChallenge");
+    expect(activityPreview).toContain("isPreview");
   });
 });

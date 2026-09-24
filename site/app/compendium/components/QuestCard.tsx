@@ -18,6 +18,8 @@ export function QuestCard({
   canReroll,
   onCheck,
   onReroll,
+  isPreview = false,
+  previewActionLabel = "Пока не открыто",
 }: {
   quest: DailyQuest;
   rewardStars: number;
@@ -28,6 +30,8 @@ export function QuestCard({
   canReroll: boolean;
   onCheck: (questId: string) => void;
   onReroll: (questId: string) => void;
+  isPreview?: boolean;
+  previewActionLabel?: string;
 }) {
   const matchedHero = quest.heroes.find(
     (hero) => hero.id === quest.completion?.matchedHeroId,
@@ -43,11 +47,13 @@ export function QuestCard({
           <button
             className="compendium-reroll-button"
             type="button"
-            disabled={!canReroll || Boolean(quest.completion)}
+            disabled={isPreview || !canReroll || Boolean(quest.completion)}
             onClick={() => onReroll(quest.id)}
             aria-label={`Заменить испытание ${quest.position}`}
             title={
-              quest.completion
+              isPreview
+                ? "Закрытый просмотр: замена заданий пока недоступна"
+                : quest.completion
                 ? "Выполненное задание нельзя заменить"
                 : !hasReroll
                   ? "Рероллов на сегодня не осталось"
@@ -109,10 +115,12 @@ export function QuestCard({
         <button
           className="compendium-check-button"
           type="button"
-          disabled={!canCheck || isChecking}
+          disabled={isPreview || !canCheck || isChecking}
           onClick={() => onCheck(quest.id)}
         >
-          {isChecking ? (
+          {isPreview ? (
+            previewActionLabel
+          ) : isChecking ? (
             <><FiLoader className="compendium-spinner" aria-hidden="true" /> Проверяем…</>
           ) : (
             "Проверить"

@@ -20,11 +20,13 @@ function RewardTrack({
   stars,
   rewards,
   kind,
+  isPreview,
 }: {
   title: string;
   stars: number;
   rewards: readonly Reward[];
   kind: "personal" | "community";
+  isPreview: boolean;
 }) {
   const maximum = rewards.at(-1)?.stars ?? 1;
   const progress = Math.min(100, (stars / maximum) * 100);
@@ -35,7 +37,7 @@ function RewardTrack({
           <span>Награды компендиума</span>
           <h2>{title}</h2>
         </div>
-        {kind === "community" ? (
+        {kind === "community" && !isPreview ? (
           <Link
             className="compendium-community-stars-link"
             href="/compendium/leaderboard"
@@ -66,11 +68,21 @@ function RewardTrack({
           })}
         </div>
       </div>
-      <p className="compendium-reward-swipe-hint">
-        Листайте награды влево и вправо
-        <FiArrowRight aria-hidden="true" />
-      </p>
+      {!isPreview && (
+        <p className="compendium-reward-swipe-hint">
+          Листайте награды влево и вправо
+          <FiArrowRight aria-hidden="true" />
+        </p>
+      )}
       <div className="compendium-reward-milestones">
+        {isPreview && (
+          <article className="locked">
+            <h3>Награды выберем позже</h3>
+            <p>{kind === "personal"
+              ? "Звёзды за задания будут учитываться здесь. Пороги и личные награды пока не утверждены."
+              : "Звёзды всех участников складываются. Общие награды и пороги пока не утверждены."}</p>
+          </article>
+        )}
         {rewards.map((reward) => {
           const isUnlocked = stars >= reward.stars;
           const badgeTier = kind === "personal" ? reward.badgeKey ?? null : null;
@@ -104,23 +116,27 @@ function RewardTrack({
 export function CompendiumRewards({
   personalStars,
   communityStars,
+  isPreview = false,
 }: {
   personalStars: number;
   communityStars: number;
+  isPreview?: boolean;
 }) {
   return (
     <div className="compendium-rewards">
       <RewardTrack
         title="Личный зачёт"
         stars={personalStars}
-        rewards={personalCompendiumRewards}
+        rewards={isPreview ? [] : personalCompendiumRewards}
         kind="personal"
+        isPreview={isPreview}
       />
       <RewardTrack
         title="Зачёт сообщества"
         stars={communityStars}
-        rewards={communityCompendiumRewards}
+        rewards={isPreview ? [] : communityCompendiumRewards}
         kind="community"
+        isPreview={isPreview}
       />
     </div>
   );
