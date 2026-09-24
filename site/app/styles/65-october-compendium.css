@@ -28,7 +28,7 @@
 
 .october-compendium-hero-line {
   margin: 20px 0 0;
-  color: #ecf4f3;
+  color: inherit;
   font-size: clamp(18px, 2vw, 25px);
   font-weight: 600;
   letter-spacing: 0.035em;
@@ -203,6 +203,17 @@
 .october-clan-showcase-footer {
   margin-top: 22px;
   text-align: center;
+}
+
+@media (max-width: 1280px) {
+  .october-compendium-preview .compendium-hero-section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 22px;
+  }
+
+  .october-compendium-preview .compendium-summary {
+    max-width: 620px;
+  }
 }
 
 @media (max-width: 900px) {
