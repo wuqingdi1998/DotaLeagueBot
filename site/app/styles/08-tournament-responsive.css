@@ -136,6 +136,50 @@
     flex-direction: column;
   }
 
+  .admin-panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .admin-panel > *,
+  .tournament-editor,
+  .applications-panel,
+  .editor-heading > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .editor-heading h3,
+  .editor-heading p,
+  .application-copy h4,
+  .application-copy p {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .tournament-content-editor .editor-heading h3 {
+    font-size: clamp(30px, 9vw, 38px);
+    overflow-wrap: anywhere;
+  }
+
+  .tournament-content-editor .editor-heading > button {
+    width: 100%;
+  }
+
+  .schedule-admin-day label,
+  .schedule-admin-entry label,
+  .prize-admin-row label,
+  .rule-admin-row textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .schedule-admin-day input,
+  .schedule-admin-entry input {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .teams-grid {
     grid-template-columns: 1fr;
   }
@@ -195,20 +239,23 @@
 
   .application-row {
     align-items: flex-start;
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr);
+    display: grid;
   }
 
   .application-copy {
-    width: calc(100% - 70px);
-    flex: auto;
+    width: 100%;
   }
 
   .application-actions {
     width: 100%;
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .application-actions button {
-    flex: 1;
+    width: 100%;
+    min-height: 44px;
   }
 
   .modal-backdrop {
@@ -251,5 +298,134 @@
     right: 12px;
     bottom: 82px;
     left: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .content-editor-subheading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .content-editor-subheading button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .schedule-admin-day-head,
+  .schedule-admin-entry {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .schedule-admin-day-head > *,
+  .schedule-admin-entry > *,
+  .schedule-admin-day-head .schedule-admin-actions,
+  .schedule-admin-entry .schedule-admin-actions {
+    grid-column: auto;
+  }
+
+  .schedule-admin-actions {
+    width: 100%;
+  }
+
+  .schedule-admin-actions button {
+    width: 44px;
+    min-height: 44px;
+  }
+
+  .schedule-add-entry {
+    width: calc(100% - 28px);
+    min-height: 44px;
+    white-space: normal;
+  }
+
+  .rule-admin-row {
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-items: start;
+    gap: 10px;
+  }
+
+  .rule-admin-row textarea {
+    min-height: 116px;
+  }
+
+  .rule-admin-row > div {
+    grid-column: 2;
+    flex-wrap: wrap;
+  }
+
+  .rule-admin-row button {
+    width: 44px;
+    min-height: 44px;
+  }
+
+  .prize-delete-button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .application-roster-links {
+    display: grid;
+  }
+
+  .application-roster-links li {
+    min-width: 0;
+    width: 100%;
+    grid-template-columns: max-content minmax(0, 1fr);
+    display: grid;
+    align-items: center;
+  }
+
+  .application-roster-links a,
+  .application-roster-links b,
+  .application-roster-links small {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .application-roster-links small {
+    grid-column: 2;
+    width: fit-content;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .admin-toolbar label,
+  .admin-toolbar input,
+  .admin-toolbar button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .tournament-section {
+    padding: 28px 10px 44px;
+  }
+
+  .tournament-editor,
+  .applications-panel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .tournament-content-editor .editor-heading h3 {
+    font-size: clamp(27px, 9vw, 32px);
+  }
+
+  .schedule-admin-day-head,
+  .schedule-admin-entry,
+  .rule-admin-row,
+  .prize-admin-row {
+    padding: 12px;
+  }
+
+  .schedule-add-entry {
+    width: calc(100% - 24px);
+    margin: 0 12px 12px;
+  }
+
+  .application-row {
+    gap: 14px;
+    padding: 14px;
   }
 }
