@@ -3,6 +3,7 @@ import { FiArrowLeft, FiCalendar, FiDatabase } from "react-icons/fi";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OCTOBER_COMPENDIUM_DATE_LABEL, type OctoberCompendiumWeekDefinition } from "../model/plan";
 import { OctoberDailyPreview, OctoberRacePreview } from "./OctoberActivityPreview";
+import { OctoberClanShowcase } from "./OctoberClanShowcase";
 
 export function OctoberCompendiumPreview({
   week,
@@ -23,6 +24,7 @@ export function OctoberCompendiumPreview({
         <div className="compendium-title-block">
           <p className="compendium-kicker">{OCTOBER_COMPENDIUM_DATE_LABEL} · закрытый просмотр</p>
           <h1>Компендиум</h1>
+          <p className="october-compendium-hero-line">Два клана. Один победитель.</p>
           <Link className="compendium-base-link" href="/organizer">
             <FiArrowLeft aria-hidden="true" /> Архив организатора
           </Link>
@@ -37,7 +39,8 @@ export function OctoberCompendiumPreview({
       </section>
 
       <div className="compendium-rewards-section">
-        <CompendiumRewards personalStars={0} communityStars={0} isPreview />
+        <OctoberClanShowcase />
+        <CompendiumRewards personalStars={0} communityStars={0} isPreview showCommunity={false} />
         <OctoberRacePreview week={week} />
       </div>
 

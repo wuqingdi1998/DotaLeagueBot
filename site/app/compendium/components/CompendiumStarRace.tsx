@@ -267,6 +267,7 @@ export function CompendiumStarRace({
   onSubmitPrediction,
   isPreview = false,
   sectionId = "compendium-star-race",
+  exclusionRules = STAR_RACE_EXCLUSION_RULES,
 }: {
   race: StarRaceData;
   currentTimeMs: number;
@@ -277,6 +278,7 @@ export function CompendiumStarRace({
   onSubmitPrediction: (position: number) => void;
   isPreview?: boolean;
   sectionId?: string;
+  exclusionRules?: readonly string[];
 }) {
   const router = useRouter();
   const automaticCheckKey = useRef<string | null>(null);
@@ -353,7 +355,7 @@ export function CompendiumStarRace({
                 <strong>Условия гонки</strong>
                 <ul>
                   <li>В зачёт входят звёзды за {race.dateLabel}.</li>
-                  {STAR_RACE_EXCLUSION_RULES.map((rule) => (
+                  {exclusionRules.map((rule) => (
                     <li key={rule}>{rule}</li>
                   ))}
                   {isPreview && (

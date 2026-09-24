@@ -12,7 +12,7 @@ import {
   REROLL_REWARD_STAR_THRESHOLD,
   REWARDED_DAILY_REROLL_COUNT,
 } from "@/app/compendium/model/constants";
-import { octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
+import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
 import type { OctoberCompendiumWeekDefinition } from "../model/plan";
 
 function ignorePreviewAction() {}
@@ -29,6 +29,7 @@ export function OctoberRacePreview({ week }: { week: OctoberCompendiumWeekDefini
       onSubmitPrediction={ignorePreviewAction}
       isPreview
       sectionId={`october-race-${week.id}`}
+      exclusionRules={OCTOBER_RACE_EXCLUSION_RULES}
     />
   );
 }

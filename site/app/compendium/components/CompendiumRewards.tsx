@@ -117,10 +117,12 @@ export function CompendiumRewards({
   personalStars,
   communityStars,
   isPreview = false,
+  showCommunity = true,
 }: {
   personalStars: number;
   communityStars: number;
   isPreview?: boolean;
+  showCommunity?: boolean;
 }) {
   return (
     <div className="compendium-rewards">
@@ -131,13 +133,15 @@ export function CompendiumRewards({
         kind="personal"
         isPreview={isPreview}
       />
-      <RewardTrack
-        title="Зачёт сообщества"
-        stars={communityStars}
-        rewards={isPreview ? [] : communityCompendiumRewards}
-        kind="community"
-        isPreview={isPreview}
-      />
+      {showCommunity && (
+        <RewardTrack
+          title="Зачёт сообщества"
+          stars={communityStars}
+          rewards={isPreview ? [] : communityCompendiumRewards}
+          kind="community"
+          isPreview={isPreview}
+        />
+      )}
     </div>
   );
 }

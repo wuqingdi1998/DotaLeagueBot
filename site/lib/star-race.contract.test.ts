@@ -375,7 +375,8 @@ describe("compendium star race contract", () => {
     expect(starRaceModel).toContain(
       "Звёзды за Испытание 4 также не учитываются в гонке",
     );
-    expect(starRaceView).toContain("STAR_RACE_EXCLUSION_RULES.map");
+    expect(starRaceView).toContain("exclusionRules = STAR_RACE_EXCLUSION_RULES");
+    expect(starRaceView).toContain("exclusionRules.map");
     expect(summaryStyles).toContain(".compendium-star-race-rules");
     expect(styles).toContain(
       "grid-template-columns: minmax(280px, 0.68fr) minmax(350px, 0.9fr) minmax(380px, 0.92fr);",

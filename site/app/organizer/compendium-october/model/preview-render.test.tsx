@@ -3,22 +3,37 @@ import { describe, expect, it } from "vitest";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
-import { octoberDailyQuestSamples } from "./preview";
+import { OctoberClanShowcase } from "../sections/OctoberClanShowcase";
+import { OCTOBER_CLANS } from "./clans";
+import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
 
 function unavailable() {
   throw new Error("A private preview must never submit an action");
 }
 
 describe("October preview actions", () => {
-  it("uses the existing reward tracks without advertising old prizes", () => {
+  it("keeps the personal reward track while omitting the old community tally", () => {
     const html = renderToStaticMarkup(
-      <CompendiumRewards personalStars={0} communityStars={0} isPreview />,
+      <CompendiumRewards personalStars={0} communityStars={0} isPreview showCommunity={false} />,
     );
     expect(html).toContain("Личный зачёт");
-    expect(html).toContain("Зачёт сообщества");
+    expect(html).not.toContain("Зачёт сообщества");
     expect(html).toContain("Награды выберем позже");
     expect(html).not.toContain("TI 2026");
     expect(html).not.toContain("href=\"/compendium/leaderboard\"");
+  });
+
+  it("shows two original clan flags without changing the quest and race cards", () => {
+    const html = renderToStaticMarkup(<OctoberClanShowcase />);
+    expect(OCTOBER_CLANS.map((clan) => clan.name)).toEqual(["Морбус", "Панацея"]);
+    expect(html).toContain("Флаг клана Морбус");
+    expect(html).toContain("Флаг клана Панацея");
+    expect(html).toContain("morbus-emblem.webp");
+    expect(html).toContain("panacea-emblem.webp");
+    expect(html).toContain("три предмета");
+    expect(html).not.toContain("Зачёт сообщества");
+    expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
+      .toBe(true);
   });
 
   it("renders the existing daily card with disabled buttons", () => {

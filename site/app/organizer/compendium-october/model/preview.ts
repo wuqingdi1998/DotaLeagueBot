@@ -4,6 +4,11 @@ import { starRaceQuestBounds, starRaceQuestHeroes, type StarRaceData } from "@/a
 import type { DailyQuest } from "@/app/compendium/model/types";
 import type { OctoberCompendiumWeekDefinition } from "./plan";
 
+export const OCTOBER_RACE_EXCLUSION_RULES = [
+  "Звёзды за Испытание Рун не входят в недельную гонку, но пополняют личный зачёт и счёт клана.",
+  "Звёзды за Испытание 4 не входят в недельную гонку, но пополняют личный зачёт и счёт клана.",
+] as const;
+
 /** Illustrative cards only: actual daily hero sets are generated for each player after launch. */
 export function octoberDailyQuestSamples(): DailyQuest[] {
   const heroes = COMPENDIUM_HEROES.slice(0, DAILY_HERO_COUNT);

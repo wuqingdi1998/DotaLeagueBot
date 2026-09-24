@@ -17,3 +17,243 @@
   display: flex;
   width: fit-content;
 }
+
+.october-compendium-preview .compendium-hero-section {
+  min-height: 360px;
+  background:
+    linear-gradient(90deg, rgba(4, 17, 26, 0.8), rgba(4, 17, 26, 0.58) 55%, rgba(4, 17, 26, 0.78)),
+    url("/compendium/october/clan-hall.webp") center / cover no-repeat,
+    #081721;
+}
+
+.october-compendium-hero-line {
+  margin: 20px 0 0;
+  color: #ecf4f3;
+  font-size: clamp(18px, 2vw, 25px);
+  font-weight: 600;
+  letter-spacing: 0.035em;
+}
+
+.october-clan-showcase {
+  position: relative;
+  margin-bottom: 24px;
+  padding: clamp(22px, 3vw, 42px);
+  overflow: hidden;
+  border: 1px solid rgba(145, 196, 202, 0.29);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 12% 0, rgba(176, 51, 43, 0.17), transparent 38%),
+    radial-gradient(circle at 88% 100%, rgba(36, 191, 178, 0.16), transparent 40%),
+    linear-gradient(135deg, #091824, #102631);
+  box-shadow: var(--shadow);
+  color: #f3f8f7;
+}
+
+.october-clan-showcase-heading {
+  margin-bottom: 26px;
+  text-align: center;
+}
+
+.october-clan-showcase-heading > span,
+.october-clan-card-kicker {
+  color: #b3d2d0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.october-clan-showcase-heading h2 {
+  margin: 7px 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(30px, 3.5vw, 47px);
+  line-height: 1.1;
+}
+
+.october-clan-showcase-heading p,
+.october-clan-showcase-footer {
+  margin: 0;
+  color: #c2d2d2;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.october-clan-lineup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(18px, 3vw, 40px);
+}
+
+.october-clan-lineup-slot {
+  position: relative;
+  min-width: 0;
+}
+
+.october-clan-card {
+  display: grid;
+  grid-template-columns: minmax(124px, 36%) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(12px, 2vw, 28px);
+  height: 100%;
+  min-height: 230px;
+  padding: 18px clamp(16px, 2vw, 26px);
+  border: 1px solid color-mix(in srgb, var(--clan-accent) 50%, transparent);
+  border-radius: 19px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--clan-accent) 17%, transparent), transparent 70%),
+    rgba(4, 17, 25, 0.72);
+}
+
+.october-clan-card--morbus {
+  --clan-accent: #d66a54;
+  --clan-flag-dark: #521e25;
+}
+
+.october-clan-card--panacea {
+  --clan-accent: #55d5cb;
+  --clan-flag-dark: #13454d;
+}
+
+.october-clan-flag {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 190px);
+  aspect-ratio: 4 / 5;
+  margin: 0 auto;
+  clip-path: polygon(0 0, 100% 0, 100% 79%, 50% 100%, 0 79%);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12), transparent 30%, rgba(0, 0, 0, 0.2) 80%),
+    linear-gradient(140deg, var(--clan-accent), var(--clan-flag-dark) 42%, #081923);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.october-clan-flag::before {
+  position: absolute;
+  inset: 6px;
+  clip-path: polygon(0 0, 100% 0, 100% 76%, 50% 98%, 0 76%);
+  border: 1px solid rgba(236, 246, 238, 0.29);
+  content: "";
+}
+
+.october-clan-flag-inner {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 86%;
+  height: 75%;
+  margin-bottom: 12%;
+}
+
+.october-clan-flag img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.55));
+}
+
+.october-clan-card--morbus .october-clan-flag img {
+  transform: scale(1.25);
+  filter: brightness(1.35) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.55));
+}
+
+.october-clan-card-copy h3 {
+  margin: 5px 0 12px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(29px, 3vw, 43px);
+  line-height: 1;
+}
+
+.october-clan-card-copy p {
+  max-width: 34ch;
+  margin: 0 0 16px;
+  color: #c1d2d2;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.october-clan-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--clan-accent);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.october-clan-versus {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: calc(clamp(18px, 3vw, 40px) / -2);
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(233, 216, 170, 0.55);
+  border-radius: 50%;
+  background: #14232a;
+  color: #f6d985;
+  font-size: 17px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+}
+
+.october-clan-showcase-footer {
+  margin-top: 22px;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .october-clan-card {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+  }
+
+  .october-clan-flag {
+    width: min(100%, 150px);
+  }
+}
+
+@media (max-width: 660px) {
+  .october-compendium-preview .compendium-hero-section {
+    min-height: 0;
+    background-position: 42% center;
+  }
+
+  .october-clan-lineup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 34px;
+  }
+
+  .october-clan-card {
+    grid-template-columns: minmax(95px, 34%) minmax(0, 1fr);
+    justify-items: stretch;
+    min-height: 175px;
+    text-align: left;
+  }
+
+  .october-clan-flag {
+    width: min(100%, 128px);
+  }
+
+  .october-clan-versus {
+    top: -17px;
+    left: 50%;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 420px) {
+  .october-clan-card {
+    grid-template-columns: minmax(82px, 32%) minmax(0, 1fr);
+    padding: 14px;
+  }
+
+  .october-clan-card-copy h3 {
+    font-size: 28px;
+  }
+}
