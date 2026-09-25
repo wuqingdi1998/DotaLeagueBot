@@ -15,8 +15,8 @@ export const OCTOBER_COMPENDIUM_END_AT = "2026-10-26T00:00:00+03:00";
 export const OCTOBER_COMPENDIUM_DATE_LABEL = "5–25 октября 2026";
 
 const unannouncedPrizes = [
-  { place: 1, title: "Игровой предмет · выбор позже", imageUrl: null },
-  { place: 2, title: "Игровой предмет · выбор позже", imageUrl: null },
+  { place: 1, title: "Предмет выберем позже", imageUrl: null },
+  { place: 2, title: "Предмет выберем позже", imageUrl: null },
 ] as const;
 
 export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberCompendiumWeekDefinition[] = [

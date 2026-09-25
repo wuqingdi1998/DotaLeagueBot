@@ -17,7 +17,7 @@ export default async function OctoberCompendiumPage() {
   if (!user?.isAdmin) notFound();
 
   return (
-    <PlatformShell user={user}>
+    <PlatformShell user={user} hasFooter={false}>
       <OctoberCompendiumPreview week={octoberRaceForMoment(new Date())} />
     </PlatformShell>
   );

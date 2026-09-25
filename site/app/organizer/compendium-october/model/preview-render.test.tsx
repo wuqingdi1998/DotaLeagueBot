@@ -5,7 +5,9 @@ import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OctoberClanShowcase } from "../sections/OctoberClanShowcase";
 import { OctoberClanOutingCard } from "../sections/OctoberClanOutingCard";
+import { OctoberSectionNavigation } from "../components/OctoberSectionNavigation";
 import { OCTOBER_CLANS } from "./clans";
+import { OCTOBER_PREVIEW_SECTIONS } from "./sections";
 import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
 
@@ -14,6 +16,18 @@ function unavailable() {
 }
 
 describe("October preview actions", () => {
+  it("offers exactly four desktop screen links in the planned order", () => {
+    const html = renderToStaticMarkup(<OctoberSectionNavigation />);
+    expect(OCTOBER_PREVIEW_SECTIONS.map((section) => section.label)).toEqual([
+      "Кланы", "Личный зачёт", "Гонка за звёздами", "Задания дня",
+    ]);
+    for (const section of OCTOBER_PREVIEW_SECTIONS) {
+      expect(html).toContain(`href="#${section.id}"`);
+      expect(html).toContain(`aria-label="${section.label}"`);
+    }
+    expect(html.match(/href="#october-section-/g)).toHaveLength(4);
+  });
+
   it("shows the new five-step personal track without the old community tally", () => {
     const html = renderToStaticMarkup(
       <CompendiumRewards
