@@ -7,6 +7,7 @@ import {
 import { isSiteBreakBypassPath } from "@/lib/site-break-paths";
 import { decideSiteBreakAccess } from "@/lib/site-break-policy";
 import { hasOrganizerAccess, isSiteBreakEnabled } from "@/lib/site-break";
+import { isParticipantViewEnabled, participantViewCookie } from "@/lib/participant-view";
 
 function clientAddress(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -59,11 +60,13 @@ export async function proxy(request: NextRequest) {
 
   let organizerAccessGranted = false;
   try {
-    organizerAccessGranted = await hasOrganizerAccess({
-      playerSessionToken: request.cookies.get(playerSessionCookie)?.value ?? null,
-      organizerSessionToken:
-        request.cookies.get(organizerSessionCookie)?.value ?? null,
-    });
+    if (!isParticipantViewEnabled(request.cookies.get(participantViewCookie)?.value)) {
+      organizerAccessGranted = await hasOrganizerAccess({
+        playerSessionToken: request.cookies.get(playerSessionCookie)?.value ?? null,
+        organizerSessionToken:
+          request.cookies.get(organizerSessionCookie)?.value ?? null,
+      });
+    }
   } catch {
     // Once a break is known to be active, an uncertain session stays blocked.
   }

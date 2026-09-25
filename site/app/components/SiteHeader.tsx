@@ -14,6 +14,7 @@ import { HeaderNavigationLink } from "./header/HeaderNavigationLink";
 import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
+import { ParticipantViewToggle } from "./ParticipantViewToggle";
 import {
   FiArrowRight,
   FiArrowUpRight,
@@ -35,6 +36,8 @@ export type SessionUser = {
   serverName: string;
   isAdmin: boolean;
   organizerAccess: "trusted" | "password" | null;
+  hasOrganizerAccess?: boolean;
+  isParticipantView?: boolean;
 };
 
 type SiteHeaderProps = {
@@ -259,6 +262,9 @@ export function SiteHeader({
                 >
                   Открыть страницу игрока <FiArrowRight aria-hidden="true" />
                 </Link>
+                {user.hasOrganizerAccess && (
+                  <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
+                )}
                 <button
                   type="button"
                   onClick={logoutAndReload}

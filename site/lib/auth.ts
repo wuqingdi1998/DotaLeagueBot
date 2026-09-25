@@ -23,6 +23,7 @@ import {
   requiresFreshOrganizerPassword,
   type OrganizerAccessMethod,
 } from "@/lib/organizer-access";
+import { participantViewCookie, sessionForParticipantView } from "@/lib/participant-view";
 
 const oauthStateCookie = "ls_oauth_state";
 const sessionLifetimeDays = 30;
@@ -41,6 +42,8 @@ export type AuthUser = {
   serverName: string;
   isAdmin: boolean;
   organizerAccess: OrganizerAccessMethod;
+  hasOrganizerAccess?: boolean;
+  isParticipantView?: boolean;
 };
 
 type SessionRow = {
@@ -150,6 +153,7 @@ export async function createSession(input: {
     expires: expiresAt,
     path: "/",
   });
+  cookieStore.delete(participantViewCookie);
 }
 
 export async function getSession(): Promise<AuthUser | null> {
@@ -192,7 +196,7 @@ export async function getSession(): Promise<AuthUser | null> {
     row.is_trusted_organizer,
     row.has_password_organizer_session,
   );
-  return {
+  return sessionForParticipantView({
     discordId: row.discord_id,
     dotaId: row.dota_id,
     username: row.discord_username,
@@ -207,7 +211,7 @@ export async function getSession(): Promise<AuthUser | null> {
     ),
     isAdmin: accessMethod !== null,
     organizerAccess: accessMethod,
-  };
+  }, cookieStore.get(participantViewCookie)?.value);
 }
 
 export async function requireSession(): Promise<AuthUser> {
@@ -313,6 +317,9 @@ export async function createOrganizerSession(
   suppliedPassword: string,
 ): Promise<AuthUser> {
   const user = await requireSession();
+  if (user.isParticipantView) {
+    throw new Response("Сначала выключите просмотр от лица участника", { status: 409 });
+  }
   if (user.organizerAccess === "trusted") {
     return { ...user, isAdmin: true, organizerAccess: "trusted" };
   }
@@ -368,6 +375,7 @@ export async function deleteSession(): Promise<void> {
     ]);
   }
   cookieStore.delete(playerSessionCookie);
+  cookieStore.delete(participantViewCookie);
 }
 
 export function responseFromAuthError(error: unknown): Response {

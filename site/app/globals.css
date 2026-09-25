@@ -2,6 +2,7 @@
 @import "./styles/01-foundation.css";
 @import "./styles/02-site-header.css";
 @import "./styles/02-site-header-responsive.css";
+@import "./styles/02-participant-view-toggle.css";
 @import "./styles/03-site-footer.css";
 @import "./styles/07-tournament-dialogs.css";
 @import "./styles/07-organizer-password.css";

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth";
 import { isSiteBreakEnabled } from "@/lib/site-break";
 import { OrganizerAccess } from "../tournaments/OrganizerAccess";
+import { ParticipantViewToggle } from "../components/ParticipantViewToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,9 @@ export default async function SiteBreakPage() {
           Организатор временно закрыл доступ, чтобы исправить проблему.
           Пожалуйста, попробуйте зайти немного позже.
         </p>
-        <OrganizerAccess user={user} manageHref="/" />
+        {user?.isParticipantView
+          ? <ParticipantViewToggle isEnabled />
+          : <OrganizerAccess user={user} manageHref="/" />}
       </section>
     </main>
   );
