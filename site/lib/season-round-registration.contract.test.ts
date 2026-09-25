@@ -143,6 +143,20 @@ describe("season round registration contract", () => {
     expect(positionsColumn).toBeGreaterThan(tierColumn);
   });
 
+  it("marks checked-in players with a green check beside their nickname", () => {
+    expect(registrationSection).toContain("registration.is_checked_in && (");
+    expect(registrationSection).toContain(
+      'className="season-registration-check-in"',
+    );
+    expect(registrationSection).toContain('aria-label="Чек-ин пройден"');
+    expect(registrationStyles).toMatch(
+      /\.season-registration-check-in \{[\s\S]*?color: #148b59;/,
+    );
+    expect(registrationStyles).toMatch(
+      /data-theme="dark"[\s\S]*?\.season-registration-check-in \{[\s\S]*?color: #5ed79b;/,
+    );
+  });
+
   it("aligns circular tier badges after the longest nickname", () => {
     expect(registrationSection).toContain(
       'className="season-registration-tier"',

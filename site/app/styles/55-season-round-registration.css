@@ -243,6 +243,18 @@
   white-space: nowrap;
 }
 
+.season-registration-check-in {
+  align-items: center;
+  color: #148b59;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 1rem;
+}
+
+.site-shell[data-theme="dark"] .season-registration-check-in {
+  color: #5ed79b;
+}
+
 .season-registration-player-avatar {
   align-items: center;
   aspect-ratio: 1;

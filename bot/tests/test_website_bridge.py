@@ -2,6 +2,7 @@ from pathlib import Path
 
 from utils.website_notifications import (
     MEMBER_WELCOME_PREVIEW_EVENT_TYPE,
+    SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE,
     member_welcome_embed,
     notification_embed,
     notification_outbox_embed,
@@ -10,6 +11,11 @@ from utils.website_notifications import (
 
 BRIDGE = (
     Path(__file__).parents[1] / "cogs" / "website_bridge.py"
+).read_text(encoding="utf-8")
+CHECKIN_REMINDER = (
+    Path(__file__).parents[1]
+    / "services"
+    / "season_checkin_reminder.py"
 ).read_text(encoding="utf-8")
 SEASON_NINE_PREVIEW_MIGRATION = (
     Path(__file__).parents[1]
@@ -98,6 +104,31 @@ def test_bridge_queues_season_round_checkin_messages_and_missing_report() -> Non
     assert "вне зависимости от прохождения или непрохождения чек ина!" in BRIDGE
     assert "Не прошли чек-ин:" in BRIDGE
     assert "ON CONFLICT DO NOTHING" in BRIDGE
+
+
+def test_bridge_repeats_checkin_reminder_before_the_round_for_unchecked_players() -> None:
+    assert "queue_season_checkin_reminders(session)" in BRIDGE
+    assert "next_season_checkin_reminder_at(session)" in BRIDGE
+    assert "SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE" in CHECKIN_REMINDER
+    assert "Напоминание о чек-ине" in CHECKIN_REMINDER
+    assert "штраф за неотметку" in CHECKIN_REMINDER
+    assert "INTERVAL '30 minutes'" in CHECKIN_REMINDER
+    assert "INTERVAL '10 minutes'" in CHECKIN_REMINDER
+    assert "AND checkin.player_id IS NULL" in CHECKIN_REMINDER
+    assert "ON CONFLICT (discord_id, season_round_id, event_type)" in CHECKIN_REMINDER
+
+
+def test_checkin_reminder_embed_labels_the_round_link_as_checkin() -> None:
+    embed = notification_outbox_embed(
+        SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE,
+        "Напоминание о чек-ине",
+        "Пожалуйста, пройдите чек-ин.",
+        "https://example.test/round",
+    )
+
+    assert len(embed.fields) == 1
+    assert embed.fields[0].name == "Отметиться"
+    assert embed.fields[0].value == "https://example.test/round"
 
 
 def test_season_nine_previews_are_limited_to_frokeng_and_use_masked_links() -> None:

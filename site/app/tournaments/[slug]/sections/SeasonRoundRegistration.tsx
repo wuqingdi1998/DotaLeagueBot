@@ -270,6 +270,15 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                     dotaId={registration.dota_id}
                     nickname={registration.nickname}
                   />
+                  {registration.is_checked_in && (
+                    <span
+                      className="season-registration-check-in"
+                      aria-label="Чек-ин пройден"
+                      title="Чек-ин пройден"
+                    >
+                      <FiCheckCircle aria-hidden="true" />
+                    </span>
+                  )}
                 </span>
                 <strong className="season-registration-tier">
                   {registration.tier_snapshot ?? "—"}

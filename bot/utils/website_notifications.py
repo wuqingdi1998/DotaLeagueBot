@@ -5,6 +5,7 @@ MEMBER_WELCOME_PREVIEW_EVENT_TYPE = "member_welcome_preview"
 SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = (
     "season_round_announcement_preview_moscow_time"
 )
+SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE = "season_round_check_in_reminder"
 REGISTRATION_CHANNEL_URL = (
     "https://discord.com/channels/328205360466755584/1457019432034504776"
 )
@@ -49,6 +50,11 @@ def notification_outbox_embed(
 ) -> discord.Embed:
     if event_type == MEMBER_WELCOME_PREVIEW_EVENT_TYPE:
         return member_welcome_embed()
+    if event_type == SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE:
+        embed = notification_embed(title, message, None)
+        if action_url:
+            embed.add_field(name="Отметиться", value=action_url, inline=False)
+        return embed
     return notification_embed(title, message, action_url)
 
 

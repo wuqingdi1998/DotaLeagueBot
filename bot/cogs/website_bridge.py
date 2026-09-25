@@ -12,6 +12,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.core import async_session
 from services.durable_scheduler import register_scheduled_job
+from services.season_checkin_reminder import (
+    next_season_checkin_reminder_at,
+    queue_season_checkin_reminders,
+)
 from services.season_round_announcement import (
     build_announcement_message,
     get_season_round,
@@ -279,6 +283,7 @@ class WebsiteBridge(commands.Cog):
             )
             await self._queue_tournament_checkins(session)
             await self._queue_season_round_checkins(session)
+            await queue_season_checkin_reminders(session)
             await self._queue_season_round_missing_checkins(session)
             await self._queue_close_start_notifications(session)
             result = await session.execute(
@@ -518,7 +523,14 @@ class WebsiteBridge(commands.Cog):
                     """
                 )
             )
-            return result.scalar_one_or_none()
+            next_standard_due_at = result.scalar_one_or_none()
+            next_reminder_due_at = await next_season_checkin_reminder_at(session)
+            known_due_times = [
+                due_at
+                for due_at in (next_standard_due_at, next_reminder_due_at)
+                if due_at is not None
+            ]
+            return min(known_due_times, default=None)
 
 
 async def setup(bot: commands.Bot) -> None:
