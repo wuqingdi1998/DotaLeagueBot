@@ -6,9 +6,14 @@ import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import { seasonMatchLinks } from "@/lib/season";
 import { groupSeasonFinalMedalists } from "@/lib/season-finals";
+import { SeasonSteamNicknameButton } from "../components/SeasonSteamNicknameButton";
 import { formatDayMonth, formatTime } from "../model/formatters";
 import type { SeasonMatch, SeasonRound } from "../model/season-types";
 import { seasonTeamLineup, type SeasonLineupPlayer } from "../model/season-lineup";
+import {
+  seasonLobbyPlayerCount,
+  seasonLobbySteamProfileUrls,
+} from "../model/season-steam-profiles";
 import type { ReactNode } from "react";
 
 export function SeasonLobbyList({
@@ -16,6 +21,7 @@ export function SeasonLobbyList({
   participantAction,
   round,
   isArchived,
+  viewerPlayerId,
 }: {
   lobbyFooter?: (lobby: SeasonRound["lobbies"][number]) => ReactNode;
   participantAction?: (
@@ -24,6 +30,7 @@ export function SeasonLobbyList({
   ) => ReactNode;
   round: SeasonRound;
   isArchived: boolean;
+  viewerPlayerId?: string | null;
 }) {
   if (!round.lobbies.length) {
     return (
@@ -56,6 +63,7 @@ export function SeasonLobbyList({
                   lobbyScheduledAt={lobby.scheduled_at}
                   match={match}
                   participantAction={participantAction}
+                  viewerPlayerId={viewerPlayerId}
                   key={match.id}
                 />
               ))}
@@ -72,6 +80,7 @@ function SeasonMatchCard({
   lobbyScheduledAt,
   match,
   participantAction,
+  viewerPlayerId,
 }: {
   lobbyScheduledAt: string | null;
   match: SeasonMatch;
@@ -79,9 +88,15 @@ function SeasonMatchCard({
     match: SeasonMatch,
     player: SeasonMatch["participants"][number],
   ) => ReactNode;
+  viewerPlayerId?: string | null;
 }) {
   const teamA = seasonTeamLineup(match, "a");
   const teamB = seasonTeamLineup(match, "b");
+  const steamProfileUrls = seasonLobbySteamProfileUrls(match);
+  const canCheckSteamNicknames =
+    Boolean(viewerPlayerId) &&
+    match.host_player_id === viewerPlayerId &&
+    steamProfileUrls.length === seasonLobbyPlayerCount;
   const scheduledAt = lobbyScheduledAt ?? match.scheduled_at;
   return (
     <article className="season-match-card" id={`season-match-${match.id}`}>
@@ -127,10 +142,17 @@ function SeasonMatchCard({
           participantAction={participantAction}
         />
       </div>
-      {match.can_enter_lobby && (
-        <Link className="season-enter-lobby-button" href={`/season-lobby/${match.id}`}>
-          <FiLogIn aria-hidden="true" /> Войти в лобби
-        </Link>
+      {(match.can_enter_lobby || canCheckSteamNicknames) && (
+        <div className="season-lobby-actions">
+          {match.can_enter_lobby && (
+            <Link className="season-enter-lobby-button" href={`/season-lobby/${match.id}`}>
+              <FiLogIn aria-hidden="true" /> Войти в лобби
+            </Link>
+          )}
+          {canCheckSteamNicknames && (
+            <SeasonSteamNicknameButton profileUrls={steamProfileUrls} />
+          )}
+        </div>
       )}
       {match.result && (
         <p className={`season-match-outcome ${match.result}`}>

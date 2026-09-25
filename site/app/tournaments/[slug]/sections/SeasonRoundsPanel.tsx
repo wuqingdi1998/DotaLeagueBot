@@ -88,6 +88,7 @@ export function SeasonRoundPanel() {
         <SeasonLobbyList
           round={round}
           isArchived={data.tournament.status === "archived"}
+          viewerPlayerId={data.user?.discordId ?? null}
           lobbyFooter={(lobby) =>
             isOrganizer ? <SeasonPublishedLobbyTools lobby={lobby} /> : null
           }
@@ -109,6 +110,7 @@ export function SeasonRoundPanel() {
           <SeasonLobbyList
             round={round}
             isArchived={data.tournament.status === "archived"}
+            viewerPlayerId={data.user?.discordId ?? null}
             lobbyFooter={(lobby) =>
               lobby.matches.some((match) =>
                 ["published", "completed"].includes(match.status),

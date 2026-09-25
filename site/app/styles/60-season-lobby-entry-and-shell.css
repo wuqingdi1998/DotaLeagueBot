@@ -30,24 +30,59 @@
   cursor: pointer;
 }
 
-.season-enter-lobby-button {
+.season-lobby-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin: 0 22px 20px;
+}
+
+.season-enter-lobby-button,
+.season-steam-nickname-button {
   display: flex;
   min-height: 58px;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin: 0 22px 20px;
+  border: 0;
   border-radius: 15px;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.season-enter-lobby-button {
   background: var(--blue-gradient);
   box-shadow: 0 12px 28px rgba(47, 111, 237, 0.2);
   color: #fff;
-  font-size: 18px;
-  font-weight: 900;
 }
 
 .season-enter-lobby-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 15px 32px rgba(47, 111, 237, 0.28);
+}
+
+.season-steam-nickname-button {
+  border: 1px solid color-mix(in srgb, var(--blue) 42%, var(--line));
+  background: color-mix(in srgb, var(--blue) 10%, var(--surface));
+  color: var(--blue-strong);
+}
+
+.season-steam-nickname-button:hover {
+  border-color: color-mix(in srgb, var(--blue) 70%, var(--line));
+  background: color-mix(in srgb, var(--blue) 16%, var(--surface));
+}
+
+.season-steam-popup-warning {
+  grid-column: 1 / -1;
+  margin: 0;
+  border: 1px solid rgba(217, 45, 32, 0.3);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(217, 45, 32, 0.08);
+  color: #d92d20;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .season-room-page {
@@ -161,7 +196,8 @@
     flex-direction: column;
   }
 
-  .season-enter-lobby-button {
+  .season-lobby-actions {
+    grid-template-columns: minmax(0, 1fr);
     margin: 0 12px 14px;
   }
 }
