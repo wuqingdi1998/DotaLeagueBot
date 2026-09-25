@@ -85,6 +85,30 @@
   --badge-light: #ffe28a;
 }
 
+.profile-event-badge-platinum {
+  --badge-main: #8c9fb2;
+  --badge-light: #eff9ff;
+}
+
+.profile-event-badge-clan { min-height: 52px; gap: 8px; padding: 5px 11px 5px 6px; }
+.profile-event-badge-clan-crest {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--badge-light);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--badge-main) 30%, #0a1d27);
+  box-shadow: inset 0 0 9px color-mix(in srgb, var(--badge-light) 25%, transparent);
+}
+.profile-event-badge-clan-crest img { width: 36px; height: 36px; object-fit: contain; }
+.profile-event-badge-clan-label { display: grid; gap: 3px; line-height: 1; }
+.profile-event-badge-clan-label strong { font-size: 12px; letter-spacing: 0.04em; }
+.profile-event-badge-clan-label small { font-size: 10px; letter-spacing: 0; }
+.profile-event-badge-clan-morbus .profile-event-badge-clan-crest { background-color: #421e24; }
+.profile-event-badge-clan-panacea .profile-event-badge-clan-crest { background-color: #153b40; }
+
 .profile-badges-card {
   min-width: 0;
 }

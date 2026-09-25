@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FiArrowLeft, FiCalendar, FiDatabase } from "react-icons/fi";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OCTOBER_COMPENDIUM_DATE_LABEL, type OctoberCompendiumWeekDefinition } from "../model/plan";
+import { octoberRewardsForStars } from "../model/rewards";
 import { OctoberDailyPreview, OctoberRacePreview } from "./OctoberActivityPreview";
 import { OctoberClanShowcase } from "./OctoberClanShowcase";
 
@@ -40,7 +41,13 @@ export function OctoberCompendiumPreview({
 
       <div className="compendium-rewards-section">
         <OctoberClanShowcase />
-        <CompendiumRewards personalStars={0} communityStars={0} isPreview showCommunity={false} />
+        <CompendiumRewards
+          personalStars={0}
+          communityStars={0}
+          isPreview
+          showCommunity={false}
+          personalRewards={octoberRewardsForStars(0)}
+        />
         <OctoberRacePreview week={week} />
       </div>
 

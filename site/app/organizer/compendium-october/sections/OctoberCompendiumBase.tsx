@@ -2,6 +2,8 @@ import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiArrowLeft, FiGift } from "react-icons/fi";
 import { OCTOBER_COMPENDIUM_DATE_LABEL, OCTOBER_COMPENDIUM_WEEKS } from "../model/plan";
+import { octoberRewardsForStars } from "../model/rewards";
+import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OctoberRacePreview } from "./OctoberActivityPreview";
 import { OctoberClanShowcase } from "./OctoberClanShowcase";
 
@@ -26,6 +28,13 @@ export function OctoberCompendiumBase() {
       </section>
       <div className="compendium-rewards-section">
         <OctoberClanShowcase />
+        <CompendiumRewards
+          personalStars={0}
+          communityStars={0}
+          isPreview
+          showCommunity={false}
+          personalRewards={octoberRewardsForStars(60)}
+        />
         <p className="october-compendium-example-note">{OCTOBER_COMPENDIUM_DATE_LABEL} · все условия по московскому времени</p>
         {OCTOBER_COMPENDIUM_WEEKS.map((week) => (
           <OctoberRacePreview key={week.id} week={week} />

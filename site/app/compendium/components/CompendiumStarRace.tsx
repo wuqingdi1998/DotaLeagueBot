@@ -7,6 +7,7 @@ import { FaStar } from "react-icons/fa";
 import {
   FiArrowRight,
   FiCheck,
+  FiChevronDown,
   FiClock,
   FiExternalLink,
   FiGift,
@@ -257,6 +258,26 @@ function StarRaceCounter({
   );
 }
 
+function StarRaceRulesList({
+  race,
+  exclusionRules,
+  isPreview,
+}: {
+  race: StarRaceData;
+  exclusionRules: readonly string[];
+  isPreview: boolean;
+}) {
+  return (
+    <ul>
+      <li>В зачёт входят звёзды за {race.dateLabel}.</li>
+      {exclusionRules.map((rule) => <li key={rule}>{rule}</li>)}
+      {isPreview && (
+        <li>При равенстве звёзд выше тот, кто выполнил больше заданий гонки. Если равенство осталось, место определит жеребьёвка.</li>
+      )}
+    </ul>
+  );
+}
+
 export function CompendiumStarRace({
   race,
   currentTimeMs,
@@ -268,6 +289,7 @@ export function CompendiumStarRace({
   isPreview = false,
   sectionId = "compendium-star-race",
   exclusionRules = STAR_RACE_EXCLUSION_RULES,
+  collapsibleRulesOnMobile = false,
 }: {
   race: StarRaceData;
   currentTimeMs: number;
@@ -279,6 +301,7 @@ export function CompendiumStarRace({
   isPreview?: boolean;
   sectionId?: string;
   exclusionRules?: readonly string[];
+  collapsibleRulesOnMobile?: boolean;
 }) {
   const router = useRouter();
   const automaticCheckKey = useRef<string | null>(null);
@@ -349,21 +372,23 @@ export function CompendiumStarRace({
         <>
           <div className="compendium-star-race-summary">
             <StarRaceCounter race={race} isPreview={isPreview} />
-            <div className="compendium-star-race-rules">
+            <div className={`compendium-star-race-rules${collapsibleRulesOnMobile ? " october-race-rules-desktop" : ""}`}>
               <FiInfo aria-hidden="true" />
               <div>
                 <strong>Условия гонки</strong>
-                <ul>
-                  <li>В зачёт входят звёзды за {race.dateLabel}.</li>
-                  {exclusionRules.map((rule) => (
-                    <li key={rule}>{rule}</li>
-                  ))}
-                  {isPreview && (
-                    <li>При равенстве звёзд выше тот, кто выполнил больше заданий гонки. Если равенство осталось, место определит жеребьёвка.</li>
-                  )}
-                </ul>
+                <StarRaceRulesList race={race} exclusionRules={exclusionRules} isPreview={isPreview} />
               </div>
             </div>
+            {collapsibleRulesOnMobile && (
+              <details className="compendium-star-race-rules october-race-rules-mobile">
+                <summary>
+                  <FiInfo aria-hidden="true" />
+                  <strong>Условия гонки</strong>
+                  <FiChevronDown className="october-race-rules-chevron" aria-hidden="true" />
+                </summary>
+                <StarRaceRulesList race={race} exclusionRules={exclusionRules} isPreview={isPreview} />
+              </details>
+            )}
             <div className="compendium-star-race-prizes">
               {race.prizes.map((prize) => (
                 <div

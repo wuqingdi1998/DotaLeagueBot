@@ -8,6 +8,14 @@ import {
   type ProfileBadgeKey,
 } from "../../../lib/profile-badges";
 
+export type RewardMilestone = {
+  readonly stars: number;
+  readonly title: string;
+  readonly description: string;
+  readonly badgeKey?: ProfileBadgeKey;
+  readonly badgeKeys?: readonly ProfileBadgeKey[];
+};
+
 export const personalCompendiumRewards = [
   {
     stars: 10,

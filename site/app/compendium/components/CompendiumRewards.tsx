@@ -4,16 +4,9 @@ import { FiArrowRight } from "react-icons/fi";
 import {
   communityCompendiumRewards,
   personalCompendiumRewards,
+  type RewardMilestone,
 } from "../model/rewards";
 import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
-import type { ProfileBadgeKey } from "@/lib/profile-badges";
-
-type Reward = {
-  readonly stars: number;
-  readonly title: string;
-  readonly description: string;
-  readonly badgeKey?: ProfileBadgeKey;
-};
 
 function RewardTrack({
   title,
@@ -24,7 +17,7 @@ function RewardTrack({
 }: {
   title: string;
   stars: number;
-  rewards: readonly Reward[];
+  rewards: readonly RewardMilestone[];
   kind: "personal" | "community";
   isPreview: boolean;
 }) {
@@ -75,7 +68,7 @@ function RewardTrack({
         </p>
       )}
       <div className="compendium-reward-milestones">
-        {isPreview && (
+        {isPreview && rewards.length === 0 && (
           <article>
             <h3>Награды выберем позже</h3>
             <p>{kind === "personal"
@@ -85,7 +78,9 @@ function RewardTrack({
         )}
         {rewards.map((reward) => {
           const isUnlocked = stars >= reward.stars;
-          const badgeTier = kind === "personal" ? reward.badgeKey ?? null : null;
+          const badgeKeys = kind === "personal"
+            ? reward.badgeKeys ?? (reward.badgeKey ? [reward.badgeKey] : [])
+            : [];
           return (
             <article
               className={isUnlocked ? "unlocked" : "locked"}
@@ -103,7 +98,9 @@ function RewardTrack({
                 )}
               </div>
               <h3>{reward.title}</h3>
-              {badgeTier && <ProfileEventBadge badgeKey={badgeTier} />}
+              {badgeKeys.map((badgeKey) => (
+                <ProfileEventBadge key={badgeKey} badgeKey={badgeKey} />
+              ))}
               <p>{reward.description}</p>
             </article>
           );
@@ -118,18 +115,20 @@ export function CompendiumRewards({
   communityStars,
   isPreview = false,
   showCommunity = true,
+  personalRewards,
 }: {
   personalStars: number;
   communityStars: number;
   isPreview?: boolean;
   showCommunity?: boolean;
+  personalRewards?: readonly RewardMilestone[];
 }) {
   return (
     <div className="compendium-rewards">
       <RewardTrack
         title="Личный зачёт"
         stars={personalStars}
-        rewards={isPreview ? [] : personalCompendiumRewards}
+        rewards={personalRewards ?? (isPreview ? [] : personalCompendiumRewards)}
         kind="personal"
         isPreview={isPreview}
       />

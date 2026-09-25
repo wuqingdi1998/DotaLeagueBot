@@ -1,3 +1,5 @@
+import Image from "next/image";
+import { OCTOBER_CLANS } from "@/lib/october-clans";
 import {
   profileBadgeDefinition,
   type ProfileBadgeKey,
@@ -6,6 +8,31 @@ import {
 export function ProfileEventBadge({ badgeKey }: { badgeKey: ProfileBadgeKey }) {
   const badge = profileBadgeDefinition(badgeKey);
   if (!badge) return null;
+
+  if (badge.clanId) {
+    const clan = OCTOBER_CLANS.find((entry) => entry.id === badge.clanId)!;
+    const tierLabel = {
+      bronze: "Бронза",
+      silver: "Серебро",
+      gold: "Золото",
+      platinum: "Платина",
+    }[badge.tier];
+    return (
+      <span
+        className={`profile-event-badge profile-event-badge-${badge.tier} profile-event-badge-clan profile-event-badge-clan-${badge.clanId}`}
+        title={badge.label}
+        aria-label={badge.label}
+      >
+        <span className="profile-event-badge-clan-crest" aria-hidden="true">
+          <Image src={clan.emblem} alt="" width={36} height={36} />
+        </span>
+        <span className="profile-event-badge-clan-label" aria-hidden="true">
+          <strong>{clan.name}</strong>
+          <small>{tierLabel} · 2026</small>
+        </span>
+      </span>
+    );
+  }
 
   return (
     <span

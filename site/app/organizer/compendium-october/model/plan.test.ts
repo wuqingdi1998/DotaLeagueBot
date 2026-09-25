@@ -77,14 +77,14 @@ describe("October compendium draft", () => {
     }
   });
 
-  it("shows the old daily-card layout with clearly illustrative hero sets", () => {
+  it("shows two illustrative hero quests before the clan outing", () => {
     const quests = octoberDailyQuestSamples();
-    expect(quests).toHaveLength(3);
-    expect(quests.map((quest) => quest.position)).toEqual([1, 2, 3]);
+    expect(quests).toHaveLength(2);
+    expect(quests.map((quest) => quest.position)).toEqual([1, 2]);
     expect(quests.every((quest) => quest.heroes.length === 6 && quest.completion === null))
       .toBe(true);
     expect(new Set(quests.flatMap((quest) => quest.heroes.map((hero) => hero.id))).size)
-      .toBe(18);
+      .toBe(12);
   });
 
   it("passes October races to the existing race display without active actions", () => {
@@ -102,6 +102,8 @@ describe("October compendium draft", () => {
     expect(activityPreview).toContain("<CompendiumStarRace");
     expect(activityPreview).toContain("<QuestCard");
     expect(activityPreview).toContain("<RuneChallenge");
+    expect(activityPreview).toContain("<OctoberClanOutingCard");
+    expect(activityPreview).toContain("collapsibleRulesOnMobile");
     expect(activityPreview).toContain("isPreview");
   });
 });

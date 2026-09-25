@@ -4,7 +4,9 @@ import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OctoberClanShowcase } from "../sections/OctoberClanShowcase";
+import { OctoberClanOutingCard } from "../sections/OctoberClanOutingCard";
 import { OCTOBER_CLANS } from "./clans";
+import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
 
 function unavailable() {
@@ -12,13 +14,22 @@ function unavailable() {
 }
 
 describe("October preview actions", () => {
-  it("keeps the personal reward track while omitting the old community tally", () => {
+  it("shows the new five-step personal track without the old community tally", () => {
     const html = renderToStaticMarkup(
-      <CompendiumRewards personalStars={0} communityStars={0} isPreview showCommunity={false} />,
+      <CompendiumRewards
+        personalStars={0}
+        communityStars={0}
+        isPreview
+        showCommunity={false}
+        personalRewards={octoberRewardsForStars(0)}
+      />,
     );
     expect(html).toContain("Личный зачёт");
     expect(html).not.toContain("Зачёт сообщества");
-    expect(html).toContain("Награды выберем позже");
+    expect(html).toContain("Бронзовый бейдж клана");
+    expect(html).toContain("Золотой бейдж клана");
+    expect(html).not.toContain("Платиновый бейдж клана");
+    expect(html).not.toContain("Награды выберем позже");
     expect(html).not.toContain("TI 2026");
     expect(html).not.toContain("href=\"/compendium/leaderboard\"");
   });
@@ -28,12 +39,21 @@ describe("October preview actions", () => {
     expect(OCTOBER_CLANS.map((clan) => clan.name)).toEqual(["Морбус", "Панацея"]);
     expect(html).toContain("Флаг клана Морбус");
     expect(html).toContain("Флаг клана Панацея");
-    expect(html).toContain("morbus-emblem.webp");
+    expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
     expect(html).toContain("три предмета");
     expect(html).not.toContain("Зачёт сообщества");
     expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
       .toBe(true);
+  });
+
+  it("gives both clanmates a star and permits the same match to close a hero quest", () => {
+    const html = renderToStaticMarkup(<OctoberClanOutingCard />);
+    expect(html).toContain("Клановая вылазка");
+    expect(html).toContain("Выиграйте одну рейтинговую игру вместе с участником своего клана");
+    expect(html).toContain("каждый получит по одной звезде");
+    expect(html).toContain("одновременно засчитать для испытания 1 или 2");
+    expect(html).toMatch(/class="compendium-check-button"[^>]*disabled/);
   });
 
   it("renders the existing daily card with disabled buttons", () => {

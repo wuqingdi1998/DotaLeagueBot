@@ -1,4 +1,4 @@
-import { DAILY_HERO_COUNT, DAILY_QUEST_COUNT, HEROES_PER_QUEST } from "@/app/compendium/model/constants";
+import { HEROES_PER_QUEST } from "@/app/compendium/model/constants";
 import { COMPENDIUM_HEROES } from "@/app/compendium/model/heroes";
 import { starRaceQuestBounds, starRaceQuestHeroes, type StarRaceData } from "@/app/compendium/model/star-race";
 import type { DailyQuest } from "@/app/compendium/model/types";
@@ -6,13 +6,15 @@ import type { OctoberCompendiumWeekDefinition } from "./plan";
 
 export const OCTOBER_RACE_EXCLUSION_RULES = [
   "Звёзды за Испытание Рун не входят в недельную гонку, но пополняют личный зачёт и счёт клана.",
-  "Звёзды за Испытание 4 не входят в недельную гонку, но пополняют личный зачёт и счёт клана.",
 ] as const;
+
+export const OCTOBER_HERO_QUEST_COUNT = 2;
+export const OCTOBER_CLAN_QUEST_POSITION = 3;
 
 /** Illustrative cards only: actual daily hero sets are generated for each player after launch. */
 export function octoberDailyQuestSamples(): DailyQuest[] {
-  const heroes = COMPENDIUM_HEROES.slice(0, DAILY_HERO_COUNT);
-  return Array.from({ length: DAILY_QUEST_COUNT }, (_, index) => ({
+  const heroes = COMPENDIUM_HEROES.slice(0, OCTOBER_HERO_QUEST_COUNT * HEROES_PER_QUEST);
+  return Array.from({ length: OCTOBER_HERO_QUEST_COUNT }, (_, index) => ({
     id: `preview-${index + 1}`,
     position: index + 1,
     heroes: heroes.slice(index * HEROES_PER_QUEST, (index + 1) * HEROES_PER_QUEST),

@@ -5,15 +5,13 @@ import { CompendiumStarRace } from "@/app/compendium/components/CompendiumStarRa
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import {
-  BONUS_QUEST_STAR_THRESHOLD,
-  DAILY_QUEST_COUNT,
   HEROES_PER_QUEST,
   QUEST_REWARD_STARS,
-  REROLL_REWARD_STAR_THRESHOLD,
-  REWARDED_DAILY_REROLL_COUNT,
 } from "@/app/compendium/model/constants";
-import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
+import { OCTOBER_HERO_QUEST_COUNT, OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
+import { OCTOBER_REWARD_STARS } from "@/lib/october-reward-thresholds";
 import type { OctoberCompendiumWeekDefinition } from "../model/plan";
+import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
 
 function ignorePreviewAction() {}
 
@@ -28,6 +26,7 @@ export function OctoberRacePreview({ week }: { week: OctoberCompendiumWeekDefini
       isSubmittingPrediction={false}
       onSubmitPrediction={ignorePreviewAction}
       isPreview
+      collapsibleRulesOnMobile
       sectionId={`october-race-${week.id}`}
       exclusionRules={OCTOBER_RACE_EXCLUSION_RULES}
     />
@@ -39,15 +38,17 @@ export function OctoberDailyPreview() {
     <section className="compendium-daily-section" id="compendium-quests">
       <div className="compendium-section-heading">
         <div>
-          <span>Такие же, как в прошлом компендиуме</span>
+          <span>Два испытания с героями · одна клановая вылазка</span>
           <h2>Задания дня</h2>
         </div>
       </div>
       <p className="october-compendium-example-note">
-        Каждый день – {DAILY_QUEST_COUNT} задания по {HEROES_PER_QUEST} героев. За победу даётся
-        звезда, в пятницу, субботу и воскресенье – две. После {REROLL_REWARD_STAR_THRESHOLD} личных
-        звёзд доступно {REWARDED_DAILY_REROLL_COUNT} замены в день, после {BONUS_QUEST_STAR_THRESHOLD} – четвёртое
-        задание. Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника.
+        Каждый день – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и одна
+        клановая вылазка. За победу на герое даётся звезда, в пятницу, субботу и воскресенье – две.
+        Клановая вылазка всегда даёт по одной звезде каждому игроку и может закрыться одновременно
+        с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
+        замены заданий в день, после {OCTOBER_REWARD_STARS.secondReroll} – три.
+        Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника.
       </p>
       <p className="compendium-mobile-swipe-hint">
         Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
@@ -68,6 +69,7 @@ export function OctoberDailyPreview() {
             isPreview
           />
         ))}
+        <OctoberClanOutingCard />
       </div>
       <RuneChallenge
         initialChallenge={{

@@ -5,14 +5,6 @@
   line-height: 1.55;
 }
 
-.october-compendium-preview .compendium-reward-milestones {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.october-compendium-preview .compendium-reward-milestones article {
-  min-height: 0;
-}
-
 .october-compendium-base .compendium-base-back {
   display: flex;
   width: fit-content;
@@ -152,11 +144,6 @@
   filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.55));
 }
 
-.october-clan-card--morbus .october-clan-flag img {
-  transform: scale(1.25);
-  filter: brightness(1.35) drop-shadow(0 7px 12px rgba(0, 0, 0, 0.55));
-}
-
 .october-clan-card-copy h3 {
   margin: 5px 0 12px;
   font-family: "5ka Sans Design", sans-serif;
@@ -205,6 +192,26 @@
   text-align: center;
 }
 
+.october-clan-quest-emblem {
+  display: grid;
+  width: 100%;
+  min-height: 120px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue-strong) 38%, var(--line));
+  border-radius: 16px;
+  background: radial-gradient(circle, rgba(67, 194, 182, 0.2), transparent 58%), var(--surface-soft);
+}
+
+.october-clan-quest-emblem svg { width: 52px; height: 52px; color: var(--blue-strong); }
+.october-clan-quest h3 { margin: 18px 0 8px; font-size: 21px; }
+.october-clan-quest-note { color: var(--muted); font-size: 14px; line-height: 1.5; }
+.october-clan-quest .compendium-check-button { margin-top: auto; }
+.october-race-rules-mobile { display: none; }
+.october-compendium-preview .compendium-reward-milestones article.locked,
+.october-compendium-base .compendium-reward-milestones article.locked { opacity: 1; filter: none; }
+.october-compendium-preview .compendium-reward-milestones .profile-event-badge-clan,
+.october-compendium-base .compendium-reward-milestones .profile-event-badge-clan { margin: 4px 3px 0 0; }
+
 @media (max-width: 1280px) {
   .october-compendium-preview .compendium-hero-section {
     grid-template-columns: minmax(0, 1fr);
@@ -226,6 +233,27 @@
   .october-clan-flag {
     width: min(100%, 150px);
   }
+}
+
+@media (max-width: 720px) {
+  .october-race-rules-desktop { display: none; }
+  .october-race-rules-mobile { display: block; min-height: 0; padding: 0; }
+  .october-race-rules-mobile summary {
+    display: flex;
+    min-height: 58px;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .october-race-rules-mobile summary::-webkit-details-marker { display: none; }
+  .october-race-rules-mobile summary > svg:first-child { width: 26px; height: 26px; color: var(--star-race-gold); }
+  .october-race-rules-mobile summary strong { margin: 0; font-size: 16px; }
+  .october-race-rules-chevron { width: 18px; height: 18px; margin-left: auto; transition: transform 160ms ease; }
+  .october-race-rules-mobile[open] .october-race-rules-chevron { transform: rotate(180deg); }
+  .october-race-rules-mobile > ul { padding: 0 18px 17px 52px; }
+  .october-race-rules-mobile summary:focus-visible { outline: 2px solid var(--star-race-gold); outline-offset: 2px; }
 }
 
 @media (max-width: 660px) {
