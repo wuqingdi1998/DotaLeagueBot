@@ -99,15 +99,16 @@
   place-items: center;
   border: 1px solid var(--badge-light);
   border-radius: 9px;
-  background: color-mix(in srgb, var(--badge-main) 30%, #0a1d27);
+  background: var(--badge-main);
   box-shadow: inset 0 0 9px color-mix(in srgb, var(--badge-light) 25%, transparent);
 }
 .profile-event-badge-clan-crest img { width: 36px; height: 36px; object-fit: contain; }
 .profile-event-badge-clan-label { display: grid; gap: 3px; line-height: 1; }
 .profile-event-badge-clan-label strong { font-size: 12px; letter-spacing: 0.04em; }
 .profile-event-badge-clan-label small { font-size: 10px; letter-spacing: 0; }
-.profile-event-badge-clan-morbus .profile-event-badge-clan-crest { background-color: #421e24; }
-.profile-event-badge-clan-panacea .profile-event-badge-clan-crest { background-color: #153b40; }
+.profile-event-badge-clan-morbus .profile-event-badge-clan-crest img {
+  transform: translateY(2.4%) scale(1.3, 1.11);
+}
 
 .profile-badges-card {
   min-width: 0;
