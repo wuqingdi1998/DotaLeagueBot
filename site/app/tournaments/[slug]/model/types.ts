@@ -82,6 +82,8 @@ export type TeamApplication = {
     is_captain: boolean;
     invitation_status: "invited" | "accepted" | "declined";
     tier_snapshot: number | null;
+    subscription_role: string | null;
+    subscription_role_color: number | null;
   }>;
 };
 

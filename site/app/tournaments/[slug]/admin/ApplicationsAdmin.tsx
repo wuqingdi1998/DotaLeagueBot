@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { FiCheckCircle } from "react-icons/fi";
 import { roleOptions } from "../model/constants";
 import { useTournament } from "../hooks/TournamentContext";
@@ -63,17 +64,39 @@ export function ApplicationsAdmin() {
                   return (
                     <li key={`${application.id}-${player.name}`}>
                       <span>{player.role === "coach" ? "Т" : (role?.position ?? "—")}.</span>
-                      {player.dotaId ? (
-                        <Link href={`/players/${player.dotaId}`}>
-                          {player.name}
-                        </Link>
-                      ) : player.archiveIdentityId ? (
-                        <Link href={`/archive-players/${player.archiveIdentityId}`}>
-                          {player.name}
-                        </Link>
-                      ) : (
-                        <b>{player.name}</b>
-                      )}
+                      <span className="application-player-name">
+                        {player.dotaId ? (
+                          <Link href={`/players/${player.dotaId}`}>
+                            {player.name}
+                          </Link>
+                        ) : player.archiveIdentityId ? (
+                          <Link href={`/archive-players/${player.archiveIdentityId}`}>
+                            {player.name}
+                          </Link>
+                        ) : (
+                          <b>{player.name}</b>
+                        )}
+                        {player.subscriptionRole && (
+                          <span
+                            className="application-subscription-mark"
+                            style={
+                              player.subscriptionRoleColor
+                                ? ({
+                                    "--subscription-role-color": `#${player.subscriptionRoleColor
+                                      .toString(16)
+                                      .padStart(6, "0")}`,
+                                  } as CSSProperties)
+                                : undefined
+                            }
+                            title={`Подписка: ${player.subscriptionRole}`}
+                            aria-label={`Подписка: ${player.subscriptionRole}`}
+                            tabIndex={0}
+                          >
+                            <FiCheckCircle aria-hidden="true" />
+                            <span role="tooltip">{player.subscriptionRole}</span>
+                          </span>
+                        )}
+                      </span>
                       {player.isCaptain && <small>капитан</small>}
                       {application.uses_player_confirmation &&
                         player.invitationStatus === "accepted" && (

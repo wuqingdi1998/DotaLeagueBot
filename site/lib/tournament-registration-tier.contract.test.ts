@@ -59,4 +59,12 @@ describe("tournament registration tier contract", () => {
     expect(adminApplications).toContain("player.tier");
     expect(teams).toContain("tournament.show_tiers");
   });
+
+  it("shows each registered player's subscription to the organizer", () => {
+    expect(tournamentRoute).toContain("player_discord_roles");
+    expect(tournamentRoute).toContain("subscription_role_color");
+    expect(tournamentRoute).toContain("viewer?.isAdmin");
+    expect(adminApplications).toContain("application-subscription-mark");
+    expect(adminApplications).toContain("Подписка: ${player.subscriptionRole}");
+  });
 });

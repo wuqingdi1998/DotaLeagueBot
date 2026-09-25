@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { one, query } from "@/lib/db";
 import { defaultSeasonFacts } from "@/lib/season-facts";
+import { subscriptionRoleNames } from "@/lib/subscription-roles";
 import {
   loadTournamentHeroPreference,
 } from "@/app/tournaments/[slug]/services/tournament-hero-preferences";
@@ -21,6 +22,8 @@ type MemberRow = {
   is_captain: boolean;
   invitation_status: string;
   tier_snapshot: number | null;
+  subscription_role: string | null;
+  subscription_role_color: number | null;
 };
 
 type ApplicationRow = Record<string, unknown> & {
@@ -81,6 +84,10 @@ function publicApplication(
       is_captain: member.is_captain,
       invitation_status: member.invitation_status,
       tier_snapshot: member.tier_snapshot,
+      subscription_role: viewer?.isAdmin ? member.subscription_role : null,
+      subscription_role_color: viewer?.isAdmin
+        ? member.subscription_role_color
+        : null,
     })),
   };
 }
@@ -162,6 +169,7 @@ export async function GET(request: Request) {
     : user
       ? [tournament.id, user.discordId]
       : [tournament.id];
+  const subscriptionRolesParameter = `$${visibilityValues.length + 1}`;
   const [
     applications,
     members,
@@ -242,15 +250,28 @@ export async function GET(request: Request) {
          )
          SELECT application_id::int, player_id::text, dota_id,
            archive_identity_id, ingame_name, role, is_captain, invitation_status,
-           tier_snapshot::int
+           tier_snapshot::int,
+           subscription.role_name AS subscription_role,
+           subscription.role_color::int AS subscription_role_color
          FROM roster
+         LEFT JOIN LATERAL (
+           SELECT discord_role.role_name, discord_role.role_color
+           FROM player_discord_roles discord_role
+           WHERE discord_role.player_id = roster.player_id
+             AND discord_role.role_name = ANY(${subscriptionRolesParameter}::text[])
+           ORDER BY array_position(
+             ${subscriptionRolesParameter}::text[],
+             discord_role.role_name
+           )
+           LIMIT 1
+         ) subscription ON TRUE
          ORDER BY application_id,
            CASE role
              WHEN 'safe_lane' THEN 1 WHEN 'mid_lane' THEN 2
              WHEN 'off_lane' THEN 3 WHEN 'soft_support' THEN 4
              WHEN 'hard_support' THEN 5 ELSE 6
            END`,
-        visibilityValues,
+        [...visibilityValues, [...subscriptionRoleNames]],
       ),
       query<Record<string, unknown>>(
          `SELECT m.id::int, m.tournament_id::int, m.group_id::int,

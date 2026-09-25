@@ -65,6 +65,8 @@ export function getTeamPlayers(team: TeamApplication) {
         archiveIdentityId: member.archive_identity_id,
         tier: member.tier_snapshot,
         invitationStatus: member.invitation_status,
+        subscriptionRole: member.subscription_role,
+        subscriptionRoleColor: member.subscription_role_color,
       }))
     : [
         {
@@ -75,6 +77,8 @@ export function getTeamPlayers(team: TeamApplication) {
           archiveIdentityId: null,
           tier: null,
           invitationStatus: null,
+          subscriptionRole: null,
+          subscriptionRoleColor: null,
         },
         {
           name: team.player_2,
@@ -84,6 +88,8 @@ export function getTeamPlayers(team: TeamApplication) {
           archiveIdentityId: null,
           tier: null,
           invitationStatus: null,
+          subscriptionRole: null,
+          subscriptionRoleColor: null,
         },
         {
           name: team.player_3,
@@ -93,6 +99,8 @@ export function getTeamPlayers(team: TeamApplication) {
           archiveIdentityId: null,
           tier: null,
           invitationStatus: null,
+          subscriptionRole: null,
+          subscriptionRoleColor: null,
         },
         {
           name: team.player_4,
@@ -102,6 +110,8 @@ export function getTeamPlayers(team: TeamApplication) {
           archiveIdentityId: null,
           tier: null,
           invitationStatus: null,
+          subscriptionRole: null,
+          subscriptionRoleColor: null,
         },
         {
           name: team.player_5,
@@ -111,6 +121,8 @@ export function getTeamPlayers(team: TeamApplication) {
           archiveIdentityId: null,
           tier: null,
           invitationStatus: null,
+          subscriptionRole: null,
+          subscriptionRoleColor: null,
         },
       ];
 
