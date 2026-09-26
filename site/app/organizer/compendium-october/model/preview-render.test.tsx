@@ -1,4 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
@@ -10,6 +11,11 @@ import { OCTOBER_CLANS } from "./clans";
 import { OCTOBER_PREVIEW_SECTIONS } from "./sections";
 import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
+
+const previewStyles = readFileSync(
+  new URL("../../../styles/66-october-compendium-screens.css", import.meta.url),
+  "utf8",
+);
 
 function unavailable() {
   throw new Error("A private preview must never submit an action");
@@ -111,5 +117,24 @@ describe("October preview actions", () => {
     expect(html).toContain("Испытание Рун");
     expect(html).not.toContain("compendium-rune-picker");
     expect(html).not.toContain("compendium-check-button");
+  });
+
+  it("uses the roomy desktop layout without mobile-only controls", () => {
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-race \.october-race-rules-desktop \{ display: grid; \}/,
+    );
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-race \.october-race-rules-mobile \{ display: none; \}/,
+    );
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-daily \.compendium-hero-portrait \{ height: auto; aspect-ratio: 16 \/ 9; \}/,
+    );
+    expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?padding-bottom: 22px;/,
+    );
+    expect(previewStyles).not.toMatch(
+      /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin-top: auto;/,
+    );
   });
 });
