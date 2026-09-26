@@ -190,18 +190,20 @@ export function DraftLineupAssignment({
         />
       </header>
 
-      <div className="fearless-lineup-picks-overview">
-        {pickedHeroes.map((group, index) => (
-          <PickedHeroes
-            key={group.captain.id}
-            title={index === 0 && ownCaptain
-              ? text.lineupOwnPicks
-              : text.lineupOpponentPicks}
-            captainName={group.captain.name}
-            heroIds={group.heroIds}
-          />
-        ))}
-      </div>
+      {!lineup?.isRevealed && (
+        <div className="fearless-lineup-picks-overview">
+          {pickedHeroes.map((group, index) => (
+            <PickedHeroes
+              key={group.captain.id}
+              title={index === 0 && ownCaptain
+                ? text.lineupOwnPicks
+                : text.lineupOpponentPicks}
+              captainName={group.captain.name}
+              heroIds={group.heroIds}
+            />
+          ))}
+        </div>
+      )}
 
       {lineup?.isRevealed ? (
         <div className="fearless-lineup-results">
