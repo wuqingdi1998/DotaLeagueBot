@@ -33,8 +33,11 @@
     font-size: 10px;
   }
 
-  .standing-team i {
-    display: none;
+  .standing-team i,
+  .standing-team-emblem {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
   }
 }
 
@@ -54,6 +57,14 @@
   .standing-team {
     min-width: 0;
     gap: 6px;
+  }
+
+  .standing-team i,
+  .standing-team-emblem {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    font-size: 11px;
   }
 
   .standing-team strong {

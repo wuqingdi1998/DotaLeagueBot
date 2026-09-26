@@ -90,4 +90,11 @@ describe("ordinary tournament group standings", () => {
     expect(groupsPanel).toContain("row.series_wins");
     expect(groupsPanel).toContain("({row.maps_won}–{row.maps_lost})");
   });
+
+  it("shows the registered team emblem with an initials fallback", () => {
+    expect(groupsPanel).toContain("applicationsById.get(row.application_id)");
+    expect(groupsPanel).toContain("<CompactTeamEmblem");
+    expect(groupsPanel).toContain('className="standing-team-emblem"');
+    expect(groupsPanel).toContain("logoKey={application?.logo_key}");
+  });
 });

@@ -1,14 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { isPastTournament } from "@/lib/tournaments";
+import { CompactTeamEmblem } from "../components/CompactTeamEmblem";
 import { MatchMapLinks } from "../components/MatchMapLinks";
 import { useTournament } from "../hooks/TournamentContext";
 import {
   formatDayMonth,
   formatTime,
-  initials,
 } from "../model/formatters";
 
 const bracketLabels = {
@@ -17,28 +16,6 @@ const bracketLabels = {
   lower: "Нижняя сетка",
   grand_final: "Гранд-финал",
 } as const;
-
-type MatchTeamEmblemProps = {
-  logoKey: string | null | undefined;
-  teamName: string;
-};
-
-function MatchTeamEmblem({ logoKey, teamName }: MatchTeamEmblemProps) {
-  if (logoKey) {
-    return (
-      <Image
-        className="match-team-emblem"
-        src={`/api/team-emblems/${logoKey}`}
-        alt=""
-        width={36}
-        height={36}
-        unoptimized
-      />
-    );
-  }
-
-  return <i aria-hidden="true">{initials(teamName)}</i>;
-}
 
 export function MatchesPanel() {
   const { activeTab, data } = useTournament();
@@ -93,7 +70,8 @@ export function MatchesPanel() {
                 )}
               </div>
               <div className="match-team first">
-                <MatchTeamEmblem
+                <CompactTeamEmblem
+                  className="match-team-emblem"
                   logoKey={teamA?.logo_key}
                   teamName={match.team_a}
                 />
@@ -114,7 +92,8 @@ export function MatchesPanel() {
               </div>
               <div className="match-team second">
                 <strong>{match.team_b}</strong>
-                <MatchTeamEmblem
+                <CompactTeamEmblem
+                  className="match-team-emblem"
                   logoKey={teamB?.logo_key}
                   teamName={match.team_b}
                 />

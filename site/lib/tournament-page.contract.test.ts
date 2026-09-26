@@ -27,6 +27,13 @@ const matchesPanelSource = readFileSync(
   new URL("../app/tournaments/[slug]/sections/MatchesPanel.tsx", import.meta.url),
   "utf8",
 );
+const compactTeamEmblemSource = readFileSync(
+  new URL(
+    "../app/tournaments/[slug]/components/CompactTeamEmblem.tsx",
+    import.meta.url,
+  ),
+  "utf8",
+);
 const playerSearchRoute = readFileSync(
   new URL("../app/api/players/route.ts", import.meta.url),
   "utf8",
@@ -119,13 +126,15 @@ describe("tournament page public behavior", () => {
   });
 
   it("shows static team emblems in the match list", () => {
-    expect(matchesPanelSource).toContain('import Image from "next/image"');
+    expect(matchesPanelSource).toContain("CompactTeamEmblem");
     expect(matchesPanelSource).toContain("match.team_a_application_id");
     expect(matchesPanelSource).toContain("match.team_b_application_id");
     expect(matchesPanelSource).toContain('className="match-team-emblem"');
+    expect(compactTeamEmblemSource).toContain('import Image from "next/image"');
+    expect(compactTeamEmblemSource).toContain("initials(teamName)");
     expect(matchesPanelSource).not.toContain("TeamEmblemPreview");
     expect(stylesSource).toMatch(
-      /\.match-team-emblem\s*\{[^}]*width:\s*36px;[^}]*height:\s*36px;[^}]*object-fit:\s*cover;/,
+      /\.compact-team-emblem\s*\{[^}]*width:\s*36px;[^}]*height:\s*36px;[^}]*object-fit:\s*cover;/,
     );
     expect(stylesSource).not.toMatch(/\.match-team[^,{]*:hover/);
   });

@@ -3,8 +3,8 @@
 import { groupOutcome, groupOutcomeLabel } from "@/lib/group-advancement";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
 import dynamic from "next/dynamic";
+import { CompactTeamEmblem } from "../components/CompactTeamEmblem";
 import { useTournament } from "../hooks/TournamentContext";
-import { initials } from "../model/formatters";
 import { TournamentBracket } from "../TournamentBracket";
 
 const GroupShuffleToolbar = dynamic(
@@ -33,6 +33,10 @@ export function GroupsPanel() {
   } = useTournament();
   if (!data || activeTab !== "groups") return null;
 
+  const applicationsById = new Map(
+    data.applications.map((application) => [application.id, application]),
+  );
+
   return (
     <div className="tab-panel">
       <div className="panel-heading">
@@ -59,6 +63,7 @@ export function GroupsPanel() {
                 <span>Итог</span>
               </div>
               {rows.map((row) => {
+                const application = applicationsById.get(row.application_id);
                 const outcome = groupOutcome(
                   row.place,
                   group,
@@ -74,7 +79,11 @@ export function GroupsPanel() {
                   >
                     <span className="place">{row.place}</span>
                     <span className="standing-team">
-                      <i>{initials(row.team_name)}</i>
+                      <CompactTeamEmblem
+                        className="standing-team-emblem"
+                        logoKey={application?.logo_key}
+                        teamName={row.team_name}
+                      />
                       <strong>{row.team_name}</strong>
                     </span>
                     <span>{row.games}</span>
