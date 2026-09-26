@@ -287,6 +287,14 @@ export async function GET(request: Request) {
            m.eliminated_team_application_id::int,
            m.winner_to_match_id::int, m.winner_to_slot,
            m.loser_to_match_id::int, m.loser_to_slot,
+           COALESCE((
+             SELECT json_agg(json_build_object(
+               'game_number', game.game_number::int,
+               'dota_match_id', game.dota_match_id
+             ) ORDER BY game.game_number)
+             FROM ordinary_match_games game
+             WHERE game.match_id = m.id
+           ), '[]'::json) AS games,
            CASE WHEN tournaments.ordinary_match_rooms_enabled = TRUE
              AND tournaments.tournament_type = 'ordinary'
              AND m.status <> 'cancelled'

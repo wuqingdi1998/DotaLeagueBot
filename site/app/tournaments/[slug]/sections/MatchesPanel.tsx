@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { isPastTournament } from "@/lib/tournaments";
+import { MatchMapLinks } from "../components/MatchMapLinks";
 import { useTournament } from "../hooks/TournamentContext";
 import {
   formatDayMonth,
@@ -99,11 +100,17 @@ export function MatchesPanel() {
                 <strong>{match.team_a}</strong>
               </div>
               <div className="match-score">
-                {match.team_a_result_label ??
-                  (match.team_a_score === null ? "—" : match.team_a_score)}
-                <span>:</span>
-                {match.team_b_result_label ??
-                  (match.team_b_score === null ? "—" : match.team_b_score)}
+                <div className="match-score-value">
+                  {match.team_a_result_label ??
+                    (match.team_a_score === null ? "—" : match.team_a_score)}
+                  <span>:</span>
+                  {match.team_b_result_label ??
+                    (match.team_b_score === null ? "—" : match.team_b_score)}
+                </div>
+                <MatchMapLinks
+                  games={match.games}
+                  gameCount={match.best_of}
+                />
               </div>
               <div className="match-team second">
                 <strong>{match.team_b}</strong>

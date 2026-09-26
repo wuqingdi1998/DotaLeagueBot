@@ -119,6 +119,10 @@ export type TournamentMatch = {
   sort_order: number;
   status: "scheduled" | "ready" | "live" | "finished" | "cancelled";
   room_url?: string | null;
+  games: Array<{
+    game_number: number;
+    dota_match_id: string | null;
+  }>;
 };
 
 export type Standing = {

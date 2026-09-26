@@ -102,7 +102,11 @@
 }
 
 .match-score {
+  display: flex;
   grid-area: score;
+  align-items: center;
+  flex-direction: column;
+  gap: 7px;
   color: var(--text);
   font-family: "5ka Sans Design", sans-serif;
   font-size: 21px;
@@ -111,7 +115,7 @@
   white-space: nowrap;
 }
 
-.match-score span {
+.match-score-value span {
   margin: 0 3px;
   color: var(--quiet);
 }
@@ -250,7 +254,7 @@
     font-size: 20px;
   }
 
-  .match-score span {
+  .match-score-value span {
     margin: 0 2px;
   }
 

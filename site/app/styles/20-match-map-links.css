@@ -1,0 +1,64 @@
+.match-map-links,
+.match-map-link-group {
+  align-items: center;
+  display: flex;
+}
+
+.match-map-links {
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.match-map-link-group {
+  gap: 3px;
+}
+
+.match-map-link-group > b {
+  color: var(--text);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  margin-right: 1px;
+}
+
+.match-map-link {
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  display: flex;
+  height: 20px;
+  justify-content: center;
+  overflow: hidden;
+  width: 20px;
+}
+
+.match-map-link.stratz {
+  background: #09a9c5;
+}
+
+.match-map-link.dotabuff {
+  background: #f23a1f;
+}
+
+.match-map-link.unavailable {
+  filter: grayscale(1);
+  opacity: 0.36;
+}
+
+.match-map-link:hover,
+.match-map-link:focus-visible {
+  filter: brightness(1.16);
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+.match-map-logo {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.match-map-logo.stratz {
+  height: 15px;
+  width: 15px;
+}

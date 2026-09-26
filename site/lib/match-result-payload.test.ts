@@ -31,6 +31,7 @@ const match: TournamentMatch = {
   loser_to_match_id: null,
   loser_to_slot: null,
   best_of: 5,
+  games: [],
   sort_order: 0,
   status: "scheduled",
 };

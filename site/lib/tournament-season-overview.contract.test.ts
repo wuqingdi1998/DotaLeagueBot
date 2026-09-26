@@ -11,11 +11,15 @@ const overview = source(
 const recentRound = source(
   "../app/tournaments/[slug]/sections/SeasonRecentCompletedRound.tsx",
 );
+const mapLinks = source(
+  "../app/tournaments/[slug]/components/MatchMapLinks.tsx",
+);
 const overviewModel = source(
   "../app/tournaments/[slug]/model/season-overview.ts",
 );
 const popover = source("../app/components/PlayerStatisticsPopover.tsx");
 const styles = source("../app/styles/20-season-overview-results.css");
+const mapLinkStyles = source("../app/styles/20-match-map-links.css");
 const popoverStyles = source("../app/styles/07-player-statistics-popover.css");
 
 describe("season league overview", () => {
@@ -66,14 +70,14 @@ describe("season league overview", () => {
 
   it("places STRATZ and Dotabuff map links beside every lobby name", () => {
     expect(recentRound).not.toContain("Открыть матч");
-    expect(recentRound).toContain("seasonMatchLinks(game.dota_match_id)");
+    expect(recentRound).toContain("<MatchMapLinks");
     expect(recentRound).toContain("match.games");
-    expect(recentRound).toContain("game?.game_number");
-    expect(recentRound).toContain('service="stratz"');
-    expect(recentRound).toContain('service="dotabuff"');
-    expect(recentRound).toContain("links?.stratz");
-    expect(recentRound).toContain("links?.dotaBuff");
-    expect(styles).toContain("season-recent-map-links");
+    expect(mapLinks).toContain("seasonMatchLinks(game.dota_match_id)");
+    expect(mapLinks).toContain('service="stratz"');
+    expect(mapLinks).toContain('service="dotabuff"');
+    expect(mapLinks).toContain("links?.stratz");
+    expect(mapLinks).toContain("links?.dotaBuff");
+    expect(mapLinkStyles).toContain("match-map-links");
   });
 
   it("reuses the six Fearless Draft statistics on hover", () => {

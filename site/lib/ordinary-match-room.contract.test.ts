@@ -18,6 +18,9 @@ const organizerControls = source(
 const matches = source("../app/tournaments/[slug]/sections/MatchesPanel.tsx");
 const tournamentApi = source("../app/api/tournament/route.ts");
 const tournamentCreate = source("../app/api/tournament/tournament-create.ts");
+const mapLinks = source(
+  "../app/tournaments/[slug]/components/MatchMapLinks.tsx",
+);
 
 describe("ordinary match room contract", () => {
   it("enables rooms for future ordinary tournaments and CD FASTCUP #7", () => {
@@ -60,5 +63,15 @@ describe("ordinary match room contract", () => {
     expect(results).toContain("team_b_score = $3");
     expect(results).toContain("status = $2::varchar(16)");
     expect(screen).not.toContain("FearlessDraftScreen");
+  });
+
+  it("shows links for the match numbers fixed by the captains", () => {
+    expect(tournamentApi).toContain("FROM ordinary_match_games game");
+    expect(tournamentApi).toContain("'dota_match_id', game.dota_match_id");
+    expect(matches).toContain("match.games");
+    expect(matches).toContain("<MatchMapLinks");
+    expect(mapLinks).toContain("seasonMatchLinks(game.dota_match_id)");
+    expect(mapLinks).toContain('service="stratz"');
+    expect(mapLinks).toContain('service="dotabuff"');
   });
 });

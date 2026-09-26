@@ -1,12 +1,10 @@
 "use client";
 
 import { AvatarImage } from "@/app/components/AvatarImage";
-import { PlayerProfileServiceLogo } from "@/app/components/PlayerProfileServiceLogo";
 import { PlayerStatisticsPopover } from "@/app/components/PlayerStatisticsPopover";
 import { normalizeDotaAccountId } from "@/lib/player-links";
-import { seasonMatchLinks } from "@/lib/season";
+import { MatchMapLinks } from "../components/MatchMapLinks";
 import type {
-  SeasonGame,
   SeasonMatch,
   SeasonRound,
 } from "../model/season-types";
@@ -64,7 +62,7 @@ function SeasonRecentMatch({
         <button type="button" onClick={onOpen}>
           <strong>{match.lobby_name}</strong>
         </button>
-        <SeasonRecentMapLinks games={match.games} bestOf={match.best_of} />
+        <MatchMapLinks games={match.games} gameCount={match.best_of} />
       </header>
       <div className="season-recent-match-teams">
         <SeasonRecentTeam
@@ -81,83 +79,6 @@ function SeasonRecentMatch({
         />
       </div>
     </article>
-  );
-}
-
-function SeasonRecentMapLinks({
-  bestOf,
-  games,
-}: {
-  bestOf: number;
-  games: SeasonGame[];
-}) {
-  return (
-    <nav className="season-recent-map-links" aria-label="Ссылки на карты">
-      {Array.from({ length: bestOf }, (_, index) => index + 1).map(
-        (gameNumber) => {
-          const game = games.find((item) => item.game_number === gameNumber);
-          const links = game?.dota_match_id
-            ? seasonMatchLinks(game.dota_match_id)
-            : null;
-          return (
-            <span className="season-recent-map-link-group" key={gameNumber}>
-              <b>{game?.game_number ?? gameNumber}</b>
-              <SeasonRecentMapServiceLink
-                href={links?.stratz ?? null}
-                gameNumber={gameNumber}
-                service="stratz"
-              />
-              <SeasonRecentMapServiceLink
-                href={links?.dotaBuff ?? null}
-                gameNumber={gameNumber}
-                service="dotabuff"
-              />
-            </span>
-          );
-        },
-      )}
-    </nav>
-  );
-}
-
-function SeasonRecentMapServiceLink({
-  gameNumber,
-  href,
-  service,
-}: {
-  gameNumber: number;
-  href: string | null;
-  service: "stratz" | "dotabuff";
-}) {
-  const label = service === "stratz" ? "STRATZ" : "Dotabuff";
-  const logo = (
-    <PlayerProfileServiceLogo
-      className="season-recent-map-logo"
-      service={service}
-    />
-  );
-  if (!href) {
-    return (
-      <span
-        className={`season-recent-map-link ${service} unavailable`}
-        aria-label={`${label}, карта ${gameNumber}: ссылка недоступна`}
-        title="Ссылка на карту ещё не добавлена"
-      >
-        {logo}
-      </span>
-    );
-  }
-  return (
-    <a
-      className={`season-recent-map-link ${service}`}
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`${label}, карта ${gameNumber}`}
-      title={`Открыть карту ${gameNumber} в ${label}`}
-    >
-      {logo}
-    </a>
   );
 }
 
