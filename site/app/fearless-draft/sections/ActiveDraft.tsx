@@ -18,6 +18,7 @@ import { useDraftLocale } from "../hooks/useDraftLocale";
 import { draftLobbyTeamForCaptain } from "../model/lobby-roster";
 import { draftSeriesMapCount } from "../model/series";
 import { isDraftCountdownWarning } from "../model/countdown-sound";
+import { useServerNow } from "../hooks/useServerNow";
 
 function otherPlayer(series: DraftSeriesSnapshot, playerId: string): DraftPlayer {
   return series.player1.id === playerId ? series.player2 : series.player1;
@@ -73,6 +74,14 @@ export function ActiveDraft({
     ? map.player1ReserveSeconds
     : map.player2ReserveSeconds;
   const clock = useDraftClock(map, serverNow, storedCurrentReserve);
+  const synchronizedNow = useServerNow(serverNow, 200);
+  const isFinalPickReview = map.status === "FINAL_PICK_REVIEW";
+  const finalPickReviewSeconds = map.finalPickReviewEndsAt
+    ? Math.max(
+        0,
+        (new Date(map.finalPickReviewEndsAt).getTime() - synchronizedNow) / 1_000,
+      )
+    : null;
   const isCountdownWarning = isDraftCountdownWarning(
     map.status === "DRAFTING" ? clock : null,
   );
@@ -104,7 +113,9 @@ export function ActiveDraft({
     : player2Reserve;
   const isRadiantReserveWarning = isCountdownWarning && currentActor?.id === radiant.id;
   const isDireReserveWarning = isCountdownWarning && currentActor?.id === dire.id;
-  const displayedClockSeconds = clock
+  const displayedClockSeconds = isFinalPickReview
+    ? finalPickReviewSeconds
+    : clock
     ? clock.isUsingReserve ? clock.reserveRemainingSeconds : clock.baseRemainingSeconds
     : null;
   const hasLobbyPlayers = Boolean(lobbyPlayers?.length);
@@ -174,7 +185,11 @@ export function ActiveDraft({
       <header className={`fearless-draft-status ${hasLobbyPlayers ? "has-lobby-players" : ""}`}>
         <div>
           <span>{text.map} {map.number} / {series.format}</span>
-          <strong>{isComplete ? text.draftComplete : map.currentPhase ? phaseLabels[map.currentPhase] : text.draft}</strong>
+          <strong>{isComplete
+            ? text.draftComplete
+            : isFinalPickReview
+              ? text.finalPickReview
+              : map.currentPhase ? phaseLabels[map.currentPhase] : text.draft}</strong>
         </div>
         {hasLobbyPlayers ? (
           <div className="fearless-lobby-turn-group">
@@ -231,10 +246,11 @@ export function ActiveDraft({
 
       <div className="fearless-draft-workspace">
         <HeroGrid
+          key={map.id}
           map={map}
           userId={userId}
           serverNow={serverNow}
-          canSuggest={Boolean(viewerLobbyPlayer)}
+          canSuggest={Boolean(viewerLobbyPlayer) && map.status === "DRAFTING"}
           isSending={isSending}
           send={send}
           onPreviewHeroIdChange={(heroId) => setLocalPreview({
@@ -251,6 +267,7 @@ export function ActiveDraft({
           displayedClockSeconds={displayedClockSeconds}
           isUsingReserve={Boolean(clock?.isUsingReserve)}
           isComplete={isComplete}
+          clockLabel={isFinalPickReview ? text.finalPickReviewTime : undefined}
         />
       </div>
     </section>

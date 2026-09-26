@@ -9,7 +9,7 @@ import {
   loadDraftLineupAssignment,
   submitDraftLineupAssignment,
 } from "./lineup-assignment-service";
-import { selectDraftHero } from "./series-service";
+import { selectDraftHero, settleFinalPickReview } from "./series-service";
 import type { DraftLobbyPlayer } from "../model/snapshot";
 import { FEARLESS_DRAFT_BOT_PLAYER_ID } from "../model/bot";
 import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
@@ -86,7 +86,7 @@ beforeAll(async () => {
       radiant_player_id bigint, first_pick_player_id bigint, current_step integer,
       step_started_at timestamptz, player1_reserve_seconds float8,
       player2_reserve_seconds float8, preview_hero_id integer, version integer,
-      completed_at timestamptz
+      completed_at timestamptz, final_pick_review_ends_at timestamptz
     );
     CREATE TABLE draft_actions (
       map_id bigint, step integer, actor_id bigint, action_type text, hero_id integer,
@@ -145,7 +145,13 @@ describe("season Fearless Draft lineup assignment", () => {
     await selectDraftHero("10001", 1, 25);
     expect((await database.query(
       "SELECT status, current_step FROM draft_maps",
-    )).rows[0]).toEqual({ status: "LINEUP_ASSIGNMENT", current_step: 24 });
+    )).rows[0]).toEqual({ status: "FINAL_PICK_REVIEW", current_step: 24 });
+    await database.exec(
+      "UPDATE draft_maps SET final_pick_review_ends_at = NOW() - INTERVAL '1 second'",
+    );
+    await expect(settleFinalPickReview(1)).resolves.toBe(true);
+    expect((await database.query("SELECT status FROM draft_maps")).rows[0])
+      .toEqual({ status: "LINEUP_ASSIGNMENT" });
     expect((await database.query("SELECT status FROM draft_series")).rows[0])
       .toEqual({ status: "DRAFTING" });
     expect((await database.query("SELECT status FROM season_match_rooms")).rows[0])

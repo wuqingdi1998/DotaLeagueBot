@@ -133,6 +133,35 @@ export async function toggleDraftHeroSuggestion(
   });
 }
 
+export async function removeDraftHeroSuggestions(
+  playerId: string,
+  heroIds: number[],
+  expectedVersion: number,
+  seasonMatchId?: number,
+): Promise<void> {
+  const uniqueHeroIds = [...new Set(heroIds)];
+  if (
+    !Number.isInteger(expectedVersion) ||
+    uniqueHeroIds.length < 1 ||
+    uniqueHeroIds.length > MAX_SUGGESTIONS_PER_PLAYER ||
+    uniqueHeroIds.some((heroId) => !Number.isInteger(heroId))
+  ) {
+    throw new DraftRequestError("Некорректный список героев");
+  }
+  await transaction(async (client) => {
+    const context = await loadSuggestionContext(client, playerId, seasonMatchId);
+    if (context.version !== expectedVersion) {
+      throw new DraftRequestError("Состояние драфта устарело", 409);
+    }
+    await client.query(
+      `DELETE FROM draft_hero_suggestions
+       WHERE map_id = $1 AND player_id = $2
+         AND hero_id = ANY($3::int[])`,
+      [context.map_id, playerId, uniqueHeroIds],
+    );
+  });
+}
+
 export async function loadVisibleDraftHeroSuggestions(
   client: PoolClient,
   mapId: number,

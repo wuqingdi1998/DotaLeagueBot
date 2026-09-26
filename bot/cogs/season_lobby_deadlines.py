@@ -31,7 +31,8 @@ class SeasonLobbyDeadlines(commands.Cog):
                     WHERE status IN (
                         'captain_interest',
                         'captain_voting',
-                        'captain_tiebreak'
+                        'captain_tiebreak',
+                        'captain_reveal'
                     )
                       AND captain_stage_deadline_at IS NOT NULL
                     """

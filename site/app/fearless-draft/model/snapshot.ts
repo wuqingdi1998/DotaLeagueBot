@@ -73,7 +73,7 @@ export type DraftMapSnapshot = {
   id: number;
   number: number;
   status: "FIRST_DECISION" | "SECOND_DECISION" | "DRAFTING" |
-    "LINEUP_ASSIGNMENT" | "COMPLETE";
+    "FINAL_PICK_REVIEW" | "LINEUP_ASSIGNMENT" | "COMPLETE";
   coinTossWinnerId: string | null;
   coinTossSegment: number | null;
   firstChooserId: string;
@@ -88,6 +88,7 @@ export type DraftMapSnapshot = {
   currentPhase: DraftPhase | null;
   baseDurationSeconds: number | null;
   stepStartedAt: string | null;
+  finalPickReviewEndsAt: string | null;
   player1ReserveSeconds: number;
   player2ReserveSeconds: number;
   previewHeroId: number | null;
@@ -146,6 +147,11 @@ export type FearlessDraftCommand =
   | { action: "MAKE_CHOICE"; choice: DraftChoice }
   | { action: "HIGHLIGHT_HERO"; heroId: number; expectedVersion: number }
   | { action: "TOGGLE_HERO_SUGGESTION"; heroId: number; expectedVersion: number }
+  | {
+      action: "REMOVE_HERO_SUGGESTIONS";
+      heroIds: number[];
+      expectedVersion: number;
+    }
   | { action: "SELECT_HERO"; heroId: number; expectedVersion: number }
   | {
       action: "SUBMIT_LINEUP_ASSIGNMENT";

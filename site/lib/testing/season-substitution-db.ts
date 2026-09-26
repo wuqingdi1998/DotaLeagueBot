@@ -41,7 +41,9 @@ export async function substitutionTestDatabase() {
     CREATE TABLE season_match_rooms (match_id bigint PRIMARY KEY, status text,
       team_a_captain_id bigint, team_b_captain_id bigint, is_force_started boolean DEFAULT false,
       voting_started_at timestamptz, draft_started_at timestamptz,
-      captain_stage_deadline_at timestamptz, updated_at timestamptz);
+      captain_stage_deadline_at timestamptz,
+      captain_vote_reveal_until timestamptz,
+      captain_reveal_next_status text, updated_at timestamptz);
     CREATE TABLE season_match_room_presence (match_id bigint, player_id bigint,
       heartbeat_at timestamptz DEFAULT now(), PRIMARY KEY(match_id, player_id));
     CREATE TABLE season_match_room_messages (id bigserial PRIMARY KEY, match_id bigint,
@@ -68,11 +70,12 @@ export async function substitutionTestDatabase() {
       player1_ready_for_next_map boolean DEFAULT false,
       player2_ready_for_next_map boolean DEFAULT false, updated_at timestamptz DEFAULT now());
     CREATE TABLE draft_maps (id bigserial PRIMARY KEY, series_id bigint, map_number integer,
-      status text DEFAULT 'CHOOSING', coin_toss_winner_id bigint, coin_toss_segment integer,
+      status text DEFAULT 'FIRST_DECISION', coin_toss_winner_id bigint, coin_toss_segment integer,
       first_chooser_id bigint, radiant_player_id bigint, first_pick_player_id bigint,
       current_step integer DEFAULT 0, version integer DEFAULT 0, first_choice text,
       step_started_at timestamptz, player1_reserve_seconds float8 DEFAULT 0,
-      player2_reserve_seconds float8 DEFAULT 0, preview_hero_id integer);
+      player2_reserve_seconds float8 DEFAULT 0, preview_hero_id integer,
+      final_pick_review_ends_at timestamptz);
     CREATE TABLE draft_actions (map_id bigint, actor_id bigint, hero_id integer, action_type text);
     CREATE TABLE draft_hero_suggestions (map_id bigint, player_id bigint, hero_id integer,
       created_at timestamptz DEFAULT now());
@@ -84,6 +87,9 @@ export async function substitutionTestDatabase() {
   `);
   await db.exec(readFileSync(new URL(
     "../../../bot/database/migrations/0124_season_second_map_substitutions.sql", import.meta.url,
+  ), "utf8"));
+  await db.exec(readFileSync(new URL(
+    "../../../bot/database/migrations/0150_fearless_draft_reliability.sql", import.meta.url,
   ), "utf8"));
   return db;
 }

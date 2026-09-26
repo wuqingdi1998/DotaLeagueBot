@@ -102,6 +102,7 @@ export async function startSeasonLobbyWithCaptains(
       "captain_interest",
       "captain_voting",
       "captain_tiebreak",
+      "captain_reveal",
     ].includes(room.status)) {
       throw new SeasonLobbyRoomError("Матч уже запущен", 409);
     }

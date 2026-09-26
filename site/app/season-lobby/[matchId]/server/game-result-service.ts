@@ -15,6 +15,7 @@ type LockedGameResultRoom = {
     | "captain_interest"
     | "captain_voting"
     | "captain_tiebreak"
+    | "captain_reveal"
     | "drafting"
     | "playing"
     | "break"

@@ -14,7 +14,22 @@ import {
 } from "../services/draft-request";
 import { createDraftHighlightQueue } from "../services/highlight-queue";
 
-type CommandResponse = { error?: string };
+type CommandResponse = { error?: string; snapshot?: FearlessDraftSnapshot };
+
+function keepNewestDraftSnapshot(
+  current: FearlessDraftSnapshot,
+  incoming: FearlessDraftSnapshot,
+): FearlessDraftSnapshot {
+  const currentMap = current.series?.map;
+  const incomingMap = incoming.series?.map;
+  if (
+    currentMap && incomingMap && currentMap.id === incomingMap.id &&
+    incomingMap.version < currentMap.version
+  ) {
+    return current;
+  }
+  return incoming;
+}
 
 export function useFearlessDraft(
   initialSnapshot: FearlessDraftSnapshot,
@@ -39,7 +54,7 @@ export function useFearlessDraft(
       response,
       "Не удалось обновить драфт",
     );
-    setSnapshot(body);
+    setSnapshot((current) => keepNewestDraftSnapshot(current, body));
     return body;
   }, [seasonMatchId]);
 
@@ -48,7 +63,8 @@ export function useFearlessDraft(
     const events = new EventSource(`/api/fearless-draft/events${suffix}`);
     const receiveSnapshot = (event: MessageEvent<string>) => {
       try {
-        setSnapshot(JSON.parse(event.data) as FearlessDraftSnapshot);
+        const incoming = JSON.parse(event.data) as FearlessDraftSnapshot;
+        setSnapshot((current) => keepNewestDraftSnapshot(current, incoming));
       } catch {
         setError("Не удалось обновить драфт");
         void reload().catch(() => undefined);
@@ -92,17 +108,24 @@ export function useFearlessDraft(
         headers: { "content-type": "application/json" },
         body: JSON.stringify(command),
       });
-      await readDraftResponse<CommandResponse>(
+      const body = await readDraftResponse<CommandResponse>(
         response,
         "Действие не выполнено",
         { allowEmptySuccess: true },
       );
+      const confirmedSnapshot = body.snapshot;
+      if (confirmedSnapshot) {
+        setSnapshot((current) => keepNewestDraftSnapshot(current, confirmedSnapshot));
+      }
       setError("");
       if (!isConnected) {
         await reload().catch(() => setError("Действие сохранено. Не удалось обновить экран"));
       }
       return true;
     } catch (reason) {
+      if (command.action === "HIGHLIGHT_HERO") {
+        return false;
+      }
       const current = await reload().catch(() => null);
       if (current && isDraftCommandConfirmed(command, snapshot, current)) {
         setError("");
@@ -116,6 +139,9 @@ export function useFearlessDraft(
   const send = useCallback(async (command: FearlessDraftCommand) => {
     if (command.action === "HIGHLIGHT_HERO") {
       return queueDraftHighlight(command, executeCommand);
+    }
+    if (command.action === "REMOVE_HERO_SUGGESTIONS") {
+      return executeCommand(command);
     }
     if (sendingRef.current) return false;
     sendingRef.current = true;

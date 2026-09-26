@@ -32,7 +32,7 @@ import {
 } from "@/app/fearless-draft/server/bot-service";
 import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
-import { toggleDraftHeroSuggestion } from
+import { removeDraftHeroSuggestions, toggleDraftHeroSuggestion } from
   "@/app/fearless-draft/server/suggestion-service";
 import { submitDraftLineupAssignment } from
   "@/app/fearless-draft/server/lineup-assignment-service";
@@ -57,6 +57,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const startedAt = Date.now();
   try {
     const user = await requireSession();
     const seasonMatchId = fearlessSeasonMatchId(request);
@@ -139,6 +140,18 @@ export async function POST(request: Request) {
           seasonMatchId,
         );
         break;
+      case "REMOVE_HERO_SUGGESTIONS":
+        if (!("heroIds" in command) || !Array.isArray(command.heroIds) ||
+          !("expectedVersion" in command)) {
+          throw new DraftRequestError("Герои не указаны");
+        }
+        await removeDraftHeroSuggestions(
+          user.discordId,
+          command.heroIds.map(Number),
+          Number(command.expectedVersion),
+          seasonMatchId,
+        );
+        break;
       case "SUBMIT_LINEUP_ASSIGNMENT":
         if (!("assignments" in command) || !Array.isArray(command.assignments)) {
           throw new DraftRequestError("Распределение героев не указано");
@@ -186,6 +199,18 @@ export async function POST(request: Request) {
     publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
     if (seasonMatchId && command.action === "SUBMIT_LINEUP_ASSIGNMENT") {
       publishLiveUpdate(seasonLobbyChannel(seasonMatchId));
+    }
+    if (command.action === "SELECT_HERO") {
+      const snapshot = await loadFearlessDraftSnapshot(user, { seasonMatchId });
+      const durationMs = Date.now() - startedAt;
+      if (durationMs >= 1_000) {
+        console.warn("Slow Fearless Draft hero selection", {
+          seasonMatchId,
+          playerId: user.discordId,
+          durationMs,
+        });
+      }
+      return Response.json({ ok: true, snapshot });
     }
     return Response.json({ ok: true });
   } catch (error) {

@@ -20,25 +20,36 @@ export async function advanceExpiredCaptainSelections(): Promise<{
   const dueStages = await query<DueCaptainStage>(
     `SELECT match_id::int AS "matchId"
      FROM season_match_rooms
-     WHERE status IN ('captain_interest', 'captain_voting', 'captain_tiebreak')
+     WHERE status IN (
+       'captain_interest', 'captain_voting', 'captain_tiebreak', 'captain_reveal'
+     )
        AND captain_stage_deadline_at <= NOW()
      ORDER BY captain_stage_deadline_at, match_id
      LIMIT 100`,
   );
   let advanced = 0;
   for (const stage of dueStages) {
-    const hasAdvanced = await transaction(async (client) => {
-      const before = await client.query<CaptainStageStatus>(
-        "SELECT status FROM season_match_rooms WHERE match_id = $1",
-        [stage.matchId],
-      );
-      await advanceCaptainSelection(client, stage.matchId);
-      const after = await client.query<CaptainStageStatus>(
-        "SELECT status FROM season_match_rooms WHERE match_id = $1",
-        [stage.matchId],
-      );
-      return before.rows[0]?.status !== after.rows[0]?.status;
-    });
+    let hasAdvanced = false;
+    try {
+      hasAdvanced = await transaction(async (client) => {
+        const before = await client.query<CaptainStageStatus>(
+          "SELECT status FROM season_match_rooms WHERE match_id = $1",
+          [stage.matchId],
+        );
+        await advanceCaptainSelection(client, stage.matchId);
+        const after = await client.query<CaptainStageStatus>(
+          "SELECT status FROM season_match_rooms WHERE match_id = $1",
+          [stage.matchId],
+        );
+        return before.rows[0]?.status !== after.rows[0]?.status;
+      });
+    } catch (error) {
+      console.error("Captain deadline failed for one season lobby", {
+        matchId: stage.matchId,
+        error,
+      });
+      continue;
+    }
     if (hasAdvanced) {
       advanced += 1;
       publishLiveUpdate(seasonLobbyChannel(stage.matchId));

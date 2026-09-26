@@ -71,6 +71,7 @@ function HeroSuggestionFrame({ colors }: { colors: string[] }) {
 }
 
 const LATEST_ACTION_FLASH_DURATION_MS = 3_000;
+const HERO_PREVIEW_DELAY_MS = 120;
 
 export function HeroGrid({
   map,
@@ -99,6 +100,12 @@ export function HeroGrid({
     heroId: number;
     type: "PICK" | "BAN";
   } | null>(null);
+  const [pendingRemovalHeroIds, setPendingRemovalHeroIds] = useState<Set<number>>(
+    () => new Set(),
+  );
+  const queuedRemovalHeroIds = useRef(new Set<number>());
+  const removalTimer = useRef<number | null>(null);
+  const previewTimer = useRef<number | null>(null);
   const animationRootRef = useSuggestionAnimationSync(
     serverNow,
     map.heroSuggestions.length > 0,
@@ -125,6 +132,11 @@ export function HeroGrid({
   const selectedHero = selectedHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(selectedHeroId) : null;
   const isOwnTurn = map.currentActorId === userId;
   useHeroSearchHotkeys(searchInputRef, setSearch);
+
+  useEffect(() => () => {
+    if (removalTimer.current !== null) window.clearTimeout(removalTimer.current);
+    if (previewTimer.current !== null) window.clearTimeout(previewTimer.current);
+  }, []);
 
   useEffect(() => {
     if (latestActionSignature === previousActionSignature.current) return;
@@ -179,6 +191,14 @@ export function HeroGrid({
 
   function toggleHeroSuggestion(heroId: number) {
     if (!canSuggest || isSending) return;
+    if (pendingRemovalHeroIds.has(heroId)) {
+      queuedRemovalHeroIds.current.delete(heroId);
+      setPendingRemovalHeroIds((current) => {
+        const next = new Set(current);
+        next.delete(heroId);
+        return next;
+      });
+    }
     void send({
       action: "TOGGLE_HERO_SUGGESTION",
       heroId,
@@ -186,16 +206,46 @@ export function HeroGrid({
     });
   }
 
+  function removeHeroSuggestion(heroId: number) {
+    if (!canSuggest || pendingRemovalHeroIds.has(heroId)) return;
+    setPendingRemovalHeroIds((current) => new Set(current).add(heroId));
+    queuedRemovalHeroIds.current.add(heroId);
+    if (removalTimer.current !== null) return;
+    removalTimer.current = window.setTimeout(async () => {
+      removalTimer.current = null;
+      const heroIds = [...queuedRemovalHeroIds.current];
+      queuedRemovalHeroIds.current.clear();
+      if (!heroIds.length) return;
+      const isSaved = await send({
+        action: "REMOVE_HERO_SUGGESTIONS",
+        heroIds,
+        expectedVersion: map.version,
+      });
+      if (!isSaved) {
+        setPendingRemovalHeroIds((current) => {
+          const restored = new Set(current);
+          heroIds.forEach((id) => restored.delete(id));
+          return restored;
+        });
+      }
+    }, 60);
+  }
+
+  const visibleHeroSuggestions = map.heroSuggestions.filter(
+    (suggestion) => suggestion.playerId !== userId ||
+      !pendingRemovalHeroIds.has(suggestion.heroId),
+  );
+
   return (
     <section className="fearless-hero-pool" ref={animationRootRef}>
       <div className="fearless-hero-toolbar">
         <HeroSuggestionBoards
-          suggestions={map.heroSuggestions}
+          suggestions={visibleHeroSuggestions}
           label={text.teamSuggestions}
           removeLabel={text.removeSuggestion}
           userId={userId}
-          isSending={isSending}
-          onRemoveOwnSuggestion={toggleHeroSuggestion}
+          isSending={false}
+          onRemoveOwnSuggestion={removeHeroSuggestion}
         />
         <label>
           <FiSearch />
@@ -216,7 +266,7 @@ export function HeroGrid({
                 const state = heroState(hero.id);
                 const canSelect = isOwnTurn && state === "available";
                 const canSuggestHero = canSuggest && state === "available";
-                const suggestions = map.heroSuggestions.filter(
+                const suggestions = visibleHeroSuggestions.filter(
                   (suggestion) => suggestion.heroId === hero.id,
                 );
                 const orderedSuggestions = [...suggestions].sort((left, right) =>
@@ -253,11 +303,17 @@ export function HeroGrid({
                       if (canSelect) {
                         setSelection({ heroId: hero.id, version: map.version });
                         onPreviewHeroIdChange(hero.id);
-                        void send({
-                          action: "HIGHLIGHT_HERO",
-                          heroId: hero.id,
-                          expectedVersion: map.version,
-                        });
+                        if (previewTimer.current !== null) {
+                          window.clearTimeout(previewTimer.current);
+                        }
+                        previewTimer.current = window.setTimeout(() => {
+                          previewTimer.current = null;
+                          void send({
+                            action: "HIGHLIGHT_HERO",
+                            heroId: hero.id,
+                            expectedVersion: map.version,
+                          });
+                        }, HERO_PREVIEW_DELAY_MS);
                       }
                     }}
                   >
@@ -291,11 +347,17 @@ export function HeroGrid({
             className={map.currentAction === "BAN" ? "ban" : "pick"}
             type="button"
             disabled={isSending}
-            onClick={() => void send({
-              action: "SELECT_HERO",
-              heroId: selectedHero.id,
-              expectedVersion: map.version,
-            })}
+            onClick={() => {
+              if (previewTimer.current !== null) {
+                window.clearTimeout(previewTimer.current);
+                previewTimer.current = null;
+              }
+              void send({
+                action: "SELECT_HERO",
+                heroId: selectedHero.id,
+                expectedVersion: map.version,
+              });
+            }}
           >
             <Image
               className="fearless-hero-confirm-image"

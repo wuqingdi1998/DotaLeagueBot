@@ -16,9 +16,33 @@ export async function createSeasonLobbyDraft(
   const format = seasonLobbyDraftFormat(bestOf);
   if (!format) throw new SeasonLobbyRoomError("Формат драфта не поддерживается", 409);
   await lockDraftPlayers(client, [teamA, teamB]);
+  const existing = await client.query<{
+    id: number;
+    player1_id: string;
+    player2_id: string;
+    status: string;
+  }>(
+    `SELECT id::int, player1_id::text, player2_id::text, status
+     FROM draft_series WHERE season_match_id = $1 FOR UPDATE`,
+    [matchId],
+  );
+  const current = existing.rows[0];
+  if (current) {
+    if (current.player1_id !== teamA || current.player2_id !== teamB) {
+      throw new SeasonLobbyRoomError(
+        "Для этого матча уже создан Fearless Draft с другими капитанами",
+        409,
+      );
+    }
+    if (!["CHOOSING", "DRAFTING", "MAP_COMPLETE"].includes(current.status)) {
+      throw new SeasonLobbyRoomError("Fearless Draft этого матча уже завершён", 409);
+    }
+    await activateSeasonLobbyDraft(client, matchId, teamA, teamB);
+    return;
+  }
   if (
-    (await hasActiveSeries(client, teamA)) ||
-    (await hasActiveSeries(client, teamB))
+    (await hasActiveSeries(client, teamA, matchId)) ||
+    (await hasActiveSeries(client, teamB, matchId))
   ) {
     throw new SeasonLobbyRoomError(
       "Один из выбранных капитанов уже участвует в другом Fearless Draft",
@@ -41,6 +65,15 @@ export async function createSeasonLobbyDraft(
      VALUES ($1, 1, $2, $3, $2)`,
     [seriesResult.rows[0].id, coinToss.winnerId, coinToss.segment],
   );
+  await activateSeasonLobbyDraft(client, matchId, teamA, teamB);
+}
+
+async function activateSeasonLobbyDraft(
+  client: PoolClient,
+  matchId: number,
+  teamA: string,
+  teamB: string,
+): Promise<void> {
   await client.query(
     `UPDATE season_match_participants
      SET is_captain = CASE
@@ -54,7 +87,9 @@ export async function createSeasonLobbyDraft(
     `UPDATE season_match_rooms
      SET status = 'drafting', team_a_captain_id = $2,
        team_b_captain_id = $3, captain_stage_deadline_at = NULL,
-       draft_started_at = NOW(), updated_at = NOW()
+       captain_vote_reveal_until = NULL,
+       captain_reveal_next_status = NULL,
+       draft_started_at = COALESCE(draft_started_at, NOW()), updated_at = NOW()
      WHERE match_id = $1`,
     [matchId, teamA, teamB],
   );

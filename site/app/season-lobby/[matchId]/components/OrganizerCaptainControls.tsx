@@ -41,6 +41,7 @@ export function OrganizerCaptainControls({
       "captain_interest",
       "captain_voting",
       "captain_tiebreak",
+      "captain_reveal",
       "drafting",
     ].includes(snapshot.status)
   ) {

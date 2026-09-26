@@ -99,6 +99,11 @@ describe("three-stage captain selection workflow", () => {
        FROM season_match_captain_preferences`,
     );
     expect(preferences.rows[0]).toEqual({ count: 10, yes_count: 0 });
+    expect((await roomState()).status).toBe("captain_reveal");
+    await db.exec(
+      "UPDATE season_match_rooms SET captain_stage_deadline_at = NOW() - INTERVAL '1 second'",
+    );
+    await testTransaction(db)((client) => advanceCaptainSelection(client, 10));
     expect(mocks.createSeasonLobbyDraft).toHaveBeenCalledWith(
       expect.anything(),
       10,
@@ -128,7 +133,7 @@ describe("three-stage captain selection workflow", () => {
 
     await voteForSeasonLobbyCaptain(10, "10004", "10001");
     await voteForSeasonLobbyCaptain(10, "10005", "10002");
-    expect((await roomState()).status).toBe("captain_tiebreak");
+    expect((await roomState()).status).toBe("captain_reveal");
 
     const tiebreak = (await db.query<{
       voter_player_id: string;
@@ -141,7 +146,18 @@ describe("three-stage captain selection workflow", () => {
     expect(tiebreak.voter_player_id).toBe("10003");
     expect(tiebreak.candidate_ids).toEqual(["10001", "10002"]);
 
+    await db.exec(
+      "UPDATE season_match_rooms SET captain_stage_deadline_at = NOW() - INTERVAL '1 second'",
+    );
+    await testTransaction(db)((client) => advanceCaptainSelection(client, 10));
+    expect((await roomState()).status).toBe("captain_tiebreak");
+
     await voteForSeasonLobbyCaptainTiebreak(10, "10003", "10002");
+    expect((await roomState()).status).toBe("captain_reveal");
+    await db.exec(
+      "UPDATE season_match_rooms SET captain_stage_deadline_at = NOW() - INTERVAL '1 second'",
+    );
+    await testTransaction(db)((client) => advanceCaptainSelection(client, 10));
     expect(mocks.createSeasonLobbyDraft).toHaveBeenCalledWith(
       expect.anything(),
       10,

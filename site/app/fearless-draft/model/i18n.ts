@@ -9,6 +9,8 @@ const RUSSIAN_DRAFT_TRANSLATIONS = {
   map: "КАРТА",
   draft: "Драфт",
   draftComplete: "ДРАФТ ЗАВЕРШЁН",
+  finalPickReview: "ПОСЛЕДНИЙ ПИК",
+  finalPickReviewTime: "ДО РАСПРЕДЕЛЕНИЯ",
   returnToQueue: "Вернуться к поиску",
   waitingOpponent: "Ожидаем соперника…",
   opponentReady: "Соперник готов · ",
@@ -114,6 +116,8 @@ const RUSSIAN_DRAFT_TRANSLATIONS = {
   lineupSaved: "Распределение вашей команды сохранено",
   lineupCaptainWorking: "Капитан распределяет героев",
   lineupWaitingOpponent: "Ждём подтверждения второй команды. Её назначения пока скрыты.",
+  lineupOwnPicks: "Пик вашей команды",
+  lineupOpponentPicks: "Пик соперника",
 } as const;
 
 export type DraftTranslationKey = keyof typeof RUSSIAN_DRAFT_TRANSLATIONS;
@@ -128,6 +132,8 @@ const ENGLISH_DRAFT_TRANSLATIONS: DraftTranslations = {
   map: "MAP",
   draft: "Draft",
   draftComplete: "DRAFT COMPLETE",
+  finalPickReview: "FINAL PICK",
+  finalPickReviewTime: "UNTIL ASSIGNMENT",
   returnToQueue: "Return to matchmaking",
   waitingOpponent: "Waiting for opponent…",
   opponentReady: "Opponent ready · ",
@@ -233,6 +239,8 @@ const ENGLISH_DRAFT_TRANSLATIONS: DraftTranslations = {
   lineupSaved: "Your team assignment is saved",
   lineupCaptainWorking: "The captain is assigning heroes",
   lineupWaitingOpponent: "Waiting for the other team. Their assignments remain hidden.",
+  lineupOwnPicks: "Your team's picks",
+  lineupOpponentPicks: "Opponent's picks",
 };
 
 const UKRAINIAN_DRAFT_TRANSLATIONS: DraftTranslations = {
@@ -244,6 +252,8 @@ const UKRAINIAN_DRAFT_TRANSLATIONS: DraftTranslations = {
   map: "МАПА",
   draft: "Драфт",
   draftComplete: "ДРАФТ ЗАВЕРШЕНО",
+  finalPickReview: "ОСТАННІЙ ПІК",
+  finalPickReviewTime: "ДО РОЗПОДІЛУ",
   returnToQueue: "Повернутися до пошуку",
   waitingOpponent: "Очікуємо на суперника…",
   opponentReady: "Суперник готовий · ",
@@ -349,6 +359,8 @@ const UKRAINIAN_DRAFT_TRANSLATIONS: DraftTranslations = {
   lineupSaved: "Розподіл вашої команди збережено",
   lineupCaptainWorking: "Капітан розподіляє героїв",
   lineupWaitingOpponent: "Очікуємо підтвердження другої команди. Її призначення поки приховані.",
+  lineupOwnPicks: "Пік вашої команди",
+  lineupOpponentPicks: "Пік суперника",
 };
 
 export const DRAFT_TRANSLATIONS: Record<DraftLocale, DraftTranslations> = {

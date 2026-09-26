@@ -10,6 +10,7 @@ import type {
   SeasonLobbyRoomSnapshot,
 } from "../model/types";
 import { CaptainStageTimer } from "./CaptainStageTimer";
+import { CaptainVoterStatus } from "./CaptainVoterStatus";
 
 function PlayerAvatar({
   player,
@@ -120,7 +121,7 @@ function CandidateCard({
   isSelected,
   canSelect,
   isSending,
-  showVoters = true,
+  showVoters = false,
   onSelect,
 }: {
   candidate: SeasonLobbyRoomPlayer;
@@ -227,6 +228,10 @@ function CaptainInterest({
           onCancel={() => setPendingInterest(null)}
         />
       )}
+      <CaptainVoterStatus
+        players={team}
+        hasResponded={(player) => player.hasAnsweredCaptainInterest}
+      />
       <footer>
         <span>Ответили: {answerCount}/{team.length}</span>
         {fixedInterest !== null && (
@@ -254,10 +259,6 @@ function CaptainChoice({
     confirmation.submittedCandidateId;
   const canVote = snapshot.ownCaptainInterest === false &&
     candidates.length > 1 && !captain && fixedCandidateId === null;
-  const eligibleVoters = team.filter((player) => player.wantsCaptain === false);
-  const externalVoteCount = snapshot.captainBallots.filter(
-    (ballot) => !ballot.isAutomatic,
-  ).length;
   return (
     <section className="season-room-voting">
       <VotingHeader
@@ -303,8 +304,12 @@ function CaptainChoice({
           <span>Ожидаем завершения выбора в другой команде.</span>
         </div>
       )}
+      <CaptainVoterStatus
+        players={team}
+        hasResponded={(player) => player.hasVoted}
+      />
       <footer>
-        <span>Проголосовали: {externalVoteCount}/{eligibleVoters.length}</span>
+        <span>Проголосовали: {snapshot.teamVoteCount}/{team.length}</span>
         {fixedCandidateId && snapshot.ownCaptainInterest === false && (
           <strong><FiCheck aria-hidden="true" /> Ваш голос зафиксирован</strong>
         )}
@@ -312,6 +317,69 @@ function CaptainChoice({
           <strong>Ваш голос учтён автоматически</strong>
         )}
       </footer>
+    </section>
+  );
+}
+
+function CaptainVoteReveal({ snapshot }: CaptainVotingProps) {
+  const team = snapshot.players.filter(
+    (player) => player.teamSide === snapshot.currentUserTeamSide,
+  );
+  const candidates = team.filter(
+    (player) => snapshot.captainCandidateIds.includes(player.playerId),
+  );
+  const captain = team.find((player) => player.isCaptain);
+  const tiebreak = snapshot.captainTiebreak;
+  const decisiveVoter = team.find((player) =>
+    player.playerId === tiebreak?.voterPlayerId);
+  const decisiveCandidate = team.find((player) =>
+    player.playerId === tiebreak?.selectedCandidateId);
+  const hasVotes = team.some((player) => player.hasVoted);
+  return (
+    <section className="season-room-voting">
+      <VotingHeader
+        snapshot={snapshot}
+        stage="Итоги голосования"
+        title={captain
+          ? `${captain.nickname} выбран капитаном`
+          : "Результаты выбора капитана"}
+        description={snapshot.captainRevealNextStatus === "captain_tiebreak"
+          ? "Через 10 секунд начнётся дополнительный раунд."
+          : "Через 10 секунд начнётся Fearless Draft."}
+      />
+      {candidates.length > 0 ? (
+        <div className="season-room-candidate-grid reveal">
+          {candidates.map((candidate) => (
+            <CandidateCard
+              key={candidate.playerId}
+              candidate={candidate}
+              ballots={snapshot.captainBallots}
+              players={team}
+              isSelected={candidate.playerId === captain?.playerId}
+              canSelect={false}
+              isSending={false}
+              showVoters
+              onSelect={() => undefined}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="season-room-captain-resolved">
+          <strong>{captain?.nickname ?? "Капитан"} выбран капитаном</strong>
+          <span>Кандидат определён по правилам этапа.</span>
+        </div>
+      )}
+      {decisiveVoter && decisiveCandidate && (
+        <p className="season-room-decisive-vote">
+          Решающий голос: {decisiveVoter.nickname} выбрал {decisiveCandidate.nickname}.
+        </p>
+      )}
+      <CaptainVoterStatus
+        players={team}
+        hasResponded={(player) => hasVotes
+          ? player.hasVoted
+          : player.hasAnsweredCaptainInterest}
+      />
     </section>
   );
 }
@@ -380,6 +448,12 @@ function CaptainTiebreak({
           <span>Ожидаем решающий голос в другой команде.</span>
         </div>
       )}
+      <CaptainVoterStatus
+        players={team}
+        hasResponded={(player) => player.playerId === tiebreak?.voterPlayerId
+          ? tiebreak.hasResponded
+          : player.hasVoted}
+      />
     </section>
   );
 }
@@ -391,6 +465,9 @@ type CaptainVotingProps = {
 };
 
 export function CaptainVoting(props: CaptainVotingProps) {
+  if (props.snapshot.status === "captain_reveal") {
+    return <CaptainVoteReveal {...props} />;
+  }
   if (props.snapshot.status === "captain_interest") {
     return <CaptainInterest {...props} />;
   }

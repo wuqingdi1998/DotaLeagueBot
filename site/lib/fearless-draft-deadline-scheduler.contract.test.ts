@@ -24,6 +24,8 @@ describe("Fearless Draft durable deadlines", () => {
     expect(service).toContain("status = 'EXPIRED'");
     expect(service).toContain("settleExpiredDraftEndRequests");
     expect(service).toContain("settleExpiredDraftSeries");
+    expect(service).toContain("settleFinalPickReview");
+    expect(service).toContain("FINAL_PICK_REVIEW");
     expect(service).toContain("nextDueAt");
   });
 

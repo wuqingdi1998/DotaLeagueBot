@@ -459,8 +459,8 @@ describe("Fearless Draft board interface", () => {
     expect(draftScreen).toContain("series && <HeroImagePreloader />");
     expect(choices).not.toContain("HeroImagePreloader");
     expect(heroImagePreloader).toContain("FEARLESS_DRAFT_HERO_IMAGE_URLS");
-    expect(heroImagePreloader).toContain("concurrency={24}");
-    expect(heroImagePreloader).toContain('startMode="immediate"');
+    expect(heroImagePreloader).toContain("concurrency={4}");
+    expect(heroImagePreloader).toContain('startMode="idle"');
     expect(imagePreloader).toContain("image.decode().then(resolve, resolve)");
   });
 

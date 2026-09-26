@@ -2,12 +2,16 @@ import { randomInt } from "node:crypto";
 import type { PoolClient } from "pg";
 import { transaction } from "@/lib/db";
 import { completeDraftAssignments, applyFirstChoice } from "../model/choices";
-import { DRAFT_SEQUENCE } from "../model/config";
+import {
+  DRAFT_FINAL_PICK_REVIEW_SECONDS,
+  DRAFT_SEQUENCE,
+} from "../model/config";
 import { isDraftChoice } from "../model/choices";
 import { ENABLED_FEARLESS_DRAFT_HEROES } from "../model/heroes";
 import { selectTimedOutPickHero } from "../model/timeout-selection";
 import {
   draftOpponentId,
+  loadDraftSeriesForPreview,
   loadLockedDraftSeries,
   loadLockedDraftSeriesById,
   type DraftMapRow,
@@ -180,17 +184,29 @@ async function commitHeroAction(
     const requiresLineupAssignment = Boolean(
       series.season_match_id || series.is_season_lobby_preview,
     );
-    const mapStatus = requiresLineupAssignment ? "LINEUP_ASSIGNMENT" : "COMPLETE";
+    const mapStatus = requiresLineupAssignment ? "FINAL_PICK_REVIEW" : "COMPLETE";
     await client.query(
       `UPDATE draft_maps
        SET current_step = $1, ${reserveColumn} = $2, status = $3::text,
            preview_hero_id = NULL, step_started_at = NULL,
+           final_pick_review_ends_at = CASE
+             WHEN $3::text = 'FINAL_PICK_REVIEW'
+               THEN $4::timestamptz + ($6::int * INTERVAL '1 second')
+             ELSE NULL
+           END,
            completed_at = CASE
              WHEN $3::text = 'COMPLETE' THEN $4::timestamptz ELSE NULL
            END,
            version = version + 1
        WHERE id = $5`,
-      [nextStep, timer.reserveRemaining, mapStatus, now, map.id],
+      [
+        nextStep,
+        timer.reserveRemaining,
+        mapStatus,
+        now,
+        map.id,
+        DRAFT_FINAL_PICK_REVIEW_SECONDS,
+      ],
     );
     const isSeriesComplete =
       (series.format === "BO2" && map.map_number === 2) ||
@@ -218,6 +234,21 @@ async function commitHeroAction(
       [now, series.id],
     );
   }
+}
+
+export async function settleFinalPickReview(mapId: number): Promise<boolean> {
+  return transaction(async (client) => {
+    const now = await databaseNow(client);
+    const result = await client.query(
+      `UPDATE draft_maps
+       SET status = 'LINEUP_ASSIGNMENT', final_pick_review_ends_at = NULL,
+         version = version + 1
+       WHERE id = $1 AND status = 'FINAL_PICK_REVIEW'
+         AND final_pick_review_ends_at <= $2`,
+      [mapId, now],
+    );
+    return Boolean(result.rowCount);
+  });
 }
 
 async function resolveExpiredStep(
@@ -305,16 +336,28 @@ export async function highlightDraftHero(
 ): Promise<void> {
   validateHeroCommand(heroId, expectedVersion);
   await transaction(async (client) => {
-    const { map } = await loadSelectableHeroTurn(
-      client,
-      playerId,
-      heroId,
-      expectedVersion,
+    const { series, map } = await loadDraftSeriesForPreview(client, playerId);
+    if (map.version !== expectedVersion) {
+      throw new DraftRequestError("Ход уже изменился — экран обновлён", 409);
+    }
+    if (actorIdForStep(series, map, map.current_step) !== playerId) {
+      throw new DraftRequestError("Сейчас ход соперника", 403);
+    }
+    const [unavailable, used] = await Promise.all([
+      unavailableHeroIds(client, series.id, map.map_number),
+      currentMapHeroIds(client, map.id),
+    ]);
+    if (unavailable.has(heroId) || used.has(heroId)) {
+      throw new DraftRequestError("Герой уже недоступен", 409);
+    }
+    const result = await client.query(
+      `UPDATE draft_maps SET preview_hero_id = $1
+       WHERE id = $2 AND version = $3 AND status = 'DRAFTING'`,
+      [heroId, map.id, expectedVersion],
     );
-    await client.query(
-      "UPDATE draft_maps SET preview_hero_id = $1 WHERE id = $2",
-      [heroId, map.id],
-    );
+    if (!result.rowCount) {
+      throw new DraftRequestError("Ход уже изменился — экран обновлён", 409);
+    }
   });
 }
 

@@ -14,6 +14,7 @@ export function DraftHistory({
   displayedClockSeconds,
   isUsingReserve,
   isComplete,
+  clockLabel,
 }: {
   actions: DraftActionSnapshot[];
   radiantPlayerId: string;
@@ -23,6 +24,7 @@ export function DraftHistory({
   displayedClockSeconds: number | null;
   isUsingReserve: boolean;
   isComplete: boolean;
+  clockLabel?: string;
 }) {
   const { text } = useDraftLocale();
 
@@ -30,7 +32,7 @@ export function DraftHistory({
     <aside className="fearless-history" id="fearless-draft-history">
       <header>
         <div className={`fearless-main-clock ${isUsingReserve ? "reserve" : ""}`}>
-          <span>{isUsingReserve ? text.reserveTime : text.turnTime}</span>
+          <span>{clockLabel ?? (isUsingReserve ? text.reserveTime : text.turnTime)}</span>
           <strong>
             {isComplete
               ? "00:00"

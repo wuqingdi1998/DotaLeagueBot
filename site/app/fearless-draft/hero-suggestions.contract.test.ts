@@ -87,6 +87,10 @@ describe("Fearless Draft teammate hero suggestions", () => {
     expect(suggestionBoards).toContain("onRemoveOwnSuggestion(hero.id)");
     expect(suggestionBoards).toContain("<FiX aria-hidden=\"true\"");
     expect(suggestionStyles).not.toContain("button:disabled { cursor: wait; }");
+    expect(heroGrid).toContain('action: "REMOVE_HERO_SUGGESTIONS"');
+    expect(route).toContain('case "REMOVE_HERO_SUGGESTIONS"');
+    expect(suggestionService).toContain("removeDraftHeroSuggestions");
+    expect(suggestionService).toContain("hero_id = ANY($3::int[])");
   });
 
   it("renders bright player frames without an inner separator", () => {

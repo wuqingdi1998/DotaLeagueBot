@@ -32,6 +32,9 @@ const lobbyDisplay = source(
 const lobbyChat = source(
   "../app/season-lobby/[matchId]/components/LobbyChat.tsx",
 );
+const fearlessReliabilityMigration = source(
+  "../../bot/database/migrations/0150_fearless_draft_reliability.sql",
+);
 const sharedMatchRoomChat = source("../app/components/MatchRoomChat.tsx");
 const lobbyEntryStyles = source(
   "../app/styles/60-season-lobby-entry-and-shell.css",
@@ -176,6 +179,11 @@ describe("season lobby room contract", () => {
     );
     expect(captainSelection).toContain("isTeamVotingComplete");
     expect(captainVoting).toContain("season-room-voter-avatar");
+    expect(captainVoting).toContain("CaptainVoterStatus");
+    expect(captainVoting).toContain('status === "captain_reveal"');
+    expect(roomQuery).toContain('state.status === "captain_reveal"');
+    expect(fearlessReliabilityMigration).toContain("captain_vote_reveal_until");
+    expect(fearlessReliabilityMigration).toContain("FINAL_PICK_REVIEW");
     expect(migration).toContain("PRIMARY KEY (match_id, voter_player_id)");
   });
 

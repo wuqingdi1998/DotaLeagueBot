@@ -3,6 +3,7 @@ export type SeasonLobbyRoomStatus =
   | "captain_interest"
   | "captain_voting"
   | "captain_tiebreak"
+  | "captain_reveal"
   | "drafting"
   | "playing"
   | "break"
@@ -35,6 +36,7 @@ export type SeasonLobbyCaptainTiebreak = {
   voterPlayerId: string;
   candidatePlayerIds: [string, string];
   selectedCandidateId: string | null;
+  hasResponded: boolean;
 };
 
 export type SeasonLobbyRoomMessage = {
@@ -68,6 +70,7 @@ export type SeasonLobbyRoomSnapshot = {
   players: SeasonLobbyRoomPlayer[];
   messages: SeasonLobbyRoomMessage[];
   captainStageDeadlineAt: string | null;
+  captainRevealNextStatus: "captain_tiebreak" | "drafting" | null;
   ownCaptainInterest: boolean | null;
   captainCandidateIds: string[];
   captainBallots: SeasonLobbyCaptainBallot[];

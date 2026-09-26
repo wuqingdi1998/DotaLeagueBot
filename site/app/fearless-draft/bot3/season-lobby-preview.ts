@@ -47,6 +47,7 @@ export function buildBot3SeasonLobbySnapshot(
     })),
     messages: [],
     captainStageDeadlineAt: null,
+    captainRevealNextStatus: null,
     ownCaptainInterest: true,
     captainCandidateIds: captains.map((captain) => captain.id),
     captainBallots: lobbyPlayers.map((player) => ({

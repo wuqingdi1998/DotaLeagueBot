@@ -71,6 +71,8 @@ export async function startSeasonLobbyCaptainSelection(
        SET status = 'captain_interest', is_force_started = $2,
          team_a_captain_id = NULL, team_b_captain_id = NULL,
          voting_started_at = NOW(),
+         captain_vote_reveal_until = NULL,
+         captain_reveal_next_status = NULL,
          captain_stage_deadline_at = NOW() + ($3::int * INTERVAL '1 second'),
          updated_at = NOW()
        WHERE match_id = $1`,
@@ -188,12 +190,12 @@ export async function voteForSeasonLobbyCaptainTiebreak(
   }
   await transaction(async (client) => {
     const room = await lockRoom(client, matchId);
-    if (!["captain_voting", "captain_tiebreak"].includes(room.status)) {
+    if (room.status !== "captain_tiebreak") {
       throw new SeasonLobbyRoomError("Решающая стадия уже завершена", 409);
     }
     await advanceCaptainSelection(client, matchId);
     const currentRoom = await lockRoom(client, matchId);
-    if (!["captain_voting", "captain_tiebreak"].includes(currentRoom.status)) {
+    if (currentRoom.status !== "captain_tiebreak") {
       return;
     }
     const result = await client.query<{ team_side: "a" | "b" }>(

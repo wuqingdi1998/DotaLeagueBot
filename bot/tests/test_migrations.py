@@ -94,6 +94,13 @@ THREE_STAGE_CAPTAIN_VOTING_MIGRATION = (
     / "0126_three_stage_captain_voting.sql"
 ).read_text(encoding="utf-8")
 
+FEARLESS_DRAFT_RELIABILITY_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0150_fearless_draft_reliability.sql"
+).read_text(encoding="utf-8")
+
 TEST_SEASON_ROUND_TIME_FIX = (
     Path(__file__).parents[1]
     / "database"
@@ -634,6 +641,13 @@ def test_three_stage_captain_voting_is_persistent() -> None:
     assert "season_match_captain_tiebreaks" in (
         THREE_STAGE_CAPTAIN_VOTING_MIGRATION
     )
+
+
+def test_fearless_draft_reliability_stages_are_persistent() -> None:
+    assert "captain_reveal" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
+    assert "captain_vote_reveal_until" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
+    assert "FINAL_PICK_REVIEW" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
+    assert "final_pick_review_ends_at" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
 
 
 def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> None:

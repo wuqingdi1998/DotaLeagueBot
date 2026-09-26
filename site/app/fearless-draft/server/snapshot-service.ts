@@ -73,6 +73,7 @@ type MapRow = {
   first_pick_player_id: string | null;
   current_step: number;
   step_started_at: Date | null;
+  final_pick_review_ends_at: Date | null;
   player1_reserve_seconds: number;
   player2_reserve_seconds: number;
   preview_hero_id: number | null;
@@ -228,7 +229,7 @@ async function loadSeries(
             coin_toss_segment::int,
             first_chooser_id::text, first_choice, second_choice,
             radiant_player_id::text, first_pick_player_id::text,
-            current_step::int, step_started_at,
+            current_step::int, step_started_at, final_pick_review_ends_at,
             player1_reserve_seconds::float8, player2_reserve_seconds::float8,
             preview_hero_id::int,
             version::int, created_at
@@ -341,6 +342,8 @@ async function loadSeries(
       currentPhase: currentStep?.phase ?? null,
       baseDurationSeconds: currentStep?.baseDurationSeconds ?? null,
       stepStartedAt: map.step_started_at?.toISOString() ?? null,
+      finalPickReviewEndsAt:
+        map.final_pick_review_ends_at?.toISOString() ?? null,
       player1ReserveSeconds: map.player1_reserve_seconds,
       player2ReserveSeconds: map.player2_reserve_seconds,
       previewHeroId: map.preview_hero_id,

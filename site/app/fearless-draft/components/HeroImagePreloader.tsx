@@ -5,8 +5,8 @@ export function HeroImagePreloader() {
   return (
     <ImagePreloader
       imageUrls={FEARLESS_DRAFT_HERO_IMAGE_URLS}
-      concurrency={24}
-      startMode="immediate"
+      concurrency={4}
+      startMode="idle"
     />
   );
 }

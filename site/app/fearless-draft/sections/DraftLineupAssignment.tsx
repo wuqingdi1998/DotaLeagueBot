@@ -51,6 +51,42 @@ function SubmittedLineup({
   );
 }
 
+function PickedHeroes({
+  title,
+  captainName,
+  heroIds,
+}: {
+  title: string;
+  captainName: string;
+  heroIds: number[];
+}) {
+  return (
+    <article className="fearless-lineup-team-picks">
+      <header>
+        <span>{title}</span>
+        <strong>{captainName}</strong>
+      </header>
+      <div>
+        {heroIds.map((heroId) => {
+          const hero = FEARLESS_DRAFT_HEROES_BY_ID.get(heroId);
+          return hero ? (
+            <div key={heroId} className="fearless-lineup-pick-card">
+              <Image
+                src={hero.portraitUrl}
+                alt={hero.name}
+                width={70}
+                height={123}
+                unoptimized
+              />
+              <strong>{hero.name}</strong>
+            </div>
+          ) : null;
+        })}
+      </div>
+    </article>
+  );
+}
+
 export function DraftLineupAssignment({
   series,
   userId,
@@ -83,6 +119,16 @@ export function DraftLineupAssignment({
     return viewer && captainPlayer && viewer.teamSide === captainPlayer.teamSide;
   });
   const isCaptain = captains.some((captain) => captain.id === userId);
+  const orderedCaptains = ownCaptain
+    ? [ownCaptain, ...captains.filter((captain) => captain.id !== ownCaptain.id)]
+    : [...captains];
+  const pickedHeroes = orderedCaptains.map((captain) => ({
+    captain,
+    heroIds: series.map.actions
+      .filter((action) => action.type === "PICK" && action.actorId === captain.id)
+      .map((action) => action.heroId)
+      .filter((heroId): heroId is number => heroId !== null),
+  }));
   const ownSubmitted = isLocallySubmitted || (userId === series.player1.id
     ? lineup?.player1Submitted
     : userId === series.player2.id
@@ -143,6 +189,19 @@ export function DraftLineupAssignment({
           toggleFullscreen={toggleFullscreen}
         />
       </header>
+
+      <div className="fearless-lineup-picks-overview">
+        {pickedHeroes.map((group, index) => (
+          <PickedHeroes
+            key={group.captain.id}
+            title={index === 0 && ownCaptain
+              ? text.lineupOwnPicks
+              : text.lineupOpponentPicks}
+            captainName={group.captain.name}
+            heroIds={group.heroIds}
+          />
+        ))}
+      </div>
 
       {lineup?.isRevealed ? (
         <div className="fearless-lineup-results">

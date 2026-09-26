@@ -31,11 +31,13 @@ type RoomTargetRow = {
 };
 
 type RoomStateRow = {
+  server_now: Date;
   status: SeasonLobbyRoomStatus;
   is_force_started: boolean;
   draft_series_id: number | null;
   current_game_number: number | null;
   captain_stage_deadline_at: Date | null;
+  captain_reveal_next_status: "captain_tiebreak" | "drafting" | null;
 };
 
 type RoomMessageRow = Omit<SeasonLobbyRoomMessage, "createdAt"> & {
@@ -148,8 +150,9 @@ export async function loadSeasonLobbyRoomSnapshot(
     ] =
       await Promise.all([
         client.query<RoomStateRow>(
-          `SELECT room.status, room.is_force_started,
+          `SELECT NOW() AS server_now, room.status, room.is_force_started,
              room.captain_stage_deadline_at,
+             room.captain_reveal_next_status,
              series.id::int AS draft_series_id,
              COALESCE(
                series.current_map::int,
@@ -280,6 +283,14 @@ export async function loadSeasonLobbyRoomSnapshot(
     const ownPlayer = ownTeam.find(
       (player) => player.playerId === user.discordId,
     );
+    const ownVoteCandidateId = captainBallots.find(
+      (ballot) => ballot.voterPlayerId === user.discordId,
+    )?.candidatePlayerId ?? null;
+    const visibleCaptainBallots = state.status === "captain_reveal"
+      ? captainBallots
+      : captainBallots.filter(
+          (ballot) => ballot.voterPlayerId === user.discordId,
+        );
     const tiebreak = tiebreakResult.rows.find(
       (item) => item.teamSide === target.current_user_team_side,
     );
@@ -290,11 +301,15 @@ export async function loadSeasonLobbyRoomSnapshot(
             tiebreak.candidateOneId,
             tiebreak.candidateTwoId,
           ],
-          selectedCandidateId: tiebreak.selectedCandidateId,
+          selectedCandidateId: state.status === "captain_reveal" ||
+              tiebreak.voterPlayerId === user.discordId
+            ? tiebreak.selectedCandidateId
+            : null,
+          hasResponded: tiebreak.selectedCandidateId !== null,
         }
       : null;
     return {
-      serverNow: new Date().toISOString(),
+      serverNow: state.server_now.toISOString(),
       matchId: target.match_id,
       tournamentSlug: target.tournament_slug,
       roundNumber: target.round_number,
@@ -320,15 +335,14 @@ export async function loadSeasonLobbyRoomSnapshot(
       })),
       captainStageDeadlineAt:
         state.captain_stage_deadline_at?.toISOString() ?? null,
+      captainRevealNextStatus: state.captain_reveal_next_status,
       ownCaptainInterest: ownPlayer?.wantsCaptain ?? null,
       captainCandidateIds: ownTeam.filter(
         (player) => player.wantsCaptain === true,
       ).map((player) => player.playerId),
-      captainBallots,
+      captainBallots: visibleCaptainBallots,
       captainTiebreak,
-      ownVoteCandidateId: captainBallots.find(
-        (ballot) => ballot.voterPlayerId === user.discordId,
-      )?.candidatePlayerId ?? null,
+      ownVoteCandidateId,
       teamVoteCount: ownTeam.filter((player) => player.hasVoted).length,
       teamPlayerCount: ownTeam.length,
       draftSeriesId: state.draft_series_id,

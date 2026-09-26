@@ -1,6 +1,7 @@
 import type { SeasonLobbyRoomStatus } from "./types";
 
 export const SEASON_CAPTAIN_STAGE_SECONDS = 60;
+export const SEASON_CAPTAIN_REVEAL_SECONDS = 10;
 
 export type CaptainSelectionPlayer = {
   playerId: string;
@@ -28,6 +29,7 @@ const captainSelectionStatuses = new Set<SeasonLobbyRoomStatus>([
   "captain_interest",
   "captain_voting",
   "captain_tiebreak",
+  "captain_reveal",
 ]);
 
 export function isSelectedCaptainVisible(input: {

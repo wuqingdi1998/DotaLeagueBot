@@ -13,6 +13,8 @@ export type LockedRoom = {
   host_player_id: string | null;
   best_of: number;
   captain_stage_deadline_at: Date | null;
+  captain_vote_reveal_until: Date | null;
+  captain_reveal_next_status: "captain_tiebreak" | "drafting" | null;
   team_a_captain_id: string | null;
   team_b_captain_id: string | null;
 };
@@ -23,7 +25,8 @@ export async function lockRoom(
 ): Promise<LockedRoom> {
   const result = await client.query<LockedRoom>(
     `SELECT room.status, match.host_player_id::text, match.best_of::int,
-       room.captain_stage_deadline_at,
+       room.captain_stage_deadline_at, room.captain_vote_reveal_until,
+       room.captain_reveal_next_status,
        room.team_a_captain_id::text, room.team_b_captain_id::text
      FROM season_match_rooms room
      JOIN season_matches match ON match.id = room.match_id

@@ -4,6 +4,7 @@ import {
   automaticCaptainBallots,
   resolveCaptainSelection,
   resolveCaptainTiebreak,
+  SEASON_CAPTAIN_REVEAL_SECONDS,
   SEASON_CAPTAIN_STAGE_SECONDS,
   type CaptainBallot,
   type CaptainSelectionPlayer,
@@ -11,6 +12,7 @@ import {
 import { createSeasonLobbyDraft } from "./captain-draft";
 import { SeasonLobbyRoomError } from "./errors";
 import { lockRoom } from "./room-access";
+import { databaseNow } from "@/app/fearless-draft/server/database-clock";
 
 type TeamSide = "a" | "b";
 
@@ -20,6 +22,31 @@ type TeamPlayerRow = CaptainSelectionPlayer & {
 };
 
 type StoredBallotRow = CaptainBallot & { teamSide: TeamSide };
+
+async function beginCaptainVoteReveal(
+  client: PoolClient,
+  matchId: number,
+  captainIds: Record<TeamSide, string | null>,
+  nextStatus: "captain_tiebreak" | "drafting",
+) {
+  await client.query(
+    `UPDATE season_match_rooms
+     SET status = 'captain_reveal', team_a_captain_id = $2,
+       team_b_captain_id = $3,
+       captain_reveal_next_status = $4,
+       captain_vote_reveal_until = NOW() + ($5::int * INTERVAL '1 second'),
+       captain_stage_deadline_at = NOW() + ($5::int * INTERVAL '1 second'),
+       updated_at = NOW()
+     WHERE match_id = $1`,
+    [
+      matchId,
+      captainIds.a,
+      captainIds.b,
+      nextStatus,
+      SEASON_CAPTAIN_REVEAL_SECONDS,
+    ],
+  );
+}
 
 async function loadSelectionState(client: PoolClient, matchId: number) {
   const [playerResult, ballotResult] = await Promise.all([
@@ -147,7 +174,6 @@ async function isTiebreakComplete(client: PoolClient, matchId: number) {
 async function completeInterestStage(
   client: PoolClient,
   matchId: number,
-  bestOf: number,
 ) {
   await client.query(
     `INSERT INTO season_match_captain_preferences
@@ -196,10 +222,12 @@ async function completeInterestStage(
     ? results[1].result.captainPlayerId
     : null;
   if (captainA && captainB) {
-    await createSeasonLobbyDraft(client, matchId, bestOf, {
-      teamA: captainA,
-      teamB: captainB,
-    });
+    await beginCaptainVoteReveal(
+      client,
+      matchId,
+      { a: captainA, b: captainB },
+      "drafting",
+    );
     return;
   }
   await client.query(
@@ -212,14 +240,13 @@ async function completeInterestStage(
     [matchId, captainA, captainB, SEASON_CAPTAIN_STAGE_SECONDS],
   );
   if (await isVotingComplete(client, matchId)) {
-    await completeVotingStage(client, matchId, bestOf);
+    await completeVotingStage(client, matchId);
   }
 }
 
 async function completeVotingStage(
   client: PoolClient,
   matchId: number,
-  bestOf: number,
   shouldResolveIncompleteVotes = false,
 ) {
   const room = await lockRoom(client, matchId);
@@ -274,35 +301,18 @@ async function completeVotingStage(
     [matchId, captainIds.a, captainIds.b],
   );
   if (captainIds.a && captainIds.b) {
-    await createSeasonLobbyDraft(client, matchId, bestOf, {
-      teamA: captainIds.a,
-      teamB: captainIds.b,
-    });
+    await beginCaptainVoteReveal(client, matchId, captainIds, "drafting");
     return;
   }
   if (!shouldResolveIncompleteVotes && !await isVotingComplete(client, matchId)) {
     return;
   }
-  await client.query(
-    `UPDATE season_match_rooms
-     SET status = 'captain_tiebreak', team_a_captain_id = $2,
-       team_b_captain_id = $3,
-       captain_stage_deadline_at = NOW() + ($4::int * INTERVAL '1 second'),
-       updated_at = NOW()
-     WHERE match_id = $1`,
-    [
-      matchId,
-      captainIds.a,
-      captainIds.b,
-      SEASON_CAPTAIN_STAGE_SECONDS,
-    ],
-  );
+  await beginCaptainVoteReveal(client, matchId, captainIds, "captain_tiebreak");
 }
 
 async function completeTiebreakStage(
   client: PoolClient,
   matchId: number,
-  bestOf: number,
 ) {
   const room = await lockRoom(client, matchId);
   const result = await client.query<{
@@ -342,9 +352,36 @@ async function completeTiebreakStage(
   if (!captainIds.a || !captainIds.b) {
     throw new SeasonLobbyRoomError("Не удалось определить капитанов", 409);
   }
+  await beginCaptainVoteReveal(client, matchId, captainIds, "drafting");
+}
+
+async function completeCaptainVoteReveal(
+  client: PoolClient,
+  matchId: number,
+  bestOf: number,
+) {
+  const room = await lockRoom(client, matchId);
+  if (room.captain_reveal_next_status === "captain_tiebreak") {
+    await client.query(
+      `UPDATE season_match_rooms
+       SET status = 'captain_tiebreak',
+         captain_stage_deadline_at = NOW() + ($2::int * INTERVAL '1 second'),
+         captain_vote_reveal_until = NULL,
+         captain_reveal_next_status = NULL, updated_at = NOW()
+       WHERE match_id = $1`,
+      [matchId, SEASON_CAPTAIN_STAGE_SECONDS],
+    );
+    return;
+  }
+  if (
+    room.captain_reveal_next_status !== "drafting" ||
+    !room.team_a_captain_id || !room.team_b_captain_id
+  ) {
+    throw new SeasonLobbyRoomError("Не удалось завершить показ итогов", 409);
+  }
   await createSeasonLobbyDraft(client, matchId, bestOf, {
-    teamA: captainIds.a,
-    teamB: captainIds.b,
+    teamA: room.team_a_captain_id,
+    teamB: room.team_b_captain_id,
   });
 }
 
@@ -353,23 +390,26 @@ export async function advanceCaptainSelection(
   matchId: number,
 ): Promise<void> {
   const room = await lockRoom(client, matchId);
+  const now = await databaseNow(client);
   const hasExpired = Boolean(
     room.captain_stage_deadline_at &&
-    new Date(room.captain_stage_deadline_at).getTime() <= Date.now(),
+    new Date(room.captain_stage_deadline_at).getTime() <= now.getTime(),
   );
   if (
     room.status === "captain_interest" &&
     (hasExpired || await isInterestComplete(client, matchId))
   ) {
-    await completeInterestStage(client, matchId, room.best_of);
+    await completeInterestStage(client, matchId);
   } else if (
     room.status === "captain_voting"
   ) {
-    await completeVotingStage(client, matchId, room.best_of, hasExpired);
+    await completeVotingStage(client, matchId, hasExpired);
   } else if (
     room.status === "captain_tiebreak" &&
     (hasExpired || await isTiebreakComplete(client, matchId))
   ) {
-    await completeTiebreakStage(client, matchId, room.best_of);
+    await completeTiebreakStage(client, matchId);
+  } else if (room.status === "captain_reveal" && hasExpired) {
+    await completeCaptainVoteReveal(client, matchId, room.best_of);
   }
 }
