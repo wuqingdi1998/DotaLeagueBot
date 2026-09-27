@@ -414,16 +414,17 @@
     padding: 10px 12px;
   }
 
-  .october-compendium-screen-clans .october-clan-flag { width: min(100%, 104px); }
   .october-compendium-screen-clans .october-clan-identity {
-    align-items: flex-start;
-    gap: 8px;
+    width: min(100%, 150px);
+    justify-self: center;
+    gap: 7px;
+    transform: translateY(-5%);
   }
   .october-compendium-screen-clans .october-clan-identity h3 {
-    width: min(100%, 104px);
+    width: 100%;
     font-size: 27px;
   }
-  .october-compendium-screen-clans .october-clan-flag { margin-inline: 0; }
+  .october-compendium-screen-clans .october-clan-flag { width: min(100%, 96px); }
 }
 
 @media (max-width: 960px) {

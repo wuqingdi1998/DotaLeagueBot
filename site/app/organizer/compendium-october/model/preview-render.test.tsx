@@ -225,6 +225,8 @@ describe("October preview actions", () => {
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
     expect(clanStyles).toContain("grid-auto-rows: minmax(25px, 1fr)");
+    expect(clanStyles).toContain("width: min(100%, 150px)");
+    expect(clanStyles).toContain("transform: translateY(-5%)");
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
     expect(organizerStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));
