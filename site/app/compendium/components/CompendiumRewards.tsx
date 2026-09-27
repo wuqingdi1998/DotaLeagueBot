@@ -98,9 +98,13 @@ function RewardTrack({
                 )}
               </div>
               <h3>{reward.title}</h3>
-              {badgeKeys.map((badgeKey) => (
-                <ProfileEventBadge key={badgeKey} badgeKey={badgeKey} />
-              ))}
+              {badgeKeys.length > 0 && (
+                <div className="compendium-milestone-badges">
+                  {badgeKeys.map((badgeKey) => (
+                    <ProfileEventBadge key={badgeKey} badgeKey={badgeKey} display="reward" />
+                  ))}
+                </div>
+              )}
               <p>{reward.description}</p>
             </article>
           );

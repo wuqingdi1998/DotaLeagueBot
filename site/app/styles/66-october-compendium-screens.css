@@ -175,16 +175,13 @@
   .october-compendium-screen-personal .compendium-milestone-stars { gap: 8px; font-size: 20px; }
 
   .october-compendium-screen-personal .profile-event-badge-clan {
-    min-height: 64px;
-    gap: 10px;
-    padding: 6px 14px 6px 7px;
+    min-height: 42px;
+    gap: 7px;
+    padding: 4px 10px 4px 5px;
   }
 
-  .october-compendium-screen-personal .profile-event-badge-clan-crest { width: 50px; height: 50px; }
-  .october-compendium-screen-personal .profile-event-badge-clan-crest img { width: 46px; height: 46px; }
-
-  .october-compendium-screen-personal .profile-event-badge-clan-label strong { font-size: 14px; }
-  .october-compendium-screen-personal .profile-event-badge-clan-label small { font-size: 12px; }
+  .october-compendium-screen-personal .profile-event-badge-clan-crest { width: 32px; height: 32px; }
+  .october-compendium-screen-personal .profile-event-badge-clan-crest img { width: 29px; height: 29px; }
 
   .october-compendium-screen-personal .compendium-reward-milestones h3 {
     margin-top: 18px;
@@ -289,6 +286,7 @@
     min-height: 0;
     flex: 1;
     flex-direction: column;
+    justify-content: center;
     padding-top: 18px;
     padding-bottom: 22px;
   }
@@ -383,11 +381,15 @@
   }
 
   .october-compendium-screen-daily .october-clan-quest-note:last-of-type {
-    margin-bottom: auto;
+    margin: 4px 0 14px;
   }
 
   .october-compendium-screen-daily .october-clan-quest .compendium-condition {
     margin-block: 6px;
+  }
+
+  .october-compendium-screen-daily .october-clan-quest .compendium-check-button {
+    margin-top: 0;
   }
 
   .october-compendium-screen-daily .compendium-rune-challenge {

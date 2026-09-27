@@ -326,6 +326,78 @@
   line-height: 1.38;
 }
 
+.compendium-milestone-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.profile-event-badge-reward {
+  position: relative;
+  display: inline-flex;
+  border-radius: 12px;
+  outline: none;
+}
+
+.profile-event-badge-clan-reward {
+  width: 76px;
+  min-height: 92px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px;
+  text-align: center;
+}
+
+.profile-event-badge-clan-reward .profile-event-badge-clan-crest {
+  width: 50px;
+  height: 50px;
+}
+
+.profile-event-badge-clan-reward .profile-event-badge-clan-crest img {
+  width: 46px;
+  height: 46px;
+}
+
+.profile-event-badge-reward-label {
+  display: grid;
+  gap: 2px;
+  line-height: 1;
+}
+
+.profile-event-badge-reward-label strong { font-size: 11px; letter-spacing: 0.04em; }
+.profile-event-badge-reward-label small { font-size: 10px; letter-spacing: 0; }
+
+.profile-event-badge-profile-preview {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  left: 50%;
+  visibility: hidden;
+  padding: 7px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -4px);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+}
+
+.profile-event-badge-reward:hover .profile-event-badge-profile-preview,
+.profile-event-badge-reward:focus-visible .profile-event-badge-profile-preview {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.profile-event-badge-reward:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--badge-light) 36%, transparent);
+  outline-offset: 3px;
+}
+
 .compendium-reward-milestones p {
   margin: 10px 0 0;
   color: color-mix(in srgb, var(--text) 76%, var(--muted));

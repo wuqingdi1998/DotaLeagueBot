@@ -28,10 +28,10 @@ export type ProfileBadgeDefinition = {
 };
 
 const octoberTierNames = {
-  bronze: "бронзовый",
-  silver: "серебряный",
-  gold: "золотой",
-  platinum: "платиновый",
+  bronze: "Бронзовый",
+  silver: "Серебряный",
+  gold: "Золотой",
+  platinum: "Платиновый",
 } as const;
 
 function octoberBadgeDefinition(
@@ -47,7 +47,7 @@ function octoberBadgeDefinition(
     label: `${octoberTierNames[tier]} бейдж клана «${clan.name}» · Компендиум октября 2026`,
     tier,
     tierRank,
-    shortLabel: clan.name,
+    shortLabel: "2026",
     clanId,
   };
 }

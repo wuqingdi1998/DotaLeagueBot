@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
+import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
 import { OctoberClanShowcase } from "../sections/OctoberClanShowcase";
 import { OctoberClanOutingCard } from "../sections/OctoberClanOutingCard";
 import { OctoberSectionNavigation } from "../components/OctoberSectionNavigation";
@@ -52,6 +53,18 @@ describe("October preview actions", () => {
     expect(html).not.toContain("Награды выберем позже");
     expect(html).not.toContain("TI 2026");
     expect(html).not.toContain("href=\"/compendium/leaderboard\"");
+    expect(html).toContain("profile-event-badge-reward");
+    expect(html).toContain("profile-event-badge-profile-preview");
+  });
+
+  it("uses the compact clan crest and year in the real profile badge", () => {
+    const html = renderToStaticMarkup(
+      <ProfileEventBadge badgeKey="october-2026-morbus-gold" />,
+    );
+    expect(html).toContain("morbus-emblem-v2.webp");
+    expect(html).toContain(">2026</span>");
+    expect(html).not.toContain("profile-event-badge-reward-label");
+    expect(html).not.toContain(">Морбус</strong>");
   });
 
   it("shows two original clan flags without changing the quest and race cards", () => {
@@ -131,7 +144,10 @@ describe("October preview actions", () => {
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?padding-bottom: 22px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
+    );
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-daily \.october-clan-quest-note:last-of-type \{\s*margin: 4px 0 14px;/,
     );
     expect(previewStyles).not.toMatch(
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin-top: auto;/,

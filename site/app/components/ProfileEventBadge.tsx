@@ -2,33 +2,76 @@ import Image from "next/image";
 import { OCTOBER_CLANS } from "@/lib/october-clans";
 import {
   profileBadgeDefinition,
+  type ProfileBadgeDefinition,
   type ProfileBadgeKey,
 } from "@/lib/profile-badges";
 
-export function ProfileEventBadge({ badgeKey }: { badgeKey: ProfileBadgeKey }) {
+const tierLabels: Record<ProfileBadgeDefinition["tier"], string> = {
+  bronze: "Бронза",
+  silver: "Серебро",
+  gold: "Золото",
+  platinum: "Платина",
+};
+
+function ClanProfileBadge({
+  badge,
+  emblem,
+  hasTooltip = true,
+}: {
+  badge: ProfileBadgeDefinition;
+  emblem: string;
+  hasTooltip?: boolean;
+}) {
+  return (
+    <span
+      className={`profile-event-badge profile-event-badge-${badge.tier} profile-event-badge-clan profile-event-badge-clan-${badge.clanId}`}
+      title={hasTooltip ? badge.label : undefined}
+      aria-label={hasTooltip ? badge.label : undefined}
+    >
+      <span className="profile-event-badge-clan-crest" aria-hidden="true">
+        <Image src={emblem} alt="" width={36} height={36} />
+      </span>
+      <span className="profile-event-badge-year" aria-hidden="true">{badge.shortLabel}</span>
+    </span>
+  );
+}
+
+export function ProfileEventBadge({
+  badgeKey,
+  display = "profile",
+}: {
+  badgeKey: ProfileBadgeKey;
+  display?: "profile" | "reward";
+}) {
   const badge = profileBadgeDefinition(badgeKey);
   if (!badge) return null;
 
   if (badge.clanId) {
     const clan = OCTOBER_CLANS.find((entry) => entry.id === badge.clanId)!;
-    const tierLabel = {
-      bronze: "Бронза",
-      silver: "Серебро",
-      gold: "Золото",
-      platinum: "Платина",
-    }[badge.tier];
+    if (display === "profile") {
+      return <ClanProfileBadge badge={badge} emblem={clan.emblem} />;
+    }
     return (
       <span
-        className={`profile-event-badge profile-event-badge-${badge.tier} profile-event-badge-clan profile-event-badge-clan-${badge.clanId}`}
+        className="profile-event-badge-reward"
         title={badge.label}
         aria-label={badge.label}
+        tabIndex={0}
       >
-        <span className="profile-event-badge-clan-crest" aria-hidden="true">
-          <Image src={clan.emblem} alt="" width={36} height={36} />
+        <span
+          className={`profile-event-badge profile-event-badge-${badge.tier} profile-event-badge-clan-reward profile-event-badge-clan-${badge.clanId}`}
+          aria-hidden="true"
+        >
+          <span className="profile-event-badge-clan-crest">
+            <Image src={clan.emblem} alt="" width={50} height={50} />
+          </span>
+          <span className="profile-event-badge-reward-label">
+            <strong>{tierLabels[badge.tier]}</strong>
+            <small>{badge.shortLabel}</small>
+          </span>
         </span>
-        <span className="profile-event-badge-clan-label" aria-hidden="true">
-          <strong>{clan.name}</strong>
-          <small>{tierLabel} · 2026</small>
+        <span className="profile-event-badge-profile-preview" aria-hidden="true">
+          <ClanProfileBadge badge={badge} emblem={clan.emblem} hasTooltip={false} />
         </span>
       </span>
     );
