@@ -18,6 +18,10 @@ const previewStyles = readFileSync(
   new URL("../../../styles/66-october-compendium-screens.css", import.meta.url),
   "utf8",
 );
+const presentationStyles = readFileSync(
+  new URL("../../../styles/65-october-compendium.css", import.meta.url),
+  "utf8",
+);
 const clanStyles = readFileSync(
   new URL("../../../styles/67-october-clan-standings.css", import.meta.url),
   "utf8",
@@ -250,5 +254,23 @@ describe("October preview actions", () => {
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
     expect(organizerStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));
+  });
+
+  it("places every October screen over the high-resolution clan hall", () => {
+    expect(presentationStyles).toMatch(
+      /\.october-compendium-screen\s*\{[\s\S]*?clan-hall-hd\.webp[\s\S]*?cover no-repeat,/,
+    );
+    expect(presentationStyles).toContain(
+      ".october-compendium-screen-personal .compendium-reward-track",
+    );
+    expect(presentationStyles).toContain(
+      ".october-compendium-screen-race .compendium-star-race",
+    );
+    expect(presentationStyles).toContain(
+      ".october-compendium-screen-daily .compendium-section-heading",
+    );
+    expect(presentationStyles).toContain(
+      ".october-compendium-screen-daily .october-compendium-example-note",
+    );
   });
 });
