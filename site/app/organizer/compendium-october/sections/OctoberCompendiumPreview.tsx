@@ -7,11 +7,14 @@ import { OctoberDailyPreview, OctoberRacePreview } from "./OctoberActivityPrevie
 import { OctoberClanShowcase } from "./OctoberClanShowcase";
 import { OctoberSectionNavigation } from "../components/OctoberSectionNavigation";
 import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
+import type { OctoberClanMember } from "../model/clan-members";
 
 export function OctoberCompendiumPreview({
   week,
+  clanMembers,
 }: {
   week: OctoberCompendiumWeekDefinition;
+  clanMembers: readonly OctoberClanMember[];
 }) {
   return (
     <main className="compendium-page october-compendium-preview" id="october-compendium-scroll">
@@ -43,7 +46,7 @@ export function OctoberCompendiumPreview({
           </div>
         </div>
         <div className="compendium-rewards-section">
-          <OctoberClanShowcase />
+          <OctoberClanShowcase members={clanMembers} />
         </div>
       </section>
 

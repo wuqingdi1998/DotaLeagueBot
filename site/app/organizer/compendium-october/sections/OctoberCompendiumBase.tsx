@@ -6,8 +6,13 @@ import { octoberRewardsForStars } from "../model/rewards";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OctoberRacePreview } from "./OctoberActivityPreview";
 import { OctoberClanShowcase } from "./OctoberClanShowcase";
+import type { OctoberClanMember } from "../model/clan-members";
 
-export function OctoberCompendiumBase() {
+export function OctoberCompendiumBase({
+  clanMembers,
+}: {
+  clanMembers: readonly OctoberClanMember[];
+}) {
   return (
     <main className="compendium-base-page october-compendium-base">
       <section className="compendium-base-hero">
@@ -27,7 +32,7 @@ export function OctoberCompendiumBase() {
         </div>
       </section>
       <div className="compendium-rewards-section">
-        <OctoberClanShowcase />
+        <OctoberClanShowcase members={clanMembers} />
         <CompendiumRewards
           personalStars={0}
           communityStars={0}

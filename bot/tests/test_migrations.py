@@ -101,6 +101,13 @@ FEARLESS_DRAFT_RELIABILITY_MIGRATION = (
     / "0150_fearless_draft_reliability.sql"
 ).read_text(encoding="utf-8")
 
+OCTOBER_COMPENDIUM_CLANS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0151_october_compendium_clans.sql"
+).read_text(encoding="utf-8")
+
 TEST_SEASON_ROUND_TIME_FIX = (
     Path(__file__).parents[1]
     / "database"
@@ -648,6 +655,15 @@ def test_fearless_draft_reliability_stages_are_persistent() -> None:
     assert "captain_vote_reveal_until" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
     assert "FINAL_PICK_REVIEW" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
     assert "final_pick_review_ends_at" in FEARLESS_DRAFT_RELIABILITY_MIGRATION
+
+
+def test_october_compendium_clans_are_balanced_without_discord_roles() -> None:
+    assert "october_compendium_clan_members" in OCTOBER_COMPENDIUM_CLANS_MIGRATION
+    assert "WHERE player.is_archived = FALSE" in OCTOBER_COMPENDIUM_CLANS_MIGRATION
+    assert "MOD(ranked_player.seed_position - 1, 4) IN (0, 3)" in (
+        OCTOBER_COMPENDIUM_CLANS_MIGRATION
+    )
+    assert "role" not in OCTOBER_COMPENDIUM_CLANS_MIGRATION.lower()
 
 
 def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> None:

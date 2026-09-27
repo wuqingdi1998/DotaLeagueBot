@@ -12,6 +12,7 @@ import { OCTOBER_CLANS } from "./clans";
 import { OCTOBER_PREVIEW_SECTIONS } from "./sections";
 import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
+import type { OctoberClanMember } from "./clan-members";
 
 const previewStyles = readFileSync(
   new URL("../../../styles/66-october-compendium-screens.css", import.meta.url),
@@ -78,6 +79,19 @@ describe("October preview actions", () => {
     expect(html).not.toContain("Зачёт сообщества");
     expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
       .toBe(true);
+  });
+
+  it("shows saved clan members only inside the organizer preview", () => {
+    const members: OctoberClanMember[] = [
+      { discordId: "1", dotaId: "101", playerName: "Alpha", clanId: "morbus" },
+      { discordId: "2", dotaId: "102", playerName: "Bravo", clanId: "panacea" },
+    ];
+    const html = renderToStaticMarkup(<OctoberClanShowcase members={members} />);
+    expect(html).toContain("Состав клана Морбус");
+    expect(html).toContain("Состав клана Панацея");
+    expect(html).toContain("/players/101");
+    expect(html).toContain("/players/102");
+    expect(html.match(/1 участник/g)).toHaveLength(2);
   });
 
   it("gives both clanmates a star and permits the same match to close a hero quest", () => {

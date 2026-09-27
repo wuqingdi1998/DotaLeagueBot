@@ -72,6 +72,8 @@ describe("October compendium draft", () => {
     for (const page of [preview, base]) {
       expect(page).toContain("await getSession()");
       expect(page).toContain("if (!user?.isAdmin) notFound()");
+      expect(page.indexOf("if (!user?.isAdmin) notFound()"))
+        .toBeLessThan(page.indexOf("await loadOctoberClanMembers()"));
       expect(page).toContain("robots: { index: false, follow: false }");
       expect(page).not.toContain('"use client"');
     }
