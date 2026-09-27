@@ -174,10 +174,15 @@
 .october-clan-standing-row--compact {
   grid-template-columns: 20px minmax(0, 1fr) 48px;
   gap: 5px;
-  min-height: 19px;
-  padding: 1px 4px;
+  min-height: 25px;
+  padding: 1px 5px;
   border-radius: 5px;
   font-size: 11px;
+}
+
+.october-clan-standing-row--current {
+  background: color-mix(in srgb, var(--clan-accent) 20%, rgba(255, 255, 255, 0.05));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--clan-accent) 68%, transparent);
 }
 
 .october-clan-standing-position {
@@ -208,10 +213,24 @@
   font-size: 10px;
 }
 
+.october-clan-standing-avatar > span {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+}
+
+.october-clan-standing-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .october-clan-standing-row--compact .october-clan-standing-avatar {
-  width: 16px;
-  height: 16px;
-  font-size: 8px;
+  width: 22px;
+  height: 22px;
+  font-size: 9px;
 }
 
 .october-clan-standing-name {
@@ -219,6 +238,27 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.october-clan-standing-you {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--clan-accent);
+  color: #07141b;
+  font-size: 8px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.october-clan-standing-ellipsis {
+  display: grid;
+  min-height: 17px;
+  place-items: center;
+  color: color-mix(in srgb, var(--clan-accent) 70%, #82989c);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
 }
 
 .october-clan-standing-row > a:hover { color: var(--clan-accent); }
@@ -341,12 +381,16 @@
   }
 
   .october-compendium-screen-clans .october-clan-showcase-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 14px;
     margin-bottom: 8px;
   }
 
   .october-compendium-screen-clans .october-clan-showcase-heading > span { display: none; }
   .october-compendium-screen-clans .october-clan-showcase-heading h2 { margin-block: 0 3px; font-size: 26px; }
-  .october-compendium-screen-clans .october-clan-showcase-heading p { font-size: 12px; }
+  .october-compendium-screen-clans .october-clan-showcase-heading p { font-size: 12px; white-space: nowrap; }
 
   .october-compendium-screen-clans .october-clan-card {
     grid-template-columns: minmax(78px, 20%) minmax(0, 1fr);

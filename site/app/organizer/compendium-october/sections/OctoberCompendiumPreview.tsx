@@ -12,9 +12,11 @@ import type { OctoberClanMember } from "../model/clan-members";
 export function OctoberCompendiumPreview({
   week,
   clanMembers,
+  viewerDiscordId,
 }: {
   week: OctoberCompendiumWeekDefinition;
   clanMembers: readonly OctoberClanMember[];
+  viewerDiscordId: string;
 }) {
   return (
     <main className="compendium-page october-compendium-preview" id="october-compendium-scroll">
@@ -46,7 +48,7 @@ export function OctoberCompendiumPreview({
           </div>
         </div>
         <div className="compendium-rewards-section">
-          <OctoberClanShowcase members={clanMembers} />
+          <OctoberClanShowcase members={clanMembers} viewerDiscordId={viewerDiscordId} />
         </div>
       </section>
 

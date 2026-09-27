@@ -74,9 +74,20 @@ describe("October compendium draft", () => {
       expect(page).toContain("if (!user?.isAdmin) notFound()");
       expect(page.indexOf("if (!user?.isAdmin) notFound()"))
         .toBeLessThan(page.indexOf("await loadOctoberClanMembers()"));
+      expect(page).toContain("viewerDiscordId={user.discordId}");
       expect(page).toContain("robots: { index: false, follow: false }");
       expect(page).not.toContain('"use client"');
     }
+  });
+
+  it("loads a current avatar for every clan standing row", () => {
+    const service = readFileSync(
+      new URL("../services/clan-members.ts", import.meta.url),
+      "utf8",
+    );
+    expect(service).toContain("NULLIF(player.avatar_url, '')");
+    expect(service).toContain("latest_session.discord_avatar_url");
+    expect(service).toContain("avatarUrl: row.avatar_url");
   });
 
   it("shows two illustrative hero quests before the clan outing", () => {

@@ -4,10 +4,11 @@ import { useRef } from "react";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiMaximize2, FiX } from "react-icons/fi";
+import { AvatarImage } from "@/app/components/AvatarImage";
 import type { OctoberClanMember } from "../model/clan-members";
 import type { OctoberClanId } from "../model/clans";
 import {
-  OCTOBER_CLAN_CARD_LEADER_LIMIT,
+  octoberClanCardRows,
   octoberClanTotalPoints,
   rankOctoberClanMembers,
 } from "../model/clan-standings";
@@ -34,19 +35,34 @@ function StandingRow({
   member,
   position,
   isCompact = false,
+  isCurrentPlayer = false,
 }: {
   member: OctoberClanMember;
   position: number;
   isCompact?: boolean;
+  isCurrentPlayer?: boolean;
 }) {
+  const rowClasses = [
+    "october-clan-standing-row",
+    isCompact ? "october-clan-standing-row--compact" : "",
+    isCurrentPlayer ? "october-clan-standing-row--current" : "",
+  ].filter(Boolean).join(" ");
   return (
-    <li className={isCompact ? "october-clan-standing-row october-clan-standing-row--compact" : "october-clan-standing-row"}>
+    <li className={rowClasses} aria-current={isCurrentPlayer ? "true" : undefined}>
       <span className="october-clan-standing-position">{position}</span>
       <Link href={`/players/${member.dotaId}`}>
         <span className="october-clan-standing-avatar" aria-hidden="true">
-          {member.playerName.slice(0, 1).toLocaleUpperCase("ru")}
+          <AvatarImage
+            source={member.avatarUrl}
+            alt=""
+            width={28}
+            height={28}
+            sizes="28px"
+            fallback={<span>{member.playerName.slice(0, 1).toLocaleUpperCase("ru")}</span>}
+          />
         </span>
         <span className="october-clan-standing-name">{member.playerName}</span>
+        {isCurrentPlayer && <span className="october-clan-standing-you">Вы</span>}
       </Link>
       <strong><FaStar aria-hidden="true" /> {member.totalPoints}</strong>
     </li>
@@ -57,14 +73,16 @@ export function OctoberClanStandings({
   clanId,
   clanName,
   members,
+  viewerDiscordId,
 }: {
   clanId: OctoberClanId;
   clanName: string;
   members: readonly OctoberClanMember[];
+  viewerDiscordId?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const rankedMembers = rankOctoberClanMembers(members);
-  const leaders = rankedMembers.slice(0, OCTOBER_CLAN_CARD_LEADER_LIMIT);
+  const cardRows = octoberClanCardRows(members, viewerDiscordId);
   const totalPoints = octoberClanTotalPoints(members);
   const titleId = `october-${clanId}-standings-title`;
 
@@ -74,14 +92,19 @@ export function OctoberClanStandings({
         <span>{participantCountLabel(members.length)}</span>
         <strong><FaStar aria-hidden="true" /> {pointCountLabel(totalPoints)}</strong>
       </div>
-      {leaders.length ? (
+      {cardRows.length ? (
         <ol className="october-clan-standings-compact" aria-label={`Топ-10 клана ${clanName}`}>
-          {leaders.map((member, index) => (
+          {cardRows.map((row, index) => row.kind === "ellipsis" ? (
+            <li className="october-clan-standing-ellipsis" aria-hidden="true" key={`ellipsis-${index}`}>
+              <span>•••</span>
+            </li>
+          ) : (
             <StandingRow
-              key={member.discordId}
-              member={member}
-              position={index + 1}
+              key={row.member.discordId}
+              member={row.member}
+              position={row.position}
               isCompact
+              isCurrentPlayer={row.member.discordId === viewerDiscordId}
             />
           ))}
         </ol>
@@ -126,7 +149,12 @@ export function OctoberClanStandings({
             {rankedMembers.length ? (
               <ol aria-label={`Полный зачёт клана ${clanName}`}>
                 {rankedMembers.map((member, index) => (
-                  <StandingRow key={member.discordId} member={member} position={index + 1} />
+                  <StandingRow
+                    key={member.discordId}
+                    member={member}
+                    position={index + 1}
+                    isCurrentPlayer={member.discordId === viewerDiscordId}
+                  />
                 ))}
               </ol>
             ) : (

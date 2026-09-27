@@ -93,10 +93,26 @@ describe("October preview actions", () => {
 
   it("shows saved clan members only inside the organizer preview", () => {
     const members: OctoberClanMember[] = [
-      { discordId: "1", dotaId: "101", playerName: "Alpha", clanId: "morbus", totalPoints: 4 },
-      { discordId: "2", dotaId: "102", playerName: "Bravo", clanId: "panacea", totalPoints: 2 },
+      {
+        discordId: "1",
+        dotaId: "101",
+        playerName: "Alpha",
+        avatarUrl: "https://cdn.discordapp.com/embed/avatars/0.png",
+        clanId: "morbus",
+        totalPoints: 4,
+      },
+      {
+        discordId: "2",
+        dotaId: "102",
+        playerName: "Bravo",
+        avatarUrl: null,
+        clanId: "panacea",
+        totalPoints: 2,
+      },
     ];
-    const html = renderToStaticMarkup(<OctoberClanShowcase members={members} />);
+    const html = renderToStaticMarkup(
+      <OctoberClanShowcase members={members} viewerDiscordId="1" />,
+    );
     expect(html).toContain("Состав клана Морбус");
     expect(html).toContain("Состав клана Панацея");
     expect(html).toContain("/players/101");
@@ -105,6 +121,9 @@ describe("October preview actions", () => {
     expect(html.match(/class="october-clan-standing-open"/g)).toHaveLength(2);
     expect(html).toContain("Полный зачёт клана Морбус");
     expect(html.match(/aria-label="Закрыть полный зачёт"/g)).toHaveLength(2);
+    expect(html).toContain("discord-avatars");
+    expect(html).toContain("october-clan-standing-row--current");
+    expect(html).toContain(">Вы</span>");
   });
 
   it("keeps only ten leaders on each clan card and the complete list in its dialog", () => {
@@ -112,11 +131,16 @@ describe("October preview actions", () => {
       discordId: String(index + 1),
       dotaId: String(100 + index),
       playerName: `Player ${index + 1}`,
+      avatarUrl: null,
       clanId: "morbus",
       totalPoints: 12 - index,
     }));
-    const html = renderToStaticMarkup(<OctoberClanShowcase members={members} />);
-    expect(html.match(/october-clan-standing-row--compact/g)).toHaveLength(10);
+    const html = renderToStaticMarkup(
+      <OctoberClanShowcase members={members} viewerDiscordId="12" />,
+    );
+    expect(html.match(/october-clan-standing-row--compact/g)).toHaveLength(11);
+    expect(html).toContain("october-clan-standing-ellipsis");
+    expect(html).toContain("october-clan-standing-row--compact october-clan-standing-row--current");
     expect(html).toContain("Полный зачёт клана Морбус");
     expect(html).toContain("Player 12");
   });
@@ -194,7 +218,7 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin-top: auto;/,
     );
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 33\.333%;/,
+      /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 25%;/,
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");

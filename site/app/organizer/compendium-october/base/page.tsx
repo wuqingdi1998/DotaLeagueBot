@@ -19,7 +19,10 @@ export default async function OctoberCompendiumBasePage() {
 
   return (
     <PlatformShell user={user}>
-      <OctoberCompendiumBase clanMembers={clanMembers} />
+      <OctoberCompendiumBase
+        clanMembers={clanMembers}
+        viewerDiscordId={user.discordId}
+      />
     </PlatformShell>
   );
 }

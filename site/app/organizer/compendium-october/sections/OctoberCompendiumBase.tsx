@@ -10,8 +10,10 @@ import type { OctoberClanMember } from "../model/clan-members";
 
 export function OctoberCompendiumBase({
   clanMembers,
+  viewerDiscordId,
 }: {
   clanMembers: readonly OctoberClanMember[];
+  viewerDiscordId: string;
 }) {
   return (
     <main className="compendium-base-page october-compendium-base">
@@ -32,7 +34,7 @@ export function OctoberCompendiumBase({
         </div>
       </section>
       <div className="compendium-rewards-section">
-        <OctoberClanShowcase members={clanMembers} />
+        <OctoberClanShowcase members={clanMembers} viewerDiscordId={viewerDiscordId} />
         <CompendiumRewards
           personalStars={0}
           communityStars={0}

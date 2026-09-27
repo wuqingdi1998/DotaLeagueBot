@@ -23,6 +23,7 @@ export default async function OctoberCompendiumPage() {
       <OctoberCompendiumPreview
         week={octoberRaceForMoment(new Date())}
         clanMembers={clanMembers}
+        viewerDiscordId={user.discordId}
       />
     </PlatformShell>
   );

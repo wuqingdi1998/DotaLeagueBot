@@ -6,8 +6,10 @@ import { OctoberClanStandings } from "../components/OctoberClanStandings";
 
 export function OctoberClanShowcase({
   members = [],
+  viewerDiscordId,
 }: {
   members?: readonly OctoberClanMember[];
+  viewerDiscordId?: string;
 }) {
   return (
     <section className="october-clan-showcase" aria-labelledby="october-clan-title">
@@ -44,6 +46,7 @@ export function OctoberClanShowcase({
                     clanId={clan.id}
                     clanName={clan.name}
                     members={clanMembers}
+                    viewerDiscordId={viewerDiscordId}
                   />
                 </div>
               </article>
