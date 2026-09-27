@@ -120,11 +120,17 @@
 .october-clan-prize-popover strong { font-size: 13px; }
 .october-clan-prize-popover > span { color: #afc0c2; font-size: 12px; line-height: 1.35; }
 
-.october-clan-card-copy { min-width: 0; }
+.october-clan-card-copy {
+  min-width: 0;
+  height: 100%;
+  align-self: stretch;
+}
 
 .october-clan-standings {
   display: grid;
   min-width: 0;
+  height: 100%;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   gap: 6px;
 }
 
@@ -159,6 +165,11 @@
   list-style: none;
 }
 
+.october-clan-standings-compact {
+  min-height: 0;
+  grid-auto-rows: minmax(25px, 1fr);
+}
+
 .october-clan-standing-row {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) 72px;
@@ -178,6 +189,10 @@
   padding: 1px 5px;
   border-radius: 5px;
   font-size: 11px;
+}
+
+.october-clan-standings-compact .october-clan-standing-row--compact {
+  height: 100%;
 }
 
 .october-clan-standing-row--current {
@@ -400,8 +415,15 @@
   }
 
   .october-compendium-screen-clans .october-clan-flag { width: min(100%, 104px); }
-  .october-compendium-screen-clans .october-clan-card-copy h3 { margin: 2px 0 6px; font-size: 27px; }
-  .october-compendium-screen-clans .october-clan-card-kicker { font-size: 9px; }
+  .october-compendium-screen-clans .october-clan-identity {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .october-compendium-screen-clans .october-clan-identity h3 {
+    width: min(100%, 104px);
+    font-size: 27px;
+  }
+  .october-compendium-screen-clans .october-clan-flag { margin-inline: 0; }
 }
 
 @media (max-width: 960px) {

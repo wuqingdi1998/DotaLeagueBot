@@ -124,6 +124,9 @@ describe("October preview actions", () => {
     expect(html).toContain("discord-avatars");
     expect(html).toContain("october-clan-standing-row--current");
     expect(html).toContain(">Вы</span>");
+    expect(html.match(/class="october-clan-identity"/g)).toHaveLength(2);
+    expect(html).not.toContain("Клан 01");
+    expect(html).not.toContain("Клан 02");
   });
 
   it("keeps only ten leaders on each clan card and the complete list in its dialog", () => {
@@ -221,6 +224,7 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 25%;/,
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
+    expect(clanStyles).toContain("grid-auto-rows: minmax(25px, 1fr)");
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
     expect(organizerStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));

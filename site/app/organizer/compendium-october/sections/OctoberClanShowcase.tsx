@@ -28,20 +28,21 @@ export function OctoberClanShowcase({
             <div className="october-clan-lineup-slot" key={clan.id}>
               {index > 0 && <span className="october-clan-versus" aria-hidden="true">VS</span>}
               <article className={`october-clan-card october-clan-card--${clan.id}`}>
-                <div className="october-clan-flag" aria-label={`Флаг клана ${clan.name}`}>
-                  <span className="october-clan-flag-inner">
-                    <Image
-                      src={clan.emblem}
-                      alt=""
-                      width={164}
-                      height={164}
-                      sizes="(max-width: 720px) 110px, 164px"
-                    />
-                  </span>
+                <div className="october-clan-identity">
+                  <div className="october-clan-flag" aria-label={`Флаг клана ${clan.name}`}>
+                    <span className="october-clan-flag-inner">
+                      <Image
+                        src={clan.emblem}
+                        alt=""
+                        width={164}
+                        height={164}
+                        sizes="(max-width: 720px) 110px, 164px"
+                      />
+                    </span>
+                  </div>
+                  <h3>{clan.name}</h3>
                 </div>
                 <div className="october-clan-card-copy">
-                  <span className="october-clan-card-kicker">Клан 0{index + 1}</span>
-                  <h3>{clan.name}</h3>
                   <OctoberClanStandings
                     clanId={clan.id}
                     clanName={clan.name}
