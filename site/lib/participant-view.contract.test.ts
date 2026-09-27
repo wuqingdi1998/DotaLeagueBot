@@ -27,5 +27,7 @@ describe("organizer participant view boundaries", () => {
     const header = source("app/components/SiteHeader.tsx");
     expect(header).toContain("user.hasOrganizerAccess && (");
     expect(header).toContain("<ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />");
+    expect(header.indexOf("<ParticipantViewToggle"))
+      .toBeLessThan(header.indexOf("{profileMenuExtras}"));
   });
 });

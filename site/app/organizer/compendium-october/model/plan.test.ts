@@ -90,6 +90,25 @@ describe("October compendium draft", () => {
     expect(service).toContain("avatarUrl: row.avatar_url");
   });
 
+  it("keeps organizer preview controls in the profile menu instead of the compendium canvas", () => {
+    const page = readFileSync(new URL("../page.tsx", import.meta.url), "utf8");
+    const preview = readFileSync(
+      new URL("../sections/OctoberCompendiumPreview.tsx", import.meta.url),
+      "utf8",
+    );
+    const profileActions = readFileSync(
+      new URL("../components/OctoberPreviewProfileActions.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(page).toContain("profileMenuExtras");
+    expect(profileActions).toContain("Архив организатора");
+    expect(profileActions).toContain("База компендиума");
+    expect(profileActions).toContain("Показать 100 звёзд");
+    expect(preview).not.toContain("Архив организатора");
+    expect(preview).not.toContain("compendium-base-floating-link");
+    expect(preview).not.toContain("закрытый просмотр");
+  });
+
   it("shows two illustrative hero quests before the clan outing", () => {
     const quests = octoberDailyQuestSamples();
     expect(quests).toHaveLength(2);

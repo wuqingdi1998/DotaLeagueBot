@@ -85,10 +85,12 @@ export function PlatformShell({
   children,
   user,
   hasFooter = true,
+  profileMenuExtras,
 }: {
   children: React.ReactNode;
   user: SessionUser | null;
   hasFooter?: boolean;
+  profileMenuExtras?: React.ReactNode;
 }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   useEffect(() => {
@@ -101,7 +103,12 @@ export function PlatformShell({
       className={`site-shell platform-shell${hasFooter ? " has-platform-footer" : ""}`}
       data-theme={theme}
     >
-      <SiteHeader theme={theme} setTheme={setTheme} user={user} />
+      <SiteHeader
+        theme={theme}
+        setTheme={setTheme}
+        user={user}
+        profileMenuExtras={profileMenuExtras}
+      />
       {children}
       {hasFooter && (
         <footer className="site-footer platform-footer">

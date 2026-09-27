@@ -45,6 +45,7 @@ type SiteHeaderProps = {
   setTheme: (theme: "light" | "dark") => void;
   user: SessionUser | null;
   discordUrl?: string;
+  profileMenuExtras?: React.ReactNode;
 };
 
 const longProfileNameLength = 24;
@@ -84,6 +85,7 @@ export function SiteHeader({
   setTheme,
   user,
   discordUrl = "https://discord.gg/lsesports",
+  profileMenuExtras,
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
@@ -263,7 +265,10 @@ export function SiteHeader({
                   Открыть страницу игрока <FiArrowRight aria-hidden="true" />
                 </Link>
                 {user.hasOrganizerAccess && (
-                  <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
+                  <>
+                    <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
+                    {profileMenuExtras}
+                  </>
                 )}
                 <button
                   type="button"

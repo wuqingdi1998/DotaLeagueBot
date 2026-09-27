@@ -25,6 +25,9 @@ describe("compendium interface contract", () => {
     }
     expect(rewards).toContain("compendium-reward-marker");
     expect(rewardsCss).toContain("height: 33px");
+    expect(rewardsCss).toMatch(
+      /\.compendium-reward-marker:last-child\s*\{[^}]*background:\s*transparent;[^}]*box-shadow:\s*none;/,
+    );
     expect(rewards).toContain("compendium-milestone-unlocked");
     expect(rewards).toContain("получено");
     expect(rewards).toContain('isUnlocked ? "unlocked" : "locked"');
