@@ -26,6 +26,14 @@ const organizerStyles = readFileSync(
   new URL("../../../styles/organizer-route.css", import.meta.url),
   "utf8",
 );
+const profileStyles = readFileSync(
+  new URL("../../../styles/18-profile-customization.css", import.meta.url),
+  "utf8",
+);
+const rewardStyles = readFileSync(
+  new URL("../../../styles/38-compendium-rewards.css", import.meta.url),
+  "utf8",
+);
 
 function unavailable() {
   throw new Error("A private preview must never submit an action");
@@ -74,6 +82,18 @@ describe("October preview actions", () => {
     expect(html).toContain(">2026</span>");
     expect(html).not.toContain("profile-event-badge-reward-label");
     expect(html).not.toContain(">Морбус</strong>");
+  });
+
+  it("keeps clan profile badges the same size as the TI 2026 badge", () => {
+    expect(profileStyles).toMatch(
+      /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;/,
+    );
+    expect(rewardStyles).toMatch(
+      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*116px;[^}]*height:\s*58px;[^}]*flex-direction:\s*row;/,
+    );
+    expect(previewStyles).not.toContain(
+      ".october-compendium-screen-personal .profile-event-badge-clan {",
+    );
   });
 
   it("shows two original clan flags without changing the quest and race cards", () => {

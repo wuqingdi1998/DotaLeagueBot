@@ -170,15 +170,6 @@
 
   .october-compendium-screen-personal .compendium-milestone-stars { gap: 8px; font-size: 20px; }
 
-  .october-compendium-screen-personal .profile-event-badge-clan {
-    min-height: 42px;
-    gap: 7px;
-    padding: 4px 10px 4px 5px;
-  }
-
-  .october-compendium-screen-personal .profile-event-badge-clan-crest { width: 32px; height: 32px; }
-  .october-compendium-screen-personal .profile-event-badge-clan-crest img { width: 29px; height: 29px; }
-
   .october-compendium-screen-personal .compendium-reward-milestones h3 {
     margin-top: 18px;
     font-size: 21px;
