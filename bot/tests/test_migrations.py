@@ -108,6 +108,13 @@ OCTOBER_COMPENDIUM_CLANS_MIGRATION = (
     / "0151_october_compendium_clans.sql"
 ).read_text(encoding="utf-8")
 
+OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0152_october_compendium_clan_points.sql"
+).read_text(encoding="utf-8")
+
 TEST_SEASON_ROUND_TIME_FIX = (
     Path(__file__).parents[1]
     / "database"
@@ -664,6 +671,17 @@ def test_october_compendium_clans_are_balanced_without_discord_roles() -> None:
         OCTOBER_COMPENDIUM_CLANS_MIGRATION
     )
     assert "role" not in OCTOBER_COMPENDIUM_CLANS_MIGRATION.lower()
+
+
+def test_october_compendium_clan_points_start_separately_at_zero() -> None:
+    assert "october_compendium_clan_members" in (
+        OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION
+    )
+    assert "total_points INTEGER NOT NULL DEFAULT 0" in (
+        OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION
+    )
+    assert "CHECK (total_points >= 0)" in OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION
+    assert "role" not in OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION.lower()
 
 
 def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> None:

@@ -18,6 +18,14 @@ const previewStyles = readFileSync(
   new URL("../../../styles/66-october-compendium-screens.css", import.meta.url),
   "utf8",
 );
+const clanStyles = readFileSync(
+  new URL("../../../styles/67-october-clan-standings.css", import.meta.url),
+  "utf8",
+);
+const organizerStyles = readFileSync(
+  new URL("../../../styles/organizer-route.css", import.meta.url),
+  "utf8",
+);
 
 function unavailable() {
   throw new Error("A private preview must never submit an action");
@@ -75,7 +83,9 @@ describe("October preview actions", () => {
     expect(html).toContain("Флаг клана Панацея");
     expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
-    expect(html).toContain("три предмета");
+    expect(html).toContain("Победители разыграют 7 предметов, проигравшие – 3");
+    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(7);
+    expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
     expect(html).not.toContain("Зачёт сообщества");
     expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
       .toBe(true);
@@ -83,15 +93,32 @@ describe("October preview actions", () => {
 
   it("shows saved clan members only inside the organizer preview", () => {
     const members: OctoberClanMember[] = [
-      { discordId: "1", dotaId: "101", playerName: "Alpha", clanId: "morbus" },
-      { discordId: "2", dotaId: "102", playerName: "Bravo", clanId: "panacea" },
+      { discordId: "1", dotaId: "101", playerName: "Alpha", clanId: "morbus", totalPoints: 4 },
+      { discordId: "2", dotaId: "102", playerName: "Bravo", clanId: "panacea", totalPoints: 2 },
     ];
     const html = renderToStaticMarkup(<OctoberClanShowcase members={members} />);
     expect(html).toContain("Состав клана Морбус");
     expect(html).toContain("Состав клана Панацея");
     expect(html).toContain("/players/101");
     expect(html).toContain("/players/102");
-    expect(html.match(/1 участник/g)).toHaveLength(2);
+    expect(html.match(/1 участник/g)).toHaveLength(4);
+    expect(html.match(/class="october-clan-standing-open"/g)).toHaveLength(2);
+    expect(html).toContain("Полный зачёт клана Морбус");
+    expect(html.match(/aria-label="Закрыть полный зачёт"/g)).toHaveLength(2);
+  });
+
+  it("keeps only ten leaders on each clan card and the complete list in its dialog", () => {
+    const members: OctoberClanMember[] = Array.from({ length: 12 }, (_, index) => ({
+      discordId: String(index + 1),
+      dotaId: String(100 + index),
+      playerName: `Player ${index + 1}`,
+      clanId: "morbus",
+      totalPoints: 12 - index,
+    }));
+    const html = renderToStaticMarkup(<OctoberClanShowcase members={members} />);
+    expect(html.match(/october-clan-standing-row--compact/g)).toHaveLength(10);
+    expect(html).toContain("Полный зачёт клана Морбус");
+    expect(html).toContain("Player 12");
   });
 
   it("gives both clanmates a star and permits the same match to close a hero quest", () => {
@@ -166,5 +193,12 @@ describe("October preview actions", () => {
     expect(previewStyles).not.toMatch(
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin-top: auto;/,
     );
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 33\.333%;/,
+    );
+    expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
+    expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
+    expect(organizerStyles.indexOf("67-october-clan-standings.css"))
+      .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));
   });
 });

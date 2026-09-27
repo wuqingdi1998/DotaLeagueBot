@@ -5,4 +5,5 @@ export type OctoberClanMember = {
   dotaId: string;
   playerName: string;
   clanId: OctoberClanId;
+  totalPoints: number;
 };

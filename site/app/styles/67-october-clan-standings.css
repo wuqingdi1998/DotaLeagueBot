@@ -1,0 +1,385 @@
+.october-clan-prize-board {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: minmax(560px, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border: 1px solid rgba(225, 195, 104, 0.32);
+  border-radius: 16px;
+  background: linear-gradient(110deg, rgba(125, 85, 22, 0.2), rgba(6, 27, 35, 0.75));
+}
+
+.october-clan-prize-copy > span {
+  color: #f2d67d;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.october-clan-prize-copy h3 {
+  margin: 3px 0 0;
+  color: #f7fbfa;
+  font-size: clamp(15px, 1.3vw, 19px);
+  line-height: 1.25;
+}
+
+.october-clan-prize-board > ul {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(42px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.october-clan-prize-slot {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 48px;
+  place-items: center;
+  border: 1px solid rgba(239, 214, 137, 0.42);
+  border-radius: 10px;
+  background: rgba(25, 35, 39, 0.9);
+  color: #f4d777;
+  cursor: help;
+}
+
+.october-clan-prize-slot--runners-up {
+  border-color: rgba(136, 190, 198, 0.42);
+  color: #a8dce0;
+}
+
+.october-clan-prize-slot > span {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  color: currentColor;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.october-clan-prize-slot > svg { width: 20px; height: 20px; }
+
+.october-clan-prize-slot:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.october-clan-prize-popover {
+  position: absolute;
+  z-index: 60;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  display: none;
+  width: 190px;
+  transform: translateX(-50%);
+  padding: 10px;
+  border: 1px solid rgba(235, 215, 153, 0.48);
+  border-radius: 13px;
+  background: #0b1b24;
+  color: #eff8f7;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.52);
+  text-align: left;
+}
+
+.october-clan-prize-slot:first-child .october-clan-prize-popover {
+  left: -8px;
+  transform: none;
+}
+
+.october-clan-prize-slot:last-child .october-clan-prize-popover {
+  right: -8px;
+  left: auto;
+  transform: none;
+}
+
+.october-clan-prize-slot:hover .october-clan-prize-popover,
+.october-clan-prize-slot:focus .october-clan-prize-popover {
+  display: grid;
+  gap: 5px;
+}
+
+.october-clan-prize-image {
+  position: relative;
+  display: grid;
+  width: 100%;
+  height: 100px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 9px;
+  background: radial-gradient(circle, rgba(225, 193, 96, 0.2), transparent 68%), #07141c;
+}
+
+.october-clan-prize-image img { object-fit: contain; }
+.october-clan-prize-image > svg { width: 36px; height: 36px; color: #d9bd68; }
+.october-clan-prize-popover strong { font-size: 13px; }
+.october-clan-prize-popover > span { color: #afc0c2; font-size: 12px; line-height: 1.35; }
+
+.october-clan-card-copy { min-width: 0; }
+
+.october-clan-standings {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+}
+
+.october-clan-standing-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #aebfc1;
+  font-size: 11px;
+}
+
+.october-clan-standing-summary strong,
+.october-clan-standing-row > strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  color: var(--clan-accent);
+  white-space: nowrap;
+}
+
+.october-clan-standing-summary svg,
+.october-clan-standing-row > strong svg { width: 11px; height: 11px; }
+
+.october-clan-standings-compact,
+.october-clan-standing-dialog-table ol {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.october-clan-standing-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 72px;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 13px;
+}
+
+.october-clan-standing-row--compact {
+  grid-template-columns: 20px minmax(0, 1fr) 48px;
+  gap: 5px;
+  min-height: 19px;
+  padding: 1px 4px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.october-clan-standing-position {
+  color: #82989c;
+  font-weight: 800;
+  text-align: center;
+}
+
+.october-clan-standing-row > a {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  color: #eff8f7;
+  font-weight: 700;
+}
+
+.october-clan-standing-avatar {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--clan-accent) 62%, transparent);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--clan-accent) 19%, #071923);
+  color: var(--clan-accent);
+  font-size: 10px;
+}
+
+.october-clan-standing-row--compact .october-clan-standing-avatar {
+  width: 16px;
+  height: 16px;
+  font-size: 8px;
+}
+
+.october-clan-standing-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.october-clan-standing-row > a:hover { color: var(--clan-accent); }
+
+.october-clan-standing-open {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--clan-accent) 52%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--clan-accent) 11%, transparent);
+  color: #edf8f6;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.october-clan-standing-open:hover { color: var(--clan-accent); }
+.october-clan-standing-open:focus-visible { outline: 2px solid var(--clan-accent); outline-offset: 2px; }
+.october-clan-standing-empty { margin: 8px 0; color: #aebfc1; font-size: 13px; }
+
+.october-clan-standing-dialog {
+  width: min(780px, calc(100% - 32px));
+  max-width: none;
+  max-height: min(82dvh, 820px);
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--clan-accent) 55%, #40545b);
+  border-radius: 22px;
+  background: #0a1922;
+  color: #eff8f7;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.72);
+}
+
+.october-clan-standing-dialog--morbus { --clan-accent: #d66a54; }
+.october-clan-standing-dialog--panacea { --clan-accent: #55d5cb; }
+.october-clan-standing-dialog::backdrop { background: rgba(2, 9, 14, 0.82); backdrop-filter: blur(6px); }
+
+.october-clan-standing-dialog-panel {
+  display: flex;
+  max-height: min(82dvh, 820px);
+  flex-direction: column;
+}
+
+.october-clan-standing-dialog-panel > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid rgba(141, 177, 181, 0.22);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--clan-accent) 16%, transparent), transparent 65%);
+}
+
+.october-clan-standing-dialog-panel header span {
+  color: var(--clan-accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.october-clan-standing-dialog-panel h2 {
+  margin: 3px 0;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 34px;
+}
+
+.october-clan-standing-dialog-panel header p { margin: 0; color: #aebfc1; font-size: 13px; }
+
+.october-clan-standing-dialog-panel header button {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba(174, 201, 202, 0.3);
+  border-radius: 50%;
+  background: rgba(6, 21, 28, 0.68);
+  color: #eff8f7;
+  cursor: pointer;
+}
+
+.october-clan-standing-dialog-panel header button:hover { color: var(--clan-accent); }
+.october-clan-standing-dialog-panel header button:focus-visible { outline: 2px solid var(--clan-accent); outline-offset: 2px; }
+
+.october-clan-standing-dialog-table {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 18px 20px;
+}
+
+.october-clan-standing-table-heading {
+  position: sticky;
+  z-index: 2;
+  top: -12px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 72px;
+  gap: 10px;
+  padding: 11px 10px 8px;
+  background: #0a1922;
+  color: #82989c;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.october-clan-standing-table-heading span:first-child,
+.october-clan-standing-table-heading span:last-child { text-align: center; }
+
+@media (min-width: 961px) and (min-height: 700px) {
+  .october-compendium-screen-clans .october-clan-showcase {
+    margin-top: 8px;
+    padding: 12px 18px;
+  }
+
+  .october-compendium-screen-clans .october-clan-showcase-heading {
+    margin-bottom: 8px;
+  }
+
+  .october-compendium-screen-clans .october-clan-showcase-heading > span { display: none; }
+  .october-compendium-screen-clans .october-clan-showcase-heading h2 { margin-block: 0 3px; font-size: 26px; }
+  .october-compendium-screen-clans .october-clan-showcase-heading p { font-size: 12px; }
+
+  .october-compendium-screen-clans .october-clan-card {
+    grid-template-columns: minmax(78px, 20%) minmax(0, 1fr);
+    gap: 12px;
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .october-compendium-screen-clans .october-clan-flag { width: min(100%, 104px); }
+  .october-compendium-screen-clans .october-clan-card-copy h3 { margin: 2px 0 6px; font-size: 27px; }
+  .october-compendium-screen-clans .october-clan-card-kicker { font-size: 9px; }
+}
+
+@media (max-width: 960px) {
+  .october-clan-prize-board { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 961px) and (max-width: 1300px) {
+  .october-clan-prize-board {
+    grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
+  }
+
+  .october-clan-prize-copy h3 { font-size: 14px; }
+}
+
+@media (max-width: 660px) {
+  .october-clan-prize-board { padding: 14px; }
+  .october-clan-prize-board > ul { grid-template-columns: repeat(5, minmax(42px, 1fr)); }
+  .october-clan-prize-slot { min-height: 54px; }
+  .october-clan-card { grid-template-columns: minmax(70px, 24%) minmax(0, 1fr); }
+  .october-clan-standing-row--compact { grid-template-columns: 18px minmax(0, 1fr) 42px; }
+  .october-clan-standing-dialog-panel > header { padding: 18px; }
+  .october-clan-standing-dialog-table { padding-inline: 10px; }
+  .october-clan-standing-row { grid-template-columns: 34px minmax(0, 1fr) 58px; gap: 6px; padding-inline: 6px; }
+  .october-clan-standing-table-heading { grid-template-columns: 34px minmax(0, 1fr) 58px; gap: 6px; padding-inline: 6px; }
+}

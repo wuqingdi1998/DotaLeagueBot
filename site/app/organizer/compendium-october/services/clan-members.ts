@@ -6,6 +6,7 @@ type OctoberClanMemberRow = {
   dota_id: string;
   player_name: string;
   clan_id: OctoberClanMember["clanId"];
+  total_points: number;
 };
 
 export async function loadOctoberClanMembers(): Promise<OctoberClanMember[]> {
@@ -14,16 +15,22 @@ export async function loadOctoberClanMembers(): Promise<OctoberClanMember[]> {
        member.player_id::text,
        player.steam_id32::text AS dota_id,
        player.ingame_name AS player_name,
-       member.clan_id
+       member.clan_id,
+       member.total_points::int
      FROM october_compendium_clan_members member
      JOIN players player ON player.discord_id = member.player_id
      WHERE player.is_archived = FALSE
-     ORDER BY member.clan_id, LOWER(player.ingame_name), member.player_id`,
+     ORDER BY
+       member.clan_id,
+       member.total_points DESC,
+       LOWER(player.ingame_name),
+       member.player_id`,
   );
   return rows.map((row) => ({
     discordId: row.player_id,
     dotaId: row.dota_id,
     playerName: row.player_name,
     clanId: row.clan_id,
+    totalPoints: Number(row.total_points),
   }));
 }
