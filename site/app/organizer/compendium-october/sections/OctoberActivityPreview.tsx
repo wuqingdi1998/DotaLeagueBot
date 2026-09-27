@@ -1,6 +1,6 @@
 "use client";
 
-import { FiArrowRight } from "react-icons/fi";
+import { FiArrowRight, FiInfo, FiX } from "react-icons/fi";
 import { CompendiumStarRace } from "@/app/compendium/components/CompendiumStarRace";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
@@ -12,6 +12,7 @@ import { OCTOBER_HERO_QUEST_COUNT, OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQue
 import { OCTOBER_REWARD_STARS } from "@/lib/october-reward-thresholds";
 import type { OctoberCompendiumWeekDefinition } from "../model/plan";
 import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
+import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
 
 function ignorePreviewAction() {}
 
@@ -33,23 +34,48 @@ export function OctoberRacePreview({ week }: { week: OctoberCompendiumWeekDefini
   );
 }
 
-export function OctoberDailyPreview() {
+export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: string }) {
+  const guides = useOctoberGuideVisibility(viewerDiscordId);
+  const isOverviewVisible = guides.isVisible("daily-overview");
+  const isClanOutingVisible = guides.isVisible("clan-outing");
   return (
-    <section className="compendium-daily-section" id="compendium-quests">
-      <div className="compendium-section-heading">
-        <div>
-          <span>Два испытания с героями · одна клановая вылазка</span>
+    <section
+      className={`compendium-daily-section${isOverviewVisible ? "" : " october-daily-section--compact-guidance"}`}
+      id="compendium-quests"
+    >
+      <div className="compendium-section-heading october-daily-heading">
+        <div className="october-daily-heading-row">
           <h2>Задания дня</h2>
+          <button
+            className="october-guide-restore"
+            type="button"
+            aria-label="Вернуть пояснения к заданиям"
+            title="Вернуть скрытые пояснения"
+            onClick={guides.restoreAll}
+          >
+            <FiInfo aria-hidden="true" />
+          </button>
         </div>
       </div>
-      <p className="october-compendium-example-note">
-        Каждый день – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и одна
-        клановая вылазка. За победу на герое даётся звезда, в пятницу, субботу и воскресенье – две.
-        Клановая вылазка всегда даёт по одной звезде каждому игроку и может закрыться одновременно
-        с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
-        замены заданий в день, после {OCTOBER_REWARD_STARS.secondReroll} – три.
-        Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника.
-      </p>
+      {isOverviewVisible && (
+        <div className="october-compendium-example-note october-dismissible-guide">
+          <p>
+            Каждый день – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и одна
+            клановая вылазка. За победу на герое даётся звезда, в пятницу, субботу и воскресенье – две.
+            Клановая вылазка всегда даёт по одной звезде каждому игроку и может закрыться одновременно
+            с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
+            замены заданий в день, после {OCTOBER_REWARD_STARS.secondReroll} – три.
+            Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника.
+          </p>
+          <button
+            type="button"
+            aria-label="Скрыть пояснение к заданиям дня"
+            onClick={() => guides.dismiss("daily-overview")}
+          >
+            <FiX aria-hidden="true" />
+          </button>
+        </div>
+      )}
       <p className="compendium-mobile-swipe-hint">
         Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
       </p>
@@ -69,7 +95,10 @@ export function OctoberDailyPreview() {
             isPreview
           />
         ))}
-        <OctoberClanOutingCard />
+        <OctoberClanOutingCard
+          isNoteVisible={isClanOutingVisible}
+          onDismissNote={() => guides.dismiss("clan-outing")}
+        />
       </div>
       <RuneChallenge
         initialChallenge={{

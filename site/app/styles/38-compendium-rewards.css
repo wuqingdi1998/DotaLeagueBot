@@ -173,7 +173,7 @@
 
 .compendium-reward-milestones {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--reward-milestone-count, 5), minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -346,13 +346,13 @@
 }
 
 .profile-event-badge-clan-reward {
-  width: 116px;
+  width: 122px;
   height: 58px;
   min-height: 58px;
   flex-direction: row;
   justify-content: flex-start;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 6px 12px 6px 7px;
   text-align: left;
 }
 
@@ -368,6 +368,7 @@
 
 .profile-event-badge-reward-label {
   display: grid;
+  min-width: 0;
   gap: 2px;
   line-height: 1;
 }

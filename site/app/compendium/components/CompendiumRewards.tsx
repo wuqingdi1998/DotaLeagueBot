@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { FaCheck, FaStar } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
@@ -67,7 +68,10 @@ function RewardTrack({
           <FiArrowRight aria-hidden="true" />
         </p>
       )}
-      <div className="compendium-reward-milestones">
+      <div
+        className="compendium-reward-milestones"
+        style={{ "--reward-milestone-count": rewards.length } as CSSProperties}
+      >
         {isPreview && rewards.length === 0 && (
           <article>
             <h3>Награды выберем позже</h3>

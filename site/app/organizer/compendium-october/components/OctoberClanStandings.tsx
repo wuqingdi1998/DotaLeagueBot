@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiMaximize2, FiX } from "react-icons/fi";
@@ -72,11 +73,13 @@ function StandingRow({
 export function OctoberClanStandings({
   clanId,
   clanName,
+  clanEmblem,
   members,
   viewerDiscordId,
 }: {
   clanId: OctoberClanId;
   clanName: string;
+  clanEmblem: string;
   members: readonly OctoberClanMember[];
   viewerDiscordId?: string;
 }) {
@@ -87,37 +90,49 @@ export function OctoberClanStandings({
   const titleId = `october-${clanId}-standings-title`;
 
   return (
-    <div className="october-clan-standings" aria-label={`Состав клана ${clanName}`}>
-      <div className="october-clan-standing-summary">
-        <span>{participantCountLabel(members.length)}</span>
-        <strong><FaStar aria-hidden="true" /> {pointCountLabel(totalPoints)}</strong>
+    <article className={`october-clan-card october-clan-card--${clanId}`}>
+      <div className="october-clan-identity">
+        <div className="october-clan-total-stars" aria-label={`${pointCountLabel(totalPoints)} у клана ${clanName}`}>
+          <FaStar aria-hidden="true" />
+          <strong>{pointCountLabel(totalPoints)}</strong>
+        </div>
+        <div className="october-clan-flag" aria-label={`Флаг клана ${clanName}`}>
+          <span className="october-clan-flag-inner">
+            <Image src={clanEmblem} alt="" width={164} height={164} sizes="(max-width: 720px) 110px, 164px" />
+          </span>
+        </div>
+        <h3>{clanName}</h3>
+        <button
+          className="october-clan-standing-open"
+          type="button"
+          onClick={() => dialogRef.current?.showModal()}
+        >
+          <FiMaximize2 aria-hidden="true" /> Полный зачёт клана
+        </button>
       </div>
-      {cardRows.length ? (
-        <ol className="october-clan-standings-compact" aria-label={`Топ-10 клана ${clanName}`}>
-          {cardRows.map((row, index) => row.kind === "ellipsis" ? (
-            <li className="october-clan-standing-ellipsis" aria-hidden="true" key={`ellipsis-${index}`}>
-              <span>•••</span>
-            </li>
+      <div className="october-clan-card-copy">
+        <div className="october-clan-standings" aria-label={`Состав клана ${clanName}`}>
+          {cardRows.length ? (
+            <ol className="october-clan-standings-compact" aria-label={`Топ-10 клана ${clanName}`}>
+              {cardRows.map((row, index) => row.kind === "ellipsis" ? (
+                <li className="october-clan-standing-ellipsis" aria-hidden="true" key={`ellipsis-${index}`}>
+                  <span>•••</span>
+                </li>
+              ) : (
+                <StandingRow
+                  key={row.member.discordId}
+                  member={row.member}
+                  position={row.position}
+                  isCompact
+                  isCurrentPlayer={row.member.discordId === viewerDiscordId}
+                />
+              ))}
+            </ol>
           ) : (
-            <StandingRow
-              key={row.member.discordId}
-              member={row.member}
-              position={row.position}
-              isCompact
-              isCurrentPlayer={row.member.discordId === viewerDiscordId}
-            />
-          ))}
-        </ol>
-      ) : (
-        <p className="october-clan-standing-empty">Состав появится после распределения участников.</p>
-      )}
-      <button
-        className="october-clan-standing-open"
-        type="button"
-        onClick={() => dialogRef.current?.showModal()}
-      >
-        <FiMaximize2 aria-hidden="true" /> Полный зачёт клана
-      </button>
+            <p className="october-clan-standing-empty">Состав появится после распределения участников.</p>
+          )}
+        </div>
+      </div>
 
       <dialog
         className={`october-clan-standing-dialog october-clan-standing-dialog--${clanId}`}
@@ -163,6 +178,6 @@ export function OctoberClanStandings({
           </div>
         </div>
       </dialog>
-    </div>
+    </article>
   );
 }

@@ -63,7 +63,7 @@ export function OctoberCompendiumPreview({
       </section>
 
       <section className="october-compendium-screen october-compendium-screen-daily" id={OCTOBER_PREVIEW_SECTIONS[3].id} aria-label="Задания дня">
-        <OctoberDailyPreview />
+        <OctoberDailyPreview viewerDiscordId={viewerDiscordId} />
       </section>
     </main>
   );

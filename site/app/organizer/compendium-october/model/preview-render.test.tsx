@@ -7,6 +7,7 @@ import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards
 import { ProfileEventBadge } from "@/app/components/ProfileEventBadge";
 import { OctoberClanShowcase } from "../sections/OctoberClanShowcase";
 import { OctoberClanOutingCard } from "../sections/OctoberClanOutingCard";
+import { OctoberDailyPreview } from "../sections/OctoberActivityPreview";
 import { OctoberSectionNavigation } from "../components/OctoberSectionNavigation";
 import { OCTOBER_CLANS } from "./clans";
 import { OCTOBER_PREVIEW_SECTIONS } from "./sections";
@@ -24,6 +25,10 @@ const presentationStyles = readFileSync(
 );
 const clanStyles = readFileSync(
   new URL("../../../styles/67-october-clan-standings.css", import.meta.url),
+  "utf8",
+);
+const guideStyles = readFileSync(
+  new URL("../../../styles/68-october-compendium-guides.css", import.meta.url),
   "utf8",
 );
 const organizerStyles = readFileSync(
@@ -93,7 +98,7 @@ describe("October preview actions", () => {
       /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;/,
     );
     expect(rewardStyles).toMatch(
-      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*116px;[^}]*height:\s*58px;[^}]*flex-direction:\s*row;/,
+      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*122px;[^}]*height:\s*58px;[^}]*flex-direction:\s*row;/,
     );
     expect(previewStyles).not.toContain(
       ".october-compendium-screen-personal .profile-event-badge-clan {",
@@ -107,6 +112,7 @@ describe("October preview actions", () => {
     expect(html).toContain("Флаг клана Панацея");
     expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
+    expect(html).toContain("10 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
     expect(html).toContain("Победители разыграют 7 предметов, проигравшие – 3");
     expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(7);
     expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
@@ -141,7 +147,7 @@ describe("October preview actions", () => {
     expect(html).toContain("Состав клана Панацея");
     expect(html).toContain("/players/101");
     expect(html).toContain("/players/102");
-    expect(html.match(/1 участник/g)).toHaveLength(4);
+    expect(html.match(/1 участник/g)).toHaveLength(2);
     expect(html.match(/class="october-clan-standing-open"/g)).toHaveLength(2);
     expect(html).toContain("Полный зачёт клана Морбус");
     expect(html.match(/aria-label="Закрыть полный зачёт"/g)).toHaveLength(2);
@@ -149,6 +155,8 @@ describe("October preview actions", () => {
     expect(html).toContain("october-clan-standing-row--current");
     expect(html).toContain(">Вы</span>");
     expect(html.match(/class="october-clan-identity"/g)).toHaveLength(2);
+    expect(html).toContain("4 очка у клана Морбус");
+    expect(html.indexOf("Полный зачёт клана")).toBeLessThan(html.indexOf("october-clan-card-copy"));
     expect(html).not.toContain("Клан 01");
     expect(html).not.toContain("Клан 02");
   });
@@ -179,6 +187,31 @@ describe("October preview actions", () => {
     expect(html).toContain("каждый получит по одной звезде");
     expect(html).toContain("одновременно засчитать для испытания 1 или 2");
     expect(html).toMatch(/class="compendium-check-button"[^>]*disabled/);
+  });
+
+  it("lets each participant hide and restore the two daily explanations", () => {
+    const html = renderToStaticMarkup(<OctoberDailyPreview viewerDiscordId="viewer-1" />);
+    expect(html).toContain("aria-label=\"Вернуть пояснения к заданиям\"");
+    expect(html).toContain("aria-label=\"Скрыть пояснение к заданиям дня\"");
+    expect(html).toContain("aria-label=\"Скрыть пояснение к клановой вылазке\"");
+    expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
+    expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");
+  });
+
+  it("keeps the platinum reward beside the first five milestones", () => {
+    const html = renderToStaticMarkup(
+      <CompendiumRewards
+        personalStars={100}
+        communityStars={0}
+        isPreview
+        showCommunity={false}
+        personalRewards={octoberRewardsForStars(100)}
+      />,
+    );
+    expect(html).toContain("Платиновый бейдж клана");
+    expect(html).toContain("--reward-milestone-count:6");
+    expect(rewardStyles).toContain("repeat(var(--reward-milestone-count, 5), minmax(0, 1fr))");
+    expect(profileStyles).toContain("--badge-main: #607b91");
   });
 
   it("renders the existing daily card with disabled buttons", () => {
@@ -245,7 +278,7 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin-top: auto;/,
     );
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 25%;/,
+      /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 calc\(100% \/ 6\);/,
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
     expect(clanStyles).toContain("grid-auto-rows: minmax(25px, 1fr)");
@@ -254,6 +287,8 @@ describe("October preview actions", () => {
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
     expect(organizerStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));
+    expect(organizerStyles.indexOf("68-october-compendium-guides.css"))
+      .toBeGreaterThan(organizerStyles.indexOf("67-october-clan-standings.css"));
   });
 
   it("places every October screen over the high-resolution clan hall", () => {

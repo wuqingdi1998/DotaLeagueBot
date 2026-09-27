@@ -42,7 +42,7 @@ export function OctoberClanPrizeBoard() {
   return (
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
       <div className="october-clan-prize-copy">
-        <span>10 предметов в финальном розыгрыше</span>
+        <span>10 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш</span>
         <h3 id="october-clan-prizes-title">
           Победители разыграют 7 предметов, проигравшие – 3
         </h3>

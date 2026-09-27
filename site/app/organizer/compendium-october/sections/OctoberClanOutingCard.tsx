@@ -1,8 +1,14 @@
 import { FaStar } from "react-icons/fa";
-import { FiUsers } from "react-icons/fi";
+import { FiUsers, FiX } from "react-icons/fi";
 import { OCTOBER_CLAN_QUEST_POSITION } from "../model/preview";
 
-export function OctoberClanOutingCard() {
+export function OctoberClanOutingCard({
+  isNoteVisible = true,
+  onDismissNote,
+}: {
+  isNoteVisible?: boolean;
+  onDismissNote?: () => void;
+}) {
   return (
     <article className="compendium-quest october-clan-quest">
       <div className="compendium-quest-heading">
@@ -22,10 +28,17 @@ export function OctoberClanOutingCard() {
       <p className="compendium-condition">
         Выиграйте одну рейтинговую игру вместе с участником своего клана.
       </p>
-      <p className="october-clan-quest-note">
-        Задание закроется у обоих игроков: каждый получит по одной звезде. Эту же победу можно
-        одновременно засчитать для испытания 1 или 2, если выполнены их условия.
-      </p>
+      {isNoteVisible && (
+        <div className="october-clan-quest-note october-dismissible-guide">
+          <p>
+            Задание закроется у обоих игроков: каждый получит по одной звезде. Эту же победу можно
+            одновременно засчитать для испытания 1 или 2, если выполнены их условия.
+          </p>
+          <button type="button" aria-label="Скрыть пояснение к клановой вылазке" onClick={onDismissNote}>
+            <FiX aria-hidden="true" />
+          </button>
+        </div>
+      )}
       <button className="compendium-check-button" type="button" disabled>
         Пока не открыто
       </button>

@@ -1,0 +1,79 @@
+.october-daily-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.october-guide-restore,
+.october-dismissible-guide > button {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--blue-soft) 60%, var(--line));
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+  color: var(--blue-soft);
+  cursor: pointer;
+}
+
+.october-guide-restore {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  font-size: 19px;
+}
+
+.october-dismissible-guide {
+  position: relative;
+  padding-right: 54px;
+}
+
+.october-dismissible-guide > p { margin: 0; }
+
+.october-clan-quest-note.october-dismissible-guide { padding-right: 38px; }
+
+.october-dismissible-guide > button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  font-size: 17px;
+}
+
+.october-guide-restore:hover,
+.october-dismissible-guide > button:hover { color: var(--text); }
+
+.october-guide-restore:focus-visible,
+.october-dismissible-guide > button:focus-visible {
+  outline: 2px solid var(--blue-soft);
+  outline-offset: 2px;
+}
+
+@media (min-width: 961px) and (min-height: 700px) {
+  .october-daily-section--compact-guidance .compendium-quest-grid {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
+  .october-daily-section--compact-guidance .compendium-quest-grid > .compendium-quest {
+    height: auto;
+    min-height: clamp(430px, 52vh, 460px);
+  }
+
+  .october-daily-section--compact-guidance .october-clan-quest-emblem { min-height: 68px; }
+  .october-daily-section--compact-guidance .october-clan-quest h3 { margin-top: 7px; }
+  .october-daily-section--compact-guidance .october-clan-quest-note {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .october-daily-section--compact-guidance .october-clan-quest-note:last-of-type {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 720px) {
+  .october-dismissible-guide { padding-right: 48px; }
+  .october-guide-restore { width: 32px; height: 32px; }
+}

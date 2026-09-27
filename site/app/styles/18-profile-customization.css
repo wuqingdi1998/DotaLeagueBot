@@ -88,8 +88,8 @@
 }
 
 .profile-event-badge-platinum {
-  --badge-main: #8c9fb2;
-  --badge-light: #eff9ff;
+  --badge-main: #607b91;
+  --badge-light: #c9dce8;
 }
 
 .profile-event-badge-clan { gap: 7px; padding: 5px 9px 5px 5px; }

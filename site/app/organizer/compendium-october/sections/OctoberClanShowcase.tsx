@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { OCTOBER_CLANS } from "../model/clans";
 import type { OctoberClanMember } from "../model/clan-members";
 import { OctoberClanPrizeBoard } from "../components/OctoberClanPrizeBoard";
@@ -27,30 +26,13 @@ export function OctoberClanShowcase({
           return (
             <div className="october-clan-lineup-slot" key={clan.id}>
               {index > 0 && <span className="october-clan-versus" aria-hidden="true">VS</span>}
-              <article className={`october-clan-card october-clan-card--${clan.id}`}>
-                <div className="october-clan-identity">
-                  <div className="october-clan-flag" aria-label={`Флаг клана ${clan.name}`}>
-                    <span className="october-clan-flag-inner">
-                      <Image
-                        src={clan.emblem}
-                        alt=""
-                        width={164}
-                        height={164}
-                        sizes="(max-width: 720px) 110px, 164px"
-                      />
-                    </span>
-                  </div>
-                  <h3>{clan.name}</h3>
-                </div>
-                <div className="october-clan-card-copy">
-                  <OctoberClanStandings
-                    clanId={clan.id}
-                    clanName={clan.name}
-                    members={clanMembers}
-                    viewerDiscordId={viewerDiscordId}
-                  />
-                </div>
-              </article>
+              <OctoberClanStandings
+                clanId={clan.id}
+                clanName={clan.name}
+                clanEmblem={clan.emblem}
+                members={clanMembers}
+                viewerDiscordId={viewerDiscordId}
+              />
             </div>
           );
         })}
