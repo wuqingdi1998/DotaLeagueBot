@@ -355,7 +355,7 @@ export function CompendiumStarRace({
     <section className="compendium-star-race" id={sectionId}>
       <div className="compendium-star-race-heading">
         <div>
-          <span>{race.dateLabel} · отдельный недельный зачёт</span>
+          <span>{race.dateLabel} · отдельный недельный межклановый зачёт</span>
           <h2>{race.title}</h2>
         </div>
       </div>

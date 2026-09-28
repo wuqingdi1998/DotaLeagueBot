@@ -187,12 +187,15 @@
   .october-compendium-screen-race .compendium-star-race {
     display: flex;
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
     flex-direction: column;
     margin-top: 0;
-    justify-content: center;
-    padding: clamp(20px, 2.4vh, 28px);
+    justify-content: flex-start;
+    padding: clamp(14px, 1.7vh, 18px) clamp(20px, 2vw, 26px);
   }
+
+  .october-compendium-screen-race .compendium-rewards-section { justify-content: center; }
+  .october-compendium-screen-race .compendium-star-race::before { display: none; }
 
   .october-compendium-screen-race .compendium-star-race-heading h2 {
     font-size: 32px;

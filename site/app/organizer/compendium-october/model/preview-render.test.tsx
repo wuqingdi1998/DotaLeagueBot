@@ -35,6 +35,10 @@ const organizerStyles = readFileSync(
   new URL("../../../styles/organizer-route.css", import.meta.url),
   "utf8",
 );
+const starRaceSource = readFileSync(
+  new URL("../../../compendium/components/CompendiumStarRace.tsx", import.meta.url),
+  "utf8",
+);
 const profileStyles = readFileSync(
   new URL("../../../styles/18-profile-customization.css", import.meta.url),
   "utf8",
@@ -358,6 +362,11 @@ describe("October preview actions", () => {
     expect(clanStyles).toContain("width: min(100%, 112px)");
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
     expect(previewStyles).toContain("min-height: clamp(300px, 38vh, 350px)");
+    expect(previewStyles).toContain(".october-compendium-screen-race .compendium-star-race::before { display: none; }");
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 0 1 auto;[\s\S]*?justify-content: flex-start;/,
+    );
+    expect(starRaceSource).toContain("отдельный недельный межклановый зачёт");
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin: 10px 0;/,
     );
