@@ -39,6 +39,10 @@ const profileStyles = readFileSync(
   new URL("../../../styles/18-profile-customization.css", import.meta.url),
   "utf8",
 );
+const profileBadgeTierStyles = readFileSync(
+  new URL("../../../styles/18-profile-badge-tiers.css", import.meta.url),
+  "utf8",
+);
 const rewardStyles = readFileSync(
   new URL("../../../styles/38-compendium-rewards.css", import.meta.url),
   "utf8",
@@ -223,7 +227,10 @@ describe("October preview actions", () => {
     expect(html).toContain("Платиновый бейдж клана");
     expect(html).toContain("--reward-milestone-count:6");
     expect(rewardStyles).toContain("repeat(var(--reward-milestone-count, 5), minmax(0, 1fr))");
-    expect(profileStyles).toContain("--badge-main: #607b91");
+    expect(profileBadgeTierStyles).toContain("--badge-main: #3f6680");
+    expect(profileBadgeTierStyles).toContain("--badge-glint: #8ce6e1");
+    expect(profileBadgeTierStyles).toContain(".profile-event-badge-platinum::after");
+    expect(profileBadgeTierStyles).toContain("bottom right / 18px 2px no-repeat");
   });
 
   it("renders the existing daily card with disabled buttons", () => {

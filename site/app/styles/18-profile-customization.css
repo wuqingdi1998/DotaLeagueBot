@@ -77,21 +77,6 @@
   stroke-linecap: round;
 }
 
-.profile-event-badge-silver {
-  --badge-main: #7e8b99;
-  --badge-light: #e4edf2;
-}
-
-.profile-event-badge-gold {
-  --badge-main: #b68316;
-  --badge-light: #ffe28a;
-}
-
-.profile-event-badge-platinum {
-  --badge-main: #607b91;
-  --badge-light: #c9dce8;
-}
-
 .profile-event-badge-clan {
   display: inline-grid;
   grid-template-columns: 36px minmax(0, 1fr);

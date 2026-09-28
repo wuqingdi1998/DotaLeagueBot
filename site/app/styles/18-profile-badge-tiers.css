@@ -1,0 +1,69 @@
+.profile-event-badge-silver {
+  --badge-main: #7e8b99;
+  --badge-light: #e4edf2;
+}
+
+.profile-event-badge-gold {
+  --badge-main: #b68316;
+  --badge-light: #ffe28a;
+}
+
+.profile-event-badge-platinum {
+  --badge-main: #3f6680;
+  --badge-light: #d8f5f2;
+  --badge-glint: #8ce6e1;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--badge-glint) 78%, #ffffff);
+  background:
+    radial-gradient(circle at 18% 10%, rgba(169, 241, 236, 0.32), transparent 34%),
+    linear-gradient(135deg, #172633 0%, #31566f 48%, #192a3a 100%);
+  color: #eaffff;
+  box-shadow:
+    0 0 0 1px rgba(152, 229, 226, 0.2),
+    0 7px 22px rgba(39, 104, 128, 0.42),
+    inset 0 0 18px rgba(133, 221, 218, 0.14);
+}
+
+.profile-event-badge-platinum::before,
+.profile-event-badge-platinum::after {
+  position: absolute;
+  z-index: 0;
+  content: "";
+  pointer-events: none;
+}
+
+.profile-event-badge-platinum::before {
+  inset: 0;
+  background: linear-gradient(
+    112deg,
+    transparent 24%,
+    rgba(222, 255, 252, 0.2) 45%,
+    transparent 63%
+  );
+}
+
+.profile-event-badge-platinum::after {
+  inset: 3px;
+  border-radius: 7px;
+  background:
+    linear-gradient(90deg, var(--badge-glint) 0 11px, transparent 11px) top left / 18px 2px no-repeat,
+    linear-gradient(180deg, var(--badge-glint) 0 11px, transparent 11px) top left / 2px 18px no-repeat,
+    linear-gradient(270deg, var(--badge-glint) 0 11px, transparent 11px) bottom right / 18px 2px no-repeat,
+    linear-gradient(0deg, var(--badge-glint) 0 11px, transparent 11px) bottom right / 2px 18px no-repeat;
+  filter: drop-shadow(0 0 3px rgba(141, 232, 227, 0.72));
+}
+
+.profile-event-badge-platinum > * {
+  position: relative;
+  z-index: 1;
+}
+
+.profile-event-badge-platinum .profile-event-badge-clan-crest {
+  border-color: #baf8f2;
+  background: radial-gradient(circle at 32% 24%, #8fc7ce 0%, #4d768d 38%, #243c52 100%);
+  box-shadow:
+    0 0 8px rgba(130, 231, 225, 0.44),
+    inset 0 0 10px rgba(221, 255, 252, 0.3);
+}
