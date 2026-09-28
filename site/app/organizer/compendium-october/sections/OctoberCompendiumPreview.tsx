@@ -27,9 +27,8 @@ export function OctoberCompendiumPreview({
           <div className="compendium-orb compendium-orb-one" />
           <div className="compendium-orb compendium-orb-two" />
           <div className="compendium-title-block">
-            <p className="compendium-kicker">{OCTOBER_COMPENDIUM_DATE_LABEL}</p>
             <h1>Компендиум</h1>
-            <p className="october-compendium-hero-line">Два клана. Один победитель.</p>
+            <p className="october-compendium-hero-line">Сезон 9. Часть 1.</p>
           </div>
           <div className="compendium-summary">
             <div className="compendium-tournament-countdown">

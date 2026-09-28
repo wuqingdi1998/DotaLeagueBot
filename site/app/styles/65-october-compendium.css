@@ -83,33 +83,6 @@
   border-radius: 14px;
 }
 
-.october-clan-showcase-heading {
-  margin-bottom: 26px;
-  text-align: center;
-}
-
-.october-clan-showcase-heading > span {
-  color: #b3d2d0;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
-
-.october-clan-showcase-heading h2 {
-  margin: 7px 0;
-  font-family: "5ka Sans Design", sans-serif;
-  font-size: clamp(30px, 3.5vw, 47px);
-  line-height: 1.1;
-}
-
-.october-clan-showcase-heading p {
-  margin: 0;
-  color: #c2d2d2;
-  font-size: 15px;
-  line-height: 1.55;
-}
-
 .october-clan-lineup {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

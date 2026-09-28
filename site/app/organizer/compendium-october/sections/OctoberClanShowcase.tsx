@@ -11,13 +11,7 @@ export function OctoberClanShowcase({
   viewerDiscordId?: string;
 }) {
   return (
-    <section className="october-clan-showcase" aria-labelledby="october-clan-title">
-      <div className="october-clan-showcase-heading">
-        <span>Два клана · один победитель</span>
-        <h2 id="october-clan-title">Морбус против Панацеи</h2>
-        <p>Каждая заработанная звезда пополнит личный и клановый зачёт.</p>
-      </div>
-
+    <section className="october-clan-showcase" aria-label="Клановый зачёт">
       <OctoberClanPrizeBoard />
 
       <div className="october-clan-lineup">

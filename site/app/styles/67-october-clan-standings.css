@@ -2,7 +2,7 @@
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns: minmax(560px, 0.9fr) minmax(0, 1.1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(500px, 0.72fr);
   align-items: center;
   gap: 18px;
   margin-bottom: 14px;
@@ -12,19 +12,18 @@
   background: linear-gradient(110deg, rgba(125, 85, 22, 0.2), rgba(6, 27, 35, 0.75));
 }
 
-.october-clan-prize-copy > span {
-  color: #f2d67d;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.october-clan-prize-copy {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
 }
 
-.october-clan-prize-copy h3 {
-  margin: 3px 0 0;
-  color: #f7fbfa;
-  font-size: clamp(15px, 1.3vw, 19px);
-  line-height: 1.25;
+.october-clan-prize-copy p {
+  margin: 0;
+  color: #f2d67d;
+  font-size: clamp(12px, 1vw, 14px);
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .october-clan-prize-board > ul {
@@ -409,18 +408,6 @@
     padding: 12px 18px;
   }
 
-  .october-compendium-screen-clans .october-clan-showcase-heading {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 14px;
-    margin-bottom: 8px;
-  }
-
-  .october-compendium-screen-clans .october-clan-showcase-heading > span { display: none; }
-  .october-compendium-screen-clans .october-clan-showcase-heading h2 { margin-block: 0 3px; font-size: 26px; }
-  .october-compendium-screen-clans .october-clan-showcase-heading p { font-size: 12px; white-space: nowrap; }
-
   .october-compendium-screen-clans .october-clan-card {
     grid-template-columns: minmax(78px, 20%) minmax(0, 1fr);
     gap: 12px;
@@ -446,11 +433,7 @@
 }
 
 @media (min-width: 961px) and (max-width: 1300px) {
-  .october-clan-prize-board {
-    grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
-  }
-
-  .october-clan-prize-copy h3 { font-size: 14px; }
+  .october-clan-prize-copy p { font-size: 12px; }
 }
 
 @media (max-width: 660px) {

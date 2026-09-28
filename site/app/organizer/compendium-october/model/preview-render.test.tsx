@@ -47,6 +47,10 @@ const rewardStyles = readFileSync(
   new URL("../../../styles/38-compendium-rewards.css", import.meta.url),
   "utf8",
 );
+const previewSource = readFileSync(
+  new URL("../sections/OctoberCompendiumPreview.tsx", import.meta.url),
+  "utf8",
+);
 
 function unavailable() {
   throw new Error("A private preview must never submit an action");
@@ -130,11 +134,24 @@ describe("October preview actions", () => {
     expect(html).toContain("panacea-emblem.webp");
     expect(html).toContain("10 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
     expect(html).toContain("Победители разыграют 7 предметов, проигравшие – 3");
+    expect(html).not.toContain("Морбус против Панацеи");
+    expect(html).not.toContain("Каждая заработанная звезда пополнит личный и клановый зачёт");
+    expect(html).toContain('<p id="october-clan-prizes-title">10 предметов');
+    expect(html).toContain("<p>Победители разыграют 7 предметов, проигравшие – 3</p>");
     expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(7);
     expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
     expect(html).not.toContain("Зачёт сообщества");
     expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
       .toBe(true);
+  });
+
+  it("shows the season instead of the date in the main title", () => {
+    expect(previewSource).toContain("<h1>Компендиум</h1>");
+    expect(previewSource).toContain("Сезон 9. Часть 1.");
+    expect(previewSource).not.toContain("Два клана. Один победитель.");
+    expect(previewSource).not.toContain(
+      '<p className="compendium-kicker">{OCTOBER_COMPENDIUM_DATE_LABEL}</p>',
+    );
   });
 
   it("shows saved clan members only inside the organizer preview", () => {
@@ -300,6 +317,15 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 calc\(100% \/ 6\);/,
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
+    expect(clanStyles).toContain(
+      "grid-template-columns: minmax(0, 1fr) minmax(500px, 0.72fr)",
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-prize-copy p\s*\{[^}]*color:\s*#f2d67d;[^}]*font-size:\s*clamp\(12px, 1vw, 14px\);/,
+    );
+    expect(presentationStyles).not.toContain(".october-clan-showcase-heading");
+    expect(previewStyles).not.toContain(".october-clan-showcase-heading");
+    expect(clanStyles).not.toContain(".october-clan-showcase-heading");
     expect(clanStyles).toMatch(
       /\.october-clan-standings-compact\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/,
     );

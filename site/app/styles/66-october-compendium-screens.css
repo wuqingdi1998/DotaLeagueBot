@@ -121,17 +121,9 @@
     padding: 18px 24px;
   }
 
-  .october-compendium-screen-clans .october-clan-showcase-heading {
-    margin-bottom: 14px;
-  }
-
   .october-compendium-screen-clans .october-clan-lineup {
     min-height: 0;
     flex: 1;
-  }
-
-  .october-compendium-screen-clans .october-clan-showcase-heading h2 {
-    font-size: 32px;
   }
 
   .october-compendium-screen-clans .october-clan-card {
@@ -424,7 +416,6 @@
 
   .october-compendium-screen-clans .compendium-title-block h1 { font-size: 44px; }
   .october-compendium-screen-clans .october-compendium-hero-line { font-size: 16px; }
-  .october-compendium-screen-clans .october-clan-showcase-heading h2 { font-size: 38px; }
   .october-compendium-screen-clans .october-clan-flag { width: min(100%, 160px); }
   .october-compendium-screen-clans .october-clan-identity h3 { font-size: 48px; }
   .october-compendium-screen-personal .compendium-reward-track-heading h2 { font-size: 46px; }
@@ -444,8 +435,6 @@
 }
 
 @media (min-width: 961px) and (max-height: 760px) {
-  .october-compendium-screen-clans .october-clan-showcase-heading { margin-bottom: 6px; }
-  .october-compendium-screen-clans .october-clan-showcase-heading h2 { font-size: 28px; }
   .october-compendium-screen-clans .october-clan-card { min-height: 0; padding: 8px 12px; }
   .october-compendium-screen-clans .october-clan-flag { width: min(100%, 110px); }
 }
