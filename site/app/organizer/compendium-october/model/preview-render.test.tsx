@@ -300,7 +300,18 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-clans \.compendium-hero-section \{[\s\S]*?flex: 0 0 calc\(100% \/ 6\);/,
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
-    expect(clanStyles).toContain("grid-auto-rows: minmax(25px, 1fr)");
+    expect(clanStyles).toMatch(
+      /\.october-clan-standings-compact\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-standing-row--compact\s*\{[^}]*padding:\s*2px 12px 2px 6px;[^}]*font-size:\s*13px;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-standing-row--compact \.october-clan-standing-avatar\s*\{[^}]*width:\s*30px;[^}]*height:\s*30px;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-standing-ellipsis\s*\{[^}]*flex:\s*0 0 8px;[^}]*line-height:\s*8px;/,
+    );
     expect(clanStyles).toContain("width: min(100%, 150px)");
     expect(clanStyles).toContain("transform: translateY(-5%)");
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");

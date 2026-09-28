@@ -170,9 +170,10 @@
 }
 
 .october-clan-standings-compact {
+  display: flex;
   height: 100%;
   min-height: 0;
-  grid-auto-rows: minmax(25px, 1fr);
+  flex-direction: column;
 }
 
 .october-clan-standing-row {
@@ -188,16 +189,17 @@
 }
 
 .october-clan-standing-row--compact {
-  grid-template-columns: 20px minmax(0, 1fr) 48px;
-  gap: 5px;
-  min-height: 25px;
-  padding: 1px 5px;
+  grid-template-columns: 22px minmax(0, 1fr) 48px;
+  gap: 7px;
+  min-height: 30px;
+  padding: 2px 12px 2px 6px;
   border-radius: 5px;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .october-clan-standings-compact .october-clan-standing-row--compact {
-  height: 100%;
+  height: auto;
+  flex: 1 1 0;
 }
 
 .october-clan-standing-row--current {
@@ -248,9 +250,14 @@
 }
 
 .october-clan-standing-row--compact .october-clan-standing-avatar {
-  width: 22px;
-  height: 22px;
-  font-size: 9px;
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+
+.october-clan-standing-row--compact > strong svg {
+  width: 12px;
+  height: 12px;
 }
 
 .october-clan-standing-name {
@@ -273,11 +280,13 @@
 
 .october-clan-standing-ellipsis {
   display: grid;
-  min-height: 17px;
+  min-height: 8px;
+  flex: 0 0 8px;
   place-items: center;
   color: color-mix(in srgb, var(--clan-accent) 70%, #82989c);
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 900;
+  line-height: 8px;
   letter-spacing: 0.18em;
 }
 
@@ -449,7 +458,7 @@
   .october-clan-prize-board > ul { grid-template-columns: repeat(5, minmax(42px, 1fr)); }
   .october-clan-prize-slot { min-height: 54px; }
   .october-clan-card { grid-template-columns: minmax(70px, 24%) minmax(0, 1fr); }
-  .october-clan-standing-row--compact { grid-template-columns: 18px minmax(0, 1fr) 42px; }
+  .october-clan-standing-row--compact { grid-template-columns: 20px minmax(0, 1fr) 42px; gap: 6px; padding-inline: 5px 10px; }
   .october-clan-standing-dialog-panel > header { padding: 18px; }
   .october-clan-standing-dialog-table { padding-inline: 10px; }
   .october-clan-standing-row { grid-template-columns: 34px minmax(0, 1fr) 58px; gap: 6px; padding-inline: 6px; }
