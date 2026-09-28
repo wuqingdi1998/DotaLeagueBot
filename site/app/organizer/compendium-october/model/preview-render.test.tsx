@@ -323,6 +323,18 @@ describe("October preview actions", () => {
     expect(clanStyles).toMatch(
       /\.october-clan-prize-copy p\s*\{[^}]*color:\s*#f2d67d;[^}]*font-size:\s*clamp\(12px, 1vw, 14px\);/,
     );
+    expect(presentationStyles).toMatch(
+      /\.october-clan-showcase\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*2;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-total-stars\s*\{[^}]*font-size:\s*13px;[^}]*font-weight:\s*800;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-standing-open\s*\{[^}]*font-size:\s*13px;[^}]*line-height:\s*1\.25;/,
+    );
+    expect(clanStyles).toContain(
+      "grid-template-columns: minmax(136px, 24%) minmax(0, 1fr)",
+    );
     expect(presentationStyles).not.toContain(".october-clan-showcase-heading");
     expect(previewStyles).not.toContain(".october-clan-showcase-heading");
     expect(clanStyles).not.toContain(".october-clan-showcase-heading");

@@ -137,13 +137,14 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 108px;
-  padding: 6px 10px;
+  min-width: 118px;
+  padding: 7px 12px;
   border: 1px solid color-mix(in srgb, var(--clan-accent) 48%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--clan-accent) 12%, rgba(5, 20, 27, 0.82));
   color: var(--clan-accent);
-  font-size: 11px;
+  font-size: 13px;
+  font-weight: 800;
   white-space: nowrap;
 }
 
@@ -156,7 +157,7 @@
   white-space: nowrap;
 }
 
-.october-clan-total-stars svg,
+.october-clan-total-stars svg { width: 13px; height: 13px; }
 .october-clan-standing-row > strong svg { width: 11px; height: 11px; }
 
 .october-clan-standings-compact,
@@ -297,13 +298,15 @@
   align-items: center;
   gap: 6px;
   margin-top: 2px;
-  padding: 6px 10px;
+  justify-content: center;
+  padding: 8px 12px;
   border: 1px solid color-mix(in srgb, var(--clan-accent) 52%, transparent);
   border-radius: 9px;
   background: color-mix(in srgb, var(--clan-accent) 11%, transparent);
   color: #edf8f6;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
+  line-height: 1.25;
   cursor: pointer;
 }
 
@@ -409,7 +412,7 @@
   }
 
   .october-compendium-screen-clans .october-clan-card {
-    grid-template-columns: minmax(78px, 20%) minmax(0, 1fr);
+    grid-template-columns: minmax(136px, 24%) minmax(0, 1fr);
     gap: 12px;
     min-height: 0;
     padding: 10px 12px;
