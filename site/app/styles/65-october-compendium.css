@@ -10,37 +10,34 @@
   width: fit-content;
 }
 
+.october-compendium-preview {
+  background:
+    linear-gradient(180deg, rgba(3, 13, 20, 0.62), rgba(3, 13, 20, 0.48) 45%, rgba(3, 13, 20, 0.7)),
+    url("/compendium/october/clan-saga-continuous.webp") center top / 100% 100% no-repeat,
+    #07151f;
+}
+
 .october-compendium-screen {
   position: relative;
   isolation: isolate;
-  background-color: #07151f;
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
+  background: transparent;
 }
 
-.october-compendium-screen-clans {
-  background-image:
-    linear-gradient(180deg, rgba(3, 13, 20, 0.6), rgba(3, 13, 20, 0.44) 45%, rgba(3, 13, 20, 0.66)),
-    url("/compendium/october/clan-saga-clans.webp");
-}
+@media (min-width: 961px) and (min-height: 700px) {
+  .october-compendium-preview { background: #07151f; }
 
-.october-compendium-screen-personal {
-  background-image:
-    linear-gradient(180deg, rgba(3, 13, 20, 0.66), rgba(3, 13, 20, 0.5) 45%, rgba(3, 13, 20, 0.68)),
-    url("/compendium/october/clan-saga-rewards.webp");
-}
+  .october-compendium-screen {
+    background-image:
+      linear-gradient(180deg, rgba(3, 13, 20, 0.62), rgba(3, 13, 20, 0.48) 45%, rgba(3, 13, 20, 0.7)),
+      url("/compendium/october/clan-saga-continuous.webp");
+    background-repeat: no-repeat;
+    background-size: 100% 400%;
+  }
 
-.october-compendium-screen-race {
-  background-image:
-    linear-gradient(180deg, rgba(3, 13, 20, 0.68), rgba(3, 13, 20, 0.52) 45%, rgba(3, 13, 20, 0.68)),
-    url("/compendium/october/clan-saga-race.webp");
-}
-
-.october-compendium-screen-daily {
-  background-image:
-    linear-gradient(180deg, rgba(3, 13, 20, 0.66), rgba(3, 13, 20, 0.5) 45%, rgba(3, 13, 20, 0.7)),
-    url("/compendium/october/clan-saga-quests.webp");
+  .october-compendium-screen-clans { background-position: center 0%; }
+  .october-compendium-screen-personal { background-position: center 33.333%; }
+  .october-compendium-screen-race { background-position: center 66.667%; }
+  .october-compendium-screen-daily { background-position: center 100%; }
 }
 
 .october-compendium-preview .compendium-hero-section {

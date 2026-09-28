@@ -370,18 +370,14 @@ describe("October preview actions", () => {
       .toBeGreaterThan(organizerStyles.indexOf("67-october-clan-standings.css"));
   });
 
-  it("places the four October screens over matching clan saga chapters", () => {
-    const backgroundNames = [
-      "clan-saga-clans.webp",
-      "clan-saga-rewards.webp",
-      "clan-saga-race.webp",
-      "clan-saga-quests.webp",
-    ];
-    for (const backgroundName of backgroundNames) {
-      expect(presentationStyles).toContain(backgroundName);
-      expect(existsSync(new URL(`../../../../public/compendium/october/${backgroundName}`, import.meta.url)))
-        .toBe(true);
-    }
+  it("uses one continuous clan saga background across all four October screens", () => {
+    const backgroundName = "clan-saga-continuous.webp";
+    expect(presentationStyles.match(new RegExp(backgroundName, "g"))).toHaveLength(2);
+    expect(presentationStyles).toContain("background-size: 100% 400%");
+    expect(presentationStyles).toContain("background-position: center 33.333%");
+    expect(presentationStyles).toContain("background-position: center 66.667%");
+    expect(existsSync(new URL(`../../../../public/compendium/october/${backgroundName}`, import.meta.url)))
+      .toBe(true);
     expect(existsSync(new URL("../../../../public/compendium/october/clan-hall-hd.webp", import.meta.url)))
       .toBe(true);
     expect(previewSource).not.toContain("compendium-orb compendium-orb-one");
