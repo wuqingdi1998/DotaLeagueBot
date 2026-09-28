@@ -346,6 +346,7 @@
 }
 
 .profile-event-badge-clan-reward {
+  display: flex;
   width: 122px;
   height: 58px;
   min-height: 58px;
@@ -354,6 +355,7 @@
   gap: 8px;
   padding: 6px 12px 6px 7px;
   text-align: left;
+  transition: opacity 160ms ease, transform 160ms ease;
 }
 
 .profile-event-badge-clan-reward .profile-event-badge-clan-crest {
@@ -379,17 +381,13 @@
 .profile-event-badge-profile-preview {
   position: absolute;
   z-index: 5;
-  top: calc(100% + 8px);
-  left: 50%;
+  inset: 0;
+  display: grid;
   visibility: hidden;
-  padding: 7px;
-  border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  place-items: center;
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -4px);
+  transform: scale(0.96);
   transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
 }
 
@@ -397,7 +395,13 @@
 .profile-event-badge-reward:focus-visible .profile-event-badge-profile-preview {
   visibility: visible;
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: scale(1);
+}
+
+.profile-event-badge-reward:hover .profile-event-badge-clan-reward,
+.profile-event-badge-reward:focus-visible .profile-event-badge-clan-reward {
+  opacity: 0;
+  transform: scale(0.96);
 }
 
 .profile-event-badge-reward:focus-visible {

@@ -100,6 +100,18 @@ describe("October preview actions", () => {
     expect(rewardStyles).toMatch(
       /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*122px;[^}]*height:\s*58px;[^}]*flex-direction:\s*row;/,
     );
+    expect(profileStyles).toMatch(
+      /\.profile-event-badge-clan\s*\{[^}]*grid-template-columns:\s*36px minmax\(0, 1fr\);[^}]*padding:\s*5px 0 5px 5px;/,
+    );
+    expect(profileStyles).toMatch(
+      /\.profile-event-badge-year\s*\{[^}]*width:\s*100%;[^}]*text-align:\s*center;/,
+    );
+    expect(rewardStyles).toMatch(
+      /\.profile-event-badge-profile-preview\s*\{[^}]*inset:\s*0;[^}]*place-items:\s*center;/,
+    );
+    expect(rewardStyles).toMatch(
+      /\.profile-event-badge-reward:hover \.profile-event-badge-clan-reward,[\s\S]*?opacity:\s*0;/,
+    );
     expect(previewStyles).not.toContain(
       ".october-compendium-screen-personal .profile-event-badge-clan {",
     );

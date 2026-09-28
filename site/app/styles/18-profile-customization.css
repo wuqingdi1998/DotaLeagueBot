@@ -92,7 +92,12 @@
   --badge-light: #c9dce8;
 }
 
-.profile-event-badge-clan { gap: 7px; padding: 5px 9px 5px 5px; }
+.profile-event-badge-clan {
+  display: inline-grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 0;
+  padding: 5px 0 5px 5px;
+}
 .profile-event-badge-clan-crest {
   display: grid;
   width: 36px;
@@ -105,7 +110,12 @@
   box-shadow: inset 0 0 9px color-mix(in srgb, var(--badge-light) 25%, transparent);
 }
 .profile-event-badge-clan-crest img { width: 33px; height: 33px; object-fit: contain; }
-.profile-event-badge-year { font-size: 12px; letter-spacing: 0.08em; }
+.profile-event-badge-year {
+  width: 100%;
+  font-size: 12px;
+  text-align: center;
+  letter-spacing: 0.08em;
+}
 .profile-event-badge-clan-morbus .profile-event-badge-clan-crest img {
   transform: translateY(2.4%) scale(1.3, 1.11);
 }
