@@ -1,4 +1,8 @@
+"use client";
+
 import Image from "next/image";
+import { useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { FiGift } from "react-icons/fi";
 import {
   OCTOBER_CLAN_PRIZES,
@@ -11,19 +15,53 @@ const prizePoolLabels: Record<OctoberClanPrizePool, string> = {
   "runners-up": "Проигравшие",
 };
 
+type PrizePopoverPosition = {
+  top: number;
+  left: number;
+};
+
 function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
   const poolLabel = prizePoolLabels[prize.pool];
   const prizeName = prize.name ?? "Приз пока не выбран";
+  const [popoverPosition, setPopoverPosition] = useState<PrizePopoverPosition | null>(null);
+  const tooltipId = `october-clan-prize-${prize.id}`;
+
+  function showPopover(target: HTMLElement) {
+    const bounds = target.getBoundingClientRect();
+    const halfPopoverWidth = 95;
+    const viewportPadding = 12;
+    setPopoverPosition({
+      top: bounds.top - 9,
+      left: Math.min(
+        window.innerWidth - halfPopoverWidth - viewportPadding,
+        Math.max(halfPopoverWidth + viewportPadding, bounds.left + bounds.width / 2),
+      ),
+    });
+  }
+
   return (
-    <li
-      className={`october-clan-prize-slot october-clan-prize-slot--${prize.pool}`}
-      tabIndex={0}
-      data-prize-pool={prize.pool}
-      aria-label={`${poolLabel}, слот ${prize.poolPosition}: ${prizeName}`}
-    >
-      <span>{prize.poolPosition}</span>
-      <FiGift aria-hidden="true" />
-      <div className="october-clan-prize-popover" role="tooltip">
+    <>
+      <li
+        className={`october-clan-prize-slot october-clan-prize-slot--${prize.pool}`}
+        tabIndex={0}
+        data-prize-pool={prize.pool}
+        aria-label={`${poolLabel}, слот ${prize.poolPosition}: ${prizeName}`}
+        aria-describedby={popoverPosition ? tooltipId : undefined}
+        onMouseEnter={(event) => showPopover(event.currentTarget)}
+        onMouseLeave={() => setPopoverPosition(null)}
+        onFocus={(event) => showPopover(event.currentTarget)}
+        onBlur={() => setPopoverPosition(null)}
+      >
+        <span>{prize.poolPosition}</span>
+        <FiGift aria-hidden="true" />
+      </li>
+      {popoverPosition && typeof document !== "undefined" && createPortal(
+        <div
+          className="october-clan-prize-popover"
+          id={tooltipId}
+          role="tooltip"
+          style={popoverPosition as CSSProperties}
+        >
         <div className="october-clan-prize-image">
           {prize.imagePath ? (
             <Image src={prize.imagePath} alt="" fill sizes="180px" />
@@ -33,8 +71,10 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
         </div>
         <strong>{prizeName}</strong>
         <span>{prize.approximateValue ?? "Примерная ценность будет указана позже"}</span>
-      </div>
-    </li>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }
 

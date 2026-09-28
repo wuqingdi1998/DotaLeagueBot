@@ -13,16 +13,42 @@
 .october-compendium-screen {
   position: relative;
   isolation: isolate;
-  background:
-    linear-gradient(180deg, rgba(3, 13, 20, 0.72), rgba(3, 13, 20, 0.6) 45%, rgba(3, 13, 20, 0.76)),
-    url("/compendium/october/clan-hall-hd.webp") center / cover no-repeat,
-    #07151f;
+  background-color: #07151f;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.october-compendium-screen-clans {
+  background-image:
+    linear-gradient(180deg, rgba(3, 13, 20, 0.6), rgba(3, 13, 20, 0.44) 45%, rgba(3, 13, 20, 0.66)),
+    url("/compendium/october/clan-saga-clans.webp");
+}
+
+.october-compendium-screen-personal {
+  background-image:
+    linear-gradient(180deg, rgba(3, 13, 20, 0.66), rgba(3, 13, 20, 0.5) 45%, rgba(3, 13, 20, 0.68)),
+    url("/compendium/october/clan-saga-rewards.webp");
+}
+
+.october-compendium-screen-race {
+  background-image:
+    linear-gradient(180deg, rgba(3, 13, 20, 0.68), rgba(3, 13, 20, 0.52) 45%, rgba(3, 13, 20, 0.68)),
+    url("/compendium/october/clan-saga-race.webp");
+}
+
+.october-compendium-screen-daily {
+  background-image:
+    linear-gradient(180deg, rgba(3, 13, 20, 0.66), rgba(3, 13, 20, 0.5) 45%, rgba(3, 13, 20, 0.7)),
+    url("/compendium/october/clan-saga-quests.webp");
 }
 
 .october-compendium-preview .compendium-hero-section {
   min-height: 360px;
   background:
-    linear-gradient(90deg, rgba(4, 17, 26, 0.72), rgba(4, 17, 26, 0.38) 55%, rgba(4, 17, 26, 0.68));
+    linear-gradient(90deg, rgba(3, 15, 24, 0.92), rgba(6, 28, 38, 0.74) 55%, rgba(3, 17, 26, 0.9));
+  border-bottom: 1px solid rgba(126, 207, 206, 0.22);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
 }
 
 .october-compendium-hero-line {

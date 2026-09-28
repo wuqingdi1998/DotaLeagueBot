@@ -53,12 +53,11 @@
 @media (min-width: 961px) and (min-height: 700px) {
   .october-daily-section--compact-guidance .compendium-quest-grid {
     min-height: 0;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
   }
 
   .october-daily-section--compact-guidance .compendium-quest-grid > .compendium-quest {
-    height: auto;
-    min-height: clamp(430px, 52vh, 460px);
+    min-height: clamp(390px, 48vh, 445px);
   }
 
   .october-daily-section--compact-guidance .october-clan-quest-emblem { min-height: 68px; }

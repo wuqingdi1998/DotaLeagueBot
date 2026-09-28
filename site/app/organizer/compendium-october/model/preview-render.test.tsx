@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
@@ -327,7 +327,10 @@ describe("October preview actions", () => {
       /\.october-clan-showcase\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*2;/,
     );
     expect(clanStyles).toMatch(
-      /\.october-clan-total-stars\s*\{[^}]*font-size:\s*13px;[^}]*font-weight:\s*800;/,
+      /\.october-clan-total-stars\s*\{[^}]*font-size:\s*15px;[^}]*font-weight:\s*800;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-prize-popover\s*\{[^}]*position:\s*fixed;[^}]*z-index:\s*1000;/,
     );
     expect(clanStyles).toMatch(
       /\.october-clan-standing-open\s*\{[^}]*font-size:\s*13px;[^}]*line-height:\s*1\.25;/,
@@ -352,17 +355,37 @@ describe("October preview actions", () => {
     );
     expect(clanStyles).toContain("width: min(100%, 150px)");
     expect(clanStyles).toContain("transform: translateY(-5%)");
+    expect(clanStyles).toContain("width: min(100%, 112px)");
     expect(clanStyles).toContain("max-height: min(82dvh, 820px)");
+    expect(previewStyles).toContain("min-height: clamp(300px, 38vh, 350px)");
+    expect(previewStyles).toMatch(
+      /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin: 10px 0;/,
+    );
+    expect(guideStyles).toMatch(
+      /\.october-daily-section--compact-guidance \.compendium-quest-grid \{[^}]*flex: 0 0 auto;/,
+    );
     expect(organizerStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));
     expect(organizerStyles.indexOf("68-october-compendium-guides.css"))
       .toBeGreaterThan(organizerStyles.indexOf("67-october-clan-standings.css"));
   });
 
-  it("places every October screen over the high-resolution clan hall", () => {
-    expect(presentationStyles).toMatch(
-      /\.october-compendium-screen\s*\{[\s\S]*?clan-hall-hd\.webp[\s\S]*?cover no-repeat,/,
-    );
+  it("places the four October screens over matching clan saga chapters", () => {
+    const backgroundNames = [
+      "clan-saga-clans.webp",
+      "clan-saga-rewards.webp",
+      "clan-saga-race.webp",
+      "clan-saga-quests.webp",
+    ];
+    for (const backgroundName of backgroundNames) {
+      expect(presentationStyles).toContain(backgroundName);
+      expect(existsSync(new URL(`../../../../public/compendium/october/${backgroundName}`, import.meta.url)))
+        .toBe(true);
+    }
+    expect(existsSync(new URL("../../../../public/compendium/october/clan-hall-hd.webp", import.meta.url)))
+      .toBe(true);
+    expect(previewSource).not.toContain("compendium-orb compendium-orb-one");
+    expect(previewSource).not.toContain("compendium-orb compendium-orb-two");
     expect(presentationStyles).toContain(
       ".october-compendium-screen-personal .compendium-reward-track",
     );

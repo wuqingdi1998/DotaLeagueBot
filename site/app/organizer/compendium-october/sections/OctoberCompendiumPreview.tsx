@@ -24,8 +24,6 @@ export function OctoberCompendiumPreview({
       <OctoberSectionNavigation />
       <section className="october-compendium-screen october-compendium-screen-clans" id={OCTOBER_PREVIEW_SECTIONS[0].id} aria-label="Шапка компендиума и кланы">
         <div className="compendium-hero-section">
-          <div className="compendium-orb compendium-orb-one" />
-          <div className="compendium-orb compendium-orb-two" />
           <div className="compendium-title-block">
             <h1>Компендиум</h1>
             <p className="october-compendium-hero-line">Сезон 9. Часть 1.</p>

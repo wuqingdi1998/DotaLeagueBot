@@ -154,12 +154,12 @@
     min-height: 0;
     flex: 0 1 auto;
     flex-direction: column;
-    padding: clamp(28px, 3vh, 38px);
+    padding: clamp(22px, 2.4vh, 30px);
   }
 
   .october-compendium-screen-personal .compendium-reward-milestones article {
     display: flex;
-    min-height: clamp(370px, 50vh, 450px);
+    min-height: clamp(300px, 38vh, 350px);
     flex-direction: column;
     justify-content: flex-start;
     padding: clamp(22px, 1.6vw, 30px);
@@ -242,7 +242,7 @@
   }
 
   .october-compendium-screen-race .compendium-star-race-quest h3 {
-    margin: 24px 0 10px;
+    margin: 10px 0;
   }
 
   .october-compendium-screen-race .compendium-star-race-quest > header span { font-size: 12px; }

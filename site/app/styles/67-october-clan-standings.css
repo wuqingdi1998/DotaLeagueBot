@@ -70,37 +70,20 @@
 }
 
 .october-clan-prize-popover {
-  position: absolute;
-  z-index: 60;
-  bottom: calc(100% + 9px);
-  left: 50%;
-  display: none;
+  position: fixed;
+  z-index: 1000;
+  display: grid;
   width: 190px;
-  transform: translateX(-50%);
+  gap: 5px;
+  transform: translate(-50%, -100%);
   padding: 10px;
   border: 1px solid rgba(235, 215, 153, 0.48);
   border-radius: 13px;
   background: #0b1b24;
   color: #eff8f7;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.52);
+  pointer-events: none;
   text-align: left;
-}
-
-.october-clan-prize-slot:first-child .october-clan-prize-popover {
-  left: -8px;
-  transform: none;
-}
-
-.october-clan-prize-slot:last-child .october-clan-prize-popover {
-  right: -8px;
-  left: auto;
-  transform: none;
-}
-
-.october-clan-prize-slot:hover .october-clan-prize-popover,
-.october-clan-prize-slot:focus .october-clan-prize-popover {
-  display: grid;
-  gap: 5px;
 }
 
 .october-clan-prize-image {
@@ -137,13 +120,13 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-width: 118px;
-  padding: 7px 12px;
+  min-width: 132px;
+  padding: 8px 13px;
   border: 1px solid color-mix(in srgb, var(--clan-accent) 48%, transparent);
   border-radius: 999px;
   background: color-mix(in srgb, var(--clan-accent) 12%, rgba(5, 20, 27, 0.82));
   color: var(--clan-accent);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -157,7 +140,7 @@
   white-space: nowrap;
 }
 
-.october-clan-total-stars svg { width: 13px; height: 13px; }
+.october-clan-total-stars svg { width: 15px; height: 15px; }
 .october-clan-standing-row > strong svg { width: 11px; height: 11px; }
 
 .october-clan-standings-compact,
@@ -428,7 +411,7 @@
     width: 100%;
     font-size: 27px;
   }
-  .october-compendium-screen-clans .october-clan-flag { width: min(100%, 96px); }
+  .october-compendium-screen-clans .october-clan-flag { width: min(100%, 112px); }
 }
 
 @media (max-width: 960px) {
