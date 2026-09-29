@@ -7,7 +7,12 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
+    scrollbar-width: none;
     scroll-snap-type: y mandatory;
+  }
+
+  .october-compendium-preview::-webkit-scrollbar {
+    display: none;
   }
 
   .october-compendium-screen {

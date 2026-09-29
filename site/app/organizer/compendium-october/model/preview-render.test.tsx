@@ -73,6 +73,12 @@ describe("October preview actions", () => {
     expect(html.match(/href="#october-section-/g)).toHaveLength(4);
   });
 
+  it("uses the section dots instead of a duplicate desktop scrollbar", () => {
+    expect(previewStyles).toContain(".october-compendium-preview::-webkit-scrollbar");
+    expect(previewStyles).toContain("scrollbar-width: none");
+    expect(previewStyles).toContain(".october-section-navigation");
+  });
+
   it("shows the new five-step personal track without the old community tally", () => {
     const html = renderToStaticMarkup(
       <CompendiumRewards
