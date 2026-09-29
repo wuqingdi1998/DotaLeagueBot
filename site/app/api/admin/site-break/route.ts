@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     }
     const isBreakEnabled = await setSiteBreakEnabled(
       body.isBreakEnabled,
-      organizer.discordId,
+      organizer.actorDiscordId,
     );
     return Response.json({ ok: true, isBreakEnabled });
   } catch (error) {

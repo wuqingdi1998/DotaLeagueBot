@@ -66,7 +66,7 @@ export async function PATCH(request: Request) {
              result_label = EXCLUDED.result_label,
              updated_by = EXCLUDED.updated_by,
              updated_at = NOW()`,
-          [applicationId, placement, resultLabel, admin.discordId],
+          [applicationId, placement, resultLabel, admin.actorDiscordId],
         );
       }
 
@@ -76,7 +76,7 @@ export async function PATCH(request: Request) {
          VALUES ($1, $2, 'team_result_update', 'team_application', $3, $4::jsonb)`,
         [
           application.rows[0].tournament_id,
-          admin.discordId,
+          admin.actorDiscordId,
           String(applicationId),
           JSON.stringify({
             teamName: application.rows[0].team_name,

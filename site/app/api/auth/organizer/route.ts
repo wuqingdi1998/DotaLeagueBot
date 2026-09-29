@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     if (!body.password) {
       return Response.json({ error: "Введите пароль" }, { status: 400 });
     }
-    const user = await createOrganizerSession(body.password);
+    const user = await createOrganizerSession(body.password, request);
     return Response.json({ ok: true, user });
   } catch (error) {
     return authErrorResponse(error);

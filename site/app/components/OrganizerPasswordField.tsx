@@ -6,6 +6,8 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 type OrganizerPasswordFieldProps = {
   value: string;
   onChange: ChangeEventHandler<HTMLInputElement>;
+  label?: string;
+  autoComplete?: "current-password" | "new-password";
   autoFocus?: boolean;
   disabled?: boolean;
 };
@@ -13,6 +15,8 @@ type OrganizerPasswordFieldProps = {
 export function OrganizerPasswordField({
   value,
   onChange,
+  label = "Пароль организатора",
+  autoComplete = "current-password",
   autoFocus = false,
   disabled = false,
 }: OrganizerPasswordFieldProps) {
@@ -22,12 +26,12 @@ export function OrganizerPasswordField({
 
   return (
     <fieldset className="organizer-password-control">
-      <legend>Пароль организатора</legend>
+      <legend>{label}</legend>
       <div className="organizer-password-field">
         <input
           id={inputId}
           type={isPasswordVisible ? "text" : "password"}
-          autoComplete="current-password"
+          autoComplete={autoComplete}
           autoFocus={autoFocus}
           required
           disabled={disabled}

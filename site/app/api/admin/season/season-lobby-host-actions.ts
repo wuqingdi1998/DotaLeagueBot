@@ -5,7 +5,7 @@ import { syncSeasonLobbyNotifications } from
 
 export async function setSeasonLobbyHost(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const matchId = requiredId(body.matchId, "матч лобби");
   const playerId = String(body.playerId ?? "").trim();

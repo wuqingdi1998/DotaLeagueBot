@@ -38,19 +38,19 @@ export async function POST(request: Request) {
           await updateParticipantTier(
             body.playerId ?? "",
             body.tier ?? "",
-            admin.discordId,
+            admin.actorDiscordId,
           ),
         );
       case "archive":
         return Response.json(
-          await archiveParticipant(body.playerId ?? "", admin.discordId),
+          await archiveParticipant(body.playerId ?? "", admin.actorDiscordId),
         );
       case "rename-archive":
         return Response.json(
           await renameArchiveIdentity(
             body.identityId ?? "",
             body.nickname ?? "",
-            admin.discordId,
+            admin.actorDiscordId,
           ),
         );
       case "merge-archive":
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
           await mergeArchiveIdentities(
             body.identityId ?? "",
             body.sourceIdentityId ?? "",
-            admin.discordId,
+            admin.actorDiscordId,
           ),
         );
       case "link-archive":
@@ -66,14 +66,14 @@ export async function POST(request: Request) {
           await linkArchiveIdentity(
             body.identityId ?? "",
             body.targetPlayerId ?? "",
-            admin.discordId,
+            admin.actorDiscordId,
           ),
         );
       case "unlink-archive":
         return Response.json(
           await unlinkArchiveProfile(
             body.playerId ?? "",
-            admin.discordId,
+            admin.actorDiscordId,
             body.identityId,
           ),
         );

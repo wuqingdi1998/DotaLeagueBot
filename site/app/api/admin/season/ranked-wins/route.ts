@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     const update = parseRankedWinUpdate(await request.json().catch(() => null));
     if (!update) return Response.json({ error: "Проверьте игрока, роли и количество побед: нужны два целых неотрицательных числа" }, { status: 400 });
-    return Response.json(await updateOrganizerRankedWins(update, admin.discordId));
+    return Response.json(await updateOrganizerRankedWins(update, admin.actorDiscordId));
   } catch (error) {
     if (error instanceof SeasonRankedWinsError) {
       return Response.json({ error: error.message }, { status: 422 });

@@ -161,7 +161,7 @@ export async function PATCH(request: Request) {
     await updateApplicationStatus({
       applicationId: body.id,
       status: body.status as "approved" | "declined" | "pending",
-      actorDiscordId: admin.discordId,
+      actorDiscordId: admin.actorDiscordId,
     });
     return Response.json({ ok: true });
   } catch (error) {

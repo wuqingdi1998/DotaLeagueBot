@@ -17,7 +17,7 @@ export async function isSiteBreakEnabled(): Promise<boolean> {
 
 export async function setSiteBreakEnabled(
   isBreakEnabled: boolean,
-  organizerId: string,
+  organizerId: string | null,
 ): Promise<boolean> {
   const rows = await query<SiteBreakRow>(
     `INSERT INTO site_runtime_settings
@@ -39,9 +39,15 @@ export async function hasOrganizerAccess(input: {
   playerSessionToken: string | null;
   organizerSessionToken: string | null;
 }): Promise<boolean> {
-  if (!input.playerSessionToken) return false;
+  if (!input.playerSessionToken && !input.organizerSessionToken) return false;
   const result = await one<{ is_organizer: boolean }>(
     `SELECT EXISTS (
+       SELECT 1 FROM web_organizer_sessions standalone_session
+       WHERE standalone_session.token_hash = $2
+         AND standalone_session.session_kind = 'standalone'
+         AND standalone_session.role = 'organizer'
+         AND standalone_session.expires_at > NOW()
+       UNION ALL
        SELECT 1
        FROM web_sessions participant_session
        JOIN players player
@@ -51,6 +57,8 @@ export async function hasOrganizerAccess(input: {
        LEFT JOIN web_organizer_sessions organizer_session
          ON organizer_session.discord_id = participant_session.discord_id
         AND organizer_session.token_hash = $2
+        AND organizer_session.session_kind = 'player'
+        AND organizer_session.role = 'organizer'
         AND organizer_session.expires_at > NOW()
        WHERE participant_session.token_hash = $1
          AND participant_session.expires_at > NOW()
@@ -61,7 +69,7 @@ export async function hasOrganizerAccess(input: {
          )
      ) AS is_organizer`,
     [
-      sessionTokenHash(input.playerSessionToken),
+      input.playerSessionToken ? sessionTokenHash(input.playerSessionToken) : "",
       input.organizerSessionToken
         ? sessionTokenHash(input.organizerSessionToken)
         : "",

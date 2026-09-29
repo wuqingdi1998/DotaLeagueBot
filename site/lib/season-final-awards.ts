@@ -8,7 +8,7 @@ type SeasonAward = {
 export async function syncSeasonFinalAwards(
   client: PoolClient,
   tournamentId: number,
-  awardedBy: string,
+  awardedBy: string | null,
 ) {
   const tournament = await client.query<{ name: string }>(
     `SELECT name

@@ -1,0 +1,185 @@
+.auth-page {
+  width: min(100% - 32px, 1040px);
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 96px) 0;
+}
+
+.auth-page-heading {
+  max-width: 680px;
+  margin: 0 auto 32px;
+  text-align: center;
+}
+
+.auth-page-heading > p,
+.organizer-password-settings > div > p {
+  margin: 0 0 8px;
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.auth-page-heading h1 {
+  margin: 0 0 12px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(38px, 7vw, 64px);
+  font-weight: 600;
+  line-height: 0.96;
+}
+
+.auth-page-heading > span,
+.organizer-password-settings > div > span {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.auth-page-success {
+  max-width: 680px;
+  margin: 0 auto 24px;
+  border: 1px solid rgba(53, 194, 132, 0.35);
+  border-radius: 14px;
+  padding: 14px 18px;
+  background: rgba(53, 194, 132, 0.1);
+  color: var(--text);
+  text-align: center;
+  font-weight: 700;
+}
+
+.auth-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.auth-choice-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: clamp(24px, 4vw, 36px);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.auth-choice-card > svg {
+  width: 42px;
+  height: 42px;
+  margin-bottom: 24px;
+  color: #5865f2;
+}
+
+.auth-choice-card.auth-organizer-card > svg {
+  color: var(--blue);
+}
+
+.auth-choice-card h2 {
+  margin: 0 0 10px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.auth-choice-card > p {
+  min-height: 48px;
+  margin: 0 0 24px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.auth-choice-card > .discord-login,
+.auth-choice-card > .primary-button,
+.auth-choice-card > .secondary-button {
+  width: 100%;
+  margin-top: auto;
+  justify-content: center;
+}
+
+.auth-choice-card .organizer-password-form {
+  margin-top: auto;
+}
+
+.organizer-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.organizer-login-divider::before,
+.organizer-login-divider::after {
+  height: 1px;
+  flex: 1;
+  background: var(--line);
+  content: "";
+}
+
+.organizer-dashboard {
+  display: grid;
+  gap: 24px;
+}
+
+.organizer-password-settings {
+  display: grid;
+  width: min(100% - 32px, 1120px);
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
+  gap: clamp(28px, 6vw, 72px);
+  align-items: start;
+  margin: 0 auto 72px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: clamp(24px, 4vw, 40px);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.organizer-password-settings h2 {
+  margin: 0 0 12px;
+  font-family: "5ka Sans Design", sans-serif;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 600;
+  line-height: 1.05;
+}
+
+.organizer-password-settings form {
+  display: grid;
+  gap: 18px;
+}
+
+.organizer-password-settings .primary-button {
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .auth-page {
+    width: min(100% - 24px, 520px);
+    padding: 36px 0 56px;
+  }
+
+  .auth-choice-grid,
+  .organizer-password-settings {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-choice-card {
+    border-radius: 18px;
+    padding: 22px;
+  }
+
+  .auth-choice-card > p {
+    min-height: 0;
+  }
+
+  .organizer-password-settings {
+    width: min(100% - 24px, 520px);
+    margin-bottom: 48px;
+    border-radius: 18px;
+  }
+}

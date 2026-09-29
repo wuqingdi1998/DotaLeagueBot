@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       );
     }
     return Response.json(
-      await queueOrganizerRankedWinWarning(target, admin.discordId),
+      await queueOrganizerRankedWinWarning(target, admin.actorDiscordId),
     );
   } catch (error) {
     return responseFromAuthError(error);

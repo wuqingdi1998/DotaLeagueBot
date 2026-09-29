@@ -6,7 +6,6 @@ import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FaDiscord } from "react-icons/fa";
 import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
 import { useHeaderNavigation } from "./header/useHeaderNavigation";
@@ -38,6 +37,7 @@ export type SessionUser = {
   organizerAccess: "trusted" | "password" | null;
   hasOrganizerAccess?: boolean;
   isParticipantView?: boolean;
+  isStandaloneOrganizer?: boolean;
 };
 
 type SiteHeaderProps = {
@@ -249,43 +249,65 @@ export function SiteHeader({
               />
               <span className="player-profile-copy">
                 <strong>{user.serverName}</strong>
-                <small>Профиль участника</small>
+                <small>
+                  {user.isStandaloneOrganizer
+                    ? "Серверная сессия"
+                    : "Профиль участника"}
+                </small>
               </span>
             </button>
-            <PlayerActionNotificationBadge playerId={user.discordId} />
+            {!user.isStandaloneOrganizer && (
+              <PlayerActionNotificationBadge playerId={user.discordId} />
+            )}
             {profileOpen && (
               <div className="player-profile-popover">
                 <strong>{user.serverName}</strong>
-                <span>Discord: {user.username}</span>
-                <Link
-                  className="profile-popover-link"
-                  href={`/players/${user.dotaId}`}
-                  onClick={() => setProfileOpen(false)}
-                >
-                  Открыть страницу игрока <FiArrowRight aria-hidden="true" />
-                </Link>
-                {user.hasOrganizerAccess && (
+                {user.isStandaloneOrganizer ? (
                   <>
-                    <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
-                    {profileMenuExtras}
+                    <span>Вход по паролю организатора</span>
+                    <Link
+                      className="profile-popover-link"
+                      href="/organizer#dashboard"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      Панель организатора <FiArrowRight aria-hidden="true" />
+                    </Link>
+                    {profileMenuExtras ? profileMenuExtras : null}
+                  </>
+                ) : (
+                  <>
+                    <span>Discord: {user.username}</span>
+                    <Link
+                      className="profile-popover-link"
+                      href={`/players/${user.dotaId}`}
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      Открыть страницу игрока <FiArrowRight aria-hidden="true" />
+                    </Link>
+                    {user.hasOrganizerAccess && (
+                      <>
+                        <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
+                        {profileMenuExtras}
+                      </>
+                    )}
                   </>
                 )}
                 <button
                   type="button"
                   onClick={logoutAndReload}
                 >
-                  Выйти из профиля
+                  {user.isStandaloneOrganizer ? "Выйти" : "Выйти из профиля"}
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <a
+          <Link
             className="discord-login"
-            href={`/api/auth/discord?returnTo=${encodeURIComponent(pathname)}`}
-            aria-label="Войти через Discord"
+            href={`/login?returnTo=${encodeURIComponent(pathname)}`}
+            aria-label="Открыть страницу входа"
           >
-            <FaDiscord
+            <FiLogIn
               className="login-icon-discord"
               aria-hidden="true"
             />
@@ -293,8 +315,8 @@ export function SiteHeader({
               className="login-icon-mobile"
               aria-hidden="true"
             />
-            <span>Вход через Discord</span>
-          </a>
+            <span>Войти</span>
+          </Link>
         )}
       </div>
 

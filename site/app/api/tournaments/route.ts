@@ -96,7 +96,7 @@ export async function PATCH(request: Request) {
          VALUES ($1, $2, 'status_change', 'tournament', $3, $4::jsonb)`,
         [
           id,
-          admin.discordId,
+          admin.actorDiscordId,
           String(id),
           JSON.stringify({ status: body.status }),
         ],

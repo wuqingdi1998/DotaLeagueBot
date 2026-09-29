@@ -24,7 +24,10 @@ function request(value: unknown) {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  mocks.requireAdmin.mockResolvedValue({ discordId: "999" });
+  mocks.requireAdmin.mockResolvedValue({
+    discordId: "999",
+    actorDiscordId: "999",
+  });
   mocks.queue.mockResolvedValue({ ok: true });
 });
 

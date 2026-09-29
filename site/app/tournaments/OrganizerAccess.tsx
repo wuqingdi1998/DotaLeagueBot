@@ -2,12 +2,12 @@
 
 import { fetchSiteRequest } from "@/lib/site-request";
 
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { FiLogOut, FiShield, FiX } from "react-icons/fi";
-import { OrganizerPasswordField } from "@/app/components/OrganizerPasswordField";
+import { OrganizerPasswordLoginForm } from "@/app/auth/components/OrganizerPasswordLoginForm";
 
 const SiteBreakButton = dynamic(
   () => import("./SiteBreakButton").then((module) => module.SiteBreakButton),
@@ -17,6 +17,7 @@ const SiteBreakButton = dynamic(
 type OrganizerUser = {
   isAdmin: boolean;
   organizerAccess: "trusted" | "password" | null;
+  isStandaloneOrganizer?: boolean;
 } | null;
 
 export function OrganizerAccess({
@@ -28,33 +29,8 @@ export function OrganizerAccess({
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-
-  async function activate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSaving(true);
-    setError("");
-    try {
-      const response = await fetchSiteRequest("/api/auth/organizer", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ password }),
-      });
-      const result = (await response.json()) as { error?: string };
-      if (!response.ok) {
-        setError(result.error ?? "Не удалось включить режим организатора");
-        return;
-      }
-      setPassword("");
-      window.location.assign(manageHref);
-    } catch {
-      setError("Сервер недоступен. Проверьте соединение и попробуйте ещё раз");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   async function deactivate() {
     setSaving(true);
@@ -116,10 +92,10 @@ export function OrganizerAccess({
 
             {!user ? (
               <>
-                <h2 id="organizer-title">Сначала войдите через Discord</h2>
+                <h2 id="organizer-title">Вход организатора</h2>
                 <p className="modal-intro">
-                  Режим организатора включается для зарегистрированного
-                  участника. Это позволяет сохранять автора каждого изменения.
+                  Можно войти отдельно по паролю организатора или использовать
+                  обычный Discord-профиль участника.
                 </p>
                 <a
                   className="discord-login modal-discord-button"
@@ -127,6 +103,8 @@ export function OrganizerAccess({
                 >
                   <FaDiscord /> Войти через Discord
                 </a>
+                <div className="organizer-login-divider"><span>или</span></div>
+                <OrganizerPasswordLoginForm returnTo={manageHref} />
               </>
             ) : user.isAdmin ? (
               <>
@@ -138,7 +116,7 @@ export function OrganizerAccess({
                 <p className="modal-intro">
                   {user.organizerAccess === "trusted"
                     ? "Ваш Discord-профиль имеет постоянные права управления. Опасные действия подтверждаются отдельным вопросом."
-                    : "Управление турнирами открыто на 12 часов. Для опасных действий пароль потребуется ввести повторно."}
+                    : "Управление открыто на 2 часа. Для опасных действий пароль потребуется ввести повторно."}
                 </p>
                 <div className="organizer-modal-actions">
                   <button
@@ -167,20 +145,7 @@ export function OrganizerAccess({
                   Discord-вход даёт права обычного участника. Для управления
                   турнирами введите отдельный пароль организатора.
                 </p>
-                <form className="organizer-password-form" onSubmit={activate}>
-                  <OrganizerPasswordField
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                  />
-                  {error && <p className="field-error">{error}</p>}
-                  <button
-                    className="primary-button"
-                    type="submit"
-                    disabled={saving}
-                  >
-                    {saving ? "Проверяем…" : "Открыть управление"}
-                  </button>
-                </form>
+                <OrganizerPasswordLoginForm returnTo={manageHref} autoFocus />
               </>
             )}
             {user?.isAdmin && error && <p className="field-error">{error}</p>}

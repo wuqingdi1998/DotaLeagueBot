@@ -18,7 +18,7 @@ export type ManualCompletionResult = {
 export async function completeDailyQuestManually(input: {
   playerId: string;
   questId: string;
-  administratorId: string;
+  administratorId: string | null;
   now?: Date;
 }): Promise<ManualCompletionResult> {
   assertCompendiumActive(input.now);
@@ -71,7 +71,7 @@ export async function completeDailyQuestManually(input: {
 export async function completeStarRaceQuestManually(input: {
   playerId: string;
   dateKey: string;
-  administratorId: string;
+  administratorId: string | null;
   now?: Date;
 }): Promise<ManualCompletionResult> {
   const now = input.now ?? new Date();

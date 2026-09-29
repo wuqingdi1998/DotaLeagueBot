@@ -105,11 +105,13 @@ export async function POST(request: Request) {
         ],
       );
       const id = result.rows[0].id;
-      await client.query(
-        `INSERT INTO tournament_organizers(tournament_id, discord_id)
-         VALUES ($1, $2)`,
-        [id, admin.discordId],
-      );
+      if (admin.actorDiscordId) {
+        await client.query(
+          `INSERT INTO tournament_organizers(tournament_id, discord_id)
+           VALUES ($1, $2)`,
+          [id, admin.actorDiscordId],
+        );
+      }
       if (tournamentType === "seasonal") {
         await client.query(
           `INSERT INTO season_rounds
@@ -141,7 +143,7 @@ export async function POST(request: Request) {
         `INSERT INTO tournament_audit_log
           (tournament_id, actor_discord_id, action, entity_type, entity_id)
          VALUES ($1, $2, 'create', 'tournament', $3)`,
-        [id, admin.discordId, String(id)],
+        [id, admin.actorDiscordId, String(id)],
       );
       return id;
     });

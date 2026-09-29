@@ -5,7 +5,7 @@ import { requiredId } from "./season-admin-model";
 
 export async function savePublishedLobbyResult(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const seasonMatchId = requiredId(body.matchId, "матч лобби");
   let resultValues: ReturnType<typeof publishedLobbyResultValues>;

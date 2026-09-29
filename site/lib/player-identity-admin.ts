@@ -9,7 +9,7 @@ export {
 
 async function audit(
   client: PoolClient,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
   action: string,
   entityId: string,
   details: Record<string, unknown>,
@@ -29,7 +29,7 @@ async function audit(
 export async function updateParticipantTier(
   playerId: string,
   tier: number | string,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const normalizedTier = normalizeParticipantTierInput(tier);
   if (!normalizedTier) {
@@ -70,7 +70,7 @@ export async function updateParticipantTier(
 
 export async function archiveParticipant(
   playerId: string,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   if (playerId === actorDiscordId) {
     throw new Response(
@@ -168,7 +168,7 @@ async function nicknameBelongsToIdentity(
 export async function renameArchiveIdentity(
   identityId: string,
   nickname: string,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const normalized = nickname.trim();
   if (!normalized || normalized.length > 100) {
@@ -198,7 +198,7 @@ export async function renameArchiveIdentity(
 export async function mergeArchiveIdentities(
   targetIdentityId: string,
   sourceIdentityId: string,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   if (targetIdentityId === sourceIdentityId) {
     throw new Response("Выберите другой архивный профиль", { status: 400 });
@@ -238,7 +238,7 @@ export async function mergeArchiveIdentities(
 export async function linkArchiveIdentity(
   archiveIdentityId: string,
   requestedPlayerId: string,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   return transaction(async (client) => {
     await archiveIdentity(client, archiveIdentityId, true);
@@ -296,7 +296,7 @@ export async function linkArchiveIdentity(
 
 export async function unlinkArchiveProfile(
   archivePlayerId: string,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
   expectedIdentityId?: string,
 ) {
   if (!/^-?\d+$/.test(archivePlayerId.trim())) {

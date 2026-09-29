@@ -110,12 +110,12 @@ export async function POST(request: Request) {
     if (body.entity === "lobby") return Response.json(await createSeasonLobby(body), { status: 201 });
     if (body.entity === "lobbyConfiguration") {
       return Response.json(
-        await updateSeasonLobbyConfiguration(body, admin.discordId),
+        await updateSeasonLobbyConfiguration(body, admin.actorDiscordId),
       );
     }
     if (body.entity === "match") {
       return Response.json(
-        await createSeasonMatch(body, admin.discordId),
+        await createSeasonMatch(body, admin.actorDiscordId),
         { status: 201 },
       );
     }
@@ -137,7 +137,7 @@ export async function POST(request: Request) {
     }
     if (body.entity === "registration") {
       return Response.json(
-        await addSeasonRoundRegistration(body, admin.discordId),
+        await addSeasonRoundRegistration(body, admin.actorDiscordId),
         { status: 201 },
       );
     }
@@ -152,14 +152,14 @@ export async function PATCH(request: Request) {
     const admin = await requireAdmin();
     const body = (await request.json()) as SeasonRequest;
     if (body.entity === "season") {
-      return Response.json(await resizeSeason(body, admin.discordId));
+      return Response.json(await resizeSeason(body, admin.actorDiscordId));
     }
     if (body.entity === "round") {
-      return Response.json(await updateSeasonRound(body, admin.discordId));
+      return Response.json(await updateSeasonRound(body, admin.actorDiscordId));
     }
     if (body.entity === "lobby") return Response.json(await updateSeasonLobby(body));
     if (body.entity === "match") {
-      return Response.json(await updateSeasonMatch(body, admin.discordId));
+      return Response.json(await updateSeasonMatch(body, admin.actorDiscordId));
     }
     if (body.entity === "game") return Response.json(await updateSeasonGame(body));
     if (body.entity === "participant") {
@@ -179,11 +179,11 @@ export async function PATCH(request: Request) {
     }
     if (body.entity === "publishedLobby") {
       return Response.json(
-        await savePublishedLobbyResult(body, admin.discordId),
+        await savePublishedLobbyResult(body, admin.actorDiscordId),
       );
     }
     if (body.entity === "lobbyHost") {
-      return Response.json(await setSeasonLobbyHost(body, admin.discordId));
+      return Response.json(await setSeasonLobbyHost(body, admin.actorDiscordId));
     }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });
   } catch (error) {
@@ -200,7 +200,7 @@ export async function DELETE(request: Request) {
         : await requireAdmin();
     if (body.entity === "lobby") return Response.json(await deleteSeasonLobby(body));
     if (body.entity === "match") {
-      return Response.json(await deleteSeasonMatch(body, admin.discordId));
+      return Response.json(await deleteSeasonMatch(body, admin.actorDiscordId));
     }
     if (body.entity === "game") return Response.json(await deleteSeasonGame(body));
     if (body.entity === "adjustment") {
@@ -217,7 +217,7 @@ export async function DELETE(request: Request) {
     }
     if (body.entity === "registration") {
       return Response.json(
-        await deleteSeasonRoundRegistration(body, admin.discordId),
+        await deleteSeasonRoundRegistration(body, admin.actorDiscordId),
       );
     }
     return Response.json({ error: "Некорректный тип записи" }, { status: 400 });

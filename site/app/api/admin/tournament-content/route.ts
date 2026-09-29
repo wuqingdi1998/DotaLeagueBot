@@ -171,7 +171,7 @@ export async function PUT(request: Request) {
          VALUES ($1, $2, 'content_update', 'tournament', $3::jsonb)`,
         [
           tournamentId,
-          admin.discordId,
+          admin.actorDiscordId,
           JSON.stringify({
             ruleCount: rules.length,
             prizeCount: prizes.length,

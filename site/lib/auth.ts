@@ -1,12 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { one, query } from "@/lib/db";
-import {
-  playerServerName,
-  scryptSecretHashMatches,
-  secretHashMatches,
-  secretMatches,
-} from "@/lib/security";
+import { playerServerName } from "@/lib/security";
 import {
   addPendingOauthState,
   oauthStateLifetimeMs,
@@ -23,13 +18,19 @@ import {
   requiresFreshOrganizerPassword,
   type OrganizerAccessMethod,
 } from "@/lib/organizer-access";
+import {
+  organizerSessionLifetimeHours,
+  replaceOrganizerPassword,
+  verifyOrganizerPassword,
+} from "@/lib/organizer-credentials";
+import {
+  organizerLoginContext,
+  organizerSessionLoginContext,
+} from "@/lib/organizer-login-context";
 import { participantViewCookie, sessionForParticipantView } from "@/lib/participant-view";
 
 const oauthStateCookie = "ls_oauth_state";
 const sessionLifetimeDays = 30;
-const organizerSessionLifetimeHours = 12;
-const organizerAttemptWindowMinutes = 15;
-const organizerAttemptLimit = 5;
 
 export type AuthUser = {
   discordId: string;
@@ -42,9 +43,37 @@ export type AuthUser = {
   serverName: string;
   isAdmin: boolean;
   organizerAccess: OrganizerAccessMethod;
+  actorDiscordId?: string | null;
+  isStandaloneOrganizer?: boolean;
   hasOrganizerAccess?: boolean;
   isParticipantView?: boolean;
 };
+
+export type OrganizerUser = AuthUser & { actorDiscordId: string | null };
+
+export function organizerActorDiscordId(user: AuthUser): string | null {
+  if (user.isStandaloneOrganizer) return null;
+  return user.actorDiscordId ?? user.discordId;
+}
+
+function standaloneOrganizerUser(): AuthUser {
+  return {
+    discordId: "0",
+    dotaId: "0",
+    username: "organizer",
+    avatarUrl: null,
+    playerName: "Организатор",
+    realName: null,
+    positions: null,
+    serverName: "Организатор",
+    isAdmin: true,
+    organizerAccess: "password",
+    actorDiscordId: null,
+    isStandaloneOrganizer: true,
+    hasOrganizerAccess: true,
+    isParticipantView: false,
+  };
+}
 
 type SessionRow = {
   discord_id: string;
@@ -56,15 +85,6 @@ type SessionRow = {
   positions: string | null;
   is_trusted_organizer: boolean;
   has_password_organizer_session: boolean;
-};
-
-type TemporaryOrganizerPasswordRow = {
-  password_hash: string;
-  expires_at: Date;
-};
-
-type PermanentOrganizerPasswordRow = {
-  password_hash: string;
 };
 
 export async function createOauthState(returnTo: string): Promise<string> {
@@ -159,154 +179,115 @@ export async function createSession(input: {
 export async function getSession(): Promise<AuthUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(playerSessionCookie)?.value;
-  if (!token) return null;
   const organizerToken = cookieStore.get(organizerSessionCookie)?.value;
-  const row = await one<SessionRow>(
-    `SELECT
-       s.discord_id::text,
-       p.steam_id32::text AS dota_id,
-       s.discord_username,
-       COALESCE(
-         NULLIF(p.avatar_url, ''),
-         NULLIF(s.discord_avatar_url, '')
-       ) AS discord_avatar_url,
-       p.ingame_name,
-       p.real_name,
-       p.positions,
-       trusted.discord_id IS NOT NULL AS is_trusted_organizer,
-       organizer.token_hash IS NOT NULL AS has_password_organizer_session
-     FROM web_sessions s
-     JOIN players p ON p.discord_id = s.discord_id
-     LEFT JOIN trusted_organizers trusted
-       ON trusted.discord_id = s.discord_id
-     LEFT JOIN web_organizer_sessions organizer
-       ON organizer.token_hash = $2
-      AND organizer.discord_id = s.discord_id
-      AND organizer.expires_at > NOW()
-     WHERE s.token_hash = $1
-       AND s.expires_at > NOW()
-       AND p.is_archived = FALSE`,
-    [
-      sessionTokenHash(token),
-      organizerToken ? sessionTokenHash(organizerToken) : "",
-    ],
+  if (token) {
+    const row = await one<SessionRow>(
+      `SELECT
+         s.discord_id::text,
+         p.steam_id32::text AS dota_id,
+         s.discord_username,
+         COALESCE(
+           NULLIF(p.avatar_url, ''),
+           NULLIF(s.discord_avatar_url, '')
+         ) AS discord_avatar_url,
+         p.ingame_name,
+         p.real_name,
+         p.positions,
+         trusted.discord_id IS NOT NULL AS is_trusted_organizer,
+         organizer.token_hash IS NOT NULL AS has_password_organizer_session
+       FROM web_sessions s
+       JOIN players p ON p.discord_id = s.discord_id
+       LEFT JOIN trusted_organizers trusted
+         ON trusted.discord_id = s.discord_id
+       LEFT JOIN web_organizer_sessions organizer
+         ON organizer.token_hash = $2
+        AND organizer.discord_id = s.discord_id
+        AND organizer.session_kind = 'player'
+        AND organizer.role = 'organizer'
+        AND organizer.expires_at > NOW()
+       WHERE s.token_hash = $1
+         AND s.expires_at > NOW()
+         AND p.is_archived = FALSE`,
+      [
+        sessionTokenHash(token),
+        organizerToken ? sessionTokenHash(organizerToken) : "",
+      ],
+    );
+    if (row) {
+      const accessMethod = organizerAccessMethod(
+        row.is_trusted_organizer,
+        row.has_password_organizer_session,
+      );
+      return sessionForParticipantView({
+        discordId: row.discord_id,
+        dotaId: row.dota_id,
+        username: row.discord_username,
+        avatarUrl: row.discord_avatar_url,
+        playerName: row.ingame_name,
+        realName: row.real_name,
+        positions: row.positions,
+        serverName: playerServerName(
+          row.real_name,
+          row.ingame_name,
+          row.positions,
+        ),
+        isAdmin: accessMethod !== null,
+        organizerAccess: accessMethod,
+        actorDiscordId: row.discord_id,
+      }, cookieStore.get(participantViewCookie)?.value);
+    }
+  }
+  if (!organizerToken) return null;
+  const standaloneSession = await one<{ token_hash: string }>(
+    `SELECT token_hash
+     FROM web_organizer_sessions
+     WHERE token_hash = $1
+       AND discord_id IS NULL
+       AND session_kind = 'standalone'
+       AND role = 'organizer'
+       AND expires_at > NOW()`,
+    [sessionTokenHash(organizerToken)],
   );
-  if (!row) return null;
-  const accessMethod = organizerAccessMethod(
-    row.is_trusted_organizer,
-    row.has_password_organizer_session,
-  );
-  return sessionForParticipantView({
-    discordId: row.discord_id,
-    dotaId: row.dota_id,
-    username: row.discord_username,
-    avatarUrl: row.discord_avatar_url,
-    playerName: row.ingame_name,
-    realName: row.real_name,
-    positions: row.positions,
-    serverName: playerServerName(
-      row.real_name,
-      row.ingame_name,
-      row.positions,
-    ),
-    isAdmin: accessMethod !== null,
-    organizerAccess: accessMethod,
-  }, cookieStore.get(participantViewCookie)?.value);
+  if (!standaloneSession) return null;
+  return standaloneOrganizerUser();
 }
 
 export async function requireSession(): Promise<AuthUser> {
   const user = await getSession();
-  if (!user) {
+  if (!user || user.isStandaloneOrganizer) {
     throw new Response("Требуется вход через Discord", { status: 401 });
   }
   return user;
 }
 
-export async function requireAdmin(): Promise<AuthUser> {
-  const user = await requireSession();
+export async function requireAdmin(): Promise<OrganizerUser> {
+  const user = await getSession();
+  if (!user) {
+    throw new Response("Требуется вход организатора", { status: 401 });
+  }
   if (!user.isAdmin) {
     throw new Response("Нет прав организатора", { status: 403 });
   }
-  return user;
-}
-
-async function verifyOrganizerPassword(
-  user: AuthUser,
-  suppliedPassword: string,
-): Promise<Date | null> {
-  const configuredPassword = process.env.ORGANIZER_PASSWORD ?? "";
-
-  await query(
-    `DELETE FROM web_organizer_login_attempts
-     WHERE attempted_at < NOW() - INTERVAL '24 hours'`,
-  );
-  const recentAttempts = await one<{ count: number }>(
-    `SELECT COUNT(*)::int AS count
-     FROM web_organizer_login_attempts
-     WHERE discord_id = $1
-       AND attempted_at > NOW() - ($2::int * INTERVAL '1 minute')`,
-    [user.discordId, organizerAttemptWindowMinutes],
-  );
-  if ((recentAttempts?.count ?? 0) >= organizerAttemptLimit) {
-    throw new Response(
-      "Слишком много попыток. Повторите вход через 15 минут",
-      { status: 429 },
-    );
-  }
-
-  const temporaryPasswords = await query<TemporaryOrganizerPasswordRow>(
-    `SELECT password_hash, expires_at
-     FROM temporary_organizer_passwords
-     WHERE expires_at > NOW()
-     ORDER BY expires_at`,
-  );
-  const temporaryPassword = temporaryPasswords.find((password) =>
-    secretHashMatches(suppliedPassword, password.password_hash),
-  );
-  const permanentPasswords = await query<PermanentOrganizerPasswordRow>(
-    `SELECT password_hash
-     FROM organizer_passwords
-     WHERE is_active = TRUE
-     ORDER BY id`,
-  );
-  const storedPermanentPassword = permanentPasswords.some((password) =>
-    scryptSecretHashMatches(suppliedPassword, password.password_hash),
-  );
-  const isPermanentPassword =
-    configuredPassword.length >= 12 &&
-    secretMatches(suppliedPassword, configuredPassword);
-
-  if (!isPermanentPassword && !storedPermanentPassword && !temporaryPassword) {
-    if (
-      configuredPassword.length < 12 &&
-      permanentPasswords.length === 0 &&
-      temporaryPasswords.length === 0
-    ) {
-      throw new Response(
-        "Пароль организатора ещё не настроен на сервере",
-        { status: 503 },
-      );
-    }
-    await query(
-      `INSERT INTO web_organizer_login_attempts(discord_id) VALUES ($1)`,
-      [user.discordId],
-    );
-    throw new Response("Неверный пароль организатора", { status: 401 });
-  }
-
-  await query(
-    `DELETE FROM web_organizer_login_attempts WHERE discord_id = $1`,
-    [user.discordId],
-  );
-  return temporaryPassword?.expires_at ?? null;
+  return {
+    ...user,
+    actorDiscordId: organizerActorDiscordId(user),
+  };
 }
 
 export async function confirmSensitiveOrganizerAction(
   confirmation: { password?: string; confirmed?: boolean },
-): Promise<AuthUser> {
+): Promise<OrganizerUser> {
   const user = await requireAdmin();
   if (requiresFreshOrganizerPassword(user.organizerAccess)) {
-    await verifyOrganizerPassword(user, confirmation.password ?? "");
+    const cookieStore = await cookies();
+    const sessionToken =
+      cookieStore.get(organizerSessionCookie)?.value ??
+      cookieStore.get(playerSessionCookie)?.value ??
+      "missing";
+    await verifyOrganizerPassword(
+      confirmation.password ?? "",
+      organizerSessionLoginContext(sessionToken, user.actorDiscordId),
+    );
   } else if (confirmation.confirmed !== true) {
     throw new Response("Подтвердите действие", { status: 400 });
   }
@@ -315,18 +296,21 @@ export async function confirmSensitiveOrganizerAction(
 
 export async function createOrganizerSession(
   suppliedPassword: string,
+  request: Request,
 ): Promise<AuthUser> {
-  const user = await requireSession();
-  if (user.isParticipantView) {
+  const currentUser = await getSession();
+  if (currentUser?.isStandaloneOrganizer) return currentUser;
+  if (currentUser?.isParticipantView) {
     throw new Response("Сначала выключите просмотр от лица участника", { status: 409 });
   }
-  if (user.organizerAccess === "trusted") {
-    return { ...user, isAdmin: true, organizerAccess: "trusted" };
+  if (currentUser?.organizerAccess === "trusted") {
+    return { ...currentUser, isAdmin: true, organizerAccess: "trusted" };
   }
   const temporaryPasswordExpiresAt = await verifyOrganizerPassword(
-    user,
     suppliedPassword,
+    organizerLoginContext(request, currentUser?.discordId ?? null),
   );
+  if (!currentUser) await deleteSession();
   await query("DELETE FROM web_organizer_sessions WHERE expires_at <= NOW()");
   const token = randomBytes(32).toString("base64url");
   const regularExpiresAt = Date.now() +
@@ -338,9 +322,14 @@ export async function createOrganizerSession(
   );
   await query(
     `INSERT INTO web_organizer_sessions
-      (token_hash, discord_id, expires_at)
-     VALUES ($1, $2, $3)`,
-    [sessionTokenHash(token), user.discordId, expiresAt],
+      (token_hash, discord_id, expires_at, session_kind, role)
+     VALUES ($1, $2, $3, $4, 'organizer')`,
+    [
+      sessionTokenHash(token),
+      currentUser?.discordId ?? null,
+      expiresAt,
+      currentUser ? "player" : "standalone",
+    ],
   );
   const cookieStore = await cookies();
   cookieStore.set(organizerSessionCookie, token, {
@@ -350,7 +339,28 @@ export async function createOrganizerSession(
     expires: expiresAt,
     path: "/",
   });
-  return { ...user, isAdmin: true, organizerAccess: "password" };
+  if (currentUser) {
+    return { ...currentUser, isAdmin: true, organizerAccess: "password" };
+  }
+  return standaloneOrganizerUser();
+}
+
+export async function changeOrganizerPassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  const user = await requireAdmin();
+  const cookieStore = await cookies();
+  const sessionToken =
+    cookieStore.get(organizerSessionCookie)?.value ??
+    cookieStore.get(playerSessionCookie)?.value ??
+    "missing";
+  await replaceOrganizerPassword(
+    currentPassword,
+    newPassword,
+    organizerSessionLoginContext(sessionToken, user.actorDiscordId),
+  );
+  cookieStore.delete(organizerSessionCookie);
 }
 
 export async function deleteOrganizerSession(): Promise<void> {

@@ -20,7 +20,7 @@ const lobbyStatuses = [
 
 export async function resizeSeason(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const tournamentId = requiredId(body.tournamentId, "турнир");
   const count = seasonRoundCount(body.roundCount);
@@ -110,7 +110,7 @@ export async function resizeSeason(
 
 export async function updateSeasonRound(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const id = requiredId(body.id, "тур");
   const isVisible = body.isVisible === true;

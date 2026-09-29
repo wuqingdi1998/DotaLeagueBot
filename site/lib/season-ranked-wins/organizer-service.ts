@@ -11,7 +11,7 @@ import { calculateSeasonRankedWins } from "./service";
 
 export async function updateOrganizerRankedWins(
   update: NonNullable<ReturnType<typeof parseRankedWinUpdate>>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const now = new Date();
   const registration = await one<{

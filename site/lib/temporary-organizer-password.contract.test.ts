@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const authSource = readFileSync(
-  new URL("./auth.ts", import.meta.url),
+const credentialsSource = readFileSync(
+  new URL("./organizer-credentials.ts", import.meta.url),
   "utf8",
 );
 const migration = readFileSync(
@@ -15,11 +15,12 @@ const migration = readFileSync(
 
 describe("temporary organizer password", () => {
   it("accepts only active temporary passwords", () => {
-    expect(authSource).toContain("temporary_organizer_passwords");
-    expect(authSource).toContain("expires_at > NOW()");
+    expect(credentialsSource).toContain("temporary_organizer_passwords");
+    expect(credentialsSource).toContain("expires_at > NOW()");
   });
 
   it("cannot create a session beyond the temporary password expiry", () => {
+    const authSource = readFileSync(new URL("./auth.ts", import.meta.url), "utf8");
     expect(authSource).toContain("temporaryPasswordExpiresAt");
     expect(authSource).toContain("Math.min");
   });

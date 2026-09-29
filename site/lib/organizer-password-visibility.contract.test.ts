@@ -12,7 +12,8 @@ const passwordStyles = source(
   "../app/styles/07-organizer-password.css",
 );
 const passwordForms = [
-  source("../app/tournaments/OrganizerAccess.tsx"),
+  source("../app/auth/components/OrganizerPasswordLoginForm.tsx"),
+  source("../app/organizer/sections/OrganizerPasswordSettings.tsx"),
   source("../app/participants/ParticipantAdminDialog.tsx"),
   source("../app/tournaments/[slug]/admin/SeasonRegistrationAdmin.tsx"),
   source("../app/tournaments/[slug]/admin/TournamentDeletePanel.tsx"),

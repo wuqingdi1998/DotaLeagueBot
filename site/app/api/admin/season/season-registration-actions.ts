@@ -17,7 +17,7 @@ function registrationTier(value: unknown): number {
 
 export async function addSeasonRoundRegistration(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const roundId = requiredId(body.roundId, "тур");
   const tierSnapshot = registrationTier(body.tierSnapshot);
@@ -96,7 +96,7 @@ export async function addSeasonRoundRegistration(
 
 export async function deleteSeasonRoundRegistration(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const roundId = requiredId(body.roundId, "тур");
   const player = String(body.playerId ?? "").trim();

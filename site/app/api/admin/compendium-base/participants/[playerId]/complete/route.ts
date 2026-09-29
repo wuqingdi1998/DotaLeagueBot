@@ -28,7 +28,7 @@ export async function POST(
         ...(await completeDailyQuestManually({
           playerId,
           questId: String(body.questId),
-          administratorId: administrator.discordId,
+          administratorId: administrator.actorDiscordId,
         })),
       });
     }
@@ -41,7 +41,7 @@ export async function POST(
         ...(await completeStarRaceQuestManually({
           playerId,
           dateKey: String(body.dateKey),
-          administratorId: administrator.discordId,
+          administratorId: administrator.actorDiscordId,
         })),
       });
     }

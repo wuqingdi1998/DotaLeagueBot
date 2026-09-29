@@ -13,7 +13,7 @@ export const RANKED_WIN_WARNING_MESSAGE =
 
 export async function queueOrganizerRankedWinWarning(
   target: NonNullable<ReturnType<typeof parseRankedWinWarningTarget>>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const eventType = `${RANKED_WIN_WARNING_EVENT_TYPE_PREFIX}:${crypto.randomUUID()}`;
   return transaction(async (client) => {

@@ -1,4 +1,4 @@
-import { createHash, scryptSync, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
 export function secretMatches(candidate: string, expected: string) {
   const candidateHash = createHash("sha256").update(candidate).digest();
@@ -34,6 +34,12 @@ export function scryptSecretHashMatches(
     64,
   );
   return timingSafeEqual(candidateHash, Buffer.from(expectedHashHex, "hex"));
+}
+
+export function createScryptSecretHash(secret: string): string {
+  const salt = randomBytes(16);
+  const secretHash = scryptSync(secret, salt, 64);
+  return `scrypt$${salt.toString("hex")}$${secretHash.toString("hex")}`;
 }
 
 export function playerServerName(

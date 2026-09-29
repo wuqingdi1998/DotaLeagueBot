@@ -10,7 +10,14 @@ vi.mock("@/lib/season-ranked-wins/service", () => import("../../../../../lib/sea
 import { POST } from "./route";
 const body = { roundId: 1, playerId: "100", positions: "1/5", source: "manual", primaryWins: 12, secondaryWins: 0 };
 function request(value: unknown) { return new Request("https://example.test/api/admin/season/ranked-wins", { method: "POST", body: JSON.stringify(value) }); }
-beforeEach(() => { vi.resetAllMocks(); mocks.requireAdmin.mockResolvedValue({ discordId: "999" }); mocks.update.mockResolvedValue({ ok: true }); });
+beforeEach(() => {
+  vi.resetAllMocks();
+  mocks.requireAdmin.mockResolvedValue({
+    discordId: "999",
+    actorDiscordId: "999",
+  });
+  mocks.update.mockResolvedValue({ ok: true });
+});
 describe("organizer ranked win access", () => {
   it.each([401, 403])("rejects unauthorized users with %s", async (status) => {
     mocks.requireAdmin.mockRejectedValue(new Response("Нет доступа", { status }));

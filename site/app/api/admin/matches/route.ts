@@ -204,7 +204,7 @@ export async function POST(request: Request) {
         `INSERT INTO tournament_audit_log
           (tournament_id, actor_discord_id, action, entity_type, entity_id)
          VALUES ($1, $2, 'create', 'match', $3)`,
-        [body.tournamentId, admin.discordId, String(id)],
+        [body.tournamentId, admin.actorDiscordId, String(id)],
       );
       return { id, isExisting: false };
     });
@@ -458,7 +458,7 @@ export async function PATCH(request: Request) {
        VALUES ($1, $2, 'result_update', 'match', $3, $4::jsonb)`,
       [
         updated[0].tournament_id,
-        admin.discordId,
+        admin.actorDiscordId,
         String(body.id),
         JSON.stringify({
           status: body.status,

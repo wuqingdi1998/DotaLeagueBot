@@ -51,7 +51,7 @@ export async function DELETE(request: Request) {
           (actor_discord_id, action, entity_type, entity_id, details)
          VALUES ($1, 'tournament_delete', 'tournament', $2, $3::jsonb)`,
         [
-          admin.discordId,
+          admin.actorDiscordId,
           String(deleted.id),
           JSON.stringify({ name: deleted.name, slug: deleted.slug }),
         ],

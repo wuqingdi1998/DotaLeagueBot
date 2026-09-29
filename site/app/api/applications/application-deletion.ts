@@ -43,7 +43,7 @@ export async function DELETE(request: Request) {
          VALUES ($1, $2, 'delete_declined', 'team_application', $3, $4::jsonb)`,
         [
           current.tournament_id,
-          admin.discordId,
+          admin.actorDiscordId,
           String(applicationId),
           JSON.stringify({ teamName: current.team_name }),
         ],

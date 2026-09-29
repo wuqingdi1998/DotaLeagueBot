@@ -71,11 +71,13 @@ export async function POST(request: Request) {
       );
       const created = createdResult.rows[0];
 
-      await client.query(
-        `INSERT INTO tournament_organizers(tournament_id, discord_id)
-         VALUES ($1, $2)`,
-        [created.id, admin.discordId],
-      );
+      if (admin.actorDiscordId) {
+        await client.query(
+          `INSERT INTO tournament_organizers(tournament_id, discord_id)
+           VALUES ($1, $2)`,
+          [created.id, admin.actorDiscordId],
+        );
+      }
       await client.query(
         `INSERT INTO tournament_rules (tournament_id, sort_order, rule_text)
          SELECT $2, sort_order, rule_text
@@ -154,7 +156,7 @@ export async function POST(request: Request) {
          ) VALUES ($1, $2, 'clone', 'tournament', $3, $4::jsonb)`,
         [
           created.id,
-          admin.discordId,
+          admin.actorDiscordId,
           String(created.id),
           JSON.stringify({ sourceTournamentId: source.id }),
         ],

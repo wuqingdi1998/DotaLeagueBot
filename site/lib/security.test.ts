@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createScryptSecretHash,
   playerServerName,
   scryptSecretHashMatches,
   secretHashMatches,
@@ -29,6 +30,16 @@ describe("organizer security", () => {
     expect(scryptSecretHashMatches("permanent secret", expectedHash)).toBe(true);
     expect(scryptSecretHashMatches("wrong secret", expectedHash)).toBe(false);
     expect(scryptSecretHashMatches("permanent secret", "invalid")).toBe(false);
+  });
+
+  it("creates a new salted hash without storing the readable password", () => {
+    const password = "new organizer password";
+    const firstHash = createScryptSecretHash(password);
+    const secondHash = createScryptSecretHash(password);
+    expect(firstHash).not.toContain(password);
+    expect(firstHash).not.toBe(secondHash);
+    expect(scryptSecretHashMatches(password, firstHash)).toBe(true);
+    expect(scryptSecretHashMatches(password, secondHash)).toBe(true);
   });
 });
 

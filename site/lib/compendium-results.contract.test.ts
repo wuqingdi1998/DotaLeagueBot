@@ -44,7 +44,8 @@ describe("finished compendium results contract", () => {
     expect(header).not.toContain('href="/organizer"');
     expect(organizerArchiveLink).toContain('href="/organizer"');
     expect(organizerArchiveLink).toContain("Архив организатора");
-    expect(organizerPage).toContain("if (!user?.isAdmin) notFound()");
+    expect(organizerPage).toContain("user?.isAdmin ? (");
+    expect(organizerPage).toContain('<LoginScreen user={user} returnTo="/organizer" />');
     expect(organizerPage).toContain("<OrganizerArchive />");
     expect(organizerArchive).toContain('href: "/organizer/compendium"');
     expect(organizerArchive).toContain(

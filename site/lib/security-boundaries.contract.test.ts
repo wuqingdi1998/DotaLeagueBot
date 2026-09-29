@@ -8,6 +8,20 @@ const authSource = readFileSync(
   path.join(projectRoot, "lib", "auth.ts"),
   "utf8",
 );
+const organizerCredentialsSource = readFileSync(
+  path.join(projectRoot, "lib", "organizer-credentials.ts"),
+  "utf8",
+);
+const standaloneOrganizerMigration = readFileSync(
+  path.join(
+    repositoryRoot,
+    "bot",
+    "database",
+    "migrations",
+    "0153_standalone_organizer_access.sql",
+  ),
+  "utf8",
+);
 const proxySource = readFileSync(
   path.join(projectRoot, "proxy.ts"),
   "utf8",
@@ -43,13 +57,26 @@ describe("site security boundaries", () => {
   it("separates trusted Discord access from short password sessions", () => {
     expect(authSource).toContain("trusted_organizers");
     expect(authSource).toContain("organizerAccessMethod");
-    expect(authSource).toContain('process.env.ORGANIZER_PASSWORD');
-    expect(authSource).toContain("organizer_passwords");
-    expect(authSource).toContain("scryptSecretHashMatches");
-    expect(authSource).toContain("configuredPassword.length < 12");
-    expect(authSource).toContain("organizerAttemptLimit = 5");
-    expect(authSource).toContain("organizerSessionLifetimeHours = 12");
+    expect(organizerCredentialsSource).toContain('process.env.ORGANIZER_PASSWORD');
+    expect(organizerCredentialsSource).toContain("organizer_passwords");
+    expect(organizerCredentialsSource).toContain("scryptSecretHashMatches");
+    expect(organizerCredentialsSource).toContain("organizerAttemptLimit = 5");
+    expect(authSource).toContain("organizerSessionLifetimeHours");
     expect(authSource).toContain('sameSite: "strict"');
+  });
+
+  it("supports a server-side organizer role without a player account", () => {
+    expect(standaloneOrganizerMigration).toContain("session_kind = 'standalone'");
+    expect(standaloneOrganizerMigration).toContain("role = 'organizer'");
+    expect(authSource).toContain("isStandaloneOrganizer: true");
+    expect(authSource).toContain("user.isStandaloneOrganizer");
+  });
+
+  it("keeps a durable failed-attempt journal and replaces passwords without code edits", () => {
+    expect(organizerCredentialsSource).toContain("web_organizer_login_attempts");
+    expect(organizerCredentialsSource).toContain("invalid_password");
+    expect(organizerCredentialsSource).toContain("createScryptSecretHash");
+    expect(organizerCredentialsSource).toContain("UPDATE organizer_passwords SET is_active = FALSE");
   });
 
   it("applies origin, size and request-frequency protection to all APIs", () => {

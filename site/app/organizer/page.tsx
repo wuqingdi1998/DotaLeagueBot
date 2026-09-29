@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { PlatformShell } from "@/app/tournaments/TournamentsHub";
+import { LoginScreen } from "@/app/auth/components/LoginScreen";
 import { getSession } from "@/lib/auth";
 import { OrganizerArchive } from "./sections/OrganizerArchive";
+import { OrganizerPasswordSettings } from "./sections/OrganizerPasswordSettings";
 
 export const dynamic = "force-dynamic";
 
@@ -12,11 +13,17 @@ export const metadata: Metadata = {
 
 export default async function OrganizerPage() {
   const user = await getSession();
-  if (!user?.isAdmin) notFound();
 
   return (
     <PlatformShell user={user}>
-      <OrganizerArchive />
+      {user?.isAdmin ? (
+        <div className="organizer-dashboard" id="dashboard">
+          <OrganizerArchive />
+          <OrganizerPasswordSettings />
+        </div>
+      ) : (
+        <LoginScreen user={user} returnTo="/organizer" />
+      )}
     </PlatformShell>
   );
 }

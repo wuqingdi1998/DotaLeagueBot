@@ -1,4 +1,4 @@
-import type { AuthUser } from "@/lib/auth";
+import { organizerActorDiscordId, type AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
 import { assertCompendiumActive } from "../model/lifecycle";
 import { isPredictionScore, type PredictionScore } from "../model/predictions";
@@ -109,7 +109,7 @@ export async function configurePredictionMatches(input: {
     const schedule = {
       dateKey: input.dateKey,
       opensAt,
-      administratorId: input.administrator.discordId,
+      administratorId: organizerActorDiscordId(input.administrator),
       matches,
     };
     if (input.sourceDateKey && input.sourceDateKey !== input.dateKey) {
@@ -189,7 +189,7 @@ export async function finishPredictionMatch(input: {
     return await recordPredictionResult({
       matchId: input.matchId,
       score: input.score as PredictionScore,
-      administratorId: input.administrator.discordId,
+      administratorId: organizerActorDiscordId(input.administrator),
     });
   } catch (error) {
     if (error instanceof Error && error.message === "PREDICTION_RESULT_LOCKED") {

@@ -38,7 +38,7 @@ export async function formTournamentGroups({
   tournamentId: number;
   groupCount: number;
   teamsPerGroup: number;
-  actorDiscordId: string;
+  actorDiscordId: string | null;
 }): Promise<GroupOperationResult> {
   return transaction(async (client) => {
     await client.query(
@@ -107,7 +107,7 @@ export async function shuffleTournamentGroups({
   actorDiscordId,
 }: {
   tournamentId: number;
-  actorDiscordId: string;
+  actorDiscordId: string | null;
 }): Promise<GroupOperationResult> {
   return transaction(async (client) => {
     await client.query(
@@ -333,7 +333,7 @@ async function saveAudit(
     details,
   }: {
     tournamentId: number;
-    actorDiscordId: string;
+    actorDiscordId: string | null;
     action: "generate_groups" | "shuffle_groups";
     details: Record<string, number>;
   },

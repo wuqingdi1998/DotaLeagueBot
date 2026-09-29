@@ -169,7 +169,7 @@ export async function recordPredictionPick(input: {
 export async function replacePredictionMatches(input: {
   dateKey: string;
   opensAt: Date;
-  administratorId: string;
+  administratorId: string | null;
   matches: PredictionMatchInput[];
 }): Promise<void> {
   await transaction(async (client) => {
@@ -229,7 +229,7 @@ export async function relocatePredictionMatches(input: {
   sourceDateKey: string;
   dateKey: string;
   opensAt: Date;
-  administratorId: string;
+  administratorId: string | null;
   matches: PredictionMatchInput[];
 }): Promise<void> {
   await transaction(async (client) => {
@@ -364,7 +364,7 @@ export async function deletePredictionDay(dateKey: string): Promise<number> {
 export async function recordPredictionResult(input: {
   matchId: string;
   score: PredictionScore;
-  administratorId: string;
+  administratorId: string | null;
 }): Promise<number> {
   return transaction(async (client) => {
     const match = await client.query<{

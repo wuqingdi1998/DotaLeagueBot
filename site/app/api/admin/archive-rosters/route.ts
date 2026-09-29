@@ -188,7 +188,7 @@ export async function PUT(request: Request) {
         `INSERT INTO tournament_audit_log (
            tournament_id, actor_discord_id, action, entity_type, entity_id
          ) VALUES ($1,$2,'archive_roster_update','application',$3)`,
-        [body.tournamentId, admin.discordId, String(id)],
+        [body.tournamentId, admin.actorDiscordId, String(id)],
       );
       return id;
     });

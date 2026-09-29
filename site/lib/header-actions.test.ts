@@ -35,10 +35,11 @@ describe("site header actions", () => {
     expect(actions).toContain('href="/boosty"');
   });
 
-  it("uses a generic login icon on mobile and Discord icon on desktop", () => {
+  it("opens the shared login page with a generic icon", () => {
     expect(component).toContain('className="login-icon-discord"');
     expect(component).toContain('className="login-icon-mobile"');
-    expect(component).toContain('aria-label="Войти через Discord"');
+    expect(component).toContain('aria-label="Открыть страницу входа"');
+    expect(component).toContain('href={`/login?returnTo=');
     expect(css).toMatch(
       /\.login-icon-mobile\s*\{[^}]*display:\s*none;/,
     );

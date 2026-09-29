@@ -42,7 +42,7 @@ export type SaveFinalPredictionTeamsResult = {
 
 export async function saveFinalPredictionTeams(input: {
   teams: string[];
-  administratorId: string;
+  administratorId: string | null;
   notificationTitle: string;
   notificationMessage: string;
   actionUrl: string;
@@ -146,7 +146,7 @@ export async function saveFinalPredictionPick(input: {
 
 export async function recordFinalPredictionWinner(input: {
   position: number;
-  administratorId: string;
+  administratorId: string | null;
   closesAt: Date;
   rewardStars: number;
   now: Date;

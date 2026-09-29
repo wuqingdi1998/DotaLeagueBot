@@ -84,7 +84,7 @@ export async function PATCH(request: Request) {
          VALUES ($1, $2, 'update_close_settings', 'close_event', $3, $4::jsonb)`,
         [
           tournamentId,
-          admin.discordId,
+          admin.actorDiscordId,
           String(target.rows[0].close_event_id),
           JSON.stringify({ format, bestOf }),
         ],

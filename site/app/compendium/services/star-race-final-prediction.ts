@@ -1,4 +1,4 @@
-import type { AuthUser } from "@/lib/auth";
+import { organizerActorDiscordId, type AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
 import { assertCompendiumActive } from "../model/lifecycle";
 import { FINAL_PREDICTION_DATE, starRaceQuestByDate } from "../model/star-race";
@@ -63,7 +63,7 @@ export async function configureFinalPrediction(input: {
   try {
     const opening = await saveFinalPredictionTeams({
       teams,
-      administratorId: input.administrator.discordId,
+      administratorId: organizerActorDiscordId(input.administrator),
       notificationTitle: finalPredictionNotification.title,
       notificationMessage: finalPredictionNotification.message,
       actionUrl: compendiumUrl(),
@@ -115,7 +115,7 @@ export async function finishFinalPrediction(input: {
   try {
     return await recordFinalPredictionWinner({
       position: Number(input.position),
-      administratorId: input.administrator.discordId,
+      administratorId: organizerActorDiscordId(input.administrator),
       closesAt: new Date(requirement.closesAt),
       rewardStars: quest.rewardStars!,
       now: input.now ?? new Date(),

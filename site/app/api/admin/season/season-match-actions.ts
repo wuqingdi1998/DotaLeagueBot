@@ -177,7 +177,7 @@ async function replaceParticipants(
 
 export async function createSeasonMatch(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const lobbyId = requiredId(body.lobbyId, "лобби");
   const values = matchValues(body);
@@ -287,7 +287,7 @@ export async function createSeasonMatch(
 
 export async function updateSeasonMatch(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const id = requiredId(body.id, "матч");
   const values = matchValues(body);
@@ -376,7 +376,7 @@ export async function updateSeasonMatch(
 
 export async function deleteSeasonMatch(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const id = requiredId(body.id, "матч");
   return transaction(async (client) => {

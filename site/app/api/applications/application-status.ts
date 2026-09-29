@@ -10,7 +10,7 @@ export async function updateApplicationStatus({
 }: {
   applicationId: number;
   status: ApplicationStatus;
-  actorDiscordId: string;
+  actorDiscordId: string | null;
 }) {
   await transaction(async (client) => {
     if (status === "approved") {

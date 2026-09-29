@@ -46,7 +46,7 @@ export async function PATCH(request: Request) {
          VALUES ($1, $2, 'layout_reset', 'bracket', $3::jsonb)`,
         [
           tournamentId,
-          admin.discordId,
+          admin.actorDiscordId,
           JSON.stringify({ matchCount: resetMatches.length }),
         ],
       );
@@ -88,7 +88,7 @@ export async function PATCH(request: Request) {
        VALUES ($1, $2, 'layout_update', 'match', $3, $4::jsonb)`,
       [
         updated[0].tournament_id,
-        admin.discordId,
+        admin.actorDiscordId,
         String(matchId),
         JSON.stringify({
           gridColumn: body.gridColumn,

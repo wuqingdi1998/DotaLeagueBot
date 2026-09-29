@@ -319,7 +319,7 @@ async function setConfigurationStatus(
 
 export async function updateSeasonLobbyConfiguration(
   body: Record<string, unknown>,
-  actorDiscordId: string,
+  actorDiscordId: string | null,
 ) {
   const roundId = requiredId(body.roundId, "тур");
   const action = enumValue(

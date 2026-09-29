@@ -37,7 +37,7 @@ export async function listSeasonCalendarEvents(): Promise<SeasonCalendarEvent[]>
 
 export async function createSeasonCalendarEvent(
   input: SeasonCalendarEventInput,
-  organizerDiscordId: string,
+  organizerDiscordId: string | null,
 ): Promise<SeasonCalendarEvent> {
   const row = await one<CalendarEventRow>(
     `INSERT INTO season_calendar_events (
@@ -61,7 +61,7 @@ export async function createSeasonCalendarEvent(
 export async function updateSeasonCalendarEvent(
   id: number,
   input: SeasonCalendarEventInput,
-  organizerDiscordId: string,
+  organizerDiscordId: string | null,
 ): Promise<SeasonCalendarEvent | null> {
   const row = await one<CalendarEventRow>(
     `UPDATE season_calendar_events

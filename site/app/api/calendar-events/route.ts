@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   try {
     const organizer = await requireAdmin();
     const input = parseSeasonCalendarEventInput(await request.json());
-    const event = await createSeasonCalendarEvent(input, organizer.discordId);
+    const event = await createSeasonCalendarEvent(input, organizer.actorDiscordId);
     return Response.json({ event }, { status: 201 });
   } catch (error) {
     return calendarErrorResponse(error);
@@ -44,7 +44,7 @@ export async function PATCH(request: Request) {
     const event = await updateSeasonCalendarEvent(
       id,
       input,
-      organizer.discordId,
+      organizer.actorDiscordId,
     );
     if (!event) {
       return Response.json({ error: "Событие не найдено" }, { status: 404 });

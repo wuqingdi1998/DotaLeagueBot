@@ -29,7 +29,7 @@ export async function PUT(request: Request) {
     await saveSeasonTournamentLink({
       linkId: body.linkId,
       href,
-      organizerId: organizer.discordId,
+      organizerId: organizer.actorDiscordId,
     });
     return Response.json({ ok: true, href });
   } catch (error) {

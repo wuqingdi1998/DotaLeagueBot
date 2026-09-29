@@ -49,13 +49,13 @@ export async function POST(request: Request) {
       action === "shuffle"
         ? await shuffleTournamentGroups({
             tournamentId,
-            actorDiscordId: admin.discordId,
+            actorDiscordId: admin.actorDiscordId,
           })
         : await formTournamentGroups({
             tournamentId,
             groupCount: groupCount as number,
             teamsPerGroup,
-            actorDiscordId: admin.discordId,
+            actorDiscordId: admin.actorDiscordId,
           });
     return Response.json({ ok: true, ...result });
   } catch (error) {
@@ -184,7 +184,7 @@ export async function PATCH(request: Request) {
          VALUES ($1, $2, 'settings_update', 'group', $3, $4::jsonb)`,
         [
           groups[0].tournament_id,
-          admin.discordId,
+          admin.actorDiscordId,
           String(groupId),
           JSON.stringify({
             teamCapacity,

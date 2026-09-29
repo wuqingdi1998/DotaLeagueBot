@@ -37,7 +37,7 @@ export async function getSeasonTournamentLinks(): Promise<SeasonTournamentLinks>
 export async function saveSeasonTournamentLink(input: {
   linkId: SeasonTournamentLinkId;
   href: string;
-  organizerId: string;
+  organizerId: string | null;
 }): Promise<void> {
   await query(
     `INSERT INTO site_settings (key, value, updated_at, updated_by)
