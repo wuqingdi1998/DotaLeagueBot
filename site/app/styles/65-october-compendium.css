@@ -13,7 +13,7 @@
 .october-compendium-preview {
   background:
     linear-gradient(180deg, rgba(3, 13, 20, 0.62), rgba(3, 13, 20, 0.48) 45%, rgba(3, 13, 20, 0.7)),
-    url("/compendium/october/clan-saga-continuous.webp") center top / 100% 100% no-repeat,
+    url("/compendium/october/clan-table-continuous.webp") center top / 100% 100% no-repeat,
     #07151f;
 }
 
@@ -29,7 +29,7 @@
   .october-compendium-screen {
     background-image:
       linear-gradient(180deg, rgba(3, 13, 20, 0.62), rgba(3, 13, 20, 0.48) 45%, rgba(3, 13, 20, 0.7)),
-      url("/compendium/october/clan-saga-continuous.webp");
+      url("/compendium/october/clan-table-continuous.webp");
     background-repeat: no-repeat;
     background-size: 100% 400%;
   }

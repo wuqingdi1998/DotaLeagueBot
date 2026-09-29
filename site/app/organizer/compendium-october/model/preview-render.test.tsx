@@ -380,7 +380,7 @@ describe("October preview actions", () => {
   });
 
   it("uses one continuous clan saga background across all four October screens", () => {
-    const backgroundName = "clan-saga-continuous.webp";
+    const backgroundName = "clan-table-continuous.webp";
     expect(presentationStyles.match(new RegExp(backgroundName, "g"))).toHaveLength(2);
     expect(presentationStyles).toContain("background-size: 100% 400%");
     expect(presentationStyles).toContain("background-position: center 33.333%");
