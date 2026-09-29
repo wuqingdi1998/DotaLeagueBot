@@ -9,6 +9,11 @@ export type OctoberClanPrize = {
   approximateValue: string | null;
 };
 
+type OctoberClanPrizeDetails = Pick<
+  OctoberClanPrize,
+  "name" | "imagePath" | "approximateValue"
+>;
+
 function emptyPrizeSlots(
   pool: OctoberClanPrizePool,
   count: number,
@@ -29,19 +34,28 @@ const steamGiftCardPrize = {
   approximateValue: "500 ₽",
 } as const;
 
+const shatteredGreatswordPrize = {
+  name: "Shattered Greatsword",
+  imagePath: "/compendium/october/shattered-greatsword.png",
+  approximateValue: "6 000 ₽",
+} as const;
+
 function clanPrizeSlots(
   pool: OctoberClanPrizePool,
   count: number,
-  steamGiftCardPositions: readonly number[],
+  prizesByPosition: Readonly<Partial<Record<number, OctoberClanPrizeDetails>>>,
 ): OctoberClanPrize[] {
-  return emptyPrizeSlots(pool, count).map((prize) =>
-    steamGiftCardPositions.includes(prize.poolPosition)
-      ? { ...prize, ...steamGiftCardPrize }
-      : prize,
-  );
+  return emptyPrizeSlots(pool, count).map((prize) => {
+    const prizeDetails = prizesByPosition[prize.poolPosition];
+    return prizeDetails ? { ...prize, ...prizeDetails } : prize;
+  });
 }
 
 export const OCTOBER_CLAN_PRIZES: readonly OctoberClanPrize[] = [
-  ...clanPrizeSlots("winners", 7, [6, 7]),
-  ...clanPrizeSlots("runners-up", 3, [3]),
+  ...clanPrizeSlots("winners", 7, {
+    1: shatteredGreatswordPrize,
+    6: steamGiftCardPrize,
+    7: steamGiftCardPrize,
+  }),
+  ...clanPrizeSlots("runners-up", 3, { 3: steamGiftCardPrize }),
 ];

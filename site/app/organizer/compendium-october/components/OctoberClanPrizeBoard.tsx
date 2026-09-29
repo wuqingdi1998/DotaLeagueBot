@@ -24,12 +24,15 @@ type PrizePopoverPosition = {
 function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
   const poolLabel = prizePoolLabels[prize.pool];
   const prizeName = prize.name ?? "Приз пока не выбран";
+  const prizeValueLabel = prize.approximateValue
+    ? `Ценность ~ ${prize.approximateValue}`
+    : "Ценность пока не указана";
   const [popoverPosition, setPopoverPosition] = useState<PrizePopoverPosition | null>(null);
   const tooltipId = `october-clan-prize-${prize.id}`;
 
   function showPopover(target: HTMLElement) {
     const bounds = target.getBoundingClientRect();
-    const halfPopoverWidth = 95;
+    const halfPopoverWidth = 110;
     const viewportPadding = 12;
     const estimatedPopoverHeight = 200;
     const placement = bounds.top >= estimatedPopoverHeight + viewportPadding
@@ -59,7 +62,17 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
         onBlur={() => setPopoverPosition(null)}
       >
         <span>{prize.poolPosition}</span>
-        <FiGift aria-hidden="true" />
+        {prize.imagePath ? (
+          <Image
+            className="october-clan-prize-slot-image"
+            src={prize.imagePath}
+            alt=""
+            fill
+            sizes="56px"
+          />
+        ) : (
+          <FiGift aria-hidden="true" />
+        )}
       </li>
       {popoverPosition && typeof document !== "undefined" && createPortal(
         <div
@@ -76,7 +89,7 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
           )}
         </div>
         <strong>{prizeName}</strong>
-        <span>{prize.approximateValue ?? "Примерная ценность будет указана позже"}</span>
+        <span>{prizeValueLabel}</span>
         </div>,
         document.body,
       )}

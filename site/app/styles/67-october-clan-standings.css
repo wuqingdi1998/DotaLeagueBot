@@ -55,6 +55,7 @@
 
 .october-clan-prize-slot > span {
   position: absolute;
+  z-index: 1;
   top: 3px;
   left: 6px;
   color: currentColor;
@@ -63,6 +64,11 @@
 }
 
 .october-clan-prize-slot > svg { width: 20px; height: 20px; }
+
+.october-clan-prize-slot-image {
+  object-fit: contain;
+  padding: 5px;
+}
 
 .october-clan-prize-slot:focus-visible {
   outline: 2px solid currentColor;
@@ -73,7 +79,7 @@
   position: fixed;
   z-index: 1000;
   display: grid;
-  width: 190px;
+  width: 220px;
   gap: 5px;
   transform: translate(-50%, -100%);
   padding: 10px;
@@ -103,7 +109,7 @@
 
 .october-clan-prize-image img { object-fit: contain; }
 .october-clan-prize-image > svg { width: 36px; height: 36px; color: #d9bd68; }
-.october-clan-prize-popover strong { font-size: 13px; }
+.october-clan-prize-popover strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .october-clan-prize-popover > span { color: #afc0c2; font-size: 12px; line-height: 1.35; }
 
 .october-clan-card-copy {

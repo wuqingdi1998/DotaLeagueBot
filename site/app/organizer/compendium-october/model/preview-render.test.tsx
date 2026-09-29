@@ -157,16 +157,38 @@ describe("October preview actions", () => {
     expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
     expect(
       OCTOBER_CLAN_PRIZES
-        .filter((prize) => prize.imagePath?.includes("steam-gift-card-500-rub"))
-        .map(({ pool, poolPosition, approximateValue }) => ({
+        .filter((prize) => prize.imagePath)
+        .map(({ pool, poolPosition, name, approximateValue }) => ({
           pool,
           poolPosition,
+          name,
           approximateValue,
         })),
     ).toEqual([
-      { pool: "winners", poolPosition: 6, approximateValue: "500 ₽" },
-      { pool: "winners", poolPosition: 7, approximateValue: "500 ₽" },
-      { pool: "runners-up", poolPosition: 3, approximateValue: "500 ₽" },
+      {
+        pool: "winners",
+        poolPosition: 1,
+        name: "Shattered Greatsword",
+        approximateValue: "6 000 ₽",
+      },
+      {
+        pool: "winners",
+        poolPosition: 6,
+        name: "Steam Gift Card на 500 ₽",
+        approximateValue: "500 ₽",
+      },
+      {
+        pool: "winners",
+        poolPosition: 7,
+        name: "Steam Gift Card на 500 ₽",
+        approximateValue: "500 ₽",
+      },
+      {
+        pool: "runners-up",
+        poolPosition: 3,
+        name: "Steam Gift Card на 500 ₽",
+        approximateValue: "500 ₽",
+      },
     ]);
     expect(
       existsSync(
@@ -176,7 +198,18 @@ describe("October preview actions", () => {
         ),
       ),
     ).toBe(true);
+    expect(
+      existsSync(
+        new URL(
+          "../../../../public/compendium/october/shattered-greatsword.png",
+          import.meta.url,
+        ),
+      ),
+    ).toBe(true);
+    expect(html.match(/<img[^>]+steam-gift-card-500-rub\.png[^>]*>/g)).toHaveLength(3);
+    expect(html.match(/<img[^>]+shattered-greatsword\.png[^>]*>/g)).toHaveLength(1);
     expect(html.match(/Steam Gift Card на 500 ₽/g)).toHaveLength(3);
+    expect(html).toContain("Shattered Greatsword");
     expect(html).not.toContain("Зачёт сообщества");
     expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
       .toBe(true);
@@ -358,7 +391,10 @@ describe("October preview actions", () => {
       "grid-template-columns: minmax(0, 1fr) minmax(500px, 0.72fr)",
     );
     expect(clanStyles).toContain(".october-clan-prize-popover--below");
+    expect(clanStyles).toContain(".october-clan-prize-slot-image");
+    expect(clanStyles).toContain("white-space: nowrap");
     expect(prizeBoardSource).toContain("bounds.bottom + 9");
+    expect(prizeBoardSource).toContain("Ценность ~ ${prize.approximateValue}");
     expect(clanStyles).toMatch(
       /\.october-clan-prize-copy p\s*\{[^}]*color:\s*#f2d67d;[^}]*font-size:\s*clamp\(12px, 1vw, 14px\);/,
     );
