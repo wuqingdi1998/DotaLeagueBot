@@ -86,6 +86,10 @@
   text-align: left;
 }
 
+.october-clan-prize-popover--below {
+  transform: translate(-50%, 0);
+}
+
 .october-clan-prize-image {
   position: relative;
   display: grid;

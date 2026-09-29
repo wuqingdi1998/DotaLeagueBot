@@ -13,6 +13,7 @@ import { OCTOBER_CLANS } from "./clans";
 import { OCTOBER_PREVIEW_SECTIONS } from "./sections";
 import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
+import { OCTOBER_CLAN_PRIZES } from "./clan-prizes";
 import type { OctoberClanMember } from "./clan-members";
 
 const previewStyles = readFileSync(
@@ -53,6 +54,10 @@ const rewardStyles = readFileSync(
 );
 const previewSource = readFileSync(
   new URL("../sections/OctoberCompendiumPreview.tsx", import.meta.url),
+  "utf8",
+);
+const prizeBoardSource = readFileSync(
+  new URL("../components/OctoberClanPrizeBoard.tsx", import.meta.url),
   "utf8",
 );
 
@@ -150,6 +155,28 @@ describe("October preview actions", () => {
     expect(html).toContain("<p>Победители разыграют 7 предметов, проигравшие – 3</p>");
     expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(7);
     expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
+    expect(
+      OCTOBER_CLAN_PRIZES
+        .filter((prize) => prize.imagePath?.includes("steam-gift-card-500-rub"))
+        .map(({ pool, poolPosition, approximateValue }) => ({
+          pool,
+          poolPosition,
+          approximateValue,
+        })),
+    ).toEqual([
+      { pool: "winners", poolPosition: 6, approximateValue: "500 ₽" },
+      { pool: "winners", poolPosition: 7, approximateValue: "500 ₽" },
+      { pool: "runners-up", poolPosition: 3, approximateValue: "500 ₽" },
+    ]);
+    expect(
+      existsSync(
+        new URL(
+          "../../../../public/compendium/october/steam-gift-card-500-rub.png",
+          import.meta.url,
+        ),
+      ),
+    ).toBe(true);
+    expect(html.match(/Steam Gift Card на 500 ₽/g)).toHaveLength(3);
     expect(html).not.toContain("Зачёт сообщества");
     expect(OCTOBER_RACE_EXCLUSION_RULES.every((rule) => rule.includes("личный зачёт и счёт клана")))
       .toBe(true);
@@ -330,6 +357,8 @@ describe("October preview actions", () => {
     expect(clanStyles).toContain(
       "grid-template-columns: minmax(0, 1fr) minmax(500px, 0.72fr)",
     );
+    expect(clanStyles).toContain(".october-clan-prize-popover--below");
+    expect(prizeBoardSource).toContain("bounds.bottom + 9");
     expect(clanStyles).toMatch(
       /\.october-clan-prize-copy p\s*\{[^}]*color:\s*#f2d67d;[^}]*font-size:\s*clamp\(12px, 1vw, 14px\);/,
     );

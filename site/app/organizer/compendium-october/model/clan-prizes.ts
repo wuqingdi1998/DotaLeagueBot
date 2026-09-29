@@ -23,7 +23,25 @@ function emptyPrizeSlots(
   }));
 }
 
+const steamGiftCardPrize = {
+  name: "Steam Gift Card на 500 ₽",
+  imagePath: "/compendium/october/steam-gift-card-500-rub.png",
+  approximateValue: "500 ₽",
+} as const;
+
+function clanPrizeSlots(
+  pool: OctoberClanPrizePool,
+  count: number,
+  steamGiftCardPositions: readonly number[],
+): OctoberClanPrize[] {
+  return emptyPrizeSlots(pool, count).map((prize) =>
+    steamGiftCardPositions.includes(prize.poolPosition)
+      ? { ...prize, ...steamGiftCardPrize }
+      : prize,
+  );
+}
+
 export const OCTOBER_CLAN_PRIZES: readonly OctoberClanPrize[] = [
-  ...emptyPrizeSlots("winners", 7),
-  ...emptyPrizeSlots("runners-up", 3),
+  ...clanPrizeSlots("winners", 7, [6, 7]),
+  ...clanPrizeSlots("runners-up", 3, [3]),
 ];

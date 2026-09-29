@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, type CSSProperties } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { FiGift } from "react-icons/fi";
 import {
@@ -18,6 +18,7 @@ const prizePoolLabels: Record<OctoberClanPrizePool, string> = {
 type PrizePopoverPosition = {
   top: number;
   left: number;
+  placement: "above" | "below";
 };
 
 function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
@@ -30,12 +31,17 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
     const bounds = target.getBoundingClientRect();
     const halfPopoverWidth = 95;
     const viewportPadding = 12;
+    const estimatedPopoverHeight = 200;
+    const placement = bounds.top >= estimatedPopoverHeight + viewportPadding
+      ? "above"
+      : "below";
     setPopoverPosition({
-      top: bounds.top - 9,
+      top: placement === "above" ? bounds.top - 9 : bounds.bottom + 9,
       left: Math.min(
         window.innerWidth - halfPopoverWidth - viewportPadding,
         Math.max(halfPopoverWidth + viewportPadding, bounds.left + bounds.width / 2),
       ),
+      placement,
     });
   }
 
@@ -57,10 +63,10 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
       </li>
       {popoverPosition && typeof document !== "undefined" && createPortal(
         <div
-          className="october-clan-prize-popover"
+          className={`october-clan-prize-popover october-clan-prize-popover--${popoverPosition.placement}`}
           id={tooltipId}
           role="tooltip"
-          style={popoverPosition as CSSProperties}
+          style={{ top: popoverPosition.top, left: popoverPosition.left }}
         >
         <div className="october-clan-prize-image">
           {prize.imagePath ? (
