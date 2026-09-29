@@ -248,9 +248,14 @@
   font-size: 11px;
 }
 
+.october-clan-standing-row--compact .october-clan-standing-name,
+.october-clan-standing-row--compact > strong {
+  font-size: 15px;
+}
+
 .october-clan-standing-row--compact > strong svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
 }
 
 .october-clan-standing-name {
