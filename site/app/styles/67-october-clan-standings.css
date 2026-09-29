@@ -2,7 +2,7 @@
   position: relative;
   z-index: 4;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(500px, 0.72fr);
+  grid-template-columns: minmax(0, 1fr) minmax(570px, 0.9fr);
   align-items: center;
   gap: 18px;
   margin-bottom: 14px;
@@ -39,7 +39,7 @@
   position: relative;
   display: grid;
   min-width: 0;
-  min-height: 48px;
+  min-height: 60px;
   place-items: center;
   border: 1px solid rgba(239, 214, 137, 0.42);
   border-radius: 10px;
@@ -67,7 +67,7 @@
 
 .october-clan-prize-slot-image {
   object-fit: contain;
-  padding: 5px;
+  padding: 2px;
 }
 
 .october-clan-prize-slot:focus-visible {
@@ -435,7 +435,7 @@
 @media (max-width: 660px) {
   .october-clan-prize-board { padding: 14px; }
   .october-clan-prize-board > ul { grid-template-columns: repeat(5, minmax(42px, 1fr)); }
-  .october-clan-prize-slot { min-height: 54px; }
+  .october-clan-prize-slot { min-height: 62px; }
   .october-clan-card { grid-template-columns: minmax(70px, 24%) minmax(0, 1fr); }
   .october-clan-standing-row--compact { grid-template-columns: 20px minmax(0, 1fr) 42px; gap: 6px; padding-inline: 5px 10px; }
   .october-clan-standing-dialog-panel > header { padding: 18px; }

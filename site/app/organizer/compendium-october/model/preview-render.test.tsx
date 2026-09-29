@@ -388,7 +388,16 @@ describe("October preview actions", () => {
     );
     expect(clanStyles).toContain("grid-template-columns: repeat(10, minmax(42px, 1fr))");
     expect(clanStyles).toContain(
-      "grid-template-columns: minmax(0, 1fr) minmax(500px, 0.72fr)",
+      "grid-template-columns: minmax(0, 1fr) minmax(570px, 0.9fr)",
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-prize-slot\s*\{[^}]*min-height:\s*60px;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-prize-slot-image\s*\{[^}]*padding:\s*2px;/,
+    );
+    expect(clanStyles).toMatch(
+      /@media \(max-width:\s*660px\)[\s\S]*?\.october-clan-prize-slot\s*\{[^}]*min-height:\s*62px;/,
     );
     expect(clanStyles).toContain(".october-clan-prize-popover--below");
     expect(clanStyles).toContain(".october-clan-prize-slot-image");
