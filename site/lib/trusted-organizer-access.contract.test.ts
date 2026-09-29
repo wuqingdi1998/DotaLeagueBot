@@ -8,6 +8,9 @@ function source(path: string) {
 const migration = source(
   "../../bot/database/migrations/0149_trusted_organizers.sql",
 );
+const trustedOrganizerGrantMigration = source(
+  "../../bot/database/migrations/0154_grant_trusted_organizer_access.sql",
+);
 const auth = source("./auth.ts");
 const siteBreak = source("./site-break.ts");
 const participantsPage = source("../app/participants/page.tsx");
@@ -25,6 +28,8 @@ describe("trusted organizer access", () => {
   it("stores the approved Discord organizer in one durable allowlist", () => {
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS trusted_organizers");
     expect(migration).toContain("311247030422863882");
+    expect(trustedOrganizerGrantMigration).toContain("trusted_organizers");
+    expect(trustedOrganizerGrantMigration).toContain("553265835335090177");
     expect(migration).not.toContain("emojidrive");
   });
 
