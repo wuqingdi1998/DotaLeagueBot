@@ -11,33 +11,40 @@
 }
 
 .october-compendium-preview {
-  background:
+  position: relative;
+  isolation: isolate;
+  background: #07151f;
+}
+
+.october-compendium-preview::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background-image:
     linear-gradient(180deg, rgba(3, 13, 20, 0.62), rgba(3, 13, 20, 0.48) 45%, rgba(3, 13, 20, 0.7)),
-    url("/compendium/october/clan-table-edge-upscaled.webp") center top / 100% 100% no-repeat,
-    #07151f;
+    url("/compendium/october/clan-table-ultra-4x.webp");
+  background-position: center top;
+  background-repeat: no-repeat, repeat-y;
+  background-size: 100% 100%, 100% auto;
+  content: "";
+  pointer-events: none;
 }
 
 .october-compendium-screen {
   position: relative;
+  z-index: 1;
   isolation: isolate;
   background: transparent;
 }
 
 @media (min-width: 961px) and (min-height: 700px) {
-  .october-compendium-preview { background: #07151f; }
-
-  .october-compendium-screen {
-    background-image:
-      linear-gradient(180deg, rgba(3, 13, 20, 0.62), rgba(3, 13, 20, 0.48) 45%, rgba(3, 13, 20, 0.7)),
-      url("/compendium/october/clan-table-edge-upscaled.webp");
+  .october-compendium-preview::before {
+    bottom: auto;
+    height: 400%;
+    background-position: center;
     background-repeat: no-repeat;
-    background-size: 100% 400%;
+    background-size: 100% 100%, cover;
   }
-
-  .october-compendium-screen-clans { background-position: center 0%; }
-  .october-compendium-screen-personal { background-position: center 33.333%; }
-  .october-compendium-screen-race { background-position: center 66.667%; }
-  .october-compendium-screen-daily { background-position: center 100%; }
 }
 
 .october-compendium-preview .compendium-hero-section {

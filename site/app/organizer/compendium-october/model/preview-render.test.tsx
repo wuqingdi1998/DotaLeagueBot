@@ -380,11 +380,11 @@ describe("October preview actions", () => {
   });
 
   it("uses one continuous clan saga background across all four October screens", () => {
-    const backgroundName = "clan-table-edge-upscaled.webp";
-    expect(presentationStyles.match(new RegExp(backgroundName, "g"))).toHaveLength(2);
-    expect(presentationStyles).toContain("background-size: 100% 400%");
-    expect(presentationStyles).toContain("background-position: center 33.333%");
-    expect(presentationStyles).toContain("background-position: center 66.667%");
+    const backgroundName = "clan-table-ultra-4x.webp";
+    expect(presentationStyles.match(new RegExp(backgroundName, "g"))).toHaveLength(1);
+    expect(presentationStyles).toContain(".october-compendium-preview::before");
+    expect(presentationStyles).toContain("background-size: 100% 100%, cover");
+    expect(presentationStyles).not.toContain("background-size: 100% 400%");
     expect(existsSync(new URL(`../../../../public/compendium/october/${backgroundName}`, import.meta.url)))
       .toBe(true);
     expect(existsSync(new URL("../../../../public/compendium/october/clan-hall-hd.webp", import.meta.url)))
