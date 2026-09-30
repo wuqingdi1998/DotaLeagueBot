@@ -74,6 +74,7 @@ export function RuneChallenge({
   initialChallenge,
   currentTimeMs,
   rewardStars,
+  rewardStarsLabel,
   resetCountdown,
   onStarsChange,
   isPreview = false,
@@ -81,6 +82,7 @@ export function RuneChallenge({
   initialChallenge: RuneChallengeData;
   currentTimeMs: number;
   rewardStars: number;
+  rewardStarsLabel?: string;
   resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
   isPreview?: boolean;
@@ -189,9 +191,14 @@ export function RuneChallenge({
         </div>
         <div
           className="compendium-reward"
-          aria-label={`Награда: ${rewardStars} ${rewardStars === 1 ? "звезда" : "звезды"}`}
+          aria-label={rewardStarsLabel
+            ? `Награда: ${rewardStarsLabel} звезды`
+            : `Награда: ${rewardStars} ${rewardStars === 1 ? "звезда" : "звезды"}`}
         >
-          <FaStar aria-hidden="true" /> <strong>{rewardStars}</strong>
+          <FaStar aria-hidden="true" />
+          {rewardStarsLabel
+            ? <strong>{rewardStarsLabel}</strong>
+            : <strong>{rewardStars}</strong>}
         </div>
       </div>
 

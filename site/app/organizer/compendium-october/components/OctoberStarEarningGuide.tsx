@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { FaStar } from "react-icons/fa";
 import { FiHelpCircle, FiX } from "react-icons/fi";
 import {
+  OCTOBER_ABSOLUTE_MAX_STARS,
   OCTOBER_STANDARD_MAX_STARS,
   OCTOBER_STAR_EARNING_SOURCES,
   OCTOBER_SUBSCRIBER_MAX_STARS,
@@ -55,9 +56,10 @@ export function OctoberStarEarningGuide() {
                     <h3>
                       {source.title}
                       {source.subscriberOnly && <span>Для подписчиков</span>}
+                      {source.tournamentOnly && <span>Участникам турниров</span>}
                     </h3>
                     <p>{source.description}</p>
-                    <small>{source.calculation}</small>
+                    {source.calculation && <small>{source.calculation}</small>}
                   </div>
                   <strong aria-label={`Максимум ${source.maxStars} звёзд`}>
                     <FaStar aria-hidden="true" /> {source.maxStars}
@@ -68,12 +70,16 @@ export function OctoberStarEarningGuide() {
 
             <div className="october-star-guide-totals" aria-label="Максимальное количество звёзд">
               <div>
-                <span>Максимум для каждого участника</span>
+                <span>Максимум без подписки и Fastcup</span>
                 <strong><FaStar aria-hidden="true" /> {OCTOBER_STANDARD_MAX_STARS}</strong>
               </div>
               <div>
                 <span>Максимум с Испытанием Рун</span>
                 <strong><FaStar aria-hidden="true" /> {OCTOBER_SUBSCRIBER_MAX_STARS}</strong>
+              </div>
+              <div>
+                <span>Абсолютный максимум с двумя победами на Fastcup</span>
+                <strong><FaStar aria-hidden="true" /> {OCTOBER_ABSOLUTE_MAX_STARS}</strong>
               </div>
             </div>
           </div>

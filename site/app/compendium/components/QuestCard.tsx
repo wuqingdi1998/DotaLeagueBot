@@ -11,6 +11,7 @@ import { HeroChoice } from "./HeroChoice";
 export function QuestCard({
   quest,
   rewardStars,
+  rewardStarsLabel,
   isChecking,
   isRerolling,
   canCheck,
@@ -23,6 +24,7 @@ export function QuestCard({
 }: {
   quest: DailyQuest;
   rewardStars: number;
+  rewardStarsLabel?: string;
   isChecking: boolean;
   isRerolling: boolean;
   canCheck: boolean;
@@ -70,10 +72,14 @@ export function QuestCard({
           </button>
           <div
             className="compendium-reward"
-            aria-label={`Награда: ${rewardStars} ${rewardStars === 1 ? "звезда" : "звезды"}`}
+            aria-label={rewardStarsLabel
+              ? `Награда: ${rewardStarsLabel} звезды`
+              : `Награда: ${rewardStars} ${rewardStars === 1 ? "звезда" : "звезды"}`}
           >
             <FaStar aria-hidden="true" />
-            <strong>{rewardStars}</strong>
+            {rewardStarsLabel
+              ? <strong>{rewardStarsLabel}</strong>
+              : <strong>{rewardStars}</strong>}
           </div>
         </div>
       </div>

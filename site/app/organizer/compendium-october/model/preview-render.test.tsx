@@ -265,11 +265,12 @@ describe("October preview actions", () => {
     expect(html).toContain("Player 12");
   });
 
-  it("gives both clanmates a star and permits the same match to close a hero quest", () => {
+  it("gives both clanmates the weekend bonus and permits the same match to close a hero quest", () => {
     const html = renderToStaticMarkup(<OctoberClanOutingCard />);
     expect(html).toContain("Клановая вылазка");
     expect(html).toContain("Выиграйте одну рейтинговую игру вместе с участником своего клана");
-    expect(html).toContain("каждый получит по одной звезде");
+    expect(html).toContain("каждый получит по две звезды");
+    expect(html).toContain("Награда: 1 звезда каждому, в выходные 2");
     expect(html).toContain("одновременно засчитать для испытания 1 или 2");
     expect(html).toMatch(/class="compendium-check-button"[^>]*disabled/);
   });
@@ -279,6 +280,8 @@ describe("October preview actions", () => {
     expect(html).toContain("aria-label=\"Вернуть пояснения к заданиям\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к заданиям дня\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к клановой вылазке\"");
+    expect(html).toContain("Для всех трёх заданий и Испытания Рун");
+    expect(html.match(/aria-label="Награда: 1–2 звезды"/g)).toHaveLength(3);
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
     expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");
   });

@@ -61,9 +61,9 @@ export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: stri
         <div className="october-compendium-example-note october-dismissible-guide">
           <p>
             Каждый день – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и одна
-            клановая вылазка. За победу на герое даётся звезда, в пятницу, субботу и воскресенье – две.
-            Клановая вылазка всегда даёт по одной звезде каждому игроку и может закрыться одновременно
-            с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
+            клановая вылазка. Для всех трёх заданий и Испытания Рун действует бонус выходного дня:
+            в пятницу, субботу и воскресенье даётся две звезды вместо одной. Клановая вылазка может
+            закрыться одновременно с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
             замены заданий в день, после {OCTOBER_REWARD_STARS.secondReroll} – три.
             Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника.
           </p>
@@ -85,6 +85,7 @@ export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: stri
             key={quest.id}
             quest={quest}
             rewardStars={QUEST_REWARD_STARS}
+            rewardStarsLabel="1–2"
             isChecking={false}
             isRerolling={false}
             canCheck={false}
@@ -109,6 +110,7 @@ export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: stri
         }}
         currentTimeMs={0}
         rewardStars={QUEST_REWARD_STARS}
+        rewardStarsLabel="1–2"
         resetCountdown=""
         onStarsChange={ignorePreviewAction}
         isPreview

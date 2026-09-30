@@ -44,9 +44,11 @@ describe("October clan prizes", () => {
     expect(html.match(/data-prize-row="additional"/g)).toHaveLength(10);
     expect(html).toContain("Как получить звёзды?");
     expect(html).toContain("Все способы получить звёзды");
-    expect(html).toContain("Максимум для каждого участника");
-    expect(html).toContain("143");
-    expect(html).toContain("164");
+    expect(html).toContain("Максимум без подписки и Fastcup");
+    expect(html).toContain("Абсолютный максимум");
+    expect(html).toContain("161");
+    expect(html).toContain("191");
+    expect(html).toContain("203");
   });
 
   it("uses a prepared transparent preview for every new prize", () => {

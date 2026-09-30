@@ -16,9 +16,9 @@ export function OctoberClanOutingCard({
           <span>Ежедневное задание</span>
           <h2>Испытание {OCTOBER_CLAN_QUEST_POSITION}</h2>
         </div>
-        <div className="compendium-reward" aria-label="Награда: 1 звезда каждому">
+        <div className="compendium-reward" aria-label="Награда: 1 звезда каждому, в выходные 2">
           <FaStar aria-hidden="true" />
-          <strong>1</strong>
+          <strong>1–2</strong>
         </div>
       </div>
       <div className="october-clan-quest-emblem" aria-hidden="true">
@@ -31,8 +31,9 @@ export function OctoberClanOutingCard({
       {isNoteVisible && (
         <div className="october-clan-quest-note october-dismissible-guide">
           <p>
-            Задание закроется у обоих игроков: каждый получит по одной звезде. Эту же победу можно
-            одновременно засчитать для испытания 1 или 2, если выполнены их условия.
+            Задание закроется у обоих игроков: в пятницу, субботу и воскресенье каждый получит
+            по две звезды, в остальные дни – по одной. Эту же победу можно одновременно засчитать
+            для испытания 1 или 2, если выполнены их условия.
           </p>
           <button type="button" aria-label="Скрыть пояснение к клановой вылазке" onClick={onDismissNote}>
             <FiX aria-hidden="true" />
