@@ -109,6 +109,8 @@
   transform: translate(-50%, 0);
 }
 
+.october-clan-prize-popover--large { width: 260px; }
+
 .october-clan-prize-image {
   position: relative;
   display: grid;
@@ -121,6 +123,7 @@
 }
 
 .october-clan-prize-image img { object-fit: contain; }
+.october-clan-prize-image--large { height: 180px; }
 .october-clan-prize-image > svg { width: 36px; height: 36px; color: #d9bd68; }
 .october-clan-prize-popover strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .october-clan-prize-popover > span { color: #afc0c2; font-size: 12px; line-height: 1.35; }

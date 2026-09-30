@@ -35,14 +35,15 @@ function PrizeSlot({
   const prizeValueLabel = prize.approximateValue
     ? `Ценность ~ ${prize.approximateValue}`
     : "Ценность пока не указана";
+  const slotImagePath = prize.thumbnailImagePath ?? prize.imagePath;
   const [popoverPosition, setPopoverPosition] = useState<PrizePopoverPosition | null>(null);
   const tooltipId = `october-clan-prize-${prize.id}`;
 
   function showPopover(target: HTMLElement) {
     const bounds = target.getBoundingClientRect();
-    const halfPopoverWidth = 110;
+    const halfPopoverWidth = prize.hasLargePreview ? 130 : 110;
     const viewportPadding = 12;
-    const estimatedPopoverHeight = 200;
+    const estimatedPopoverHeight = prize.hasLargePreview ? 290 : 200;
     const placement = bounds.top >= estimatedPopoverHeight + viewportPadding
       ? "above"
       : "below";
@@ -72,10 +73,10 @@ function PrizeSlot({
         onBlur={() => setPopoverPosition(null)}
       >
         <span>{prize.poolPosition}</span>
-        {prize.imagePath ? (
+        {slotImagePath ? (
           <Image
             className="october-clan-prize-slot-image"
-            src={prize.imagePath}
+            src={slotImagePath}
             alt=""
             fill
             sizes={row === "additional" ? "112px" : "56px"}
@@ -86,12 +87,15 @@ function PrizeSlot({
       </li>
       {popoverPosition && typeof document !== "undefined" && createPortal(
         <div
-          className={`october-clan-prize-popover october-clan-prize-popover--${popoverPosition.placement}`}
+          className={`october-clan-prize-popover october-clan-prize-popover--${popoverPosition.placement}${prize.hasLargePreview ? " october-clan-prize-popover--large" : ""}`}
           id={tooltipId}
           role="tooltip"
           style={{ top: popoverPosition.top, left: popoverPosition.left }}
         >
-        <div className="october-clan-prize-image" style={{ position: "relative" }}>
+        <div
+          className={`october-clan-prize-image${prize.hasLargePreview ? " october-clan-prize-image--large" : ""}`}
+          style={{ position: "relative" }}
+        >
           {prize.imagePath ? (
             <Image src={prize.imagePath} alt="" fill sizes="180px" />
           ) : (

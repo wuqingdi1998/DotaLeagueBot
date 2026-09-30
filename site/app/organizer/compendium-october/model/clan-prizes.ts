@@ -6,13 +6,15 @@ export type OctoberClanPrize = {
   poolPosition: number;
   name: string | null;
   imagePath: string | null;
+  thumbnailImagePath: string | null;
   approximateValue: string | null;
+  hasLargePreview: boolean;
 };
 
 type OctoberClanPrizeDetails = Pick<
   OctoberClanPrize,
   "name" | "imagePath" | "approximateValue"
->;
+> & Partial<Pick<OctoberClanPrize, "thumbnailImagePath" | "hasLargePreview">>;
 
 function emptyPrizeSlots(
   pool: OctoberClanPrizePool,
@@ -27,7 +29,9 @@ function emptyPrizeSlots(
       poolPosition,
       name: null,
       imagePath: null,
+      thumbnailImagePath: null,
       approximateValue: null,
+      hasLargePreview: false,
     };
   });
 }
@@ -44,11 +48,38 @@ const shatteredGreatswordPrize = {
   approximateValue: "6 000 ₽",
 } as const;
 
+const undyingLovePrize = {
+  name: "Undying Love",
+  imagePath: "/compendium/october/undying-love.png",
+  thumbnailImagePath: "/compendium/october/undying-love-thumbnail.png",
+  approximateValue: "700 ₽",
+  hasLargePreview: true,
+} as const;
+
+const magusMimicryPrize = {
+  name: "Magus Mimicry",
+  imagePath: "/compendium/october/magus-mimicry.png",
+  thumbnailImagePath: "/compendium/october/magus-mimicry-thumbnail.png",
+  approximateValue: "600 ₽",
+} as const;
+
+const snailfirePrize = {
+  name: "Snailfire",
+  imagePath: "/compendium/october/snailfire.png",
+  thumbnailImagePath: "/compendium/october/snailfire-thumbnail.png",
+  approximateValue: "600 ₽",
+} as const;
+
 const additionalWinnerPrizes: Readonly<Partial<Record<number, OctoberClanPrizeDetails>>> = {
+  9: {
+    name: "Almond the Frondillo",
+    imagePath: "/compendium/october/almond-the-frondillo.png",
+    approximateValue: "300 ₽",
+  },
   10: {
     name: "The Igneous Stone",
     imagePath: "/compendium/october/the-igneous-stone.png",
-    approximateValue: "200 ₽",
+    approximateValue: "300 ₽",
   },
   11: {
     name: "Altar Ball",
@@ -87,6 +118,9 @@ function clanPrizeSlots(
 export const OCTOBER_CLAN_PRIMARY_PRIZES: readonly OctoberClanPrize[] = [
   ...clanPrizeSlots("winners", 7, {
     1: shatteredGreatswordPrize,
+    3: undyingLovePrize,
+    4: magusMimicryPrize,
+    5: snailfirePrize,
     6: steamGiftCardPrize,
     7: steamGiftCardPrize,
   }),
