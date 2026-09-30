@@ -10,6 +10,7 @@ import {
   type OctoberClanPrize,
   type OctoberClanPrizePool,
 } from "../model/clan-prizes";
+import { OctoberStarEarningGuide } from "./OctoberStarEarningGuide";
 
 const prizePoolLabels: Record<OctoberClanPrizePool, string> = {
   winners: "Победители",
@@ -116,6 +117,7 @@ export function OctoberClanPrizeBoard() {
         <p>
           Победители разыграют 14 предметов, проигравшие – 6
         </p>
+        <OctoberStarEarningGuide />
       </div>
       <div className="october-clan-prize-lists">
         <ul
