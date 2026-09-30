@@ -147,48 +147,30 @@ describe("October preview actions", () => {
     expect(html).toContain("Флаг клана Панацея");
     expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
-    expect(html).toContain("10 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
-    expect(html).toContain("Победители разыграют 7 предметов, проигравшие – 3");
+    expect(html).toContain("15 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
+    expect(html).toContain("Победители разыграют 12 предметов, проигравшие – 3");
     expect(html).not.toContain("Морбус против Панацеи");
     expect(html).not.toContain("Каждая заработанная звезда пополнит личный и клановый зачёт");
-    expect(html).toContain('<p id="october-clan-prizes-title">10 предметов');
-    expect(html).toContain("<p>Победители разыграют 7 предметов, проигравшие – 3</p>");
-    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(7);
+    expect(html).toContain('<p id="october-clan-prizes-title">15 предметов');
+    expect(html).toContain("<p>Победители разыграют 12 предметов, проигравшие – 3</p>");
+    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(12);
     expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
     expect(
       OCTOBER_CLAN_PRIZES
         .filter((prize) => prize.imagePath)
-        .map(({ pool, poolPosition, name, approximateValue }) => ({
-          pool,
-          poolPosition,
-          name,
-          approximateValue,
-        })),
+        .map(({ pool, poolPosition, name, approximateValue }) =>
+          `${pool}:${poolPosition}:${name}:${approximateValue}`,
+        ),
     ).toEqual([
-      {
-        pool: "winners",
-        poolPosition: 1,
-        name: "Shattered Greatsword",
-        approximateValue: "6 000 ₽",
-      },
-      {
-        pool: "winners",
-        poolPosition: 6,
-        name: "Steam Gift Card на 500 ₽",
-        approximateValue: "500 ₽",
-      },
-      {
-        pool: "winners",
-        poolPosition: 7,
-        name: "Steam Gift Card на 500 ₽",
-        approximateValue: "500 ₽",
-      },
-      {
-        pool: "runners-up",
-        poolPosition: 3,
-        name: "Steam Gift Card на 500 ₽",
-        approximateValue: "500 ₽",
-      },
+      "winners:1:Shattered Greatsword:6 000 ₽",
+      "winners:6:Steam Gift Card на 500 ₽:500 ₽",
+      "winners:7:Steam Gift Card на 500 ₽:500 ₽",
+      "runners-up:3:Steam Gift Card на 500 ₽:500 ₽",
+      "winners:10:The Igneous Stone:200 ₽",
+      "winners:11:Altar Ball:200 ₽",
+      "winners:12:Cursed Crescent:200 ₽",
+      "winners:13:The Lightning Orchid:200 ₽",
+      "winners:14:Golden Fortune's Tout:200 ₽",
     ]);
     expect(
       existsSync(

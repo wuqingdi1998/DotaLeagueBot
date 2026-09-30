@@ -5,7 +5,8 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { FiGift } from "react-icons/fi";
 import {
-  OCTOBER_CLAN_PRIZES,
+  OCTOBER_CLAN_ADDITIONAL_PRIZES,
+  OCTOBER_CLAN_PRIMARY_PRIZES,
   type OctoberClanPrize,
   type OctoberClanPrizePool,
 } from "../model/clan-prizes";
@@ -21,7 +22,13 @@ type PrizePopoverPosition = {
   placement: "above" | "below";
 };
 
-function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
+function PrizeSlot({
+  prize,
+  row,
+}: {
+  prize: OctoberClanPrize;
+  row: "primary" | "additional";
+}) {
   const poolLabel = prizePoolLabels[prize.pool];
   const prizeName = prize.name ?? "Приз пока не выбран";
   const prizeValueLabel = prize.approximateValue
@@ -52,8 +59,10 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
     <>
       <li
         className={`october-clan-prize-slot october-clan-prize-slot--${prize.pool}`}
+        style={{ position: "relative" }}
         tabIndex={0}
         data-prize-pool={prize.pool}
+        data-prize-row={row}
         aria-label={`${poolLabel}, слот ${prize.poolPosition}: ${prizeName}`}
         aria-describedby={popoverPosition ? tooltipId : undefined}
         onMouseEnter={(event) => showPopover(event.currentTarget)}
@@ -68,7 +77,7 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
             src={prize.imagePath}
             alt=""
             fill
-            sizes="56px"
+            sizes={row === "additional" ? "112px" : "56px"}
           />
         ) : (
           <FiGift aria-hidden="true" />
@@ -81,7 +90,7 @@ function PrizeSlot({ prize }: { prize: OctoberClanPrize }) {
           role="tooltip"
           style={{ top: popoverPosition.top, left: popoverPosition.left }}
         >
-        <div className="october-clan-prize-image">
+        <div className="october-clan-prize-image" style={{ position: "relative" }}>
           {prize.imagePath ? (
             <Image src={prize.imagePath} alt="" fill sizes="180px" />
           ) : (
@@ -102,15 +111,30 @@ export function OctoberClanPrizeBoard() {
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
       <div className="october-clan-prize-copy">
         <p id="october-clan-prizes-title">
-          10 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
+          15 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
         </p>
         <p>
-          Победители разыграют 7 предметов, проигравшие – 3
+          Победители разыграют 12 предметов, проигравшие – 3
         </p>
       </div>
-      <ul aria-label="Призовые слоты кланового зачёта">
-        {OCTOBER_CLAN_PRIZES.map((prize) => <PrizeSlot key={prize.id} prize={prize} />)}
-      </ul>
+      <div className="october-clan-prize-lists">
+        <ul
+          className="october-clan-prize-row october-clan-prize-row--primary"
+          aria-label="Основные призовые слоты кланового зачёта"
+        >
+          {OCTOBER_CLAN_PRIMARY_PRIZES.map((prize) => (
+            <PrizeSlot key={prize.id} prize={prize} row="primary" />
+          ))}
+        </ul>
+        <ul
+          className="october-clan-prize-row october-clan-prize-row--additional"
+          aria-label="Дополнительные призы победителей, места с 10 по 14"
+        >
+          {OCTOBER_CLAN_ADDITIONAL_PRIZES.map((prize) => (
+            <PrizeSlot key={prize.id} prize={prize} row="additional" />
+          ))}
+        </ul>
+      </div>
     </section>
   );
 }
