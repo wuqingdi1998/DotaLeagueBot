@@ -45,7 +45,7 @@
 }
 
 .october-clan-prize-row--additional {
-  grid-template-columns: repeat(5, minmax(84px, 1fr));
+  grid-template-columns: repeat(10, minmax(42px, 1fr));
 }
 
 .october-clan-prize-slot {

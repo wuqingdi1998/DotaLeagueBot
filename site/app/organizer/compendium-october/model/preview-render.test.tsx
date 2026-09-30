@@ -147,14 +147,14 @@ describe("October preview actions", () => {
     expect(html).toContain("Флаг клана Панацея");
     expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
-    expect(html).toContain("15 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
-    expect(html).toContain("Победители разыграют 12 предметов, проигравшие – 3");
+    expect(html).toContain("20 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
+    expect(html).toContain("Победители разыграют 14 предметов, проигравшие – 6");
     expect(html).not.toContain("Морбус против Панацеи");
     expect(html).not.toContain("Каждая заработанная звезда пополнит личный и клановый зачёт");
-    expect(html).toContain('<p id="october-clan-prizes-title">15 предметов');
-    expect(html).toContain("<p>Победители разыграют 12 предметов, проигравшие – 3</p>");
-    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(12);
-    expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(3);
+    expect(html).toContain('<p id="october-clan-prizes-title">20 предметов');
+    expect(html).toContain("<p>Победители разыграют 14 предметов, проигравшие – 6</p>");
+    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(14);
+    expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(6);
     expect(
       OCTOBER_CLAN_PRIZES
         .filter((prize) => prize.imagePath)

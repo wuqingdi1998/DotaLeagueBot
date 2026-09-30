@@ -111,10 +111,10 @@ export function OctoberClanPrizeBoard() {
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
       <div className="october-clan-prize-copy">
         <p id="october-clan-prizes-title">
-          15 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
+          20 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
         </p>
         <p>
-          Победители разыграют 12 предметов, проигравшие – 3
+          Победители разыграют 14 предметов, проигравшие – 6
         </p>
       </div>
       <div className="october-clan-prize-lists">
@@ -128,7 +128,7 @@ export function OctoberClanPrizeBoard() {
         </ul>
         <ul
           className="october-clan-prize-row october-clan-prize-row--additional"
-          aria-label="Дополнительные призы победителей, места с 10 по 14"
+          aria-label="Дополнительные призовые слоты кланового зачёта"
         >
           {OCTOBER_CLAN_ADDITIONAL_PRIZES.map((prize) => (
             <PrizeSlot key={prize.id} prize={prize} row="additional" />
