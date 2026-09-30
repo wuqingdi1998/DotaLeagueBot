@@ -66,14 +66,24 @@
   color: #a8dce0;
 }
 
-.october-clan-prize-slot > span {
+.october-clan-prize-place {
   position: absolute;
-  z-index: 1;
-  top: 3px;
-  left: 6px;
+  z-index: 2;
+  top: 4px;
+  left: 4px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: rgba(3, 12, 18, 0.94);
   color: currentColor;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
 }
 
 .october-clan-prize-slot > svg { width: 20px; height: 20px; }

@@ -72,7 +72,7 @@ function PrizeSlot({
         onFocus={(event) => showPopover(event.currentTarget)}
         onBlur={() => setPopoverPosition(null)}
       >
-        <span>{prize.poolPosition}</span>
+        <span className="october-clan-prize-place">{prize.poolPosition}</span>
         {slotImagePath ? (
           <Image
             className="october-clan-prize-slot-image"

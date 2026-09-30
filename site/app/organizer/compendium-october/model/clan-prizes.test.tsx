@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { OctoberClanPrizeBoard } from "../components/OctoberClanPrizeBoard";
@@ -61,6 +61,23 @@ describe("October clan prizes", () => {
     }
   });
 
+  it("uses transparent full previews for places 3, 4, 5 and 9", () => {
+    const transparentPreviewPlaces = [3, 4, 5, 9];
+    const prizes = OCTOBER_CLAN_PRIZES.filter(
+      (prize) => prize.pool === "winners"
+        && transparentPreviewPlaces.includes(prize.poolPosition),
+    );
+
+    expect(prizes).toHaveLength(4);
+    for (const prize of prizes) {
+      const png = readFileSync(new URL(
+        `../../../../public${prize.imagePath}`,
+        import.meta.url,
+      ));
+      expect([4, 6]).toContain(png[25]);
+    }
+  });
+
   it("adds the four requested winner prizes with dedicated readable thumbnails", () => {
     const requestedPrizes = OCTOBER_CLAN_PRIZES.filter(
       (prize) => prize.pool === "winners" && [3, 4, 5, 9].includes(prize.poolPosition),
@@ -98,7 +115,7 @@ describe("October clan prizes", () => {
         position: 9,
         name: "Almond the Frondillo",
         value: "300 ₽",
-        thumbnail: null,
+        thumbnail: "/compendium/october/almond-the-frondillo-thumbnail.png",
         largePreview: false,
       },
     ]);
@@ -114,5 +131,18 @@ describe("October clan prizes", () => {
         ))).toBe(true);
       }
     }
+  });
+
+  it("shows every place number inside the same contrasting badge", () => {
+    const html = renderToStaticMarkup(<OctoberClanPrizeBoard />);
+    const styles = readFileSync(
+      new URL("../../../styles/67-october-clan-standings.css", import.meta.url),
+      "utf8",
+    );
+
+    expect(html.match(/class="october-clan-prize-place"/g)).toHaveLength(20);
+    expect(styles).toMatch(
+      /\.october-clan-prize-place\s*\{[\s\S]*?border-radius:\s*50%;[^}]*background:/,
+    );
   });
 });

@@ -74,6 +74,7 @@ const additionalWinnerPrizes: Readonly<Partial<Record<number, OctoberClanPrizeDe
   9: {
     name: "Almond the Frondillo",
     imagePath: "/compendium/october/almond-the-frondillo.png",
+    thumbnailImagePath: "/compendium/october/almond-the-frondillo-thumbnail.png",
     approximateValue: "300 ₽",
   },
   10: {
