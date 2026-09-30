@@ -18,13 +18,29 @@ describe("October star earning guide", () => {
         { id: "league-rounds", maxStars: 9 },
         { id: "fastcups", maxStars: 12 },
       ]);
-    expect(OCTOBER_STAR_EARNING_SOURCES.map((source) => source.calculation)).toEqual([
+    expect(OCTOBER_STAR_EARNING_SOURCES.map((source) => source.rewardDetails)).toEqual([
       undefined,
-      "12 дней × 1 + 9 дней × 2",
-      "15 + 22 + 25 по неделям",
-      "12 дней × 1 + 9 дней × 2",
-      "Участие – 1 · одна выигранная карта – 2 · две – 3",
-      "1-е место – 6 · 2-е – 4 · 3-е – 3 · остальные – 1",
+      undefined,
+      [
+        { label: "1-я неделя", stars: 15 },
+        { label: "2-я неделя", stars: 22 },
+        { label: "3-я неделя", stars: 25 },
+      ],
+      [
+        { label: "12 обычных дней", stars: 1 },
+        { label: "9 дней с бонусом", stars: 2 },
+      ],
+      [
+        { label: "Участие", stars: 1 },
+        { label: "Одна выигранная карта", stars: 2 },
+        { label: "Две выигранные карты", stars: 3 },
+      ],
+      [
+        { label: "1-е место", stars: 6 },
+        { label: "2-е место", stars: 4 },
+        { label: "3-е место", stars: 3 },
+        { label: "Остальные места", stars: 1 },
+      ],
     ]);
   });
 

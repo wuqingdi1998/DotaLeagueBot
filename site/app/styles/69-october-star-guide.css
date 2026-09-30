@@ -88,9 +88,38 @@
 }
 
 .october-star-guide-item small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
   color: #82999d;
   font-size: 11px;
   font-weight: 750;
+}
+
+.october-star-guide-reward-details > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.october-star-guide-reward-details > span:not(:last-child)::after {
+  margin-left: 4px;
+  color: #617a7e;
+  content: "·";
+}
+
+.october-star-guide-reward-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: #d8bf70;
+  white-space: nowrap;
+}
+
+.october-star-guide-reward-stars svg {
+  width: 9px;
+  height: 9px;
 }
 
 .october-star-guide-item > strong {

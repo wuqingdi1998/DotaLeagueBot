@@ -8,7 +8,10 @@ export type OctoberStarEarningSource = {
   readonly id: "hero-quests" | "clan-outing" | "star-race" | "rune-challenge" | "league-rounds" | "fastcups";
   readonly title: string;
   readonly description: string;
-  readonly calculation?: string;
+  readonly rewardDetails?: readonly {
+    readonly label: string;
+    readonly stars: number;
+  }[];
   readonly maxStars: number;
   readonly subscriberOnly?: boolean;
   readonly tournamentOnly?: boolean;
@@ -51,8 +54,23 @@ const dailyActivityStars = octoberDates.reduce(
 const firstPlaceFastcupStars = OCTOBER_FASTCUP_PLACE_REWARDS[0].stars;
 const fastcupMaxStars = octoberFastcups.length * firstPlaceFastcupStars;
 const leagueRoundMaxStars = OCTOBER_LEAGUE_ROUND_NUMBERS.length * leagueRoundMaximumStars;
-const dailyBonusCalculation = `${standardRewardDays} дней × ${QUEST_REWARD_STARS} + ${bonusRewardDays} дней × 2`;
-const fastcupRewardCalculation = "1-е место – 6 · 2-е – 4 · 3-е – 3 · остальные – 1";
+const dailyBonusRewardDetails = [
+  { label: `${standardRewardDays} обычных дней`, stars: QUEST_REWARD_STARS },
+  { label: `${bonusRewardDays} дней с бонусом`, stars: QUEST_REWARD_STARS * 2 },
+] as const;
+const starRaceRewardDetails = raceWeekStars.map((stars, index) => ({
+  label: `${index + 1}-я неделя`,
+  stars,
+}));
+const leagueRewardDetails = [
+  { label: "Участие", stars: 1 },
+  { label: "Одна выигранная карта", stars: 2 },
+  { label: "Две выигранные карты", stars: leagueRoundMaximumStars },
+] as const;
+const fastcupRewardDetails = OCTOBER_FASTCUP_PLACE_REWARDS.map(({ place, stars }) => ({
+  label: place === "other" ? "Остальные места" : `${place}-е место`,
+  stars,
+}));
 
 export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] = [
   {
@@ -65,21 +83,20 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
     id: "clan-outing",
     title: "Клановая вылазка",
     description: "Одержите одну рейтинговую победу в группе с участником своего клана. В пятницу, субботу и воскресенье каждый получает две звезды вместо одной.",
-    calculation: dailyBonusCalculation,
     maxStars: dailyActivityStars,
   },
   {
     id: "star-race",
     title: "Гонка за звёздами",
     description: "Выполняйте отдельное условие дня. Награда растёт от первой недели к финальной.",
-    calculation: `${raceWeekStars.join(" + ")} по неделям`,
+    rewardDetails: starRaceRewardDetails,
     maxStars: starRaceStars,
   },
   {
     id: "rune-challenge",
     title: "Испытание Рун",
     description: "Для подписчиков: выберите любимого героя и выполните его ежедневное испытание. В пятницу, субботу и воскресенье награда удваивается. Эти звёзды идут в личный и клановый зачёты, но не входят в недельную гонку.",
-    calculation: dailyBonusCalculation,
+    rewardDetails: dailyBonusRewardDetails,
     maxStars: dailyActivityStars,
     subscriberOnly: true,
   },
@@ -87,14 +104,14 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
     id: "league-rounds",
     title: "Туры сезонной лиги",
     description: "В период компендиума пройдут 6-й, 7-й и 8-й туры. Звёзды получает каждый сыгравший участник по результату своего матча.",
-    calculation: "Участие – 1 · одна выигранная карта – 2 · две – 3",
+    rewardDetails: leagueRewardDetails,
     maxStars: leagueRoundMaxStars,
   },
   {
     id: "fastcups",
     title: "Fastcup #14 и CD Fastcup #8",
     description: `${octoberFastcups.map((fastcup) => `${fastcup.title.replace("Linken’s Sphere ", "")} · ${fastcup.period}`).join(". ")}. Звёзды получает каждый игрок команды по итоговому месту.`,
-    calculation: fastcupRewardCalculation,
+    rewardDetails: fastcupRewardDetails,
     maxStars: fastcupMaxStars,
     tournamentOnly: true,
   },

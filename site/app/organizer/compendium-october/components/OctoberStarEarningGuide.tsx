@@ -59,7 +59,18 @@ export function OctoberStarEarningGuide() {
                       {source.tournamentOnly && <span>Участникам турниров</span>}
                     </h3>
                     <p>{source.description}</p>
-                    {source.calculation && <small>{source.calculation}</small>}
+                    {source.rewardDetails && (
+                      <small className="october-star-guide-reward-details">
+                        {source.rewardDetails.map((detail) => (
+                          <span key={detail.label}>
+                            {detail.label}
+                            <span className="october-star-guide-reward-stars">
+                              <FaStar aria-hidden="true" /> {detail.stars}
+                            </span>
+                          </span>
+                        ))}
+                      </small>
+                    )}
                   </div>
                   <strong aria-label={`Максимум ${source.maxStars} звёзд`}>
                     <FaStar aria-hidden="true" /> {source.maxStars}

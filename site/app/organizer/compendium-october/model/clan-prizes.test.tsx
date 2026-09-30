@@ -49,6 +49,7 @@ describe("October clan prizes", () => {
     expect(html).toContain("161");
     expect(html).toContain("191");
     expect(html).toContain("203");
+    expect(html.match(/class="october-star-guide-reward-stars"/g)).toHaveLength(12);
   });
 
   it("uses a prepared transparent preview for every new prize", () => {
