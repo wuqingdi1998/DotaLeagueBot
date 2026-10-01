@@ -2,17 +2,22 @@ import { OCTOBER_CLANS } from "../model/clans";
 import type { OctoberClanMember } from "../model/clan-members";
 import { OctoberClanPrizeBoard } from "../components/OctoberClanPrizeBoard";
 import { OctoberClanStandings } from "../components/OctoberClanStandings";
+import { OctoberClanReservationPanel } from "../components/OctoberClanReservationPanel";
+import type { OctoberClanReservationState } from "../model/clan-reservation";
 
 export function OctoberClanShowcase({
   members = [],
   viewerDiscordId,
+  reservation,
 }: {
   members?: readonly OctoberClanMember[];
   viewerDiscordId?: string;
+  reservation?: OctoberClanReservationState;
 }) {
   return (
     <section className="october-clan-showcase" aria-label="Клановый зачёт">
       <OctoberClanPrizeBoard />
+      {reservation && <OctoberClanReservationPanel initialState={reservation} />}
 
       <div className="october-clan-lineup">
         {OCTOBER_CLANS.map((clan, index) => {

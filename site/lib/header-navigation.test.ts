@@ -27,7 +27,7 @@ describe("header navigation", () => {
   });
 
   it("uses the shared navigation effect for Discord links", () => {
-    expect(header.match(/<HeaderNavigationLink/g)).toHaveLength(14);
+    expect(header.match(/<HeaderNavigationLink/g)).toHaveLength(16);
     expect(header.match(/target="_blank"/g)).toHaveLength(2);
   });
 

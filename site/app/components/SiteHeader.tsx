@@ -2,7 +2,7 @@
 
 import { logoutAndReload } from "@/lib/logout-action";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -14,6 +14,7 @@ import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
 import { ParticipantViewToggle } from "./ParticipantViewToggle";
+import { OCTOBER_PUBLIC_LAUNCH_AT } from "@/lib/october-compendium-release";
 import {
   FiArrowRight,
   FiArrowUpRight,
@@ -91,6 +92,7 @@ export function SiteHeader({
   const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isCompendiumVisible, setIsCompendiumVisible] = useState(false);
   const isMobileMenuVisible = mobileMenuOpen || isMobileAnimation;
   const { actionsRef, headerRef, navigationRef } =
     useHeaderActionCompaction();
@@ -108,8 +110,19 @@ export function SiteHeader({
   const calendarActive = pathname.startsWith("/calendar");
   const hallActive = pathname.startsWith("/hall-of-fame");
   const participantsActive = pathname.startsWith("/participants");
+  const compendiumActive = pathname === "/compendium";
   const hasLongProfileName =
     (user?.serverName.length ?? 0) > longProfileNameLength;
+
+  useEffect(() => {
+    const launchAt = Date.parse(OCTOBER_PUBLIC_LAUNCH_AT);
+    const showCompendium = () => setIsCompendiumVisible(Date.now() >= launchAt);
+    showCompendium();
+    const delay = launchAt - Date.now();
+    if (delay <= 0) return;
+    const timer = window.setTimeout(showCompendium, delay + 250);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   return (
     <header ref={headerRef} className="site-header platform-header">
@@ -154,6 +167,15 @@ export function SiteHeader({
         >
           Сезон
         </HeaderNavigationLink>
+        {isCompendiumVisible && (
+          <HeaderNavigationLink
+            beginNavigation={beginNavigation}
+            isActive={compendiumActive}
+            href="/compendium"
+          >
+            Компендиум
+          </HeaderNavigationLink>
+        )}
         <HeaderNavigationLink
           beginNavigation={beginNavigation}
           isActive={calendarActive}
@@ -350,6 +372,16 @@ export function SiteHeader({
           >
             Сезон
           </HeaderNavigationLink>
+          {isCompendiumVisible && (
+            <HeaderNavigationLink
+              beginNavigation={beginNavigation}
+              isActive={compendiumActive}
+              href="/compendium"
+              onSelect={() => setMobileMenuOpen(false)}
+            >
+              Компендиум
+            </HeaderNavigationLink>
+          )}
           <HeaderNavigationLink
             beginNavigation={beginNavigation}
             isActive={calendarActive}

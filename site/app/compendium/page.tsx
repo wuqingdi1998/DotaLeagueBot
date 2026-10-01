@@ -1,7 +1,62 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { PlatformShell } from "@/app/tournaments/TournamentsHub";
+import { getSession } from "@/lib/auth";
+import {
+  octoberCompendiumPhase,
+  octoberDailyRewardStars,
+  OCTOBER_CLAN_FORMATION_AT,
+  OCTOBER_CLAN_PUBLICATION_AT,
+} from "@/lib/october-compendium-release";
+import { currentMoscowDay } from "./model/time";
+import { octoberRaceForMoment } from "@/app/organizer/compendium-october/model/plan";
+import { OctoberCompendiumPreview } from "@/app/organizer/compendium-october/sections/OctoberCompendiumPreview";
+import { loadOctoberClanMembers } from "@/app/organizer/compendium-october/services/clan-members";
+import { loadOctoberClanReservationState } from "@/app/organizer/compendium-october/services/clan-reservations";
+import { loadOctoberFormationStatus } from "@/app/organizer/compendium-october/services/clan-formation-repository";
+import { OctoberReleaseRefresh } from "@/app/organizer/compendium-october/components/OctoberReleaseRefresh";
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "Компендиум · Сезон 9",
+  description: "Клановый Компендиум Linken's Sphere Esports с заданиями, наградами и гонкой за звёздами.",
+};
+
 export default async function CompendiumPage() {
-  redirect("/compendium/results");
+  const now = new Date();
+  const scheduledPhase = octoberCompendiumPhase(now);
+  if (scheduledPhase === "hidden") redirect("/compendium/results");
+
+  const user = await getSession();
+  const formationStatus = await loadOctoberFormationStatus();
+  const visiblePhase = scheduledPhase === "published" && formationStatus !== "complete"
+    ? "formation"
+    : scheduledPhase;
+  const [clanMembers, loadedReservation] = await Promise.all([
+    loadOctoberClanMembers(now),
+    loadOctoberClanReservationState(user, now),
+  ]);
+  const reservation = { ...loadedReservation, phase: visiblePhase };
+  const moscowDate = currentMoscowDay(now).dateKey;
+  const nextTransitionAt = visiblePhase === "reservation"
+    ? OCTOBER_CLAN_FORMATION_AT
+    : visiblePhase === "formation"
+      ? OCTOBER_CLAN_PUBLICATION_AT
+      : null;
+
+  return (
+    <PlatformShell user={user} hasFooter={false}>
+      <OctoberReleaseRefresh nextTransitionAt={nextTransitionAt} />
+      <OctoberCompendiumPreview
+        week={octoberRaceForMoment(now)}
+        clanMembers={clanMembers}
+        viewerDiscordId={user?.discordId ?? ""}
+        personalStars={0}
+        reservation={reservation}
+        areDailyQuestsOpen={scheduledPhase === "published"}
+        dailyRewardStars={octoberDailyRewardStars(moscowDate)}
+      />
+    </PlatformShell>
+  );
 }

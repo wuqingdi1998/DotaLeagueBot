@@ -7,17 +7,24 @@ import { OctoberClanShowcase } from "./OctoberClanShowcase";
 import { OctoberSectionNavigation } from "../components/OctoberSectionNavigation";
 import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
 import type { OctoberClanMember } from "../model/clan-members";
+import type { OctoberClanReservationState } from "../model/clan-reservation";
 
 export function OctoberCompendiumPreview({
   week,
   clanMembers,
   viewerDiscordId,
   personalStars,
+  reservation,
+  areDailyQuestsOpen = true,
+  dailyRewardStars = 1,
 }: {
   week: OctoberCompendiumWeekDefinition;
   clanMembers: readonly OctoberClanMember[];
   viewerDiscordId: string;
   personalStars: number;
+  reservation?: OctoberClanReservationState;
+  areDailyQuestsOpen?: boolean;
+  dailyRewardStars?: 1 | 2;
 }) {
   return (
     <main className="compendium-page october-compendium-preview" id="october-compendium-scroll">
@@ -37,7 +44,11 @@ export function OctoberCompendiumPreview({
           </div>
         </div>
         <div className="compendium-rewards-section">
-          <OctoberClanShowcase members={clanMembers} viewerDiscordId={viewerDiscordId} />
+          <OctoberClanShowcase
+            members={clanMembers}
+            viewerDiscordId={viewerDiscordId}
+            reservation={reservation}
+          />
         </div>
       </section>
 
@@ -60,7 +71,11 @@ export function OctoberCompendiumPreview({
       </section>
 
       <section className="october-compendium-screen october-compendium-screen-daily" id={OCTOBER_PREVIEW_SECTIONS[3].id} aria-label="Задания дня">
-        <OctoberDailyPreview viewerDiscordId={viewerDiscordId} />
+        <OctoberDailyPreview
+          viewerDiscordId={viewerDiscordId}
+          isOpen={areDailyQuestsOpen}
+          rewardStars={dailyRewardStars}
+        />
       </section>
     </main>
   );

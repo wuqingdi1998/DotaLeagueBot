@@ -6,13 +6,13 @@ import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import {
   HEROES_PER_QUEST,
-  QUEST_REWARD_STARS,
 } from "@/app/compendium/model/constants";
 import { OCTOBER_HERO_QUEST_COUNT, OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
 import { OCTOBER_REWARD_STARS } from "@/lib/october-reward-thresholds";
 import type { OctoberCompendiumWeekDefinition } from "../model/plan";
 import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
 import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
+import { OctoberLockedDailyQuests } from "../components/OctoberLockedDailyQuests";
 
 function ignorePreviewAction() {}
 
@@ -34,7 +34,15 @@ export function OctoberRacePreview({ week }: { week: OctoberCompendiumWeekDefini
   );
 }
 
-export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: string }) {
+export function OctoberDailyPreview({
+  viewerDiscordId,
+  isOpen = true,
+  rewardStars = 1,
+}: {
+  viewerDiscordId: string;
+  isOpen?: boolean;
+  rewardStars?: 1 | 2;
+}) {
   const guides = useOctoberGuideVisibility(viewerDiscordId);
   const isOverviewVisible = guides.isVisible("daily-overview");
   const isClanOutingVisible = guides.isVisible("clan-outing");
@@ -62,10 +70,10 @@ export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: stri
           <p>
             Каждый день – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и одна
             клановая вылазка. Для всех трёх заданий и Испытания Рун действует бонус выходного дня:
-            в пятницу, субботу и воскресенье даётся две звезды вместо одной. Клановая вылазка может
+            в субботу и воскресенье даётся две звезды вместо одной. Клановая вылазка может
             закрыться одновременно с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
             замены заданий в день, после {OCTOBER_REWARD_STARS.secondReroll} – три.
-            Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника.
+            {isOpen && " Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника."}
           </p>
           <button
             type="button"
@@ -76,45 +84,50 @@ export function OctoberDailyPreview({ viewerDiscordId }: { viewerDiscordId: stri
           </button>
         </div>
       )}
-      <p className="compendium-mobile-swipe-hint">
-        Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
-      </p>
-      <div className="compendium-quest-grid quest-count-3">
-        {octoberDailyQuestSamples().map((quest) => (
-          <QuestCard
-            key={quest.id}
-            quest={quest}
-            rewardStars={QUEST_REWARD_STARS}
-            rewardStarsLabel="1–2"
-            isChecking={false}
-            isRerolling={false}
-            canCheck={false}
-            hasReroll={false}
-            canReroll={false}
-            onCheck={ignorePreviewAction}
-            onReroll={ignorePreviewAction}
+      {isOpen ? (
+        <>
+          <p className="compendium-mobile-swipe-hint">
+            Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
+          </p>
+          <div className="compendium-quest-grid quest-count-3">
+            {octoberDailyQuestSamples().map((quest) => (
+              <QuestCard
+                key={quest.id}
+                quest={quest}
+                rewardStars={rewardStars}
+                isChecking={false}
+                isRerolling={false}
+                canCheck={false}
+                hasReroll={false}
+                canReroll={false}
+                onCheck={ignorePreviewAction}
+                onReroll={ignorePreviewAction}
+                isPreview
+              />
+            ))}
+            <OctoberClanOutingCard
+              rewardStars={rewardStars}
+              isNoteVisible={isClanOutingVisible}
+              onDismissNote={() => guides.dismiss("clan-outing")}
+            />
+          </div>
+          <RuneChallenge
+            initialChallenge={{
+              hasAccess: false,
+              accessRoleName: null,
+              selection: null,
+              completion: null,
+            }}
+            currentTimeMs={0}
+            rewardStars={rewardStars}
+            resetCountdown=""
+            onStarsChange={ignorePreviewAction}
             isPreview
           />
-        ))}
-        <OctoberClanOutingCard
-          isNoteVisible={isClanOutingVisible}
-          onDismissNote={() => guides.dismiss("clan-outing")}
-        />
-      </div>
-      <RuneChallenge
-        initialChallenge={{
-          hasAccess: false,
-          accessRoleName: null,
-          selection: null,
-          completion: null,
-        }}
-        currentTimeMs={0}
-        rewardStars={QUEST_REWARD_STARS}
-        rewardStarsLabel="1–2"
-        resetCountdown=""
-        onStarsChange={ignorePreviewAction}
-        isPreview
-      />
+        </>
+      ) : (
+        <OctoberLockedDailyQuests />
+      )}
     </section>
   );
 }

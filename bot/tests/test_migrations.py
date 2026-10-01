@@ -115,6 +115,13 @@ OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION = (
     / "0152_october_compendium_clan_points.sql"
 ).read_text(encoding="utf-8")
 
+OCTOBER_COMPENDIUM_RELEASE_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0155_october_compendium_release.sql"
+).read_text(encoding="utf-8")
+
 TEST_SEASON_ROUND_TIME_FIX = (
     Path(__file__).parents[1]
     / "database"
@@ -682,6 +689,20 @@ def test_october_compendium_clan_points_start_separately_at_zero() -> None:
     )
     assert "CHECK (total_points >= 0)" in OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION
     assert "role" not in OCTOBER_COMPENDIUM_CLAN_POINTS_MIGRATION.lower()
+
+
+def test_october_compendium_release_starts_with_empty_reservable_clans() -> None:
+    assert "october_compendium_clan_reservations" in (
+        OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    )
+    assert "october_compendium_clan_activity" in OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    assert "october_compendium_clan_formation" in OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    assert "DELETE FROM october_compendium_clan_members" in (
+        OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    )
+    assert "DELETE FROM october_compendium_clan_reservations" in (
+        OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    )
 
 
 def test_test_season_round_time_fix_is_limited_to_the_wrong_saved_value() -> None:

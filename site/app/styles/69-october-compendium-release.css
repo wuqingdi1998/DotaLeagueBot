@@ -1,0 +1,177 @@
+.october-clan-reservation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 18px;
+  margin-bottom: 12px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--blue-soft) 48%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+}
+
+.october-clan-reservation > svg {
+  width: 24px;
+  height: 24px;
+  color: var(--blue-soft);
+}
+
+.october-clan-reservation.is-formation,
+.october-clan-reservation.is-published {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.october-clan-reservation.is-published > svg { color: #59d19b; }
+
+.october-clan-reservation-copy,
+.october-clan-reservation.is-formation > div,
+.october-clan-reservation.is-published > div {
+  display: grid;
+  gap: 3px;
+}
+
+.october-clan-reservation-copy > strong,
+.october-clan-reservation.is-formation strong,
+.october-clan-reservation.is-published strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.october-clan-reservation-copy > span,
+.october-clan-reservation.is-formation span,
+.october-clan-reservation.is-published span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.october-clan-reservation-copy > small {
+  color: var(--blue-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.october-clan-reservation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.october-clan-reservation-actions button,
+.october-clan-reservation-login {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 13px;
+  border: 1px solid color-mix(in srgb, var(--blue-soft) 62%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--blue-soft) 12%, transparent);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.october-clan-reservation-actions button.is-selected {
+  border-color: #59d19b;
+  background: rgba(89, 209, 155, 0.15);
+  color: #8be7bd;
+}
+
+.october-clan-reservation-actions button:disabled { cursor: default; opacity: 0.78; }
+.october-clan-reservation-actions button:not(:disabled):hover,
+.october-clan-reservation-login:hover { color: var(--blue-soft); }
+
+.october-clan-reservation-unavailable {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.october-clan-reservation-message {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--blue-soft);
+  font-size: 13px;
+}
+
+.october-clan-standing-reserved {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border: 1px solid color-mix(in srgb, var(--clan-accent) 58%, transparent);
+  border-radius: 999px;
+  color: var(--clan-accent);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.october-locked-daily-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.october-locked-daily-quest {
+  display: grid;
+  min-height: 300px;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.october-locked-daily-quest > svg {
+  width: 42px;
+  height: 42px;
+  color: var(--blue-soft);
+}
+
+.october-locked-daily-quest > span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.october-locked-daily-quest h2 { margin: 0; color: var(--text); }
+.october-locked-daily-quest p {
+  max-width: 360px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+@media (min-width: 961px) and (min-height: 700px) {
+  .october-compendium-screen-clans .october-clan-reservation {
+    margin-bottom: 7px;
+    padding: 8px 12px;
+  }
+
+  .october-compendium-screen-daily .october-locked-daily-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .october-compendium-screen-daily .october-locked-daily-grid > .october-locked-daily-quest {
+    min-height: clamp(310px, 43vh, 390px);
+  }
+}
+
+@media (max-width: 820px) {
+  .october-clan-reservation { grid-template-columns: minmax(0, 1fr); }
+  .october-clan-reservation-actions { justify-content: stretch; }
+  .october-clan-reservation-actions button { flex: 1 1 210px; }
+  .october-clan-reservation-login { width: 100%; }
+}
+
+@media (max-width: 660px) {
+  .october-locked-daily-grid { grid-template-columns: minmax(0, 1fr); }
+  .october-locked-daily-quest { min-height: 250px; }
+  .october-clan-standing-reserved { display: none; }
+}

@@ -11,6 +11,9 @@ import {
   octoberPreviewStars,
 } from "./model/preview-settings";
 import { OctoberCompendiumPreview } from "./sections/OctoberCompendiumPreview";
+import { loadOctoberClanReservationState } from "./services/clan-reservations";
+import { currentMoscowDay } from "@/app/compendium/model/time";
+import { octoberCompendiumPhase, octoberDailyRewardStars } from "./model/release";
 
 export const dynamic = "force-dynamic";
 
@@ -26,8 +29,12 @@ export default async function OctoberCompendiumPage({
   const user = await getSession();
   if (!user?.isAdmin) notFound();
   const query = await searchParams;
+  const now = new Date();
   const personalStars = octoberPreviewStars(query[OCTOBER_PREVIEW_STARS_PARAM]);
-  const clanMembers = await loadOctoberClanMembers();
+  const [clanMembers, reservation] = await Promise.all([
+    loadOctoberClanMembers(now),
+    loadOctoberClanReservationState(user, now),
+  ]);
 
   return (
     <PlatformShell
@@ -40,10 +47,13 @@ export default async function OctoberCompendiumPage({
       )}
     >
       <OctoberCompendiumPreview
-        week={octoberRaceForMoment(new Date())}
+        week={octoberRaceForMoment(now)}
         clanMembers={clanMembers}
         viewerDiscordId={user.discordId}
         personalStars={personalStars}
+        reservation={reservation}
+        areDailyQuestsOpen={octoberCompendiumPhase(now) === "published"}
+        dailyRewardStars={octoberDailyRewardStars(currentMoscowDay(now).dateKey)}
       />
     </PlatformShell>
   );

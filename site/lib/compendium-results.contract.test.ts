@@ -59,7 +59,10 @@ describe("finished compendium results contract", () => {
       "if (!user?.isAdmin) notFound()",
     );
     expect(organizerResultsPage).toContain("<CompendiumResults");
+    expect(legacyPage).toContain("octoberCompendiumPhase(now)");
+    expect(legacyPage).toContain('scheduledPhase === "hidden"');
     expect(legacyPage).toContain('redirect("/compendium/results")');
+    expect(legacyPage).toContain("<OctoberCompendiumPreview");
   });
 
   it("loads public results and optional personal progress", () => {

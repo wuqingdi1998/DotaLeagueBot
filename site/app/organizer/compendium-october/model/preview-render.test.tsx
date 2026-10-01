@@ -32,8 +32,8 @@ const guideStyles = readFileSync(
   new URL("../../../styles/68-october-compendium-guides.css", import.meta.url),
   "utf8",
 );
-const organizerStyles = readFileSync(
-  new URL("../../../styles/organizer-route.css", import.meta.url),
+const routeStyles = readFileSync(
+  new URL("../../../styles/compendium-route.css", import.meta.url),
   "utf8",
 );
 const starRaceSource = readFileSync(
@@ -287,7 +287,7 @@ describe("October preview actions", () => {
     expect(html).toContain("Клановая вылазка");
     expect(html).toContain("Выиграйте одну рейтинговую игру вместе с участником своего клана");
     expect(html).toContain("каждый получит по две звезды");
-    expect(html).toContain("Награда: 1 звезда каждому, в выходные 2");
+    expect(html).toContain("Награда: 1 звезда каждому");
     expect(html).toContain("одновременно засчитать для испытания 1 или 2");
     expect(html).toMatch(/class="compendium-check-button"[^>]*disabled/);
   });
@@ -298,7 +298,7 @@ describe("October preview actions", () => {
     expect(html).toContain("aria-label=\"Скрыть пояснение к заданиям дня\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к клановой вылазке\"");
     expect(html).toContain("Для всех трёх заданий и Испытания Рун");
-    expect(html.match(/aria-label="Награда: 1–2 звезды"/g)).toHaveLength(3);
+    expect(html.match(/aria-label="Награда: 1 звезда"/g)).toHaveLength(3);
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
     expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");
   });
@@ -461,10 +461,10 @@ describe("October preview actions", () => {
     expect(guideStyles).toMatch(
       /\.october-daily-section--compact-guidance \.compendium-quest-grid \{[^}]*flex: 0 0 auto;/,
     );
-    expect(organizerStyles.indexOf("67-october-clan-standings.css"))
-      .toBeGreaterThan(organizerStyles.indexOf("66-october-compendium-screens.css"));
-    expect(organizerStyles.indexOf("68-october-compendium-guides.css"))
-      .toBeGreaterThan(organizerStyles.indexOf("67-october-clan-standings.css"));
+    expect(routeStyles.indexOf("67-october-clan-standings.css"))
+      .toBeGreaterThan(routeStyles.indexOf("66-october-compendium-screens.css"));
+    expect(routeStyles.indexOf("68-october-compendium-guides.css"))
+      .toBeGreaterThan(routeStyles.indexOf("67-october-clan-standings.css"));
   });
 
   it("uses one continuous clan saga background across all four October screens", () => {

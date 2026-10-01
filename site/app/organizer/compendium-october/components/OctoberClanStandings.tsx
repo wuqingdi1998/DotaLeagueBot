@@ -63,6 +63,7 @@ function StandingRow({
           />
         </span>
         <span className="october-clan-standing-name">{member.playerName}</span>
+        {member.isReserved && <span className="october-clan-standing-reserved">Бронь</span>}
         {isCurrentPlayer && <span className="october-clan-standing-you">Вы</span>}
       </Link>
       <strong><FaStar aria-hidden="true" /> {member.totalPoints}</strong>

@@ -1,5 +1,7 @@
 import { query } from "@/lib/db";
 import type { OctoberClanMember } from "../model/clan-members";
+import { octoberCompendiumPhase } from "../model/release";
+import { loadOctoberFormationStatus } from "./clan-formation-repository";
 
 type OctoberClanMemberRow = {
   player_id: string;
@@ -8,9 +10,15 @@ type OctoberClanMemberRow = {
   avatar_url: string | null;
   clan_id: OctoberClanMember["clanId"];
   total_points: number;
+  assignment_source: "reservation" | "automatic";
 };
 
-export async function loadOctoberClanMembers(): Promise<OctoberClanMember[]> {
+export async function loadOctoberClanMembers(
+  now: Date = new Date(),
+): Promise<OctoberClanMember[]> {
+  const phase = octoberCompendiumPhase(now);
+  const isPublished = phase === "published" &&
+    await loadOctoberFormationStatus() === "complete";
   const rows = await query<OctoberClanMemberRow>(
     `SELECT
        member.player_id::text,
@@ -21,8 +29,13 @@ export async function loadOctoberClanMembers(): Promise<OctoberClanMember[]> {
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
        member.clan_id,
-       member.total_points::int
-     FROM october_compendium_clan_members member
+       member.total_points::int,
+       member.assignment_source
+     FROM ${isPublished
+       ? "october_compendium_clan_members"
+       : `(SELECT player_id, clan_id, 0 AS total_points,
+                  'reservation'::varchar AS assignment_source
+           FROM october_compendium_clan_reservations)`} member
      JOIN players player ON player.discord_id = member.player_id
      LEFT JOIN LATERAL (
        SELECT session.discord_avatar_url
@@ -46,5 +59,6 @@ export async function loadOctoberClanMembers(): Promise<OctoberClanMember[]> {
     avatarUrl: row.avatar_url,
     clanId: row.clan_id,
     totalPoints: Number(row.total_points),
+    isReserved: row.assignment_source === "reservation",
   }));
 }
