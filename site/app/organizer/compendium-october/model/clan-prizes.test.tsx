@@ -5,9 +5,11 @@ import { OctoberClanPrizeBoard } from "../components/OctoberClanPrizeBoard";
 import {
   OCTOBER_CLAN_ADDITIONAL_PRIZES,
   OCTOBER_CLAN_PRIZES,
+  OCTOBER_CLAN_SMALL_PRIZES,
 } from "./clan-prizes";
 
 const additionalPrizeNames = [
+  "Frostmoot",
   "Almond the Frondillo",
   "The Igneous Stone",
   "Altar Ball",
@@ -20,7 +22,7 @@ describe("October clan prizes", () => {
   it("adds all missing winners and runners-up slots to the second strip", () => {
     const html = renderToStaticMarkup(<OctoberClanPrizeBoard />);
 
-    expect(OCTOBER_CLAN_PRIZES).toHaveLength(20);
+    expect(OCTOBER_CLAN_PRIZES).toHaveLength(30);
     expect(OCTOBER_CLAN_ADDITIONAL_PRIZES.map(
       (prize) => `${prize.pool}:${prize.poolPosition}`,
     )).toEqual([
@@ -39,8 +41,16 @@ describe("October clan prizes", () => {
       .toEqual(additionalPrizeNames);
     expect(OCTOBER_CLAN_ADDITIONAL_PRIZES.filter((prize) => prize.name).map(
       (prize) => `${prize.poolPosition}:${prize.approximateValue}`,
-    )).toEqual(["9:300 ₽", "10:300 ₽", "11:200 ₽", "12:200 ₽", "13:200 ₽", "14:200 ₽"]);
-    expect(OCTOBER_CLAN_ADDITIONAL_PRIZES.filter((prize) => !prize.name)).toHaveLength(4);
+    )).toEqual([
+      "8:500 ₽",
+      "9:300 ₽",
+      "10:300 ₽",
+      "11:200 ₽",
+      "12:200 ₽",
+      "13:200 ₽",
+      "14:200 ₽",
+    ]);
+    expect(OCTOBER_CLAN_ADDITIONAL_PRIZES.filter((prize) => !prize.name)).toHaveLength(3);
     expect(html).toContain('aria-label="Дополнительные призовые слоты кланового зачёта"');
     expect(html.match(/data-prize-row="additional"/g)).toHaveLength(10);
     expect(html).toContain("Как получить звёзды?");
@@ -51,6 +61,38 @@ describe("October clan prizes", () => {
     expect(html).toContain("191");
     expect(html).toContain("203");
     expect(html.match(/class="october-star-guide-reward-stars"/g)).toHaveLength(12);
+  });
+
+  it("adds compact Steam 100 ruble prizes for winners 15–21 and runners-up 7–9", () => {
+    const html = renderToStaticMarkup(<OctoberClanPrizeBoard />);
+
+    expect(OCTOBER_CLAN_SMALL_PRIZES.map(
+      (prize) => `${prize.pool}:${prize.poolPosition}`,
+    )).toEqual([
+      "winners:15",
+      "winners:16",
+      "winners:17",
+      "winners:18",
+      "winners:19",
+      "winners:20",
+      "winners:21",
+      "runners-up:7",
+      "runners-up:8",
+      "runners-up:9",
+    ]);
+    expect(OCTOBER_CLAN_SMALL_PRIZES.every(
+      (prize) => prize.name === "Steam Gift Card на 100 ₽"
+        && prize.approximateValue === "100 ₽"
+        && prize.imagePath === "/compendium/october/steam-gift-card-100-rub.png",
+    )).toBe(true);
+    expect(existsSync(new URL(
+      "../../../../public/compendium/october/steam-gift-card-100-rub.png",
+      import.meta.url,
+    ))).toBe(true);
+    expect(html).toContain('aria-label="Малые призовые слоты кланового зачёта"');
+    expect(html.match(/data-prize-row="small"/g)).toHaveLength(10);
+    expect(html).toContain("30 предметов в финальном розыгрыше");
+    expect(html).toContain("Победители разыграют 21 предмет, проигравшие – 9");
   });
 
   it("uses a prepared transparent preview for every new prize", () => {
@@ -140,7 +182,7 @@ describe("October clan prizes", () => {
       "utf8",
     );
 
-    expect(html.match(/class="october-clan-prize-place"/g)).toHaveLength(20);
+    expect(html.match(/class="october-clan-prize-place"/g)).toHaveLength(30);
     expect(styles).toMatch(
       /\.october-clan-prize-place\s*\{[\s\S]*?border-radius:\s*50%;[^}]*background:/,
     );

@@ -147,14 +147,14 @@ describe("October preview actions", () => {
     expect(html).toContain("Флаг клана Панацея");
     expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
-    expect(html).toContain("20 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
-    expect(html).toContain("Победители разыграют 14 предметов, проигравшие – 6");
+    expect(html).toContain("30 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
+    expect(html).toContain("Победители разыграют 21 предмет, проигравшие – 9");
     expect(html).not.toContain("Морбус против Панацеи");
     expect(html).not.toContain("Каждая заработанная звезда пополнит личный и клановый зачёт");
-    expect(html).toContain('<p id="october-clan-prizes-title">20 предметов');
-    expect(html).toContain("<p>Победители разыграют 14 предметов, проигравшие – 6</p>");
-    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(14);
-    expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(6);
+    expect(html).toContain('<p id="october-clan-prizes-title">30 предметов');
+    expect(html).toContain("<p>Победители разыграют 21 предмет, проигравшие – 9</p>");
+    expect(html.match(/data-prize-pool="winners"/g)).toHaveLength(21);
+    expect(html.match(/data-prize-pool="runners-up"/g)).toHaveLength(9);
     expect(
       OCTOBER_CLAN_PRIZES
         .filter((prize) => prize.imagePath)
@@ -169,12 +169,23 @@ describe("October preview actions", () => {
       "winners:6:Steam Gift Card на 500 ₽:500 ₽",
       "winners:7:Steam Gift Card на 500 ₽:500 ₽",
       "runners-up:3:Steam Gift Card на 500 ₽:500 ₽",
+      "winners:8:Frostmoot:500 ₽",
       "winners:9:Almond the Frondillo:300 ₽",
       "winners:10:The Igneous Stone:300 ₽",
       "winners:11:Altar Ball:200 ₽",
       "winners:12:Cursed Crescent:200 ₽",
       "winners:13:The Lightning Orchid:200 ₽",
       "winners:14:Golden Fortune's Tout:200 ₽",
+      "winners:15:Steam Gift Card на 100 ₽:100 ₽",
+      "winners:16:Steam Gift Card на 100 ₽:100 ₽",
+      "winners:17:Steam Gift Card на 100 ₽:100 ₽",
+      "winners:18:Steam Gift Card на 100 ₽:100 ₽",
+      "winners:19:Steam Gift Card на 100 ₽:100 ₽",
+      "winners:20:Steam Gift Card на 100 ₽:100 ₽",
+      "winners:21:Steam Gift Card на 100 ₽:100 ₽",
+      "runners-up:7:Steam Gift Card на 100 ₽:100 ₽",
+      "runners-up:8:Steam Gift Card на 100 ₽:100 ₽",
+      "runners-up:9:Steam Gift Card на 100 ₽:100 ₽",
     ]);
     expect(
       existsSync(
@@ -193,6 +204,8 @@ describe("October preview actions", () => {
       ),
     ).toBe(true);
     expect(html.match(/<img[^>]+steam-gift-card-500-rub\.png[^>]*>/g)).toHaveLength(3);
+    expect(html.match(/<img[^>]+steam-gift-card-100-rub\.png[^>]*>/g)).toHaveLength(10);
+    expect(html.match(/<img[^>]+frostmoot\.png[^>]*>/g)).toHaveLength(1);
     expect(html.match(/<img[^>]+shattered-greatsword\.png[^>]*>/g)).toHaveLength(1);
     expect(html.match(/Steam Gift Card на 500 ₽/g)).toHaveLength(3);
     expect(html).toContain("Shattered Greatsword");

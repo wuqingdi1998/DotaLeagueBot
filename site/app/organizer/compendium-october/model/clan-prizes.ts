@@ -36,10 +36,16 @@ function emptyPrizeSlots(
   });
 }
 
-const steamGiftCardPrize = {
+const steamGiftCard500Prize = {
   name: "Steam Gift Card на 500 ₽",
   imagePath: "/compendium/october/steam-gift-card-500-rub.png",
   approximateValue: "500 ₽",
+} as const;
+
+const steamGiftCard100Prize = {
+  name: "Steam Gift Card на 100 ₽",
+  imagePath: "/compendium/october/steam-gift-card-100-rub.png",
+  approximateValue: "100 ₽",
 } as const;
 
 const shatteredGreatswordPrize = {
@@ -70,7 +76,14 @@ const snailfirePrize = {
   approximateValue: "600 ₽",
 } as const;
 
+const frostmootPrize = {
+  name: "Frostmoot",
+  imagePath: "/compendium/october/frostmoot.png",
+  approximateValue: "500 ₽",
+} as const;
+
 const additionalWinnerPrizes: Readonly<Partial<Record<number, OctoberClanPrizeDetails>>> = {
+  8: frostmootPrize,
   9: {
     name: "Almond the Frondillo",
     imagePath: "/compendium/october/almond-the-frondillo.png",
@@ -122,10 +135,10 @@ export const OCTOBER_CLAN_PRIMARY_PRIZES: readonly OctoberClanPrize[] = [
     3: undyingLovePrize,
     4: magusMimicryPrize,
     5: snailfirePrize,
-    6: steamGiftCardPrize,
-    7: steamGiftCardPrize,
+    6: steamGiftCard500Prize,
+    7: steamGiftCard500Prize,
   }),
-  ...clanPrizeSlots("runners-up", 3, { 3: steamGiftCardPrize }),
+  ...clanPrizeSlots("runners-up", 3, { 3: steamGiftCard500Prize }),
 ];
 
 export const OCTOBER_CLAN_ADDITIONAL_PRIZES: readonly OctoberClanPrize[] = [
@@ -133,7 +146,25 @@ export const OCTOBER_CLAN_ADDITIONAL_PRIZES: readonly OctoberClanPrize[] = [
   ...clanPrizeSlots("runners-up", 3, {}, 4),
 ];
 
+export const OCTOBER_CLAN_SMALL_PRIZES: readonly OctoberClanPrize[] = [
+  ...clanPrizeSlots("winners", 7, {
+    15: steamGiftCard100Prize,
+    16: steamGiftCard100Prize,
+    17: steamGiftCard100Prize,
+    18: steamGiftCard100Prize,
+    19: steamGiftCard100Prize,
+    20: steamGiftCard100Prize,
+    21: steamGiftCard100Prize,
+  }, 15),
+  ...clanPrizeSlots("runners-up", 3, {
+    7: steamGiftCard100Prize,
+    8: steamGiftCard100Prize,
+    9: steamGiftCard100Prize,
+  }, 7),
+];
+
 export const OCTOBER_CLAN_PRIZES: readonly OctoberClanPrize[] = [
   ...OCTOBER_CLAN_PRIMARY_PRIZES,
   ...OCTOBER_CLAN_ADDITIONAL_PRIZES,
+  ...OCTOBER_CLAN_SMALL_PRIZES,
 ];

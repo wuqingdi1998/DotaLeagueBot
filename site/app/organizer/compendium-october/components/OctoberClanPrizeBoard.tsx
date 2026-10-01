@@ -7,6 +7,7 @@ import { FiGift } from "react-icons/fi";
 import {
   OCTOBER_CLAN_ADDITIONAL_PRIZES,
   OCTOBER_CLAN_PRIMARY_PRIZES,
+  OCTOBER_CLAN_SMALL_PRIZES,
   type OctoberClanPrize,
   type OctoberClanPrizePool,
 } from "../model/clan-prizes";
@@ -28,7 +29,7 @@ function PrizeSlot({
   row,
 }: {
   prize: OctoberClanPrize;
-  row: "primary" | "additional";
+  row: "primary" | "additional" | "small";
 }) {
   const poolLabel = prizePoolLabels[prize.pool];
   const prizeName = prize.name ?? "Приз пока не выбран";
@@ -79,7 +80,7 @@ function PrizeSlot({
             src={slotImagePath}
             alt=""
             fill
-            sizes={row === "additional" ? "112px" : "56px"}
+            sizes={row === "primary" ? "56px" : "112px"}
           />
         ) : (
           <FiGift aria-hidden="true" />
@@ -116,10 +117,10 @@ export function OctoberClanPrizeBoard() {
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
       <div className="october-clan-prize-copy">
         <p id="october-clan-prizes-title">
-          20 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
+          30 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
         </p>
         <p>
-          Победители разыграют 14 предметов, проигравшие – 6
+          Победители разыграют 21 предмет, проигравшие – 9
         </p>
         <OctoberStarEarningGuide />
       </div>
@@ -138,6 +139,14 @@ export function OctoberClanPrizeBoard() {
         >
           {OCTOBER_CLAN_ADDITIONAL_PRIZES.map((prize) => (
             <PrizeSlot key={prize.id} prize={prize} row="additional" />
+          ))}
+        </ul>
+        <ul
+          className="october-clan-prize-row october-clan-prize-row--small"
+          aria-label="Малые призовые слоты кланового зачёта"
+        >
+          {OCTOBER_CLAN_SMALL_PRIZES.map((prize) => (
+            <PrizeSlot key={prize.id} prize={prize} row="small" />
           ))}
         </ul>
       </div>
