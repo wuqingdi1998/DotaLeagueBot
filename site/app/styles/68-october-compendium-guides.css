@@ -15,6 +15,18 @@
   cursor: pointer;
 }
 
+.october-compendium-example-note.october-dismissible-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 14px;
+  padding-right: 13px;
+}
+
+.october-compendium-example-note.october-dismissible-guide > button {
+  position: static;
+}
+
 .october-guide-restore {
   width: 34px;
   height: 34px;
@@ -51,6 +63,52 @@
 }
 
 @media (min-width: 961px) and (min-height: 700px) {
+  .october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest {
+    min-height: clamp(330px, 37vh, 365px);
+    padding: 16px;
+  }
+
+  .october-daily-section--expanded-guidance .compendium-quest-heading {
+    margin-bottom: 9px;
+  }
+
+  .october-daily-section--expanded-guidance .compendium-heroes {
+    gap: 7px;
+  }
+
+  .october-daily-section--expanded-guidance .compendium-hero-portrait {
+    height: clamp(54px, 7vh, 68px);
+    aspect-ratio: auto;
+  }
+
+  .october-daily-section--expanded-guidance .compendium-hero strong {
+    margin-top: 3px;
+    font-size: 12px;
+  }
+
+  .october-daily-section--expanded-guidance .compendium-condition {
+    margin: 10px 0 12px;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .october-daily-section--expanded-guidance .october-clan-quest-emblem {
+    min-height: 62px;
+  }
+
+  .october-daily-section--expanded-guidance .october-clan-quest h3 {
+    margin-top: 6px;
+  }
+
+  .october-daily-section--expanded-guidance .october-clan-quest-note {
+    font-size: 12px;
+    line-height: 1.28;
+  }
+
+  .october-daily-section--expanded-guidance .october-clan-quest-note:last-of-type {
+    margin-bottom: 8px;
+  }
+
   .october-daily-section--compact-guidance .compendium-quest-grid {
     min-height: 0;
     flex: 0 0 auto;

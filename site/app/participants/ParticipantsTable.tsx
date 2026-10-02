@@ -12,6 +12,7 @@ import {
 import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
+import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
 
 const ParticipantAdminDialog = dynamic(
   () =>
@@ -259,7 +260,10 @@ function ParticipantIdentity({
         fallback={<i>{player.nickname.slice(0, 1).toUpperCase()}</i>}
       />
       <span>
-        <b>{player.nickname}</b>
+        <b>
+          {player.nickname}
+          <OctoberClanBadge dotaId={player.dotaId} />
+        </b>
         {player.kind === "archive" && <small>Архивный профиль</small>}
       </span>
     </>

@@ -284,6 +284,7 @@ export function SeasonFinalistsSummary({ round }: { round: SeasonRound }) {
                       className="season-finalist-player-link"
                       dotaId={player.dota_id}
                       nickname={player.nickname}
+                      showClanBadge
                     >
                       {player.nickname}
                     </PlayerProfileLink>
@@ -343,6 +344,7 @@ function SeasonTemporaryTeam({
                   className="season-player-profile-link"
                   dotaId={player.dota_id}
                   nickname={player.nickname}
+                  showClanBadge
                 >
                   <strong>{player.isFormerPlayer ? <s>{player.nickname}</s> : player.nickname}</strong>
                 </PlayerProfileLink>

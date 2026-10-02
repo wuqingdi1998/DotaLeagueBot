@@ -68,6 +68,7 @@ function RaceStandings({ race }: { race: ArchivedRace }) {
                 <PlayerProfileLink
                   dotaId={participant.dotaId}
                   nickname={participant.playerName}
+                  showClanBadge
                 >
                   {participant.playerName}
                 </PlayerProfileLink>

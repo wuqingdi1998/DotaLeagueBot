@@ -14,6 +14,7 @@ import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
 import { ParticipantViewToggle } from "./ParticipantViewToggle";
+import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
 import { OCTOBER_PUBLIC_LAUNCH_AT } from "@/lib/october-compendium-release";
 import {
   FiArrowRight,
@@ -270,7 +271,10 @@ export function SiteHeader({
                 }
               />
               <span className="player-profile-copy">
-                <strong>{user.serverName}</strong>
+                <strong>
+                  {user.serverName}
+                  {!user.isStandaloneOrganizer && <OctoberClanBadge dotaId={user.dotaId} />}
+                </strong>
                 <small>
                   {user.isStandaloneOrganizer
                     ? "Серверная сессия"
@@ -283,7 +287,10 @@ export function SiteHeader({
             )}
             {profileOpen && (
               <div className="player-profile-popover">
-                <strong>{user.serverName}</strong>
+                <strong>
+                  {user.serverName}
+                  {!user.isStandaloneOrganizer && <OctoberClanBadge dotaId={user.dotaId} />}
+                </strong>
                 {user.isStandaloneOrganizer ? (
                   <>
                     <span>Вход по паролю организатора</span>

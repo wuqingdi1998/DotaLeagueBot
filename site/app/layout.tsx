@@ -5,6 +5,7 @@ import { LocalTimeHints } from "./components/LocalTimeHints";
 import { PreventSpaceScroll } from "./components/PreventSpaceScroll";
 import { SiteBreakWatcher } from "./components/SiteBreakWatcher";
 import { HeaderNavigationAnimation } from "./components/header/HeaderNavigationAnimation";
+import { OctoberClanBadgesProvider } from "./components/october-clan-badges/OctoberClanBadgesProvider";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -57,7 +58,9 @@ export default function RootLayout({
         <LocalTimeHints />
         <PreventSpaceScroll />
         <SiteBreakWatcher />
-        <HeaderNavigationAnimation>{children}</HeaderNavigationAnimation>
+        <OctoberClanBadgesProvider>
+          <HeaderNavigationAnimation>{children}</HeaderNavigationAnimation>
+        </OctoberClanBadgesProvider>
       </body>
     </html>
   );

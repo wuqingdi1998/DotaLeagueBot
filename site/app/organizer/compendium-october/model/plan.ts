@@ -5,14 +5,19 @@ import {
   OCTOBER_THIRD_RACE_QUESTS,
   type OctoberRaceQuestDefinition,
 } from "./race-quests";
+export {
+  OCTOBER_COMPENDIUM_DATE_LABEL,
+  OCTOBER_COMPENDIUM_END_AT,
+  OCTOBER_COMPENDIUM_START_AT,
+} from "@/lib/october-compendium-schedule";
+import {
+  OCTOBER_COMPENDIUM_END_AT,
+  OCTOBER_COMPENDIUM_START_AT,
+} from "@/lib/october-compendium-schedule";
 
 export type OctoberCompendiumWeekDefinition = Omit<StarRaceWeekDefinition, "quests"> & {
   readonly quests: readonly OctoberRaceQuestDefinition[];
 };
-
-export const OCTOBER_COMPENDIUM_START_AT = "2026-10-05T00:00:00+03:00";
-export const OCTOBER_COMPENDIUM_END_AT = "2026-10-26T00:00:00+03:00";
-export const OCTOBER_COMPENDIUM_DATE_LABEL = "5–25 октября 2026";
 
 const unannouncedPrizes = [
   { place: 1, title: "Предмет выберем позже", imageUrl: null },
@@ -20,7 +25,11 @@ const unannouncedPrizes = [
 ] as const;
 
 const dotaPlusRacePrizes = [
-  { place: 1, title: "1 месяц Dota+", imageUrl: null },
+  {
+    place: 1,
+    title: "1 месяц Dota+",
+    imageUrl: "/compendium/october/dota-plus-one-month.png",
+  },
   { place: 2, title: "Предмет выберем позже", imageUrl: null },
 ] as const;
 

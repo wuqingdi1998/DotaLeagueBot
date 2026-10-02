@@ -68,6 +68,7 @@ export function CompendiumLeaderboard({
                     className="compendium-leaderboard-player"
                     dotaId={player.dotaId}
                     nickname={player.playerName}
+                    showClanBadge
                   >
                     <PlayerAvatar player={player} />
                     <strong>{player.playerName}</strong>

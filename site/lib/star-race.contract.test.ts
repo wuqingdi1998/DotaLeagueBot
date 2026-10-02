@@ -340,8 +340,9 @@ describe("compendium star race contract", () => {
     expect(starRacePrizePreview).toContain('role="tooltip"');
     expect(starRacePrizePreview).toContain("tabIndex={0}");
     expect(starRacePrizePreview).not.toContain("href={prize.imageUrl}");
-    expect(styles).toContain(
-      ".compendium-star-race-prize-name:hover .compendium-star-race-prize-preview",
+    expect(starRacePrizePreview).toContain("createPortal");
+    expect(styles).toMatch(
+      /\.compendium-star-race-prize-preview\s*\{[^}]*position:\s*fixed;[^}]*z-index:\s*1000;/,
     );
     expect(styles).toContain("border-bottom: 1px dashed");
   });

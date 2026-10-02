@@ -333,13 +333,22 @@ function SeasonPenaltyTable({
         </table>
       </div>
       )}
-      {events.length > 0 && <SeasonPenaltyHistory events={events} />}
+      {events.length > 0 && (
+        <SeasonPenaltyHistory events={events} rows={rows} />
+      )}
     </section>
   );
 }
 
-function SeasonPenaltyHistory({ events }: { events: SeasonPenaltyEvent[] }) {
+function SeasonPenaltyHistory({
+  events,
+  rows,
+}: {
+  events: SeasonPenaltyEvent[];
+  rows: SeasonStanding[];
+}) {
   const orderedEvents = sortSeasonPenaltyEvents(events, "round");
+  const playersById = new Map(rows.map((row) => [row.playerId, row]));
   return (
     <section className="season-penalty-history">
       <h5>История штрафных огоньков</h5>
@@ -357,7 +366,12 @@ function SeasonPenaltyHistory({ events }: { events: SeasonPenaltyEvent[] }) {
             {orderedEvents.map((event) => (
               <tr key={event.id}>
                 <td>Тур {event.round_number}</td>
-                <td>{event.nickname}</td>
+                <td>
+                  <PlayerProfileLink
+                    dotaId={playersById.get(event.player_id)?.dotaId ?? ""}
+                    nickname={event.nickname}
+                  />
+                </td>
                 <td>🔥 {event.fire_count}</td>
                 <td>{event.note || "Причина не указана"}</td>
               </tr>
@@ -401,6 +415,7 @@ function PlayerIdentityCells({
           className="season-player-name-link"
           dotaId={dotaId}
           nickname={nickname}
+          showClanBadge
         >
           <strong>{nickname}</strong>
         </PlayerProfileLink>

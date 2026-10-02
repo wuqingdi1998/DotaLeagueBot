@@ -6,6 +6,7 @@ import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
 import { isPastTournament } from "@/lib/tournaments";
 import { RoleIcon } from "../components/RoleField";
 import { TeamEmblemPreview } from "../components/TeamEmblemPreview";
+import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { useTournament } from "../hooks/TournamentContext";
 import { getTeamPlayers, initials } from "../model/formatters";
 
@@ -89,12 +90,14 @@ export function TeamsPanel() {
                   <li key={`${team.id}-${player.name}`}>
                     <RoleIcon role={player.role} />
                     {player.dotaId ? (
-                      <Link
+                      <PlayerProfileLink
                         className="player-name player-profile-link"
-                        href={`/players/${player.dotaId}`}
+                        dotaId={player.dotaId}
+                        nickname={player.name}
+                        showClanBadge
                       >
                         {player.name}
-                      </Link>
+                      </PlayerProfileLink>
                     ) : player.archiveIdentityId ? (
                       <Link
                         className="player-name player-profile-link"

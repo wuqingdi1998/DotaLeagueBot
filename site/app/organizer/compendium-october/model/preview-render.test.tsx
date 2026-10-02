@@ -365,7 +365,7 @@ describe("October preview actions", () => {
     expect(html).not.toContain("compendium-check-button");
   });
 
-  it("uses the roomy desktop layout without mobile-only controls", () => {
+  it("keeps every desktop screen inside the viewport without mobile-only controls", () => {
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.october-race-rules-desktop \{ display: grid; \}/,
     );
@@ -377,8 +377,11 @@ describe("October preview actions", () => {
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: flex-start;[\s\S]*?padding-bottom: 22px;/,
     );
+    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*overflow-y: hidden;/);
+    expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");
+    expect(guideStyles).toMatch(/\.october-compendium-example-note\.october-dismissible-guide \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/);
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-daily \.october-clan-quest-note:last-of-type \{\s*margin: 4px 0 14px;/,
     );
@@ -469,7 +472,6 @@ describe("October preview actions", () => {
     expect(routeStyles.indexOf("68-october-compendium-guides.css"))
       .toBeGreaterThan(routeStyles.indexOf("67-october-clan-standings.css"));
   });
-
   it("uses one continuous clan saga background across all four October screens", () => {
     const backgroundName = "clan-table-ultra-4x.webp";
     expect(presentationStyles.match(new RegExp(backgroundName, "g"))).toHaveLength(1);

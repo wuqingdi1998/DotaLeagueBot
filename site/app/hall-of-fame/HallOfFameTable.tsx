@@ -12,6 +12,7 @@ import {
 import { FaMedal } from "react-icons/fa";
 import { FiSearch, FiX } from "react-icons/fi";
 import { AvatarImage } from "@/app/components/AvatarImage";
+import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
 import type {
   HallOfFameMedal,
   HallOfFamePlayer,
@@ -102,7 +103,10 @@ export function HallOfFameTable({
                       <i>{player.nickname.slice(0, 1).toUpperCase()}</i>
                     }
                   />
-                  <b>{player.nickname}</b>
+                  <b>
+                    {player.nickname}
+                    <OctoberClanBadge dotaId={player.dotaId} />
+                  </b>
                 </span>
               </>
             );

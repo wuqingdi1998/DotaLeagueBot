@@ -70,7 +70,7 @@ function PredictionHistoryDayCard({ day }: { day: PredictionHistoryDay }) {
         </div>
         {day.players.length ? day.players.map((player) => (
           <div className="prediction-history-player" role="row" key={player.id}>
-            <PlayerProfileLink dotaId={player.dotaId} nickname={player.playerName}>
+            <PlayerProfileLink dotaId={player.dotaId} nickname={player.playerName} showClanBadge>
               {player.playerName}
             </PlayerProfileLink>
             {day.matches.map((match) => {

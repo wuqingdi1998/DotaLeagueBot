@@ -6,6 +6,7 @@ import { formatTournamentDayMonthRange } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
 import { latestFullyCompletedSeasonRound } from "../model/season-overview";
 import { SeasonRecentCompletedRound } from "./SeasonRecentCompletedRound";
+import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
 
 export function SeasonOverviewPanel() {
   const { activeTab, data, season } = useTournament();
@@ -111,7 +112,10 @@ export function SeasonOverviewPanel() {
               {leaders.map((row, index) => (
                 <li key={row.playerId}>
                   <b>{index + 1}</b>
-                  <span>{row.nickname}</span>
+                  <span>
+                    {row.nickname}
+                    <OctoberClanBadge dotaId={row.dotaId} />
+                  </span>
                   <strong>{row.points} оч.</strong>
                 </li>
               ))}

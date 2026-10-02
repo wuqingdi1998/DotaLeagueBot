@@ -40,12 +40,16 @@ describe("October compendium draft", () => {
   it("gives one month of Dota Plus to first place in races one and two only", () => {
     for (const week of OCTOBER_COMPENDIUM_WEEKS) {
       expect(week.prizes.map((prize) => prize.place)).toEqual([1, 2]);
-      expect(week.prizes.every((prize) => prize.imageUrl === null)).toBe(true);
     }
     expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[0].title)).toEqual([
       "1 месяц Dota+",
       "1 месяц Dota+",
       "Предмет выберем позже",
+    ]);
+    expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[0].imageUrl)).toEqual([
+      "/compendium/october/dota-plus-one-month.png",
+      "/compendium/october/dota-plus-one-month.png",
+      null,
     ]);
   });
 

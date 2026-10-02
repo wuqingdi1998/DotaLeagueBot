@@ -217,37 +217,38 @@
 }
 
 .compendium-star-race-prize-preview {
-  position: absolute;
-  z-index: 5;
-  top: calc(100% + 10px);
-  right: 0;
+  position: fixed;
+  z-index: 1000;
+  display: grid;
+  gap: 8px;
   width: min(380px, 74vw);
   padding: 8px;
-  visibility: hidden;
   border: 1px solid color-mix(in srgb, var(--star-race-gold) 55%, transparent);
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow);
-  opacity: 0;
   pointer-events: none;
-  transform: translateY(-4px);
-  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+  transform: translateX(-50%);
+}
+
+.compendium-star-race-prize-preview--above {
+  transform: translate(-50%, -100%);
+}
+
+.compendium-star-race-prize-preview > strong {
+  padding: 0 6px 4px;
+  color: var(--text);
+  font-size: 14px;
+  text-align: center;
 }
 
 .compendium-star-race-prize-preview img {
   display: block;
   width: 100%;
-  height: auto;
+  height: min(300px, 62vh);
   max-height: 360px;
   border-radius: 10px;
   object-fit: contain;
-}
-
-.compendium-star-race-prize-name:hover .compendium-star-race-prize-preview,
-.compendium-star-race-prize-name:focus-visible .compendium-star-race-prize-preview {
-  visibility: visible;
-  opacity: 1;
-  transform: translateY(0);
 }
 
 .compendium-star-race-quests {

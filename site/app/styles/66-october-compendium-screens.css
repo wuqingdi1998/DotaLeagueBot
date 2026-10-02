@@ -26,6 +26,10 @@
     scroll-snap-stop: always;
   }
 
+  .october-compendium-screen-daily {
+    overflow-y: hidden;
+  }
+
   .october-section-navigation {
     position: fixed;
     z-index: 30;
@@ -285,7 +289,7 @@
     min-height: 0;
     flex: 1;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     padding-top: 18px;
     padding-bottom: 22px;
   }
@@ -303,9 +307,10 @@
   .october-compendium-screen-daily .compendium-section-heading span { font-size: 14px; }
 
   .october-compendium-screen-daily .october-compendium-example-note {
-    margin-bottom: 14px;
-    font-size: 15px;
-    line-height: 1.45;
+    margin-bottom: 10px;
+    padding-block: 10px;
+    font-size: 14px;
+    line-height: 1.38;
   }
 
   .october-compendium-screen-daily .compendium-quest-grid {

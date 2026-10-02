@@ -27,6 +27,7 @@ function RoomPlayer({ player }: { player: SeasonLobbyRoomPlayer }) {
         <PlayerProfileLink
           dotaId={player.dotaId}
           nickname={player.nickname}
+          showClanBadge
         >
           <strong>{player.nickname}</strong>
         </PlayerProfileLink>

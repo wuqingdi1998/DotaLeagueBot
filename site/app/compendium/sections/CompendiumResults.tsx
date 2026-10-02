@@ -64,6 +64,7 @@ function ResultsTable({
                   className="compendium-results-player"
                   dotaId={player.dotaId}
                   nickname={player.playerName}
+                  showClanBadge
                 >
                   <PlayerAvatar player={player} />
                   <span>

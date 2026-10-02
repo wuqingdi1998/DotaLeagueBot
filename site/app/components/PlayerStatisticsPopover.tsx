@@ -11,6 +11,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { usePlayerStatistics } from "@/app/hooks/usePlayerStatistics";
+import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
 
 const POPOVER_WIDTH = 390;
 const POPOVER_HEIGHT = 330;
@@ -130,7 +131,10 @@ export function PlayerStatisticsPopover({
           role="tooltip"
         >
           <header>
-            <strong>{nickname}</strong>
+            <strong>
+              {nickname}
+              <OctoberClanBadge dotaId={dotaId} />
+            </strong>
             <span>Статистика на сервере</span>
           </header>
           {statistics ? (

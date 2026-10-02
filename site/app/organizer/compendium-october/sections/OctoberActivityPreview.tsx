@@ -48,7 +48,11 @@ export function OctoberDailyPreview({
   const isClanOutingVisible = guides.isVisible("clan-outing");
   return (
     <section
-      className={`compendium-daily-section${isOverviewVisible ? "" : " october-daily-section--compact-guidance"}`}
+      className={`compendium-daily-section ${
+        isOverviewVisible
+          ? "october-daily-section--expanded-guidance"
+          : "october-daily-section--compact-guidance"
+      }`}
       id="compendium-quests"
     >
       <div className="compendium-section-heading october-daily-heading">
