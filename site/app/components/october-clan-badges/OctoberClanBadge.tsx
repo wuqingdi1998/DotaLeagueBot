@@ -24,7 +24,13 @@ export function OctoberClanBadge({
       aria-label={`Клан «${clan.name}»`}
       title={`Клан «${clan.name}»`}
     >
-      <Image src={clan.emblem} alt="" width={34} height={34} />
+      <Image
+        className="october-clan-name-badge-image"
+        src={clan.emblem}
+        alt=""
+        width={34}
+        height={34}
+      />
     </span>
   );
 }

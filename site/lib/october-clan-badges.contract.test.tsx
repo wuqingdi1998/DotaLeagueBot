@@ -44,7 +44,9 @@ describe("temporary October clan badges", () => {
       new URL("../app/styles/03-october-clan-badges.css", import.meta.url),
       "utf8",
     );
-    expect(styles).toMatch(/\.october-clan-name-badge img \{[^}]*width: 34px;[^}]*height: 34px;/);
+    expect(styles).toMatch(
+      /\.october-clan-name-badge \.october-clan-name-badge-image \{[^}]*width: 34px;[^}]*height: 34px;/,
+    );
     expect(styles).not.toContain("--clan-badge-color");
     expect(styles).not.toContain("clip-path");
   });

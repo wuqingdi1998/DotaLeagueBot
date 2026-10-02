@@ -9,7 +9,7 @@
   vertical-align: middle;
 }
 
-.october-clan-name-badge img {
+.october-clan-name-badge .october-clan-name-badge-image {
   width: 34px;
   height: 34px;
   object-fit: contain;
@@ -22,7 +22,7 @@ h1 + .october-clan-name-badge {
   flex-basis: 42px;
 }
 
-h1 + .october-clan-name-badge img {
+h1 + .october-clan-name-badge .october-clan-name-badge-image {
   width: 42px;
   height: 42px;
 }
@@ -35,7 +35,7 @@ h1 + .october-clan-name-badge img {
     margin-left: 5px;
   }
 
-  .october-clan-name-badge img {
+  .october-clan-name-badge .october-clan-name-badge-image {
     width: 30px;
     height: 30px;
   }
