@@ -1,5 +1,8 @@
 import { query } from "./db";
-import { OCTOBER_COMPENDIUM_END_AT } from "./october-compendium-schedule";
+import {
+  OCTOBER_CLAN_BADGE_TEST_START_AT,
+  OCTOBER_COMPENDIUM_END_AT,
+} from "./october-compendium-schedule";
 import { OCTOBER_CLAN_PUBLICATION_AT } from "./october-compendium-release";
 import type { OctoberClanId } from "./october-clans";
 
@@ -10,16 +13,32 @@ type OctoberClanBadgeRow = {
   clan_id: OctoberClanId;
 };
 
-export function isOctoberClanBadgeWindow(now: Date = new Date()): boolean {
+export const OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS: OctoberClanBadgeDirectory = {
+  "170929900": "panacea",
+  "301109815": "morbus",
+};
+
+export function octoberClanBadgeDirectoryMode(
+  now: Date = new Date(),
+): "hidden" | "test" | "assigned" {
   const currentTime = now.getTime();
-  return currentTime >= Date.parse(OCTOBER_CLAN_PUBLICATION_AT)
-    && currentTime < Date.parse(OCTOBER_COMPENDIUM_END_AT);
+  if (
+    currentTime < Date.parse(OCTOBER_CLAN_BADGE_TEST_START_AT)
+    || currentTime >= Date.parse(OCTOBER_COMPENDIUM_END_AT)
+  ) {
+    return "hidden";
+  }
+  return currentTime < Date.parse(OCTOBER_CLAN_PUBLICATION_AT)
+    ? "test"
+    : "assigned";
 }
 
 export async function loadOctoberClanBadgeDirectory(
   now: Date = new Date(),
 ): Promise<OctoberClanBadgeDirectory> {
-  if (!isOctoberClanBadgeWindow(now)) return {};
+  const mode = octoberClanBadgeDirectoryMode(now);
+  if (mode === "hidden") return {};
+  if (mode === "test") return OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS;
 
   const rows = await query<OctoberClanBadgeRow>(
     `SELECT player.steam_id32::text AS dota_id, member.clan_id

@@ -300,7 +300,7 @@ describe("October preview actions", () => {
     expect(html).toContain("Для всех трёх заданий и Испытания Рун");
     expect(html.match(/aria-label="Награда: 1 звезда"/g)).toHaveLength(3);
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
-    expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");
+    expect(guideStyles).toMatch(/\.october-compendium-screen-daily \.october-daily-section--compact-guidance \{[^}]*justify-content: center;[\s\S]*?\.october-daily-section--compact-guidance \.compendium-quest-grid/);
   });
 
   it("keeps the platinum reward beside the first five milestones", () => {

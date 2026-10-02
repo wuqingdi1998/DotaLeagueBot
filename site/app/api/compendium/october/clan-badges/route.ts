@@ -5,6 +5,6 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const clansByDotaId = await loadOctoberClanBadgeDirectory();
   return Response.json(clansByDotaId, {
-    headers: { "Cache-Control": "public, max-age=60, stale-while-revalidate=60" },
+    headers: { "Cache-Control": "private, no-store" },
   });
 }

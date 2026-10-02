@@ -7,7 +7,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
+import {
+  OCTOBER_CLAN_BADGE_TEST_START_AT,
+  OCTOBER_COMPENDIUM_END_AT,
+} from "@/lib/october-compendium-schedule";
 import { OCTOBER_CLAN_PUBLICATION_AT } from "@/lib/october-compendium-release";
 import { OCTOBER_CLANS } from "@/lib/october-clans";
 import type { OctoberClanBadgeDirectory } from "@/lib/october-clan-badge-directory";
@@ -22,7 +25,8 @@ export const OctoberClanBadgeContext = createContext<OctoberClanBadgeContextValu
   isActive: false,
 });
 
-const badgeStartTime = Date.parse(OCTOBER_CLAN_PUBLICATION_AT);
+const badgeStartTime = Date.parse(OCTOBER_CLAN_BADGE_TEST_START_AT);
+const assignedClanStartTime = Date.parse(OCTOBER_CLAN_PUBLICATION_AT);
 const badgeEndTime = Date.parse(OCTOBER_COMPENDIUM_END_AT);
 
 function isBadgeWindow(time: number) {
@@ -44,12 +48,14 @@ export function OctoberClanBadgesProvider({ children }: { children: ReactNode })
   useEffect(() => {
     const controller = new AbortController();
     let startTimer: ReturnType<typeof setTimeout> | undefined;
+    let assignedClanTimer: ReturnType<typeof setTimeout> | undefined;
     let endTimer: ReturnType<typeof setTimeout> | undefined;
 
     async function loadBadges() {
       setIsActive(true);
       try {
         const response = await fetch("/api/compendium/october/clan-badges", {
+          cache: "no-store",
           signal: controller.signal,
         });
         if (!response.ok) return;
@@ -68,6 +74,12 @@ export function OctoberClanBadgesProvider({ children }: { children: ReactNode })
     } else if (now < badgeStartTime) {
       startTimer = setTimeout(() => void loadBadges(), badgeStartTime - now);
     }
+    if (now < assignedClanStartTime) {
+      assignedClanTimer = setTimeout(
+        () => void loadBadges(),
+        assignedClanStartTime - now,
+      );
+    }
     if (now < badgeEndTime) {
       endTimer = setTimeout(() => {
         setIsActive(false);
@@ -78,6 +90,7 @@ export function OctoberClanBadgesProvider({ children }: { children: ReactNode })
     return () => {
       controller.abort();
       if (startTimer) clearTimeout(startTimer);
+      if (assignedClanTimer) clearTimeout(assignedClanTimer);
       if (endTimer) clearTimeout(endTimer);
     };
   }, []);

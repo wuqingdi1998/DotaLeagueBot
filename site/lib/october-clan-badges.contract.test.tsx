@@ -3,14 +3,27 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
 import { OctoberClanBadgeContext } from "@/app/components/october-clan-badges/OctoberClanBadgesProvider";
-import { isOctoberClanBadgeWindow } from "./october-clan-badge-directory";
+import {
+  OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS,
+  octoberClanBadgeDirectoryMode,
+} from "./october-clan-badge-directory";
 
 describe("temporary October clan badges", () => {
-  it("shows badges from clan publication until the compendium ends", () => {
-    expect(isOctoberClanBadgeWindow(new Date("2026-10-04T20:59:59.999Z"))).toBe(false);
-    expect(isOctoberClanBadgeWindow(new Date("2026-10-04T21:00:00.000Z"))).toBe(true);
-    expect(isOctoberClanBadgeWindow(new Date("2026-10-25T20:59:59.999Z"))).toBe(true);
-    expect(isOctoberClanBadgeWindow(new Date("2026-10-25T21:00:00.000Z"))).toBe(false);
+  it("switches test badges to assigned clans and removes them after the event", () => {
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-01T20:59:59.999Z")))
+      .toBe("hidden");
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-01T21:00:00.000Z")))
+      .toBe("test");
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-04T20:59:59.999Z")))
+      .toBe("test");
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-04T21:00:00.000Z")))
+      .toBe("assigned");
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-25T21:00:00.000Z")))
+      .toBe("hidden");
+    expect(OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS).toEqual({
+      "170929900": "panacea",
+      "301109815": "morbus",
+    });
   });
 
   it("renders the assigned clan emblem to the right of a nickname", () => {

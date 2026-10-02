@@ -62,6 +62,18 @@
   outline-offset: 2px;
 }
 
+@media (min-width: 961px) and (min-height: 700px) and (max-height: 819px) {
+  .october-compendium-screen-daily {
+    overflow-y: auto;
+  }
+}
+
+@media (min-width: 961px) and (min-height: 820px) {
+  .october-compendium-screen-daily .october-daily-section--compact-guidance {
+    justify-content: center;
+  }
+}
+
 @media (min-width: 961px) and (min-height: 700px) {
   .october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest {
     min-height: clamp(330px, 37vh, 365px);
