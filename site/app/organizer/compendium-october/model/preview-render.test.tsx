@@ -168,7 +168,7 @@ describe("October preview actions", () => {
       "winners:5:Snailfire:600 ₽",
       "winners:6:Steam Gift Card на 500 ₽:500 ₽",
       "winners:7:Steam Gift Card на 500 ₽:500 ₽",
-      "runners-up:3:Steam Gift Card на 500 ₽:500 ₽",
+      "runners-up:2:Steam Gift Card на 500 ₽:500 ₽",
       "winners:8:Frostmoot:500 ₽",
       "winners:9:Almond the Frondillo:300 ₽",
       "winners:10:The Igneous Stone:300 ₽",
@@ -429,6 +429,9 @@ describe("October preview actions", () => {
     expect(clanStyles).not.toContain(".october-clan-showcase-heading");
     expect(clanStyles).toMatch(
       /\.october-clan-standings-compact\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/,
+    );
+    expect(clanStyles).toMatch(
+      /\.october-clan-standings > \.october-clan-standing-empty\s*\{[^}]*place-self:\s*center;/,
     );
     expect(clanStyles).toMatch(
       /\.october-clan-standing-row--compact\s*\{[^}]*padding:\s*2px 12px 2px 6px;[^}]*font-size:\s*13px;/,

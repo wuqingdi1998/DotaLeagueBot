@@ -71,7 +71,8 @@ export function OctoberClanReservationPanel({
         <strong>Ранний выбор клана до 4 октября 23:50 МСК</strong>
         <span>
           Забронировать место могут владельцы Рун Регенерации, Ускорения,
-          Невидимости, Волшебства, Иллюзий и Усиления урона. Руна Воды не участвует.
+          Невидимости, Волшебства, Иллюзий и Усиления урона, а также владельцы
+          уровня «Суппортеры». Руна Воды не участвует.
         </span>
         {state.accessRoleName && <small>Ваша подписка: {state.accessRoleName}</small>}
       </div>
@@ -99,7 +100,7 @@ export function OctoberClanReservationPanel({
         </div>
       ) : (
         <div className="october-clan-reservation-unavailable">
-          <FiLock aria-hidden="true" /> В вашем профиле нет подходящей руны
+          <FiLock aria-hidden="true" /> У вас нет подходящего уровня подписки
         </div>
       )}
       {message && <p className="october-clan-reservation-message" role="status">{message}</p>}

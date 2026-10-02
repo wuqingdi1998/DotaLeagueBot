@@ -26,7 +26,7 @@ describe("October compendium release schedule", () => {
     expect(OCTOBER_CLAN_PUBLICATION_AT).toBe("2026-10-05T00:00:00+03:00");
   });
 
-  it("allows every rune except Water and no separate VIP role", () => {
+  it("allows every rune except Water and the Supporters subscription level", () => {
     expect(OCTOBER_RESERVATION_ROLE_NAMES).toEqual([
       "Руна Регенерации",
       "Руна Ускорения",
@@ -34,9 +34,9 @@ describe("October compendium release schedule", () => {
       "Руна Волшебства",
       "Руна Иллюзий",
       "Руна Усиления урона",
+      "Суппортеры",
     ]);
     expect(OCTOBER_RESERVATION_ROLE_NAMES).not.toContain("Руна Воды");
-    expect(OCTOBER_RESERVATION_ROLE_NAMES).not.toContain("Суппортеры");
   });
 
   it.each([

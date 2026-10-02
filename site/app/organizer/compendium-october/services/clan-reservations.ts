@@ -77,7 +77,7 @@ export async function reserveOctoberClan(
   if (!access.role_name) {
     throw new OctoberClanReservationError(
       "RUNE_REQUIRED",
-      "Бронирование доступно владельцам цветных рун, кроме Руны Воды",
+      "У вас нет подходящего уровня подписки",
     );
   }
   await query(

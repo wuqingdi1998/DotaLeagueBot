@@ -19,6 +19,13 @@ const additionalPrizeNames = [
 ];
 
 describe("October clan prizes", () => {
+  it("places the runners-up 500 ruble prize at second place", () => {
+    const runnersUpPrize = OCTOBER_CLAN_PRIZES.find(
+      (prize) => prize.pool === "runners-up" && prize.name === "Steam Gift Card на 500 ₽",
+    );
+    expect(runnersUpPrize?.poolPosition).toBe(2);
+  });
+
   it("adds all missing winners and runners-up slots to the second strip", () => {
     const html = renderToStaticMarkup(<OctoberClanPrizeBoard />);
 

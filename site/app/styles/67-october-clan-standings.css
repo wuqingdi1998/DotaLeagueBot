@@ -345,6 +345,11 @@
 .october-clan-standing-open:hover { color: var(--clan-accent); }
 .october-clan-standing-open:focus-visible { outline: 2px solid var(--clan-accent); outline-offset: 2px; }
 .october-clan-standing-empty { margin: 8px 0; color: #aebfc1; font-size: 13px; }
+.october-clan-standings > .october-clan-standing-empty {
+  place-self: center;
+  margin: 0;
+  text-align: center;
+}
 
 .october-clan-standing-dialog {
   width: min(780px, calc(100% - 32px));

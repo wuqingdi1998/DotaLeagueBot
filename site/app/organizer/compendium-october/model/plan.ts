@@ -19,6 +19,11 @@ const unannouncedPrizes = [
   { place: 2, title: "Предмет выберем позже", imageUrl: null },
 ] as const;
 
+const dotaPlusRacePrizes = [
+  { place: 1, title: "1 месяц Dota+", imageUrl: null },
+  { place: 2, title: "Предмет выберем позже", imageUrl: null },
+] as const;
+
 export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberCompendiumWeekDefinition[] = [
   {
     id: "2026-10-05",
@@ -26,7 +31,7 @@ export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberCompendiumWeekDefinition[
     dateLabel: "5–11 октября 2026",
     startsAt: OCTOBER_COMPENDIUM_START_AT,
     endsAt: "2026-10-12T00:00:00+03:00",
-    prizes: unannouncedPrizes,
+    prizes: dotaPlusRacePrizes,
     quests: OCTOBER_FIRST_RACE_QUESTS,
   },
   {
@@ -35,7 +40,7 @@ export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberCompendiumWeekDefinition[
     dateLabel: "12–18 октября 2026",
     startsAt: "2026-10-12T00:00:00+03:00",
     endsAt: "2026-10-19T00:00:00+03:00",
-    prizes: unannouncedPrizes,
+    prizes: dotaPlusRacePrizes,
     quests: OCTOBER_SECOND_RACE_QUESTS,
   },
   {

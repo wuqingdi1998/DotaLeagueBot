@@ -1,10 +1,10 @@
-import { customizableSubscriptionRoleNames } from "./subscription-roles";
+import { runeChallengeAccessRoleNames } from "./subscription-roles";
 
 export const OCTOBER_PUBLIC_LAUNCH_AT = "2026-10-03T15:00:00+03:00";
 export const OCTOBER_CLAN_FORMATION_AT = "2026-10-04T23:50:00+03:00";
 export const OCTOBER_CLAN_PUBLICATION_AT = "2026-10-05T00:00:00+03:00";
 
-export const OCTOBER_RESERVATION_ROLE_NAMES = customizableSubscriptionRoleNames;
+export const OCTOBER_RESERVATION_ROLE_NAMES = runeChallengeAccessRoleNames;
 
 export type OctoberCompendiumPhase =
   | "hidden"

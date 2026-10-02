@@ -138,7 +138,7 @@ export const OCTOBER_CLAN_PRIMARY_PRIZES: readonly OctoberClanPrize[] = [
     6: steamGiftCard500Prize,
     7: steamGiftCard500Prize,
   }),
-  ...clanPrizeSlots("runners-up", 3, { 3: steamGiftCard500Prize }),
+  ...clanPrizeSlots("runners-up", 3, { 2: steamGiftCard500Prize }),
 ];
 
 export const OCTOBER_CLAN_ADDITIONAL_PRIZES: readonly OctoberClanPrize[] = [
