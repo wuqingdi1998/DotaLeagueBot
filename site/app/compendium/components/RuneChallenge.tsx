@@ -31,12 +31,14 @@ function cooldownLabel(nextChangeAt: string, now: number): string {
 function HeroPicker({
   selectedHeroId,
   disabled,
+  isLoading,
   actionLabel,
   onChange,
   onSubmit,
 }: {
   selectedHeroId: string;
   disabled: boolean;
+  isLoading: boolean;
   actionLabel: string;
   onChange: (heroId: string) => void;
   onSubmit: () => void;
@@ -63,7 +65,7 @@ function HeroPicker({
         disabled={disabled || !selectedHeroId}
         onClick={onSubmit}
       >
-        {disabled && <FiLoader className="compendium-spinner" aria-hidden="true" />}
+        {isLoading && <FiLoader className="compendium-spinner" aria-hidden="true" />}
         {actionLabel}
       </button>
     </div>
@@ -189,10 +191,7 @@ export function RuneChallenge({
   return (
     <section className={`compendium-rune-challenge${challenge.hasAccess || isPreview ? "" : " locked"}`}>
       <div className="compendium-rune-heading">
-        <div>
-          <span>Ежедневное задание для подписчиков</span>
-          <h2>Испытание Рун</h2>
-        </div>
+        <h2>Испытание Рун</h2>
         <div
           className="compendium-reward"
           aria-label={rewardStarsLabel
@@ -237,6 +236,7 @@ export function RuneChallenge({
               <HeroPicker
                 selectedHeroId={selectedHeroId}
                 disabled={isSaving || isPreview}
+                isLoading={isSaving}
                 actionLabel={isSaving ? "Сохраняем…" : "Выбрать героя"}
                 onChange={setSelectedHeroId}
                 onSubmit={saveHero}
@@ -300,6 +300,7 @@ export function RuneChallenge({
                   <HeroPicker
                     selectedHeroId={selectedHeroId}
                     disabled={isSaving || isPreview}
+                    isLoading={isSaving}
                     actionLabel={isSaving ? "Сохраняем…" : "Сменить героя"}
                     onChange={setSelectedHeroId}
                     onSubmit={saveHero}

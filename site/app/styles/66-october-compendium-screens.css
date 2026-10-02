@@ -391,29 +391,6 @@
     margin-top: 0;
   }
 
-  .october-compendium-screen-daily .compendium-rune-challenge {
-    display: grid;
-    grid-template-columns: minmax(180px, 0.35fr) minmax(0, 0.65fr);
-    align-items: center;
-    gap: 12px;
-    margin-top: 14px;
-    margin-bottom: 4px;
-    padding: 14px 18px;
-  }
-
-  .october-compendium-screen-daily .compendium-rune-heading h2 {
-    font-size: 24px;
-  }
-
-  .october-compendium-screen-daily .compendium-rune-locked-message {
-    margin-top: 0;
-    padding: 10px 14px;
-  }
-
-  .october-compendium-screen-daily .compendium-rune-locked-message p {
-    font-size: 14px;
-    line-height: 1.4;
-  }
 }
 
 @media (min-width: 1500px) and (min-height: 800px) {

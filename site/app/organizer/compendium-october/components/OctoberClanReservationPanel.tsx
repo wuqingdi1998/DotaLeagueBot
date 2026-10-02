@@ -56,15 +56,6 @@ export function OctoberClanReservationPanel({
       </div>
     );
   }
-  if (state.phase === "published") {
-    return (
-      <div className="october-clan-reservation is-published" role="status">
-        <FiCheck aria-hidden="true" />
-        <div><strong>Составы сформированы</strong><span>Забронированные места сохранены, остальные участники распределены по активности.</span></div>
-      </div>
-    );
-  }
-
   return (
     <div className="october-clan-reservation">
       <div className="october-clan-reservation-copy">

@@ -38,16 +38,8 @@
   gap: 18px;
 }
 
-.compendium-rune-heading > div:first-child > span {
-  color: #a987f1;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .compendium-rune-heading h2 {
-  margin: 5px 0 0;
+  margin: 0;
   font-family: "5ka Sans Design", sans-serif;
   font-size: clamp(26px, 3vw, 36px);
 }
@@ -92,10 +84,10 @@
 .compendium-rune-first-selection {
   display: grid;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(260px, 1fr) minmax(360px, 1.4fr);
-  align-items: end;
-  gap: 24px;
-  padding: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px 16px;
   border: 1px solid rgba(166, 116, 255, 0.25);
   border-radius: 16px;
   background: rgba(100, 70, 155, 0.08);
@@ -254,7 +246,6 @@
   font-weight: 700;
 }
 
-.site-shell[data-theme="light"] .compendium-rune-heading > div:first-child > span,
 .site-shell[data-theme="light"] .compendium-rune-selected-hero span {
   color: #60409c;
 }

@@ -44,4 +44,34 @@ describe("October public release presentation", () => {
     );
     expect(source).toContain('key={reservation.phase}');
   });
+
+  it("removes the reservation banner completely after clan publication", () => {
+    const panel = readFileSync(
+      new URL("../components/OctoberClanReservationPanel.tsx", import.meta.url),
+      "utf8",
+    );
+    const showcase = readFileSync(
+      new URL("../sections/OctoberClanShowcase.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(panel).not.toContain("Составы сформированы");
+    expect(showcase).toContain('reservation.phase !== "published"');
+  });
+
+  it("uses the compact full-width rune challenge layout", () => {
+    const html = renderToStaticMarkup(
+      <OctoberDailyPreview viewerDiscordId="viewer-1" isOpen />,
+    );
+    const styles = readFileSync(
+      new URL("../../../styles/69-october-compendium-release.css", import.meta.url),
+      "utf8",
+    );
+    expect(html).not.toContain("Ежедневное задание для подписчиков");
+    expect(html).not.toContain("compendium-spinner");
+    expect(html.indexOf("Испытание Рун"))
+      .toBeLessThan(html.indexOf("compendium-rune-content"));
+    expect(styles).toContain("flex-direction: column;");
+    expect(styles).toContain("flex: 0 0 auto;");
+    expect(styles).toContain(".october-compendium-screen-daily .compendium-rune-first-selection");
+  });
 });

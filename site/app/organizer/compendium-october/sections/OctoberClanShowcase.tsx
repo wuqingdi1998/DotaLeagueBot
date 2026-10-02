@@ -17,7 +17,7 @@ export function OctoberClanShowcase({
   return (
     <section className="october-clan-showcase" aria-label="Клановый зачёт">
       <OctoberClanPrizeBoard />
-      {reservation && (
+      {reservation && reservation.phase !== "published" && (
         <OctoberClanReservationPanel
           key={reservation.phase}
           initialState={reservation}
