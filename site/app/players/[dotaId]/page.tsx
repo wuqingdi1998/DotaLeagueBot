@@ -229,7 +229,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 }
               >
                 <h1 title={profile.nickname}>{profile.nickname}</h1>
-                <OctoberClanBadge dotaId={profile.dotaId} />
+                <OctoberClanBadge dotaId={profile.dotaId} display="profile" />
                 <PlayerPositionsBadge
                   positions={profile.positions}
                   className="mobile-profile-positions"

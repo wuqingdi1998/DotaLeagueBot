@@ -96,9 +96,9 @@ describe("October clan prizes", () => {
     expect(OCTOBER_CLAN_PRIZES.filter((prize) => prize.pool === "runners-up").map(
       (prize) => `${prize.poolPosition}:${prize.name}:${prize.approximateValue}`,
     )).toEqual([
-      "1:null:null",
+      "1:Doll of the Dead:700 ₽",
       "2:Steam Gift Card на 500 ₽:500 ₽",
-      "3:null:null",
+      "3:Mantle of the Cinder Baron:277 ₽",
       "4:Golden Bloodfeather Feast:200 ₽",
       "5:Steam Gift Card на 100 ₽:100 ₽",
       "6:Steam Gift Card на 100 ₽:100 ₽",
@@ -118,10 +118,33 @@ describe("October clan prizes", () => {
       "../../../../public/compendium/october/golden-deepshock-destroyer.png",
       import.meta.url,
     ))).toBe(true);
+    expect(existsSync(new URL(
+      "../../../../public/compendium/october/doll-of-the-dead.png",
+      import.meta.url,
+    ))).toBe(true);
+    expect(existsSync(new URL(
+      "../../../../public/compendium/october/mantle-of-the-cinder-baron.png",
+      import.meta.url,
+    ))).toBe(true);
     expect(html).toContain('aria-label="Малые призовые слоты кланового зачёта"');
     expect(html.match(/data-prize-row="small"/g)).toHaveLength(10);
     expect(html).toContain("30 предметов в финальном розыгрыше");
     expect(html).toContain("Победители разыграют 21 предмет, проигравшие – 9");
+  });
+
+  it("adds the requested second-place winner prize and separates both pools", () => {
+    const winnerPrize = OCTOBER_CLAN_PRIZES.find(
+      (prize) => prize.pool === "winners" && prize.poolPosition === 2,
+    );
+    const html = renderToStaticMarkup(<OctoberClanPrizeBoard />);
+
+    expect(winnerPrize).toMatchObject({
+      name: "Auspicious Scythe of Vyse",
+      approximateValue: "1 100 ₽",
+      imagePath: "/compendium/october/auspicious-scythe-of-vyse.png",
+    });
+    expect(html.match(/october-clan-prize-slot--pool-start/g)).toHaveLength(3);
+    expect(html).toContain("Каждая звезда – дополнительный шанс на выигрыш");
   });
 
   it("uses a prepared preview for every additional prize", () => {

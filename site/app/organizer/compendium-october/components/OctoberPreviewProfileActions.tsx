@@ -52,7 +52,7 @@ export function OctoberPreviewProfileActions({
           onChange={(event) => setMaximumStars(event.target.checked)}
         />
         <span>
-          <strong>Показать 100 звёзд</strong>
+          <strong>Показать 120 звёзд</strong>
           <small>Проверить максимальный личный зачёт</small>
         </span>
       </label>

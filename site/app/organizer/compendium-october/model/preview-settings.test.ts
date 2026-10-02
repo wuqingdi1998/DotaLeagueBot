@@ -10,7 +10,7 @@ describe("October organizer preview settings", () => {
     expect(octoberPreviewStars(undefined)).toBe(0);
     expect(octoberPreviewStars("60")).toBe(0);
     expect(octoberPreviewStars(["100"])).toBe(0);
-    expect(octoberPreviewStars(String(OCTOBER_PREVIEW_MAXIMUM_STARS))).toBe(100);
+    expect(octoberPreviewStars(String(OCTOBER_PREVIEW_MAXIMUM_STARS))).toBe(120);
   });
 
   it("lets the organizer override the scheduled tournament state", () => {

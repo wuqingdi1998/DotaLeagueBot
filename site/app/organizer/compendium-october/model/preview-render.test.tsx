@@ -15,10 +15,7 @@ import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
 import { OCTOBER_CLAN_PRIZES } from "./clan-prizes";
 import type { OctoberClanMember } from "./clan-members";
-const previewStyles = readFileSync(
-  new URL("../../../styles/66-october-compendium-screens.css", import.meta.url),
-  "utf8",
-);
+const previewStyles = readFileSync(new URL("../../../styles/66-october-compendium-screens.css", import.meta.url), "utf8");
 const presentationStyles = readFileSync(
   new URL("../../../styles/65-october-compendium.css", import.meta.url),
   "utf8",
@@ -59,9 +56,7 @@ const prizeBoardSource = readFileSync(
   new URL("../components/OctoberClanPrizeBoard.tsx", import.meta.url),
   "utf8",
 );
-function unavailable() {
-  throw new Error("A private preview must never submit an action");
-}
+function unavailable() { throw new Error("A private preview must never submit an action"); }
 describe("October preview actions", () => {
   it("offers exactly four desktop screen links in the planned order", () => {
     const html = renderToStaticMarkup(<OctoberSectionNavigation />);
@@ -118,7 +113,7 @@ describe("October preview actions", () => {
       /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;/,
     );
     expect(rewardStyles).toMatch(
-      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*122px;[^}]*height:\s*58px;[^}]*flex-direction:\s*row;/,
+      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*122px;[^}]*height:\s*58px;[^}]*grid-template-columns:\s*42px minmax\(0, 1fr\);[^}]*overflow:\s*hidden;/,
     );
     expect(profileStyles).toMatch(
       /\.profile-event-badge-clan\s*\{[^}]*grid-template-columns:\s*36px minmax\(0, 1fr\);[^}]*padding:\s*5px 0 5px 5px;/,
@@ -144,7 +139,8 @@ describe("October preview actions", () => {
     expect(html).toContain("Флаг клана Панацея");
     expect(html).toContain("morbus-emblem-v2.webp");
     expect(html).toContain("panacea-emblem.webp");
-    expect(html).toContain("30 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш");
+    expect(html).toContain("30 предметов в финальном розыгрыше");
+    expect(html).toContain("Каждая звезда – дополнительный шанс на выигрыш");
     expect(html).toContain("Победители разыграют 21 предмет, проигравшие – 9");
     expect(html).not.toContain("Морбус против Панацеи");
     expect(html).not.toContain("Каждая заработанная звезда пополнит личный и клановый зачёт");
@@ -160,12 +156,15 @@ describe("October preview actions", () => {
         ),
     ).toEqual([
       "winners:1:Shattered Greatsword:6 000 ₽",
+      "winners:2:Auspicious Scythe of Vyse:1 100 ₽",
       "winners:3:Undying Love:700 ₽",
       "winners:4:Magus Mimicry:600 ₽",
       "winners:5:Snailfire:600 ₽",
       "winners:6:Steam Gift Card на 500 ₽:500 ₽",
       "winners:7:Steam Gift Card на 500 ₽:500 ₽",
+      "runners-up:1:Doll of the Dead:700 ₽",
       "runners-up:2:Steam Gift Card на 500 ₽:500 ₽",
+      "runners-up:3:Mantle of the Cinder Baron:277 ₽",
       "winners:8:Frostmoot:500 ₽",
       "winners:9:Almond the Frondillo:300 ₽",
       "winners:10:The Igneous Stone:300 ₽",
@@ -306,11 +305,11 @@ describe("October preview actions", () => {
   it("keeps the platinum reward beside the first five milestones", () => {
     const html = renderToStaticMarkup(
       <CompendiumRewards
-        personalStars={100}
+        personalStars={120}
         communityStars={0}
         isPreview
         showCommunity={false}
-        personalRewards={octoberRewardsForStars(100)}
+        personalRewards={octoberRewardsForStars(120)}
       />,
     );
     expect(html).toContain("Платиновый бейдж клана");

@@ -37,6 +37,8 @@ function PrizeSlot({
     ? `Ценность ~ ${prize.approximateValue}`
     : "Ценность пока не указана";
   const slotImagePath = prize.thumbnailImagePath ?? prize.imagePath;
+  const isPoolStart = prize.pool === "runners-up"
+    && [1, 4, 7].includes(prize.poolPosition);
   const [popoverPosition, setPopoverPosition] = useState<PrizePopoverPosition | null>(null);
   const tooltipId = `october-clan-prize-${prize.id}`;
 
@@ -61,7 +63,9 @@ function PrizeSlot({
   return (
     <>
       <li
-        className={`october-clan-prize-slot october-clan-prize-slot--${prize.pool}`}
+        className={`october-clan-prize-slot october-clan-prize-slot--${prize.pool}${
+          isPoolStart ? " october-clan-prize-slot--pool-start" : ""
+        }`}
         style={{ position: "relative" }}
         tabIndex={0}
         data-prize-pool={prize.pool}
@@ -117,7 +121,10 @@ export function OctoberClanPrizeBoard() {
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
       <div className="october-clan-prize-copy">
         <p id="october-clan-prizes-title">
-          30 предметов в финальном розыгрыше, каждая звезда – дополнительный шанс на выигрыш
+          30 предметов в финальном розыгрыше
+        </p>
+        <p>
+          Каждая звезда – дополнительный шанс на выигрыш
         </p>
         <p>
           Победители разыграют 21 предмет, проигравшие – 9

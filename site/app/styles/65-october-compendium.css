@@ -198,10 +198,6 @@
   filter: drop-shadow(0 7px 12px rgba(0, 0, 0, 0.55));
 }
 
-.october-clan-card--morbus .october-clan-flag img {
-  transform: translateY(2.4%) scale(1.3, 1.11);
-}
-
 .october-clan-identity h3 {
   margin: 0;
   font-family: "5ka Sans Design", sans-serif;

@@ -74,6 +74,14 @@
   color: #a8dce0;
 }
 
+.october-clan-prize-slot--pool-start { margin-left: 10px; }
+.october-clan-prize-slot--pool-start::before { position: absolute;
+  inset: 8px auto 8px -9px;
+  width: 1px; border-radius: 999px;
+  background: linear-gradient(180deg, transparent, rgba(165, 206, 204, 0.72), transparent);
+  content: "";
+}
+
 .october-clan-prize-place {
   position: absolute;
   z-index: 2;

@@ -89,11 +89,11 @@ describe("public player profile", () => {
   });
 
   it("keeps the highest permanent October clan badge separate from the old event", () => {
-    expect(october2026ProfileBadgeForStars(11, "morbus")).toBeNull();
-    expect(october2026ProfileBadgeForStars(12, "morbus")).toBe("october-2026-morbus-bronze");
-    expect(october2026ProfileBadgeForStars(36, "panacea")).toBe("october-2026-panacea-silver");
-    expect(october2026ProfileBadgeForStars(60, "morbus")).toBe("october-2026-morbus-gold");
-    expect(october2026ProfileBadgeForStars(100, "panacea")).toBe("october-2026-panacea-platinum");
+    expect(october2026ProfileBadgeForStars(9, "morbus")).toBeNull();
+    expect(october2026ProfileBadgeForStars(10, "morbus")).toBe("october-2026-morbus-bronze");
+    expect(october2026ProfileBadgeForStars(40, "panacea")).toBe("october-2026-panacea-silver");
+    expect(october2026ProfileBadgeForStars(80, "morbus")).toBe("october-2026-morbus-gold");
+    expect(october2026ProfileBadgeForStars(120, "panacea")).toBe("october-2026-panacea-platinum");
     expect(selectProfileBadgesForDisplay([
       "ti-2026-silver",
       "october-2026-morbus-bronze",

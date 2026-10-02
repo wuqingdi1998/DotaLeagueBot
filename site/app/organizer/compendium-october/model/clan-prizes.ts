@@ -62,6 +62,27 @@ const goldenDeepshockDestroyerPrize = {
   hasLargePreview: true,
 } as const;
 
+const auspiciousScytheOfVysePrize = {
+  name: "Auspicious Scythe of Vyse",
+  imagePath: "/compendium/october/auspicious-scythe-of-vyse.png",
+  approximateValue: "1 100 ₽",
+  hasLargePreview: true,
+} as const;
+
+const dollOfTheDeadPrize = {
+  name: "Doll of the Dead",
+  imagePath: "/compendium/october/doll-of-the-dead.png",
+  approximateValue: "700 ₽",
+  hasLargePreview: true,
+} as const;
+
+const mantleOfTheCinderBaronPrize = {
+  name: "Mantle of the Cinder Baron",
+  imagePath: "/compendium/october/mantle-of-the-cinder-baron.png",
+  approximateValue: "277 ₽",
+  hasLargePreview: true,
+} as const;
+
 const shatteredGreatswordPrize = {
   name: "Shattered Greatsword",
   imagePath: "/compendium/october/shattered-greatsword.png",
@@ -146,13 +167,18 @@ function clanPrizeSlots(
 export const OCTOBER_CLAN_PRIMARY_PRIZES: readonly OctoberClanPrize[] = [
   ...clanPrizeSlots("winners", 7, {
     1: shatteredGreatswordPrize,
+    2: auspiciousScytheOfVysePrize,
     3: undyingLovePrize,
     4: magusMimicryPrize,
     5: snailfirePrize,
     6: steamGiftCard500Prize,
     7: steamGiftCard500Prize,
   }),
-  ...clanPrizeSlots("runners-up", 3, { 2: steamGiftCard500Prize }),
+  ...clanPrizeSlots("runners-up", 3, {
+    1: dollOfTheDeadPrize,
+    2: steamGiftCard500Prize,
+    3: mantleOfTheCinderBaronPrize,
+  }),
 ];
 
 export const OCTOBER_CLAN_ADDITIONAL_PRIZES: readonly OctoberClanPrize[] = [

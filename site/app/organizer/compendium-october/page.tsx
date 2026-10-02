@@ -59,9 +59,7 @@ export default async function OctoberCompendiumPage({
         clanMembers={clanMembers}
         viewerDiscordId={user.discordId}
         personalStars={personalStars}
-        reservation={isTournamentStarted
-          ? { ...reservation, phase: "published", canReserve: false }
-          : reservation}
+        reservation={reservation}
         areDailyQuestsOpen={isTournamentStarted}
         dailyRewardStars={octoberDailyRewardStars(currentMoscowDay(now).dateKey)}
       />

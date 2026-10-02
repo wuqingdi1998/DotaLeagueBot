@@ -1,8 +1,8 @@
 export const OCTOBER_REWARD_STARS = {
-  bronzeBadge: 12,
-  firstReroll: 24,
-  silverBadge: 36,
-  secondReroll: 48,
-  goldBadge: 60,
-  platinumBadge: 100,
+  bronzeBadge: 10,
+  firstReroll: 25,
+  silverBadge: 40,
+  secondReroll: 60,
+  goldBadge: 80,
+  platinumBadge: 120,
 } as const;

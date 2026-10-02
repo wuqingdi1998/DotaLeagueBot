@@ -80,13 +80,35 @@
 .october-clan-reservation-login:hover { color: var(--blue-soft); }
 
 .october-clan-reservation-unavailable {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
 }
+
+.october-clan-reservation-unavailable > span,
+.october-clan-reservation-unavailable > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.october-clan-reservation-unavailable > a {
+  min-height: 38px;
+  justify-content: center;
+  padding: 7px 13px;
+  border: 1px solid #f07a43;
+  border-radius: 9px;
+  background: rgba(240, 82, 67, 0.13);
+  color: #ffb08a;
+  text-decoration: none;
+}
+
+.october-clan-reservation-unavailable > a:hover { background: rgba(240, 82, 67, 0.22); }
 
 .october-clan-reservation-message {
   grid-column: 1 / -1;

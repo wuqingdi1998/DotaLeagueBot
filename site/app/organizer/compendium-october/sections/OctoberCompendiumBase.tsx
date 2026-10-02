@@ -40,7 +40,7 @@ export function OctoberCompendiumBase({
           communityStars={0}
           isPreview
           showCommunity={false}
-          personalRewards={octoberRewardsForStars(60)}
+          personalRewards={octoberRewardsForStars(80)}
         />
         <p className="october-compendium-example-note">{OCTOBER_COMPENDIUM_DATE_LABEL} · все условия по московскому времени</p>
         {OCTOBER_COMPENDIUM_WEEKS.map((week) => (

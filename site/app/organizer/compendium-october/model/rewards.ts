@@ -35,7 +35,7 @@ const mainRewards: readonly RewardMilestone[] = [
 const secretReward: RewardMilestone = {
   stars: OCTOBER_REWARD_STARS.platinumBadge,
   title: "Платиновый бейдж клана",
-  description: "Скрытая цель откроется после 60 звёзд. Платиновый знак останется в профиле.",
+  description: "Скрытая цель откроется после 80 звёзд. Платиновый знак останется в профиле.",
   badgeKeys: ["october-2026-morbus-platinum", "october-2026-panacea-platinum"],
 };
 

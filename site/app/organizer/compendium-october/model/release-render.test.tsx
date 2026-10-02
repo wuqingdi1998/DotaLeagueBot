@@ -34,6 +34,9 @@ describe("October public release presentation", () => {
     );
     expect(source).toContain("уровня «Суппортеры»");
     expect(source).toContain("У вас нет подходящего уровня подписки");
+    expect(source).toContain('href="/boosty"');
+    expect(source).toContain("Участники, не забронировавшие место в клане");
+    expect(source).not.toContain("Руна Воды не участвует");
     expect(source).not.toContain("В вашем профиле нет подходящей руны");
   });
 

@@ -63,7 +63,11 @@ export function OctoberClanReservationPanel({
         <span>
           Забронировать место могут владельцы Рун Регенерации, Ускорения,
           Невидимости, Волшебства, Иллюзий и Усиления урона, а также владельцы
-          уровня «Суппортеры». Руна Воды не участвует.
+          уровня «Суппортеры».
+        </span>
+        <span>
+          Участники, не забронировавшие место в клане будут распределены по
+          кланам автоматически
         </span>
         {state.accessRoleName && <small>Ваша подписка: {state.accessRoleName}</small>}
       </div>
@@ -91,7 +95,8 @@ export function OctoberClanReservationPanel({
         </div>
       ) : (
         <div className="october-clan-reservation-unavailable">
-          <FiLock aria-hidden="true" /> У вас нет подходящего уровня подписки
+          <span><FiLock aria-hidden="true" /> У вас нет подходящего уровня подписки</span>
+          <Link href="/boosty">Подписаться</Link>
         </div>
       )}
       {message && <p className="october-clan-reservation-message" role="status">{message}</p>}

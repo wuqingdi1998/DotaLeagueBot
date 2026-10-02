@@ -39,16 +39,17 @@ describe("temporary October clan badges", () => {
     expect(html.indexOf("Игрок")).toBeLessThan(html.indexOf("october-clan-name-badge"));
   });
 
-  it("keeps clan emblems large and readable without a clan-colored tile", () => {
+  it("keeps clan emblems readable on distinct clan-colored tiles", () => {
     const styles = readFileSync(
       new URL("../app/styles/03-october-clan-badges.css", import.meta.url),
       "utf8",
     );
     expect(styles).toMatch(
-      /\.october-clan-name-badge \.october-clan-name-badge-image \{[^}]*width: 34px;[^}]*height: 34px;/,
+      /\.october-clan-name-badge \.october-clan-name-badge-image \{[^}]*width: 28px;[^}]*height: 28px;/,
     );
-    expect(styles).not.toContain("--clan-badge-color");
-    expect(styles).not.toContain("clip-path");
+    expect(styles).toContain(".october-clan-name-badge--morbus");
+    expect(styles).toContain(".october-clan-name-badge--panacea");
+    expect(styles).toContain(".october-clan-name-badge--profile");
   });
 
   it("uses the official one-month Dota Plus item image in weeks one and two", () => {
