@@ -69,8 +69,8 @@
 }
 
 @media (min-width: 961px) and (min-height: 820px) {
-  .october-compendium-screen-daily .october-daily-section--compact-guidance {
-    justify-content: center;
+  .october-compendium-screen-daily .compendium-daily-section {
+    justify-content: safe center;
   }
 }
 

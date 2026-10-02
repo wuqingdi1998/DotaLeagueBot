@@ -16,6 +16,9 @@ const additionalPrizeNames = [
   "Cursed Crescent",
   "The Lightning Orchid",
   "Golden Fortune's Tout",
+  "Golden Bloodfeather Feast",
+  "Steam Gift Card на 100 ₽",
+  "Steam Gift Card на 100 ₽",
 ];
 
 describe("October clan prizes", () => {
@@ -56,8 +59,11 @@ describe("October clan prizes", () => {
       "12:200 ₽",
       "13:200 ₽",
       "14:200 ₽",
+      "4:200 ₽",
+      "5:100 ₽",
+      "6:100 ₽",
     ]);
-    expect(OCTOBER_CLAN_ADDITIONAL_PRIZES.filter((prize) => !prize.name)).toHaveLength(3);
+    expect(OCTOBER_CLAN_ADDITIONAL_PRIZES.filter((prize) => !prize.name)).toHaveLength(0);
     expect(html).toContain('aria-label="Дополнительные призовые слоты кланового зачёта"');
     expect(html.match(/data-prize-row="additional"/g)).toHaveLength(10);
     expect(html).toContain("Как получить звёзды?");
@@ -70,7 +76,7 @@ describe("October clan prizes", () => {
     expect(html.match(/class="october-star-guide-reward-stars"/g)).toHaveLength(12);
   });
 
-  it("adds compact Steam 100 ruble prizes for winners 15–21 and runners-up 7–9", () => {
+  it("puts the requested prizes into runners-up places 4–9", () => {
     const html = renderToStaticMarkup(<OctoberClanPrizeBoard />);
 
     expect(OCTOBER_CLAN_SMALL_PRIZES.map(
@@ -87,13 +93,29 @@ describe("October clan prizes", () => {
       "runners-up:8",
       "runners-up:9",
     ]);
-    expect(OCTOBER_CLAN_SMALL_PRIZES.every(
-      (prize) => prize.name === "Steam Gift Card на 100 ₽"
-        && prize.approximateValue === "100 ₽"
-        && prize.imagePath === "/compendium/october/steam-gift-card-100-rub.png",
-    )).toBe(true);
+    expect(OCTOBER_CLAN_PRIZES.filter((prize) => prize.pool === "runners-up").map(
+      (prize) => `${prize.poolPosition}:${prize.name}:${prize.approximateValue}`,
+    )).toEqual([
+      "1:null:null",
+      "2:Steam Gift Card на 500 ₽:500 ₽",
+      "3:null:null",
+      "4:Golden Bloodfeather Feast:200 ₽",
+      "5:Steam Gift Card на 100 ₽:100 ₽",
+      "6:Steam Gift Card на 100 ₽:100 ₽",
+      "7:Steam Gift Card на 100 ₽:100 ₽",
+      "8:Steam Gift Card на 100 ₽:100 ₽",
+      "9:Golden Deepshock Destroyer:100 ₽",
+    ]);
     expect(existsSync(new URL(
       "../../../../public/compendium/october/steam-gift-card-100-rub.png",
+      import.meta.url,
+    ))).toBe(true);
+    expect(existsSync(new URL(
+      "../../../../public/compendium/october/golden-bloodfeather-feast.png",
+      import.meta.url,
+    ))).toBe(true);
+    expect(existsSync(new URL(
+      "../../../../public/compendium/october/golden-deepshock-destroyer.png",
       import.meta.url,
     ))).toBe(true);
     expect(html).toContain('aria-label="Малые призовые слоты кланового зачёта"');
@@ -102,7 +124,7 @@ describe("October clan prizes", () => {
     expect(html).toContain("Победители разыграют 21 предмет, проигравшие – 9");
   });
 
-  it("uses a prepared transparent preview for every new prize", () => {
+  it("uses a prepared preview for every additional prize", () => {
     for (const prize of OCTOBER_CLAN_ADDITIONAL_PRIZES.filter((prize) => prize.name)) {
       expect(prize.imagePath).toBeTruthy();
       expect(existsSync(new URL(`../../../../public${prize.imagePath}`, import.meta.url)))

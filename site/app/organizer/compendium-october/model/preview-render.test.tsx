@@ -15,7 +15,6 @@ import { octoberRewardsForStars } from "./rewards";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples } from "./preview";
 import { OCTOBER_CLAN_PRIZES } from "./clan-prizes";
 import type { OctoberClanMember } from "./clan-members";
-
 const previewStyles = readFileSync(
   new URL("../../../styles/66-october-compendium-screens.css", import.meta.url),
   "utf8",
@@ -60,11 +59,9 @@ const prizeBoardSource = readFileSync(
   new URL("../components/OctoberClanPrizeBoard.tsx", import.meta.url),
   "utf8",
 );
-
 function unavailable() {
   throw new Error("A private preview must never submit an action");
 }
-
 describe("October preview actions", () => {
   it("offers exactly four desktop screen links in the planned order", () => {
     const html = renderToStaticMarkup(<OctoberSectionNavigation />);
@@ -176,6 +173,9 @@ describe("October preview actions", () => {
       "winners:12:Cursed Crescent:200 ₽",
       "winners:13:The Lightning Orchid:200 ₽",
       "winners:14:Golden Fortune's Tout:200 ₽",
+      "runners-up:4:Golden Bloodfeather Feast:200 ₽",
+      "runners-up:5:Steam Gift Card на 100 ₽:100 ₽",
+      "runners-up:6:Steam Gift Card на 100 ₽:100 ₽",
       "winners:15:Steam Gift Card на 100 ₽:100 ₽",
       "winners:16:Steam Gift Card на 100 ₽:100 ₽",
       "winners:17:Steam Gift Card на 100 ₽:100 ₽",
@@ -185,7 +185,7 @@ describe("October preview actions", () => {
       "winners:21:Steam Gift Card на 100 ₽:100 ₽",
       "runners-up:7:Steam Gift Card на 100 ₽:100 ₽",
       "runners-up:8:Steam Gift Card на 100 ₽:100 ₽",
-      "runners-up:9:Steam Gift Card на 100 ₽:100 ₽",
+      "runners-up:9:Golden Deepshock Destroyer:100 ₽",
     ]);
     expect(
       existsSync(
@@ -204,7 +204,7 @@ describe("October preview actions", () => {
       ),
     ).toBe(true);
     expect(html.match(/<img[^>]+steam-gift-card-500-rub\.png[^>]*>/g)).toHaveLength(3);
-    expect(html.match(/<img[^>]+steam-gift-card-100-rub\.png[^>]*>/g)).toHaveLength(10);
+    expect(html.match(/<img[^>]+steam-gift-card-100-rub\.png[^>]*>/g)).toHaveLength(11);
     expect(html.match(/<img[^>]+frostmoot\.png[^>]*>/g)).toHaveLength(1);
     expect(html.match(/<img[^>]+shattered-greatsword\.png[^>]*>/g)).toHaveLength(1);
     expect(html.match(/Steam Gift Card на 500 ₽/g)).toHaveLength(3);
@@ -300,7 +300,7 @@ describe("October preview actions", () => {
     expect(html).toContain("Для всех трёх заданий и Испытания Рун");
     expect(html.match(/aria-label="Награда: 1 звезда"/g)).toHaveLength(3);
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
-    expect(guideStyles).toMatch(/\.october-compendium-screen-daily \.october-daily-section--compact-guidance \{[^}]*justify-content: center;[\s\S]*?\.october-daily-section--compact-guidance \.compendium-quest-grid/);
+    expect(guideStyles).toMatch(/\.october-compendium-screen-daily \.compendium-daily-section \{[^}]*justify-content: safe center;[\s\S]*?\.october-daily-section--compact-guidance \.compendium-quest-grid/);
   });
 
   it("keeps the platinum reward beside the first five milestones", () => {

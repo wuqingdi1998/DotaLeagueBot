@@ -48,6 +48,20 @@ const steamGiftCard100Prize = {
   approximateValue: "100 ₽",
 } as const;
 
+const goldenBloodfeatherFeastPrize = {
+  name: "Golden Bloodfeather Feast",
+  imagePath: "/compendium/october/golden-bloodfeather-feast.png",
+  approximateValue: "200 ₽",
+  hasLargePreview: true,
+} as const;
+
+const goldenDeepshockDestroyerPrize = {
+  name: "Golden Deepshock Destroyer",
+  imagePath: "/compendium/october/golden-deepshock-destroyer.png",
+  approximateValue: "100 ₽",
+  hasLargePreview: true,
+} as const;
+
 const shatteredGreatswordPrize = {
   name: "Shattered Greatsword",
   imagePath: "/compendium/october/shattered-greatsword.png",
@@ -143,7 +157,11 @@ export const OCTOBER_CLAN_PRIMARY_PRIZES: readonly OctoberClanPrize[] = [
 
 export const OCTOBER_CLAN_ADDITIONAL_PRIZES: readonly OctoberClanPrize[] = [
   ...clanPrizeSlots("winners", 7, additionalWinnerPrizes, 8),
-  ...clanPrizeSlots("runners-up", 3, {}, 4),
+  ...clanPrizeSlots("runners-up", 3, {
+    4: goldenBloodfeatherFeastPrize,
+    5: steamGiftCard100Prize,
+    6: steamGiftCard100Prize,
+  }, 4),
 ];
 
 export const OCTOBER_CLAN_SMALL_PRIZES: readonly OctoberClanPrize[] = [
@@ -159,7 +177,7 @@ export const OCTOBER_CLAN_SMALL_PRIZES: readonly OctoberClanPrize[] = [
   ...clanPrizeSlots("runners-up", 3, {
     7: steamGiftCard100Prize,
     8: steamGiftCard100Prize,
-    9: steamGiftCard100Prize,
+    9: goldenDeepshockDestroyerPrize,
   }, 7),
 ];
 
