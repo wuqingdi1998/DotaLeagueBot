@@ -17,7 +17,12 @@ export function OctoberClanShowcase({
   return (
     <section className="october-clan-showcase" aria-label="Клановый зачёт">
       <OctoberClanPrizeBoard />
-      {reservation && <OctoberClanReservationPanel initialState={reservation} />}
+      {reservation && (
+        <OctoberClanReservationPanel
+          key={reservation.phase}
+          initialState={reservation}
+        />
+      )}
 
       <div className="october-clan-lineup">
         {OCTOBER_CLANS.map((clan, index) => {

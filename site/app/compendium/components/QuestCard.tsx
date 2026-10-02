@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   FiCheck,
   FiExternalLink,
@@ -21,6 +22,7 @@ export function QuestCard({
   onReroll,
   isPreview = false,
   previewActionLabel = "Пока не открыто",
+  overlay,
 }: {
   quest: DailyQuest;
   rewardStars: number;
@@ -34,6 +36,7 @@ export function QuestCard({
   onReroll: (questId: string) => void;
   isPreview?: boolean;
   previewActionLabel?: string;
+  overlay?: ReactNode;
 }) {
   const matchedHero = quest.heroes.find(
     (hero) => hero.id === quest.completion?.matchedHeroId,
@@ -133,6 +136,7 @@ export function QuestCard({
           )}
         </button>
       )}
+      {overlay}
     </article>
   );
 }

@@ -7,7 +7,9 @@ import { loadOctoberClanMembers } from "./services/clan-members";
 import { OctoberPreviewProfileActions } from "./components/OctoberPreviewProfileActions";
 import {
   OCTOBER_PREVIEW_MAXIMUM_STARS,
+  OCTOBER_PREVIEW_STARTED_PARAM,
   OCTOBER_PREVIEW_STARS_PARAM,
+  octoberPreviewStarted,
   octoberPreviewStars,
 } from "./model/preview-settings";
 import { OctoberCompendiumPreview } from "./sections/OctoberCompendiumPreview";
@@ -30,7 +32,12 @@ export default async function OctoberCompendiumPage({
   if (!user?.isAdmin) notFound();
   const query = await searchParams;
   const now = new Date();
+  const scheduledPhase = octoberCompendiumPhase(now);
   const personalStars = octoberPreviewStars(query[OCTOBER_PREVIEW_STARS_PARAM]);
+  const isTournamentStarted = octoberPreviewStarted(
+    query[OCTOBER_PREVIEW_STARTED_PARAM],
+    scheduledPhase === "published",
+  );
   const [clanMembers, reservation] = await Promise.all([
     loadOctoberClanMembers(now),
     loadOctoberClanReservationState(user, now),
@@ -43,6 +50,7 @@ export default async function OctoberCompendiumPage({
       profileMenuExtras={(
         <OctoberPreviewProfileActions
           isMaximumStarsEnabled={personalStars === OCTOBER_PREVIEW_MAXIMUM_STARS}
+          isTournamentStarted={isTournamentStarted}
         />
       )}
     >
@@ -51,8 +59,10 @@ export default async function OctoberCompendiumPage({
         clanMembers={clanMembers}
         viewerDiscordId={user.discordId}
         personalStars={personalStars}
-        reservation={reservation}
-        areDailyQuestsOpen={octoberCompendiumPhase(now) === "published"}
+        reservation={isTournamentStarted
+          ? { ...reservation, phase: "published", canReserve: false }
+          : reservation}
+        areDailyQuestsOpen={isTournamentStarted}
         dailyRewardStars={octoberDailyRewardStars(currentMoscowDay(now).dateKey)}
       />
     </PlatformShell>

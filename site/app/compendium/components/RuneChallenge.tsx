@@ -3,7 +3,7 @@
 import { fetchSiteRequest } from "@/lib/site-request";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { FaStar } from "react-icons/fa";
 import {
   FiCheck,
@@ -78,6 +78,8 @@ export function RuneChallenge({
   resetCountdown,
   onStarsChange,
   isPreview = false,
+  showPreviewContent = false,
+  overlay,
 }: {
   initialChallenge: RuneChallengeData;
   currentTimeMs: number;
@@ -86,6 +88,8 @@ export function RuneChallenge({
   resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
   isPreview?: boolean;
+  showPreviewContent?: boolean;
+  overlay?: ReactNode;
 }) {
   const [challenge, setChallenge] = useState(initialChallenge);
   const [selectedHeroId, setSelectedHeroId] = useState("");
@@ -202,7 +206,7 @@ export function RuneChallenge({
         </div>
       </div>
 
-      {isPreview ? (
+      {isPreview && !showPreviewContent ? (
         <div className="compendium-rune-locked-message">
           <FiLock aria-hidden="true" />
           <div>
@@ -232,7 +236,7 @@ export function RuneChallenge({
               </p>
               <HeroPicker
                 selectedHeroId={selectedHeroId}
-                disabled={isSaving}
+                disabled={isSaving || isPreview}
                 actionLabel={isSaving ? "Сохраняем…" : "Выбрать героя"}
                 onChange={setSelectedHeroId}
                 onSubmit={saveHero}
@@ -295,7 +299,7 @@ export function RuneChallenge({
                 <div className="compendium-rune-change-hero">
                   <HeroPicker
                     selectedHeroId={selectedHeroId}
-                    disabled={isSaving}
+                    disabled={isSaving || isPreview}
                     actionLabel={isSaving ? "Сохраняем…" : "Сменить героя"}
                     onChange={setSelectedHeroId}
                     onSubmit={saveHero}
@@ -307,6 +311,7 @@ export function RuneChallenge({
         </div>
       )}
       {message && <p className="compendium-rune-message" role="status">{message}</p>}
+      {overlay}
     </section>
   );
 }

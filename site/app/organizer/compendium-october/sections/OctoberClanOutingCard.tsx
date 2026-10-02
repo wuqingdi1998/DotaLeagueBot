@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { FaStar } from "react-icons/fa";
 import { FiUsers, FiX } from "react-icons/fi";
 import { OCTOBER_CLAN_QUEST_POSITION } from "../model/preview";
@@ -6,10 +7,12 @@ export function OctoberClanOutingCard({
   rewardStars = 1,
   isNoteVisible = true,
   onDismissNote,
+  overlay,
 }: {
   rewardStars?: 1 | 2;
   isNoteVisible?: boolean;
   onDismissNote?: () => void;
+  overlay?: ReactNode;
 }) {
   return (
     <article className="compendium-quest october-clan-quest">
@@ -45,6 +48,7 @@ export function OctoberClanOutingCard({
       <button className="compendium-check-button" type="button" disabled>
         Пока не открыто
       </button>
+      {overlay}
     </article>
   );
 }

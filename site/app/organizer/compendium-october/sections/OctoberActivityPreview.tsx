@@ -12,7 +12,7 @@ import { OCTOBER_REWARD_STARS } from "@/lib/october-reward-thresholds";
 import type { OctoberCompendiumWeekDefinition } from "../model/plan";
 import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
 import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
-import { OctoberLockedDailyQuests } from "../components/OctoberLockedDailyQuests";
+import { OctoberDailyOpeningOverlay } from "../components/OctoberDailyOpeningOverlay";
 
 function ignorePreviewAction() {}
 
@@ -84,50 +84,48 @@ export function OctoberDailyPreview({
           </button>
         </div>
       )}
-      {isOpen ? (
-        <>
-          <p className="compendium-mobile-swipe-hint">
-            Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
-          </p>
-          <div className="compendium-quest-grid quest-count-3">
-            {octoberDailyQuestSamples().map((quest) => (
-              <QuestCard
-                key={quest.id}
-                quest={quest}
-                rewardStars={rewardStars}
-                isChecking={false}
-                isRerolling={false}
-                canCheck={false}
-                hasReroll={false}
-                canReroll={false}
-                onCheck={ignorePreviewAction}
-                onReroll={ignorePreviewAction}
-                isPreview
-              />
-            ))}
-            <OctoberClanOutingCard
-              rewardStars={rewardStars}
-              isNoteVisible={isClanOutingVisible}
-              onDismissNote={() => guides.dismiss("clan-outing")}
-            />
-          </div>
-          <RuneChallenge
-            initialChallenge={{
-              hasAccess: false,
-              accessRoleName: null,
-              selection: null,
-              completion: null,
-            }}
-            currentTimeMs={0}
+      <p className="compendium-mobile-swipe-hint">
+        Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
+      </p>
+      <div className="compendium-quest-grid quest-count-3">
+        {octoberDailyQuestSamples().map((quest) => (
+          <QuestCard
+            key={quest.id}
+            quest={quest}
             rewardStars={rewardStars}
-            resetCountdown=""
-            onStarsChange={ignorePreviewAction}
+            isChecking={false}
+            isRerolling={false}
+            canCheck={false}
+            hasReroll={false}
+            canReroll={false}
+            onCheck={ignorePreviewAction}
+            onReroll={ignorePreviewAction}
             isPreview
+            overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
           />
-        </>
-      ) : (
-        <OctoberLockedDailyQuests />
-      )}
+        ))}
+        <OctoberClanOutingCard
+          rewardStars={rewardStars}
+          isNoteVisible={isClanOutingVisible}
+          onDismissNote={() => guides.dismiss("clan-outing")}
+          overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
+        />
+      </div>
+      <RuneChallenge
+        initialChallenge={{
+          hasAccess: true,
+          accessRoleName: "Предпросмотр подписки",
+          selection: null,
+          completion: null,
+        }}
+        currentTimeMs={0}
+        rewardStars={rewardStars}
+        resetCountdown=""
+        onStarsChange={ignorePreviewAction}
+        isPreview
+        showPreviewContent
+        overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
+      />
     </section>
   );
 }
