@@ -3,24 +3,24 @@
   --clan-badge-bright: #355663;
   --clan-badge-dark: #102733;
   display: inline-flex;
-  width: 34px;
-  height: 34px;
-  flex: 0 0 34px;
+  width: 1.35em;
+  height: 1.35em;
+  flex: 0 0 1.35em;
   align-items: center;
   justify-content: center;
-  margin-left: 7px;
+  margin-left: 0.35em;
   overflow: hidden;
   isolation: isolate;
   border: 1px solid var(--clan-badge-edge);
-  border-radius: 50%;
-  vertical-align: middle;
+  border-radius: 0.35em;
+  vertical-align: -0.22em;
   background: radial-gradient(circle at 42% 34%, var(--clan-badge-bright), var(--clan-badge-dark) 72%);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.48);
+  box-shadow: 0 0.12em 0.32em rgba(0, 0, 0, 0.46);
 }
 
 .october-clan-name-badge .october-clan-name-badge-image {
-  width: 28px;
-  height: 28px;
+  width: 1.08em;
+  height: 1.08em;
   object-fit: contain;
   filter: saturate(1.15) contrast(1.08) drop-shadow(0 2px 2px rgba(0, 0, 0, 0.72));
 }
@@ -38,43 +38,43 @@
 }
 
 .october-clan-name-badge--header {
-  width: 26px;
-  height: 26px;
-  flex-basis: 26px;
+  width: 22px;
+  height: 22px;
+  flex-basis: 22px;
   margin-left: 0;
   box-shadow: 0 2px 7px rgba(0, 0, 0, 0.42);
 }
 
 .october-clan-name-badge--header .october-clan-name-badge-image {
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
 }
 
 .october-clan-name-badge--profile {
-  width: 64px;
-  height: 64px;
-  flex-basis: 64px;
-  margin-left: 10px;
+  width: 48px;
+  height: 48px;
+  flex-basis: 48px;
+  margin-left: 8px;
   border-width: 2px;
   box-shadow: 0 7px 18px rgba(0, 0, 0, 0.5);
 }
 
 .october-clan-name-badge--profile .october-clan-name-badge-image {
-  width: 56px;
-  height: 56px;
+  width: 40px;
+  height: 40px;
 }
 
 @media (max-width: 600px) {
   .october-clan-name-badge {
-    width: 30px;
-    height: 30px;
-    flex-basis: 30px;
-    margin-left: 5px;
+    width: 1.3em;
+    height: 1.3em;
+    flex-basis: 1.3em;
+    margin-left: 0.3em;
   }
 
   .october-clan-name-badge .october-clan-name-badge-image {
-    width: 25px;
-    height: 25px;
+    width: 1.04em;
+    height: 1.04em;
   }
 
   .october-clan-name-badge--profile {

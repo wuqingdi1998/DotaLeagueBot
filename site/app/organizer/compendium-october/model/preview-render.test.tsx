@@ -96,7 +96,8 @@ describe("October preview actions", () => {
     expect(html).not.toContain("TI 2026");
     expect(html).not.toContain("href=\"/compendium/leaderboard\"");
     expect(html).toContain("profile-event-badge-reward");
-    expect(html).toContain("profile-event-badge-profile-preview");
+    expect(html).toContain("profile-event-badge-clan");
+    expect(html).not.toContain("profile-event-badge-clan-reward");
   });
 
   it("uses the compact clan crest and year in the real profile badge", () => {
@@ -111,10 +112,10 @@ describe("October preview actions", () => {
 
   it("gives reward previews enough room while keeping the real profile badge compact", () => {
     expect(profileStyles).toMatch(
-      /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;/,
+      /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;[^}]*box-sizing:\s*border-box;/,
     );
     expect(rewardStyles).toMatch(
-      /\.profile-event-badge-reward\s*\{[^}]*width:\s*128px;[^}]*height:\s*64px;[^}]*flex:\s*0 0 128px;[\s\S]*?\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*128px;[^}]*height:\s*64px;[^}]*grid-template-columns:\s*48px minmax\(0, 1fr\);[^}]*overflow:\s*hidden;/,
+      /\.profile-event-badge-reward\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;[^}]*flex:\s*0 0 100px;/,
     );
     expect(profileStyles).toMatch(
       /\.profile-event-badge-clan\s*\{[^}]*grid-template-columns:\s*36px minmax\(0, 1fr\);[^}]*padding:\s*5px 0 5px 5px;/,
@@ -122,12 +123,8 @@ describe("October preview actions", () => {
     expect(profileStyles).toMatch(
       /\.profile-event-badge-year\s*\{[^}]*width:\s*100%;[^}]*text-align:\s*center;/,
     );
-    expect(rewardStyles).toMatch(
-      /\.profile-event-badge-profile-preview\s*\{[^}]*inset:\s*0;[^}]*place-items:\s*center;/,
-    );
-    expect(rewardStyles).toMatch(
-      /\.profile-event-badge-reward:hover \.profile-event-badge-clan-reward,[\s\S]*?opacity:\s*0;/,
-    );
+    expect(rewardStyles).not.toContain("profile-event-badge-clan-reward");
+    expect(rewardStyles).not.toContain("profile-event-badge-profile-preview");
     expect(previewStyles).not.toContain(
       ".october-compendium-screen-personal .profile-event-badge-clan {",
     );

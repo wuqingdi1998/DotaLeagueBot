@@ -42,7 +42,7 @@ describe("temporary October clan badges", () => {
     expect(html.indexOf("Игрок")).toBeLessThan(html.indexOf("october-clan-name-badge"));
   });
 
-  it("keeps clan emblems readable on distinct clan-colored tiles", () => {
+  it("keeps clan emblems readable on compact clan-colored tiles", () => {
     const styles = readFileSync(
       new URL("../app/styles/03-october-clan-badges.css", import.meta.url),
       "utf8",
@@ -56,7 +56,10 @@ describe("temporary October clan badges", () => {
       "utf8",
     );
     expect(styles).toMatch(
-      /\.october-clan-name-badge \.october-clan-name-badge-image \{[^}]*width: 28px;[^}]*height: 28px;/,
+      /\.october-clan-name-badge\s*\{[^}]*width: 1\.35em;[^}]*height: 1\.35em;[^}]*flex: 0 0 1\.35em;[^}]*border-radius: 0\.35em;/,
+    );
+    expect(styles).toMatch(
+      /\.october-clan-name-badge \.october-clan-name-badge-image \{[^}]*width: 1\.08em;[^}]*height: 1\.08em;/,
     );
     expect(styles).toContain(".october-clan-name-badge--morbus");
     expect(styles).toContain(".october-clan-name-badge--panacea");

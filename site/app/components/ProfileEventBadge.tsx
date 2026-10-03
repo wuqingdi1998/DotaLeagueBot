@@ -6,13 +6,6 @@ import {
   type ProfileBadgeKey,
 } from "@/lib/profile-badges";
 
-const tierLabels: Record<ProfileBadgeDefinition["tier"], string> = {
-  bronze: "Бронза",
-  silver: "Серебро",
-  gold: "Золото",
-  platinum: "Платина",
-};
-
 function ClanProfileBadge({
   badge,
   emblem,
@@ -58,21 +51,7 @@ export function ProfileEventBadge({
         aria-label={badge.label}
         tabIndex={0}
       >
-        <span
-          className={`profile-event-badge profile-event-badge-${badge.tier} profile-event-badge-clan-reward profile-event-badge-clan-${badge.clanId}`}
-          aria-hidden="true"
-        >
-          <span className="profile-event-badge-clan-crest">
-            <Image src={clan.emblem} alt="" width={50} height={50} />
-          </span>
-          <span className="profile-event-badge-reward-label">
-            <strong>{tierLabels[badge.tier]}</strong>
-            <small>{badge.shortLabel}</small>
-          </span>
-        </span>
-        <span className="profile-event-badge-profile-preview" aria-hidden="true">
-          <ClanProfileBadge badge={badge} emblem={clan.emblem} hasTooltip={false} />
-        </span>
+        <ClanProfileBadge badge={badge} emblem={clan.emblem} hasTooltip={false} />
       </span>
     );
   }

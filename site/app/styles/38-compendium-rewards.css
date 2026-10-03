@@ -340,78 +340,12 @@
 
 .profile-event-badge-reward {
   position: relative;
-  display: inline-flex; width: 128px; height: 64px; flex: 0 0 128px;
+  display: inline-flex;
+  width: 100px;
+  height: 48px;
+  flex: 0 0 100px;
   border-radius: 12px;
   outline: none;
-}
-
-.profile-event-badge-clan-reward {
-  display: grid;
-  width: 128px;
-  height: 64px;
-  min-height: 64px;
-  grid-template-columns: 48px minmax(0, 1fr);
-  gap: 7px;
-  overflow: hidden;
-  padding: 7px;
-  text-align: left;
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.profile-event-badge-clan-reward .profile-event-badge-clan-crest {
-  width: 48px;
-  height: 48px;
-}
-
-.profile-event-badge-clan-reward .profile-event-badge-clan-crest img {
-  width: 45px;
-  height: 45px;
-}
-
-.profile-event-badge-reward-label {
-  display: grid;
-  min-width: 0;
-  place-items: center;
-  gap: 2px;
-  line-height: 1;
-  text-align: center;
-  overflow: hidden;
-}
-
-.profile-event-badge-reward-label strong,
-.profile-event-badge-reward-label small {
-  display: block; width: 100%;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: ellipsis; white-space: nowrap;
-}
-.profile-event-badge-reward-label strong { font-size: 11px; letter-spacing: 0.02em; }
-.profile-event-badge-reward-label small { font-size: 10px; letter-spacing: 0; }
-
-.profile-event-badge-profile-preview {
-  position: absolute;
-  z-index: 5;
-  inset: 0;
-  display: grid;
-  visibility: hidden;
-  place-items: center;
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(0.96);
-  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
-}
-
-.profile-event-badge-reward:hover .profile-event-badge-profile-preview,
-.profile-event-badge-reward:focus-visible .profile-event-badge-profile-preview {
-  visibility: visible;
-  opacity: 1;
-  transform: scale(1);
-}
-
-.profile-event-badge-reward:hover .profile-event-badge-clan-reward,
-.profile-event-badge-reward:focus-visible .profile-event-badge-clan-reward {
-  opacity: 0;
-  transform: scale(0.96);
 }
 
 .profile-event-badge-reward:focus-visible {

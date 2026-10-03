@@ -30,8 +30,8 @@ export function OctoberClanBadge({
         className="october-clan-name-badge-image"
         src={clan.emblem}
         alt=""
-        width={display === "profile" ? 56 : display === "header" ? 22 : 28}
-        height={display === "profile" ? 56 : display === "header" ? 22 : 28}
+        width={display === "profile" ? 42 : display === "header" ? 20 : 18}
+        height={display === "profile" ? 42 : display === "header" ? 20 : 18}
       />
     </span>
   );
