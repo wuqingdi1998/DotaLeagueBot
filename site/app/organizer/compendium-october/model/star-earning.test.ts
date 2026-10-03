@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   OCTOBER_ABSOLUTE_MAX_STARS,
@@ -57,13 +58,26 @@ describe("October star earning guide", () => {
       { place: 3, stars: 3 },
       { place: "other", stars: 1 },
     ]);
-    expect(OCTOBER_STAR_EARNING_SOURCES.at(-1)?.description).toContain("Fastcup #14");
-    expect(OCTOBER_STAR_EARNING_SOURCES.at(-1)?.description).toContain("CD Fastcup #8");
+    expect(OCTOBER_STAR_EARNING_SOURCES.at(-1)?.tournaments).toMatchObject([
+      { linkId: "fastcup-14", label: "Fastcup #14" },
+      { linkId: "cd-fastcup-8", label: "CD Fastcup #8" },
+    ]);
   });
 
   it("shows base, subscriber and absolute maximums", () => {
     expect(OCTOBER_STANDARD_MAX_STARS).toBe(161);
     expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(191);
     expect(OCTOBER_ABSOLUTE_MAX_STARS).toBe(203);
+  });
+
+  it("shows the organizer link editor beside an unlinked Fastcup", () => {
+    const guide = readFileSync(
+      new URL("../components/OctoberStarEarningGuide.tsx", import.meta.url),
+      "utf8",
+    );
+
+    expect(guide).toContain("SeasonTournamentLinkEditor");
+    expect(guide).toContain("isOrganizer && source.tournaments?.map");
+    expect(guide).toContain("tournamentLinks[tournament.linkId]");
   });
 });

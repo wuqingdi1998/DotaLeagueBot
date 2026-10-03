@@ -27,10 +27,14 @@ const unannouncedPrizes = [
 const dotaPlusRacePrizes = [
   {
     place: 1,
-    title: "1 месяц Dota+",
+    title: "1 месяц Dota+ + 1 месяц подарочной подписки на любую цветную руну Boosty",
     imageUrl: "/compendium/october/dota-plus-one-month.png",
   },
-  { place: 2, title: "Предмет выберем позже", imageUrl: null },
+  {
+    place: 2,
+    title: "The Igneous Stone",
+    imageUrl: "/compendium/october/the-igneous-stone.png",
+  },
 ] as const;
 
 export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberCompendiumWeekDefinition[] = [

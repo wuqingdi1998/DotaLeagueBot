@@ -1,3 +1,5 @@
+import { hiddenSubscriptionRoleForDotaId } from "./hidden-subscription-entitlements";
+
 export type ProfileOwnerOverride = {
   badgeLabel: string;
   canCustomizeBackground: boolean;
@@ -6,7 +8,8 @@ export type ProfileOwnerOverride = {
 const profileOwnerOverrides: Readonly<Record<string, ProfileOwnerOverride>> = {
   "301109815": {
     badgeLabel: "Admin",
-    canCustomizeBackground: true,
+    canCustomizeBackground:
+      hiddenSubscriptionRoleForDotaId("301109815") !== null,
   },
 };
 

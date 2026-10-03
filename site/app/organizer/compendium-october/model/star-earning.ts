@@ -1,6 +1,7 @@
 import { QUEST_REWARD_STARS } from "@/app/compendium/model/constants";
 import { dailyChallengeRewardStars } from "@/app/compendium/model/weekend-bonus";
 import { fastCupOverviews } from "@/app/season/model/season-overview-model";
+import type { SeasonTournamentLinkId } from "@/app/season/model/season-overview-model";
 import { OCTOBER_COMPENDIUM_WEEKS } from "./plan";
 import { OCTOBER_HERO_QUEST_COUNT } from "./preview";
 
@@ -15,6 +16,12 @@ export type OctoberStarEarningSource = {
   readonly maxStars: number;
   readonly subscriberOnly?: boolean;
   readonly tournamentOnly?: boolean;
+  readonly tournaments?: readonly {
+    readonly linkId: SeasonTournamentLinkId;
+    readonly label: string;
+    readonly period: string;
+    readonly fallbackHref: string | null;
+  }[];
 };
 
 export const OCTOBER_FASTCUP_PLACE_REWARDS = [
@@ -112,7 +119,13 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
   {
     id: "fastcups",
     title: "Fastcup #14 и CD Fastcup #8",
-    description: `${octoberFastcups.map((fastcup) => `${fastcup.title.replace("Linken’s Sphere ", "")} · ${fastcup.period}`).join(". ")}. Звёзды получает каждый игрок команды по итоговому месту.`,
+    description: `${octoberFastcups.map((fastcup) => fastcup.period).join(". ")}. Звёзды получает каждый игрок команды по итоговому месту.`,
+    tournaments: octoberFastcups.map((fastcup) => ({
+      linkId: fastcup.linkId,
+      label: fastcup.title.replace("Linken’s Sphere ", ""),
+      period: fastcup.period,
+      fallbackHref: fastcup.tournamentHref,
+    })),
     rewardDetails: fastcupRewardDetails,
     maxStars: fastcupMaxStars,
     tournamentOnly: true,

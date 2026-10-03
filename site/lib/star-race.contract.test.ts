@@ -47,6 +47,9 @@ const repository = source(
 );
 const service = source("../app/compendium/services/star-race.ts");
 const styles = source("../app/styles/46-compendium-star-race.css");
+const prizePreviewStyles = source(
+  "../app/styles/46-compendium-star-race-prizes.css",
+);
 const summaryStyles = source(
   "../app/styles/48-compendium-star-race-summary.css",
 );
@@ -341,10 +344,13 @@ describe("compendium star race contract", () => {
     expect(starRacePrizePreview).toContain("tabIndex={0}");
     expect(starRacePrizePreview).not.toContain("href={prize.imageUrl}");
     expect(starRacePrizePreview).toContain("createPortal");
-    expect(styles).toMatch(
+    expect(prizePreviewStyles).toMatch(
       /\.compendium-star-race-prize-preview\s*\{[^}]*position:\s*fixed;[^}]*z-index:\s*1000;/,
     );
     expect(styles).toContain("border-bottom: 1px dashed");
+    expect(routeStyles).toContain(
+      '@import "./46-compendium-star-race-prizes.css";',
+    );
   });
 
   it("identifies the checked player only through the signed-in session", () => {

@@ -8,6 +8,7 @@ import { OctoberSectionNavigation } from "../components/OctoberSectionNavigation
 import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
 import type { OctoberClanMember } from "../model/clan-members";
 import type { OctoberClanReservationState } from "../model/clan-reservation";
+import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 
 export function OctoberCompendiumPreview({
   week,
@@ -18,6 +19,8 @@ export function OctoberCompendiumPreview({
   areDailyQuestsOpen = true,
   dailyRewardStars = 1,
   isOrganizerPreview = false,
+  isOrganizer = false,
+  tournamentLinks = {},
 }: {
   week: OctoberCompendiumWeekDefinition;
   clanMembers: readonly OctoberClanMember[];
@@ -27,6 +30,8 @@ export function OctoberCompendiumPreview({
   areDailyQuestsOpen?: boolean;
   dailyRewardStars?: 1 | 2;
   isOrganizerPreview?: boolean;
+  isOrganizer?: boolean;
+  tournamentLinks?: SeasonTournamentLinks;
 }) {
   return (
     <main className="compendium-page october-compendium-preview" id="october-compendium-scroll">
@@ -51,6 +56,8 @@ export function OctoberCompendiumPreview({
             viewerDiscordId={viewerDiscordId}
             reservation={reservation}
             isOrganizerPreview={isOrganizerPreview}
+            isOrganizer={isOrganizer}
+            tournamentLinks={tournamentLinks}
           />
         </div>
       </section>

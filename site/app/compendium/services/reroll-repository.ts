@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { query, transaction } from "@/lib/db";
 import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
+import { hiddenSubscriptionDiscordIds } from "@/lib/hidden-subscription-entitlements";
 import {
   BONUS_QUEST_STAR_THRESHOLD,
   REROLL_REWARD_STAR_THRESHOLD,
@@ -206,10 +207,16 @@ export async function recordDailyQuestReroll(input: {
        UNION
        SELECT selection.hero_id
        FROM compendium_rune_challenge_selections selection
-       JOIN player_discord_roles role
-         ON role.player_id = selection.player_id
-        AND role.role_name = ANY($4::text[])
        WHERE selection.player_id = $2
+         AND (
+           selection.player_id = ANY($5::bigint[])
+           OR EXISTS (
+             SELECT 1
+             FROM player_discord_roles role
+             WHERE role.player_id = selection.player_id
+               AND role.role_name = ANY($4::text[])
+           )
+         )
          AND $3::date >
            (selection.selected_at AT TIME ZONE 'Europe/Moscow')::date`,
       [
@@ -217,6 +224,7 @@ export async function recordDailyQuestReroll(input: {
         input.playerId,
         input.dateKey,
         runeChallengeAccessRoleNames,
+        hiddenSubscriptionDiscordIds,
       ],
     );
     const replacementHeroes = generateRerollQuestHeroes(

@@ -12,6 +12,7 @@ import {
   type OctoberClanPrizePool,
 } from "../model/clan-prizes";
 import { OctoberStarEarningGuide } from "./OctoberStarEarningGuide";
+import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 
 const prizePoolLabels: Record<OctoberClanPrizePool, string> = {
   winners: "Победители",
@@ -116,7 +117,13 @@ function PrizeSlot({
   );
 }
 
-export function OctoberClanPrizeBoard() {
+export function OctoberClanPrizeBoard({
+  isOrganizer = false,
+  tournamentLinks = {},
+}: {
+  isOrganizer?: boolean;
+  tournamentLinks?: SeasonTournamentLinks;
+}) {
   return (
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
       <div className="october-clan-prize-copy">
@@ -129,7 +136,10 @@ export function OctoberClanPrizeBoard() {
         <p>
           Победители разыграют 21 предмет, проигравшие – 9
         </p>
-        <OctoberStarEarningGuide />
+        <OctoberStarEarningGuide
+          isOrganizer={isOrganizer}
+          tournamentLinks={tournamentLinks}
+        />
       </div>
       <div className="october-clan-prize-lists">
         <ul

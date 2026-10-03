@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { one, transaction } from "@/lib/db";
+import { hiddenSubscriptionRoleForDiscordId } from "@/lib/hidden-subscription-entitlements";
 import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import { CompendiumError } from "../model/errors";
 import type { QuestCompletion } from "../model/types";
@@ -13,6 +14,7 @@ export type RuneChallengeSelectionRecord = {
 };
 
 export type RuneChallengeStateRecord = {
+  hasAccess: boolean;
   accessRoleName: string | null;
   selection: RuneChallengeSelectionRecord | null;
   completion: QuestCompletion | null;
@@ -53,6 +55,8 @@ async function accessRoleWithClient(
   client: PoolClient,
   playerId: string,
 ): Promise<string | null> {
+  const hiddenRole = hiddenSubscriptionRoleForDiscordId(playerId);
+  if (hiddenRole) return hiddenRole;
   const result = await client.query<{ role_name: string }>(
     `SELECT role_name
      FROM player_discord_roles
@@ -68,6 +72,8 @@ async function accessRoleWithClient(
 export async function loadRuneChallengeAccessRole(
   playerId: string,
 ): Promise<string | null> {
+  const hiddenRole = hiddenSubscriptionRoleForDiscordId(playerId);
+  if (hiddenRole) return hiddenRole;
   const row = await one<{ role_name: string }>(
     `SELECT role_name
      FROM player_discord_roles
@@ -116,7 +122,14 @@ export async function loadRuneChallengeStateRecord(
     loadRuneChallengeSelection(playerId),
     loadRuneChallengeCompletion(playerId, dateKey),
   ]);
-  return { accessRoleName, selection, completion };
+  return {
+    hasAccess: accessRoleName !== null,
+    accessRoleName: hiddenSubscriptionRoleForDiscordId(playerId)
+      ? null
+      : accessRoleName,
+    selection,
+    completion,
+  };
 }
 
 export async function saveRuneChallengeSelection(input: {

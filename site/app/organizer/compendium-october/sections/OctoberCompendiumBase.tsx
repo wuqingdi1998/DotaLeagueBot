@@ -7,13 +7,16 @@ import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards
 import { OctoberRacePreview } from "./OctoberActivityPreview";
 import { OctoberClanShowcase } from "./OctoberClanShowcase";
 import type { OctoberClanMember } from "../model/clan-members";
+import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 
 export function OctoberCompendiumBase({
   clanMembers,
   viewerDiscordId,
+  tournamentLinks,
 }: {
   clanMembers: readonly OctoberClanMember[];
   viewerDiscordId: string;
+  tournamentLinks: SeasonTournamentLinks;
 }) {
   return (
     <main className="compendium-base-page october-compendium-base">
@@ -34,7 +37,12 @@ export function OctoberCompendiumBase({
         </div>
       </section>
       <div className="compendium-rewards-section">
-        <OctoberClanShowcase members={clanMembers} viewerDiscordId={viewerDiscordId} />
+        <OctoberClanShowcase
+          members={clanMembers}
+          viewerDiscordId={viewerDiscordId}
+          isOrganizer
+          tournamentLinks={tournamentLinks}
+        />
         <CompendiumRewards
           personalStars={0}
           communityStars={0}

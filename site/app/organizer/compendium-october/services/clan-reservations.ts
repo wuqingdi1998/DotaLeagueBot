@@ -1,5 +1,6 @@
 import { one, query } from "@/lib/db";
 import type { AuthUser } from "@/lib/auth";
+import { hiddenSubscriptionRoleForDiscordId } from "@/lib/hidden-subscription-entitlements";
 import type { OctoberClanId } from "../model/clans";
 import {
   OctoberClanReservationError,
@@ -15,10 +16,14 @@ type ReservationAccessRow = {
   clan_id: OctoberClanId | null;
 };
 
+type ReservationAccess = ReservationAccessRow & {
+  hasAccess: boolean;
+};
+
 async function reservationAccess(
   playerId: string,
-): Promise<ReservationAccessRow> {
-  return (await one<ReservationAccessRow>(
+): Promise<ReservationAccess> {
+  const row = (await one<ReservationAccessRow>(
     `SELECT
        (
          SELECT role.role_name
@@ -36,6 +41,12 @@ async function reservationAccess(
        AND player.is_archived = FALSE`,
     [playerId, OCTOBER_RESERVATION_ROLE_NAMES],
   )) ?? { role_name: null, clan_id: null };
+  return {
+    ...row,
+    hasAccess:
+      row.role_name !== null ||
+      hiddenSubscriptionRoleForDiscordId(playerId) !== null,
+  };
 }
 
 export async function loadOctoberClanReservationState(
@@ -47,6 +58,7 @@ export async function loadOctoberClanReservationState(
     return {
       phase,
       isAuthenticated: false,
+      hasAccess: false,
       canReserve: false,
       accessRoleName: null,
       selectedClanId: null,
@@ -56,7 +68,8 @@ export async function loadOctoberClanReservationState(
   return {
     phase,
     isAuthenticated: true,
-    canReserve: phase === "reservation" && access.role_name !== null,
+    hasAccess: access.hasAccess,
+    canReserve: phase === "reservation" && access.hasAccess,
     accessRoleName: access.role_name,
     selectedClanId: access.clan_id,
   };
@@ -78,7 +91,7 @@ export async function reserveOctoberClan(
     );
   }
   const access = await reservationAccess(playerId);
-  if (!access.role_name) {
+  if (!access.hasAccess) {
     throw new OctoberClanReservationError(
       "RUNE_REQUIRED",
       "У вас нет подходящего уровня подписки",
@@ -96,6 +109,7 @@ export async function reserveOctoberClan(
   return {
     phase: "reservation",
     isAuthenticated: true,
+    hasAccess: true,
     canReserve: true,
     accessRoleName: access.role_name,
     selectedClanId: clanId,

@@ -59,17 +59,21 @@
 }
 
 .october-star-guide-item h3 {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 5px;
+  margin: 0;
   color: #f4fbfa;
   font-size: 16px;
   line-height: 1.2;
 }
 
-.october-star-guide-item h3 span {
+.october-star-guide-item-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-bottom: 5px;
+}
+
+.october-star-guide-badge {
   padding: 3px 7px;
   border: 1px solid rgba(242, 214, 125, 0.35);
   border-radius: 999px;
@@ -78,6 +82,32 @@
   font-weight: 850;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+.october-star-guide-tournament a {
+  color: #8fdcf1;
+  text-decoration: underline;
+  text-decoration-color: rgba(143, 220, 241, 0.55);
+  text-underline-offset: 3px;
+}
+
+.october-star-guide-tournament a:hover,
+.october-star-guide-tournament a:focus-visible {
+  color: #f2d67d;
+  text-decoration-color: currentColor;
+}
+
+.october-star-guide-item-title .season-link-edit-button {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  border-color: rgba(242, 214, 125, 0.42);
+  color: #f2d67d;
+  font-size: 13px;
+}
+
+.october-star-guide-item-title .season-link-editor {
+  margin-top: 4px;
 }
 
 .october-star-guide-item p {

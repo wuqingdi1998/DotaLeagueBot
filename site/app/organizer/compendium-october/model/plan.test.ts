@@ -37,13 +37,13 @@ describe("October compendium draft", () => {
     ));
   });
 
-  it("gives one month of Dota Plus to first place in races one and two only", () => {
+  it("gives the requested Dota Plus bundle and Igneous Stone in races one and two", () => {
     for (const week of OCTOBER_COMPENDIUM_WEEKS) {
       expect(week.prizes.map((prize) => prize.place)).toEqual([1, 2]);
     }
     expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[0].title)).toEqual([
-      "1 месяц Dota+",
-      "1 месяц Dota+",
+      "1 месяц Dota+ + 1 месяц подарочной подписки на любую цветную руну Boosty",
+      "1 месяц Dota+ + 1 месяц подарочной подписки на любую цветную руну Boosty",
       "Предмет выберем позже",
     ]);
     expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[0].imageUrl)).toEqual([
@@ -51,6 +51,41 @@ describe("October compendium draft", () => {
       "/compendium/october/dota-plus-one-month.png",
       null,
     ]);
+    expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[1])).toEqual([
+      {
+        place: 2,
+        title: "The Igneous Stone",
+        imageUrl: "/compendium/october/the-igneous-stone.png",
+      },
+      {
+        place: 2,
+        title: "The Igneous Stone",
+        imageUrl: "/compendium/october/the-igneous-stone.png",
+      },
+      { place: 2, title: "Предмет выберем позже", imageUrl: null },
+    ]);
+  });
+
+  it("uses the compact clan-prize hover layout for weekly race images", () => {
+    const preview = readFileSync(
+      new URL("../../../compendium/components/StarRacePrizePreview.tsx", import.meta.url),
+      "utf8",
+    );
+    const styles = readFileSync(
+      new URL("../../../styles/46-compendium-star-race-prizes.css", import.meta.url),
+      "utf8",
+    );
+
+    expect(preview).toContain('className="compendium-star-race-prize-image"');
+    expect(styles).toMatch(
+      /\.compendium-star-race-prize-preview\s*\{[^}]*width:\s*min\(220px,/,
+    );
+    expect(styles).toMatch(
+      /\.compendium-star-race-prize-image\s*\{[^}]*height:\s*100px;/,
+    );
+    expect(styles).toMatch(
+      /\.compendium-star-race-prize-image img\s*\{[^}]*object-fit:\s*contain;/,
+    );
   });
 
   it("uses hero IDs that exist in the shared Dota catalog", () => {

@@ -7,6 +7,7 @@ import {
 const hiddenReservation: OctoberClanReservationState = {
   phase: "hidden",
   isAuthenticated: true,
+  hasAccess: true,
   canReserve: false,
   accessRoleName: "Руна Регенерации",
   selectedClanId: null,
@@ -24,6 +25,7 @@ describe("October clan reservation preview", () => {
   it("does not grant access without an eligible subscription", () => {
     expect(octoberReservationForStartedPreview({
       ...hiddenReservation,
+      hasAccess: false,
       accessRoleName: null,
     }, true).canReserve).toBe(false);
   });

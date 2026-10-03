@@ -15,6 +15,7 @@ import { loadOctoberClanMembers } from "@/app/organizer/compendium-october/servi
 import { loadOctoberClanReservationState } from "@/app/organizer/compendium-october/services/clan-reservations";
 import { loadOctoberFormationStatus } from "@/app/organizer/compendium-october/services/clan-formation-repository";
 import { OctoberReleaseRefresh } from "@/app/organizer/compendium-october/components/OctoberReleaseRefresh";
+import { getSeasonTournamentLinks } from "@/app/season/services/season-tournament-links";
 
 export const dynamic = "force-dynamic";
 
@@ -33,9 +34,10 @@ export default async function CompendiumPage() {
   const visiblePhase = scheduledPhase === "published" && formationStatus !== "complete"
     ? "formation"
     : scheduledPhase;
-  const [clanMembers, loadedReservation] = await Promise.all([
+  const [clanMembers, loadedReservation, tournamentLinks] = await Promise.all([
     loadOctoberClanMembers(now),
     loadOctoberClanReservationState(user, now),
+    getSeasonTournamentLinks(),
   ]);
   const reservation = { ...loadedReservation, phase: visiblePhase };
   const moscowDate = currentMoscowDay(now).dateKey;
@@ -56,6 +58,8 @@ export default async function CompendiumPage() {
         reservation={reservation}
         areDailyQuestsOpen={scheduledPhase === "published"}
         dailyRewardStars={octoberDailyRewardStars(moscowDate)}
+        isOrganizer={user?.isAdmin === true}
+        tournamentLinks={tournamentLinks}
       />
     </PlatformShell>
   );

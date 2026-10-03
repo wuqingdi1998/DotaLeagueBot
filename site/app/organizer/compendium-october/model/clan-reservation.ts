@@ -4,6 +4,7 @@ import type { OctoberCompendiumPhase } from "./release";
 export type OctoberClanReservationState = {
   phase: OctoberCompendiumPhase;
   isAuthenticated: boolean;
+  hasAccess: boolean;
   canReserve: boolean;
   accessRoleName: string | null;
   selectedClanId: OctoberClanId | null;
@@ -17,7 +18,7 @@ export function octoberReservationForStartedPreview(
   return {
     ...state,
     phase: "reservation",
-    canReserve: state.isAuthenticated && state.accessRoleName !== null,
+    canReserve: state.isAuthenticated && state.hasAccess,
   };
 }
 

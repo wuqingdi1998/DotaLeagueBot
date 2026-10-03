@@ -17,6 +17,7 @@ import { loadOctoberClanReservationState } from "./services/clan-reservations";
 import { currentMoscowDay } from "@/app/compendium/model/time";
 import { octoberCompendiumPhase, octoberDailyRewardStars } from "./model/release";
 import { octoberReservationForStartedPreview } from "./model/clan-reservation";
+import { getSeasonTournamentLinks } from "@/app/season/services/season-tournament-links";
 
 export const dynamic = "force-dynamic";
 
@@ -39,9 +40,10 @@ export default async function OctoberCompendiumPage({
     query[OCTOBER_PREVIEW_STARTED_PARAM],
     scheduledPhase === "published",
   );
-  const [clanMembers, reservation] = await Promise.all([
+  const [clanMembers, reservation, tournamentLinks] = await Promise.all([
     loadOctoberClanMembers(now),
     loadOctoberClanReservationState(user, now),
+    getSeasonTournamentLinks(),
   ]);
 
   return (
@@ -64,6 +66,8 @@ export default async function OctoberCompendiumPage({
         areDailyQuestsOpen={isTournamentStarted}
         dailyRewardStars={octoberDailyRewardStars(currentMoscowDay(now).dateKey)}
         isOrganizerPreview
+        isOrganizer
+        tournamentLinks={tournamentLinks}
       />
     </PlatformShell>
   );

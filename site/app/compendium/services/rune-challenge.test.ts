@@ -47,6 +47,7 @@ const user = {
 
 function state(selectedAt: Date) {
   return {
+    hasAccess: true,
     accessRoleName: "Руна Ускорения",
     selection: {
       heroId: 1,
@@ -74,6 +75,7 @@ afterEach(() => {
 describe("rune challenge", () => {
   it("rejects access immediately after an eligible role is removed", async () => {
     mocks.loadState.mockResolvedValue({
+      hasAccess: false,
       accessRoleName: null,
       selection: null,
       completion: null,

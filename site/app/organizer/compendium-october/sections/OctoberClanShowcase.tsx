@@ -4,21 +4,29 @@ import { OctoberClanPrizeBoard } from "../components/OctoberClanPrizeBoard";
 import { OctoberClanStandings } from "../components/OctoberClanStandings";
 import { OctoberClanReservationPanel } from "../components/OctoberClanReservationPanel";
 import type { OctoberClanReservationState } from "../model/clan-reservation";
+import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 
 export function OctoberClanShowcase({
   members = [],
   viewerDiscordId,
   reservation,
   isOrganizerPreview = false,
+  isOrganizer = false,
+  tournamentLinks = {},
 }: {
   members?: readonly OctoberClanMember[];
   viewerDiscordId?: string;
   reservation?: OctoberClanReservationState;
   isOrganizerPreview?: boolean;
+  isOrganizer?: boolean;
+  tournamentLinks?: SeasonTournamentLinks;
 }) {
   return (
     <section className="october-clan-showcase" aria-label="Клановый зачёт">
-      <OctoberClanPrizeBoard />
+      <OctoberClanPrizeBoard
+        isOrganizer={isOrganizer}
+        tournamentLinks={tournamentLinks}
+      />
       {reservation && reservation.phase !== "published" && (
         <OctoberClanReservationPanel
           key={reservation.phase}

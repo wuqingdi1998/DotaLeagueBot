@@ -174,6 +174,40 @@ describe("October clan prizes", () => {
     }
   });
 
+  it("removes the dark background from the requested winner and runners-up prizes", () => {
+    const transparentPrizeIds = [
+      "winners-2",
+      "runners-up-1",
+      "runners-up-3",
+      "runners-up-4",
+      "runners-up-9",
+    ];
+    const prizes = OCTOBER_CLAN_PRIZES.filter((prize) =>
+      transparentPrizeIds.includes(prize.id),
+    );
+
+    expect(prizes).toHaveLength(transparentPrizeIds.length);
+    for (const prize of prizes) {
+      const png = readFileSync(new URL(
+        `../../../../public${prize.imagePath}`,
+        import.meta.url,
+      ));
+      expect([4, 6]).toContain(png[25]);
+    }
+  });
+
+  it("uses the stored Fastcup link in the star guide", () => {
+    const html = renderToStaticMarkup(
+      <OctoberClanPrizeBoard
+        tournamentLinks={{ "fastcup-14": "/tournaments/ls-fastcup-14" }}
+      />,
+    );
+
+    expect(html).toContain('href="/tournaments/ls-fastcup-14"');
+    expect(html).toContain("Fastcup #14");
+    expect(html).toContain("CD Fastcup #8");
+  });
+
   it("adds the four requested winner prizes with dedicated readable thumbnails", () => {
     const requestedPrizes = OCTOBER_CLAN_PRIZES.filter(
       (prize) => prize.pool === "winners" && [3, 4, 5, 9].includes(prize.poolPosition),

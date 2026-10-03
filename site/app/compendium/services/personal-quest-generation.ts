@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { runeChallengeAccessRoleNames } from "../../../lib/subscription-roles";
+import { hiddenSubscriptionDiscordIds } from "../../../lib/hidden-subscription-entitlements";
 import {
   BONUS_QUEST_POSITION,
   DAILY_QUEST_COUNT,
@@ -161,13 +162,24 @@ export async function ensurePersonalDailyQuests(
   const runeResult = await client.query<RuneHeroRow>(
     `SELECT selection.player_id::text, selection.hero_id
      FROM compendium_rune_challenge_selections selection
-     JOIN player_discord_roles role
-       ON role.player_id = selection.player_id
-      AND role.role_name = ANY($3::text[])
      WHERE selection.player_id = ANY($2::bigint[])
+       AND (
+         selection.player_id = ANY($4::bigint[])
+         OR EXISTS (
+           SELECT 1
+           FROM player_discord_roles role
+           WHERE role.player_id = selection.player_id
+             AND role.role_name = ANY($3::text[])
+         )
+       )
        AND $1::date >
          (selection.selected_at AT TIME ZONE 'Europe/Moscow')::date`,
-    [dateKey, playerIds, runeChallengeAccessRoleNames],
+    [
+      dateKey,
+      playerIds,
+      runeChallengeAccessRoleNames,
+      hiddenSubscriptionDiscordIds,
+    ],
   );
 
   const positionsByPlayer = new Map<string, Set<number>>();

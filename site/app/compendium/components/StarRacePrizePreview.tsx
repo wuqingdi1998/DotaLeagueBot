@@ -28,8 +28,8 @@ export function StarRacePrizePreview({
     if (!anchor) return;
     const bounds = anchor.getBoundingClientRect();
     const viewportPadding = 12;
-    const previewWidth = Math.min(380, window.innerWidth - viewportPadding * 2);
-    const previewHeight = Math.min(300, window.innerHeight - viewportPadding * 2);
+    const previewWidth = Math.min(220, window.innerWidth - viewportPadding * 2);
+    const previewHeight = Math.min(200, window.innerHeight - viewportPadding * 2);
     const placement = bounds.top >= previewHeight + viewportPadding
       ? "above"
       : "below";
@@ -89,13 +89,15 @@ export function StarRacePrizePreview({
           role="tooltip"
           style={{ top: position.top, left: position.left }}
         >
-          <Image
-            src={prize.imageUrl}
-            alt={prize.title}
-            width={480}
-            height={436}
-            unoptimized
-          />
+          <span className="compendium-star-race-prize-image">
+            <Image
+              src={prize.imageUrl}
+              alt={prize.title}
+              width={480}
+              height={436}
+              unoptimized
+            />
+          </span>
           <strong>{prize.title}</strong>
         </span>,
         document.body,

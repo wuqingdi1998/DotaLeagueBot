@@ -32,11 +32,10 @@ export type RuneChallengeCheckResult = {
 function runeChallengeData(
   state: RuneChallengeStateRecord,
 ): RuneChallengeData {
-  const hasAccess = state.accessRoleName !== null;
   return {
-    hasAccess,
+    hasAccess: state.hasAccess,
     accessRoleName: state.accessRoleName,
-    selection: hasAccess && state.selection
+    selection: state.hasAccess && state.selection
       ? {
           hero: compendiumHeroById(state.selection.heroId),
           selectedAt: state.selection.selectedAt.toISOString(),
@@ -44,7 +43,7 @@ function runeChallengeData(
           canChangeHero: state.selection.canChangeHero,
         }
       : null,
-    completion: hasAccess ? state.completion : null,
+    completion: state.hasAccess ? state.completion : null,
   };
 }
 
@@ -79,7 +78,7 @@ export async function checkRuneChallenge(
   const dotaId = requireCompendiumDotaId(user);
   const day = currentMoscowDay(now);
   let state = await loadRuneChallengeStateRecord(user.discordId, day.dateKey);
-  if (!state.accessRoleName) {
+  if (!state.hasAccess) {
     throw new CompendiumError(
       "RUNE_ACCESS_REQUIRED",
       "Испытание Рун недоступно для вашей текущей роли",
@@ -120,7 +119,7 @@ export async function checkRuneChallenge(
       throw new CompendiumError("STALE_QUEST", "Задание больше не действует");
     }
     state = await loadRuneChallengeStateRecord(user.discordId, day.dateKey);
-    if (!state.accessRoleName || !state.selection) {
+    if (!state.hasAccess || !state.selection) {
       throw new CompendiumError(
         "RUNE_ACCESS_REQUIRED",
         "Испытание Рун недоступно для вашей текущей роли",
