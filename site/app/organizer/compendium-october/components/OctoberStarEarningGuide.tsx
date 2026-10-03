@@ -55,7 +55,9 @@ export function OctoberStarEarningGuide() {
                   <div>
                     <h3>
                       {source.title}
-                      {source.subscriberOnly && <span>Для подписчиков</span>}
+                      {source.subscriberOnly && (
+                        <span>Для Boosty-подписчиков рун кроме Руны Воды</span>
+                      )}
                       {source.tournamentOnly && <span>Участникам турниров</span>}
                     </h3>
                     <p>{source.description}</p>

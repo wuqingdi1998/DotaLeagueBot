@@ -73,7 +73,9 @@ describe("October clan prizes", () => {
     expect(html).toContain("161");
     expect(html).toContain("191");
     expect(html).toContain("203");
-    expect(html.match(/class="october-star-guide-reward-stars"/g)).toHaveLength(12);
+    expect(html.match(/class="october-star-guide-reward-stars"/g)).toHaveLength(16);
+    expect(html).toContain("Для Boosty-подписчиков рун кроме Руны Воды");
+    expect(html.indexOf("Испытание Рун")).toBeLessThan(html.indexOf("Гонка за звёздами"));
   });
 
   it("puts the requested prizes into runners-up places 4–9", () => {

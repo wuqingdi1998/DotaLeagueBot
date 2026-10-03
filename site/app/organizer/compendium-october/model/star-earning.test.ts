@@ -13,22 +13,28 @@ describe("October star earning guide", () => {
       .toEqual([
         { id: "hero-quests", maxStars: 60 },
         { id: "clan-outing", maxStars: 30 },
-        { id: "star-race", maxStars: 62 },
         { id: "rune-challenge", maxStars: 30 },
+        { id: "star-race", maxStars: 62 },
         { id: "league-rounds", maxStars: 9 },
         { id: "fastcups", maxStars: 12 },
       ]);
     expect(OCTOBER_STAR_EARNING_SOURCES.map((source) => source.rewardDetails)).toEqual([
-      undefined,
-      undefined,
       [
-        { label: "1-я неделя", stars: 15 },
-        { label: "2-я неделя", stars: 22 },
-        { label: "3-я неделя", stars: 25 },
+        { label: "12 обычных дней", stars: 1 },
+        { label: "9 дней с бонусом", stars: 2 },
       ],
       [
         { label: "12 обычных дней", stars: 1 },
         { label: "9 дней с бонусом", stars: 2 },
+      ],
+      [
+        { label: "12 обычных дней", stars: 1 },
+        { label: "9 дней с бонусом", stars: 2 },
+      ],
+      [
+        { label: "1-я неделя", stars: 15 },
+        { label: "2-я неделя", stars: 22 },
+        { label: "3-я неделя", stars: 25 },
       ],
       [
         { label: "Участие", stars: 1 },

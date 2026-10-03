@@ -77,13 +77,23 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
     id: "hero-quests",
     title: "Испытания героев",
     description: "Каждый день доступны два испытания: победите на одном из предложенных героев. В пятницу, субботу и воскресенье награда удваивается.",
+    rewardDetails: dailyBonusRewardDetails,
     maxStars: heroQuestStars,
   },
   {
     id: "clan-outing",
     title: "Клановая вылазка",
     description: "Одержите одну рейтинговую победу в группе с участником своего клана. В пятницу, субботу и воскресенье каждый получает две звезды вместо одной.",
+    rewardDetails: dailyBonusRewardDetails,
     maxStars: dailyActivityStars,
+  },
+  {
+    id: "rune-challenge",
+    title: "Испытание Рун",
+    description: "Выберите любимого героя и выполните его ежедневное испытание. В пятницу, субботу и воскресенье награда удваивается. Эти звёзды идут в личный и клановый зачёты, но не входят в недельную гонку.",
+    rewardDetails: dailyBonusRewardDetails,
+    maxStars: dailyActivityStars,
+    subscriberOnly: true,
   },
   {
     id: "star-race",
@@ -91,14 +101,6 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
     description: "Выполняйте отдельное условие дня. Награда растёт от первой недели к финальной.",
     rewardDetails: starRaceRewardDetails,
     maxStars: starRaceStars,
-  },
-  {
-    id: "rune-challenge",
-    title: "Испытание Рун",
-    description: "Для подписчиков: выберите любимого героя и выполните его ежедневное испытание. В пятницу, субботу и воскресенье награда удваивается. Эти звёзды идут в личный и клановый зачёты, но не входят в недельную гонку.",
-    rewardDetails: dailyBonusRewardDetails,
-    maxStars: dailyActivityStars,
-    subscriberOnly: true,
   },
   {
     id: "league-rounds",
