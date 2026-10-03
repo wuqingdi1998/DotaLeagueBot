@@ -225,7 +225,7 @@
   border-bottom: 0;
 }
 
-.season-temporary-team li img,
+.season-temporary-team li > img,
 .season-temporary-team li > i {
   display: grid;
   width: 36px;

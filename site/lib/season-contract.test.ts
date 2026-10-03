@@ -333,6 +333,8 @@ describe("season interface contract", () => {
     expect(styles).toMatch(
       /\.season-temporary-team li strong\s*\{[^}]*font-size:\s*16px;/,
     );
+    expect(styles).toContain(".season-temporary-team li > img");
+    expect(styles).not.toContain(".season-temporary-team li img");
   });
 
   it("keeps and displays the tier recorded for each round appearance", () => {
