@@ -7,7 +7,6 @@ import { useMemo, useState, type ReactNode } from "react";
 import { FaStar } from "react-icons/fa";
 import {
   FiCheck,
-  FiClock,
   FiExternalLink,
   FiLoader,
   FiLock,
@@ -18,6 +17,7 @@ import {
 } from "@/lib/subscription-roles";
 import { COMPENDIUM_HEROES, compendiumHeroById } from "../model/heroes";
 import type { RuneChallengeData } from "../model/types";
+import { DailyResetCountdown } from "./DailyResetCountdown";
 
 function cooldownLabel(nextChangeAt: string, now: number): string {
   const remaining = Math.max(0, new Date(nextChangeAt).getTime() - now);
@@ -276,11 +276,11 @@ export function RuneChallenge({
                         </a>
                       </div>
                     </div>
-                    <div className="compendium-section-countdown compendium-rune-reset-countdown">
-                      <FiClock aria-hidden="true" />
-                      <span>До нового испытания</span>
-                      <strong>{resetCountdown}</strong>
-                    </div>
+                    <DailyResetCountdown
+                      countdown={resetCountdown}
+                      label="До нового испытания"
+                      className="compendium-rune-reset-countdown"
+                    />
                   </div>
                 ) : (
                   <button

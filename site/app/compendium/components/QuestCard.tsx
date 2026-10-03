@@ -7,6 +7,7 @@ import {
 } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 import type { DailyQuest } from "../model/types";
+import { DailyResetCountdown } from "./DailyResetCountdown";
 import { HeroChoice } from "./HeroChoice";
 
 export function QuestCard({
@@ -22,6 +23,7 @@ export function QuestCard({
   onReroll,
   isPreview = false,
   previewActionLabel = "Пока не открыто",
+  resetCountdown,
   overlay,
 }: {
   quest: DailyQuest;
@@ -36,6 +38,7 @@ export function QuestCard({
   onReroll: (questId: string) => void;
   isPreview?: boolean;
   previewActionLabel?: string;
+  resetCountdown?: string;
   overlay?: ReactNode;
 }) {
   const matchedHero = quest.heroes.find(
@@ -102,23 +105,31 @@ export function QuestCard({
       </p>
 
       {quest.completion ? (
-        <div className="compendium-completion" role="status">
-          <span className="compendium-checkmark"><FiCheck aria-hidden="true" /></span>
-          <div>
-            <strong>Задание выполнено</strong>
-            {matchedHero && <span>Победа на герое {matchedHero.name}</span>}
-            {quest.completion.matchedMatchId ? (
-              <a
-                href={`https://www.opendota.com/matches/${quest.completion.matchedMatchId}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Матч {quest.completion.matchedMatchId} <FiExternalLink aria-hidden="true" />
-              </a>
-            ) : (
-              <span>Засчитано организатором</span>
-            )}
+        <div className="compendium-card-completed-state">
+          <div className="compendium-completion" role="status">
+            <span className="compendium-checkmark"><FiCheck aria-hidden="true" /></span>
+            <div>
+              <strong>Задание выполнено</strong>
+              {matchedHero && <span>Победа на герое {matchedHero.name}</span>}
+              {quest.completion.matchedMatchId ? (
+                <a
+                  href={`https://www.opendota.com/matches/${quest.completion.matchedMatchId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Матч {quest.completion.matchedMatchId} <FiExternalLink aria-hidden="true" />
+                </a>
+              ) : (
+                <span>Засчитано организатором</span>
+              )}
+            </div>
           </div>
+          {resetCountdown && (
+            <DailyResetCountdown
+              countdown={resetCountdown}
+              className="compendium-card-reset-countdown"
+            />
+          )}
         </div>
       ) : (
         <button

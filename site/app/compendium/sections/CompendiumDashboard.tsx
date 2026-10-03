@@ -404,6 +404,7 @@ export function CompendiumDashboard({
                 }
                 onCheck={checkQuest}
                 onReroll={rerollQuest}
+                resetCountdown={countdown}
               />
             ))}
           </div>

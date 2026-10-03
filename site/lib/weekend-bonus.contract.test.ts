@@ -15,6 +15,12 @@ const questCard = source("../app/compendium/components/QuestCard.tsx");
 const runeChallenge = source(
   "../app/compendium/components/RuneChallenge.tsx",
 );
+const dailyResetCountdown = source(
+  "../app/compendium/components/DailyResetCountdown.tsx",
+);
+const octoberDailyPreview = source(
+  "../app/organizer/compendium-october/sections/OctoberActivityPreview.tsx",
+);
 const questRepository = source(
   "../app/compendium/services/repository.ts",
 );
@@ -42,6 +48,8 @@ describe("weekend bonus integration", () => {
     expect(dashboard.match(/Х2/g)).toHaveLength(1);
     expect(questCard).not.toContain("Х2");
     expect(runeChallenge).not.toContain("Х2");
+    expect(octoberDailyPreview).toContain("rewardStars === 2");
+    expect(octoberDailyPreview).toContain("compendium-weekend-bonus");
     expect(headingCss).toContain(".compendium-weekend-bonus");
   });
 
@@ -49,5 +57,12 @@ describe("weekend bonus integration", () => {
     expect(questCard).toContain("<strong>{rewardStars}</strong>");
     expect(runeChallenge).toContain("<strong>{rewardStars}</strong>");
     expect(dashboard).not.toContain("quest.position <= 3");
+  });
+
+  it("shows a server-synced Moscow reset timer on every completed daily quest", () => {
+    expect(dashboard).toContain("resetCountdown={countdown}");
+    expect(questCard).toContain("<DailyResetCountdown");
+    expect(runeChallenge).toContain("<DailyResetCountdown");
+    expect(dailyResetCountdown).toContain("00:00 МСК по серверному времени");
   });
 });

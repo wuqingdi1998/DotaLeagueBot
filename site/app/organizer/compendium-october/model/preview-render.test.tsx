@@ -293,12 +293,12 @@ describe("October preview actions", () => {
   });
 
   it("lets each participant hide and restore the two daily explanations", () => {
-    const html = renderToStaticMarkup(<OctoberDailyPreview viewerDiscordId="viewer-1" />);
+    const html = renderToStaticMarkup(<OctoberDailyPreview viewerDiscordId="viewer-1" rewardStars={2} />);
     expect(html).toContain("aria-label=\"Вернуть пояснения к заданиям\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к заданиям дня\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к клановой вылазке\"");
     expect(html).toContain("Для всех трёх заданий и Испытания Рун");
-    expect(html.match(/aria-label="Награда: 1 звезда"/g)).toHaveLength(3);
+    expect(html.match(/aria-label="Награда: 2 звезды"/g)).toHaveLength(3); expect(html).toContain("compendium-weekend-bonus");
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
     expect(guideStyles).toMatch(/\.october-compendium-screen-daily \.compendium-daily-section \{[^}]*justify-content: safe center;[\s\S]*?\.october-daily-section--compact-guidance \.compendium-quest-grid/);
   });

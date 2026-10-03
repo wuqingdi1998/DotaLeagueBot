@@ -68,6 +68,12 @@ export function OctoberDailyPreview({
             <FiInfo aria-hidden="true" />
           </button>
         </div>
+        {rewardStars === 2 && (
+          <div className="compendium-weekend-bonus" role="status">
+            <span>Бонус выходного дня</span>
+            <strong>Х2</strong>
+          </div>
+        )}
       </div>
       {isOverviewVisible && (
         <div className="october-compendium-example-note october-dismissible-guide">

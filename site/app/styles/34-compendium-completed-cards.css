@@ -1,0 +1,20 @@
+.compendium-card-completed-state {
+  display: grid;
+  gap: 10px;
+}
+
+.compendium-card-reset-countdown {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(46, 174, 131, 0.28);
+  border-radius: 12px;
+  background: rgba(45, 183, 137, 0.08);
+}
+
+.compendium-card-reset-countdown span {
+  font-size: 10px;
+}
+
+.compendium-card-reset-countdown strong {
+  font-size: 18px;
+}
