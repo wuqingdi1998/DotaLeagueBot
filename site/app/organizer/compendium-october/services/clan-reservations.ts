@@ -1,6 +1,7 @@
 import { one, query } from "@/lib/db";
 import type { AuthUser } from "@/lib/auth";
 import { hiddenSubscriptionRoleForDiscordId } from "@/lib/hidden-subscription-entitlements";
+import { COMPENDIUM_EXCLUDED_ROLE_NAME } from "@/app/compendium/services/participant-access";
 import type { OctoberClanId } from "../model/clans";
 import {
   OctoberClanReservationError,
@@ -14,6 +15,7 @@ import {
 type ReservationAccessRow = {
   role_name: string | null;
   clan_id: OctoberClanId | null;
+  is_excluded: boolean;
 };
 
 type ReservationAccess = ReservationAccessRow & {
@@ -33,19 +35,31 @@ async function reservationAccess(
          ORDER BY array_position($2::text[], role.role_name)
          LIMIT 1
        ) AS role_name,
-       reservation.clan_id
+       reservation.clan_id,
+       EXISTS (
+         SELECT 1
+         FROM player_discord_roles excluded_role
+         WHERE excluded_role.player_id = player.discord_id
+           AND excluded_role.role_name = $3
+       ) AS is_excluded
      FROM players player
      LEFT JOIN october_compendium_clan_reservations reservation
        ON reservation.player_id = player.discord_id
      WHERE player.discord_id = $1
        AND player.is_archived = FALSE`,
-    [playerId, OCTOBER_RESERVATION_ROLE_NAMES],
-  )) ?? { role_name: null, clan_id: null };
+    [
+      playerId,
+      OCTOBER_RESERVATION_ROLE_NAMES,
+      COMPENDIUM_EXCLUDED_ROLE_NAME,
+    ],
+  )) ?? { role_name: null, clan_id: null, is_excluded: false };
   return {
     ...row,
     hasAccess:
-      row.role_name !== null ||
-      hiddenSubscriptionRoleForDiscordId(playerId) !== null,
+      !row.is_excluded && (
+        row.role_name !== null ||
+        hiddenSubscriptionRoleForDiscordId(playerId) !== null
+      ),
   };
 }
 

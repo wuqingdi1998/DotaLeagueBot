@@ -1,4 +1,5 @@
 import { one, query, transaction } from "@/lib/db";
+import { COMPENDIUM_EXCLUDED_ROLE_NAME } from "@/app/compendium/services/participant-access";
 import type { OctoberClanAssignment } from "../model/clan-assignment";
 import {
   summarizeOctoberLaunchPlayers,
@@ -216,7 +217,14 @@ export async function publishApprovedOctoberClans(): Promise<
          (player_id, clan_id, assigned_at, total_points,
           assignment_source, activity_score)
        SELECT player_id, clan_id, NOW(), 0, assignment_source, activity_score
-       FROM october_compendium_clan_assignment_drafts`,
+       FROM october_compendium_clan_assignment_drafts draft
+       WHERE NOT EXISTS (
+         SELECT 1
+         FROM player_discord_roles role
+         WHERE role.player_id = draft.player_id
+           AND role.role_name = $1
+       )`,
+      [COMPENDIUM_EXCLUDED_ROLE_NAME],
     );
     await client.query(
       `UPDATE october_compendium_clan_formation

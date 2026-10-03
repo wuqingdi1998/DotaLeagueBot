@@ -1,4 +1,5 @@
 import { one, query } from "@/lib/db";
+import { COMPENDIUM_EXCLUDED_ROLE_NAME } from "@/app/compendium/services/participant-access";
 import type { OctoberClanId } from "../model/clans";
 import type { OctoberFormationStatus } from "../model/launch-report";
 
@@ -71,7 +72,14 @@ export async function loadOctoberFormationCandidates(): Promise<
      LEFT JOIN compendium_player_star_totals stars
        ON stars.player_id = player.discord_id
      WHERE player.is_archived = FALSE
+       AND NOT EXISTS (
+         SELECT 1
+         FROM player_discord_roles role
+         WHERE role.player_id = player.discord_id
+           AND role.role_name = $1
+       )
      ORDER BY player.discord_id`,
+    [COMPENDIUM_EXCLUDED_ROLE_NAME],
   );
   return rows.map((row) => ({
     discordId: row.discord_id,
