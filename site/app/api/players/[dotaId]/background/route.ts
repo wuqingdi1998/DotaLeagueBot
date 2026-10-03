@@ -6,6 +6,7 @@ import {
   customizableSubscriptionRoleNames,
   normalizeDotaAccountId,
 } from "@/lib/player-profile";
+import { profileOwnerOverrideForDotaId } from "@/lib/profile-owner-overrides";
 import { isSafeUploadKey } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
@@ -46,14 +47,21 @@ async function requireProfileOwner(requestedDotaId: string) {
   return user;
 }
 
-async function hasCustomBackgroundAccess(discordId: string) {
-  return one<{ role_name: string }>(
-    `SELECT role_name
-     FROM player_discord_roles
-     WHERE player_id = $1
-       AND role_name = ANY($2::text[])
-     LIMIT 1`,
-    [discordId, customizableSubscriptionRoleNames],
+async function hasCustomBackgroundAccess(discordId: string, dotaId: string) {
+  if (
+    profileOwnerOverrideForDotaId(dotaId)?.canCustomizeBackground === true
+  ) {
+    return true;
+  }
+  return Boolean(
+    await one<{ role_name: string }>(
+      `SELECT role_name
+       FROM player_discord_roles
+       WHERE player_id = $1
+         AND role_name = ANY($2::text[])
+       LIMIT 1`,
+      [discordId, customizableSubscriptionRoleNames],
+    ),
   );
 }
 
@@ -74,7 +82,7 @@ export async function PUT(
   try {
     const { dotaId } = await context.params;
     const user = await requireProfileOwner(dotaId);
-    if (!(await hasCustomBackgroundAccess(user.discordId))) {
+    if (!(await hasCustomBackgroundAccess(user.discordId, user.dotaId))) {
       return Response.json(
         { error: "Свой фон доступен владельцам цветных рун" },
         { status: 403 },

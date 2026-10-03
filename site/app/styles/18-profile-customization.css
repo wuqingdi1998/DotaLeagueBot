@@ -141,6 +141,13 @@
   font-weight: 800;
 }
 
+.profile-subscription-role-admin {
+  --role-color: #f2c45f;
+  border-color: color-mix(in srgb, var(--role-color) 72%, transparent);
+  background: color-mix(in srgb, var(--role-color) 18%, var(--surface));
+  color: var(--role-color);
+}
+
 .player-profile-hero.profile-background-regeneration {
   background:
     radial-gradient(circle at 76% 10%, rgba(94, 218, 90, 0.35), transparent 35%),
@@ -207,9 +214,12 @@
 }
 
 .profile-background-control {
-  position: relative;
+  position: absolute;
+  z-index: 2;
+  top: 18px;
+  right: clamp(14px, 2vw, 28px);
   width: fit-content;
-  margin-top: 16px;
+  max-width: calc(100% - 28px);
 }
 
 .profile-background-button {

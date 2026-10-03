@@ -126,10 +126,6 @@
     font-size: 22px;
   }
 
-  .profile-background-control {
-    margin-top: 11px;
-  }
-
   .profile-stat-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

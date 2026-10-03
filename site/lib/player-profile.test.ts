@@ -14,6 +14,7 @@ import {
   selectProfileBadgesForDisplay,
   ti2026ProfileBadgeForStars,
 } from "./profile-badges";
+import { profileOwnerOverrideForDotaId } from "./profile-owner-overrides";
 
 describe("public player profile", () => {
   it("normalizes a public Dota account id", () => {
@@ -64,6 +65,14 @@ describe("public player profile", () => {
     );
     expect(profileBackgroundForSubscriptionRole("Руна Воды")).toBe("default");
     expect(profileBackgroundForSubscriptionRole(null)).toBe("default");
+  });
+
+  it("gives frokeng the Admin badge and profile background access", () => {
+    expect(profileOwnerOverrideForDotaId("301109815")).toEqual({
+      badgeLabel: "Admin",
+      canCustomizeBackground: true,
+    });
+    expect(profileOwnerOverrideForDotaId("123456789")).toBeNull();
   });
 
   it("describes permanent TI 2026 profile badges independently of the event page", () => {

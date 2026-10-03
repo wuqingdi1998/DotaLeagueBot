@@ -7,6 +7,12 @@ const profileCustomizationCss = readFileSync(
 );
 
 describe("profile background editor layout", () => {
+  it("anchors the background button without changing the hero height", () => {
+    expect(profileCustomizationCss).toMatch(
+      /\.profile-background-control\s*\{[^}]*position:\s*absolute;[^}]*top:\s*18px;[^}]*right:\s*clamp\(14px, 2vw, 28px\);/,
+    );
+  });
+
   it("stacks both crop panels on tablets", () => {
     expect(profileCustomizationCss).toMatch(
       /@media \(max-width: 900px\)[\s\S]*?\.profile-background-crop-workspace\s*\{[^}]*grid-template-columns:\s*1fr;/,

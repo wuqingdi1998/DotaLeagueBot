@@ -17,6 +17,7 @@ import {
   subscriptionRoleNames,
 } from "./subscription-roles";
 import { buildPlayerLinks, normalizeDotaAccountId } from "./player-links";
+import { profileOwnerOverrideForDotaId } from "./profile-owner-overrides";
 
 export { buildPlayerLinks, normalizeDotaAccountId } from "./player-links";
 
@@ -77,6 +78,7 @@ export type PublicPlayerProfile = {
   avatarUrl: string | null;
   subscriptionRole: string | null;
   subscriptionRoleColor: number | null;
+  profileOwnerBadgeLabel: string | null;
   backgroundKey: ProfileBackgroundKey;
   customBackgroundUrl: string | null;
   customBackgroundMobileUrl: string | null;
@@ -228,11 +230,13 @@ export async function loadPublicPlayerProfile(
     (tournament) =>
       tournament.placement !== null && tournament.placement <= 3,
   ).length;
+  const profileOwnerOverride = profileOwnerOverrideForDotaId(player.dota_id);
   const canCustomizeBackground =
-    player.subscription_role !== null &&
-    customizableSubscriptionRoleNames.includes(
-      player.subscription_role as (typeof customizableSubscriptionRoleNames)[number],
-    );
+    profileOwnerOverride?.canCustomizeBackground === true ||
+    (player.subscription_role !== null &&
+      customizableSubscriptionRoleNames.includes(
+        player.subscription_role as (typeof customizableSubscriptionRoleNames)[number],
+      ));
   const backgroundKey = profileBackgroundForSubscriptionRole(
     player.subscription_role,
   );
@@ -255,6 +259,7 @@ export async function loadPublicPlayerProfile(
     avatarUrl: player.avatar_url,
     subscriptionRole: player.subscription_role,
     subscriptionRoleColor: player.subscription_role_color,
+    profileOwnerBadgeLabel: profileOwnerOverride?.badgeLabel ?? null,
     backgroundKey,
     customBackgroundUrl,
     customBackgroundMobileUrl,

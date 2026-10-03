@@ -1,6 +1,6 @@
 /* Public player profiles */
-
 .player-profile-hero {
+  position: relative;
   display: grid;
   gap: 42px;
   padding: clamp(42px, 4vw, 58px) clamp(24px, 7vw, 110px)

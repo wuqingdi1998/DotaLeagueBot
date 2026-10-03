@@ -42,29 +42,35 @@ const tournamentStatus: Record<string, string> = {
   archived: "Архив",
 };
 
-function SubscriptionRoleBadge({
+function ProfileRoleBadge({
   role,
   color,
+  ownerBadgeLabel,
   className,
 }: {
-  role: string;
+  role: string | null;
   color: number | null;
+  ownerBadgeLabel: string | null;
   className: string;
 }) {
+  const badgeLabel = ownerBadgeLabel ?? role;
+  if (!badgeLabel) return null;
   return (
     <span
-      className={`profile-subscription-role profile-subscription-role-${profileBackgroundForSubscriptionRole(
-        role,
-      )} ${className}`}
+      className={`profile-subscription-role profile-subscription-role-${
+        ownerBadgeLabel
+          ? "admin"
+          : profileBackgroundForSubscriptionRole(role)
+      } ${className}`}
       style={
-        color
+        !ownerBadgeLabel && color
           ? {
               "--role-color": `#${color.toString(16).padStart(6, "0")}`,
             } as React.CSSProperties
           : undefined
       }
     >
-      {role}
+      {badgeLabel}
     </span>
   );
 }
@@ -187,6 +193,13 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             : undefined
         }
       >
+        {user?.dotaId === profile.dotaId &&
+          profile.canCustomizeBackground && (
+            <ProfileBackgroundPicker
+              dotaId={profile.dotaId}
+              hasCustomBackground={profile.hasCustomBackground}
+            />
+          )}
         <div className="player-profile-identity">
           <AvatarImage
             source={profile.avatarUrl}
@@ -203,17 +216,21 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             }
           />
           <div>
-            {(profile.realName || profile.subscriptionRole) && (
+            {(profile.realName ||
+              profile.subscriptionRole ||
+              profile.profileOwnerBadgeLabel) && (
               <div className="public-profile-heading">
                 {profile.realName && (
                   <p className="public-profile-real-name">
                     {profile.realName}
                   </p>
                 )}
-                {profile.subscriptionRole && (
-                  <SubscriptionRoleBadge
+                {(profile.subscriptionRole ||
+                  profile.profileOwnerBadgeLabel) && (
+                  <ProfileRoleBadge
                     role={profile.subscriptionRole}
                     color={profile.subscriptionRoleColor}
+                    ownerBadgeLabel={profile.profileOwnerBadgeLabel}
                     className="profile-heading-role"
                   />
                 )}
@@ -284,13 +301,6 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
                 className="desktop-profile-ids"
               />
             </div>
-            {user?.dotaId === profile.dotaId &&
-              profile.canCustomizeBackground && (
-                <ProfileBackgroundPicker
-                  dotaId={profile.dotaId}
-                  hasCustomBackground={profile.hasCustomBackground}
-                />
-              )}
           </div>
         </div>
         <div className="profile-stat-grid">
