@@ -121,7 +121,8 @@ class CompendiumAdmin(commands.Cog):
         await interaction.followup.send(
             f"✅ Рассылка завершена. Отправлено: **{report.sent_count}**. "
             f"Не доставлено: **{report.failed_count}**. "
-            f"Боты пропущены: **{report.skipped_bot_count}**.",
+            f"Боты пропущены: **{report.skipped_bot_count}**. "
+            f"«Массовка» пропущена: **{report.skipped_excluded_count}**.",
             ephemeral=True,
         )
 

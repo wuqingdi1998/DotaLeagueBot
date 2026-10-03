@@ -38,7 +38,7 @@ jobs:
           python -m compileall -q .
           pip-audit -r requirements.txt
           ruff check .
-          mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/subscription_admin.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/season_lobby_deadlines.py cogs/season_lobby_host_roles.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py cogs/tournament_registration_opening.py services/durable_scheduler.py services/season_checkin_reminder.py services/season_game_channel_access.py services/season_round_channel_sync.py services/season_lobby_host_roles.py services/season_lobby_notifications.py services/season_nine_outreach.py services/subscription_role_grants.py services/titan_checkup_service.py services/tournament_registration_opening.py utils/website_notifications.py
+          mypy database/core.py database/migrate.py cogs/channel_announcements.py cogs/subscription_admin.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/october_compendium_announcement.py cogs/season_lobby_deadlines.py cogs/season_lobby_host_roles.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py cogs/tournament_registration_opening.py services/durable_scheduler.py services/october_compendium_announcement_campaign.py services/season_checkin_reminder.py services/season_game_channel_access.py services/season_round_channel_sync.py services/season_lobby_host_roles.py services/season_lobby_notifications.py services/season_nine_outreach.py services/subscription_role_grants.py services/titan_checkup_service.py services/tournament_registration_opening.py utils/website_notifications.py
           python -m pytest
       - name: Check site
         working-directory: site
@@ -628,6 +628,7 @@ jobs:
               if [[ "$bot_logs" == *"[SCHEDULER] Connected to PostgreSQL event notifications."* \
                 && "$bot_logs" == *"Загружен ког: season_lobby_deadlines.py"* \
                 && "$bot_logs" == *"Загружен ког: fearless_draft_deadlines.py"* \
+                && "$bot_logs" == *"Загружен ког: october_compendium_announcement.py"* \
                 && "$bot_logs" == *"Загружен ког: tournament_registration_opening.py"* ]]; then
                 echo "Event-driven scheduler is connected"
                 break
@@ -637,6 +638,40 @@ jobs:
                 exit 1
               fi
               sleep 3
+            done
+
+            for attempt in $(seq 1 360); do
+              compendium_campaign_status="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT status
+                 FROM october_compendium_announcement_campaigns
+                 WHERE campaign_key = '\''october-compendium-launch'\''"')"
+              if [ "$compendium_campaign_status" = "completed" ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT campaign.discovered_member_count,
+                          campaign.skipped_bot_count,
+                          campaign.skipped_excluded_count,
+                          COUNT(*) FILTER (WHERE recipient.status = '\''sent'\'') AS sent,
+                          COUNT(*) FILTER (WHERE recipient.status = '\''failed'\'') AS failed
+                   FROM october_compendium_announcement_campaigns campaign
+                   LEFT JOIN october_compendium_announcement_recipients recipient
+                     ON recipient.campaign_id = campaign.id
+                   WHERE campaign.campaign_key = '\''october-compendium-launch'\''
+                   GROUP BY campaign.id"'
+                break
+              fi
+              if [ "$attempt" -eq 360 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT status, discovered_member_count, skipped_bot_count,
+                          skipped_excluded_count, updated_at
+                   FROM october_compendium_announcement_campaigns
+                   WHERE campaign_key = '\''october-compendium-launch'\''"'
+                docker compose logs --tail=300 bot
+                exit 1
+              fi
+              sleep 5
             done
 
             uncovered_lobby_notifications="$(docker compose exec -T db sh -c \

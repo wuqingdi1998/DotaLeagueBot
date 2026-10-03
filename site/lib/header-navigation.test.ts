@@ -20,6 +20,14 @@ const compendiumNavigation = readFileSync(
   new URL("../app/components/header/CompendiumNavigationLink.tsx", import.meta.url),
   "utf8",
 );
+const communityStyles = readFileSync(
+  new URL("../app/styles/10-community-home.css", import.meta.url),
+  "utf8",
+);
+const directoryStyles = readFileSync(
+  new URL("../app/styles/11-tournament-directory.css", import.meta.url),
+  "utf8",
+);
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -41,6 +49,13 @@ describe("header navigation", () => {
     expect(header.match(/user && !user\.isStandaloneOrganizer/g)).toHaveLength(2);
     expect(compendiumNavigation).toContain("OCTOBER_PUBLIC_LAUNCH_AT");
     expect(compendiumNavigation).toContain("3 октября в 22:30 МСК");
+    expect(compendiumNavigation).toContain("window.setTimeout(showLiveLink");
+    expect(communityStyles).toContain(
+      ".platform-navigation .compendium-navigation-link.is-locked",
+    );
+    expect(directoryStyles).toContain(
+      ".mobile-navigation .compendium-navigation-link.is-locked",
+    );
     expect(compendiumNavigation).toContain('aria-disabled="true"');
     expect(compendiumNavigation).toContain('className="compendium-navigation-link is-live"');
     expect(navigationStyles).toContain("#7d2526");

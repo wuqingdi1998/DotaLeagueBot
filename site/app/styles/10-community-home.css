@@ -51,7 +51,8 @@
   gap: 10px;
 }
 
-.platform-navigation a {
+.platform-navigation a,
+.platform-navigation .compendium-navigation-link.is-locked {
   display: inline-flex;
   min-height: 48px;
   align-items: center;
@@ -80,7 +81,8 @@
 @media (min-width: 1351px) and (max-width: 1650px) {
   .platform-navigation { gap: 4px; }
 
-  .platform-navigation a {
+  .platform-navigation a,
+  .platform-navigation .compendium-navigation-link.is-locked {
     padding: 0 10px;
     font-size: 14px;
   }
@@ -97,7 +99,8 @@
     gap: 2px;
   }
 
-  .platform-navigation a {
+  .platform-navigation a,
+  .platform-navigation .compendium-navigation-link.is-locked {
     min-height: 44px;
     padding: 0 9px;
     font-size: 14px;

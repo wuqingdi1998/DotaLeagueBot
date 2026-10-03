@@ -8,8 +8,12 @@ from typing import Protocol
 import discord
 
 
-class AnnouncementMember(Protocol):
+class AnnouncementAudienceMember(Protocol):
     bot: bool
+    roles: list[object]
+
+
+class AnnouncementMember(AnnouncementAudienceMember, Protocol):
 
     async def send(self, message: str) -> object: ...
 
@@ -27,6 +31,21 @@ class CompendiumAnnouncementReport:
     sent_count: int
     failed_count: int
     skipped_bot_count: int
+    skipped_excluded_count: int
+
+
+COMPENDIUM_EXCLUDED_ROLE_NAME = "Массовка"
+
+
+def is_compendium_announcement_recipient(
+    member: AnnouncementAudienceMember,
+) -> bool:
+    if member.bot:
+        return False
+    return all(
+        getattr(role, "name", None) != COMPENDIUM_EXCLUDED_ROLE_NAME
+        for role in member.roles
+    )
 
 
 def compendium_announcement_text() -> str:
@@ -63,10 +82,14 @@ async def broadcast_compendium_announcement(
     sent_count = 0
     failed_count = 0
     skipped_bot_count = 0
+    skipped_excluded_count = 0
 
     async for member in guild.fetch_members(limit=None):
         if member.bot:
             skipped_bot_count += 1
+            continue
+        if not is_compendium_announcement_recipient(member):
+            skipped_excluded_count += 1
             continue
         try:
             await member.send(message)
@@ -79,4 +102,5 @@ async def broadcast_compendium_announcement(
         sent_count=sent_count,
         failed_count=failed_count,
         skipped_bot_count=skipped_bot_count,
+        skipped_excluded_count=skipped_excluded_count,
     )

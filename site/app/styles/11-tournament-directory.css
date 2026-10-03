@@ -226,7 +226,8 @@
     padding-top: 12px;
   }
 
-  .mobile-navigation a {
+  .mobile-navigation a,
+  .mobile-navigation .compendium-navigation-link.is-locked {
     display: inline-flex;
     min-height: 48px;
     align-items: center;
@@ -267,7 +268,8 @@
     grid-template-columns: 1fr;
   }
 
-  .mobile-navigation a {
+  .mobile-navigation a,
+  .mobile-navigation .compendium-navigation-link.is-locked {
     justify-content: flex-start;
     padding: 0 16px;
   }

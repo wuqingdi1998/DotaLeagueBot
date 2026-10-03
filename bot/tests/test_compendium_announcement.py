@@ -8,13 +8,26 @@ import pytest
 from services.compendium_announcement import (
     broadcast_compendium_announcement,
     compendium_announcement_text,
+    is_compendium_announcement_recipient,
 )
 
 
+class FakeRole:
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+
 class FakeMember:
-    def __init__(self, *, is_bot: bool = False, can_receive: bool = True) -> None:
+    def __init__(
+        self,
+        *,
+        is_bot: bool = False,
+        can_receive: bool = True,
+        roles: list[FakeRole] | None = None,
+    ) -> None:
         self.bot = is_bot
         self.can_receive = can_receive
+        self.roles = roles or []
         self.messages: list[str] = []
 
     async def send(self, message: str) -> None:
@@ -60,13 +73,29 @@ async def test_compendium_announcement_reaches_humans_and_skips_bots(
     receiving_member = FakeMember()
     blocked_member = FakeMember(can_receive=False)
     bot_member = FakeMember(is_bot=True)
-    guild = FakeGuild([receiving_member, blocked_member, bot_member])
+    excluded_member = FakeMember(roles=[FakeRole("Массовка")])
+    guild = FakeGuild([
+        receiving_member,
+        blocked_member,
+        bot_member,
+        excluded_member,
+    ])
 
     report = await broadcast_compendium_announcement(guild)
 
     assert report.sent_count == 1
     assert report.failed_count == 1
     assert report.skipped_bot_count == 1
+    assert report.skipped_excluded_count == 1
     assert receiving_member.messages == [compendium_announcement_text()]
     assert blocked_member.messages == []
     assert bot_member.messages == []
+    assert excluded_member.messages == []
+
+
+def test_compendium_announcement_recipient_excludes_massovka_and_bots() -> None:
+    assert is_compendium_announcement_recipient(FakeMember())
+    assert not is_compendium_announcement_recipient(FakeMember(is_bot=True))
+    assert not is_compendium_announcement_recipient(
+        FakeMember(roles=[FakeRole("Массовка")])
+    )

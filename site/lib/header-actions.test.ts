@@ -104,7 +104,7 @@ describe("site header actions", () => {
       /@media \(min-width:\s*1351px\) and \(max-width:\s*1650px\)[\s\S]*?\.platform-navigation\s*\{[^}]*gap:\s*4px;/,
     );
     expect(css).toMatch(
-      /@media \(min-width:\s*1351px\) and \(max-width:\s*1650px\)[\s\S]*?\.platform-navigation a\s*\{[^}]*padding:\s*0 10px;[^}]*font-size:\s*14px;/,
+      /@media \(min-width:\s*1351px\) and \(max-width:\s*1650px\)[\s\S]*?\.platform-navigation a,[\s\S]*?\.compendium-navigation-link\.is-locked\s*\{[^}]*padding:\s*0 10px;[^}]*font-size:\s*14px;/,
     );
     expect(scaledDesktopStyles).not.toContain("display: none");
   });
