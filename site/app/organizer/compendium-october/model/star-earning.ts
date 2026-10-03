@@ -63,7 +63,10 @@ const fastcupMaxStars = octoberFastcups.length * firstPlaceFastcupStars;
 const leagueRoundMaxStars = OCTOBER_LEAGUE_ROUND_NUMBERS.length * leagueRoundMaximumStars;
 const dailyBonusRewardDetails = [
   { label: `${standardRewardDays} обычных дней`, stars: QUEST_REWARD_STARS },
-  { label: `${bonusRewardDays} дней с бонусом`, stars: QUEST_REWARD_STARS * 2 },
+  {
+    label: `${bonusRewardDays} дней с бонусом выходного дня`,
+    stars: QUEST_REWARD_STARS * 2,
+  },
 ] as const;
 const starRaceRewardDetails = raceWeekStars.map((stars, index) => ({
   label: `${index + 1}-я неделя`,

@@ -22,15 +22,15 @@ describe("October star earning guide", () => {
     expect(OCTOBER_STAR_EARNING_SOURCES.map((source) => source.rewardDetails)).toEqual([
       [
         { label: "12 обычных дней", stars: 1 },
-        { label: "9 дней с бонусом", stars: 2 },
+        { label: "9 дней с бонусом выходного дня", stars: 2 },
       ],
       [
         { label: "12 обычных дней", stars: 1 },
-        { label: "9 дней с бонусом", stars: 2 },
+        { label: "9 дней с бонусом выходного дня", stars: 2 },
       ],
       [
         { label: "12 обычных дней", stars: 1 },
-        { label: "9 дней с бонусом", stars: 2 },
+        { label: "9 дней с бонусом выходного дня", stars: 2 },
       ],
       [
         { label: "1-я неделя", stars: 15 },
