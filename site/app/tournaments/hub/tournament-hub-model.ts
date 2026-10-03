@@ -14,6 +14,7 @@ export type TournamentSummary = {
   description: string;
   start_at: string;
   end_at: string;
+  registration_starts_at: string | null;
   registration_deadline: string;
   status_label: string;
   format: string;
@@ -72,6 +73,7 @@ export type NewTournament = {
   about: string;
   start_at: string;
   end_at: string;
+  registration_starts_at: string;
   registration_deadline: string;
   status_label: string;
   format: string;
@@ -102,6 +104,7 @@ export const emptyTournament: NewTournament = {
   about: "",
   start_at: "",
   end_at: "",
+  registration_starts_at: "",
   registration_deadline: "",
   status_label: "",
   format: "",
@@ -125,7 +128,7 @@ export const statusDetails: Record<
   { label: string; short: string }
 > = {
   draft: { label: "Черновик", short: "Черновик организатора" },
-  planned: { label: "Запланирован", short: "Турнир запланирован" },
+  planned: { label: "Турнир запланирован", short: "Турнир запланирован" },
   registration: { label: "Регистрация", short: "Регистрация открыта" },
   active: { label: "Идёт сейчас", short: "Турнир идёт" },
   finished: { label: "Завершён", short: "Результаты опубликованы" },

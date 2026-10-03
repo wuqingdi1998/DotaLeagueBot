@@ -7,6 +7,7 @@ import {
   missingFieldsMessage,
   missingRequiredTournamentFields,
   normalizeTournamentDateFields,
+  registrationStartDateError,
 } from "./tournament-validation";
 
 export async function PATCH(request: Request) {
@@ -34,6 +35,10 @@ export async function PATCH(request: Request) {
       return Response.json({ error: dateError }, { status: 400 });
     }
     setSeasonTournamentRegistrationDeadline(body);
+    const registrationDateError = registrationStartDateError(body);
+    if (registrationDateError) {
+      return Response.json({ error: registrationDateError }, { status: 400 });
+    }
     const values = editableFields.map((field) => body[field]);
     const maximumTeamTier = parseMaximumTeamTier(body.max_team_tier);
     if (maximumTeamTier === undefined) {
@@ -70,13 +75,13 @@ export async function PATCH(request: Request) {
         `UPDATE tournaments SET
           name = $1, eyebrow = $2, headline = $3, headline_accent = $4,
           description = $5, about = $6, start_at = $7, end_at = $8,
-          registration_deadline = $9, status_label = $10, format = $11,
-          team_size = $12, max_teams = $13, region = $14, server = $15,
-          check_in_minutes = $16, group_format = $17, playoff_format = $18,
-          final_format = $19, discord_url = $20, status = $21,
-          slug = $22, playoff_type = $23, max_team_tier = $24,
-          show_tiers = $25, updated_at = NOW()
-        WHERE id = $26`,
+          registration_starts_at = $9, registration_deadline = $10,
+          status_label = $11, format = $12, team_size = $13, max_teams = $14,
+          region = $15, server = $16, check_in_minutes = $17,
+          group_format = $18, playoff_format = $19, final_format = $20,
+          discord_url = $21, status = $22, slug = $23, playoff_type = $24,
+          max_team_tier = $25, show_tiers = $26, updated_at = NOW()
+        WHERE id = $27`,
         [...values, slug, playoffType, maximumTeamTier, showTiers, id],
       );
       await client.query(

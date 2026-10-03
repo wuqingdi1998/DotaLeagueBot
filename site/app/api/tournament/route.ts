@@ -104,7 +104,7 @@ export async function GET(request: Request) {
        description, about, start_at,
        (SELECT MIN(match.scheduled_at) FROM tournament_matches match
         WHERE match.tournament_id = tournaments.id) AS first_match_at,
-       end_at, registration_deadline,
+       end_at, registration_starts_at, registration_deadline,
        status_label, format, team_size, max_teams, region, server,
        check_in_minutes, group_format, playoff_format, final_format,
        max_team_tier::int, show_tiers,

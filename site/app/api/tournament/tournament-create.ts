@@ -9,6 +9,7 @@ import {
   missingFieldsMessage,
   missingRequiredTournamentFields,
   normalizeTournamentDateFields,
+  registrationStartDateError,
 } from "./tournament-validation";
 
 function tournamentSlug(body: Record<string, unknown>) {
@@ -39,6 +40,10 @@ export async function POST(request: Request) {
       return Response.json({ error: dateError }, { status: 400 });
     }
     setSeasonTournamentRegistrationDeadline(body);
+    const registrationDateError = registrationStartDateError(body);
+    if (registrationDateError) {
+      return Response.json({ error: registrationDateError }, { status: 400 });
+    }
     const seasonRoundCount =
       tournamentType === "seasonal" ? Number(body.season_round_count) : 0;
     if (
@@ -83,7 +88,8 @@ export async function POST(request: Request) {
       const result = await client.query<{ id: number }>(
         `INSERT INTO tournaments (
           slug, name, eyebrow, headline, headline_accent, description, about,
-          start_at, end_at, registration_deadline, status_label, format,
+          start_at, end_at, registration_starts_at, registration_deadline,
+          status_label, format,
           team_size, max_teams, region, server, check_in_minutes,
           group_format, playoff_format, final_format, discord_url, status,
           playoff_type, tournament_type, season_round_count,
@@ -91,7 +97,7 @@ export async function POST(request: Request) {
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
           $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
-          $24, $25, $26, $27, $28
+          $24, $25, $26, $27, $28, $29
         ) RETURNING id::int`,
         [
           slug,

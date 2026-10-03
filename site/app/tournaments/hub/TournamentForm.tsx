@@ -38,16 +38,20 @@ export function TournamentForm({
     const registrationDeadline = new Date(
       toTournamentIso(form.registration_deadline),
     );
+    const registrationStart = form.registration_starts_at
+      ? new Date(toTournamentIso(form.registration_starts_at))
+      : null;
     if (
       !Number.isFinite(start.getTime()) ||
       !Number.isFinite(end.getTime()) ||
       (form.tournament_type !== "seasonal" &&
         (!Number.isFinite(registrationDeadline.getTime()) ||
-          registrationDeadline > start)) ||
+          registrationDeadline > start ||
+          (registrationStart && registrationStart >= registrationDeadline))) ||
       start >= end
     ) {
       setError(
-        "Дедлайн регистрации должен быть не позже начала, а окончание — позже начала турнира",
+        "Проверьте даты: старт регистрации должен быть раньше дедлайна, дедлайн — не позже начала, а окончание — позже начала турнира",
       );
       return;
     }
@@ -64,6 +68,9 @@ export function TournamentForm({
           registration_deadline: toTournamentIso(
             form.registration_deadline,
           ),
+          registration_starts_at: form.registration_starts_at
+            ? toTournamentIso(form.registration_starts_at)
+            : null,
         }),
       });
       const result = (await response.json()) as { error?: string };
@@ -174,6 +181,12 @@ export function TournamentForm({
               label="Окончание"
               value={form.end_at}
               onChange={(value) => setField("end_at", value)}
+            />
+            <DateField
+              label="Старт регистрации"
+              value={form.registration_starts_at}
+              required={false}
+              onChange={(value) => setField("registration_starts_at", value)}
             />
             {form.tournament_type !== "seasonal" && (
               <DateField
@@ -290,17 +303,19 @@ export function TournamentForm({
 function DateField({
   label,
   value,
+  required = true,
   onChange,
 }: {
   label: string;
   value: string;
+  required?: boolean;
   onChange: (value: string) => void;
 }) {
   return (
     <label>
       <span>{label}</span>
       <input
-        required
+        required={required}
         type="datetime-local"
         value={value}
         onChange={(event) => onChange(event.target.value)}

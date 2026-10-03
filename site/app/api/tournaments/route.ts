@@ -21,6 +21,7 @@ export async function GET() {
        t.description,
        t.start_at,
        t.end_at,
+       t.registration_starts_at,
        t.registration_deadline,
        t.status_label,
        t.format,

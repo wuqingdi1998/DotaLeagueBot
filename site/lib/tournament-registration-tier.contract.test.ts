@@ -36,7 +36,7 @@ describe("tournament registration tier contract", () => {
     expect(tournamentEditor).toContain("Максимальный тир");
     expect(tournamentEditor).toContain('placeholder="Без ограничения"');
     expect(tournamentUpdate).toContain("parseMaximumTeamTier");
-    expect(tournamentUpdate).toContain("max_team_tier = $24");
+    expect(tournamentUpdate).toContain("max_team_tier = $25");
   });
 
   it("uses a styled autocomplete instead of the system datalist", () => {

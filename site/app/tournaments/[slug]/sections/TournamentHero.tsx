@@ -13,7 +13,7 @@ import {
 } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
 import { useTournamentHeroVisibility } from "../hooks/useTournamentHeroVisibility";
-import { formatDayMonth } from "../model/formatters";
+import { formatDayMonth, formatTimelineMoment } from "../model/formatters";
 
 export function TournamentHero() {
   const {
@@ -148,6 +148,16 @@ export function TournamentHero() {
                     {formatDayMonth(tournament.registration_deadline)}
                   </time>
                 </>
+              : tournament.status === "planned" &&
+                  tournament.registration_starts_at
+                ? <>
+                    Регистрация откроется{" "}
+                    <time dateTime={tournament.registration_starts_at}>
+                      {formatTimelineMoment(tournament.registration_starts_at)}
+                    </time>
+                  </>
+              : tournament.status === "planned"
+                ? "Старт регистрации будет объявлен позже"
               : isPast
                 ? "Турнир завершён · результаты и история матчей сохранены"
                 : `Состав из ${tournament.team_size} игроков · ${tournament.status_label}`}

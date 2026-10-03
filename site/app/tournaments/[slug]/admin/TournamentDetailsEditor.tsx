@@ -131,6 +131,21 @@ export function TournamentDetailsEditor({
             }
           />
         </label>
+        <label>
+          <span>Старт регистрации</span>
+          <input
+            type="datetime-local"
+            value={toDateTimeInput(draft.registration_starts_at ?? "")}
+            onChange={(event) =>
+              event.target.value
+                ? setField(
+                    "registration_starts_at",
+                    fromDateTimeInput(event.target.value),
+                  )
+                : setField("registration_starts_at", null)
+            }
+          />
+        </label>
         {tournament.tournament_type !== "seasonal" && (
           <>
             <label>
