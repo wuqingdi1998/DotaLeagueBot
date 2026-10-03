@@ -118,8 +118,8 @@
   text-align: center;
 }
 
-.hall-player img,
-.hall-player i {
+.hall-player > img,
+.hall-player > i {
   display: grid;
   width: 46px;
   height: 46px;
@@ -355,8 +355,8 @@
     display: none;
   }
 
-  .hall-player img,
-  .hall-player i {
+  .hall-player > img,
+  .hall-player > i {
     width: 36px;
     height: 36px;
     border-radius: 10px;

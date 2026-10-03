@@ -285,8 +285,8 @@
     border-radius: 16px;
   }
 
-  .platform-shell .hall-player img,
-  .platform-shell .hall-player i {
+  .platform-shell .hall-player > img,
+  .platform-shell .hall-player > i {
     width: 34px;
     height: 34px;
   }

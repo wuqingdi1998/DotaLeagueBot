@@ -47,12 +47,24 @@ describe("temporary October clan badges", () => {
       new URL("../app/styles/03-october-clan-badges.css", import.meta.url),
       "utf8",
     );
+    const hallStyles = readFileSync(
+      new URL("../app/styles/19-hall-of-fame.css", import.meta.url),
+      "utf8",
+    );
+    const mobileStyles = readFileSync(
+      new URL("../app/styles/10-public-mobile-density.css", import.meta.url),
+      "utf8",
+    );
     expect(styles).toMatch(
       /\.october-clan-name-badge \.october-clan-name-badge-image \{[^}]*width: 28px;[^}]*height: 28px;/,
     );
     expect(styles).toContain(".october-clan-name-badge--morbus");
     expect(styles).toContain(".october-clan-name-badge--panacea");
     expect(styles).toContain(".october-clan-name-badge--profile");
+    expect(hallStyles).not.toMatch(/\.hall-player img/);
+    expect(hallStyles).toContain(".hall-player > img");
+    expect(mobileStyles).not.toMatch(/\.hall-player img/);
+    expect(mobileStyles).toContain(".hall-player > img");
   });
 
   it("uses the official one-month Dota Plus item image in weeks one and two", () => {
