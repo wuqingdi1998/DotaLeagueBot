@@ -28,6 +28,9 @@ const runeRepository = source(
   "../app/compendium/services/rune-challenge-repository.ts",
 );
 const headingCss = source("../app/styles/35-compendium-heading.css");
+const octoberCompendiumCss = source(
+  "../app/styles/65-october-compendium.css",
+);
 
 describe("weekend bonus integration", () => {
   it("allows both ordinary and doubled rewards in persistent storage", () => {
@@ -51,6 +54,18 @@ describe("weekend bonus integration", () => {
     expect(octoberDailyPreview).toContain("rewardStars === 2");
     expect(octoberDailyPreview).toContain("compendium-weekend-bonus");
     expect(headingCss).toContain(".compendium-weekend-bonus");
+  });
+
+  it("vertically centers the daily heading and both bonus labels", () => {
+    expect(octoberCompendiumCss).toMatch(
+      /\.october-compendium-screen-daily \.compendium-section-heading\s*\{[^}]*align-items:\s*center;/,
+    );
+    expect(headingCss).toMatch(
+      /\.compendium-weekend-bonus span\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;[^}]*line-height:\s*1;/,
+    );
+    expect(headingCss).toMatch(
+      /\.compendium-weekend-bonus strong\s*\{[^}]*display:\s*flex;[^}]*align-items:\s*center;[^}]*line-height:\s*1;/,
+    );
   });
 
   it("renders the calculated reward inside every eligible challenge card", () => {
