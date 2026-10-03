@@ -16,7 +16,7 @@ describe("October star earning guide", () => {
         { id: "clan-outing", maxStars: 30 },
         { id: "rune-challenge", maxStars: 30 },
         { id: "star-race", maxStars: 62 },
-        { id: "league-rounds", maxStars: 9 },
+        { id: "league-rounds", maxStars: 18 },
         { id: "fastcups", maxStars: 12 },
       ]);
     expect(OCTOBER_STAR_EARNING_SOURCES.map((source) => source.rewardDetails)).toEqual([
@@ -39,8 +39,8 @@ describe("October star earning guide", () => {
       ],
       [
         { label: "Участие", stars: 1 },
-        { label: "Одна выигранная карта", stars: 2 },
-        { label: "Две выигранные карты", stars: 3 },
+        { label: "Одна выигранная карта", stars: 3 },
+        { label: "Две выигранные карты", stars: 6 },
       ],
       [
         { label: "1-е место", stars: 6 },
@@ -65,9 +65,9 @@ describe("October star earning guide", () => {
   });
 
   it("shows base, subscriber and absolute maximums", () => {
-    expect(OCTOBER_STANDARD_MAX_STARS).toBe(161);
-    expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(191);
-    expect(OCTOBER_ABSOLUTE_MAX_STARS).toBe(203);
+    expect(OCTOBER_STANDARD_MAX_STARS).toBe(170);
+    expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(200);
+    expect(OCTOBER_ABSOLUTE_MAX_STARS).toBe(212);
   });
 
   it("shows the organizer link editor beside an unlinked Fastcup", () => {

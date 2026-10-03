@@ -42,7 +42,8 @@ def test_compendium_announcement_uses_public_site_address(monkeypatch: pytest.Mo
     monkeypatch.setenv("PUBLIC_BASE_URL", "https://lsesports.ru/")
 
     message = compendium_announcement_text()
-    assert "около 17 000 ₽" in message
+    assert "~ 20 000 ₽" in message
+    assert "Компендиум уже открыт к просмотру" in message
     assert "Морбус" in message
     assert "Панацея" in message
     assert "#регистрация" in message

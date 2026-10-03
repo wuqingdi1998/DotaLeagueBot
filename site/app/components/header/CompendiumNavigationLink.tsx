@@ -32,7 +32,7 @@ export function CompendiumNavigationLink({
       <span
         className="header-navigation-link compendium-navigation-link is-locked"
         aria-disabled="true"
-        title="Компендиум откроется 3 октября в 21:00 МСК"
+        title="Компендиум откроется 3 октября в 22:30 МСК"
       >
         <span className="header-navigation-label">Компендиум</span>
       </span>

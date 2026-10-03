@@ -7,7 +7,9 @@ MEMBER_WELCOME_PREVIEW_EVENT_TYPE = "member_welcome_preview"
 SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = (
     "season_round_announcement_preview_moscow_time"
 )
-COMPENDIUM_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = "october_compendium_announcement_preview"
+COMPENDIUM_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = (
+    "october_compendium_announcement_preview_v2"
+)
 SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE = "season_round_check_in_reminder"
 REGISTRATION_CHANNEL_URL = (
     "https://discord.com/channels/328205360466755584/1457019432034504776"

@@ -1,6 +1,6 @@
 import { runeChallengeAccessRoleNames } from "./subscription-roles";
 
-export const OCTOBER_PUBLIC_LAUNCH_AT = "2026-10-03T21:00:00+03:00";
+export const OCTOBER_PUBLIC_LAUNCH_AT = "2026-10-03T22:30:00+03:00";
 export const OCTOBER_CLAN_FORMATION_AT = "2026-10-04T23:30:00+03:00";
 export const OCTOBER_CLAN_PUBLICATION_AT = "2026-10-05T00:00:00+03:00";
 export const OCTOBER_DAILY_OPENING_LABEL =

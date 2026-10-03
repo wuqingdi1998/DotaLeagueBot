@@ -40,6 +40,7 @@ describe("header navigation", () => {
   it("shows Compendium only for Discord users and unlocks its clan shimmer on schedule", () => {
     expect(header.match(/user && !user\.isStandaloneOrganizer/g)).toHaveLength(2);
     expect(compendiumNavigation).toContain("OCTOBER_PUBLIC_LAUNCH_AT");
+    expect(compendiumNavigation).toContain("3 октября в 22:30 МСК");
     expect(compendiumNavigation).toContain('aria-disabled="true"');
     expect(compendiumNavigation).toContain('className="compendium-navigation-link is-live"');
     expect(navigationStyles).toContain("#7d2526");

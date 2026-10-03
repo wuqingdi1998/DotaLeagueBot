@@ -1,6 +1,7 @@
 import { transaction } from "@/lib/db";
 import { syncSeasonFinalAwards } from "@/lib/season-final-awards";
 import { publishedLobbyResultValues } from "@/app/season-lobby/[matchId]/model/published-result";
+import { syncOctoberLeagueMatchStars } from "@/app/compendium/services/league-round-rewards";
 import { requiredId } from "./season-admin-model";
 
 export async function savePublishedLobbyResult(
@@ -73,6 +74,7 @@ export async function savePublishedLobbyResult(
        WHERE id = $1`,
       [seasonMatchId, teamAScore, teamBScore, calculated.result],
     );
+    await syncOctoberLeagueMatchStars(client, seasonMatchId);
     await client.query(
       `UPDATE season_match_rooms
        SET status = 'completed', updated_at = NOW()

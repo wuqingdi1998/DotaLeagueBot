@@ -200,7 +200,7 @@ jobs:
               "UPDATE notification_outbox
                SET status = '\''pending'\'', available_at = NOW()
                WHERE discord_id = 311247030422863882
-                 AND event_type = '\''october_compendium_announcement_preview'\''
+                 AND event_type = '\''october_compendium_announcement_preview_v2'\''
                  AND status = '\''cancelled'\''"'
 
             for attempt in $(seq 1 30); do
@@ -209,11 +209,11 @@ jobs:
                 "SELECT status
                  FROM notification_outbox
                  WHERE discord_id = 311247030422863882
-                   AND event_type = '\''october_compendium_announcement_preview'\''
+                   AND event_type = '\''october_compendium_announcement_preview_v2'\''
                  ORDER BY id DESC
                  LIMIT 1"')"
               if [ "$compendium_preview_status" = "sent" ]; then
-                echo "Delivered October compendium announcement preview to frokeng"
+                echo "Delivered corrected October compendium announcement preview to frokeng"
                 break
               fi
               if [ "$attempt" -eq 30 ]; then
@@ -222,7 +222,7 @@ jobs:
                   "SELECT status, attempts, last_error
                    FROM notification_outbox
                    WHERE discord_id = 311247030422863882
-                     AND event_type = '\''october_compendium_announcement_preview'\''
+                     AND event_type = '\''october_compendium_announcement_preview_v2'\''
                    ORDER BY id DESC
                    LIMIT 1"'
                 docker compose logs --tail=200 bot

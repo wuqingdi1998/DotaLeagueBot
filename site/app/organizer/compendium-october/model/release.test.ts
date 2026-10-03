@@ -10,8 +10,8 @@ import {
 
 describe("October compendium release schedule", () => {
   it.each([
-    ["2026-10-03T17:59:59.999Z", "hidden"],
-    ["2026-10-03T18:00:00.000Z", "reservation"],
+    ["2026-10-03T19:29:59.999Z", "hidden"],
+    ["2026-10-03T19:30:00.000Z", "reservation"],
     ["2026-10-04T20:29:59.999Z", "reservation"],
     ["2026-10-04T20:30:00.000Z", "formation"],
     ["2026-10-04T20:59:59.999Z", "formation"],
@@ -21,7 +21,7 @@ describe("October compendium release schedule", () => {
   });
 
   it("keeps the three public moments explicit", () => {
-    expect(OCTOBER_PUBLIC_LAUNCH_AT).toBe("2026-10-03T21:00:00+03:00");
+    expect(OCTOBER_PUBLIC_LAUNCH_AT).toBe("2026-10-03T22:30:00+03:00");
     expect(OCTOBER_CLAN_FORMATION_AT).toBe("2026-10-04T23:30:00+03:00");
     expect(OCTOBER_CLAN_PUBLICATION_AT).toBe("2026-10-05T00:00:00+03:00");
   });

@@ -1,6 +1,7 @@
 import { transaction } from "@/lib/db";
 import type { AuthUser } from "@/lib/auth";
 import { syncSeasonFinalAwards } from "@/lib/season-final-awards";
+import { syncOctoberLeagueMatchStars } from "@/app/compendium/services/league-round-rewards";
 import {
   isFinalSeasonGame,
   seasonSeriesScore,
@@ -150,6 +151,7 @@ export async function reportSeasonLobbyGameResult(
         score.result,
       ],
     );
+    await syncOctoberLeagueMatchStars(client, seasonMatchId);
     if (room.series_id !== null) {
       await client.query(
         `UPDATE draft_series

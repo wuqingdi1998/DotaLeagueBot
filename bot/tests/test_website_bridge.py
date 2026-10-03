@@ -28,7 +28,7 @@ COMPENDIUM_PREVIEW_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
     / "migrations"
-    / "0158_october_compendium_announcement_preview.sql"
+    / "0160_october_compendium_announcement_preview_v2.sql"
 )
 DEPLOYMENT = (
     Path(__file__).parents[2] / ".github" / "workflows" / "deploy.yml"
@@ -168,9 +168,9 @@ def test_compendium_preview_is_private_plain_text_and_released_after_deploy() ->
     )
 
     assert embed.title == "Предпросмотр анонса Компендиума"
-    assert "около 17 000 ₽" in (embed.description or "")
+    assert "~ 20 000 ₽" in (embed.description or "")
     assert migration.count("311247030422863882") == 2
     assert "'cancelled'" in migration
     assert "FROM players" not in migration
     assert "notification_outbox_embed(" in BRIDGE
-    assert "Delivered October compendium announcement preview to frokeng" in DEPLOYMENT
+    assert "Delivered corrected October compendium announcement preview to frokeng" in DEPLOYMENT

@@ -1,4 +1,9 @@
 import { QUEST_REWARD_STARS } from "@/app/compendium/model/constants";
+import {
+  OCTOBER_LEAGUE_REWARD_DETAILS,
+  OCTOBER_LEAGUE_ROUND_MAXIMUM_STARS,
+  OCTOBER_LEAGUE_ROUND_NUMBERS,
+} from "@/app/compendium/model/league-rewards";
 import { dailyChallengeRewardStars } from "@/app/compendium/model/weekend-bonus";
 import { fastCupOverviews } from "@/app/season/model/season-overview-model";
 import type { SeasonTournamentLinkId } from "@/app/season/model/season-overview-model";
@@ -31,9 +36,6 @@ export const OCTOBER_FASTCUP_PLACE_REWARDS = [
   { place: "other", stars: 1 },
 ] as const;
 
-export const OCTOBER_LEAGUE_ROUND_NUMBERS = [6, 7, 8] as const;
-const leagueRoundMaximumStars = 3;
-
 const octoberFastcupLinkIds = new Set(["fastcup-14", "cd-fastcup-8"]);
 const octoberFastcups = fastCupOverviews.filter(
   (fastcup) => octoberFastcupLinkIds.has(fastcup.linkId),
@@ -60,7 +62,9 @@ const dailyActivityStars = octoberDates.reduce(
 );
 const firstPlaceFastcupStars = OCTOBER_FASTCUP_PLACE_REWARDS[0].stars;
 const fastcupMaxStars = octoberFastcups.length * firstPlaceFastcupStars;
-const leagueRoundMaxStars = OCTOBER_LEAGUE_ROUND_NUMBERS.length * leagueRoundMaximumStars;
+const leagueRoundMaxStars = (
+  OCTOBER_LEAGUE_ROUND_NUMBERS.length * OCTOBER_LEAGUE_ROUND_MAXIMUM_STARS
+);
 const dailyBonusRewardDetails = [
   { label: `${standardRewardDays} обычных дней`, stars: QUEST_REWARD_STARS },
   {
@@ -72,11 +76,6 @@ const starRaceRewardDetails = raceWeekStars.map((stars, index) => ({
   label: `${index + 1}-я неделя`,
   stars,
 }));
-const leagueRewardDetails = [
-  { label: "Участие", stars: 1 },
-  { label: "Одна выигранная карта", stars: 2 },
-  { label: "Две выигранные карты", stars: leagueRoundMaximumStars },
-] as const;
 const fastcupRewardDetails = OCTOBER_FASTCUP_PLACE_REWARDS.map(({ place, stars }) => ({
   label: place === "other" ? "Остальные места" : `${place}-е место`,
   stars,
@@ -116,7 +115,7 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
     id: "league-rounds",
     title: "Туры сезонной лиги",
     description: "В период компендиума пройдут 6-й, 7-й и 8-й туры. Звёзды получает каждый сыгравший участник по результату своего матча.",
-    rewardDetails: leagueRewardDetails,
+    rewardDetails: OCTOBER_LEAGUE_REWARD_DETAILS,
     maxStars: leagueRoundMaxStars,
   },
   {
