@@ -12,8 +12,9 @@ const rewardsModel = source("../app/compendium/model/rewards.ts");
 const rewardsCss = source("../app/styles/38-compendium-rewards.css");
 
 describe("compendium interface contract", () => {
-  it("opens the finished compendium results for every visitor", () => {
+  it("opens the finished compendium results for signed-in participants", () => {
     expect(compendiumPage).toContain('redirect("/compendium/results")');
+    expect(compendiumPage).toContain('redirect("/login?returnTo=%2Fcompendium")');
   });
 
   it("dims pending rewards and labels received ones", () => {

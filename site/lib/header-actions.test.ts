@@ -20,19 +20,20 @@ const actionCompaction = readFileSync(
 const css = loadSiteStyles();
 
 describe("site header actions", () => {
-  it("places Boosty between the mobile menu and theme controls", () => {
+  it("places equal Discord and Boosty squares between the mobile menu and theme controls", () => {
     const actions = component.slice(
       component.indexOf('className="header-actions"'),
       component.indexOf("{user ? ("),
     );
 
-    expect(actions.indexOf("mobile-menu-button")).toBeLessThan(
-      actions.indexOf("boosty-button"),
-    );
+    expect(actions.indexOf("mobile-menu-button")).toBeLessThan(actions.indexOf("discord-community-button"));
+    expect(actions.indexOf("discord-community-button")).toBeLessThan(actions.indexOf("boosty-button"));
     expect(actions.indexOf("boosty-button")).toBeLessThan(
       actions.indexOf("theme-button"),
     );
     expect(actions).toContain('href="/boosty"');
+    expect(actions).toContain('aria-label="Открыть наш Discord"');
+    expect(headerCss).toMatch(/\.community-action-button\s*\{[^}]*width:\s*52px;[^}]*height:\s*52px;/);
   });
 
   it("opens the shared login page with a generic icon", () => {
@@ -48,12 +49,9 @@ describe("site header actions", () => {
     );
   });
 
-  it("collapses Boosty to an icon-sized mobile button", () => {
+  it("keeps Discord and Boosty as equal icon-sized mobile buttons", () => {
     expect(css).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*\.boosty-button\s*\{[^}]*width:\s*46px;[^}]*padding:\s*0;/,
-    );
-    expect(css).toMatch(
-      /\.boosty-button span\s*\{[^}]*display:\s*none;/,
+      /@media \(max-width:\s*760px\)[\s\S]*\.community-action-button\s*\{[^}]*width:\s*46px;[^}]*height:\s*46px;/,
     );
   });
 
@@ -71,7 +69,7 @@ describe("site header actions", () => {
     expect(actionCompaction).not.toContain("compactOrganizer");
     expect(headerCss).not.toContain("organizer-menu-button");
     expect(headerCss).toMatch(
-      /\[data-compact-boosty="true"\][\s\S]*\.boosty-button\s*\{[^}]*width:\s*46px;[^}]*padding:\s*0;/,
+      /\[data-compact-boosty="true"\][\s\S]*\.community-action-button\s*\{[^}]*width:\s*46px;[^}]*padding:\s*0;/,
     );
     expect(headerCss).toMatch(
       /\[data-compact-profile="true"\][\s\S]*\.player-profile-button\s*\{[^}]*width:\s*46px;/,

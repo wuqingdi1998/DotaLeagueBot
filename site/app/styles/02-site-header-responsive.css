@@ -106,15 +106,13 @@
     display: none;
   }
 
-  .boosty-button {
+  .community-action-button {
     width: 46px;
+    height: 46px;
+    flex-basis: 46px;
     min-height: 46px;
     padding: 0;
     border-radius: 12px;
-  }
-
-  .boosty-button span {
-    display: none;
   }
 
   .login-icon-discord {

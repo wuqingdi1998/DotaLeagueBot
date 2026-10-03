@@ -46,6 +46,13 @@
   backdrop-filter: blur(5px);
 }
 
+.compendium-exclusion-notice {
+  min-height: calc(100svh - 76px);
+  background:
+    radial-gradient(circle at 25% 20%, rgba(125, 37, 38, 0.17), transparent 36%),
+    radial-gradient(circle at 75% 80%, rgba(22, 125, 136, 0.17), transparent 38%);
+}
+
 .compendium-access-card {
   width: min(100%, 680px);
   border: 1px solid rgba(72, 205, 225, 0.44);

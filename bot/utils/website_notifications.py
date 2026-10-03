@@ -1,10 +1,13 @@
 import discord
 
+from services.compendium_announcement import compendium_announcement_text
+
 
 MEMBER_WELCOME_PREVIEW_EVENT_TYPE = "member_welcome_preview"
 SEASON_ROUND_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = (
     "season_round_announcement_preview_moscow_time"
 )
+COMPENDIUM_ANNOUNCEMENT_PREVIEW_EVENT_TYPE = "october_compendium_announcement_preview"
 SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE = "season_round_check_in_reminder"
 REGISTRATION_CHANNEL_URL = (
     "https://discord.com/channels/328205360466755584/1457019432034504776"
@@ -50,6 +53,8 @@ def notification_outbox_embed(
 ) -> discord.Embed:
     if event_type == MEMBER_WELCOME_PREVIEW_EVENT_TYPE:
         return member_welcome_embed()
+    if event_type == COMPENDIUM_ANNOUNCEMENT_PREVIEW_EVENT_TYPE:
+        return notification_embed(title, compendium_announcement_text(), None)
     if event_type == SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE:
         embed = notification_embed(title, message, None)
         if action_url:

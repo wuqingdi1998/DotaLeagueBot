@@ -16,6 +16,8 @@ import { loadOctoberClanReservationState } from "@/app/organizer/compendium-octo
 import { loadOctoberFormationStatus } from "@/app/organizer/compendium-october/services/clan-formation-repository";
 import { OctoberReleaseRefresh } from "@/app/organizer/compendium-october/components/OctoberReleaseRefresh";
 import { getSeasonTournamentLinks } from "@/app/season/services/season-tournament-links";
+import { CompendiumExclusionNotice } from "./components/CompendiumExclusionNotice";
+import { isExcludedFromCompendium } from "./services/participant-access";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +29,18 @@ export const metadata: Metadata = {
 export default async function CompendiumPage() {
   const now = new Date();
   const scheduledPhase = octoberCompendiumPhase(now);
-  if (scheduledPhase === "hidden") redirect("/compendium/results");
-
   const user = await getSession();
+  if (!user || user.isStandaloneOrganizer) {
+    redirect("/login?returnTo=%2Fcompendium");
+  }
+  if (scheduledPhase === "hidden") redirect("/compendium/results");
+  if (await isExcludedFromCompendium(user.discordId)) {
+    return (
+      <PlatformShell user={user} hasFooter={false}>
+        <CompendiumExclusionNotice />
+      </PlatformShell>
+    );
+  }
   const formationStatus = await loadOctoberFormationStatus();
   const visiblePhase = scheduledPhase === "published" && formationStatus !== "complete"
     ? "formation"
@@ -53,7 +64,7 @@ export default async function CompendiumPage() {
       <OctoberCompendiumPreview
         week={octoberRaceForMoment(now)}
         clanMembers={clanMembers}
-        viewerDiscordId={user?.discordId ?? ""}
+        viewerDiscordId={user.discordId}
         personalStars={0}
         reservation={reservation}
         areDailyQuestsOpen={scheduledPhase === "published" && formationStatus === "complete"}

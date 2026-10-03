@@ -138,27 +138,34 @@
   transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
 }
 
-.boosty-action-button {
+.community-action-button {
   display: inline-flex;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
   min-height: 52px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  border: 1px solid rgba(241, 95, 44, 0.5);
   border-radius: 15px;
-  padding: 0 17px;
+  padding: 0;
+  font-size: 22px;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.boosty-action-button {
+  border: 1px solid rgba(241, 95, 44, 0.5);
   background: rgba(241, 95, 44, 0.12);
   color: #e65322;
-  font-size: 15px;
-  font-weight: 800;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    color 160ms ease;
 }
 
 .boosty-button svg {
   font-size: 21px;
+}
+
+.discord-community-button {
+  border: 1px solid rgba(88, 101, 242, 0.5);
+  background: rgba(88, 101, 242, 0.12);
+  color: #5865f2;
 }
 
 .boosty-action-button:hover {
@@ -169,6 +176,14 @@
 
 [data-theme="dark"] .boosty-action-button {
   color: #ff8157;
+}
+
+[data-theme="dark"] .discord-community-button { color: #8f9aff; }
+
+.discord-community-button:hover {
+  border-color: #5865f2;
+  background: #5865f2;
+  color: #fff;
 }
 
 [data-theme="dark"] .boosty-action-button:hover {
@@ -387,17 +402,13 @@
 }
 
 @media (min-width: 1051px) {
-  .header-actions[data-compact-boosty="true"] .boosty-button {
+  .header-actions[data-compact-boosty="true"] .community-action-button {
     width: 46px;
     min-width: 46px;
     min-height: 46px;
     height: 46px;
     border-radius: 12px;
     padding: 0;
-  }
-
-  .header-actions[data-compact-boosty="true"] .boosty-button span {
-    display: none;
   }
 
   .header-actions[data-compact-profile="true"] .discord-login,
@@ -444,7 +455,7 @@
     gap: 10px;
   }
 
-  .boosty-button,
+  .community-action-button,
   .theme-button,
   .discord-login,
   .player-profile-button {
@@ -456,7 +467,6 @@
     padding: 0;
   }
 
-  .boosty-button span,
   .discord-login span,
   .player-profile-copy,
   .login-icon-discord {

@@ -74,7 +74,9 @@ describe("Boosty page", () => {
   });
 
   it("reuses the header Boosty button colors", () => {
-    expect(header).toContain('className="boosty-button boosty-action-button"');
+    expect(header).toContain(
+      'className="community-action-button boosty-button boosty-action-button"',
+    );
     expect(comparison).toContain(
       'className="boosty-external-button boosty-action-button"',
     );

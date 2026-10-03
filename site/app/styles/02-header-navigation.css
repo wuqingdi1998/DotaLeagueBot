@@ -92,6 +92,24 @@
   outline-offset: 2px;
 }
 
+.compendium-navigation-link.is-locked {
+  cursor: not-allowed;
+  color: var(--quiet);
+  filter: grayscale(1);
+}
+
+.compendium-navigation-link.is-live {
+  background: linear-gradient(105deg, #7d2526, #d66a54, #55d5cb, #167d88, #7d2526);
+  background-size: 260% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: compendium-clan-shimmer 4.5s linear infinite;
+}
+
+@keyframes compendium-clan-shimmer {
+  to { background-position: 260% 0; }
+}
+
 .header-navigation-animation {
   --navigation-animation-duration: 780ms;
   position: fixed;
@@ -158,4 +176,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header-navigation-animation { display: none; }
+  .compendium-navigation-link.is-live { animation: none; }
 }

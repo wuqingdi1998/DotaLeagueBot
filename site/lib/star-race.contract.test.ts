@@ -354,7 +354,7 @@ describe("compendium star race contract", () => {
   });
 
   it("identifies the checked player only through the signed-in session", () => {
-    expect(checkRoute).toContain("const user = await requireSession()");
+    expect(checkRoute).toContain("const user = await requireCompendiumParticipantSession()");
     expect(checkRoute).not.toContain("playerId");
   });
 

@@ -194,6 +194,43 @@ jobs:
               sleep 5
             done
 
+            # Release the requested private preview only after the updated bot is running.
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+              "UPDATE notification_outbox
+               SET status = '\''pending'\'', available_at = NOW()
+               WHERE discord_id = 311247030422863882
+                 AND event_type = '\''october_compendium_announcement_preview'\''
+                 AND status = '\''cancelled'\''"'
+
+            for attempt in $(seq 1 30); do
+              compendium_preview_status="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT status
+                 FROM notification_outbox
+                 WHERE discord_id = 311247030422863882
+                   AND event_type = '\''october_compendium_announcement_preview'\''
+                 ORDER BY id DESC
+                 LIMIT 1"')"
+              if [ "$compendium_preview_status" = "sent" ]; then
+                echo "Delivered October compendium announcement preview to frokeng"
+                break
+              fi
+              if [ "$attempt" -eq 30 ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT status, attempts, last_error
+                   FROM notification_outbox
+                   WHERE discord_id = 311247030422863882
+                     AND event_type = '\''october_compendium_announcement_preview'\''
+                   ORDER BY id DESC
+                   LIMIT 1"'
+                docker compose logs --tail=200 bot
+                exit 1
+              fi
+              sleep 3
+            done
+
             for attempt in $(seq 1 30); do
               preview_delivery="$(docker compose exec -T db sh -c \
                 'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \

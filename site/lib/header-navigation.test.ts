@@ -16,6 +16,10 @@ const navigationStyles = readFileSync(
   new URL("../app/styles/02-header-navigation.css", import.meta.url),
   "utf8",
 );
+const compendiumNavigation = readFileSync(
+  new URL("../app/components/header/CompendiumNavigationLink.tsx", import.meta.url),
+  "utf8",
+);
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -26,9 +30,21 @@ describe("header navigation", () => {
     );
   });
 
-  it("uses the shared navigation effect for Discord links", () => {
-    expect(header.match(/<HeaderNavigationLink/g)).toHaveLength(16);
-    expect(header.match(/target="_blank"/g)).toHaveLength(2);
+  it("moves Discord out of both navigation menus into one square action", () => {
+    expect(header.match(/<HeaderNavigationLink/g)).toHaveLength(12);
+    expect(header.match(/target="_blank"/g)).toHaveLength(1);
+    expect(header).not.toContain("Наш Discord");
+    expect(header).toContain("discord-community-button");
+  });
+
+  it("shows Compendium only for Discord users and unlocks its clan shimmer on schedule", () => {
+    expect(header.match(/user && !user\.isStandaloneOrganizer/g)).toHaveLength(2);
+    expect(compendiumNavigation).toContain("OCTOBER_PUBLIC_LAUNCH_AT");
+    expect(compendiumNavigation).toContain('aria-disabled="true"');
+    expect(compendiumNavigation).toContain('className="compendium-navigation-link is-live"');
+    expect(navigationStyles).toContain("#7d2526");
+    expect(navigationStyles).toContain("#55d5cb");
+    expect(navigationStyles).toContain("compendium-clan-shimmer");
   });
 
   it("sweeps a text-neutral light from top to bottom on hover", () => {

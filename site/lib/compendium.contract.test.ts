@@ -34,6 +34,8 @@ const questSetMaintenance = source(
 );
 const compendiumConstants = source("../app/compendium/model/constants.ts");
 const header = source("../app/components/SiteHeader.tsx");
+const compendiumPage = source("../app/compendium/page.tsx");
+const participantAccess = source("../app/compendium/services/participant-access.ts");
 const dashboard = source("../app/compendium/sections/CompendiumDashboard.tsx");
 const compendiumCss = source("../app/styles/33-compendium.css");
 const headingCss = source("../app/styles/35-compendium-heading.css");
@@ -123,7 +125,7 @@ describe("compendium persistence and security contract", () => {
   });
 
   it("identifies the rewarded player only through the server session", () => {
-    expect(checkRoute).toContain("const user = await requireSession()");
+    expect(checkRoute).toContain("const user = await requireCompendiumParticipantSession()");
     expect(checkRoute).not.toContain("userId");
   });
 
@@ -134,6 +136,14 @@ describe("compendium persistence and security contract", () => {
   it("keeps the finished compendium outside the public header navigation", () => {
     expect(header).not.toContain('href="/compendium/results"');
     expect(header).not.toContain("compendium-navigation-link");
+  });
+
+  it("hides the event before Discord login and excludes Massovka on the server", () => {
+    expect(compendiumPage).toContain('redirect("/login?returnTo=%2Fcompendium")');
+    expect(compendiumPage).toContain("isExcludedFromCompendium(user.discordId)");
+    expect(participantAccess).toContain('COMPENDIUM_EXCLUDED_ROLE_NAME = "Массовка"');
+    expect(participantAccess).toContain("player_discord_roles");
+    expect(participantAccess).toContain("status: 403");
   });
 
   it("shows the 2026 event and links its official Liquipedia page", () => {
@@ -332,7 +342,7 @@ describe("compendium persistence and security contract", () => {
   });
 
   it("locks participant and organizer prediction actions on the server", () => {
-    expect(predictionRoute).toContain("const user = await requireSession()");
+    expect(predictionRoute).toContain("const user = await requireCompendiumParticipantSession()");
     expect(predictionAdminRoute).toContain("await requireAdmin()");
     expect(predictionAdminPage).toContain("if (!user?.isAdmin) notFound()");
     expect(predictionRepository).toContain("FOR UPDATE");
@@ -403,7 +413,7 @@ describe("compendium persistence and security contract", () => {
   });
 
   it("identifies the reroll owner from the session and updates one card", () => {
-    expect(rerollRoute).toContain("const user = await requireSession()");
+    expect(rerollRoute).toContain("const user = await requireCompendiumParticipantSession()");
     expect(rerollRoute).not.toContain("userId");
     expect(dashboard).toContain("rerollsRemaining");
     expect(dashboard).toContain("quest.id === questId");
@@ -451,8 +461,8 @@ describe("compendium persistence and security contract", () => {
     expect(runeChallengeRepository).toContain("INTERVAL '7 days'");
     expect(runeChallengeService).toContain("findMatchingWin");
     expect(runeChallengeService).toContain("selection.selectedAt");
-    expect(runeChallengeSelectionRoute).toContain("requireSession()");
-    expect(runeChallengeCheckRoute).toContain("requireSession()");
+    expect(runeChallengeSelectionRoute).toContain("requireCompendiumParticipantSession()");
+    expect(runeChallengeCheckRoute).toContain("requireCompendiumParticipantSession()");
     expect(runeChallengeView).toContain("compendium-check-button");
     expect(runeChallengeView).toContain(
       "Выбор героя откроет для вас уникальное испытание",

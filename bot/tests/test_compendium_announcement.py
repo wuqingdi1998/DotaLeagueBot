@@ -41,11 +41,14 @@ class FakeGuild:
 def test_compendium_announcement_uses_public_site_address(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("PUBLIC_BASE_URL", "https://lsesports.ru/")
 
-    assert compendium_announcement_text() == (
-        "На сервере началась Гонка за звёздами! Выполняй ежедневные испытания, "
-        "лидеры недельного рейтинга выигрывают коллекционные сеты. "
-        "Компендиум: https://lsesports.ru/compendium"
-    )
+    message = compendium_announcement_text()
+    assert "около 17 000 ₽" in message
+    assert "Морбус" in message
+    assert "Панацея" in message
+    assert "#регистрация" in message
+    assert "Массовка" in message
+    assert "https://lsesports.ru/compendium" in message
+    assert len(message) <= 2000
 
 
 @pytest.mark.asyncio

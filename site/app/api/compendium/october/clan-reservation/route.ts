@@ -1,4 +1,5 @@
-import { responseFromAuthError, requireSession } from "@/lib/auth";
+import { responseFromAuthError } from "@/lib/auth";
+import { requireCompendiumParticipantSession } from "@/app/compendium/services/participant-access";
 import { OCTOBER_CLANS, type OctoberClanId } from "@/lib/october-clans";
 import { OctoberClanReservationError } from "@/app/organizer/compendium-october/model/clan-reservation";
 import { reserveOctoberClan } from "@/app/organizer/compendium-october/services/clan-reservations";
@@ -11,7 +12,7 @@ function isOctoberClanId(value: unknown): value is OctoberClanId {
 
 export async function POST(request: Request) {
   try {
-    const user = await requireSession();
+    const user = await requireCompendiumParticipantSession();
     const body = await request.json().catch(() => null) as {
       clanId?: unknown;
       organizerPreview?: unknown;

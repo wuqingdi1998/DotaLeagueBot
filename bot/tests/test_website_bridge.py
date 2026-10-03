@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from utils.website_notifications import (
+    COMPENDIUM_ANNOUNCEMENT_PREVIEW_EVENT_TYPE,
     MEMBER_WELCOME_PREVIEW_EVENT_TYPE,
     SEASON_ROUND_CHECKIN_REMINDER_EVENT_TYPE,
     member_welcome_embed,
@@ -22,6 +23,12 @@ SEASON_NINE_PREVIEW_MIGRATION = (
     / "database"
     / "migrations"
     / "0117_season_nine_direct_message_previews.sql"
+)
+COMPENDIUM_PREVIEW_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0158_october_compendium_announcement_preview.sql"
 )
 DEPLOYMENT = (
     Path(__file__).parents[2] / ".github" / "workflows" / "deploy.yml"
@@ -149,3 +156,21 @@ def test_season_nine_previews_are_limited_to_frokeng_and_use_masked_links() -> N
     assert "season_nine_registered_player_preview" in DEPLOYMENT
     assert "season_nine_unregistered_member_preview" in DEPLOYMENT
     assert "Delivered both season 9 direct message previews to frokeng" in DEPLOYMENT
+
+
+def test_compendium_preview_is_private_plain_text_and_released_after_deploy() -> None:
+    migration = COMPENDIUM_PREVIEW_MIGRATION.read_text(encoding="utf-8")
+    embed = notification_outbox_embed(
+        COMPENDIUM_ANNOUNCEMENT_PREVIEW_EVENT_TYPE,
+        "Предпросмотр анонса Компендиума",
+        "Этот текст не используется",
+        None,
+    )
+
+    assert embed.title == "Предпросмотр анонса Компендиума"
+    assert "около 17 000 ₽" in (embed.description or "")
+    assert migration.count("311247030422863882") == 2
+    assert "'cancelled'" in migration
+    assert "FROM players" not in migration
+    assert "notification_outbox_embed(" in BRIDGE
+    assert "Delivered October compendium announcement preview to frokeng" in DEPLOYMENT

@@ -7,6 +7,7 @@ type HeaderNavigationLinkProps = {
   href: string;
   isActive: boolean;
   children: ReactNode;
+  className?: string;
   endIcon?: ReactNode;
   beginNavigation: (link: HTMLAnchorElement) => void;
   onSelect?: () => void;
@@ -18,6 +19,7 @@ export function HeaderNavigationLink({
   href,
   isActive,
   children,
+  className,
   endIcon,
   beginNavigation,
   onSelect,
@@ -32,7 +34,7 @@ export function HeaderNavigationLink({
 
   return (
     <Link
-      className="header-navigation-link"
+      className={`header-navigation-link${className ? ` ${className}` : ""}`}
       href={href}
       prefetch={false}
       aria-current={isActive ? "page" : undefined}

@@ -2,10 +2,11 @@
 
 import { logoutAndReload } from "@/lib/logout-action";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FaDiscord } from "react-icons/fa";
 import { SiBoosty } from "react-icons/si";
 import { getAuthErrorMessage } from "@/lib/auth-error";
 import { useHeaderNavigation } from "./header/useHeaderNavigation";
@@ -15,10 +16,9 @@ import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
 import { ParticipantViewToggle } from "./ParticipantViewToggle";
 import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
-import { OCTOBER_PUBLIC_LAUNCH_AT } from "@/lib/october-compendium-release";
+import { CompendiumNavigationLink } from "./header/CompendiumNavigationLink";
 import {
   FiArrowRight,
-  FiArrowUpRight,
   FiLogIn,
   FiMenu,
   FiMoon,
@@ -93,7 +93,6 @@ export function SiteHeader({
   const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isCompendiumVisible, setIsCompendiumVisible] = useState(false);
   const isMobileMenuVisible = mobileMenuOpen || isMobileAnimation;
   const { actionsRef, headerRef, navigationRef } =
     useHeaderActionCompaction();
@@ -114,16 +113,6 @@ export function SiteHeader({
   const compendiumActive = pathname === "/compendium";
   const hasLongProfileName =
     (user?.serverName.length ?? 0) > longProfileNameLength;
-
-  useEffect(() => {
-    const launchAt = Date.parse(OCTOBER_PUBLIC_LAUNCH_AT);
-    const showCompendium = () => setIsCompendiumVisible(Date.now() >= launchAt);
-    showCompendium();
-    const delay = launchAt - Date.now();
-    if (delay <= 0) return;
-    const timer = window.setTimeout(showCompendium, delay + 250);
-    return () => window.clearTimeout(timer);
-  }, []);
 
   return (
     <header ref={headerRef} className="site-header platform-header">
@@ -168,14 +157,11 @@ export function SiteHeader({
         >
           Сезон
         </HeaderNavigationLink>
-        {isCompendiumVisible && (
-          <HeaderNavigationLink
+        {user && !user.isStandaloneOrganizer && (
+          <CompendiumNavigationLink
             beginNavigation={beginNavigation}
             isActive={compendiumActive}
-            href="/compendium"
-          >
-            Компендиум
-          </HeaderNavigationLink>
+          />
         )}
         <HeaderNavigationLink
           beginNavigation={beginNavigation}
@@ -198,16 +184,6 @@ export function SiteHeader({
         >
           Участники
         </HeaderNavigationLink>
-        <HeaderNavigationLink
-          beginNavigation={beginNavigation}
-          isActive={false}
-          href={discordUrl}
-          target="_blank"
-          rel="noreferrer"
-          endIcon={<FiArrowUpRight aria-hidden="true" />}
-        >
-          Наш Discord
-        </HeaderNavigationLink>
       </nav>
 
       <div className="header-actions" ref={actionsRef}>
@@ -224,13 +200,21 @@ export function SiteHeader({
         >
           {isMobileMenuVisible ? <FiX /> : <FiMenu />}
         </button>
+        <a
+          className="community-action-button discord-community-button"
+          href={discordUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Открыть наш Discord"
+        >
+          <FaDiscord aria-hidden="true" />
+        </a>
         <Link
-          className="boosty-button boosty-action-button"
+          className="community-action-button boosty-button boosty-action-button"
           href="/boosty"
           aria-label="Преимущества подписки Boosty"
         >
           <SiBoosty aria-hidden="true" />
-          <span>Boosty</span>
         </Link>
         <button
           className="theme-button"
@@ -383,15 +367,12 @@ export function SiteHeader({
           >
             Сезон
           </HeaderNavigationLink>
-          {isCompendiumVisible && (
-            <HeaderNavigationLink
+          {user && !user.isStandaloneOrganizer && (
+            <CompendiumNavigationLink
               beginNavigation={beginNavigation}
               isActive={compendiumActive}
-              href="/compendium"
               onSelect={() => setMobileMenuOpen(false)}
-            >
-              Компендиум
-            </HeaderNavigationLink>
+            />
           )}
           <HeaderNavigationLink
             beginNavigation={beginNavigation}
@@ -416,17 +397,6 @@ export function SiteHeader({
             onSelect={() => setMobileMenuOpen(false)}
           >
             Участники
-          </HeaderNavigationLink>
-          <HeaderNavigationLink
-            beginNavigation={beginNavigation}
-            isActive={false}
-            href={discordUrl}
-            target="_blank"
-            rel="noreferrer"
-            onSelect={() => setMobileMenuOpen(false)}
-            endIcon={<FiArrowUpRight aria-hidden="true" />}
-          >
-            Наш Discord
           </HeaderNavigationLink>
         </nav>
       )}

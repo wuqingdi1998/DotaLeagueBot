@@ -65,9 +65,11 @@ describe("finished compendium results contract", () => {
     expect(legacyPage).toContain("<OctoberCompendiumPreview");
   });
 
-  it("loads public results and optional personal progress", () => {
+  it("loads results only after Discord login and participant access check", () => {
     expect(resultsPage).toContain("getSession()");
-    expect(resultsPage).toContain("loadCompendiumResults(user?.discordId)");
+    expect(resultsPage).toContain('redirect("/login?returnTo=%2Fcompendium%2Fresults")');
+    expect(resultsPage).toContain("isExcludedFromCompendium(user.discordId)");
+    expect(resultsPage).toContain("loadCompendiumResults(user.discordId)");
     expect(resultsRepository).toContain("loadCompendiumLeaderboard()");
     expect(resultsRepository).toContain("STAR_RACE_WEEKS.map");
     expect(resultsRepository).toContain("compendium_user_quest_completions");
