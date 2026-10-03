@@ -122,6 +122,13 @@ OCTOBER_COMPENDIUM_RELEASE_MIGRATION = (
     / "0155_october_compendium_release.sql"
 ).read_text(encoding="utf-8")
 
+OCTOBER_COMPENDIUM_LAUNCH_CONTROL_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0157_october_compendium_launch_control.sql"
+).read_text(encoding="utf-8")
+
 TEST_SEASON_ROUND_TIME_FIX = (
     Path(__file__).parents[1]
     / "database"
@@ -702,6 +709,18 @@ def test_october_compendium_release_starts_with_empty_reservable_clans() -> None
     )
     assert "DELETE FROM october_compendium_clan_reservations" in (
         OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    )
+
+
+def test_october_compendium_launch_requires_an_organizer_decision() -> None:
+    assert "october_compendium_clan_assignment_drafts" in (
+        OCTOBER_COMPENDIUM_LAUNCH_CONTROL_MIGRATION
+    )
+    assert "'review', 'approved', 'cancelled'" in (
+        OCTOBER_COMPENDIUM_LAUNCH_CONTROL_MIGRATION
+    )
+    assert "october_compendium_launch_review" in (
+        OCTOBER_COMPENDIUM_LAUNCH_CONTROL_MIGRATION
     )
 
 

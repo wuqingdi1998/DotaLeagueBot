@@ -9,7 +9,7 @@ describe("October public release presentation", () => {
       <OctoberDailyPreview viewerDiscordId="viewer-1" isOpen={false} />,
     );
     expect(html.match(/class="october-daily-opening-overlay"/g)).toHaveLength(4);
-    expect(html.match(/Задание появится 6 октября в 00:00/g)).toHaveLength(4);
+    expect(html.match(/Задание появится 5 октября в 00:00/g)).toHaveLength(4);
     expect(html.match(/class="compendium-quest"/g)).toHaveLength(2);
     expect(html).toContain("compendium-heroes");
     expect(html).toContain("october-clan-quest-emblem");

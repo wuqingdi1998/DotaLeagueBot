@@ -56,7 +56,7 @@ export default async function CompendiumPage() {
         viewerDiscordId={user?.discordId ?? ""}
         personalStars={0}
         reservation={reservation}
-        areDailyQuestsOpen={scheduledPhase === "published"}
+        areDailyQuestsOpen={scheduledPhase === "published" && formationStatus === "complete"}
         dailyRewardStars={octoberDailyRewardStars(moscowDate)}
         isOrganizer={user?.isAdmin === true}
         tournamentLinks={tournamentLinks}

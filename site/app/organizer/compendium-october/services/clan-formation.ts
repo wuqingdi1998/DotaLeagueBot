@@ -1,29 +1,40 @@
 import { assignOctoberClans } from "../model/clan-assignment";
-import { OCTOBER_CLAN_FORMATION_AT } from "../model/release";
 import {
-  claimOctoberClanFormation,
-  completeOctoberClanFormation,
+  OCTOBER_CLAN_FORMATION_AT,
+  OCTOBER_CLAN_PUBLICATION_AT,
+} from "../model/release";
+import {
+  claimOctoberClanPreparation,
   failOctoberClanFormation,
   loadOctoberFormationCandidates,
 } from "./clan-formation-repository";
+import {
+  publishApprovedOctoberClans,
+  saveOctoberClanFormationDraft,
+} from "./clan-launch-repository";
 import { loadOctoberOpenDotaActivity } from "./opendota-clan-activity";
 
-export type OctoberFormationResult = {
-  status: "waiting" | "running" | "complete";
+export type OctoberPreparationResult = {
+  status: "waiting" | "preparing" | "ready";
   playerCount: number;
+  notifiedOrganizers: number;
 };
 
-export async function formOctoberClans(
+/** Builds the reviewable draft without publishing any clan membership. */
+export async function prepareOctoberClans(
   now: Date = new Date(),
-): Promise<OctoberFormationResult> {
+): Promise<OctoberPreparationResult> {
   if (now.getTime() < Date.parse(OCTOBER_CLAN_FORMATION_AT)) {
-    return { status: "waiting", playerCount: 0 };
+    return { status: "waiting", playerCount: 0, notifiedOrganizers: 0 };
   }
-  const claim = await claimOctoberClanFormation();
+  const claim = await claimOctoberClanPreparation();
   if (!claim.shouldRun) {
     return {
-      status: claim.status === "complete" ? "complete" : "running",
+      status: ["review", "approved", "cancelled", "complete"].includes(claim.status)
+        ? "ready"
+        : "preparing",
       playerCount: 0,
+      notifiedOrganizers: 0,
     };
   }
   try {
@@ -35,6 +46,7 @@ export async function formOctoberClans(
         return {
           discordId: candidate.discordId,
           reservation: candidate.reservation,
+          activityStatus: activity?.status ?? "unavailable",
           previousCompendiumStars: candidate.previousCompendiumStars,
           matchesLastThreeMonths: activity?.matchesLastThreeMonths ?? 0,
           rankedMatchesLastThreeMonths:
@@ -44,14 +56,27 @@ export async function formOctoberClans(
         };
       }),
     );
-    await completeOctoberClanFormation({
+    const notifiedOrganizers = await saveOctoberClanFormationDraft({
       candidates,
       activityByPlayer,
       assignments,
     });
-    return { status: "complete", playerCount: assignments.length };
+    return {
+      status: "ready",
+      playerCount: assignments.length,
+      notifiedOrganizers,
+    };
   } catch (error) {
     await failOctoberClanFormation(error);
     throw error;
   }
+}
+
+/** Publishes only an organizer-approved draft at or after the scheduled start. */
+export async function publishOctoberClans(now: Date = new Date()) {
+  if (now.getTime() < Date.parse(OCTOBER_CLAN_PUBLICATION_AT)) {
+    return { status: "waiting" as const };
+  }
+  const status = await publishApprovedOctoberClans();
+  return { status };
 }

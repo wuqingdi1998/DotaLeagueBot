@@ -1,12 +1,10 @@
+import { publishOctoberClans } from "@/app/organizer/compendium-october/services/clan-formation";
 import { compendiumInternalAuthError } from "@/lib/compendium-internal-auth";
-import { prepareOctoberClans } from "@/app/organizer/compendium-october/services/clan-formation";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 600;
 
 export async function POST(request: Request) {
   const authError = compendiumInternalAuthError(request);
   if (authError) return authError;
-  const result = await prepareOctoberClans();
-  return Response.json({ ok: true, ...result });
+  return Response.json({ ok: true, ...await publishOctoberClans() });
 }

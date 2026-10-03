@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FiArchive, FiDatabase } from "react-icons/fi";
+import { FiArchive, FiDatabase, FiPlayCircle } from "react-icons/fi";
 import {
   OCTOBER_PREVIEW_MAXIMUM_STARS,
   OCTOBER_PREVIEW_STARTED_PARAM,
@@ -44,6 +44,9 @@ export function OctoberPreviewProfileActions({
       </Link>
       <Link className="profile-popover-link" href="/organizer/compendium-october/base">
         База компендиума <FiDatabase aria-hidden="true" />
+      </Link>
+      <Link className="profile-popover-link" href="/organizer/compendium-october/launch">
+        Центр запуска <FiPlayCircle aria-hidden="true" />
       </Link>
       <label className="participant-view-toggle">
         <input

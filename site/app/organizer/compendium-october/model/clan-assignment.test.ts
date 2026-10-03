@@ -9,6 +9,7 @@ const player = (
 ) => ({
   discordId,
   reservation,
+  activityStatus: "available" as const,
   previousCompendiumStars,
   matchesLastThreeMonths: rankedMatches + 5,
   rankedMatchesLastThreeMonths: rankedMatches,

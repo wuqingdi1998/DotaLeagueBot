@@ -11,7 +11,7 @@ import {
 import { octoberDailyQuestSamples, octoberRacePreviewData } from "./preview";
 
 describe("October compendium draft", () => {
-  it("covers every Moscow day from October 6 through October 26 without gaps", () => {
+  it("covers every Moscow day from October 5 through October 25 without gaps", () => {
     expect(OCTOBER_COMPENDIUM_WEEKS).toHaveLength(3);
     expect(OCTOBER_COMPENDIUM_WEEKS[0].startsAt).toBe(OCTOBER_COMPENDIUM_START_AT);
     expect(OCTOBER_COMPENDIUM_WEEKS.at(-1)?.endsAt).toBe(OCTOBER_COMPENDIUM_END_AT);
@@ -33,7 +33,7 @@ describe("October compendium draft", () => {
       });
     });
     expect(dates).toEqual(Array.from({ length: 21 }, (_, index) =>
-      new Date(Date.UTC(2026, 9, 6 + index)).toISOString().slice(0, 10),
+      new Date(Date.UTC(2026, 9, 5 + index)).toISOString().slice(0, 10),
     ));
   });
 
@@ -102,11 +102,11 @@ describe("October compendium draft", () => {
   });
 
   it("switches the preview at the exact start of each week", () => {
-    expect(octoberRaceForMoment(new Date("2026-10-05T20:59:59.999Z")))
+    expect(octoberRaceForMoment(new Date("2026-10-04T20:59:59.999Z")))
       .toBe(OCTOBER_COMPENDIUM_WEEKS[0]);
-    expect(octoberRaceForMoment(new Date("2026-10-12T21:00:00.000Z")))
+    expect(octoberRaceForMoment(new Date("2026-10-11T21:00:00.000Z")))
       .toBe(OCTOBER_COMPENDIUM_WEEKS[1]);
-    expect(octoberRaceForMoment(new Date("2026-10-19T21:00:00.000Z")))
+    expect(octoberRaceForMoment(new Date("2026-10-18T21:00:00.000Z")))
       .toBe(OCTOBER_COMPENDIUM_WEEKS[2]);
   });
 

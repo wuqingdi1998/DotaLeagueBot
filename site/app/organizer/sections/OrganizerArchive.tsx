@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FiArrowRight, FiAward, FiBookOpen, FiStar } from "react-icons/fi";
+import { FiArrowRight, FiAward, FiBookOpen, FiPlayCircle, FiStar } from "react-icons/fi";
 import { OCTOBER_COMPENDIUM_DATE_LABEL } from "../compendium-october/model/plan";
 
 const archivePages = [
@@ -23,6 +23,13 @@ const archivePages = [
     description: `Закрытый план на ${OCTOBER_COMPENDIUM_DATE_LABEL}: три недели, задания и гонки за звёздами.`,
     icon: FiStar,
     badge: "Будущий апдейт",
+  },
+  {
+    href: "/organizer/compendium-october/launch",
+    title: "Центр запуска",
+    description: "Отчёт о распределении кланов и ваше решение о запуске 5 октября.",
+    icon: FiPlayCircle,
+    badge: "Решение организатора",
   },
 ] as const;
 

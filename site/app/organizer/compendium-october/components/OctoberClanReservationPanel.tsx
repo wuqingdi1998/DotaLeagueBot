@@ -41,7 +41,7 @@ export function OctoberClanReservationPanel({
         throw new Error(result.error ?? "Не удалось забронировать место");
       }
       setState(result.reservation);
-      setMessage("Место забронировано. До 4 октября 23:50 клан можно изменить.");
+      setMessage("Место забронировано. До 4 октября 23:30 клан можно изменить.");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось забронировать место");
@@ -54,14 +54,14 @@ export function OctoberClanReservationPanel({
     return (
       <div className="october-clan-reservation is-formation" role="status">
         <FiClock aria-hidden="true" />
-        <div><strong>Бронирование закрыто</strong><span>Формируем сбалансированные составы. Они появятся в 00:00 по московскому времени.</span></div>
+        <div><strong>Бронирование закрыто</strong><span>Предварительное распределение проверяет организатор. Составы и задания появятся только после подтверждения запуска.</span></div>
       </div>
     );
   }
   return (
     <div className="october-clan-reservation">
       <div className="october-clan-reservation-copy">
-        <strong>Ранний выбор клана до 4 октября 23:50 МСК</strong>
+        <strong>Ранний выбор клана до 4 октября 23:30 МСК</strong>
         <span>
           Забронировать место могут владельцы Рун Регенерации, Ускорения,
           Невидимости, Волшебства, Иллюзий и Усиления урона, а также владельцы

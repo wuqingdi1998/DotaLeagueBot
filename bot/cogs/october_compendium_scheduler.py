@@ -13,18 +13,26 @@ from services.site_scheduler_client import (
 
 
 MOSCOW_TIME_ZONE = ZoneInfo("Europe/Moscow")
-FORMATION_START = datetime.datetime(
+PREPARATION_START = datetime.datetime(
+    2026,
+    10,
+    4,
+    23,
+    30,
+    tzinfo=MOSCOW_TIME_ZONE,
+)
+PUBLICATION_START = datetime.datetime(
     2026,
     10,
     5,
-    23,
-    50,
+    0,
+    0,
     tzinfo=MOSCOW_TIME_ZONE,
 )
-FORMATION_RETRY_END = datetime.datetime(
+PUBLICATION_RETRY_END = datetime.datetime(
     2026,
     10,
-    6,
+    5,
     0,
     30,
     tzinfo=MOSCOW_TIME_ZONE,
@@ -34,64 +42,65 @@ FORMATION_RETRY_END = datetime.datetime(
 class OctoberCompendiumScheduler(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        self.is_complete = False
+        self.is_prepared = False
+        self.is_finished = False
         self.request_lock = asyncio.Lock()
-        self.start_formation.start()
-        self.retry_formation.start()
+        self.run_schedule.start()
 
     async def cog_unload(self) -> None:
-        self.start_formation.cancel()
-        self.retry_formation.cancel()
+        self.run_schedule.cancel()
 
-    async def request_formation(self) -> None:
+    async def request_site(self, path: str) -> dict[str, object] | None:
         if self.request_lock.locked():
-            return
+            return None
         async with self.request_lock:
             try:
-                payload = await post_site_scheduler_request(
-                    "/api/internal/compendium-october/form-clans",
-                    timeout_seconds=600,
-                )
+                return await post_site_scheduler_request(path, timeout_seconds=600)
             except SiteSchedulerConfigurationError:
-                print("⚠️ Формирование октябрьских кланов не настроено.")
-                return
+                print("⚠️ Управляемый запуск октябрьского Компендиума не настроен.")
             except Exception as error:
-                print(f"⚠️ Не удалось сформировать октябрьские кланы: {error}")
-                return
-            if payload.get("status") == "complete":
-                self.is_complete = True
-                print(
-                    "✅ Октябрьские кланы сформированы. "
-                    f"Участников: {payload.get('playerCount', 0)}."
-                )
+                print(f"⚠️ Не удалось выполнить этап запуска Компендиума: {error}")
+        return None
 
-    @tasks.loop(
-        time=datetime.time(hour=23, minute=50, tzinfo=MOSCOW_TIME_ZONE)
-    )
-    async def start_formation(self) -> None:
-        if datetime.datetime.now(MOSCOW_TIME_ZONE).date() != FORMATION_START.date():
-            return
-        await self.request_formation()
+    async def prepare_report(self) -> None:
+        payload = await self.request_site(
+            "/api/internal/compendium-october/prepare-launch"
+        )
+        if payload and payload.get("status") == "ready":
+            self.is_prepared = True
+            print(
+                "✅ Отчёт по распределению октябрьских кланов готов. "
+                f"Участников: {payload.get('playerCount', 0)}."
+            )
 
-    @start_formation.before_loop
-    async def before_start_formation(self) -> None:
-        await self.bot.wait_until_ready()
+    async def publish_approved_launch(self) -> None:
+        payload = await self.request_site(
+            "/api/internal/compendium-october/publish-launch"
+        )
+        if payload and payload.get("status") in {"published", "cancelled"}:
+            self.is_finished = True
+            print(f"✅ Решение по запуску Компендиума: {payload.get('status')}.")
 
     @tasks.loop(seconds=30)
-    async def retry_formation(self) -> None:
-        if self.is_complete:
-            self.retry_formation.cancel()
+    async def run_schedule(self) -> None:
+        if self.is_finished:
+            self.run_schedule.cancel()
             return
         now = datetime.datetime.now(MOSCOW_TIME_ZONE)
-        if now < FORMATION_START:
+        if now < PREPARATION_START:
             return
-        if now >= FORMATION_RETRY_END:
-            self.retry_formation.cancel()
+        if not self.is_prepared:
+            await self.prepare_report()
             return
-        await self.request_formation()
+        if now < PUBLICATION_START:
+            return
+        if now >= PUBLICATION_RETRY_END:
+            self.run_schedule.cancel()
+            return
+        await self.publish_approved_launch()
 
-    @retry_formation.before_loop
-    async def before_retry_formation(self) -> None:
+    @run_schedule.before_loop
+    async def before_run_schedule(self) -> None:
         await self.bot.wait_until_ready()
 
 
