@@ -234,7 +234,7 @@
 
 .october-clan-standings-compact .october-clan-standing-row--compact {
   height: auto;
-  flex: 1 1 0;
+  flex: 0 0 auto;
 }
 
 .october-clan-standing-row--current {

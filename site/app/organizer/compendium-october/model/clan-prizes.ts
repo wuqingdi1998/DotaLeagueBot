@@ -79,7 +79,7 @@ const dollOfTheDeadPrize = {
 const mantleOfTheCinderBaronPrize = {
   name: "Mantle of the Cinder Baron",
   imagePath: "/compendium/october/mantle-of-the-cinder-baron.png",
-  approximateValue: "277 ₽",
+  approximateValue: "300 ₽",
   hasLargePreview: true,
 } as const;
 

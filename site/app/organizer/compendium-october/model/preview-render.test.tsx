@@ -70,11 +70,11 @@ describe("October preview actions", () => {
     expect(html.match(/href="#october-section-/g)).toHaveLength(4);
   });
 
-  it("uses the section dots instead of a duplicate desktop scrollbar", () => {
+  it("supports section scrolling without showing a desktop scrollbar", () => {
     expect(previewStyles).toContain(".october-compendium-preview::-webkit-scrollbar"); expect(previewStyles).toContain(".october-compendium-screen::-webkit-scrollbar");
     expect(previewStyles).toContain("body:has(.october-compendium-preview)");
-    expect(previewStyles).toMatch(/\.october-compendium-preview\s*\{[^}]*overflow:\s*hidden;/); expect(previewStyles).toMatch(/\.october-compendium-screen\s*\{[^}]*overflow:\s*hidden;/);
-    expect(previewStyles).not.toMatch(/\.october-compendium-preview\s*\{[^}]*overflow-y:\s*auto;/); expect(previewStyles).toContain(".october-section-navigation");
+    expect(previewStyles).toMatch(/\.october-compendium-preview\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;[^}]*scroll-snap-type:\s*y mandatory;/); expect(previewStyles).toMatch(/\.october-compendium-screen\s*\{[^}]*overflow:\s*hidden;[^}]*scroll-snap-align:\s*start;/);
+    expect(previewStyles).toContain(".october-section-navigation"); expect(previewStyles).toContain("scroll-snap-stop: always");
   });
 
   it("shows the new five-step personal track without the old community tally", () => {
@@ -165,7 +165,7 @@ describe("October preview actions", () => {
       "winners:7:Steam Gift Card на 500 ₽:500 ₽",
       "runners-up:1:Doll of the Dead:700 ₽",
       "runners-up:2:Steam Gift Card на 500 ₽:500 ₽",
-      "runners-up:3:Mantle of the Cinder Baron:277 ₽",
+      "runners-up:3:Mantle of the Cinder Baron:300 ₽",
       "winners:8:Frostmoot:500 ₽",
       "winners:9:Almond the Frondillo:300 ₽",
       "winners:10:The Igneous Stone:300 ₽",
@@ -438,7 +438,7 @@ describe("October preview actions", () => {
     );
     expect(clanStyles).toMatch(
       /\.october-clan-standing-row--compact\s*\{[^}]*padding:\s*2px 12px 2px 6px;[^}]*font-size:\s*13px;/,
-    );
+    ); expect(clanStyles).toMatch(/\.october-clan-standings-compact \.october-clan-standing-row--compact\s*\{[^}]*flex:\s*0 0 auto;/);
     expect(clanStyles).toMatch(
       /\.october-clan-standing-row--compact \.october-clan-standing-avatar\s*\{[^}]*width:\s*30px;[^}]*height:\s*30px;/,
     );

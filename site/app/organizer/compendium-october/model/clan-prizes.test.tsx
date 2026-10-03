@@ -98,7 +98,7 @@ describe("October clan prizes", () => {
     )).toEqual([
       "1:Doll of the Dead:700 ₽",
       "2:Steam Gift Card на 500 ₽:500 ₽",
-      "3:Mantle of the Cinder Baron:277 ₽",
+      "3:Mantle of the Cinder Baron:300 ₽",
       "4:Golden Bloodfeather Feast:200 ₽",
       "5:Steam Gift Card на 100 ₽:100 ₽",
       "6:Steam Gift Card на 100 ₽:100 ₽",

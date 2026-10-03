@@ -8,9 +8,11 @@
   .october-compendium-preview {
     height: calc(100dvh - 76px);
     padding-bottom: 0;
-    overflow: hidden;
+    overflow-y: auto;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
+    scrollbar-width: none;
+    scroll-snap-type: y mandatory;
   }
 
   .october-compendium-preview::-webkit-scrollbar {
@@ -24,6 +26,8 @@
     justify-content: flex-start;
     padding-block: 0;
     overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .october-compendium-screen::-webkit-scrollbar {
