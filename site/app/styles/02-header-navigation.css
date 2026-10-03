@@ -99,15 +99,27 @@
 }
 
 .compendium-navigation-link.is-live {
-  background: linear-gradient(105deg, #7d2526, #d66a54, #55d5cb, #167d88, #7d2526);
-  background-size: 260% 100%;
-  background-clip: text;
-  color: transparent;
-  animation: compendium-clan-shimmer 4.5s linear infinite;
+  --navigation-active: #fff;
+  border-color: rgba(122, 226, 218, 0.62);
+  background: linear-gradient(
+    110deg,
+    #681f26 0%,
+    #a8433f 28%,
+    #246f73 64%,
+    #124e59 100%
+  );
+  background-size: 180% 100%;
+  color: #fff;
+  box-shadow:
+    0 7px 18px rgba(72, 34, 43, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  text-shadow: 0 1px 2px rgba(12, 24, 28, 0.78);
+  animation: compendium-clan-shimmer 8s ease-in-out infinite alternate;
 }
 
 @keyframes compendium-clan-shimmer {
-  to { background-position: 260% 0; }
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
 }
 
 .header-navigation-animation {
@@ -176,5 +188,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header-navigation-animation { display: none; }
-  .compendium-navigation-link.is-live { animation: none; }
+  .compendium-navigation-link.is-live {
+    background-position: 50% 50%;
+    animation: none;
+  }
 }

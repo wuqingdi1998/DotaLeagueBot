@@ -45,7 +45,7 @@ describe("header navigation", () => {
     expect(header).toContain("discord-community-button");
   });
 
-  it("shows Compendium only for Discord users and unlocks its clan shimmer on schedule", () => {
+  it("shows Compendium only for Discord users and unlocks its clan badge on schedule", () => {
     expect(header.match(/user && !user\.isStandaloneOrganizer/g)).toHaveLength(2);
     expect(compendiumNavigation).toContain("OCTOBER_PUBLIC_LAUNCH_AT");
     expect(compendiumNavigation).toContain("3 октября в 22:30 МСК");
@@ -58,9 +58,18 @@ describe("header navigation", () => {
     );
     expect(compendiumNavigation).toContain('aria-disabled="true"');
     expect(compendiumNavigation).toContain('className="compendium-navigation-link is-live"');
-    expect(navigationStyles).toContain("#7d2526");
-    expect(navigationStyles).toContain("#55d5cb");
+    expect(navigationStyles).toContain("#681f26");
+    expect(navigationStyles).toContain("#246f73");
     expect(navigationStyles).toContain("compendium-clan-shimmer");
+    expect(navigationStyles).toMatch(
+      /\.compendium-navigation-link\.is-live\s*\{[^}]*background:\s*linear-gradient[^}]*color:\s*#fff;/,
+    );
+    expect(navigationStyles).not.toMatch(
+      /\.compendium-navigation-link\.is-live\s*\{[^}]*background-clip:\s*text;/,
+    );
+    expect(navigationStyles).not.toMatch(
+      /\.compendium-navigation-link\.is-live\s*\{[^}]*color:\s*transparent;/,
+    );
   });
 
   it("sweeps a text-neutral light from top to bottom on hover", () => {
