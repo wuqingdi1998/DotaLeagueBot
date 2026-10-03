@@ -307,7 +307,15 @@
   gap: 5px;
 }
 
-.player-profile-copy strong {
+.player-profile-name-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+.player-profile-name-row > strong {
+  min-width: 0;
   overflow: hidden;
   font-size: 16px;
   line-height: 1.15;
@@ -315,7 +323,7 @@
   white-space: nowrap;
 }
 
-.player-profile-button.has-long-name .player-profile-copy strong {
+.player-profile-button.has-long-name .player-profile-name-row > strong {
   font-size: 13px;
 }
 
@@ -340,7 +348,7 @@
   box-shadow: var(--shadow);
 }
 
-.player-profile-popover > strong {
+.player-profile-popover > .player-profile-name-row {
   color: var(--text);
   font-size: 15px;
 }

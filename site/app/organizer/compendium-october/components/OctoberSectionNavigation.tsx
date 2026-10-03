@@ -1,32 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
 
 export function OctoberSectionNavigation() {
   const [activeId, setActiveId] = useState<string>(OCTOBER_PREVIEW_SECTIONS[0].id);
 
-  useEffect(() => {
+  function openSection(sectionId: string) {
     const scrollRoot = document.getElementById("october-compendium-scroll");
-    if (!scrollRoot) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((first, second) => second.intersectionRatio - first.intersectionRatio)[0];
-        if (visible) setActiveId(visible.target.id);
-      },
-      { root: scrollRoot, threshold: [0.25, 0.5, 0.75] },
-    );
-
-    for (const section of OCTOBER_PREVIEW_SECTIONS) {
-      const element = document.getElementById(section.id);
-      if (element) observer.observe(element);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+    const section = document.getElementById(sectionId);
+    if (!scrollRoot || !section) return;
+    setActiveId(sectionId);
+    scrollRoot.scrollTo({ top: section.offsetTop, behavior: "smooth" });
+    window.history.replaceState(null, "", `#${sectionId}`);
+  }
 
   return (
     <nav className="october-section-navigation" aria-label="Разделы компендиума">
@@ -37,7 +24,10 @@ export function OctoberSectionNavigation() {
           aria-label={section.label}
           aria-current={activeId === section.id ? "step" : undefined}
           title={section.label}
-          onClick={() => setActiveId(section.id)}
+          onClick={(event) => {
+            event.preventDefault();
+            openSection(section.id);
+          }}
         />
       ))}
     </nav>

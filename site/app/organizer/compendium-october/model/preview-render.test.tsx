@@ -73,8 +73,8 @@ describe("October preview actions", () => {
   it("uses the section dots instead of a duplicate desktop scrollbar", () => {
     expect(previewStyles).toContain(".october-compendium-preview::-webkit-scrollbar"); expect(previewStyles).toContain(".october-compendium-screen::-webkit-scrollbar");
     expect(previewStyles).toContain("body:has(.october-compendium-preview)");
-    expect(previewStyles).toContain("scrollbar-width: none");
-    expect(previewStyles).toContain(".october-section-navigation");
+    expect(previewStyles).toMatch(/\.october-compendium-preview\s*\{[^}]*overflow:\s*hidden;/); expect(previewStyles).toMatch(/\.october-compendium-screen\s*\{[^}]*overflow:\s*hidden;/);
+    expect(previewStyles).not.toMatch(/\.october-compendium-preview\s*\{[^}]*overflow-y:\s*auto;/); expect(previewStyles).toContain(".october-section-navigation");
   });
 
   it("shows the new five-step personal track without the old community tally", () => {
@@ -109,12 +109,12 @@ describe("October preview actions", () => {
     expect(html).not.toContain(">Морбус</strong>");
   });
 
-  it("keeps clan profile badges the same size as the TI 2026 badge", () => {
+  it("gives reward previews enough room while keeping the real profile badge compact", () => {
     expect(profileStyles).toMatch(
       /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;/,
     );
     expect(rewardStyles).toMatch(
-      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*122px;[^}]*height:\s*58px;[^}]*grid-template-columns:\s*42px minmax\(0, 1fr\);[^}]*overflow:\s*hidden;/,
+      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*128px;[^}]*height:\s*64px;[^}]*grid-template-columns:\s*48px minmax\(0, 1fr\);[^}]*overflow:\s*hidden;/,
     );
     expect(profileStyles).toMatch(
       /\.profile-event-badge-clan\s*\{[^}]*grid-template-columns:\s*36px minmax\(0, 1fr\);[^}]*padding:\s*5px 0 5px 5px;/,
@@ -377,7 +377,7 @@ describe("October preview actions", () => {
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: flex-start;[\s\S]*?padding-bottom: 22px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
     );
     expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*overflow-y: hidden;/);
     expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");

@@ -12,7 +12,7 @@ export function OctoberClanBadge({
 }: {
   clanId?: OctoberClanId;
   dotaId?: string | null;
-  display?: "default" | "profile";
+  display?: "default" | "header" | "profile";
 }) {
   const context = useContext(OctoberClanBadgeContext);
   if (!context.isActive) return null;
@@ -22,9 +22,7 @@ export function OctoberClanBadge({
 
   return (
     <span
-      className={`october-clan-name-badge october-clan-name-badge--${clan.id}${
-        display === "profile" ? " october-clan-name-badge--profile" : ""
-      }`}
+      className={`october-clan-name-badge october-clan-name-badge--${clan.id} october-clan-name-badge--${display}`}
       aria-label={`Клан «${clan.name}»`}
       title={`Клан «${clan.name}»`}
     >
@@ -32,8 +30,8 @@ export function OctoberClanBadge({
         className="october-clan-name-badge-image"
         src={clan.emblem}
         alt=""
-        width={display === "profile" ? 56 : 28}
-        height={display === "profile" ? 56 : 28}
+        width={display === "profile" ? 56 : display === "header" ? 22 : 28}
+        height={display === "profile" ? 56 : display === "header" ? 22 : 28}
       />
     </span>
   );

@@ -124,7 +124,7 @@ describe("site header actions", () => {
     expect(component).toContain("longProfileNameLength");
     expect(component).toContain("has-long-name");
     expect(headerCss).toMatch(
-      /\.player-profile-button\.has-long-name \.player-profile-copy strong\s*\{[^}]*font-size:\s*13px;/,
+      /\.player-profile-button\.has-long-name \.player-profile-name-row > strong\s*\{[^}]*font-size:\s*13px;/,
     );
   });
 });

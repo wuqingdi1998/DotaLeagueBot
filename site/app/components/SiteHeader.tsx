@@ -271,10 +271,12 @@ export function SiteHeader({
                 }
               />
               <span className="player-profile-copy">
-                <strong>
-                  {user.serverName}
-                  {!user.isStandaloneOrganizer && <OctoberClanBadge dotaId={user.dotaId} />}
-                </strong>
+                <span className="player-profile-name-row">
+                  <strong>{user.serverName}</strong>
+                  {!user.isStandaloneOrganizer && (
+                    <OctoberClanBadge dotaId={user.dotaId} display="header" />
+                  )}
+                </span>
                 <small>
                   {user.isStandaloneOrganizer
                     ? "Серверная сессия"
@@ -287,10 +289,12 @@ export function SiteHeader({
             )}
             {profileOpen && (
               <div className="player-profile-popover">
-                <strong>
-                  {user.serverName}
-                  {!user.isStandaloneOrganizer && <OctoberClanBadge dotaId={user.dotaId} />}
-                </strong>
+                <span className="player-profile-name-row">
+                  <strong>{user.serverName}</strong>
+                  {!user.isStandaloneOrganizer && (
+                    <OctoberClanBadge dotaId={user.dotaId} display="header" />
+                  )}
+                </span>
                 {user.isStandaloneOrganizer ? (
                   <>
                     <span>Вход по паролю организатора</span>

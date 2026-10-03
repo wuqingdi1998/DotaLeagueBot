@@ -1,4 +1,7 @@
 .october-clan-name-badge {
+  --clan-badge-edge: rgba(255, 255, 255, 0.28);
+  --clan-badge-bright: #355663;
+  --clan-badge-dark: #102733;
   display: inline-flex;
   width: 34px;
   height: 34px;
@@ -7,9 +10,11 @@
   justify-content: center;
   margin-left: 7px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.28);
+  isolation: isolate;
+  border: 1px solid var(--clan-badge-edge);
   border-radius: 50%;
   vertical-align: middle;
+  background: radial-gradient(circle at 42% 34%, var(--clan-badge-bright), var(--clan-badge-dark) 72%);
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.48);
 }
 
@@ -21,13 +26,28 @@
 }
 
 .october-clan-name-badge--morbus {
-  border-color: rgba(255, 129, 92, 0.68);
-  background: radial-gradient(circle at 42% 34%, #8e2923, #3c1015 72%);
+  --clan-badge-edge: rgba(255, 129, 92, 0.78);
+  --clan-badge-bright: #9f332a;
+  --clan-badge-dark: #351015;
 }
 
 .october-clan-name-badge--panacea {
-  border-color: rgba(107, 238, 224, 0.68);
-  background: radial-gradient(circle at 42% 34%, #167f88, #0a3a4b 72%);
+  --clan-badge-edge: rgba(107, 238, 224, 0.78);
+  --clan-badge-bright: #168792;
+  --clan-badge-dark: #0a3442;
+}
+
+.october-clan-name-badge--header {
+  width: 26px;
+  height: 26px;
+  flex-basis: 26px;
+  margin-left: 0;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.42);
+}
+
+.october-clan-name-badge--header .october-clan-name-badge-image {
+  width: 22px;
+  height: 22px;
 }
 
 .october-clan-name-badge--profile {

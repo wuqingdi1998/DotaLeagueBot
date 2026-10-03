@@ -219,13 +219,11 @@
 .compendium-star-race-prize-preview {
   position: fixed;
   z-index: 1000;
-  display: grid;
-  gap: 8px;
+  display: grid; gap: 0; overflow: hidden;
   width: min(380px, 74vw);
-  padding: 8px;
+  padding: 7px; background: linear-gradient(145deg, var(--surface), var(--surface-soft));
   border: 1px solid color-mix(in srgb, var(--star-race-gold) 55%, transparent);
   border-radius: 16px;
-  background: var(--surface);
   box-shadow: var(--shadow);
   pointer-events: none;
   transform: translateX(-50%);
@@ -236,7 +234,7 @@
 }
 
 .compendium-star-race-prize-preview > strong {
-  padding: 0 6px 4px;
+  padding: 11px 8px 6px;
   color: var(--text);
   font-size: 14px;
   text-align: center;
@@ -247,8 +245,10 @@
   width: 100%;
   height: min(300px, 62vh);
   max-height: 360px;
-  border-radius: 10px;
-  object-fit: contain;
+  border: 1px solid color-mix(in srgb, var(--star-race-gold) 28%, transparent);
+  border-radius: 11px;
+  background: #071217;
+  object-fit: cover;
 }
 
 .compendium-star-race-quests {
