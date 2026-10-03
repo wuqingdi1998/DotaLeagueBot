@@ -640,40 +640,6 @@ jobs:
               sleep 3
             done
 
-            for attempt in $(seq 1 360); do
-              compendium_campaign_status="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT status
-                 FROM october_compendium_announcement_campaigns
-                 WHERE campaign_key = '\''october-compendium-launch'\''"')"
-              if [ "$compendium_campaign_status" = "completed" ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT campaign.discovered_member_count,
-                          campaign.skipped_bot_count,
-                          campaign.skipped_excluded_count,
-                          COUNT(*) FILTER (WHERE recipient.status = '\''sent'\'') AS sent,
-                          COUNT(*) FILTER (WHERE recipient.status = '\''failed'\'') AS failed
-                   FROM october_compendium_announcement_campaigns campaign
-                   LEFT JOIN october_compendium_announcement_recipients recipient
-                     ON recipient.campaign_id = campaign.id
-                   WHERE campaign.campaign_key = '\''october-compendium-launch'\''
-                   GROUP BY campaign.id"'
-                break
-              fi
-              if [ "$attempt" -eq 360 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT status, discovered_member_count, skipped_bot_count,
-                          skipped_excluded_count, updated_at
-                   FROM october_compendium_announcement_campaigns
-                   WHERE campaign_key = '\''october-compendium-launch'\''"'
-                docker compose logs --tail=300 bot
-                exit 1
-              fi
-              sleep 5
-            done
-
             uncovered_lobby_notifications="$(docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
               "SELECT COUNT(*)
@@ -715,6 +681,41 @@ jobs:
 
             docker image prune --force
             docker compose ps
+      - name: Verify October Compendium announcement delivery
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          command_timeout: 35m
+          script: |
+            set -euo pipefail
+            cd /root/DotaLeagueBot
+            for attempt in $(seq 1 360); do
+              status="$(docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+                "SELECT status FROM october_compendium_announcement_campaigns
+                 WHERE campaign_key = '\''october-compendium-launch'\''"')"
+              if [ "$status" = "completed" ]; then
+                docker compose exec -T db sh -c \
+                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                  "SELECT campaign.discovered_member_count,
+                          campaign.skipped_bot_count,
+                          campaign.skipped_excluded_count,
+                          COUNT(*) FILTER (WHERE recipient.status = '\''sent'\'') AS sent,
+                          COUNT(*) FILTER (WHERE recipient.status = '\''failed'\'') AS failed
+                   FROM october_compendium_announcement_campaigns campaign
+                   LEFT JOIN october_compendium_announcement_recipients recipient
+                     ON recipient.campaign_id = campaign.id
+                   WHERE campaign.campaign_key = '\''october-compendium-launch'\''
+                   GROUP BY campaign.id"'
+                exit 0
+              fi
+              sleep 5
+            done
+            docker compose logs --tail=300 bot
+            exit 1
       - name: Verify public site externally
         run: |
           set -euo pipefail
