@@ -10,8 +10,10 @@ import type { OctoberClanReservationState } from "../model/clan-reservation";
 
 export function OctoberClanReservationPanel({
   initialState,
+  isOrganizerPreview = false,
 }: {
   initialState: OctoberClanReservationState;
+  isOrganizerPreview?: boolean;
 }) {
   const router = useRouter();
   const [state, setState] = useState(initialState);
@@ -28,7 +30,7 @@ export function OctoberClanReservationPanel({
         {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ clanId }),
+          body: JSON.stringify({ clanId, organizerPreview: isOrganizerPreview }),
         },
       );
       const result = await response.json() as {

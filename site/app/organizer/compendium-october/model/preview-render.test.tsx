@@ -71,7 +71,8 @@ describe("October preview actions", () => {
   });
 
   it("uses the section dots instead of a duplicate desktop scrollbar", () => {
-    expect(previewStyles).toContain(".october-compendium-preview::-webkit-scrollbar");
+    expect(previewStyles).toContain(".october-compendium-preview::-webkit-scrollbar"); expect(previewStyles).toContain(".october-compendium-screen::-webkit-scrollbar");
+    expect(previewStyles).toContain("body:has(.october-compendium-preview)");
     expect(previewStyles).toContain("scrollbar-width: none");
     expect(previewStyles).toContain(".october-section-navigation");
   });

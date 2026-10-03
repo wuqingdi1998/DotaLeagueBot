@@ -16,6 +16,7 @@ import { OctoberCompendiumPreview } from "./sections/OctoberCompendiumPreview";
 import { loadOctoberClanReservationState } from "./services/clan-reservations";
 import { currentMoscowDay } from "@/app/compendium/model/time";
 import { octoberCompendiumPhase, octoberDailyRewardStars } from "./model/release";
+import { octoberReservationForStartedPreview } from "./model/clan-reservation";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +60,10 @@ export default async function OctoberCompendiumPage({
         clanMembers={clanMembers}
         viewerDiscordId={user.discordId}
         personalStars={personalStars}
-        reservation={reservation}
+        reservation={octoberReservationForStartedPreview(reservation, isTournamentStarted)}
         areDailyQuestsOpen={isTournamentStarted}
         dailyRewardStars={octoberDailyRewardStars(currentMoscowDay(now).dateKey)}
+        isOrganizerPreview
       />
     </PlatformShell>
   );

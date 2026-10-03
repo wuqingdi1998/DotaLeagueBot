@@ -115,7 +115,8 @@ describe("October compendium draft", () => {
     expect(profileActions).toContain("Показать 120 звёзд");
     expect(profileActions).toContain("Турнир стартовал");
     expect(page).toContain("isTournamentStarted");
-    expect(page).toContain("reservation={reservation}");
+    expect(page).toContain("octoberReservationForStartedPreview(reservation, isTournamentStarted)");
+    expect(page).toContain("isOrganizerPreview");
     expect(page).not.toContain('phase: "published"');
     expect(preview).not.toContain("Архив организатора");
     expect(preview).not.toContain("compendium-base-floating-link");

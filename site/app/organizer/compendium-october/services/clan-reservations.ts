@@ -66,8 +66,12 @@ export async function reserveOctoberClan(
   playerId: string,
   clanId: OctoberClanId,
   now: Date = new Date(),
+  options: { allowBeforeLaunch?: boolean } = {},
 ): Promise<OctoberClanReservationState> {
-  if (octoberCompendiumPhase(now) !== "reservation") {
+  const phase = octoberCompendiumPhase(now);
+  const isReservationOpen = phase === "reservation"
+    || (phase === "hidden" && options.allowBeforeLaunch === true);
+  if (!isReservationOpen) {
     throw new OctoberClanReservationError(
       "RESERVATION_CLOSED",
       "Бронирование мест уже закрыто",

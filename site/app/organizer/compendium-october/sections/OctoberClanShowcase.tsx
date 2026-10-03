@@ -9,10 +9,12 @@ export function OctoberClanShowcase({
   members = [],
   viewerDiscordId,
   reservation,
+  isOrganizerPreview = false,
 }: {
   members?: readonly OctoberClanMember[];
   viewerDiscordId?: string;
   reservation?: OctoberClanReservationState;
+  isOrganizerPreview?: boolean;
 }) {
   return (
     <section className="october-clan-showcase" aria-label="Клановый зачёт">
@@ -21,6 +23,7 @@ export function OctoberClanShowcase({
         <OctoberClanReservationPanel
           key={reservation.phase}
           initialState={reservation}
+          isOrganizerPreview={isOrganizerPreview}
         />
       )}
 

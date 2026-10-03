@@ -40,6 +40,20 @@ describe("October public release presentation", () => {
     expect(source).not.toContain("В вашем профиле нет подходящей руны");
   });
 
+  it("allows only an administrator preview to reserve before public launch", () => {
+    const route = readFileSync(
+      new URL("../../../api/compendium/october/clan-reservation/route.ts", import.meta.url),
+      "utf8",
+    );
+    const panel = readFileSync(
+      new URL("../components/OctoberClanReservationPanel.tsx", import.meta.url),
+      "utf8",
+    );
+    expect(route).toContain("body.organizerPreview === true && user.isAdmin");
+    expect(route).toContain("allowBeforeLaunch");
+    expect(panel).toContain("organizerPreview: isOrganizerPreview");
+  });
+
   it("resets the reservation preview when the organizer changes the tournament phase", () => {
     const source = readFileSync(
       new URL("../sections/OctoberClanShowcase.tsx", import.meta.url),

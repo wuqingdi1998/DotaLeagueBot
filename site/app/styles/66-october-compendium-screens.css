@@ -1,6 +1,10 @@
 .october-section-navigation { display: none; }
 
 @media (min-width: 961px) and (min-height: 700px) {
+  body:has(.october-compendium-preview) {
+    overflow: hidden;
+  }
+
   .october-compendium-preview {
     height: calc(100dvh - 76px);
     padding-bottom: 0;
@@ -22,8 +26,13 @@
     justify-content: flex-start;
     padding-block: 0;
     overflow-y: auto;
+    scrollbar-width: none;
     scroll-snap-align: start;
     scroll-snap-stop: always;
+  }
+
+  .october-compendium-screen::-webkit-scrollbar {
+    display: none;
   }
 
   .october-compendium-screen-daily {

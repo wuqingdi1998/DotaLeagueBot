@@ -12,11 +12,19 @@ function isOctoberClanId(value: unknown): value is OctoberClanId {
 export async function POST(request: Request) {
   try {
     const user = await requireSession();
-    const body = await request.json().catch(() => null) as { clanId?: unknown } | null;
+    const body = await request.json().catch(() => null) as {
+      clanId?: unknown;
+      organizerPreview?: unknown;
+    } | null;
     if (!isOctoberClanId(body?.clanId)) {
       return Response.json({ error: "Выберите существующий клан" }, { status: 400 });
     }
-    const reservation = await reserveOctoberClan(user.discordId, body.clanId);
+    const reservation = await reserveOctoberClan(
+      user.discordId,
+      body.clanId,
+      new Date(),
+      { allowBeforeLaunch: body.organizerPreview === true && user.isAdmin },
+    );
     return Response.json({ ok: true, reservation });
   } catch (error) {
     if (error instanceof OctoberClanReservationError) {

@@ -17,6 +17,7 @@ export function OctoberCompendiumPreview({
   reservation,
   areDailyQuestsOpen = true,
   dailyRewardStars = 1,
+  isOrganizerPreview = false,
 }: {
   week: OctoberCompendiumWeekDefinition;
   clanMembers: readonly OctoberClanMember[];
@@ -25,6 +26,7 @@ export function OctoberCompendiumPreview({
   reservation?: OctoberClanReservationState;
   areDailyQuestsOpen?: boolean;
   dailyRewardStars?: 1 | 2;
+  isOrganizerPreview?: boolean;
 }) {
   return (
     <main className="compendium-page october-compendium-preview" id="october-compendium-scroll">
@@ -48,6 +50,7 @@ export function OctoberCompendiumPreview({
             members={clanMembers}
             viewerDiscordId={viewerDiscordId}
             reservation={reservation}
+            isOrganizerPreview={isOrganizerPreview}
           />
         </div>
       </section>

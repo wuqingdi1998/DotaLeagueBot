@@ -9,6 +9,18 @@ export type OctoberClanReservationState = {
   selectedClanId: OctoberClanId | null;
 };
 
+export function octoberReservationForStartedPreview(
+  state: OctoberClanReservationState,
+  isTournamentStarted: boolean,
+): OctoberClanReservationState {
+  if (!isTournamentStarted || state.phase !== "hidden") return state;
+  return {
+    ...state,
+    phase: "reservation",
+    canReserve: state.isAuthenticated && state.accessRoleName !== null,
+  };
+}
+
 export class OctoberClanReservationError extends Error {
   constructor(
     readonly code: "RESERVATION_CLOSED" | "RUNE_REQUIRED",
