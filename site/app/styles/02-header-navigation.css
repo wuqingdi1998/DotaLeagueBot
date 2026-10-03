@@ -117,6 +117,10 @@
   animation: compendium-clan-shimmer 8s ease-in-out infinite alternate;
 }
 
+.compendium-navigation-link.is-live[aria-current="page"] {
+  border-radius: 13px 13px 0 0;
+}
+
 @keyframes compendium-clan-shimmer {
   from { background-position: 0% 50%; }
   to { background-position: 100% 50%; }

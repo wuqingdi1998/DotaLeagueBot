@@ -70,6 +70,9 @@ describe("header navigation", () => {
     expect(navigationStyles).not.toMatch(
       /\.compendium-navigation-link\.is-live\s*\{[^}]*color:\s*transparent;/,
     );
+    expect(navigationStyles).toMatch(
+      /\.compendium-navigation-link\.is-live\[aria-current="page"\]\s*\{[^}]*border-radius:\s*13px 13px 0 0;/,
+    );
   });
 
   it("sweeps a text-neutral light from top to bottom on hover", () => {
