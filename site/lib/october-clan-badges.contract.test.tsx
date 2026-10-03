@@ -4,26 +4,29 @@ import { describe, expect, it } from "vitest";
 import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
 import { OctoberClanBadgeContext } from "@/app/components/october-clan-badges/OctoberClanBadgesProvider";
 import {
-  OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS,
   octoberClanBadgeDirectoryMode,
 } from "./october-clan-badge-directory";
 
 describe("temporary October clan badges", () => {
-  it("switches test badges to assigned clans and removes them after the event", () => {
+  it("uses reservations before assignment and removes badges after the event", () => {
     expect(octoberClanBadgeDirectoryMode(new Date("2026-10-01T20:59:59.999Z")))
       .toBe("hidden");
     expect(octoberClanBadgeDirectoryMode(new Date("2026-10-01T21:00:00.000Z")))
-      .toBe("test");
+      .toBe("reservation");
     expect(octoberClanBadgeDirectoryMode(new Date("2026-10-04T20:59:59.999Z")))
-      .toBe("test");
+      .toBe("reservation");
     expect(octoberClanBadgeDirectoryMode(new Date("2026-10-04T21:00:00.000Z")))
       .toBe("assigned");
     expect(octoberClanBadgeDirectoryMode(new Date("2026-10-25T21:00:00.000Z")))
       .toBe("hidden");
-    expect(OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS).toEqual({
-      "170929900": "panacea",
-      "301109815": "morbus",
-    });
+    const source = readFileSync(
+      new URL("./october-clan-badge-directory.ts", import.meta.url),
+      "utf8",
+    );
+    expect(source).toContain("october_compendium_clan_reservations");
+    expect(source).not.toContain("OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS");
+    expect(source).not.toContain('"170929900"');
+    expect(source).not.toContain('"301109815"');
   });
 
   it("renders the assigned clan emblem to the right of a nickname", () => {
@@ -66,5 +69,7 @@ describe("temporary October clan badges", () => {
     expect(plan).toContain("/compendium/october/dota-plus-one-month.png");
     expect(prizePreview).toContain("createPortal");
     expect(prizePreview).toContain('placement: "above" | "below"');
+    expect(prizePreview).toContain('fill');
+    expect(prizePreview).not.toContain('height={436}');
   });
 });

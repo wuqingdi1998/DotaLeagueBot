@@ -29,7 +29,7 @@ export function StarRacePrizePreview({
     const bounds = anchor.getBoundingClientRect();
     const viewportPadding = 12;
     const previewWidth = Math.min(220, window.innerWidth - viewportPadding * 2);
-    const previewHeight = Math.min(200, window.innerHeight - viewportPadding * 2);
+    const previewHeight = Math.min(240, window.innerHeight - viewportPadding * 2);
     const placement = bounds.top >= previewHeight + viewportPadding
       ? "above"
       : "below";
@@ -93,8 +93,8 @@ export function StarRacePrizePreview({
             <Image
               src={prize.imageUrl}
               alt={prize.title}
-              width={480}
-              height={436}
+              fill
+              sizes="200px"
               unoptimized
             />
           </span>

@@ -13,7 +13,6 @@ import {
   octoberClanTotalPoints,
   rankOctoberClanMembers,
 } from "../model/clan-standings";
-import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
 
 function participantCountLabel(count: number) {
   const lastTwoDigits = count % 100;
@@ -65,7 +64,6 @@ function StandingRow({
         </span>
         <span className="october-clan-standing-name">
           {member.playerName}
-          <OctoberClanBadge clanId={member.clanId} />
         </span>
         {member.isReserved && <span className="october-clan-standing-reserved">Бронь</span>}
         {isCurrentPlayer && <span className="october-clan-standing-you">Вы</span>}

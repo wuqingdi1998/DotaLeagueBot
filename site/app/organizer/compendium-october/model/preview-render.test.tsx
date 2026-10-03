@@ -258,11 +258,11 @@ describe("October preview actions", () => {
     expect(html).toContain(">Вы</span>");
     expect(html.match(/class="october-clan-identity"/g)).toHaveLength(2);
     expect(html).toContain("4 очка у клана Морбус");
+    expect(html).not.toContain("october-clan-name-badge");
     expect(html.indexOf("Полный зачёт клана")).toBeLessThan(html.indexOf("october-clan-card-copy"));
     expect(html).not.toContain("Клан 01");
     expect(html).not.toContain("Клан 02");
   });
-
   it("keeps only ten leaders on each clan card and the complete list in its dialog", () => {
     const members: OctoberClanMember[] = Array.from({ length: 12 }, (_, index) => ({
       discordId: String(index + 1),

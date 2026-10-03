@@ -81,7 +81,7 @@ describe("October compendium draft", () => {
       /\.compendium-star-race-prize-preview\s*\{[^}]*width:\s*min\(220px,/,
     );
     expect(styles).toMatch(
-      /\.compendium-star-race-prize-image\s*\{[^}]*height:\s*100px;/,
+      /\.compendium-star-race-prize-image\s*\{[^}]*height:\s*auto;[^}]*aspect-ratio:\s*3 \/ 2;/,
     );
     expect(styles).toMatch(
       /\.compendium-star-race-prize-image img\s*\{[^}]*object-fit:\s*contain;/,
