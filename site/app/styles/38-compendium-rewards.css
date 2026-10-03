@@ -340,7 +340,7 @@
 
 .profile-event-badge-reward {
   position: relative;
-  display: inline-flex;
+  display: inline-flex; width: 128px; height: 64px; flex: 0 0 128px;
   border-radius: 12px;
   outline: none;
 }

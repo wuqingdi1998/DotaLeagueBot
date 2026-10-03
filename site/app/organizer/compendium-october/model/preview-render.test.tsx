@@ -114,7 +114,7 @@ describe("October preview actions", () => {
       /\.profile-event-badge\s*\{[^}]*width:\s*100px;[^}]*height:\s*48px;/,
     );
     expect(rewardStyles).toMatch(
-      /\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*128px;[^}]*height:\s*64px;[^}]*grid-template-columns:\s*48px minmax\(0, 1fr\);[^}]*overflow:\s*hidden;/,
+      /\.profile-event-badge-reward\s*\{[^}]*width:\s*128px;[^}]*height:\s*64px;[^}]*flex:\s*0 0 128px;[\s\S]*?\.profile-event-badge-clan-reward\s*\{[^}]*width:\s*128px;[^}]*height:\s*64px;[^}]*grid-template-columns:\s*48px minmax\(0, 1fr\);[^}]*overflow:\s*hidden;/,
     );
     expect(profileStyles).toMatch(
       /\.profile-event-badge-clan\s*\{[^}]*grid-template-columns:\s*36px minmax\(0, 1fr\);[^}]*padding:\s*5px 0 5px 5px;/,
