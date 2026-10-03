@@ -37,7 +37,7 @@ export function OctoberStarEarningGuide() {
             <div>
               <span>Правила компендиума</span>
               <h2 id={titleId}>Все способы получить звёзды</h2>
-              <p>5–25 октября · максимум рассчитан за все 21 день</p>
+              <p>6–26 октября · максимум рассчитан за все 21 день</p>
             </div>
             <button
               type="button"

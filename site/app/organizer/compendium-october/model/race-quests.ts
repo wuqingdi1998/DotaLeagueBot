@@ -40,37 +40,37 @@ function raceQuest(
 
 export const OCTOBER_FIRST_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
   raceQuest(
-    "2026-10-05", "Первый шаг",
+    "2026-10-06", "Первый шаг",
     "Выиграйте один рейтинговый матч на любом герое.", 2,
     { kind: "ranked-wins", requiredWins: 1 },
   ),
   raceQuest(
-    "2026-10-06", "Давление на линии",
+    "2026-10-07", "Давление на линии",
     "Нанесите суммарно 15 000 урона строениям в победных рейтинговых матчах за день.", 2,
     { kind: "winning-building-damage", targetDamage: 15_000 },
   ),
   raceQuest(
-    "2026-10-07", "Передовая",
+    "2026-10-08", "Передовая",
     "Выиграйте рейтинговый матч на Axe, Earthshaker, Sven, Tidehunter, Mars или Primal Beast.", 2,
     { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [2, 7, 18, 29, 129, 137] },
   ),
   raceQuest(
-    "2026-10-08", "Десятка",
+    "2026-10-09", "Десятка",
     "Сделайте не менее 10 убийств в одном победном рейтинговом матче на любом герое.", 2,
     { kind: "ranked-win-stat", heroIds: null, stat: "kills", minimum: 10 },
   ),
   raceQuest(
-    "2026-10-09", "Дальний бой",
+    "2026-10-10", "Дальний бой",
     "Нанесите суммарно 30 000 урона героям в победных рейтинговых матчах на Drow Ranger, Shadow Fiend, Lina, Sniper, Luna или Muerta.", 2,
     { kind: "cumulative-ranked-win-stat", heroIds: [6, 11, 25, 35, 48, 138], stat: "hero_damage", target: 30_000 },
   ),
   raceQuest(
-    "2026-10-10", "Быстрый выходной",
+    "2026-10-11", "Быстрый выходной",
     "Выиграйте один матч в режиме Turbo.", 2,
     { kind: "game-mode-win", gameMode: 23 },
   ),
   raceQuest(
-    "2026-10-11", "Финишный дубль",
+    "2026-10-12", "Финишный дубль",
     "Выиграйте два рейтинговых матча за день.", 3,
     { kind: "ranked-wins", requiredWins: 2 },
   ),
@@ -78,37 +78,37 @@ export const OCTOBER_FIRST_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = 
 
 export const OCTOBER_SECOND_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
   raceQuest(
-    "2026-10-12", "Новый круг",
+    "2026-10-13", "Новый круг",
     "Выиграйте два рейтинговых матча за день.", 3,
     { kind: "ranked-wins", requiredWins: 2 },
   ),
   raceQuest(
-    "2026-10-13", "Осада",
+    "2026-10-14", "Осада",
     "Нанесите суммарно 20 000 урона строениям в победных рейтинговых матчах за день.", 3,
     { kind: "winning-building-damage", targetDamage: 20_000 },
   ),
   raceQuest(
-    "2026-10-14", "Командная работа",
+    "2026-10-15", "Командная работа",
     "Выиграйте рейтинговый матч на Crystal Maiden, Lion, Shadow Shaman, Witch Doctor, Warlock или Oracle.", 3,
     { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [5, 26, 27, 30, 37, 111] },
   ),
   raceQuest(
-    "2026-10-15", "Серия убийств",
+    "2026-10-16", "Серия убийств",
     "Сделайте не менее 15 убийств в одном победном рейтинговом матче на любом герое.", 3,
     { kind: "ranked-win-stat", heroIds: null, stat: "kills", minimum: 15 },
   ),
   raceQuest(
-    "2026-10-16", "Герои схватки",
+    "2026-10-17", "Герои схватки",
     "Нанесите суммарно 40 000 урона героям в победных рейтинговых матчах на Pudge, Storm Spirit, Queen of Pain, Phantom Assassin, Templar Assassin или Ember Spirit.", 3,
     { kind: "cumulative-ranked-win-stat", heroIds: [14, 17, 39, 44, 46, 106], stat: "hero_damage", target: 40_000 },
   ),
   raceQuest(
-    "2026-10-17", "Турбо-суббота",
+    "2026-10-18", "Турбо-воскресенье",
     "Выиграйте один матч в режиме Turbo.", 3,
     { kind: "game-mode-win", gameMode: 23 },
   ),
   raceQuest(
-    "2026-10-18", "Два героя",
+    "2026-10-19", "Два героя",
     "Выиграйте по одному рейтинговому матчу на двух разных героях из списка: Anti-Mage, Juggernaut, Shadow Fiend, Faceless Void, Luna, Ursa.", 4,
     { kind: "distinct-hero-wins", requiredDistinctWins: 2, heroIds: [1, 8, 11, 41, 48, 70] },
   ),
@@ -116,37 +116,37 @@ export const OCTOBER_SECOND_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] =
 
 export const OCTOBER_THIRD_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
   raceQuest(
-    "2026-10-19", "Решающий отрезок",
+    "2026-10-20", "Решающий отрезок",
     "Выиграйте два рейтинговых матча за день.", 3,
     { kind: "ranked-wins", requiredWins: 2 },
   ),
   raceQuest(
-    "2026-10-20", "До трона",
+    "2026-10-21", "До трона",
     "Нанесите суммарно 25 000 урона строениям в победных рейтинговых матчах за день.", 3,
     { kind: "winning-building-damage", targetDamage: 25_000 },
   ),
   raceQuest(
-    "2026-10-21", "Сильный матч",
+    "2026-10-22", "Сильный матч",
     "Нанесите не менее 30 000 урона героям в одном победном рейтинговом матче на любом герое.", 3,
     { kind: "ranked-win-stat", heroIds: null, stat: "hero_damage", minimum: 30_000 },
   ),
   raceQuest(
-    "2026-10-22", "Два лица магии",
+    "2026-10-23", "Два лица магии",
     "Выиграйте по одному рейтинговому матчу на двух разных героях из списка: Puck, Storm Spirit, Windranger, Lina, Invoker, Void Spirit.", 4,
     { kind: "distinct-hero-wins", requiredDistinctWins: 2, heroIds: [13, 17, 21, 25, 74, 126] },
   ),
   raceQuest(
-    "2026-10-23", "Несокрушимые",
+    "2026-10-24", "Несокрушимые",
     "Нанесите суммарно 45 000 урона героям в победных рейтинговых матчах на Axe, Sven, Tiny, Slardar, Dragon Knight или Legion Commander.", 4,
     { kind: "cumulative-ranked-win-stat", heroIds: [2, 18, 19, 28, 49, 104], stat: "hero_damage", target: 45_000 },
   ),
   raceQuest(
-    "2026-10-24", "Последняя передышка",
+    "2026-10-25", "Последняя передышка",
     "Выиграйте один матч в режиме Turbo.", 3,
     { kind: "game-mode-win", gameMode: 23 },
   ),
   raceQuest(
-    "2026-10-25", "Финальный рывок",
+    "2026-10-26", "Финальный рывок",
     "Выиграйте три рейтинговых матча за день.", 5,
     { kind: "ranked-wins", requiredWins: 3 },
   ),

@@ -9,7 +9,7 @@ SOURCE = (
 def test_october_clan_formation_starts_at_exact_moscow_time() -> None:
     assert "ZoneInfo(\"Europe/Moscow\")" in SOURCE
     assert "hour=23, minute=50" in SOURCE
-    assert "2026,\n    10,\n    4,\n    23,\n    50" in SOURCE
+    assert "2026,\n    10,\n    5,\n    23,\n    50" in SOURCE
     assert '"/api/internal/compendium-october/form-clans"' in SOURCE
 
 

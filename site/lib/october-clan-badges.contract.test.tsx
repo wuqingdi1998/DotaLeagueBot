@@ -14,11 +14,11 @@ describe("temporary October clan badges", () => {
       .toBe("hidden");
     expect(octoberClanBadgeDirectoryMode(new Date("2026-10-01T21:00:00.000Z")))
       .toBe("test");
-    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-04T20:59:59.999Z")))
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-05T20:59:59.999Z")))
       .toBe("test");
-    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-04T21:00:00.000Z")))
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-05T21:00:00.000Z")))
       .toBe("assigned");
-    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-25T21:00:00.000Z")))
+    expect(octoberClanBadgeDirectoryMode(new Date("2026-10-26T21:00:00.000Z")))
       .toBe("hidden");
     expect(OCTOBER_CLAN_BADGE_TEST_ASSIGNMENTS).toEqual({
       "170929900": "panacea",

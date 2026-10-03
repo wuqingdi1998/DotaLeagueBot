@@ -10,20 +10,20 @@ import {
 
 describe("October compendium release schedule", () => {
   it.each([
-    ["2026-10-03T11:59:59.999Z", "hidden"],
-    ["2026-10-03T12:00:00.000Z", "reservation"],
-    ["2026-10-04T20:49:59.999Z", "reservation"],
-    ["2026-10-04T20:50:00.000Z", "formation"],
-    ["2026-10-04T20:59:59.999Z", "formation"],
-    ["2026-10-04T21:00:00.000Z", "published"],
+    ["2026-10-03T17:59:59.999Z", "hidden"],
+    ["2026-10-03T18:00:00.000Z", "reservation"],
+    ["2026-10-05T20:49:59.999Z", "reservation"],
+    ["2026-10-05T20:50:00.000Z", "formation"],
+    ["2026-10-05T20:59:59.999Z", "formation"],
+    ["2026-10-05T21:00:00.000Z", "published"],
   ] as const)("uses the exact Moscow boundary at %s", (now, phase) => {
     expect(octoberCompendiumPhase(new Date(now))).toBe(phase);
   });
 
   it("keeps the three public moments explicit", () => {
-    expect(OCTOBER_PUBLIC_LAUNCH_AT).toBe("2026-10-03T15:00:00+03:00");
-    expect(OCTOBER_CLAN_FORMATION_AT).toBe("2026-10-04T23:50:00+03:00");
-    expect(OCTOBER_CLAN_PUBLICATION_AT).toBe("2026-10-05T00:00:00+03:00");
+    expect(OCTOBER_PUBLIC_LAUNCH_AT).toBe("2026-10-03T21:00:00+03:00");
+    expect(OCTOBER_CLAN_FORMATION_AT).toBe("2026-10-05T23:50:00+03:00");
+    expect(OCTOBER_CLAN_PUBLICATION_AT).toBe("2026-10-06T00:00:00+03:00");
   });
 
   it("allows every rune except Water and the Supporters subscription level", () => {

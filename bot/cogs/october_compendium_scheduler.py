@@ -16,7 +16,7 @@ MOSCOW_TIME_ZONE = ZoneInfo("Europe/Moscow")
 FORMATION_START = datetime.datetime(
     2026,
     10,
-    4,
+    5,
     23,
     50,
     tzinfo=MOSCOW_TIME_ZONE,
@@ -24,7 +24,7 @@ FORMATION_START = datetime.datetime(
 FORMATION_RETRY_END = datetime.datetime(
     2026,
     10,
-    5,
+    6,
     0,
     30,
     tzinfo=MOSCOW_TIME_ZONE,
