@@ -122,6 +122,13 @@ OCTOBER_COMPENDIUM_RELEASE_MIGRATION = (
     / "0155_october_compendium_release.sql"
 ).read_text(encoding="utf-8")
 
+OCTOBER_DAILY_COMPENDIUM_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0163_open_october_daily_compendium.sql"
+).read_text(encoding="utf-8")
+
 OCTOBER_COMPENDIUM_LAUNCH_CONTROL_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -709,6 +716,19 @@ def test_october_compendium_release_starts_with_empty_reservable_clans() -> None
     )
     assert "DELETE FROM october_compendium_clan_reservations" in (
         OCTOBER_COMPENDIUM_RELEASE_MIGRATION
+    )
+
+
+def test_october_daily_compendium_opens_without_unfreezing_ti_data() -> None:
+    assert "FOR EACH ROW" in OCTOBER_DAILY_COMPENDIUM_MIGRATION
+    assert "BETWEEN DATE '2026-10-05' AND DATE '2026-10-25'" in (
+        OCTOBER_DAILY_COMPENDIUM_MIGRATION
+    )
+    assert "compendium_daily_quest_sets" in OCTOBER_DAILY_COMPENDIUM_MIGRATION
+    assert "compendium_user_quest_completions" in OCTOBER_DAILY_COMPENDIUM_MIGRATION
+    assert "compendium_user_quest_rerolls" in OCTOBER_DAILY_COMPENDIUM_MIGRATION
+    assert "TI 2026 Compendium is finished and permanently read-only" in (
+        OCTOBER_DAILY_COMPENDIUM_MIGRATION
     )
 
 
