@@ -103,6 +103,9 @@ describe("season interface contract", () => {
     expect(routeStyles).toContain(
       '@import "./25-season-standings-table.css";',
     );
+    expect(styles).toMatch(
+      /\.season-player-name-link\s*\{[^}]*display:\s*inline-flex;[^}]*align-items:\s*center;/,
+    );
   });
 
   it("reuses the tournament navigation and replaces ordinary tabs", () => {

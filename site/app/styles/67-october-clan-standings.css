@@ -462,7 +462,7 @@
     min-height: 0;
     padding: 10px 12px;
   }
-
+  .october-compendium-screen-clans .october-clan-standings-compact .october-clan-standing-row--compact { flex: 1 1 0; }
   .october-compendium-screen-clans .october-clan-identity {
     width: min(100%, 150px);
     justify-self: center;

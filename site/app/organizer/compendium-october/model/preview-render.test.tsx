@@ -437,6 +437,9 @@ describe("October preview actions", () => {
       /\.october-clan-standing-row--compact\s*\{[^}]*padding:\s*2px 12px 2px 6px;[^}]*font-size:\s*13px;/,
     ); expect(clanStyles).toMatch(/\.october-clan-standings-compact \.october-clan-standing-row--compact\s*\{[^}]*flex:\s*0 0 auto;/);
     expect(clanStyles).toMatch(
+      /\.october-compendium-screen-clans \.october-clan-standings-compact \.october-clan-standing-row--compact\s*\{[^}]*flex:\s*1 1 0;/,
+    );
+    expect(clanStyles).toMatch(
       /\.october-clan-standing-row--compact \.october-clan-standing-avatar\s*\{[^}]*width:\s*30px;[^}]*height:\s*30px;/,
     );
     expect(clanStyles).toMatch(
