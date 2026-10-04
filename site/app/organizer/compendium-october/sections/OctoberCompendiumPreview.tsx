@@ -1,4 +1,5 @@
-import { FiCalendar } from "react-icons/fi";
+import Link from "next/link";
+import { FiCalendar, FiDatabase } from "react-icons/fi";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { OCTOBER_COMPENDIUM_DATE_LABEL, type OctoberCompendiumWeekDefinition } from "../model/plan";
 import { octoberRewardsForStars } from "../model/rewards";
@@ -9,6 +10,7 @@ import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
 import type { OctoberClanMember } from "../model/clan-members";
 import type { OctoberClanReservationState } from "../model/clan-reservation";
 import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
+import type { OctoberDailyQuestData } from "../services/october-daily-quests";
 
 export function OctoberCompendiumPreview({
   week,
@@ -18,6 +20,7 @@ export function OctoberCompendiumPreview({
   reservation,
   areDailyQuestsOpen = true,
   dailyRewardStars = 1,
+  dailyQuestData,
   isOrganizerPreview = false,
   isOrganizer = false,
   tournamentLinks = {},
@@ -29,6 +32,7 @@ export function OctoberCompendiumPreview({
   reservation?: OctoberClanReservationState;
   areDailyQuestsOpen?: boolean;
   dailyRewardStars?: 1 | 2;
+  dailyQuestData?: OctoberDailyQuestData;
   isOrganizerPreview?: boolean;
   isOrganizer?: boolean;
   tournamentLinks?: SeasonTournamentLinks;
@@ -38,6 +42,14 @@ export function OctoberCompendiumPreview({
       <OctoberSectionNavigation />
       <section className="october-compendium-screen october-compendium-screen-clans" id={OCTOBER_PREVIEW_SECTIONS[0].id} aria-label="Шапка компендиума и кланы">
         <div className="compendium-hero-section">
+          {isOrganizer && (
+            <Link
+              className="compendium-base-link october-compendium-base-link"
+              href="/compendium/base"
+            >
+              <FiDatabase aria-hidden="true" /> База компендиума
+            </Link>
+          )}
           <div className="compendium-title-block">
             <h1>Компендиум</h1>
             <p className="october-compendium-hero-line">Сезон 9. Часть 1.</p>
@@ -85,6 +97,7 @@ export function OctoberCompendiumPreview({
           viewerDiscordId={viewerDiscordId}
           isOpen={areDailyQuestsOpen}
           rewardStars={dailyRewardStars}
+          initialData={dailyQuestData}
         />
       </section>
     </main>

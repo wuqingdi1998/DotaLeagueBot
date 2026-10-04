@@ -18,6 +18,7 @@ import { OctoberReleaseRefresh } from "@/app/organizer/compendium-october/compon
 import { getSeasonTournamentLinks } from "@/app/season/services/season-tournament-links";
 import { CompendiumExclusionNotice } from "./components/CompendiumExclusionNotice";
 import { isExcludedFromCompendium } from "./services/participant-access";
+import { loadOctoberDailyQuests } from "@/app/organizer/compendium-october/services/october-daily-quests";
 
 export const dynamic = "force-dynamic";
 
@@ -45,10 +46,12 @@ export default async function CompendiumPage() {
   const visiblePhase = scheduledPhase === "published" && formationStatus !== "complete"
     ? "formation"
     : scheduledPhase;
-  const [clanMembers, loadedReservation, tournamentLinks] = await Promise.all([
+  const areDailyQuestsOpen = scheduledPhase === "published" && formationStatus === "complete";
+  const [clanMembers, loadedReservation, tournamentLinks, dailyQuestData] = await Promise.all([
     loadOctoberClanMembers(now),
     loadOctoberClanReservationState(user, now),
     getSeasonTournamentLinks(),
+    areDailyQuestsOpen ? loadOctoberDailyQuests(user, now) : Promise.resolve(undefined),
   ]);
   const reservation = { ...loadedReservation, phase: visiblePhase };
   const moscowDate = currentMoscowDay(now).dateKey;
@@ -65,9 +68,10 @@ export default async function CompendiumPage() {
         week={octoberRaceForMoment(now)}
         clanMembers={clanMembers}
         viewerDiscordId={user.discordId}
-        personalStars={0}
+        personalStars={clanMembers.find((member) => member.discordId === user.discordId)?.totalPoints ?? 0}
         reservation={reservation}
         areDailyQuestsOpen={scheduledPhase === "published" && formationStatus === "complete"}
+        dailyQuestData={dailyQuestData}
         dailyRewardStars={octoberDailyRewardStars(moscowDate)}
         isOrganizer={user?.isAdmin === true}
         tournamentLinks={tournamentLinks}

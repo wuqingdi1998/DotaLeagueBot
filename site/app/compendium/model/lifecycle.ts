@@ -4,6 +4,10 @@ import {
 } from "./constants";
 import { CompendiumError } from "./errors";
 import { currentMoscowDay } from "./time";
+import {
+  OCTOBER_COMPENDIUM_END_AT,
+  OCTOBER_COMPENDIUM_START_AT,
+} from "@/lib/october-compendium-schedule";
 
 const compendiumEndTime = new Date(COMPENDIUM_END_AT).getTime();
 
@@ -12,10 +16,14 @@ export function isCompendiumFinished(now: Date = new Date()): boolean {
 }
 
 export function assertCompendiumActive(now: Date = new Date()): void {
-  if (isCompendiumFinished(now)) {
+  const currentTime = now.getTime();
+  const isOctoberCompendiumActive =
+    currentTime >= Date.parse(OCTOBER_COMPENDIUM_START_AT) &&
+    currentTime < Date.parse(OCTOBER_COMPENDIUM_END_AT);
+  if (isCompendiumFinished(now) && !isOctoberCompendiumActive) {
     throw new CompendiumError(
       "COMPENDIUM_FINISHED",
-      "Компендиум TI 2026 завершён. Задания и начисление звёзд остановлены.",
+      "Компендиум завершён. Задания и начисление звёзд остановлены.",
     );
   }
 }

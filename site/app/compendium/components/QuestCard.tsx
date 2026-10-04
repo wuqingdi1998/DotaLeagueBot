@@ -18,6 +18,7 @@ export function QuestCard({
   isRerolling,
   canCheck,
   hasReroll,
+  rerollsRemaining,
   canReroll,
   onCheck,
   onReroll,
@@ -33,6 +34,7 @@ export function QuestCard({
   isRerolling: boolean;
   canCheck: boolean;
   hasReroll: boolean;
+  rerollsRemaining?: number;
   canReroll: boolean;
   onCheck: (questId: string) => void;
   onReroll: (questId: string) => void;
@@ -52,30 +54,37 @@ export function QuestCard({
           <h2>Испытание {quest.position}</h2>
         </div>
         <div className="compendium-quest-heading-actions">
-          <button
-            className="compendium-reroll-button"
-            type="button"
-            disabled={isPreview || !canReroll || Boolean(quest.completion)}
-            onClick={() => onReroll(quest.id)}
-            aria-label={`Заменить испытание ${quest.position}`}
-            title={
-              isPreview
-                ? "Закрытый просмотр: замена заданий пока недоступна"
-                : quest.completion
-                ? "Выполненное задание нельзя заменить"
-                : !hasReroll
-                  ? "Рероллов на сегодня не осталось"
-                  : canReroll
-                  ? "Использовать ежедневный реролл"
-                  : "Дождитесь завершения текущего действия"
-            }
-          >
-            {isRerolling ? (
-              <FiLoader className="compendium-spinner" aria-hidden="true" />
-            ) : (
-              <FiRefreshCw aria-hidden="true" />
+          <div className="compendium-reroll-control">
+            <button
+              className="compendium-reroll-button"
+              type="button"
+              disabled={isPreview || !canReroll || Boolean(quest.completion)}
+              onClick={() => onReroll(quest.id)}
+              aria-label={`Заменить испытание ${quest.position}. Осталось замен: ${rerollsRemaining ?? 0}`}
+              title={
+                isPreview
+                  ? "Закрытый просмотр: замена заданий пока недоступна"
+                  : quest.completion
+                  ? "Выполненное задание нельзя заменить"
+                  : !hasReroll
+                    ? "Рероллов на сегодня не осталось"
+                    : canReroll
+                    ? "Использовать ежедневный реролл"
+                    : "Дождитесь завершения текущего действия"
+              }
+            >
+              {isRerolling ? (
+                <FiLoader className="compendium-spinner" aria-hidden="true" />
+              ) : (
+                <FiRefreshCw aria-hidden="true" />
+              )}
+            </button>
+            {rerollsRemaining !== undefined && (
+              <span className="compendium-reroll-count" aria-hidden="true">
+                ×{rerollsRemaining}
+              </span>
             )}
-          </button>
+          </div>
           <div
             className="compendium-reward"
             aria-label={rewardStarsLabel

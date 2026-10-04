@@ -11,6 +11,19 @@ import {
   generateRerollQuestHeroes,
 } from "../model/quests";
 import { dailyQuestExcludedHeroIds } from "../model/daily-quest-exclusions";
+import { OCTOBER_COMPENDIUM_START_AT } from "@/lib/october-compendium-schedule";
+
+export function dailyQuestPositionCount(dateKey: string): number {
+  return dateKey >= OCTOBER_COMPENDIUM_START_AT.slice(0, 10)
+    ? 2
+    : BONUS_QUEST_POSITION;
+}
+
+export function regularDailyQuestCount(dateKey: string): number {
+  return dateKey >= OCTOBER_COMPENDIUM_START_AT.slice(0, 10)
+    ? 2
+    : DAILY_QUEST_COUNT;
+}
 
 type ExistingQuestRow = {
   player_id: string;
@@ -108,8 +121,19 @@ export async function ensurePersonalDailyQuests(
      FROM players
      WHERE is_archived = FALSE
        AND ($1::bigint IS NULL OR discord_id = $1::bigint)
+       AND (
+         NOT $2::boolean
+         OR EXISTS (
+           SELECT 1
+           FROM october_compendium_clan_members member
+           WHERE member.player_id = players.discord_id
+         )
+       )
      ORDER BY discord_id`,
-    [requestedPlayerId ?? null],
+    [
+      requestedPlayerId ?? null,
+      dateKey >= OCTOBER_COMPENDIUM_START_AT.slice(0, 10),
+    ],
   );
   const playerIds = players.rows.map((row) => row.player_id);
   if (!playerIds.length) return;
@@ -202,16 +226,17 @@ export async function ensurePersonalDailyQuests(
   }
 
   const preservedCompletions = groupPreservedCompletions(completionResult.rows);
+  const positionCount = dailyQuestPositionCount(dateKey);
   for (const playerId of playerIds) {
     const positions = positionsByPlayer.get(playerId) ?? new Set<number>();
     const excludedHeroIds =
       excludedHeroesByPlayer.get(playerId) ?? new Set<number>();
-    for (let position = 1; position <= BONUS_QUEST_POSITION; position += 1) {
+    for (let position = 1; position <= positionCount; position += 1) {
       preservedCompletions
         .get(questPositionKey(playerId, position))
         ?.heroes.forEach((hero) => excludedHeroIds.add(hero.id));
     }
-    for (let position = 1; position <= BONUS_QUEST_POSITION; position += 1) {
+    for (let position = 1; position <= positionCount; position += 1) {
       if (positions.has(position)) continue;
       const preserved = preservedCompletions.get(
         questPositionKey(playerId, position),

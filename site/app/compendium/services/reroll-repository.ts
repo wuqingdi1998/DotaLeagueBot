@@ -4,18 +4,16 @@ import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import { hiddenSubscriptionDiscordIds } from "@/lib/hidden-subscription-entitlements";
 import {
   BONUS_QUEST_STAR_THRESHOLD,
-  REROLL_REWARD_STAR_THRESHOLD,
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import { dailyQuestExcludedHeroIds } from "../model/daily-quest-exclusions";
 import { generateRerollQuestHeroes } from "../model/quests";
-import { dailyRerollsRemainingForProgress } from "../model/rewards";
+import { octoberDailyRerollAllowance } from "@/app/organizer/compendium-october/model/rewards";
+import { regularDailyQuestCount } from "./personal-quest-generation";
 
 type RerollAllowanceRow = {
-  total_stars: number;
+  total_points: number;
   used_count: number;
-  threshold_reached_today: boolean;
-  used_before_threshold: number;
 };
 
 async function rerollsRemainingWithClient(
@@ -23,93 +21,24 @@ async function rerollsRemainingWithClient(
   dateKey: string,
   playerId: string,
 ): Promise<number> {
-  const statement = `WITH star_events AS (
-       SELECT completion.completed_at AS occurred_at,
-         completion.reward_amount::int AS amount,
-         completion.id AS event_id,
-         0 AS event_kind
-       FROM compendium_user_quest_completions completion
-       WHERE completion.player_id = $2
-       UNION ALL
-       SELECT adjustment.created_at,
-         adjustment.amount::int,
-         adjustment.id,
-         1
-       FROM compendium_admin_star_adjustments adjustment
-       WHERE adjustment.player_id = $2
-       UNION ALL
-       SELECT reward.awarded_at,
-         reward.reward_amount::int,
-         reward.match_id,
-         2
-       FROM compendium_prediction_rewards reward
-       WHERE reward.player_id = $2
-       UNION ALL
-       SELECT completion.completed_at,
-         completion.reward_amount::int,
-         completion.id,
-         3
-       FROM compendium_rune_challenge_completions completion
-       WHERE completion.player_id = $2
-     ), running_totals AS (
-       SELECT occurred_at, event_id, event_kind,
-         SUM(amount) OVER (
-           ORDER BY occurred_at, event_kind, event_id
-           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-         )::int AS running_total
-       FROM star_events
-     ), running_with_previous AS (
-       SELECT occurred_at, running_total,
-         LAG(running_total, 1, 0) OVER (
-           ORDER BY occurred_at, event_kind, event_id
-         )::int AS previous_total
-       FROM running_totals
-     ), threshold_reward AS (
-       SELECT occurred_at
-       FROM running_with_previous
-       WHERE previous_total < $3 AND running_total >= $3
-       ORDER BY occurred_at DESC
-       LIMIT 1
-     )
-     SELECT
-       COALESCE((
-         SELECT total_stars
-         FROM compendium_player_star_totals player_total
-         WHERE player_total.player_id = $2
-       ), 0)::int AS total_stars,
-       COUNT(reroll.id)::int AS used_count,
-       COALESCE(
-         (threshold.occurred_at AT TIME ZONE 'Europe/Moscow')::date = $1::date,
-         FALSE
-       ) AS threshold_reached_today,
-       COUNT(reroll.id) FILTER (
-         WHERE reroll.used_at < threshold.occurred_at
-       )::int AS used_before_threshold
+  const statement = `SELECT
+       COALESCE(member.total_points, 0)::int AS total_points,
+       COUNT(reroll.id)::int AS used_count
      FROM compendium_daily_quest_sets quest_set
      LEFT JOIN compendium_user_quest_rerolls reroll
        ON reroll.quest_set_id = quest_set.id AND reroll.player_id = $2
-     LEFT JOIN threshold_reward threshold ON TRUE
+     LEFT JOIN october_compendium_clan_members member ON member.player_id = $2
      WHERE quest_set.moscow_date = $1::date
-     GROUP BY threshold.occurred_at`;
-  const values = [dateKey, playerId, REROLL_REWARD_STAR_THRESHOLD];
+     GROUP BY member.total_points`;
+  const values = [dateKey, playerId];
   const rows = client
     ? (await client.query<RerollAllowanceRow>(statement, values)).rows
     : await query<RerollAllowanceRow>(statement, values);
   const row = rows[0];
   if (!row) {
-    return dailyRerollsRemainingForProgress({
-      totalStars: 0,
-      usedCount: 0,
-      thresholdReachedToday: false,
-      usedBeforeThreshold: 0,
-    });
+    return octoberDailyRerollAllowance(0);
   }
-  return dailyRerollsRemainingForProgress({
-    totalStars: row.total_stars,
-    usedCount: row.used_count,
-    thresholdReachedToday: row.threshold_reached_today,
-    usedBeforeThreshold: row.used_before_threshold,
-  });
+  return Math.max(0, octoberDailyRerollAllowance(row.total_points) - row.used_count);
 }
 
 export async function dailyRerollsRemaining(
@@ -152,7 +81,7 @@ export async function recordDailyQuestReroll(input: {
          AND quest_set.moscow_date =
            (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date
          AND (
-           quest.position <= 3
+           quest.position <= $5
            OR COALESCE((
              SELECT total_stars
              FROM compendium_player_star_totals player_total
@@ -165,6 +94,7 @@ export async function recordDailyQuestReroll(input: {
         input.dateKey,
         input.playerId,
         BONUS_QUEST_STAR_THRESHOLD,
+        regularDailyQuestCount(input.dateKey),
       ],
     );
     if (!quest.rowCount) {

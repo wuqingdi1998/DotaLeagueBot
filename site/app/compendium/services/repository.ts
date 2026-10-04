@@ -7,9 +7,13 @@ import {
 } from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import { compendiumHeroById } from "../model/heroes";
+import { currentMoscowDay } from "../model/time";
 import type { DailyQuest, QuestCompletion } from "../model/types";
 import type { DailyChallengeRewardStars } from "../model/weekend-bonus";
-import { ensurePersonalDailyQuests } from "./personal-quest-generation";
+import {
+  ensurePersonalDailyQuests,
+  regularDailyQuestCount,
+} from "./personal-quest-generation";
 import { completeExistingQuestCards } from "./quest-set-maintenance";
 
 type QuestDataRow = {
@@ -112,7 +116,7 @@ export async function loadDailyQuests(
      WHERE quest_set.moscow_date = $1::date
        AND quest.player_id = $2
        AND (
-         quest.position <= 3
+         quest.position <= $4
          OR COALESCE((
            SELECT total_stars
            FROM compendium_player_star_totals player_total
@@ -120,7 +124,7 @@ export async function loadDailyQuests(
          ), 0) >= $3
        )
      ORDER BY quest.position, hero.position`,
-    [dateKey, playerId, BONUS_QUEST_STAR_THRESHOLD],
+    [dateKey, playerId, BONUS_QUEST_STAR_THRESHOLD, regularDailyQuestCount(dateKey)],
   );
   const quests = new Map<string, DailyQuest>();
   for (const row of rows) {
@@ -189,7 +193,7 @@ export async function questForCurrentDay(
      WHERE quest.id = $1 AND quest_set.moscow_date = $2::date
        AND quest.player_id = $3
        AND (
-         quest.position <= 3
+         quest.position <= $5
          OR COALESCE((
            SELECT total_stars
            FROM compendium_player_star_totals player_total
@@ -197,7 +201,13 @@ export async function questForCurrentDay(
          ), 0) >= $4
        )
      ORDER BY hero.position`,
-    [questId, dateKey, playerId, BONUS_QUEST_STAR_THRESHOLD],
+    [
+      questId,
+      dateKey,
+      playerId,
+      BONUS_QUEST_STAR_THRESHOLD,
+      regularDailyQuestCount(dateKey),
+    ],
   );
   return rows.length ? { id: rows[0].id, heroIds: rows.map((row) => row.hero_id) } : null;
 }
@@ -318,7 +328,7 @@ export async function recordQuestCompletion(input: {
          AND hero.hero_id = $2
          AND quest.player_id = $3
          AND (
-           quest.position <= 3
+           quest.position <= $5
            OR COALESCE((
              SELECT total_stars
              FROM compendium_player_star_totals player_total
@@ -333,6 +343,7 @@ export async function recordQuestCompletion(input: {
         input.heroId,
         input.playerId,
         BONUS_QUEST_STAR_THRESHOLD,
+        regularDailyQuestCount(currentMoscowDay().dateKey),
       ],
     );
     if (!activeQuest.rowCount) {
@@ -353,7 +364,15 @@ export async function recordQuestCompletion(input: {
         input.rewardStars,
       ],
     );
-    if (inserted.rowCount) return completionFromRow(inserted.rows[0]);
+    if (inserted.rowCount) {
+      await client.query(
+        `UPDATE october_compendium_clan_members
+         SET total_points = total_points + $2
+         WHERE player_id = $1`,
+        [input.playerId, input.rewardStars],
+      );
+      return completionFromRow(inserted.rows[0]);
+    }
     const concurrentCompletion = await currentCompletion(
       client,
       input.playerId,

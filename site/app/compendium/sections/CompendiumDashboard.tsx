@@ -397,6 +397,7 @@ export function CompendiumDashboard({
                 isRerolling={rerollingQuestId === quest.id}
                 canCheck={checkingQuestId === null && rerollingQuestId === null}
                 hasReroll={data.rerollsRemaining > 0}
+                rerollsRemaining={data.rerollsRemaining}
                 canReroll={
                   data.rerollsRemaining > 0 &&
                   checkingQuestId === null &&

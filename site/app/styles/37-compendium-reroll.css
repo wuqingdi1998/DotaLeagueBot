@@ -100,6 +100,20 @@
     transform 160ms ease;
 }
 
+.compendium-reroll-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.compendium-reroll-count {
+  min-width: 22px;
+  color: #dcae36;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .compendium-reroll-button:hover:not(:disabled) {
   border-color: #e8ba48;
   background: rgba(220, 174, 54, 0.2);

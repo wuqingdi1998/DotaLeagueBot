@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { FiArrowRight, FiInfo, FiX } from "react-icons/fi";
+import { fetchSiteRequest } from "@/lib/site-request";
 import { CompendiumStarRace } from "@/app/compendium/components/CompendiumStarRace";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
@@ -13,6 +15,8 @@ import type { OctoberCompendiumWeekDefinition } from "../model/plan";
 import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
 import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
 import { OctoberDailyOpeningOverlay } from "../components/OctoberDailyOpeningOverlay";
+import type { OctoberDailyQuestData } from "../services/october-daily-quests";
+import type { QuestCompletion } from "@/app/compendium/model/types";
 
 function ignorePreviewAction() {}
 
@@ -38,14 +42,75 @@ export function OctoberDailyPreview({
   viewerDiscordId,
   isOpen = true,
   rewardStars = 1,
+  initialData,
 }: {
   viewerDiscordId: string;
   isOpen?: boolean;
   rewardStars?: 1 | 2;
+  initialData?: OctoberDailyQuestData;
 }) {
   const guides = useOctoberGuideVisibility(viewerDiscordId);
+  const [dailyData, setDailyData] = useState(initialData);
+  const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
+  const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
   const isOverviewVisible = guides.isVisible("daily-overview");
   const isClanOutingVisible = guides.isVisible("clan-outing");
+  const quests = dailyData?.quests ?? octoberDailyQuestSamples();
+  const isLive = isOpen && dailyData !== undefined;
+
+  async function checkQuest(questId: string) {
+    if (!isLive || checkingQuestId || rerollingQuestId) return;
+    setCheckingQuestId(questId);
+    try {
+      const response = await fetchSiteRequest(`/api/compendium/daily-quests/${questId}/check`, {
+        method: "POST",
+      });
+      const result = await response.json() as {
+        error?: string;
+        completion?: QuestCompletion;
+        quests?: OctoberDailyQuestData["quests"];
+        rerollsRemaining?: number;
+      };
+      if (!response.ok || !result.completion) throw new Error(result.error ?? "Не удалось проверить задание");
+      setDailyData((current) => current && ({
+        quests: result.quests ?? current.quests.map((quest) =>
+          quest.id === questId ? { ...quest, completion: result.completion ?? null } : quest,
+        ),
+        rerollsRemaining: result.rerollsRemaining ?? current.rerollsRemaining,
+      }));
+      setMessage(`Испытание выполнено. Получено звёзд: ${rewardStars}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось проверить задание");
+    } finally {
+      setCheckingQuestId(null);
+    }
+  }
+
+  async function rerollQuest(questId: string) {
+    if (!isLive || checkingQuestId || rerollingQuestId || !dailyData?.rerollsRemaining) return;
+    setRerollingQuestId(questId);
+    try {
+      const response = await fetchSiteRequest(`/api/compendium/daily-quests/${questId}/reroll`, {
+        method: "POST",
+      });
+      const result = await response.json() as {
+        error?: string;
+        quest?: OctoberDailyQuestData["quests"][number];
+        rerollsRemaining?: number;
+      };
+      if (!response.ok || !result.quest) throw new Error(result.error ?? "Не удалось заменить задание");
+      setDailyData((current) => current && ({
+        quests: current.quests.map((quest) => quest.id === questId ? result.quest ?? quest : quest),
+        rerollsRemaining: result.rerollsRemaining ?? 0,
+      }));
+      setMessage(`Испытание заменено. Осталось замен: ${result.rerollsRemaining ?? 0}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось заменить задание");
+    } finally {
+      setRerollingQuestId(null);
+    }
+  }
   return (
     <section
       className={`compendium-daily-section ${
@@ -98,19 +163,20 @@ export function OctoberDailyPreview({
         Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
       </p>
       <div className="compendium-quest-grid quest-count-3">
-        {octoberDailyQuestSamples().map((quest) => (
+        {quests.map((quest) => (
           <QuestCard
             key={quest.id}
             quest={quest}
             rewardStars={rewardStars}
-            isChecking={false}
-            isRerolling={false}
-            canCheck={false}
-            hasReroll={false}
-            canReroll={false}
-            onCheck={ignorePreviewAction}
-            onReroll={ignorePreviewAction}
-            isPreview
+            isChecking={checkingQuestId === quest.id}
+            isRerolling={rerollingQuestId === quest.id}
+            canCheck={isLive && checkingQuestId === null && rerollingQuestId === null}
+            hasReroll={(dailyData?.rerollsRemaining ?? 1) > 0}
+            rerollsRemaining={dailyData?.rerollsRemaining ?? 1}
+            canReroll={isLive && (dailyData?.rerollsRemaining ?? 0) > 0 && checkingQuestId === null && rerollingQuestId === null}
+            onCheck={checkQuest}
+            onReroll={rerollQuest}
+            isPreview={!isLive}
             overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
           />
         ))}
@@ -121,6 +187,7 @@ export function OctoberDailyPreview({
           overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
         />
       </div>
+      {message && <div className="compendium-toast" role="status">{message}</div>}
       <RuneChallenge
         initialChallenge={{
           hasAccess: true,

@@ -5,6 +5,8 @@ import { CURRENT_STAR_RACE, starRaceQuestPhase } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import { loadFinalPrediction } from "../services/star-race-final-prediction-repository";
+import { ensureDailyQuestSet } from "../services/repository";
+import { regularDailyQuestCount } from "../services/personal-quest-generation";
 import {
   buildCompendiumAdminParticipantSummaries,
   buildCompendiumAdminParticipants,
@@ -23,6 +25,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
   CompendiumAdminParticipantSummary[]
 > {
   const dateKey = currentMoscowDay().dateKey;
+  await ensureDailyQuestSet(dateKey);
   const now = new Date();
   const finalPrediction = await loadFinalPrediction();
   const currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[] =
@@ -90,12 +93,12 @@ export async function loadCompendiumAdminParticipants(): Promise<
            NULLIF(player.avatar_url, ''),
            NULLIF(avatar.discord_avatar_url, '')
          ) AS avatar_url,
-         COALESCE(star_total.total_stars, 0)::int AS total_stars,
+         COALESCE(member.total_points, 0)::int AS total_stars,
          COALESCE(reward_count.reward_count, 0)::int AS reward_count
        FROM players player
        LEFT JOIN latest_avatars avatar ON avatar.discord_id = player.discord_id
-       LEFT JOIN compendium_player_star_totals star_total
-         ON star_total.player_id = player.discord_id
+       JOIN october_compendium_clan_members member
+         ON member.player_id = player.discord_id
        LEFT JOIN reward_counts reward_count
          ON reward_count.player_id = player.discord_id
        WHERE player.is_archived = FALSE
@@ -140,7 +143,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
         AND completion.player_id = player.discord_id
        WHERE player.is_archived = FALSE
          AND (
-           quest.position <= 3
+           quest.position <= $4
            OR COALESCE((
              SELECT total_stars
              FROM compendium_player_star_totals player_total
@@ -152,6 +155,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
         dateKey,
         dailyChallengeRewardStars(dateKey),
         BONUS_QUEST_STAR_THRESHOLD,
+        regularDailyQuestCount(dateKey),
       ],
       ),
       currentRaceDates.length

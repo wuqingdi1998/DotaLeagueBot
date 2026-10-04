@@ -195,13 +195,13 @@ describe("compendium persistence and security contract", () => {
     expect(basePage).toContain("if (!user?.isAdmin) notFound()");
   });
 
-  it("upgrades daily rerolls from one to a persistent three-reroll allowance", () => {
+  it("keeps daily rerolls persistent and applies the October allowance", () => {
     expect(rerollMigration).toContain("UNIQUE (player_id, quest_set_id)");
     expect(rewardsMigration).toContain(
       "DROP CONSTRAINT IF EXISTS compendium_user_quest_rerolls_player_id_quest_set_id_key",
     );
     expect(rerollMigration).toContain("position BETWEEN 1 AND 4");
-    expect(rerollRepository).toContain("REROLL_REWARD_STAR_THRESHOLD");
+    expect(rerollRepository).toContain("octoberDailyRerollAllowance");
     expect(repository).toContain("ORDER BY reroll.used_at DESC, reroll.id DESC");
     expect(rerollRepository).toContain("pg_advisory_xact_lock");
     expect(rerollRepository).toContain(
