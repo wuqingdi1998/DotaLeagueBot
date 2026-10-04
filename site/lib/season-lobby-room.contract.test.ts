@@ -150,11 +150,15 @@ describe("season lobby room contract", () => {
     expect(roomQuery).toContain('subscription.role_name AS "subscriptionRole"');
     expect(roomQuery).toContain("subscriptionRoleNames");
     expect(lobbyPlayerTeams).toContain("SubscriptionRuneNickname");
+    expect(lobbyPlayerTeams).toContain('className="season-room-player-identity"');
     expect(captainVoting).toContain("SubscriptionRuneNickname");
     expect(subscriptionRuneNickname).toContain("/participant-runes/water.png");
     expect(sharedRuneStyles).toContain(".subscription-rune-icon");
     expect(lobbyTeamStyles).toContain(".season-room-teams li > img");
     expect(lobbyTeamStyles).not.toContain(".season-room-teams li img,");
+    expect(lobbyTeamStyles).toMatch(
+      /\.season-room-player-identity\s*\{[^}]*display: inline-flex;[^}]*white-space: nowrap;/,
+    );
   });
 
   it("keeps chat level with five players and groups consecutive messages", () => {

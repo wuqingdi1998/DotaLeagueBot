@@ -97,8 +97,17 @@
   gap: 2px;
 }
 
+.season-room-player-identity {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .season-room-player-name strong {
-  display: block;
+  display: inline-flex;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
