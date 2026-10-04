@@ -35,7 +35,7 @@ const runePresentation: Record<
   },
 };
 
-export function ParticipantRuneNickname({
+export function SubscriptionRuneNickname({
   nickname,
   subscriptionRole,
 }: {
@@ -46,14 +46,14 @@ export function ParticipantRuneNickname({
   const presentation = runePresentation[subscriptionRole];
 
   return (
-    <span className="participant-rune-identity">
+    <span className="subscription-rune-identity">
       <span
-        className={`participant-rune-nickname participant-rune-nickname-${presentation.nicknameClass}`}
+        className={`subscription-rune-nickname subscription-rune-nickname-${presentation.nicknameClass}`}
       >
         {nickname}
       </span>
       <Image
-        className="participant-rune-icon"
+        className="subscription-rune-icon"
         src={presentation.icon}
         alt=""
         title={subscriptionRole}

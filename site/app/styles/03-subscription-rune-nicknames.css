@@ -1,13 +1,13 @@
-/* Subscription rune colors in the participant directory */
+/* Shared subscription rune colors and icons beside player nicknames */
 
-.participant-rune-identity {
+.subscription-rune-identity {
   display: inline-flex;
   align-items: center;
   gap: 0.25em;
   white-space: nowrap;
 }
 
-.participant-rune-icon {
+.subscription-rune-icon {
   width: 1.5em;
   height: 1.5em;
   flex: 0 0 1.5em;
@@ -15,7 +15,7 @@
   filter: drop-shadow(0 0.12em 0.18em rgba(0, 0, 0, 0.62));
 }
 
-.participant-rune-nickname {
+.subscription-rune-nickname {
   background: linear-gradient(
     90deg,
     var(--rune-nickname-start) 0%,
@@ -27,47 +27,47 @@
   color: transparent;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  animation: participant-rune-nickname-shimmer 4s ease-in-out infinite alternate;
+  animation: subscription-rune-nickname-shimmer 4s ease-in-out infinite alternate;
 }
 
-.participant-rune-nickname-water {
+.subscription-rune-nickname-water {
   background: none;
   color: #26bfd6;
   -webkit-text-fill-color: currentColor;
   animation: none;
 }
 
-.participant-rune-nickname-damage {
+.subscription-rune-nickname-damage {
   --rune-nickname-start: #2f32cf;
   --rune-nickname-end: #38c2fd;
 }
 
-.participant-rune-nickname-illusion {
+.subscription-rune-nickname-illusion {
   --rune-nickname-start: #fafadc;
   --rune-nickname-end: #ffde08;
 }
 
-.participant-rune-nickname-arcane {
+.subscription-rune-nickname-arcane {
   --rune-nickname-start: #cc37d1;
   --rune-nickname-end: #ffb1d8;
 }
 
-.participant-rune-nickname-invisibility {
+.subscription-rune-nickname-invisibility {
   --rune-nickname-start: #5913d1;
   --rune-nickname-end: #ad2ae9;
 }
 
-.participant-rune-nickname-haste {
+.subscription-rune-nickname-haste {
   --rune-nickname-start: #fc5454;
   --rune-nickname-end: #c50303;
 }
 
-.participant-rune-nickname-regeneration {
+.subscription-rune-nickname-regeneration {
   --rune-nickname-start: #9fffa5;
   --rune-nickname-end: #207910;
 }
 
-@keyframes participant-rune-nickname-shimmer {
+@keyframes subscription-rune-nickname-shimmer {
   from {
     background-position: 0% 50%;
   }
@@ -78,14 +78,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .participant-rune-nickname {
+  .subscription-rune-nickname {
     background-position: 50% 50%;
     animation: none;
   }
 }
 
 @media (max-width: 600px) {
-  .participant-rune-icon {
+  .subscription-rune-icon {
     width: 1.4em;
     height: 1.4em;
     flex-basis: 1.4em;

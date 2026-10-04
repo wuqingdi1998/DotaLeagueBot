@@ -13,7 +13,7 @@ import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
-import { ParticipantRuneNickname } from "./ParticipantRuneNickname";
+import { SubscriptionRuneNickname } from "@/app/components/SubscriptionRuneNickname";
 
 const ParticipantAdminDialog = dynamic(
   () =>
@@ -262,7 +262,7 @@ function ParticipantIdentity({
       />
       <span>
         <b>
-          <ParticipantRuneNickname
+          <SubscriptionRuneNickname
             nickname={player.nickname}
             subscriptionRole={player.subscriptionRole}
           />

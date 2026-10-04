@@ -30,11 +30,11 @@ const directoryStyles = readFileSync(
   "utf8",
 );
 const runeNicknameStyles = readFileSync(
-  new URL("../app/styles/28-participant-rune-nicknames.css", import.meta.url),
+  new URL("../app/styles/03-subscription-rune-nicknames.css", import.meta.url),
   "utf8",
 );
 const runeNickname = readFileSync(
-  new URL("../app/participants/ParticipantRuneNickname.tsx", import.meta.url),
+  new URL("../app/components/SubscriptionRuneNickname.tsx", import.meta.url),
   "utf8",
 );
 const participantTierStyles = readFileSync(
@@ -147,7 +147,7 @@ describe("hall of fame and participant directory", () => {
     expect(participantsLoader).toContain(
       "subscription.role_name AS subscription_role",
     );
-    expect(participantsTable).toContain("ParticipantRuneNickname");
+    expect(participantsTable).toContain("SubscriptionRuneNickname");
     expect(runeNickname).toContain('nicknameClass: "water"');
     expect(runeNickname).toContain('nicknameClass: "damage"');
     expect(runeNickname).toContain('nicknameClass: "illusion"');
@@ -165,7 +165,7 @@ describe("hall of fame and participant directory", () => {
     expect(runeNicknameStyles).toContain("--rune-nickname-start: #9fffa5");
     expect(runeNicknameStyles).toContain("--rune-nickname-end: #207910");
     expect(runeNicknameStyles).toContain(
-      "animation: participant-rune-nickname-shimmer 4s ease-in-out infinite alternate",
+      "animation: subscription-rune-nickname-shimmer 4s ease-in-out infinite alternate",
     );
   });
 
@@ -187,11 +187,11 @@ describe("hall of fame and participant directory", () => {
       ).toBe(true);
       expect(runeNickname).toContain(`/participant-runes/${asset}`);
     }
-    expect(runeNickname).toContain('className="participant-rune-icon"');
+    expect(runeNickname).toContain('className="subscription-rune-icon"');
     expect(runeNicknameStyles).toMatch(
-      /\.participant-rune-icon\s*\{[^}]*width:\s*1\.5em;[^}]*height:\s*1\.5em;/,
+      /\.subscription-rune-icon\s*\{[^}]*width:\s*1\.5em;[^}]*height:\s*1\.5em;/,
     );
-    expect(participantsTable.indexOf("<ParticipantRuneNickname")).toBeLessThan(
+    expect(participantsTable.indexOf("<SubscriptionRuneNickname")).toBeLessThan(
       participantsTable.indexOf("<OctoberClanBadge"),
     );
   });
