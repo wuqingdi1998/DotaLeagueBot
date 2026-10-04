@@ -1,5 +1,20 @@
 /* Subscription rune colors in the participant directory */
 
+.participant-rune-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  white-space: nowrap;
+}
+
+.participant-rune-icon {
+  width: 1.5em;
+  height: 1.5em;
+  flex: 0 0 1.5em;
+  object-fit: contain;
+  filter: drop-shadow(0 0.12em 0.18em rgba(0, 0, 0, 0.62));
+}
+
 .participant-rune-nickname {
   background: linear-gradient(
     90deg,
@@ -66,5 +81,13 @@
   .participant-rune-nickname {
     background-position: 50% 50%;
     animation: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .participant-rune-icon {
+    width: 1.4em;
+    height: 1.4em;
+    flex-basis: 1.4em;
   }
 }

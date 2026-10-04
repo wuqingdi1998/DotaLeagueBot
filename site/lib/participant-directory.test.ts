@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const hallPage = readFileSync(
@@ -148,9 +148,9 @@ describe("hall of fame and participant directory", () => {
       "subscription.role_name AS subscription_role",
     );
     expect(participantsTable).toContain("ParticipantRuneNickname");
-    expect(runeNickname).toContain('"Руна Воды": "water"');
-    expect(runeNickname).toContain('"Руна Усиления урона": "damage"');
-    expect(runeNickname).toContain('"Руна Иллюзий": "illusion"');
+    expect(runeNickname).toContain('nicknameClass: "water"');
+    expect(runeNickname).toContain('nicknameClass: "damage"');
+    expect(runeNickname).toContain('nicknameClass: "illusion"');
     expect(runeNicknameStyles).toContain("color: #26bfd6");
     expect(runeNicknameStyles).toContain("--rune-nickname-start: #2f32cf");
     expect(runeNicknameStyles).toContain("--rune-nickname-end: #38c2fd");
@@ -166,6 +166,33 @@ describe("hall of fame and participant directory", () => {
     expect(runeNicknameStyles).toContain("--rune-nickname-end: #207910");
     expect(runeNicknameStyles).toContain(
       "animation: participant-rune-nickname-shimmer 4s ease-in-out infinite alternate",
+    );
+  });
+
+  it("shows the matching rune after the nickname and before the clan badge", () => {
+    const runeAssets = [
+      "water.png",
+      "damage.png",
+      "illusion.png",
+      "arcane.png",
+      "invisibility.png",
+      "haste.png",
+      "regeneration.png",
+    ];
+    for (const asset of runeAssets) {
+      expect(
+        existsSync(
+          new URL(`../public/participant-runes/${asset}`, import.meta.url),
+        ),
+      ).toBe(true);
+      expect(runeNickname).toContain(`/participant-runes/${asset}`);
+    }
+    expect(runeNickname).toContain('className="participant-rune-icon"');
+    expect(runeNicknameStyles).toMatch(
+      /\.participant-rune-icon\s*\{[^}]*width:\s*1\.5em;[^}]*height:\s*1\.5em;/,
+    );
+    expect(participantsTable.indexOf("<ParticipantRuneNickname")).toBeLessThan(
+      participantsTable.indexOf("<OctoberClanBadge"),
     );
   });
 
