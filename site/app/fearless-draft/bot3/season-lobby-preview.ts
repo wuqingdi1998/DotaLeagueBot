@@ -35,6 +35,7 @@ export function buildBot3SeasonLobbySnapshot(
       nickname: player.name,
       serverName: player.serverName ?? player.name,
       avatarUrl: player.avatarUrl,
+      subscriptionRole: null,
       teamSide: player.teamSide,
       tier: null,
       slotNumber: player.slotNumber ?? null,

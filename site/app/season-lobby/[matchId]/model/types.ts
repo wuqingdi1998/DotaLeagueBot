@@ -1,3 +1,5 @@
+import type { SubscriptionRoleName } from "@/lib/subscription-roles";
+
 export type SeasonLobbyRoomStatus =
   | "waiting"
   | "captain_interest"
@@ -15,6 +17,7 @@ export type SeasonLobbyRoomPlayer = {
   nickname: string;
   serverName: string;
   avatarUrl: string | null;
+  subscriptionRole: SubscriptionRoleName | null;
   teamSide: "a" | "b";
   tier: number | null;
   slotNumber: number | null;

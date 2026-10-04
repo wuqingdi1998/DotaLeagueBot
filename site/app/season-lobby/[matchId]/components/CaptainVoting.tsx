@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { FiCheck, FiClock, FiUsers } from "react-icons/fi";
 import { AvatarImage } from "@/app/components/AvatarImage";
+import { SubscriptionRuneNickname } from "@/app/components/SubscriptionRuneNickname";
 import type {
   SeasonLobbyCaptainBallot,
   SeasonLobbyRoomCommand,
@@ -148,7 +149,12 @@ function CandidateCard({
       <div className="season-room-candidate-name">
         <PlayerAvatar player={candidate} className="season-room-candidate-avatar" />
         <span>
-          <strong>{candidate.nickname}</strong>
+          <strong>
+            <SubscriptionRuneNickname
+              nickname={candidate.nickname}
+              subscriptionRole={candidate.subscriptionRole}
+            />
+          </strong>
           <small>Тир {candidate.tier ?? "–"}</small>
         </span>
         {isSelected && <FiCheck aria-label="Ваш голос" />}

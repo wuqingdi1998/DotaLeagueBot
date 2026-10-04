@@ -11,6 +11,11 @@ export async function substitutionTestDatabase() {
       internal_rating integer, rank_tier integer, is_archived boolean DEFAULT false,
       avatar_url text, real_name text, positions text
     );
+    CREATE TABLE player_discord_roles (
+      player_id bigint NOT NULL, role_id bigint NOT NULL, role_name text NOT NULL,
+      role_color integer NOT NULL DEFAULT 0, synced_at timestamptz DEFAULT now(),
+      PRIMARY KEY (player_id, role_id)
+    );
     CREATE TABLE tournaments (
       id bigint PRIMARY KEY, slug text, tournament_type text,
       format text DEFAULT 'Fearless Draft', status text DEFAULT 'active'

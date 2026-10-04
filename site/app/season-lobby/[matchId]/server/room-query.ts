@@ -15,6 +15,7 @@ import type {
 import { isSelectedCaptainVisible } from "../model/captain-selection";
 import { SeasonLobbyRoomError } from "./errors";
 import { playerServerName } from "@/lib/security";
+import { subscriptionRoleNames } from "@/lib/subscription-roles";
 
 type RoomTargetRow = {
   match_id: number;
@@ -182,6 +183,7 @@ export async function loadSeasonLobbyRoomSnapshot(
              COALESCE(current_player.positions, player.positions) AS positions,
              COALESCE(NULLIF(current_player.avatar_url, ''), player.avatar_url)
                AS "avatarUrl",
+             subscription.role_name AS "subscriptionRole",
              room_player.team_side AS "teamSide",
              room_player.tier_snapshot::int AS tier,
              room_player.slot_number::int AS "slotNumber",
@@ -208,6 +210,17 @@ export async function loadSeasonLobbyRoomSnapshot(
            LEFT JOIN players current_player
              ON current_player.discord_id = identity.registered_player_id
             AND current_player.is_archived = FALSE
+           LEFT JOIN LATERAL (
+             SELECT role.role_name
+             FROM player_discord_roles role
+             WHERE role.player_id = COALESCE(
+               current_player.discord_id,
+               room_player.player_id
+             )
+               AND role.role_name = ANY($3::text[])
+             ORDER BY array_position($3::text[], role.role_name)
+             LIMIT 1
+           ) subscription ON TRUE
            LEFT JOIN season_match_room_presence presence
              ON presence.match_id = room_player.match_id
             AND presence.player_id = room_player.player_id
@@ -220,7 +233,11 @@ export async function loadSeasonLobbyRoomSnapshot(
            WHERE room_player.match_id = $1
            ORDER BY room_player.team_side,
              room_player.slot_number NULLS LAST, room_player.player_id`,
-          [matchId, SEASON_LOBBY_PRESENCE_TTL_SECONDS],
+          [
+            matchId,
+            SEASON_LOBBY_PRESENCE_TTL_SECONDS,
+            [...subscriptionRoleNames],
+          ],
         ),
         client.query<RoomMessageRow>(
           `SELECT message.id::int, message.player_id::text AS "playerId",

@@ -78,7 +78,7 @@
     0 0 13px rgba(47, 197, 121, 0.5);
 }
 
-.season-room-teams li img,
+.season-room-teams li > img,
 .season-room-teams li > i {
   display: grid;
   width: 42px;

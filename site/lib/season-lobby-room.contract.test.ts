@@ -32,6 +32,15 @@ const lobbyDisplay = source(
 const lobbyChat = source(
   "../app/season-lobby/[matchId]/components/LobbyChat.tsx",
 );
+const lobbyPlayerTeams = source(
+  "../app/season-lobby/[matchId]/components/LobbyPlayerTeams.tsx",
+);
+const subscriptionRuneNickname = source(
+  "../app/components/SubscriptionRuneNickname.tsx",
+);
+const sharedRuneStyles = source(
+  "../app/styles/03-subscription-rune-nicknames.css",
+);
 const fearlessReliabilityMigration = source(
   "../../bot/database/migrations/0150_fearless_draft_reliability.sql",
 );
@@ -40,6 +49,7 @@ const lobbyEntryStyles = source(
   "../app/styles/60-season-lobby-entry-and-shell.css",
 );
 const lobbyRoomStyles = source("../app/styles/61-season-lobby-chat.css");
+const lobbyTeamStyles = source("../app/styles/60-season-lobby-room.css");
 const roomScreen = source(
   "../app/season-lobby/[matchId]/SeasonLobbyRoomScreen.tsx",
 );
@@ -133,6 +143,18 @@ describe("season lobby room contract", () => {
     expect(lobbyEntryStyles).toMatch(
       /\.season-temporary-team li > \.season-player-row-actions\s*{[^}]*display: inline-flex;/,
     );
+  });
+
+  it("shows the same subscription rune presentation in the lobby", () => {
+    expect(roomQuery).toContain("player_discord_roles");
+    expect(roomQuery).toContain('subscription.role_name AS "subscriptionRole"');
+    expect(roomQuery).toContain("subscriptionRoleNames");
+    expect(lobbyPlayerTeams).toContain("SubscriptionRuneNickname");
+    expect(captainVoting).toContain("SubscriptionRuneNickname");
+    expect(subscriptionRuneNickname).toContain("/participant-runes/water.png");
+    expect(sharedRuneStyles).toContain(".subscription-rune-icon");
+    expect(lobbyTeamStyles).toContain(".season-room-teams li > img");
+    expect(lobbyTeamStyles).not.toContain(".season-room-teams li img,");
   });
 
   it("keeps chat level with five players and groups consecutive messages", () => {

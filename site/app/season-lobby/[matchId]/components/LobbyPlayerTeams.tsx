@@ -3,6 +3,7 @@
 import { FaTools } from "react-icons/fa";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
+import { SubscriptionRuneNickname } from "@/app/components/SubscriptionRuneNickname";
 import type {
   SeasonLobbyRoomPlayer,
   SeasonLobbyRoomSnapshot,
@@ -29,7 +30,12 @@ function RoomPlayer({ player }: { player: SeasonLobbyRoomPlayer }) {
           nickname={player.nickname}
           showClanBadge
         >
-          <strong>{player.nickname}</strong>
+          <strong>
+            <SubscriptionRuneNickname
+              nickname={player.nickname}
+              subscriptionRole={player.subscriptionRole}
+            />
+          </strong>
         </PlayerProfileLink>
         <small>
           тир {player.tier ?? "—"}
