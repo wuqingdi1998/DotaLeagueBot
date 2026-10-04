@@ -100,7 +100,16 @@
 
 .compendium-navigation-link.is-live {
   --navigation-active: #fff;
-  border-color: rgba(122, 226, 218, 0.62);
+  border-color: transparent;
+  background: transparent;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(12, 24, 28, 0.78);
+}
+
+.compendium-navigation-link.is-live::before {
+  inset: 12.5% 0;
+  border: 1px solid rgba(122, 226, 218, 0.62);
+  border-radius: 13px;
   background: linear-gradient(
     110deg,
     #681f26 0%,
@@ -109,21 +118,45 @@
     #124e59 100%
   );
   background-size: 180% 100%;
-  color: #fff;
   box-shadow:
     0 7px 18px rgba(72, 34, 43, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  text-shadow: 0 1px 2px rgba(12, 24, 28, 0.78);
+  opacity: 1;
   animation: compendium-clan-shimmer 8s ease-in-out infinite alternate;
 }
 
-.compendium-navigation-link.is-live[aria-current="page"] {
+.compendium-navigation-link.is-live .header-navigation-hover-light {
+  display: none;
+}
+
+.compendium-navigation-link.is-live[aria-current="page"]::before {
+  inset: 0 0 var(--navigation-bottom, 0px);
   border-radius: 13px 13px 0 0;
+  animation:
+    compendium-clan-shimmer 8s ease-in-out infinite alternate,
+    compendium-selection-expand 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.compendium-navigation-link.is-live[data-navigation-overlay]::before,
+.compendium-navigation-link.is-live[data-navigation-overlay]::after {
+  visibility: visible;
 }
 
 @keyframes compendium-clan-shimmer {
   from { background-position: 0% 50%; }
   to { background-position: 100% 50%; }
+}
+
+@keyframes compendium-selection-expand {
+  from {
+    inset: 12.5% 0;
+    border-radius: 13px;
+  }
+
+  to {
+    inset: 0 0 var(--navigation-bottom, 0px);
+    border-radius: 13px 13px 0 0;
+  }
 }
 
 .header-navigation-animation {
@@ -192,7 +225,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .header-navigation-animation { display: none; }
-  .compendium-navigation-link.is-live {
+  .compendium-navigation-link.is-live::before,
+  .compendium-navigation-link.is-live[aria-current="page"]::before {
     background-position: 50% 50%;
     animation: none;
   }

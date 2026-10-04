@@ -62,16 +62,26 @@ describe("header navigation", () => {
     expect(navigationStyles).toContain("#246f73");
     expect(navigationStyles).toContain("compendium-clan-shimmer");
     expect(navigationStyles).toMatch(
-      /\.compendium-navigation-link\.is-live\s*\{[^}]*background:\s*linear-gradient[^}]*color:\s*#fff;/,
+      /\.compendium-navigation-link\.is-live::before\s*\{[^}]*inset:\s*12\.5% 0;[^}]*background:\s*linear-gradient/,
+    );
+    expect(navigationStyles).toMatch(
+      /\.compendium-navigation-link\.is-live\s*\{[^}]*color:\s*#fff;/,
     );
     expect(navigationStyles).not.toMatch(
       /\.compendium-navigation-link\.is-live\s*\{[^}]*background-clip:\s*text;/,
     );
     expect(navigationStyles).not.toMatch(
-      /\.compendium-navigation-link\.is-live\s*\{[^}]*color:\s*transparent;/,
+      /\.compendium-navigation-link\.is-live\s*\{[^}]*\n\s*color:\s*transparent;/,
     );
     expect(navigationStyles).toMatch(
-      /\.compendium-navigation-link\.is-live\[aria-current="page"\]\s*\{[^}]*border-radius:\s*13px 13px 0 0;/,
+      /\.compendium-navigation-link\.is-live\[aria-current="page"\]::before\s*\{[^}]*inset:\s*0 0 var\(--navigation-bottom, 0px\);[^}]*border-radius:\s*13px 13px 0 0;[^}]*compendium-selection-expand/,
+    );
+    expect(navigationStyles).toContain("@keyframes compendium-selection-expand");
+    expect(navigationStyles).toMatch(
+      /@keyframes compendium-selection-expand\s*\{[\s\S]*?from\s*\{[^}]*inset:\s*12\.5% 0;[\s\S]*?to\s*\{[^}]*inset:\s*0 0 var\(--navigation-bottom, 0px\);/,
+    );
+    expect(navigationStyles).toMatch(
+      /\.compendium-navigation-link\.is-live\[data-navigation-overlay\]::before,[\s\S]*?::after\s*\{[^}]*visibility:\s*visible;/,
     );
   });
 
