@@ -29,6 +29,14 @@ const directoryStyles = readFileSync(
   new URL("../app/styles/28-participants.css", import.meta.url),
   "utf8",
 );
+const runeNicknameStyles = readFileSync(
+  new URL("../app/styles/28-participant-rune-nicknames.css", import.meta.url),
+  "utf8",
+);
+const runeNickname = readFileSync(
+  new URL("../app/participants/ParticipantRuneNickname.tsx", import.meta.url),
+  "utf8",
+);
 const participantTierStyles = readFileSync(
   new URL("../app/styles/32-participant-tier-status.css", import.meta.url),
   "utf8",
@@ -132,6 +140,33 @@ describe("hall of fame and participant directory", () => {
       "compactDiscordAvatarUrl(player.avatarUrl)",
     );
     expect(participantsTable).not.toContain("src={player.avatarUrl}");
+  });
+
+  it("colors participant nicknames by their subscription rune", () => {
+    expect(participantsLoader).toContain("player_discord_roles");
+    expect(participantsLoader).toContain(
+      "subscription.role_name AS subscription_role",
+    );
+    expect(participantsTable).toContain("ParticipantRuneNickname");
+    expect(runeNickname).toContain('"Руна Воды": "water"');
+    expect(runeNickname).toContain('"Руна Усиления урона": "damage"');
+    expect(runeNickname).toContain('"Руна Иллюзий": "illusion"');
+    expect(runeNicknameStyles).toContain("color: #26bfd6");
+    expect(runeNicknameStyles).toContain("--rune-nickname-start: #2f32cf");
+    expect(runeNicknameStyles).toContain("--rune-nickname-end: #38c2fd");
+    expect(runeNicknameStyles).toContain("--rune-nickname-start: #fafadc");
+    expect(runeNicknameStyles).toContain("--rune-nickname-end: #ffde08");
+    expect(runeNicknameStyles).toContain("--rune-nickname-start: #cc37d1");
+    expect(runeNicknameStyles).toContain("--rune-nickname-end: #ffb1d8");
+    expect(runeNicknameStyles).toContain("--rune-nickname-start: #5913d1");
+    expect(runeNicknameStyles).toContain("--rune-nickname-end: #ad2ae9");
+    expect(runeNicknameStyles).toContain("--rune-nickname-start: #fc5454");
+    expect(runeNicknameStyles).toContain("--rune-nickname-end: #c50303");
+    expect(runeNicknameStyles).toContain("--rune-nickname-start: #9fffa5");
+    expect(runeNicknameStyles).toContain("--rune-nickname-end: #207910");
+    expect(runeNicknameStyles).toContain(
+      "animation: participant-rune-nickname-shimmer 4s ease-in-out infinite alternate",
+    );
   });
 
   it("lets the organizer show only manually assigned tiers", () => {

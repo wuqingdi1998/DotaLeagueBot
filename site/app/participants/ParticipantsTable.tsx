@@ -13,6 +13,7 @@ import { compactDiscordAvatarUrl } from "@/lib/avatar-url";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import type { ParticipantDirectoryPlayer } from "@/lib/participants";
 import { OctoberClanBadge } from "@/app/components/october-clan-badges/OctoberClanBadge";
+import { ParticipantRuneNickname } from "./ParticipantRuneNickname";
 
 const ParticipantAdminDialog = dynamic(
   () =>
@@ -261,7 +262,10 @@ function ParticipantIdentity({
       />
       <span>
         <b>
-          {player.nickname}
+          <ParticipantRuneNickname
+            nickname={player.nickname}
+            subscriptionRole={player.subscriptionRole}
+          />
           <OctoberClanBadge dotaId={player.dotaId} />
         </b>
         {player.kind === "archive" && <small>Архивный профиль</small>}

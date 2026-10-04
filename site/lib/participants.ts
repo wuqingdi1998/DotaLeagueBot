@@ -1,5 +1,9 @@
 import { buildPlayerLinks, normalizeDotaAccountId } from "./player-profile";
 import type { PlayerTierStatus } from "./player-tier-status";
+import {
+  subscriptionRoleNames,
+  type SubscriptionRoleName,
+} from "./subscription-roles";
 import { query } from "./db";
 
 export const participantTierMinimum = 1;
@@ -13,6 +17,7 @@ export type ParticipantDirectoryPlayer = {
   nickname: string;
   aliases: string[];
   avatarUrl: string | null;
+  subscriptionRole: SubscriptionRoleName | null;
   positions: string | null;
   primaryRole: number | null;
   secondaryRole: number | null;
@@ -33,6 +38,7 @@ type RegisteredParticipantRow = {
   nickname: string;
   aliases: string[];
   avatar_url: string | null;
+  subscription_role: SubscriptionRoleName | null;
   positions: string | null;
   tier: number | null;
   tier_status: PlayerTierStatus;
@@ -66,6 +72,7 @@ function registeredParticipant(
       nickname: row.nickname,
       aliases: row.aliases,
       avatarUrl: row.avatar_url,
+      subscriptionRole: row.subscription_role,
       positions: row.positions,
       primaryRole: roleAt(row.positions, 0),
       secondaryRole: roleAt(row.positions, 1),
@@ -91,6 +98,7 @@ export async function loadParticipantDirectory(
          NULLIF(player.avatar_url, ''),
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
+       subscription.role_name AS subscription_role,
        player.positions,
        player.tier_status,
        player.internal_rating <> 0 AS has_manual_tier,
@@ -136,9 +144,18 @@ export async function loadParticipantDirectory(
        ORDER BY session.created_at DESC
        LIMIT 1
      ) latest_session ON TRUE
+     LEFT JOIN LATERAL (
+       SELECT role.role_name
+       FROM player_discord_roles role
+       WHERE role.player_id = player.discord_id
+         AND role.role_name = ANY($1::text[])
+       ORDER BY array_position($1::text[], role.role_name)
+       LIMIT 1
+     ) subscription ON TRUE
      WHERE player.is_archived = FALSE
        AND player.steam_id32 BETWEEN 1 AND 4294967295
      ORDER BY LOWER(player.ingame_name), player.discord_id`,
+    [[...subscriptionRoleNames]],
   );
   const registered = rows.flatMap(registeredParticipant);
   if (!includeArchived) return registered;
@@ -178,6 +195,7 @@ export async function loadParticipantDirectory(
       nickname: row.nickname,
       aliases: row.aliases,
       avatarUrl: null,
+      subscriptionRole: null,
       positions: null,
       primaryRole: null,
       secondaryRole: null,

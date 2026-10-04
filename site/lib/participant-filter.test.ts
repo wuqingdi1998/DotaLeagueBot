@@ -21,6 +21,7 @@ function player(
     nickname,
     aliases: [],
     avatarUrl: null,
+    subscriptionRole: null,
     positions: `${primaryRole}/${secondaryRole}`,
     primaryRole,
     secondaryRole,

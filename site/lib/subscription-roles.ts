@@ -8,6 +8,8 @@ export const subscriptionRoleNames = [
   "Руна Воды",
 ] as const;
 
+export type SubscriptionRoleName = (typeof subscriptionRoleNames)[number];
+
 export const supporterRoleName = "Суппортеры" as const;
 export const supporterRoleId = "1506420703254286478" as const;
 
