@@ -7,5 +7,4 @@ export type OctoberClanMember = {
   avatarUrl: string | null;
   clanId: OctoberClanId;
   totalPoints: number;
-  isReserved?: boolean;
 };

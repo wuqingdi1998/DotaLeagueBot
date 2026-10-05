@@ -48,3 +48,19 @@ async def test_cleanup_detects_when_discord_still_reports_removed_role(monkeypat
     ))
     with pytest.raises(RuntimeError, match="42"):
         await service.sync_clan_roles(guild, {})
+
+
+async def test_inactive_player_loses_clan_role_immediately() -> None:
+    clan_role = Role("Морбус")
+    other_role = Role("Участник")
+    member = SimpleNamespace(
+        id=42, roles=[clan_role, other_role], remove_roles=AsyncMock(),
+    )
+    guild = SimpleNamespace(get_member=lambda player_id: member if player_id == 42 else None)
+
+    await service.remove_clan_roles_from_player(guild, 42)
+
+    member.remove_roles.assert_awaited_once_with(
+        clan_role,
+        reason="Участник получил статус «Инактив»",
+    )

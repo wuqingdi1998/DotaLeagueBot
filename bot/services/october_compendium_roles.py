@@ -142,6 +142,24 @@ async def sync_clan_roles(
     print(f"[OCTOBER CLANS] Roles synchronized for guild {guild.id}", flush=True)
 
 
+async def remove_clan_roles_from_player(
+    guild: discord.Guild,
+    player_id: int,
+) -> None:
+    member = guild.get_member(player_id)
+    if member is None:
+        try:
+            member = await guild.fetch_member(player_id)
+        except discord.NotFound:
+            return
+    clan_role_names = {name.casefold() for name, _icon in ROLE_SPECS.values()}
+    clan_roles = [
+        role for role in member.roles if role.name.strip().casefold() in clan_role_names
+    ]
+    if clan_roles:
+        await member.remove_roles(*clan_roles, reason="Участник получил статус «Инактив»")
+
+
 async def delete_clan_roles(guild: discord.Guild) -> None:
     for name, _icon in ROLE_SPECS.values():
         role = discord.utils.get(guild.roles, name=name)

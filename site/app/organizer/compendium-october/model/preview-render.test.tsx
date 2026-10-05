@@ -56,6 +56,10 @@ const prizeBoardSource = readFileSync(
   new URL("../components/OctoberClanPrizeBoard.tsx", import.meta.url),
   "utf8",
 );
+const clanStandingsSource = readFileSync(
+  new URL("../components/OctoberClanStandings.tsx", import.meta.url),
+  "utf8",
+);
 function unavailable() { throw new Error("A private preview must never submit an action"); }
 describe("October preview actions", () => {
   it("offers exactly four desktop screen links in the planned order", () => {
@@ -246,6 +250,7 @@ describe("October preview actions", () => {
     expect(html).toContain("discord-avatars");
     expect(html).toContain("october-clan-standing-row--current");
     expect(html).toContain(">Вы</span>");
+    expect(html).not.toContain(">Бронь</span>");
     expect(html.match(/class="october-clan-identity"/g)).toHaveLength(2);
     expect(html).toContain("4 очка у клана Морбус");
     expect(html).not.toContain("october-clan-name-badge");
@@ -270,6 +275,8 @@ describe("October preview actions", () => {
     expect(html).toContain("october-clan-standing-row--compact october-clan-standing-row--current");
     expect(html).toContain("Полный зачёт клана Морбус");
     expect(html).toContain("Player 12");
+    expect(clanStandingsSource).toContain('document.body.style.overflow = "hidden"');
+    expect(clanStyles).toContain("overflow-y: auto; overscroll-behavior-y: contain");
   });
 
   it("gives both clanmates the weekend bonus and permits the same match to close a hero quest", () => {

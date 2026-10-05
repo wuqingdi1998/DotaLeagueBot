@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from datetime import datetime, timezone
 
 import discord
@@ -12,6 +13,7 @@ from cogs.ui.titan_checkup import (
     resolved_titan_checkup_view,
 )
 from services.durable_scheduler import register_scheduled_job
+from services.october_compendium_roles import remove_clan_roles_from_player
 from services.titan_checkup_service import TitanCheckupService, TitanRecipient
 
 FROKENG_DISCORD_ID = 311247030422863882
@@ -81,6 +83,21 @@ class TitanCheckup(commands.Cog):
             )
             return False
         return True
+
+    def _compendium_guild(self) -> discord.Guild | None:
+        configured_id = os.getenv("GUILD_ID")
+        if configured_id:
+            return self.bot.get_guild(int(configured_id))
+        return self.bot.guilds[0] if len(self.bot.guilds) == 1 else None
+
+    async def _remove_inactive_clan_role(self, player_id: int) -> None:
+        guild = self._compendium_guild()
+        if guild is None or guild.unavailable:
+            return
+        try:
+            await remove_clan_roles_from_player(guild, player_id)
+        except (discord.Forbidden, discord.HTTPException) as error:
+            print(f"⚠️ Не удалось сразу снять клановую роль: {error}", flush=True)
 
     @app_commands.command(
         name="titan_checkup",
@@ -170,7 +187,8 @@ class TitanCheckup(commands.Cog):
                 ephemeral=True,
             )
             return
-        nickname = await self.service.enable_inactive(int(participant))
+        player_id = int(participant)
+        nickname = await self.service.enable_inactive(player_id)
         if nickname is None:
             await interaction.response.send_message(
                 "Участник не найден или уже имеет статус «Инактив».",
@@ -181,6 +199,7 @@ class TitanCheckup(commands.Cog):
             f"{nickname} получил статус «Инактив». Ранг игрока не изменён.",
             ephemeral=True,
         )
+        await self._remove_inactive_clan_role(player_id)
 
     @inactive.autocomplete("participant")
     async def active_player_choices(
@@ -291,6 +310,8 @@ class TitanCheckup(commands.Cog):
             view=resolved_titan_checkup_view(action),
         )
         await interaction.followup.send(response)
+        if action == "inactive":
+            await self._remove_inactive_clan_role(player_id)
 
     @staticmethod
     async def _already_processed(interaction: discord.Interaction) -> None:

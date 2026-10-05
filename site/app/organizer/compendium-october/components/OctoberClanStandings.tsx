@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
@@ -65,7 +65,6 @@ function StandingRow({
         <span className="october-clan-standing-name">
           {member.playerName}
         </span>
-        {member.isReserved && <span className="october-clan-standing-reserved">Бронь</span>}
         {isCurrentPlayer && <span className="october-clan-standing-you">Вы</span>}
       </Link>
       <strong><FaStar aria-hidden="true" /> {member.totalPoints}</strong>
@@ -87,10 +86,30 @@ export function OctoberClanStandings({
   viewerDiscordId?: string;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const rankedMembers = rankOctoberClanMembers(members);
   const cardRows = octoberClanCardRows(members, viewerDiscordId);
   const totalPoints = octoberClanTotalPoints(members);
   const titleId = `october-${clanId}-standings-title`;
+
+  useEffect(() => {
+    if (!isDialogOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isDialogOpen]);
+
+  function openDialog() {
+    dialogRef.current?.showModal();
+    setIsDialogOpen(true);
+  }
+
+  function closeDialog() {
+    dialogRef.current?.close();
+    setIsDialogOpen(false);
+  }
 
   return (
     <article className={`october-clan-card october-clan-card--${clanId}`}>
@@ -108,7 +127,7 @@ export function OctoberClanStandings({
         <button
           className="october-clan-standing-open"
           type="button"
-          onClick={() => dialogRef.current?.showModal()}
+          onClick={openDialog}
         >
           <FiMaximize2 aria-hidden="true" /> Полный зачёт клана
         </button>
@@ -141,8 +160,9 @@ export function OctoberClanStandings({
         className={`october-clan-standing-dialog october-clan-standing-dialog--${clanId}`}
         ref={dialogRef}
         aria-labelledby={titleId}
+        onClose={() => setIsDialogOpen(false)}
         onClick={(event) => {
-          if (event.target === event.currentTarget) dialogRef.current?.close();
+          if (event.target === event.currentTarget) closeDialog();
         }}
       >
         <div className="october-clan-standing-dialog-panel">
@@ -155,7 +175,7 @@ export function OctoberClanStandings({
             <button
               type="button"
               aria-label="Закрыть полный зачёт"
-              onClick={() => dialogRef.current?.close()}
+              onClick={closeDialog}
             >
               <FiX aria-hidden="true" />
             </button>

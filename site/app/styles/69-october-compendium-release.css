@@ -117,17 +117,6 @@
   font-size: 13px;
 }
 
-.october-clan-standing-reserved {
-  flex: 0 0 auto;
-  padding: 1px 5px;
-  border: 1px solid color-mix(in srgb, var(--clan-accent) 58%, transparent);
-  border-radius: 999px;
-  color: var(--clan-accent);
-  font-size: 10px;
-  font-weight: 900;
-  text-transform: uppercase;
-}
-
 .october-compendium-screen-daily .compendium-quest {
   position: relative;
   overflow: hidden;
@@ -224,5 +213,4 @@
 
 @media (max-width: 660px) {
   .october-daily-opening-overlay { padding: 18px; }
-  .october-clan-standing-reserved { display: none; }
 }
