@@ -11,7 +11,12 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
-    scroll-snap-type: y proximity;
+    scrollbar-width: none;
+    scroll-snap-type: y mandatory;
+  }
+
+  .october-compendium-preview::-webkit-scrollbar {
+    display: none;
   }
 
   .october-compendium-screen {
@@ -26,10 +31,7 @@
   }
 
   .october-compendium-screen-daily {
-    height: auto;
-    min-height: calc(100dvh - 76px);
-    flex-shrink: 0;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .october-section-navigation {
@@ -289,9 +291,9 @@
   .october-compendium-screen-daily .compendium-daily-section {
     display: flex;
     min-height: 0;
-    flex: 0 0 auto;
+    flex: 1;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: center;
     padding-top: 18px;
     padding-bottom: 22px;
   }

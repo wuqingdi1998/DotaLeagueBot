@@ -70,13 +70,6 @@ describe("October preview actions", () => {
     expect(html.match(/href="#october-section-/g)).toHaveLength(4);
   });
 
-  it("supports section scrolling with the shared visible scrollbar", () => {
-    expect(previewStyles).not.toContain("::-webkit-scrollbar");
-    expect(previewStyles).toContain("body:has(.october-compendium-preview)");
-    expect(previewStyles).toMatch(/\.october-compendium-preview\s*\{[^}]*overflow-y:\s*auto;[^}]*scroll-snap-type:\s*y proximity;/); expect(previewStyles).toMatch(/\.october-compendium-screen\s*\{[^}]*overflow:\s*hidden;[^}]*scroll-snap-align:\s*start;/);
-    expect(previewStyles).toContain(".october-section-navigation"); expect(previewStyles).toContain("scroll-snap-stop: always");
-  });
-
   it("shows the new five-step personal track without the old community tally", () => {
     const html = renderToStaticMarkup(
       <CompendiumRewards
@@ -362,7 +355,7 @@ describe("October preview actions", () => {
     expect(html).not.toContain("compendium-check-button");
   });
 
-  it("keeps desktop daily controls reachable when content exceeds the viewport", () => {
+  it("keeps desktop daily controls compact inside the fourth full screen", () => {
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.october-race-rules-desktop \{ display: grid; \}/,
     );
@@ -374,9 +367,9 @@ describe("October preview actions", () => {
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: flex-start;[\s\S]*?padding-bottom: 22px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?flex: 1;[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
     );
-    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*height: auto;[\s\S]*?overflow: visible;/);
+    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*overflow: hidden;/);
     expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");
     expect(guideStyles).toMatch(/\.october-compendium-example-note\.october-dismissible-guide \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/);
     expect(previewStyles).toMatch(
