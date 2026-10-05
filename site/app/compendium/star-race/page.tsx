@@ -8,7 +8,9 @@ import {
   starRacePrizeDescription,
   STAR_RACE_EXCLUSION_RULES,
 } from "../model/star-race";
+import { CompendiumExclusionNotice } from "../components/CompendiumExclusionNotice";
 import { CompendiumLeaderboard } from "../sections/CompendiumLeaderboard";
+import { isExcludedFromCompendium } from "../services/participant-access";
 import { loadStarRaceLeaderboard } from "../services/star-race-repository";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +25,14 @@ export function generateMetadata(): Metadata {
 
 export default async function StarRaceLeaderboardPage() {
   const user = await getSession();
-  if (!user?.isAdmin) redirect("/compendium/results");
+  if (!user) redirect("/login?returnTo=%2Fcompendium%2Fstar-race");
+  if (!user.isAdmin && await isExcludedFromCompendium(user.discordId)) {
+    return (
+      <PlatformShell user={user}>
+        <CompendiumExclusionNotice />
+      </PlatformShell>
+    );
+  }
   const now = new Date();
   const race = starRaceForMoment(now);
   if (!starRacePhase(now, user.isAdmin, race).isDetailsVisible) {

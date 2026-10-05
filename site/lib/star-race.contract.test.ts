@@ -228,6 +228,17 @@ describe("compendium star race contract", () => {
     expect(starRacePrizesModel).toContain("Призы будут объявлены позже");
   });
 
+  it("opens the current race leaderboard to signed-in compendium participants", () => {
+    const leaderboardPage = source("../app/compendium/star-race/page.tsx");
+    expect(leaderboardPage).toContain(
+      'redirect("/login?returnTo=%2Fcompendium%2Fstar-race")',
+    );
+    expect(leaderboardPage).toContain("isExcludedFromCompendium(user.discordId)");
+    expect(leaderboardPage).not.toContain(
+      'if (!user?.isAdmin) redirect("/compendium/results")',
+    );
+  });
+
   it("stores the two-star reward once and only during its Moscow day", () => {
     expect(migration).toContain("CHECK (reward_amount = 2)");
     expect(migration).toContain("UNIQUE (player_id, moscow_date)");
