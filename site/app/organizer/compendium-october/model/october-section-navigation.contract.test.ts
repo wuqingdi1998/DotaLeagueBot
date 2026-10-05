@@ -20,4 +20,16 @@ describe("October desktop section navigation", () => {
     expect(sectionNavigationSource).toContain('addEventListener("keydown"');
     expect(sectionNavigationSource).toContain("window.matchMedia(DESKTOP_PAGING_QUERY)");
   });
+
+  it("does not switch background screens while a standings dialog is open", () => {
+    expect(sectionNavigationSource).toContain(
+      'document.querySelector(".october-clan-standing-dialog[open]")',
+    );
+    expect(sectionNavigationSource).toMatch(
+      /function handleWheel\(event: WheelEvent\) \{\s+if \(isCompendiumDialogOpen\(\)\) return;/,
+    );
+    expect(sectionNavigationSource).toMatch(
+      /function handleKeyDown\(event: KeyboardEvent\) \{\s+if \(isCompendiumDialogOpen\(\)\) return;/,
+    );
+  });
 });

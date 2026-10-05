@@ -57,7 +57,12 @@ export function OctoberSectionNavigation() {
       return true;
     }
 
+    function isCompendiumDialogOpen() {
+      return document.querySelector(".october-clan-standing-dialog[open]") !== null;
+    }
+
     function handleWheel(event: WheelEvent) {
+      if (isCompendiumDialogOpen()) return;
       if (
         !desktopPaging.matches
         || event.ctrlKey
@@ -80,6 +85,7 @@ export function OctoberSectionNavigation() {
     }
 
     function handleKeyDown(event: KeyboardEvent) {
+      if (isCompendiumDialogOpen()) return;
       if (
         !desktopPaging.matches
         || (event.key !== "ArrowDown" && event.key !== "ArrowUp")
