@@ -104,7 +104,7 @@ describe("October preview actions", () => {
     const html = renderToStaticMarkup(
       <ProfileEventBadge badgeKey="october-2026-morbus-gold" />,
     );
-    expect(html).toContain("morbus-emblem-v2.webp");
+    expect(html).toContain("morbus-emblem.png");
     expect(html).toContain(">2026</span>");
     expect(html).not.toContain("profile-event-badge-reward-label");
     expect(html).not.toContain(">Морбус</strong>");
@@ -135,8 +135,8 @@ describe("October preview actions", () => {
     expect(OCTOBER_CLANS.map((clan) => clan.name)).toEqual(["Морбус", "Панацея"]);
     expect(html).toContain("Флаг клана Морбус");
     expect(html).toContain("Флаг клана Панацея");
-    expect(html).toContain("morbus-emblem-v2.webp");
-    expect(html).toContain("panacea-emblem.webp");
+    expect(html).toContain("morbus-emblem.png");
+    expect(html).toContain("panacea-emblem.png");
     expect(html).toContain("30 предметов в финальном розыгрыше");
     expect(html).toContain("Каждая звезда – дополнительный шанс на выигрыш");
     expect(html).toContain("Победители разыграют 21 предмет, проигравшие – 9");

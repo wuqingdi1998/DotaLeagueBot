@@ -13,8 +13,8 @@ def test_clan_roles_are_positioned_below_view_role_and_have_site_icons() -> None
     assert 'REFERENCE_ROLE_NAME = "Просто посмотреть"' in ROLE_SERVICE
     assert 'reference.position - 1' in ROLE_SERVICE
     assert 'display_icon=icon' in ROLE_SERVICE
-    assert 'morbus-emblem-v2.webp' in DOCKERFILE
-    assert 'panacea-emblem.webp' in DOCKERFILE
+    assert 'morbus-emblem.png' in DOCKERFILE
+    assert 'panacea-emblem.png' in DOCKERFILE
 
 
 def test_registration_assigns_new_player_to_a_clan() -> None:

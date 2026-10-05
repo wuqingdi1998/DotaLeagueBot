@@ -12,8 +12,8 @@ MOSCOW_TIME_ZONE = datetime.timezone(datetime.timedelta(hours=3), name="Europe/M
 COMPENDIUM_START_AT = datetime.datetime(2026, 10, 5, tzinfo=MOSCOW_TIME_ZONE)
 ROLE_REMOVAL_AT = datetime.datetime(2026, 10, 27, tzinfo=MOSCOW_TIME_ZONE)
 ROLE_SPECS = {
-    "morbus": ("Морбус", Path("assets/compendium/morbus-emblem.webp")),
-    "panacea": ("Панацея", Path("assets/compendium/panacea-emblem.webp")),
+    "morbus": ("Морбус", Path("assets/compendium/morbus-emblem.png")),
+    "panacea": ("Панацея", Path("assets/compendium/panacea-emblem.png")),
 }
 REFERENCE_ROLE_NAME = "Просто посмотреть"
 

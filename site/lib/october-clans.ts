@@ -2,12 +2,12 @@ export const OCTOBER_CLANS = [
   {
     id: "morbus",
     name: "Морбус",
-    emblem: "/compendium/october/morbus-emblem-v2.webp",
+    emblem: "/compendium/october/morbus-emblem.png",
   },
   {
     id: "panacea",
     name: "Панацея",
-    emblem: "/compendium/october/panacea-emblem.webp",
+    emblem: "/compendium/october/panacea-emblem.png",
   },
 ] as const;
 
