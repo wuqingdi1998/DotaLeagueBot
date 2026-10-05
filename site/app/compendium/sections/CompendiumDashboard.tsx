@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
 import { FiArrowRight, FiClock } from "react-icons/fi";
 import { useServerClock } from "../hooks/useServerClock";
+import { useCompendiumToast } from "../hooks/useCompendiumToast";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentStatusForMoment } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
@@ -48,7 +49,7 @@ export function CompendiumDashboard({
   const [submittingMatchId, setSubmittingMatchId] = useState<string | null>(null);
   const [checkingStarRaceDate, setCheckingStarRaceDate] = useState<string | null>(null);
   const [submittingFinalPrediction, setSubmittingFinalPrediction] = useState(false);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useCompendiumToast();
   const currentTimeMs = useServerClock(data.serverNow);
   const countdown = countdownLabel(data.nextResetAt, currentTimeMs);
   const tournamentStatus = tournamentStatusForMoment(
@@ -59,12 +60,6 @@ export function CompendiumDashboard({
   useEffect(() => {
     if (countdown === "00:00:00") router.refresh();
   }, [countdown, router]);
-
-  useEffect(() => {
-    if (!toast) return;
-    const timer = window.setTimeout(() => setToast(""), 7_000);
-    return () => window.clearTimeout(timer);
-  }, [toast]);
 
   async function checkQuest(questId: string) {
     if (checkingQuestId || rerollingQuestId) return;

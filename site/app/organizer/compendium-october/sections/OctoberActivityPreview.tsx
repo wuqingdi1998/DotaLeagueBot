@@ -18,6 +18,7 @@ import { OctoberDailyOpeningOverlay } from "../components/OctoberDailyOpeningOve
 import type { OctoberDailyQuestData } from "../services/october-daily-quests";
 import type { QuestCompletion } from "@/app/compendium/model/types";
 import { useServerClock } from "@/app/compendium/hooks/useServerClock";
+import { useCompendiumToast } from "@/app/compendium/hooks/useCompendiumToast";
 import {
   starRaceQuestProgressLabel,
   type StarRaceData,
@@ -38,7 +39,7 @@ export function OctoberRacePreview({
 }) {
   const [race, setRace] = useState(initialRace ?? octoberRacePreviewData(week));
   const [checkingDateKey, setCheckingDateKey] = useState<string | null>(null);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useCompendiumToast();
   const currentTimeMs = useServerClock(serverNow ?? "1970-01-01T00:00:00.000Z");
   const isLive = initialRace !== undefined;
 
@@ -120,7 +121,7 @@ export function OctoberDailyPreview({
   const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
   const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
   const [isCheckingClanOuting, setIsCheckingClanOuting] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useCompendiumToast();
   const isOverviewVisible = guides.isVisible("daily-overview");
   const isClanOutingVisible = guides.isVisible("clan-outing");
   const quests = dailyData?.quests ?? octoberDailyQuestSamples();
