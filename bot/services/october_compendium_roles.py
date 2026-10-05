@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+from collections.abc import Sequence
 from pathlib import Path
 
 import discord
@@ -120,10 +121,11 @@ async def ensure_clan_roles(guild: discord.Guild) -> dict[str, discord.Role]:
 async def sync_clan_roles(
     guild: discord.Guild,
     assignments: dict[int, str],
+    members: Sequence[discord.Member] | None = None,
 ) -> None:
     roles = await ensure_clan_roles(guild)
     managed_roles = set(roles.values())
-    for member in guild.members:
+    for member in members if members is not None else guild.members:
         has_excluded_role = any(
             role.name.strip().casefold() == COMPENDIUM_EXCLUDED_ROLE_NAME.casefold()
             for role in member.roles

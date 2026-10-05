@@ -743,6 +743,18 @@ jobs:
               "SELECT COUNT(*) FROM october_compendium_clan_members
                WHERE NOT october_clan_player_is_eligible(player_id)"')"
             test "$remaining" = "0"
+            docker compose logs --since=10m bot 2>&1 |
+              grep '\[OCTOBER SERVER\] Membership checked'
+            departed_remaining="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) FROM october_compendium_server_membership presence
+               LEFT JOIN compendium_player_star_totals stars ON stars.player_id = presence.player_id
+               LEFT JOIN october_compendium_clan_members member ON member.player_id = presence.player_id
+               WHERE presence.is_present = FALSE
+                 AND (COALESCE(stars.total_stars, 0) <> 0 OR member.player_id IS NOT NULL
+                      OR EXISTS (SELECT 1 FROM compendium_star_race_events race
+                                 WHERE race.player_id = presence.player_id))"')"
+            test "$departed_remaining" = "0"
             docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
               "SELECT clan_id, COUNT(*) FROM october_compendium_clan_members
