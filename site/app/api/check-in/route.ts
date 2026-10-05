@@ -4,10 +4,12 @@ import {
   responseFromAuthError,
 } from "@/lib/auth";
 import { one, query } from "@/lib/db";
+import { requirePlayerParticipation } from "@/lib/player-participation";
 
 export async function POST(request: Request) {
   try {
     const user = await requireSession();
+    await requirePlayerParticipation(user.discordId);
     const body = (await request.json()) as {
       tournamentId?: number;
       applicationId?: number;

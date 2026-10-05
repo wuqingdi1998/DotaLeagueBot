@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
+  inactivePlayerParticipationError,
   normalizeParticipantTierInput,
-  outdatedTierApplicationError,
+  tierStatusApplicationError,
   type TierStatusApplicationPlayer,
 } from "./player-tier-status";
 
@@ -26,6 +27,18 @@ const applicationSupport = source(
   "../app/api/applications/application-support.ts",
 );
 const applicationRoute = source("../app/api/applications/route.ts");
+const applicationUpdate = source(
+  "../app/api/applications/application-update.ts",
+);
+const tournamentCheckIn = source("../app/api/check-in/route.ts");
+const seasonCheckIn = source("../app/api/season/check-in/route.ts");
+const seasonRegistration = source(
+  "../app/api/season/registration/route.ts",
+);
+const fearlessDraft = source("../app/api/fearless-draft/route.ts");
+const compendiumAccess = source(
+  "../app/compendium/services/participant-access.ts",
+);
 const tierStatusModel = source("./player-tier-status.ts");
 
 describe("current player tier status", () => {
@@ -66,8 +79,8 @@ describe("current player tier status", () => {
 
   it("blocks tournament applications containing outdated players", () => {
     expect(applicationSupport).toContain("tier_status");
-    expect(applicationSupport).toContain("outdatedTierApplicationError");
-    expect(applicationRoute).toContain("outdatedTierApplicationError");
+    expect(applicationSupport).toContain("tierStatusApplicationError");
+    expect(applicationRoute).toContain("tierStatusApplicationError");
     expect(tierStatusModel).toContain(
       "неактуальный тир, для актуализации пишите @frokeng",
     );
@@ -85,8 +98,22 @@ describe("current player tier status", () => {
         tier_status: "inactive",
       },
     ];
-    expect(outdatedTierApplicationError(players)).toBe(
-      "У игрока (-ов) Later, Inactive неактуальный тир, для актуализации пишите @frokeng",
+    expect(tierStatusApplicationError(players)).toBe(
+      "Снимите статус «Инактив» у @frokeng",
     );
+  });
+
+  it("shows the inactive notice before starting site participation", () => {
+    expect(inactivePlayerParticipationError("inactive")).toBe(
+      "Снимите статус «Инактив» у @frokeng",
+    );
+    expect(inactivePlayerParticipationError("outdated")).toBeNull();
+    expect(inactivePlayerParticipationError("current")).toBeNull();
+    expect(applicationUpdate).toContain("requirePlayerParticipation");
+    expect(tournamentCheckIn).toContain("requirePlayerParticipation");
+    expect(seasonCheckIn).toContain("requirePlayerParticipation");
+    expect(seasonRegistration).toContain("inactivePlayerParticipationError");
+    expect(fearlessDraft).toContain("requirePlayerParticipation");
+    expect(compendiumAccess).toContain("requirePlayerParticipation");
   });
 });

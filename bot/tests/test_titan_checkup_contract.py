@@ -26,11 +26,26 @@ def test_tier_status_and_checkup_requests_are_persistent() -> None:
 
 def test_titan_commands_are_restricted_and_hidden_by_default() -> None:
     assert "FROKENG_DISCORD_ID = 311247030422863882" in COG
-    assert COG.count("@app_commands.default_permissions()") == 2
+    assert COG.count("@app_commands.default_permissions()") == 3
     assert 'name="titan_checkup"' in COG
+    assert 'name="inactive"' in COG
     assert 'name="inactive_off"' in COG
     assert "interaction.user.id != FROKENG_DISCORD_ID" in COG
+    assert "active_player_choices" in COG
     assert "inactive_player_choices" in COG
+
+
+def test_manual_inactive_status_preserves_the_player_rank() -> None:
+    assert "enable_inactive" in SERVICE
+    assert "SET tier_status = 'inactive', last_updated = NOW()" in SERVICE
+    inactive_service = SERVICE[
+        SERVICE.index("async def enable_inactive") :
+        SERVICE.index("async def disable_inactive")
+    ]
+    assert "rank_tier" not in inactive_service
+    assert "UPDATE titan_checkup_requests" in inactive_service
+    assert "AND status IN ('created', 'sent', 'ready')" in inactive_service
+    assert "Ранг игрока не изменён" in COG
 
 
 def test_checkup_targets_titans_and_preserves_inactive_opt_outs() -> None:

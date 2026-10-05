@@ -1,6 +1,7 @@
 import { requireSession, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
 import type { TournamentStatus } from "@/lib/tournaments";
+import { requirePlayerParticipation } from "@/lib/player-participation";
 import { seasonRoundCheckInIsOpen } from "@/lib/season-round-registration";
 
 type CheckInTarget = {
@@ -23,6 +24,7 @@ function checkInRoundId(value: unknown): number {
 export async function POST(request: Request) {
   try {
     const user = await requireSession();
+    await requirePlayerParticipation(user.discordId);
     const body = (await request.json()) as Record<string, unknown>;
     const roundId = checkInRoundId(body.roundId);
 

@@ -14,6 +14,21 @@ describe("Fearless Draft route errors", () => {
     });
   });
 
+  it("keeps a JSON participation notice readable", async () => {
+    const response = await draftRouteErrorResponse(
+      Response.json(
+        { error: "Снимите статус «Инактив» у @frokeng" },
+        { status: 409 },
+      ),
+      "Действие не выполнено",
+    );
+
+    expect(response.status).toBe(409);
+    await expect(response.json()).resolves.toEqual({
+      error: "Снимите статус «Инактив» у @frokeng",
+    });
+  });
+
   it("returns JSON and logs an unexpected server failure", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const failure = new Error("database unavailable");

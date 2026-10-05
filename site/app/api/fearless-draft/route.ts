@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { requireSession } from "@/lib/auth";
+import { requirePlayerParticipation } from "@/lib/player-participation";
 import type { FearlessDraftCommand } from "@/app/fearless-draft/model/snapshot";
 import {
   joinDraftQueue,
@@ -62,6 +63,16 @@ export async function POST(request: Request) {
     const user = await requireSession();
     const seasonMatchId = fearlessSeasonMatchId(request);
     const command = (await request.json()) as Partial<FearlessDraftCommand>;
+    if ([
+      "START_BOT",
+      "START_BOT2",
+      "START_BOT3",
+      "JOIN_QUEUE",
+      "INVITE",
+      "ACCEPT_INVITATION",
+    ].includes(command.action ?? "")) {
+      await requirePlayerParticipation(user.discordId);
+    }
     switch (command.action) {
       case "START_BOT":
         await startBotDraft(user.discordId);

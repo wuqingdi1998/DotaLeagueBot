@@ -10,6 +10,15 @@ export type NormalizedTierInput = {
   numericTier: number;
 };
 
+export const inactivePlayerParticipationMessage =
+  "Снимите статус «Инактив» у @frokeng";
+
+export function inactivePlayerParticipationError(
+  tierStatus: string | null | undefined,
+): string | null {
+  return tierStatus === "inactive" ? inactivePlayerParticipationMessage : null;
+}
+
 export function normalizeParticipantTierInput(
   tier: number | string,
 ): NormalizedTierInput | null {
@@ -19,11 +28,14 @@ export function normalizeParticipantTierInput(
   return { isOutdated: false, numericTier: Number(value) };
 }
 
-export function outdatedTierApplicationError(
+export function tierStatusApplicationError(
   players: TierStatusApplicationPlayer[],
 ): string | null {
+  if (players.some((player) => player.tier_status === "inactive")) {
+    return inactivePlayerParticipationMessage;
+  }
   const nicknames = players
-    .filter((player) => player.tier_status !== "current")
+    .filter((player) => player.tier_status === "outdated")
     .map((player) => player.ingame_name);
   if (!nicknames.length) return null;
   return `У игрока (-ов) ${nicknames.join(", ")} неактуальный тир, для актуализации пишите @frokeng`;

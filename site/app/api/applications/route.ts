@@ -17,7 +17,7 @@ import {
   allowedTeamImageTypes as allowedImageTypes,
   hasExpectedImageSignature as hasExpectedSignature,
   resolveApplicationPlayer as resolvePlayer,
-  outdatedTierApplicationError,
+  tierStatusApplicationError,
   type ApplicationPlayerRow as PlayerRow,
 } from "./application-support";
 
@@ -145,9 +145,9 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-    const outdatedTierError = outdatedTierApplicationError(members);
-    if (outdatedTierError) {
-      return Response.json({ error: outdatedTierError }, { status: 409 });
+    const tierStatusError = tierStatusApplicationError(members);
+    if (tierStatusError) {
+      return Response.json({ error: tierStatusError }, { status: 409 });
     }
     const tierLimitError = registrationTierError(
       tournament.max_team_tier,
@@ -238,9 +238,9 @@ export async function POST(request: Request) {
         throw new Error("REGISTRATION_PLAYER_CHANGED");
       }
       const currentMembers = registrationMembers as PlayerRow[];
-      const currentOutdatedTierError = outdatedTierApplicationError(currentMembers);
-      if (currentOutdatedTierError) {
-        throw new Error(`REGISTRATION_TIER:${currentOutdatedTierError}`);
+      const currentTierStatusError = tierStatusApplicationError(currentMembers);
+      if (currentTierStatusError) {
+        throw new Error(`REGISTRATION_TIER:${currentTierStatusError}`);
       }
       const currentTierLimitError = registrationTierError(
         currentTournament.rows[0].max_team_tier,

@@ -9,6 +9,7 @@ import {
   seasonTierConfirmationMessage,
 } from "@/lib/season-round-registration";
 import { refreshRoundRegistrationRankedWins } from "@/lib/season-ranked-wins/repository";
+import { inactivePlayerParticipationError } from "@/lib/player-tier-status";
 import { hasPriorityRegistrationAccess } from "../season-route-access";
 
 export const dynamic = "force-dynamic";
@@ -114,6 +115,12 @@ async function updateRegistration(
           [user.discordId],
         );
         const player = playerResult.rows[0];
+        const participationError = inactivePlayerParticipationError(
+          player?.tier_status,
+        );
+        if (participationError) {
+          throw new Response(participationError, { status: 409 });
+        }
         if (
           !player ||
           player.tier_status !== "current" ||

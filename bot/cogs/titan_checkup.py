@@ -151,6 +151,55 @@ class TitanCheckup(commands.Cog):
             return False
 
     @app_commands.command(
+        name="inactive",
+        description="Выдать участнику статус «Инактив»",
+    )
+    @app_commands.describe(participant="Участник для перевода в инактив")
+    @app_commands.guild_only()
+    @app_commands.default_permissions()
+    async def inactive(
+        self,
+        interaction: discord.Interaction,
+        participant: str,
+    ) -> None:
+        if not await self._is_frokeng(interaction):
+            return
+        if not participant.isdigit():
+            await interaction.response.send_message(
+                "Выберите участника из предложенного списка.",
+                ephemeral=True,
+            )
+            return
+        nickname = await self.service.enable_inactive(int(participant))
+        if nickname is None:
+            await interaction.response.send_message(
+                "Участник не найден или уже имеет статус «Инактив».",
+                ephemeral=True,
+            )
+            return
+        await interaction.response.send_message(
+            f"{nickname} получил статус «Инактив». Ранг игрока не изменён.",
+            ephemeral=True,
+        )
+
+    @inactive.autocomplete("participant")
+    async def active_player_choices(
+        self,
+        interaction: discord.Interaction,
+        current: str,
+    ) -> list[app_commands.Choice[str]]:
+        if interaction.user.id != FROKENG_DISCORD_ID:
+            return []
+        players = await self.service.active_player_choices(current)
+        return [
+            app_commands.Choice(
+                name=f"{player.nickname} · {player.discord_id}",
+                value=str(player.discord_id),
+            )
+            for player in players
+        ]
+
+    @app_commands.command(
         name="inactive_off",
         description="Вернуть участника в рассылку актуализации",
     )

@@ -437,6 +437,58 @@ class TitanCheckupService:
                 for row in result
             ]
 
+    async def active_player_choices(self, search: str) -> list[TitanRecipient]:
+        async with async_session() as session:
+            result = await session.execute(
+                text(
+                    """
+                    SELECT discord_id, ingame_name AS nickname
+                    FROM players
+                    WHERE is_archived = FALSE
+                      AND discord_id > 0
+                      AND tier_status <> 'inactive'
+                      AND ingame_name ILIKE :search
+                    ORDER BY LOWER(ingame_name), discord_id
+                    LIMIT 25
+                    """
+                ),
+                {"search": f"%{search.strip()}%"},
+            )
+            return [
+                TitanRecipient(int(row.discord_id), str(row.nickname))
+                for row in result
+            ]
+
+    async def enable_inactive(self, player_id: int) -> str | None:
+        async with async_session.begin() as session:
+            await session.execute(
+                text(
+                    """
+                    UPDATE titan_checkup_requests
+                    SET status = 'inactive', responded_at = NOW(), updated_at = NOW()
+                    WHERE player_id = :player_id
+                      AND status IN ('created', 'sent', 'ready')
+                    """
+                ),
+                {"player_id": player_id},
+            )
+            result = await session.execute(
+                text(
+                    """
+                    UPDATE players
+                    SET tier_status = 'inactive', last_updated = NOW()
+                    WHERE discord_id = :player_id
+                      AND discord_id > 0
+                      AND is_archived = FALSE
+                      AND tier_status <> 'inactive'
+                    RETURNING ingame_name
+                    """
+                ),
+                {"player_id": player_id},
+            )
+            nickname = result.scalar_one_or_none()
+            return str(nickname) if nickname is not None else None
+
     async def disable_inactive(self, player_id: int) -> str | None:
         async with async_session.begin() as session:
             result = await session.execute(

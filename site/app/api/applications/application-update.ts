@@ -4,6 +4,7 @@ import {
   responseFromAuthError,
 } from "@/lib/auth";
 import { transaction } from "@/lib/db";
+import { requirePlayerParticipation } from "@/lib/player-participation";
 import { cancelApplicationInvitations } from "./application-invitation-cancellation";
 import { updateApplicationStatus } from "./application-status";
 
@@ -87,6 +88,9 @@ export async function PATCH(request: Request) {
           { error: "Некорректный ответ на приглашение" },
           { status: 400 },
         );
+      }
+      if (body.invitationStatus === "accepted") {
+        await requirePlayerParticipation(user.discordId);
       }
       await transaction(async (client) => {
         const application = await client.query<{

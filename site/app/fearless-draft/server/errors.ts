@@ -20,7 +20,14 @@ export async function draftRouteErrorResponse(
   if (requestError) return requestError;
 
   if (error instanceof Response) {
-    const message = (await error.text().catch(() => "")).trim();
+    const responseText = (await error.text().catch(() => "")).trim();
+    let message = responseText;
+    try {
+      const body = JSON.parse(responseText) as { error?: unknown };
+      if (typeof body.error === "string") message = body.error.trim();
+    } catch {
+      // Plain-text responses remain valid for authentication and older routes.
+    }
     return Response.json(
       { error: message || fallbackError },
       { status: error.status || 500 },

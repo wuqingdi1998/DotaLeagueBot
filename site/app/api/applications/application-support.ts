@@ -1,10 +1,10 @@
 import { query } from "@/lib/db";
 import {
-  outdatedTierApplicationError,
+  tierStatusApplicationError,
   type PlayerTierStatus,
 } from "@/lib/player-tier-status";
 
-export { outdatedTierApplicationError };
+export { tierStatusApplicationError };
 
 export const allowedTeamImageTypes = new Map([
   ["image/png", "png"],

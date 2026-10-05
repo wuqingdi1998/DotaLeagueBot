@@ -43,4 +43,18 @@ describe("compendium participant access", () => {
       status: 403,
     });
   });
+
+  it("shows the inactive notice before opening compendium participation", async () => {
+    mocks.requireSession.mockResolvedValue({ discordId: "123" });
+    mocks.one.mockResolvedValueOnce({ tier_status: "inactive" });
+
+    const error = await requireCompendiumParticipantSession().catch(
+      (caught: unknown) => caught,
+    );
+    expect(error).toBeInstanceOf(Response);
+    expect((error as Response).status).toBe(409);
+    await expect((error as Response).json()).resolves.toEqual({
+      error: "Снимите статус «Инактив» у @frokeng",
+    });
+  });
 });

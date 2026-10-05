@@ -1,5 +1,6 @@
 import { requireSession, type AuthUser } from "@/lib/auth";
 import { one } from "@/lib/db";
+import { requirePlayerParticipation } from "@/lib/player-participation";
 
 export const COMPENDIUM_EXCLUDED_ROLE_NAME = "Массовка";
 
@@ -24,6 +25,7 @@ export async function isExcludedFromCompendium(
 
 export async function requireCompendiumParticipantSession(): Promise<AuthUser> {
   const user = await requireSession();
+  await requirePlayerParticipation(user.discordId);
   if (await isExcludedFromCompendium(user.discordId)) {
     throw new Response(
       "Роль «Массовка» не участвует в Компендиуме",
