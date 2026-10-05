@@ -129,6 +129,13 @@ OCTOBER_DAILY_COMPENDIUM_MIGRATION = (
     / "0163_open_october_daily_compendium.sql"
 ).read_text(encoding="utf-8")
 
+OCTOBER_STAR_RACE_MIGRATION = (
+    Path(__file__).parents[1]
+    / "database"
+    / "migrations"
+    / "0164_open_october_star_race.sql"
+).read_text(encoding="utf-8")
+
 OCTOBER_COMPENDIUM_LAUNCH_CONTROL_MIGRATION = (
     Path(__file__).parents[1]
     / "database"
@@ -729,6 +736,23 @@ def test_october_daily_compendium_opens_without_unfreezing_ti_data() -> None:
     assert "compendium_user_quest_rerolls" in OCTOBER_DAILY_COMPENDIUM_MIGRATION
     assert "TI 2026 Compendium is finished and permanently read-only" in (
         OCTOBER_DAILY_COMPENDIUM_MIGRATION
+    )
+
+
+def test_october_star_race_opens_and_awards_clan_points() -> None:
+    assert "FOR EACH ROW" in OCTOBER_STAR_RACE_MIGRATION
+    assert "BETWEEN DATE '2026-10-05' AND DATE '2026-10-25'" in (
+        OCTOBER_STAR_RACE_MIGRATION
+    )
+    assert "compendium_star_race_quest_completions" in (
+        OCTOBER_STAR_RACE_MIGRATION
+    )
+    assert "compendium_star_race_quest_progress" in OCTOBER_STAR_RACE_MIGRATION
+    assert "total_points = total_points + NEW.reward_amount" in (
+        OCTOBER_STAR_RACE_MIGRATION
+    )
+    assert "TI 2026 Compendium is finished and permanently read-only" in (
+        OCTOBER_STAR_RACE_MIGRATION
     )
 
 

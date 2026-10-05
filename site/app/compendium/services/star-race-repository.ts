@@ -12,6 +12,7 @@ import {
   type StarRaceWeekDefinition,
 } from "../model/star-race";
 import { compendiumHeroById } from "../model/heroes";
+import { OCTOBER_COMPENDIUM_START_AT } from "@/lib/october-compendium-schedule";
 
 type StarRaceCompletionRow = {
   completion_id: string;
@@ -214,7 +215,10 @@ async function ensureStarRaceTiebreakRolls(
   race: StarRaceWeekDefinition,
   includeArchivedPlayers: boolean,
 ): Promise<void> {
-  if (isCompendiumFinished()) return;
+  if (
+    isCompendiumFinished() &&
+    Date.parse(race.startsAt) < Date.parse(OCTOBER_COMPENDIUM_START_AT)
+  ) return;
   await query(
     `${eligibleStarRaceTotalsCte}
      INSERT INTO compendium_star_race_tiebreak_rolls

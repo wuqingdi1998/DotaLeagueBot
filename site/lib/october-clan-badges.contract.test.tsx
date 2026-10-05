@@ -72,7 +72,7 @@ describe("temporary October clan badges", () => {
 
   it("uses the official one-month Dota Plus item image in weeks one and two", () => {
     const plan = readFileSync(
-      new URL("../app/organizer/compendium-october/model/plan.ts", import.meta.url),
+      new URL("../app/compendium/model/october-star-race.ts", import.meta.url),
       "utf8",
     );
     const prizePreview = readFileSync(

@@ -19,6 +19,7 @@ import { getSeasonTournamentLinks } from "@/app/season/services/season-tournamen
 import { CompendiumExclusionNotice } from "./components/CompendiumExclusionNotice";
 import { isExcludedFromCompendium } from "./services/participant-access";
 import { loadOctoberDailyQuests } from "@/app/organizer/compendium-october/services/october-daily-quests";
+import { loadStarRace } from "./services/star-race";
 
 export const dynamic = "force-dynamic";
 
@@ -47,11 +48,12 @@ export default async function CompendiumPage() {
     ? "formation"
     : scheduledPhase;
   const areDailyQuestsOpen = scheduledPhase === "published" && formationStatus === "complete";
-  const [clanMembers, loadedReservation, tournamentLinks, dailyQuestData] = await Promise.all([
+  const [clanMembers, loadedReservation, tournamentLinks, dailyQuestData, starRaceData] = await Promise.all([
     loadOctoberClanMembers(now),
     loadOctoberClanReservationState(user, now),
     getSeasonTournamentLinks(),
     areDailyQuestsOpen ? loadOctoberDailyQuests(user, now) : Promise.resolve(undefined),
+    areDailyQuestsOpen ? loadStarRace(user, now) : Promise.resolve(undefined),
   ]);
   const reservation = { ...loadedReservation, phase: visiblePhase };
   const moscowDate = currentMoscowDay(now).dateKey;
@@ -72,6 +74,8 @@ export default async function CompendiumPage() {
         reservation={reservation}
         areDailyQuestsOpen={scheduledPhase === "published" && formationStatus === "complete"}
         dailyQuestData={dailyQuestData}
+        starRaceData={starRaceData}
+        serverNow={now.toISOString()}
         dailyRewardStars={octoberDailyRewardStars(moscowDate)}
         isOrganizer={user?.isAdmin === true}
         tournamentLinks={tournamentLinks}

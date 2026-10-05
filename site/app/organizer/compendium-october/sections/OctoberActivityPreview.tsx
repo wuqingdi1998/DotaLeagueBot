@@ -17,24 +17,88 @@ import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
 import { OctoberDailyOpeningOverlay } from "../components/OctoberDailyOpeningOverlay";
 import type { OctoberDailyQuestData } from "../services/october-daily-quests";
 import type { QuestCompletion } from "@/app/compendium/model/types";
+import { useServerClock } from "@/app/compendium/hooks/useServerClock";
+import {
+  starRaceQuestProgressLabel,
+  type StarRaceData,
+} from "@/app/compendium/model/star-race";
 
 function ignorePreviewAction() {}
 
-export function OctoberRacePreview({ week }: { week: OctoberCompendiumWeekDefinition }) {
+const progressNumber = new Intl.NumberFormat("ru-RU");
+
+export function OctoberRacePreview({
+  week,
+  initialRace,
+  serverNow,
+}: {
+  week: OctoberCompendiumWeekDefinition;
+  initialRace?: StarRaceData;
+  serverNow?: string;
+}) {
+  const [race, setRace] = useState(initialRace ?? octoberRacePreviewData(week));
+  const [checkingDateKey, setCheckingDateKey] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const currentTimeMs = useServerClock(serverNow ?? "1970-01-01T00:00:00.000Z");
+  const isLive = initialRace !== undefined;
+
+  async function checkQuest(dateKey: string) {
+    if (!isLive || checkingDateKey) return;
+    setCheckingDateKey(dateKey);
+    try {
+      const response = await fetchSiteRequest(
+        `/api/compendium/star-race/quests/${dateKey}/check`,
+        { method: "POST" },
+      );
+      const result = await response.json() as {
+        error?: string;
+        completion?: unknown | null;
+        progress?: { current: number; target: number } | null;
+        heroProgress?: { wins: unknown[]; target: number } | null;
+        rewardStars?: number;
+        starRace?: StarRaceData;
+      };
+      if (!response.ok || !result.starRace) {
+        throw new Error(result.error ?? "Не удалось проверить задание гонки");
+      }
+      setRace(result.starRace);
+      const checkedQuest = result.starRace.quests.find(
+        (quest) => quest.dateKey === dateKey,
+      );
+      const progressLabel = checkedQuest
+        ? starRaceQuestProgressLabel(checkedQuest)
+        : null;
+      setMessage(
+        result.completion
+          ? `Задание выполнено. Получено звёзд: ${result.rewardStars ?? 2}.`
+          : result.heroProgress
+            ? `Засчитано героев: ${result.heroProgress.wins.length} из ${result.heroProgress.target}.`
+            : `${progressLabel ?? "Прогресс"}: ${progressNumber.format(result.progress?.current ?? 0)} из ${progressNumber.format(result.progress?.target ?? 0)}.`,
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось проверить задание гонки");
+    } finally {
+      setCheckingDateKey(null);
+    }
+  }
+
   return (
-    <CompendiumStarRace
-      race={octoberRacePreviewData(week)}
-      currentTimeMs={0}
-      checkingDateKey={null}
-      canCheck={false}
-      onCheck={ignorePreviewAction}
-      isSubmittingPrediction={false}
-      onSubmitPrediction={ignorePreviewAction}
-      isPreview
-      collapsibleRulesOnMobile
-      sectionId={`october-race-${week.id}`}
-      exclusionRules={OCTOBER_RACE_EXCLUSION_RULES}
-    />
+    <>
+      <CompendiumStarRace
+        race={race}
+        currentTimeMs={currentTimeMs}
+        checkingDateKey={checkingDateKey}
+        canCheck={isLive && checkingDateKey === null}
+        onCheck={checkQuest}
+        isSubmittingPrediction={false}
+        onSubmitPrediction={ignorePreviewAction}
+        isPreview={!isLive}
+        collapsibleRulesOnMobile
+        sectionId={`october-race-${week.id}`}
+        exclusionRules={OCTOBER_RACE_EXCLUSION_RULES}
+      />
+      {message && <div className="compendium-toast" role="status">{message}</div>}
+    </>
   );
 }
 

@@ -6,6 +6,7 @@ import {
   SECOND_STAR_RACE_PRIZES,
   type StarRacePrize,
 } from "./star-race-prizes";
+import { OCTOBER_COMPENDIUM_WEEKS } from "./october-star-race";
 
 export { starRacePrizeDescription, type StarRacePrize } from "./star-race-prizes";
 
@@ -289,10 +290,14 @@ export const STAR_RACE_START_AT = CURRENT_STAR_RACE.startsAt;
 export const STAR_RACE_END_AT = CURRENT_STAR_RACE.endsAt;
 export const STAR_RACE_PRIZES = CURRENT_STAR_RACE.prizes;
 export const STAR_RACE_QUESTS = CURRENT_STAR_RACE.quests;
+export const ALL_STAR_RACE_WEEKS = [
+  ...STAR_RACE_WEEKS,
+  ...OCTOBER_COMPENDIUM_WEEKS,
+] as const;
 
 export function starRaceForMoment(
   now: Date,
-  races: readonly StarRaceWeekDefinition[] = STAR_RACE_WEEKS,
+  races: readonly StarRaceWeekDefinition[] = ALL_STAR_RACE_WEEKS,
 ): StarRaceWeekDefinition {
   const currentTime = now.getTime();
   const activeRace = races.find(
@@ -425,7 +430,7 @@ export function starRaceQuestByDate(
 export function starRaceWeekByDate(
   dateKey: string,
 ): StarRaceWeekDefinition | null {
-  return STAR_RACE_WEEKS.find(
+  return ALL_STAR_RACE_WEEKS.find(
     (race) => race.quests.some((quest) => quest.dateKey === dateKey),
   ) ?? null;
 }

@@ -11,6 +11,7 @@ import type { OctoberClanMember } from "../model/clan-members";
 import type { OctoberClanReservationState } from "../model/clan-reservation";
 import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 import type { OctoberDailyQuestData } from "../services/october-daily-quests";
+import type { StarRaceData } from "@/app/compendium/model/star-race";
 
 export function OctoberCompendiumPreview({
   week,
@@ -21,6 +22,8 @@ export function OctoberCompendiumPreview({
   areDailyQuestsOpen = true,
   dailyRewardStars = 1,
   dailyQuestData,
+  starRaceData,
+  serverNow,
   isOrganizerPreview = false,
   isOrganizer = false,
   tournamentLinks = {},
@@ -33,6 +36,8 @@ export function OctoberCompendiumPreview({
   areDailyQuestsOpen?: boolean;
   dailyRewardStars?: 1 | 2;
   dailyQuestData?: OctoberDailyQuestData;
+  starRaceData?: StarRaceData;
+  serverNow?: string;
   isOrganizerPreview?: boolean;
   isOrganizer?: boolean;
   tournamentLinks?: SeasonTournamentLinks;
@@ -88,7 +93,11 @@ export function OctoberCompendiumPreview({
 
       <section className="october-compendium-screen october-compendium-screen-race" id={OCTOBER_PREVIEW_SECTIONS[2].id} aria-label="Гонка за звёздами">
         <div className="compendium-rewards-section">
-          <OctoberRacePreview week={week} />
+          <OctoberRacePreview
+            week={week}
+            initialRace={starRaceData}
+            serverNow={serverNow}
+          />
         </div>
       </section>
 

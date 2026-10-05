@@ -3,6 +3,10 @@ import { describe, expect, it } from "vitest";
 import { compendiumHeroById } from "@/app/compendium/model/heroes";
 import { moscowDayBounds } from "@/app/compendium/model/time";
 import {
+  starRaceForMoment,
+  starRaceQuestPhase,
+} from "@/app/compendium/model/star-race";
+import {
   OCTOBER_COMPENDIUM_END_AT,
   OCTOBER_COMPENDIUM_START_AT,
   OCTOBER_COMPENDIUM_WEEKS,
@@ -110,6 +114,14 @@ describe("October compendium draft", () => {
       .toBe(OCTOBER_COMPENDIUM_WEEKS[2]);
   });
 
+  it("opens the October race quest at midnight Moscow time", () => {
+    const openingMoment = new Date("2026-10-04T21:00:00.000Z");
+    const race = starRaceForMoment(openingMoment);
+    expect(race).toBe(OCTOBER_COMPENDIUM_WEEKS[0]);
+    expect(starRaceQuestPhase(race.quests[0], openingMoment)).toBe("active");
+    expect(starRaceQuestPhase(race.quests[1], openingMoment)).toBe("upcoming");
+  });
+
   it("keeps both draft pages behind a server-side organizer check", () => {
     const preview = readFileSync(new URL("../page.tsx", import.meta.url), "utf8");
     const base = readFileSync(new URL("../base/page.tsx", import.meta.url), "utf8");
@@ -168,7 +180,7 @@ describe("October compendium draft", () => {
       .toBe(12);
   });
 
-  it("passes October races to the existing race display without active actions", () => {
+  it("keeps organizer samples while the public race uses live checks", () => {
     for (const week of OCTOBER_COMPENDIUM_WEEKS) {
       const preview = octoberRacePreviewData(week);
       expect(preview.isDetailsVisible).toBe(true);
@@ -185,6 +197,7 @@ describe("October compendium draft", () => {
     expect(activityPreview).toContain("<RuneChallenge");
     expect(activityPreview).toContain("<OctoberClanOutingCard");
     expect(activityPreview).toContain("collapsibleRulesOnMobile");
-    expect(activityPreview).toContain("isPreview");
+    expect(activityPreview).toContain("initialRace");
+    expect(activityPreview).toContain("/api/compendium/star-race/quests/");
   });
 });

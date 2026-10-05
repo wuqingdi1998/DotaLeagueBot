@@ -85,6 +85,41 @@ describe("October daily quests database flow", () => {
       );
       CREATE TABLE player_discord_roles (player_id bigint, role_name text);
       CREATE TABLE compendium_player_star_totals (player_id bigint, total_stars integer);
+      CREATE TABLE compendium_star_race_quest_completions (
+        id bigserial PRIMARY KEY,
+        player_id bigint NOT NULL,
+        moscow_date date NOT NULL,
+        reward_amount smallint NOT NULL
+      );
+      CREATE TABLE compendium_star_race_quest_wins (
+        completion_id bigint NOT NULL,
+        player_id bigint NOT NULL,
+        position smallint NOT NULL,
+        hero_id smallint NOT NULL,
+        matched_match_id bigint NOT NULL
+      );
+      CREATE TABLE compendium_star_race_quest_progress (
+        player_id bigint NOT NULL,
+        moscow_date date NOT NULL,
+        progress_amount bigint NOT NULL,
+        PRIMARY KEY (player_id, moscow_date)
+      );
+      CREATE TABLE compendium_star_race_quest_progress_wins (
+        player_id bigint NOT NULL,
+        moscow_date date NOT NULL,
+        position smallint NOT NULL
+      );
+      CREATE TABLE compendium_star_race_tiebreak_rolls (
+        race_start_at timestamptz NOT NULL,
+        player_id bigint NOT NULL
+      );
+      CREATE TABLE compendium_star_race_standings_snapshots (
+        race_start_at timestamptz PRIMARY KEY
+      );
+      CREATE TABLE compendium_star_race_arcana_checks (
+        id bigserial PRIMARY KEY,
+        moscow_date date NOT NULL
+      );
 
     `);
     const migration = fs.readFileSync(
@@ -95,6 +130,15 @@ describe("October daily quests database flow", () => {
       "utf8",
     );
     await db.exec(migration);
+    await db.exec(
+      fs.readFileSync(
+        path.resolve(
+          process.cwd(),
+          "../bot/database/migrations/0164_open_october_star_race.sql",
+        ),
+        "utf8",
+      ),
+    );
     await db.exec(`
       INSERT INTO players(discord_id) VALUES (10001);
       INSERT INTO october_compendium_clan_members(player_id) VALUES (10001);
@@ -132,6 +176,26 @@ describe("October daily quests database flow", () => {
       db.exec(
         "INSERT INTO compendium_daily_quest_sets(moscow_date) VALUES ('2026-08-20')",
       ),
+    ).rejects.toThrow("TI 2026 Compendium is finished and permanently read-only");
+  });
+
+  it("opens October race storage and adds its reward to clan points", async () => {
+    await db.exec(`
+      INSERT INTO compendium_star_race_quest_completions
+        (player_id, moscow_date, reward_amount)
+      VALUES (10001, '2026-10-05', 2)
+    `);
+    const points = await db.query<{ total_points: number }>(
+      "SELECT total_points FROM october_compendium_clan_members WHERE player_id = 10001",
+    );
+    expect(points.rows[0].total_points).toBe(2);
+
+    await expect(
+      db.exec(`
+        INSERT INTO compendium_star_race_quest_completions
+          (player_id, moscow_date, reward_amount)
+        VALUES (10001, '2026-08-20', 2)
+      `),
     ).rejects.toThrow("TI 2026 Compendium is finished and permanently read-only");
   });
 });
