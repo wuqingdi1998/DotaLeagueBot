@@ -72,6 +72,7 @@ export async function loadOctoberFormationCandidates(): Promise<
      LEFT JOIN compendium_player_star_totals stars
        ON stars.player_id = player.discord_id
      WHERE player.is_archived = FALSE
+       AND october_clan_player_is_eligible(player.discord_id)
        AND NOT EXISTS (
          SELECT 1
          FROM player_discord_roles role

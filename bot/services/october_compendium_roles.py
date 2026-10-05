@@ -6,6 +6,7 @@ from pathlib import Path
 import discord
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
+from utils.subscription_roles import COMPENDIUM_EXCLUDED_ROLE_NAME
 
 
 MOSCOW_TIME_ZONE = datetime.timezone(datetime.timedelta(hours=3), name="Europe/Moscow")
@@ -44,10 +45,7 @@ async def assign_october_clan_after_registration(
                     (player_id, clan_id, assignment_source, activity_score)
                 SELECT :player_id, selected_clan.clan_id, 'automatic', 0
                 FROM selected_clan
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM player_discord_roles role
-                    WHERE role.player_id = :player_id AND role.role_name = 'Массовка'
-                )
+                WHERE october_clan_player_is_eligible(:player_id)
                 ON CONFLICT (player_id) DO NOTHING
                 RETURNING clan_id
                 """
@@ -59,7 +57,15 @@ async def assign_october_clan_after_registration(
     return str(row["clan_id"]) if row else None
 
 
-async def load_clan_assignments(session: AsyncSession) -> dict[int, str]:
+async def load_clan_assignments(
+    session: AsyncSession,
+    excluded_player_ids: list[int] | None = None,
+) -> dict[int, str]:
+    await session.execute(
+        text("SELECT remove_ineligible_october_clan_players(:excluded_ids)"),
+        {"excluded_ids": excluded_player_ids or []},
+    )
+    await session.commit()
     rows = (
         await session.execute(
             text("SELECT player_id, clan_id FROM october_compendium_clan_members")
@@ -82,11 +88,16 @@ async def ensure_clan_roles(guild: discord.Guild) -> dict[str, discord.Role]:
         icon = await _role_icon(icon_path)
         if role is None:
             try:
-                role = await guild.create_role(
-                    name=name,
-                    display_icon=icon,
-                    reason="Роль октябрьского Компендиума",
-                )
+                if icon is None:
+                    role = await guild.create_role(
+                        name=name, reason="Роль октябрьского Компендиума",
+                    )
+                else:
+                    role = await guild.create_role(
+                        name=name,
+                        display_icon=icon,
+                        reason="Роль октябрьского Компендиума",
+                    )
             except (TypeError, discord.HTTPException):
                 role = await guild.create_role(
                     name=name,
@@ -113,12 +124,20 @@ async def sync_clan_roles(
     roles = await ensure_clan_roles(guild)
     managed_roles = set(roles.values())
     for member in guild.members:
-        target = roles.get(assignments.get(member.id, ""))
+        has_excluded_role = any(
+            role.name.strip().casefold() == COMPENDIUM_EXCLUDED_ROLE_NAME.casefold()
+            for role in member.roles
+        )
+        target = None if has_excluded_role else roles.get(assignments.get(member.id, ""))
         stale = [role for role in member.roles if role in managed_roles and role != target]
         if stale:
             await member.remove_roles(*stale, reason="Синхронизация клана Компендиума")
+            refreshed_member = await guild.fetch_member(member.id)
+            if any(role in refreshed_member.roles for role in stale):
+                raise RuntimeError(f"Клановая роль не снята у участника {member.id}")
         if target is not None and target not in member.roles:
             await member.add_roles(target, reason="Участник клана Компендиума")
+    print(f"[OCTOBER CLANS] Roles synchronized for guild {guild.id}", flush=True)
 
 
 async def delete_clan_roles(guild: discord.Guild) -> None:

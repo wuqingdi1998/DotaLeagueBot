@@ -67,3 +67,9 @@ def test_unrelated_discord_roles_are_not_written() -> None:
         )
         is None
     )
+
+
+def test_massovka_is_stored_even_without_configured_role_ids() -> None:
+    rows = subscription_role_rows(42, [role(9, " массовка ")], set())
+    assert len(rows) == 1
+    assert rows[0]["role_name"] == "Массовка"

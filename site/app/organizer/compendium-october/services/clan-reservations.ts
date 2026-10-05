@@ -46,6 +46,7 @@ async function reservationAccess(
      LEFT JOIN october_compendium_clan_reservations reservation
        ON reservation.player_id = player.discord_id
      WHERE player.discord_id = $1
+       AND october_clan_player_is_eligible(player.discord_id)
        AND player.is_archived = FALSE`,
     [
       playerId,

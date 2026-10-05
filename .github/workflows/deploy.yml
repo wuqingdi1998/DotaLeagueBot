@@ -716,6 +716,42 @@ jobs:
             done
             docker compose logs --tail=300 bot
             exit 1
+      - name: Verify October clan eligibility and role removal
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+            cd /root/DotaLeagueBot
+            for attempt in $(seq 1 60); do
+              if docker compose logs --since=10m bot 2>&1 |
+                grep -q '\[OCTOBER CLANS\] Roles synchronized for guild'; then
+                break
+              fi
+              if [ "$attempt" -eq 60 ]; then
+                docker compose logs --tail=100 bot
+                exit 1
+              fi
+              sleep 5
+            done
+            remaining="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) FROM october_compendium_clan_members
+               WHERE NOT october_clan_player_is_eligible(player_id)"')"
+            test "$remaining" = "0"
+            docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+              "SELECT clan_id, COUNT(*) FROM october_compendium_clan_members
+               GROUP BY clan_id ORDER BY clan_id;
+               SELECT player.ingame_name, player.tier_status,
+                      removed.membership->> '\''clan_id'\'' AS previous_clan
+               FROM october_compendium_removed_clan_members removed
+               LEFT JOIN players player ON player.discord_id = removed.player_id
+               ORDER BY removed.id"'
       - name: Verify public site externally
         run: |
           set -euo pipefail
