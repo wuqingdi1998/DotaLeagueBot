@@ -184,14 +184,11 @@ describe("compendium persistence and security contract", () => {
     expect(dashboard).not.toContain("Сегодня по Москве");
   });
 
-  it("shows the hidden base link only in organizer mode", () => {
-    expect(dashboard).toContain("isOrganizer &&");
-    expect(dashboard).toContain('href="/compendium/base"');
-    expect(dashboard).toContain("compendium-base-floating-link");
-    expect(headingCss).toContain(".compendium-base-floating-link");
-    expect(headingCss).toMatch(
-      /\.compendium-base-floating-link\s*\{[^}]*position:\s*absolute;/,
-    );
+  it("shows the base only to organizers inside the profile menu", () => {
+    const header = source("../app/components/SiteHeader.tsx");
+    expect(dashboard).not.toContain('href="/compendium/base"');
+    expect(header).toContain("user.hasOrganizerAccess");
+    expect(header).toContain('href="/compendium/base"');
     expect(basePage).toContain("if (!user?.isAdmin) notFound()");
   });
 

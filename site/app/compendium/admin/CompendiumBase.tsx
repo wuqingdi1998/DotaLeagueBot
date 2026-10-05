@@ -187,6 +187,19 @@ function AdminRewardHistoryItem({
 }
 
 function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
+  if (reward.kind === "clan_outing") {
+    return (
+      <article className="compendium-base-reward">
+        <div className="compendium-base-reward-heading">
+          <div><span>{reward.dateLabel}</span><strong>Клановая вылазка с {reward.partnerName}</strong></div>
+          <span className="compendium-base-reward-value"><FaStar aria-hidden="true" /> +{reward.rewardAmount}</span>
+        </div>
+        <a className="compendium-base-match-link" href={`https://www.opendota.com/matches/${reward.matchedMatchId}`} target="_blank" rel="noreferrer">
+          Матч {reward.matchedMatchId} <FiExternalLink aria-hidden="true" />
+        </a>
+      </article>
+    );
+  }
   if (reward.kind === "rune") {
     return <RuneRewardHistoryItem reward={reward} />;
   }

@@ -80,6 +80,8 @@ export async function loadCompendiumAdminParticipants(): Promise<
          SELECT completion.player_id FROM compendium_rune_challenge_completions completion
          UNION ALL
          SELECT completion.player_id FROM compendium_star_race_quest_completions completion
+         UNION ALL
+         SELECT completion.player_id FROM october_compendium_clan_outing_completions completion
        ), reward_counts AS (
          SELECT operation.player_id, COUNT(*)::int AS reward_count
          FROM reward_operations operation
@@ -288,6 +290,18 @@ export async function loadCompendiumAdminParticipantHistory(
        LEFT JOIN compendium_star_race_quest_wins win ON win.completion_id = completion.id
        LEFT JOIN players manual_administrator
          ON manual_administrator.discord_id = completion.completed_manually_by
+       UNION ALL
+       SELECT participant.discord_id::text, participant.player_name,
+         participant.dota_id, participant.avatar_url, participant.total_stars,
+         'clan_outing', outing.id::text, outing.moscow_date::text,
+         NULL::smallint, NULL::smallint, outing.matched_match_id::text,
+         outing.completed_at, outing.reward_amount,
+         NULL::smallint, NULL::smallint, partner.ingame_name,
+         NULL::text, NULL::text, NULL::text, NULL::text
+       FROM participant
+       JOIN october_compendium_clan_outing_completions outing
+         ON outing.player_id = participant.discord_id
+       JOIN players partner ON partner.discord_id = outing.partner_player_id
      ) history
      ORDER BY completed_at DESC NULLS LAST, quest_position, hero_position`,
     [playerId],

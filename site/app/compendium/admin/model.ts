@@ -138,6 +138,26 @@ export function buildCompendiumAdminParticipants(
       continue;
     }
     if (
+      row.history_kind === "clan_outing" &&
+      row.matched_match_id
+    ) {
+      if (!participantRewards.has(historyId)) {
+        const reward: CompendiumRewardHistory = {
+          kind: "clan_outing",
+          id: historyId,
+          dateKey: row.moscow_date,
+          dateLabel: moscowDateLabel(row.moscow_date),
+          completedAt: row.completed_at.toISOString(),
+          rewardAmount: row.reward_amount,
+          partnerName: row.administrator_name ?? "соклановцем",
+          matchedMatchId: row.matched_match_id,
+        };
+        participant.rewards.push(reward);
+        participantRewards.set(historyId, reward);
+      }
+      continue;
+    }
+    if (
       row.history_kind === "rune" &&
       row.matched_hero_id !== null &&
       row.matched_match_id

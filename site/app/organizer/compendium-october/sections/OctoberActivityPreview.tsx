@@ -107,21 +107,25 @@ export function OctoberDailyPreview({
   isOpen = true,
   rewardStars = 1,
   initialData,
+  serverNow,
 }: {
   viewerDiscordId: string;
   isOpen?: boolean;
   rewardStars?: 1 | 2;
   initialData?: OctoberDailyQuestData;
+  serverNow?: string;
 }) {
   const guides = useOctoberGuideVisibility(viewerDiscordId);
   const [dailyData, setDailyData] = useState(initialData);
   const [checkingQuestId, setCheckingQuestId] = useState<string | null>(null);
   const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
+  const [isCheckingClanOuting, setIsCheckingClanOuting] = useState(false);
   const [message, setMessage] = useState("");
   const isOverviewVisible = guides.isVisible("daily-overview");
   const isClanOutingVisible = guides.isVisible("clan-outing");
   const quests = dailyData?.quests ?? octoberDailyQuestSamples();
   const isLive = isOpen && dailyData !== undefined;
+  const currentTimeMs = useServerClock(serverNow ?? "1970-01-01T00:00:00.000Z");
 
   async function checkQuest(questId: string) {
     if (!isLive || checkingQuestId || rerollingQuestId) return;
@@ -138,6 +142,7 @@ export function OctoberDailyPreview({
       };
       if (!response.ok || !result.completion) throw new Error(result.error ?? "Не удалось проверить задание");
       setDailyData((current) => current && ({
+        ...current,
         quests: result.quests ?? current.quests.map((quest) =>
           quest.id === questId ? { ...quest, completion: result.completion ?? null } : quest,
         ),
@@ -165,6 +170,7 @@ export function OctoberDailyPreview({
       };
       if (!response.ok || !result.quest) throw new Error(result.error ?? "Не удалось заменить задание");
       setDailyData((current) => current && ({
+        ...current,
         quests: current.quests.map((quest) => quest.id === questId ? result.quest ?? quest : quest),
         rerollsRemaining: result.rerollsRemaining ?? 0,
       }));
@@ -173,6 +179,25 @@ export function OctoberDailyPreview({
       setMessage(error instanceof Error ? error.message : "Не удалось заменить задание");
     } finally {
       setRerollingQuestId(null);
+    }
+  }
+
+  async function checkClanOuting() {
+    if (!isLive || isCheckingClanOuting) return;
+    setIsCheckingClanOuting(true);
+    try {
+      const response = await fetchSiteRequest("/api/compendium/clan-outing/check", { method: "POST" });
+      const result = await response.json() as {
+        error?: string;
+        completion?: OctoberDailyQuestData["clanOuting"];
+      };
+      if (!response.ok || !result.completion) throw new Error(result.error ?? "Не удалось проверить вылазку");
+      setDailyData((current) => current && ({ ...current, clanOuting: result.completion ?? current.clanOuting }));
+      setMessage(`Клановая вылазка выполнена. Получено звёзд: ${rewardStars}.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось проверить вылазку");
+    } finally {
+      setIsCheckingClanOuting(false);
     }
   }
   return (
@@ -249,22 +274,26 @@ export function OctoberDailyPreview({
           isNoteVisible={isClanOutingVisible}
           onDismissNote={() => guides.dismiss("clan-outing")}
           overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
+          completion={dailyData?.clanOuting}
+          isChecking={isCheckingClanOuting}
+          canCheck={isLive}
+          onCheck={() => void checkClanOuting()}
         />
       </div>
       {message && <div className="compendium-toast" role="status">{message}</div>}
       <RuneChallenge
-        initialChallenge={{
+        initialChallenge={dailyData?.runeChallenge ?? {
           hasAccess: true,
           accessRoleName: "Предпросмотр подписки",
           selection: null,
           completion: null,
         }}
-        currentTimeMs={0}
+        currentTimeMs={currentTimeMs}
         rewardStars={rewardStars}
         resetCountdown=""
         onStarsChange={ignorePreviewAction}
-        isPreview
-        showPreviewContent
+        isPreview={!isLive}
+        showPreviewContent={!isLive}
         overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
       />
     </section>

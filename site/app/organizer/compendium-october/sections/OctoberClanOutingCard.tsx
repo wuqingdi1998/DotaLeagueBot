@@ -1,18 +1,27 @@
 import type { ReactNode } from "react";
 import { FaStar } from "react-icons/fa";
-import { FiUsers, FiX } from "react-icons/fi";
+import { FiCheck, FiExternalLink, FiLoader, FiUsers, FiX } from "react-icons/fi";
 import { OCTOBER_CLAN_QUEST_POSITION } from "../model/preview";
+import type { ClanOutingCompletion } from "@/app/compendium/services/clan-outing-repository";
 
 export function OctoberClanOutingCard({
   rewardStars = 1,
   isNoteVisible = true,
   onDismissNote,
   overlay,
+  completion,
+  isChecking = false,
+  canCheck = false,
+  onCheck,
 }: {
   rewardStars?: 1 | 2;
   isNoteVisible?: boolean;
   onDismissNote?: () => void;
   overlay?: ReactNode;
+  completion?: ClanOutingCompletion | null;
+  isChecking?: boolean;
+  canCheck?: boolean;
+  onCheck?: () => void;
 }) {
   return (
     <article className="compendium-quest october-clan-quest">
@@ -45,9 +54,26 @@ export function OctoberClanOutingCard({
           </button>
         </div>
       )}
-      <button className="compendium-check-button" type="button" disabled>
-        Пока не открыто
-      </button>
+      {completion ? (
+        <div className="compendium-completion" role="status">
+          <span className="compendium-checkmark"><FiCheck aria-hidden="true" /></span>
+          <div>
+            <strong>Вылазка выполнена вместе с {completion.partnerName}</strong>
+            <a href={`https://www.opendota.com/matches/${completion.matchId}`} target="_blank" rel="noreferrer">
+              Матч {completion.matchId} <FiExternalLink aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+      ) : (
+        <button
+          className="compendium-check-button"
+          type="button"
+          disabled={!canCheck || isChecking}
+          onClick={onCheck}
+        >
+          {isChecking ? <><FiLoader className="compendium-spinner" aria-hidden="true" /> Проверяем…</> : canCheck ? "Проверить" : "Пока не открыто"}
+        </button>
+      )}
       {overlay}
     </article>
   );

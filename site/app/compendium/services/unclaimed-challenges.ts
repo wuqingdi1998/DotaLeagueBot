@@ -1,5 +1,6 @@
 import { compendiumHeroById } from "../model/heroes";
 import { findMatchingWin } from "../model/matches";
+import { scanRankedWins } from "../model/matches";
 import { evaluateStarRaceRequirement } from "../model/star-race-evaluation";
 import {
   starRaceQuestByDate,
@@ -9,8 +10,9 @@ import {
 import { currentMoscowDay } from "../model/time";
 import type { MatchingWin, OpenDotaMatch } from "../model/types";
 import { fetchRecentPlayerMatches } from "./opendota";
+import { fetchOpenDotaMatchDetails } from "./opendota-match-details";
 import { ensureDailyQuestSet } from "./repository";
-import { isCompendiumFinished } from "../model/lifecycle";
+import { isCompendiumActive } from "../model/lifecycle";
 import {
   loadClaimedChallengeKeys,
   loadUnclaimedChallengeCandidates,
@@ -22,13 +24,14 @@ const AUDIT_WAVE_INTERVAL_MS = 15_000;
 const AUDIT_MAX_ATTEMPTS = 3;
 
 export type UnclaimedChallenge = {
-  kind: "daily" | "star-race";
+  kind: "daily" | "star-race" | "rune" | "clan-outing";
   title: string;
   detail: string;
   matchIds: string[];
 };
 
 export type UnclaimedChallengePlayer = {
+  playerId: string;
   playerName: string;
   challenges: UnclaimedChallenge[];
 };
@@ -47,6 +50,7 @@ type LocatedChallenge = UnclaimedChallenge & {
 };
 
 type LocatedPlayer = {
+  playerId: string;
   playerName: string;
   challenges: LocatedChallenge[];
 };
@@ -193,11 +197,51 @@ async function scanCandidate(input: {
   const sharedInput = { ...input, matches };
   const dailyChallenges = findDailyChallenges(sharedInput);
   const starRaceChallenge = findStarRaceChallenge(sharedInput);
+  const runeHeroId = input.candidate.runeHeroId ?? null;
+  const runeWin = runeHeroId === null ? null : findMatchingWin({
+    matches,
+    heroIds: [runeHeroId],
+    dayStart: input.dayStart,
+    dayEnd: input.dayEnd,
+    now: input.now,
+  });
+  const runeChallenge: LocatedChallenge | null = runeWin ? {
+    kind: "rune",
+    title: "Испытание Рун",
+    detail: compendiumHeroById(runeWin.heroId).name,
+    matchIds: [runeWin.matchId],
+    claimKey: `rune:${input.candidate.playerId}:${currentMoscowDay(input.now).dateKey}`,
+    playerId: input.candidate.playerId,
+    dailyQuestId: null,
+  } : null;
+  let outingChallenge: LocatedChallenge | null = null;
+  const clanMateIds = new Set(input.candidate.clanMateDotaIds ?? []);
+  for (const win of clanMateIds.size ? scanRankedWins(sharedInput) : []) {
+    const details = await fetchOpenDotaMatchDetails(win.matchId);
+    const viewer = details.players.find((player) => player.accountId === input.candidate.dotaId);
+    if (!viewer) continue;
+    const isRadiant = viewer.playerSlot < 128;
+    if (!details.players.some((player) => player.accountId && clanMateIds.has(player.accountId) && (player.playerSlot < 128) === isRadiant)) continue;
+    outingChallenge = {
+      kind: "clan-outing",
+      title: "Клановая вылазка",
+      detail: "Победа вместе с участником своего клана",
+      matchIds: [win.matchId],
+      claimKey: `clan-outing:${input.candidate.playerId}:${currentMoscowDay(input.now).dateKey}`,
+      playerId: input.candidate.playerId,
+      dailyQuestId: null,
+    };
+    break;
+  }
   return {
+    playerId: input.candidate.playerId,
     playerName: input.candidate.playerName,
-    challenges: starRaceChallenge
-      ? [...dailyChallenges, starRaceChallenge]
-      : dailyChallenges,
+    challenges: [
+      ...dailyChallenges,
+      ...(starRaceChallenge ? [starRaceChallenge] : []),
+      ...(runeChallenge ? [runeChallenge] : []),
+      ...(outingChallenge ? [outingChallenge] : []),
+    ],
   };
 }
 
@@ -209,7 +253,7 @@ export async function findUnclaimedChallenges(
   now: Date = new Date(),
 ): Promise<UnclaimedChallengesReport> {
   const day = currentMoscowDay(now);
-  if (isCompendiumFinished(now)) {
+  if (!isCompendiumActive(now)) {
     return {
       dateKey: day.dateKey,
       checkedCount: 0,
@@ -282,12 +326,18 @@ export async function findUnclaimedChallenges(
     starRacePlayerIds: locatedChallenges.flatMap((challenge) =>
       challenge.kind === "star-race" ? [challenge.playerId] : []
     ),
+    runePlayerIds: locatedChallenges.flatMap((challenge) =>
+      challenge.kind === "rune" ? [challenge.playerId] : []
+    ),
+    clanOutingPlayerIds: locatedChallenges.flatMap((challenge) =>
+      challenge.kind === "clan-outing" ? [challenge.playerId] : []
+    ),
   });
   const players = locatedPlayers.flatMap((player) => {
     const challenges = player.challenges
       .filter((challenge) => !claimedKeys.has(challenge.claimKey))
       .map(publicChallenge);
-    return challenges.length ? [{ playerName: player.playerName, challenges }] : [];
+    return challenges.length ? [{ playerId: player.playerId, playerName: player.playerName, challenges }] : [];
   });
 
   return {

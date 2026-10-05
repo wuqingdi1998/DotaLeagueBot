@@ -21,6 +21,7 @@ class UnclaimedChallenge:
 
 @dataclass(frozen=True)
 class UnclaimedChallengePlayer:
+    player_id: int
     player_name: str
     challenges: tuple[UnclaimedChallenge, ...]
 
@@ -80,6 +81,7 @@ def _report_from_payload(payload: object) -> UnclaimedChallengesReport:
     try:
         players = tuple(
             UnclaimedChallengePlayer(
+                player_id=int(player["playerId"]),
                 player_name=str(player["playerName"]),
                 challenges=tuple(
                     _challenge_from_payload(challenge)
@@ -145,6 +147,20 @@ def _report_lines(report: UnclaimedChallengesReport) -> list[str]:
             suffix = f" · {links}" if links else ""
             lines.append(f"  - {title} — {detail}{suffix}")
     return lines
+
+
+def unclaimed_player_message(player: UnclaimedChallengePlayer) -> str:
+    challenge_lines = "\n".join(
+        f"• **{discord.utils.escape_markdown(challenge.title)}** — "
+        f"{discord.utils.escape_markdown(challenge.detail)}"
+        for challenge in player.challenges
+    )
+    return (
+        "⭐ Вы уже выполнили условия заданий, но ещё не получили звёзды:\n"
+        f"{challenge_lines}\n\n"
+        "Откройте Компендиум и нажмите «Проверить», чтобы забрать звёзды: "
+        "https://lsesports.ru/compendium"
+    )
 
 
 def format_unclaimed_challenges_report(

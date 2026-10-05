@@ -26,13 +26,15 @@ export type UnclaimedChallengeCandidate = {
   playerName: string;
   dailyQuests: UnclaimedDailyQuest[];
   isStarRaceCandidate: boolean;
+  runeHeroId: number | null;
+  clanMateDotaIds: string[];
 };
 
 export async function loadUnclaimedChallengeCandidates(
   dateKey: string,
   shouldIncludeStarRace: boolean,
 ): Promise<UnclaimedChallengeCandidate[]> {
-  const [players, dailyQuestRows, starRaceCompletions] = await Promise.all([
+  const [players, dailyQuestRows, starRaceCompletions, runeRows, clanMateRows] = await Promise.all([
     query<PlayerRow>(
       `SELECT discord_id::text AS player_id,
          steam_id32::text AS dota_id,
@@ -40,6 +42,10 @@ export async function loadUnclaimedChallengeCandidates(
        FROM players
        WHERE is_archived = FALSE
          AND steam_id32 BETWEEN 1 AND 4294967295
+         AND EXISTS (
+           SELECT 1 FROM october_compendium_clan_members member
+           WHERE member.player_id = players.discord_id
+         )
        ORDER BY LOWER(ingame_name), discord_id`,
     ),
     query<DailyQuestRow>(
@@ -98,12 +104,39 @@ export async function loadUnclaimedChallengeCandidates(
           [dateKey],
         )
       : Promise.resolve([]),
+    query<{ player_id: string; hero_id: number }>(
+      `SELECT selection.player_id::text, selection.hero_id
+       FROM compendium_rune_challenge_selections selection
+       JOIN october_compendium_clan_members member ON member.player_id = selection.player_id
+       WHERE NOT EXISTS (
+         SELECT 1 FROM compendium_rune_challenge_completions completion
+         WHERE completion.player_id = selection.player_id
+           AND completion.moscow_date = $1::date
+       )`,
+      [dateKey],
+    ),
+    query<{ player_id: string; mate_dota_id: string }>(
+      `SELECT member.player_id::text, player.steam_id32::text AS mate_dota_id
+       FROM october_compendium_clan_members member
+       JOIN october_compendium_clan_members mate
+         ON mate.clan_id = member.clan_id AND mate.player_id <> member.player_id
+       JOIN players player ON player.discord_id = mate.player_id
+       WHERE player.is_archived = FALSE`,
+    ),
   ]);
 
   const completedStarRacePlayerIds = new Set(
     starRaceCompletions.map((row) => row.player_id),
   );
   const questsByPlayer = new Map<string, Map<string, UnclaimedDailyQuest>>();
+  const runeHeroByPlayer = new Map(runeRows.map((row) => [row.player_id, row.hero_id]));
+  const clanMatesByPlayer = new Map<string, string[]>();
+  for (const row of clanMateRows) {
+    clanMatesByPlayer.set(row.player_id, [
+      ...(clanMatesByPlayer.get(row.player_id) ?? []),
+      row.mate_dota_id,
+    ]);
+  }
   for (const row of dailyQuestRows) {
     const playerQuests = questsByPlayer.get(row.player_id) ?? new Map();
     const quest = playerQuests.get(row.quest_id) ?? {
@@ -120,13 +153,17 @@ export async function loadUnclaimedChallengeCandidates(
     const dailyQuests = [...(questsByPlayer.get(player.player_id)?.values() ?? [])];
     const isStarRaceCandidate = shouldIncludeStarRace &&
       !completedStarRacePlayerIds.has(player.player_id);
-    if (!dailyQuests.length && !isStarRaceCandidate) return [];
+    const runeHeroId = runeHeroByPlayer.get(player.player_id) ?? null;
+    const clanMateDotaIds = clanMatesByPlayer.get(player.player_id) ?? [];
+    if (!dailyQuests.length && !isStarRaceCandidate && runeHeroId === null && !clanMateDotaIds.length) return [];
     return [{
       playerId: player.player_id,
       dotaId: player.dota_id,
       playerName: player.player_name,
       dailyQuests,
       isStarRaceCandidate,
+      runeHeroId,
+      clanMateDotaIds,
     }];
   });
 }
@@ -135,8 +172,10 @@ export async function loadClaimedChallengeKeys(input: {
   dateKey: string;
   dailyQuestIds: string[];
   starRacePlayerIds: string[];
+  runePlayerIds: string[];
+  clanOutingPlayerIds: string[];
 }): Promise<Set<string>> {
-  const [dailyRows, starRaceRows] = await Promise.all([
+  const [dailyRows, starRaceRows, runeRows, outingRows] = await Promise.all([
     input.dailyQuestIds.length
       ? query<{ claim_key: string }>(
           `SELECT 'daily:' || player_id::text || ':' || daily_quest_id::text
@@ -156,8 +195,24 @@ export async function loadClaimedChallengeKeys(input: {
           [input.dateKey, input.starRacePlayerIds],
         )
       : Promise.resolve([]),
+    input.runePlayerIds.length
+      ? query<{ claim_key: string }>(
+          `SELECT 'rune:' || player_id::text || ':' || moscow_date::text AS claim_key
+           FROM compendium_rune_challenge_completions
+           WHERE moscow_date = $1::date AND player_id = ANY($2::bigint[])`,
+          [input.dateKey, input.runePlayerIds],
+        )
+      : Promise.resolve([]),
+    input.clanOutingPlayerIds.length
+      ? query<{ claim_key: string }>(
+          `SELECT 'clan-outing:' || player_id::text || ':' || moscow_date::text AS claim_key
+           FROM october_compendium_clan_outing_completions
+           WHERE moscow_date = $1::date AND player_id = ANY($2::bigint[])`,
+          [input.dateKey, input.clanOutingPlayerIds],
+        )
+      : Promise.resolve([]),
   ]);
   return new Set(
-    [...dailyRows, ...starRaceRows].map((row) => row.claim_key),
+    [...dailyRows, ...starRaceRows, ...runeRows, ...outingRows].map((row) => row.claim_key),
   );
 }

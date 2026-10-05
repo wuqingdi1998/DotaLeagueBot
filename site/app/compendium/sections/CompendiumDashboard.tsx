@@ -4,10 +4,9 @@ import { fetchSiteRequest } from "@/lib/site-request";
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaDiscord } from "react-icons/fa";
-import { FiArrowRight, FiClock, FiDatabase } from "react-icons/fi";
+import { FiArrowRight, FiClock } from "react-icons/fi";
 import { useServerClock } from "../hooks/useServerClock";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
 import { tournamentStatusForMoment } from "../model/time";
@@ -282,14 +281,6 @@ export function CompendiumDashboard({
       >
         <div className="compendium-orb compendium-orb-one" />
         <div className="compendium-orb compendium-orb-two" />
-        {isOrganizer && (
-          <Link
-            className="compendium-base-link compendium-base-floating-link"
-            href="/compendium/base"
-          >
-            <FiDatabase aria-hidden="true" /> База
-          </Link>
-        )}
         <div className="compendium-title-block">
           <p className="compendium-kicker">The International 2026</p>
           <h1>Компендиум</h1>

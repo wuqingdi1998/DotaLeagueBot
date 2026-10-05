@@ -30,6 +30,7 @@ export type CompendiumAdminSourceRow = {
     | "prediction"
     | "rune"
     | "star_race"
+    | "clan_outing"
     | null;
   completion_id: string | null;
   moscow_date: string | null;
@@ -156,11 +157,23 @@ export type CompendiumStarRaceRewardHistory = {
   }>;
 };
 
+export type CompendiumClanOutingRewardHistory = {
+  kind: "clan_outing";
+  id: string;
+  dateKey: string;
+  dateLabel: string;
+  completedAt: string;
+  rewardAmount: number;
+  partnerName: string;
+  matchedMatchId: string;
+};
+
 export type CompendiumRewardHistory =
   | CompendiumQuestRewardHistory
   | CompendiumAdminRewardHistory
   | CompendiumPredictionRewardHistory
   | CompendiumRuneRewardHistory
+  | CompendiumClanOutingRewardHistory
   | CompendiumStarRaceRewardHistory;
 
 export type CompendiumAdminParticipant = {

@@ -8,7 +8,17 @@ describe("October daily reroll display", () => {
     const html = renderToStaticMarkup(
       <OctoberDailyPreview
         viewerDiscordId="viewer-1"
-        initialData={{ quests: octoberDailyQuestSamples(), rerollsRemaining: 1 }}
+        initialData={{
+          quests: octoberDailyQuestSamples(),
+          rerollsRemaining: 1,
+          clanOuting: null,
+          runeChallenge: {
+            hasAccess: false,
+            accessRoleName: null,
+            selection: null,
+            completion: null,
+          },
+        }}
       />,
     );
 

@@ -13,6 +13,7 @@ def test_unclaimed_report_lists_every_challenge_for_each_player() -> None:
         failed_count=1,
         players=(
             UnclaimedChallengePlayer(
+                player_id=1,
                 player_name="Winner",
                 challenges=(
                     UnclaimedChallenge(
@@ -59,6 +60,7 @@ def test_unclaimed_report_explains_when_nobody_was_missed() -> None:
 def test_unclaimed_report_stays_inside_discord_message_limit() -> None:
     players = tuple(
         UnclaimedChallengePlayer(
+            player_id=index + 1,
             player_name=f"Player {index}",
             challenges=(
                 UnclaimedChallenge(

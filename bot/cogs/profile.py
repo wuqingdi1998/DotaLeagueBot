@@ -23,6 +23,7 @@ from services.player_registration import (
 )
 from services.player_tier import effective_player_tier, set_player_tier
 from services.titan_checkup_service import TitanRecipient
+from services.october_compendium_roles import assign_october_clan_after_registration
 
 GUILD_ID = int(os.getenv("GUILD_ID") or 0)
 NEW_USER_ROLE_ID = int(os.getenv("NEW_USER_ROLE_ID", "0"))
@@ -216,6 +217,12 @@ class RegisterModal(ui.Modal, title='Регистрация в Лиге'):
             print(f"[WARN] Нет прав для замены роли у {interaction.user.display_name}")
         except discord.HTTPException as error:
             print(f"[ERROR] Ошибка замены роли: {error}")
+
+        async with async_session() as session:
+            await assign_october_clan_after_registration(
+                session,
+                interaction.user.id,
+            )
 
         # --- 7. ЛОГИРОВАНИЕ ---
         checkup_log = ""

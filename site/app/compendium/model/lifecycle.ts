@@ -15,12 +15,16 @@ export function isCompendiumFinished(now: Date = new Date()): boolean {
   return now.getTime() >= compendiumEndTime;
 }
 
-export function assertCompendiumActive(now: Date = new Date()): void {
+export function isCompendiumActive(now: Date = new Date()): boolean {
   const currentTime = now.getTime();
-  const isOctoberCompendiumActive =
+  return currentTime < compendiumEndTime || (
     currentTime >= Date.parse(OCTOBER_COMPENDIUM_START_AT) &&
-    currentTime < Date.parse(OCTOBER_COMPENDIUM_END_AT);
-  if (isCompendiumFinished(now) && !isOctoberCompendiumActive) {
+    currentTime < Date.parse(OCTOBER_COMPENDIUM_END_AT)
+  );
+}
+
+export function assertCompendiumActive(now: Date = new Date()): void {
+  if (!isCompendiumActive(now)) {
     throw new CompendiumError(
       "COMPENDIUM_FINISHED",
       "Компендиум завершён. Задания и начисление звёзд остановлены.",

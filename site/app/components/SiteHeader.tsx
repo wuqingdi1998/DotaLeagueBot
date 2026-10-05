@@ -19,6 +19,7 @@ import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
 import { CompendiumNavigationLink } from "./header/CompendiumNavigationLink";
 import {
   FiArrowRight,
+  FiDatabase,
   FiLogIn,
   FiMenu,
   FiMoon,
@@ -304,6 +305,13 @@ export function SiteHeader({
                     {user.hasOrganizerAccess && (
                       <>
                         <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
+                        <Link
+                          className="profile-popover-link"
+                          href="/compendium/base"
+                          onClick={() => setProfileOpen(false)}
+                        >
+                          База компендиума <FiDatabase aria-hidden="true" />
+                        </Link>
                         {profileMenuExtras}
                       </>
                     )}

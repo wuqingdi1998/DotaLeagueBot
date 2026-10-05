@@ -10,6 +10,8 @@ COPY bot/ .
 COPY anounce/Reg/ ./assets/channel-announcements/
 COPY anounce/Lob/ ./assets/channel-announcements/
 COPY anounce/Rez/ ./assets/channel-announcements/
+COPY site/public/compendium/october/morbus-emblem-v2.webp ./assets/compendium/morbus-emblem.webp
+COPY site/public/compendium/october/panacea-emblem.webp ./assets/compendium/panacea-emblem.webp
 
 RUN useradd --create-home --uid 1001 botuser \
     && chown -R botuser:botuser /app
