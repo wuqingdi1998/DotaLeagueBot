@@ -95,9 +95,18 @@ export function OctoberClanStandings({
   useEffect(() => {
     if (!isDialogOpen) return;
     const previousOverflow = document.body.style.overflow;
+    const compendiumScrollContainer = dialogRef.current
+      ?.closest<HTMLElement>(".october-compendium-preview");
+    const previousCompendiumOverflow = compendiumScrollContainer?.style.overflowY;
     document.body.style.overflow = "hidden";
+    if (compendiumScrollContainer) {
+      compendiumScrollContainer.style.overflowY = "hidden";
+    }
     return () => {
       document.body.style.overflow = previousOverflow;
+      if (compendiumScrollContainer) {
+        compendiumScrollContainer.style.overflowY = previousCompendiumOverflow ?? "";
+      }
     };
   }, [isDialogOpen]);
 

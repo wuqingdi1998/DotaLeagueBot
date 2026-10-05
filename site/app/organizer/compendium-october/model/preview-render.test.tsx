@@ -275,7 +275,7 @@ describe("October preview actions", () => {
     expect(html).toContain("october-clan-standing-row--compact october-clan-standing-row--current");
     expect(html).toContain("Полный зачёт клана Морбус");
     expect(html).toContain("Player 12");
-    expect(clanStandingsSource).toContain('document.body.style.overflow = "hidden"');
+    expect(clanStandingsSource).toMatch(/closest<HTMLElement>\("\.october-compendium-preview"\)[\s\S]*?document\.body\.style\.overflow = "hidden"[\s\S]*?compendiumScrollContainer\.style\.overflowY = "hidden"/);
     expect(clanStyles).toContain("overflow-y: auto; overscroll-behavior-y: contain");
   });
 
