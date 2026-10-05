@@ -70,10 +70,10 @@ describe("October preview actions", () => {
     expect(html.match(/href="#october-section-/g)).toHaveLength(4);
   });
 
-  it("supports section scrolling without showing a desktop scrollbar", () => {
-    expect(previewStyles).toContain(".october-compendium-preview::-webkit-scrollbar"); expect(previewStyles).toContain(".october-compendium-screen::-webkit-scrollbar");
+  it("supports section scrolling with the shared visible scrollbar", () => {
+    expect(previewStyles).not.toContain("::-webkit-scrollbar");
     expect(previewStyles).toContain("body:has(.october-compendium-preview)");
-    expect(previewStyles).toMatch(/\.october-compendium-preview\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;[^}]*scroll-snap-type:\s*y mandatory;/); expect(previewStyles).toMatch(/\.october-compendium-screen\s*\{[^}]*overflow:\s*hidden;[^}]*scroll-snap-align:\s*start;/);
+    expect(previewStyles).toMatch(/\.october-compendium-preview\s*\{[^}]*overflow-y:\s*auto;[^}]*scroll-snap-type:\s*y proximity;/); expect(previewStyles).toMatch(/\.october-compendium-screen\s*\{[^}]*overflow:\s*hidden;[^}]*scroll-snap-align:\s*start;/);
     expect(previewStyles).toContain(".october-section-navigation"); expect(previewStyles).toContain("scroll-snap-stop: always");
   });
 
@@ -297,7 +297,7 @@ describe("October preview actions", () => {
     expect(html).toContain("Для всех трёх заданий и Испытания Рун");
     expect(html.match(/aria-label="Награда: 2 звезды"/g)).toHaveLength(3); expect(html).toContain("compendium-weekend-bonus");
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
-    expect(guideStyles).toMatch(/\.october-compendium-screen-daily \.compendium-daily-section \{[^}]*justify-content: safe center;[\s\S]*?\.october-daily-section--compact-guidance \.compendium-quest-grid/);
+    expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");
   });
 
   it("keeps the platinum reward beside the first five milestones", () => {
@@ -362,7 +362,7 @@ describe("October preview actions", () => {
     expect(html).not.toContain("compendium-check-button");
   });
 
-  it("keeps every desktop screen inside the viewport without mobile-only controls", () => {
+  it("keeps desktop daily controls reachable when content exceeds the viewport", () => {
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.october-race-rules-desktop \{ display: grid; \}/,
     );
@@ -370,13 +370,13 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-race \.october-race-rules-mobile \{ display: none; \}/,
     );
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-hero-portrait \{ height: auto; aspect-ratio: 16 \/ 9; \}/,
+      /\.october-compendium-screen-daily \.compendium-hero-portrait \{\s*height: clamp\(56px, 8dvh, 80px\);/,
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?justify-content: flex-start;[\s\S]*?padding-bottom: 22px;/,
     );
-    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*overflow-y: hidden;/);
+    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*height: auto;[\s\S]*?overflow: visible;/);
     expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");
     expect(guideStyles).toMatch(/\.october-compendium-example-note\.october-dismissible-guide \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/);
     expect(previewStyles).toMatch(

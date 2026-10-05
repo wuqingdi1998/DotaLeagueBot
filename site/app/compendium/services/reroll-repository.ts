@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { query, transaction } from "@/lib/db";
 import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
+import { runeChallengeTablesForDate } from "../model/rune-challenge-tables";
 import { hiddenSubscriptionDiscordIds } from "@/lib/hidden-subscription-entitlements";
 import {
   BONUS_QUEST_STAR_THRESHOLD,
@@ -136,7 +137,7 @@ export async function recordDailyQuestReroll(input: {
        WHERE reroll.quest_set_id = $1 AND reroll.player_id = $2
        UNION
        SELECT selection.hero_id
-       FROM compendium_rune_challenge_selections selection
+       FROM ${runeChallengeTablesForDate(input.dateKey).selections} selection
        WHERE selection.player_id = $2
          AND (
            selection.player_id = ANY($5::bigint[])

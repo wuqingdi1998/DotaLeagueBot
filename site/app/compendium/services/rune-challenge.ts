@@ -66,7 +66,9 @@ export async function selectRuneChallengeHero(
   if (!COMPENDIUM_HEROES.some((hero) => hero.id === heroId)) {
     throw new CompendiumError("RUNE_HERO_INVALID", "Выберите героя из списка");
   }
-  await saveRuneChallengeSelection({ playerId: user.discordId, heroId });
+  await saveRuneChallengeSelection({
+    playerId: user.discordId, heroId, dateKey: currentMoscowDay(now).dateKey,
+  });
   return loadRuneChallenge(user.discordId, currentMoscowDay(now).dateKey);
 }
 

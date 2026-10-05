@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { runeChallengeAccessRoleNames } from "../../../lib/subscription-roles";
+import { runeChallengeTablesForDate } from "../model/rune-challenge-tables";
 import { hiddenSubscriptionDiscordIds } from "../../../lib/hidden-subscription-entitlements";
 import {
   BONUS_QUEST_POSITION,
@@ -185,7 +186,7 @@ export async function ensurePersonalDailyQuests(
   );
   const runeResult = await client.query<RuneHeroRow>(
     `SELECT selection.player_id::text, selection.hero_id
-     FROM compendium_rune_challenge_selections selection
+     FROM ${runeChallengeTablesForDate(dateKey).selections} selection
      WHERE selection.player_id = ANY($2::bigint[])
        AND (
          selection.player_id = ANY($4::bigint[])

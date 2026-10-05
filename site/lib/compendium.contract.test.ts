@@ -476,7 +476,7 @@ describe("compendium persistence and security contract", () => {
       "grant_ti_2026_profile_badges_after_change",
     );
     expect(rerollRepository).toContain(
-      "compendium_rune_challenge_selections",
+      "runeChallengeTablesForDate(input.dateKey).selections",
     );
     expect(baseRepository).toContain(
       "compendium_rune_challenge_completions",

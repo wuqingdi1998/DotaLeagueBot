@@ -5,6 +5,7 @@ import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import { CompendiumError } from "../model/errors";
 import type { QuestCompletion } from "../model/types";
 import type { DailyChallengeRewardStars } from "../model/weekend-bonus";
+import { runeChallengeTablesForDate } from "../model/rune-challenge-tables";
 
 export type RuneChallengeSelectionRecord = {
   heroId: number;
@@ -88,12 +89,13 @@ export async function loadRuneChallengeAccessRole(
 
 export async function loadRuneChallengeSelection(
   playerId: string,
+  dateKey: string,
 ): Promise<RuneChallengeSelectionRecord | null> {
   const row = await one<SelectionRow>(
     `SELECT hero_id, selected_at,
        selected_at + INTERVAL '7 days' AS next_change_at,
        selected_at + INTERVAL '7 days' <= NOW() AS can_change_hero
-     FROM compendium_rune_challenge_selections
+     FROM ${runeChallengeTablesForDate(dateKey).selections}
      WHERE player_id = $1`,
     [playerId],
   );
@@ -106,7 +108,7 @@ export async function loadRuneChallengeCompletion(
 ): Promise<QuestCompletion | null> {
   const row = await one<CompletionRow>(
     `SELECT hero_id, matched_match_id::text, completed_at
-     FROM compendium_rune_challenge_completions
+     FROM ${runeChallengeTablesForDate(dateKey).completions}
      WHERE player_id = $1 AND moscow_date = $2::date`,
     [playerId, dateKey],
   );
@@ -119,7 +121,7 @@ export async function loadRuneChallengeStateRecord(
 ): Promise<RuneChallengeStateRecord> {
   const [accessRoleName, selection, completion] = await Promise.all([
     loadRuneChallengeAccessRole(playerId),
-    loadRuneChallengeSelection(playerId),
+    loadRuneChallengeSelection(playerId, dateKey),
     loadRuneChallengeCompletion(playerId, dateKey),
   ]);
   return {
@@ -135,6 +137,7 @@ export async function loadRuneChallengeStateRecord(
 export async function saveRuneChallengeSelection(input: {
   playerId: string;
   heroId: number;
+  dateKey: string;
 }): Promise<RuneChallengeSelectionRecord> {
   return transaction(async (client) => {
     await client.query(
@@ -151,7 +154,7 @@ export async function saveRuneChallengeSelection(input: {
       `SELECT hero_id, selected_at,
          selected_at + INTERVAL '7 days' AS next_change_at,
          selected_at + INTERVAL '7 days' <= NOW() AS can_change_hero
-       FROM compendium_rune_challenge_selections
+       FROM ${runeChallengeTablesForDate(input.dateKey).selections}
        WHERE player_id = $1
        FOR UPDATE`,
       [input.playerId],
@@ -163,7 +166,7 @@ export async function saveRuneChallengeSelection(input: {
       );
     }
     const saved = await client.query<SelectionRow>(
-      `INSERT INTO compendium_rune_challenge_selections
+      `INSERT INTO ${runeChallengeTablesForDate(input.dateKey).selections}
          (player_id, hero_id, selected_at)
        VALUES ($1, $2, NOW())
        ON CONFLICT (player_id) DO UPDATE
@@ -197,7 +200,7 @@ export async function recordRuneChallengeCompletion(input: {
     }
     const selection = await client.query<{ hero_id: number }>(
       `SELECT hero_id
-       FROM compendium_rune_challenge_selections
+       FROM ${runeChallengeTablesForDate(input.dateKey).selections}
        WHERE player_id = $1
        FOR SHARE`,
       [input.playerId],
@@ -209,7 +212,7 @@ export async function recordRuneChallengeCompletion(input: {
       );
     }
     const inserted = await client.query<CompletionRow>(
-      `INSERT INTO compendium_rune_challenge_completions
+      `INSERT INTO ${runeChallengeTablesForDate(input.dateKey).completions}
         (player_id, moscow_date, hero_id, matched_match_id, reward_amount)
        SELECT $1, $2::date, $3, $4, $5
        WHERE $2::date =
@@ -227,7 +230,7 @@ export async function recordRuneChallengeCompletion(input: {
     if (inserted.rowCount) return completionFromRow(inserted.rows[0]);
     const existing = await client.query<CompletionRow>(
       `SELECT hero_id, matched_match_id::text, completed_at
-       FROM compendium_rune_challenge_completions
+       FROM ${runeChallengeTablesForDate(input.dateKey).completions}
        WHERE player_id = $1 AND moscow_date = $2::date`,
       [input.playerId, input.dateKey],
     );

@@ -755,6 +755,17 @@ jobs:
                       OR EXISTS (SELECT 1 FROM compendium_star_race_events race
                                  WHERE race.player_id = presence.player_id))"')"
             test "$departed_remaining" = "0"
+            rune_ready="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT to_regclass('\''october_compendium_rune_challenge_selections'\'') IS NOT NULL
+                   AND to_regclass('\''october_compendium_rune_challenge_completions'\'') IS NOT NULL
+                   AND EXISTS (SELECT 1 FROM pg_trigger
+                       WHERE tgrelid = '\''compendium_rune_challenge_selections'\''::regclass
+                         AND tgname = '\''freeze_ti_2026_compendium'\'')
+                   AND NOT EXISTS (SELECT 1 FROM pg_trigger
+                       WHERE tgrelid = '\''october_compendium_rune_challenge_selections'\''::regclass
+                         AND tgname = '\''freeze_ti_2026_compendium'\'')"')"
+            test "$rune_ready" = "t"
             docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
               "SELECT clan_id, COUNT(*) FROM october_compendium_clan_members

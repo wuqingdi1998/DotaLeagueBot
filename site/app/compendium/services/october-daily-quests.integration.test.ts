@@ -83,6 +83,8 @@ describe("October daily quests database flow", () => {
         hero_id smallint NOT NULL,
         selected_at timestamptz NOT NULL
       );
+      CREATE TABLE october_compendium_rune_challenge_selections
+        (LIKE compendium_rune_challenge_selections INCLUDING ALL);
       CREATE TABLE player_discord_roles (player_id bigint, role_name text);
       CREATE TABLE compendium_player_star_totals (player_id bigint, total_stars integer);
       CREATE TABLE compendium_star_race_quest_completions (

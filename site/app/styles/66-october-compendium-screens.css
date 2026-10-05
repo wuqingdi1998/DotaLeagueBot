@@ -11,12 +11,7 @@
     overflow-y: auto;
     overscroll-behavior-y: contain;
     scroll-behavior: smooth;
-    scrollbar-width: none;
-    scroll-snap-type: y mandatory;
-  }
-
-  .october-compendium-preview::-webkit-scrollbar {
-    display: none;
+    scroll-snap-type: y proximity;
   }
 
   .october-compendium-screen {
@@ -30,12 +25,11 @@
     scroll-snap-stop: always;
   }
 
-  .october-compendium-screen::-webkit-scrollbar {
-    display: none;
-  }
-
   .october-compendium-screen-daily {
-    overflow-y: hidden;
+    height: auto;
+    min-height: calc(100dvh - 76px);
+    flex-shrink: 0;
+    overflow: visible;
   }
 
   .october-section-navigation {
@@ -295,9 +289,9 @@
   .october-compendium-screen-daily .compendium-daily-section {
     display: flex;
     min-height: 0;
-    flex: 1;
+    flex: 0 0 auto;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     padding-top: 18px;
     padding-bottom: 22px;
   }
@@ -331,8 +325,8 @@
   .october-compendium-screen-daily .compendium-quest-grid > .compendium-quest {
     grid-column: auto;
     width: auto;
-    min-height: clamp(390px, 48vh, 445px);
-    padding: 20px;
+    min-height: clamp(300px, 36dvh, 370px);
+    padding: 16px;
   }
 
   .october-compendium-screen-daily .compendium-quest-grid > .compendium-quest:last-child {
@@ -358,7 +352,10 @@
     margin-top: 0;
   }
 
-  .october-compendium-screen-daily .compendium-hero-portrait { height: auto; aspect-ratio: 16 / 9; }
+  .october-compendium-screen-daily .compendium-hero-portrait {
+    height: clamp(56px, 8dvh, 80px);
+    aspect-ratio: auto;
+  }
 
   .october-compendium-screen-daily .compendium-hero strong {
     margin-top: 6px;
@@ -424,7 +421,6 @@
   .october-compendium-screen-race .compendium-star-race-quest > p { font-size: 16px; }
   .october-compendium-screen-daily .compendium-section-heading h2 { font-size: 38px; }
   .october-compendium-screen-daily .compendium-quest-heading h2 { font-size: 23px; }
-  .october-compendium-screen-daily .compendium-hero-portrait { height: auto; }
   .october-compendium-screen-daily .compendium-condition { font-size: 17px; }
 }
 

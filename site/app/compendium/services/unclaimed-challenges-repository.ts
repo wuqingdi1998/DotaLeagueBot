@@ -1,4 +1,5 @@
 import { query } from "@/lib/db";
+import { runeChallengeTablesForDate } from "../model/rune-challenge-tables";
 import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
 
 type PlayerRow = {
@@ -106,10 +107,10 @@ export async function loadUnclaimedChallengeCandidates(
       : Promise.resolve([]),
     query<{ player_id: string; hero_id: number }>(
       `SELECT selection.player_id::text, selection.hero_id
-       FROM compendium_rune_challenge_selections selection
+       FROM ${runeChallengeTablesForDate(dateKey).selections} selection
        JOIN october_compendium_clan_members member ON member.player_id = selection.player_id
        WHERE NOT EXISTS (
-         SELECT 1 FROM compendium_rune_challenge_completions completion
+         SELECT 1 FROM ${runeChallengeTablesForDate(dateKey).completions} completion
          WHERE completion.player_id = selection.player_id
            AND completion.moscow_date = $1::date
        )`,

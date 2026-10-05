@@ -48,7 +48,7 @@ describe("personal daily quest contract", () => {
   });
 
   it("excludes the player's rune challenge hero from new cards", () => {
-    expect(generation).toContain("compendium_rune_challenge_selections");
+    expect(generation).toContain("runeChallengeTablesForDate(dateKey).selections");
     expect(generation).toContain("selected_at AT TIME ZONE 'Europe/Moscow'");
   });
 

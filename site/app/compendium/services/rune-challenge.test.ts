@@ -107,6 +107,7 @@ describe("rune challenge", () => {
     expect(mocks.saveSelection).toHaveBeenCalledWith({
       playerId: user.discordId,
       heroId: 14,
+      dateKey: "2026-08-12",
     });
   });
 
