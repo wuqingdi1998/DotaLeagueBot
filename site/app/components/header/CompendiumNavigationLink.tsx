@@ -15,7 +15,9 @@ export function CompendiumNavigationLink({
   isActive,
   onSelect,
 }: CompendiumNavigationLinkProps) {
-  const [isLaunched, setIsLaunched] = useState(false);
+  const [isLaunched, setIsLaunched] = useState(
+    () => Date.now() >= Date.parse(OCTOBER_PUBLIC_LAUNCH_AT),
+  );
 
   useEffect(() => {
     const launchAt = Date.parse(OCTOBER_PUBLIC_LAUNCH_AT);

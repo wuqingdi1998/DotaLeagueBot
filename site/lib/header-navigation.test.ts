@@ -48,6 +48,9 @@ describe("header navigation", () => {
   it("shows Compendium only for Discord users and unlocks its clan badge on schedule", () => {
     expect(header.match(/user && !user\.isStandaloneOrganizer/g)).toHaveLength(2);
     expect(compendiumNavigation).toContain("OCTOBER_PUBLIC_LAUNCH_AT");
+    expect(compendiumNavigation).toContain(
+      "() => Date.now() >= Date.parse(OCTOBER_PUBLIC_LAUNCH_AT)",
+    );
     expect(compendiumNavigation).toContain("3 октября в 22:30 МСК");
     expect(compendiumNavigation).toContain("window.setTimeout(showLiveLink");
     expect(communityStyles).toContain(
@@ -82,6 +85,17 @@ describe("header navigation", () => {
     );
     expect(navigationStyles).toMatch(
       /\.compendium-navigation-link\.is-live\[data-navigation-overlay\]::before,[\s\S]*?::after\s*\{[^}]*visibility:\s*visible;/,
+    );
+  });
+
+  it("keeps the header position stable when a page hides the document scrollbar", () => {
+    const foundationStyles = readFileSync(
+      new URL("../app/styles/01-foundation.css", import.meta.url),
+      "utf8",
+    );
+
+    expect(foundationStyles).toMatch(
+      /html\s*\{[^}]*scrollbar-gutter:\s*stable;/,
     );
   });
 
