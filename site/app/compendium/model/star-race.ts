@@ -17,6 +17,15 @@ export const STAR_RACE_EXCLUSION_RULES = [
   "Звёзды за Испытание 4 также не учитываются в гонке, но сохраняются в общем зачёте Компендиума.",
 ] as const;
 
+export const OCTOBER_FIRST_WEEK_RACE_RULES = [
+  `В зачёт первой недели (${OCTOBER_COMPENDIUM_WEEKS[0].dateLabel}) входят только звёзды за испытания № 1, № 2, № 3 (клановую вылазку) и испытание гонки, полученные в течение этой недели.`,
+  "Звёзды за Испытание Рун не учитываются в гонке, но пополняют личный зачёт и счёт клана.",
+] as const;
+
+export function isOctoberFirstRaceWeek(race: { id: string }): boolean {
+  return race.id === OCTOBER_COMPENDIUM_WEEKS[0].id;
+}
+
 export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
 

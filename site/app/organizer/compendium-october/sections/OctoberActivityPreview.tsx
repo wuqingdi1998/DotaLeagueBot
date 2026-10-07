@@ -21,6 +21,8 @@ import { useServerClock } from "@/app/compendium/hooks/useServerClock";
 import { useCompendiumToast } from "@/app/compendium/hooks/useCompendiumToast";
 import {
   starRaceQuestProgressLabel,
+  isOctoberFirstRaceWeek,
+  OCTOBER_FIRST_WEEK_RACE_RULES,
   type StarRaceData,
 } from "@/app/compendium/model/star-race";
 
@@ -96,7 +98,7 @@ export function OctoberRacePreview({
         isPreview={!isLive}
         collapsibleRulesOnMobile
         sectionId={`october-race-${week.id}`}
-        exclusionRules={OCTOBER_RACE_EXCLUSION_RULES}
+        exclusionRules={isOctoberFirstRaceWeek(race) ? OCTOBER_FIRST_WEEK_RACE_RULES : OCTOBER_RACE_EXCLUSION_RULES}
       />
       {message && <div className="compendium-toast" role="status">{message}</div>}
     </>

@@ -7,6 +7,8 @@ import {
   starRacePhase,
   starRacePrizeDescription,
   STAR_RACE_EXCLUSION_RULES,
+  OCTOBER_FIRST_WEEK_RACE_RULES,
+  isOctoberFirstRaceWeek,
 } from "../model/star-race";
 import { CompendiumExclusionNotice } from "../components/CompendiumExclusionNotice";
 import { CompendiumLeaderboard } from "../sections/CompendiumLeaderboard";
@@ -39,13 +41,14 @@ export default async function StarRaceLeaderboardPage() {
     redirect("/compendium#compendium-star-race");
   }
   const participants = await loadStarRaceLeaderboard(race);
+  const rules = isOctoberFirstRaceWeek(race) ? OCTOBER_FIRST_WEEK_RACE_RULES : STAR_RACE_EXCLUSION_RULES;
   return (
     <PlatformShell user={user}>
       <CompendiumLeaderboard
         participants={participants}
         eyebrow={race.dateLabel.toUpperCase()}
         title={race.title}
-        description={`${STAR_RACE_EXCLUSION_RULES.join(" ")} При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. ${starRacePrizeDescription(race.prizes)}`}
+        description={`${rules.join(" ")} При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. ${starRacePrizeDescription(race.prizes)}`}
       />
     </PlatformShell>
   );
