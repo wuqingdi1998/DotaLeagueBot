@@ -60,6 +60,32 @@
   font-size: 17px;
 }
 
+.compendium-leaderboard-rules {
+  margin-top: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-soft);
+}
+
+.compendium-leaderboard-rules summary {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+}
+
+.compendium-leaderboard-rules summary::-webkit-details-marker { display: none; }
+.compendium-leaderboard-rules summary > svg { flex: 0 0 auto; width: 22px; height: 22px; color: var(--blue-strong); }
+.compendium-leaderboard-rules summary strong { line-height: 1.2; }
+.compendium-leaderboard-rules-chevron { margin-left: auto; transition: transform 160ms ease; }
+.compendium-leaderboard-rules[open] .compendium-leaderboard-rules-chevron { transform: rotate(180deg); }
+.compendium-leaderboard-rules summary:focus-visible { outline: 2px solid var(--blue-strong); outline-offset: 3px; border-radius: 14px; }
+.compendium-leaderboard-rules p { padding: 0 14px 14px; line-height: 1.5; }
+
 .compendium-leaderboard-card {
   overflow: hidden;
   border: 1px solid rgba(70, 160, 244, 0.34);
@@ -183,9 +209,16 @@
 }
 
 @media (max-width: 720px) {
+  .compendium-leaderboard-page--collapsible .compendium-leaderboard-hero { margin-bottom: 14px; }
+  .compendium-leaderboard-page--collapsible .compendium-leaderboard-back { margin-bottom: 14px; }
+  .compendium-leaderboard-page--collapsible .compendium-leaderboard-hero h1 { font-size: 30px; line-height: 1.1; }
+  .compendium-leaderboard-rules { margin-top: 12px; }
+
   .compendium-leaderboard-page {
     padding: 26px 0 48px;
   }
+
+  .compendium-leaderboard-page--collapsible { padding-top: 16px; }
 
   .compendium-leaderboard-hero,
   .compendium-leaderboard-card {

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
-import { FiArrowLeft } from "react-icons/fi";
+import { FiArrowLeft, FiChevronDown, FiInfo } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { AvatarImage } from "@/app/components/AvatarImage";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
@@ -25,21 +25,32 @@ export function CompendiumLeaderboard({
   eyebrow = "THE INTERNATIONAL 2026",
   title = "Рейтинг участников",
   description = "Звёзды, заработанные за всё время ивента.",
+  descriptionLabel,
 }: {
   participants: CompendiumLeaderboardEntry[];
   eyebrow?: string;
   title?: string;
   description?: string;
+  descriptionLabel?: string;
 }) {
   return (
-    <main className="compendium-leaderboard-page">
+    <main className={`compendium-leaderboard-page${descriptionLabel ? " compendium-leaderboard-page--collapsible" : ""}`}>
       <header className="compendium-leaderboard-hero">
         <Link href="/compendium" className="compendium-leaderboard-back">
           <FiArrowLeft aria-hidden="true" /> К Компендиуму
         </Link>
         <span>{eyebrow}</span>
         <h1>{title}</h1>
-        <p>{description}</p>
+        {descriptionLabel ? (
+          <details className="compendium-leaderboard-rules">
+            <summary>
+              <FiInfo aria-hidden="true" />
+              <strong>{descriptionLabel}</strong>
+              <FiChevronDown className="compendium-leaderboard-rules-chevron" aria-hidden="true" />
+            </summary>
+            <p>{description}</p>
+          </details>
+        ) : <p>{description}</p>}
       </header>
 
       <section

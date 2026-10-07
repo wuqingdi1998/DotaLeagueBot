@@ -192,15 +192,24 @@
   .october-compendium-preview .compendium-star-race-summary span { text-transform: none; letter-spacing: normal; }
   .october-compendium-preview .compendium-star-race-counter {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 20px;
+    grid-template-rows: minmax(34px, auto) auto;
     gap: 4px 10px;
+    padding-block: 8px;
+    text-align: center;
   }
   .october-compendium-preview .compendium-star-race-counter > svg:first-of-type { display: none; }
+  .october-compendium-preview .compendium-star-race-counter > svg:last-child { grid-row: 1 / 3; }
+  .october-compendium-preview .compendium-star-race-counter > span { align-self: center; font-size: 13px; line-height: 1.3; }
+  .october-compendium-preview .compendium-star-race-counter > strong { justify-content: center; font-size: 24px; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .october-compendium-preview .compendium-star-race-total-label { grid-column: 1; grid-row: 1; }
   .october-compendium-preview .compendium-star-race-rank-label { grid-column: 2; grid-row: 1; margin: 0; }
   .october-compendium-preview .compendium-star-race-total-value { grid-column: 1; grid-row: 2; }
   .october-compendium-preview .compendium-star-race-rank-value { grid-column: 2; grid-row: 2; }
-  .october-compendium-preview .compendium-star-race-prize-name > strong { font-size: 14px; line-height: 1.4; }
+  .october-compendium-preview .compendium-star-race-prize { grid-template-columns: 32px minmax(0, 1fr) auto; gap: 3px 10px; padding: 8px 10px; }
+  .october-compendium-preview .compendium-star-race-prize > svg:first-of-type { width: 32px; height: 32px; padding: 7px; border-radius: 10px; }
+  .october-compendium-preview .compendium-star-race-prize-name > strong { font-size: 13px; line-height: 1.35; }
   .october-compendium-preview .october-race-rules-mobile summary { min-height: 44px; padding: 8px 10px; gap: 8px; }
+  .october-compendium-preview .october-race-rules-mobile summary strong { align-self: center; line-height: 1.2; }
   .october-compendium-preview .compendium-star-race-quests { align-items: start; margin-top: 14px; }
   .october-compendium-preview .compendium-star-race-quest { min-height: 0; padding: 14px; }
   .october-compendium-preview .compendium-star-race-quest h3 { margin: 12px 0 6px; font-size: 19px; }

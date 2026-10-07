@@ -48,6 +48,7 @@ export default async function StarRaceLeaderboardPage() {
         participants={participants}
         eyebrow={race.dateLabel.toUpperCase()}
         title={race.title}
+        descriptionLabel="Условия гонки"
         description={`${rules.join(" ")} При равенстве звёзд выше располагается участник, выполнивший больше ежедневных заданий гонки. При полном равенстве сайт автоматически бросает 20-гранный кубик до получения однозначного порядка — общих мест в итоге не будет. ${starRacePrizeDescription(race.prizes)}`}
       />
     </PlatformShell>
