@@ -42,6 +42,9 @@
 .site-header .brand img {
   width: 52px;
   height: 52px;
+  max-width: none;
+  object-fit: contain;
+  aspect-ratio: 1;
   box-shadow: none;
 }
 

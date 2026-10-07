@@ -406,6 +406,13 @@ export function SiteHeader({
           >
             Участники
           </HeaderNavigationLink>
+          <Link
+            className="mobile-boosty-link"
+            href="/boosty"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <SiBoosty aria-hidden="true" /> Преимущества подписки Boosty
+          </Link>
         </nav>
       )}
       <Suspense fallback={null}>

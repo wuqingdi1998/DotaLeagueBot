@@ -49,10 +49,14 @@ describe("site header actions", () => {
     );
   });
 
-  it("keeps Discord and Boosty as equal icon-sized mobile buttons", () => {
+  it("keeps Discord accessible and moves Boosty into the mobile menu", () => {
     expect(css).toMatch(
       /@media \(max-width:\s*760px\)[\s\S]*\.community-action-button\s*\{[^}]*width:\s*46px;[^}]*height:\s*46px;/,
     );
+    expect(css).toMatch(/\.header-actions \.boosty-action-button\s*\{[^}]*display:\s*none;/);
+    const mobileMenu = component.slice(component.indexOf("{isMobileMenuVisible && ("));
+    expect(mobileMenu).toContain('href="/boosty"');
+    expect(mobileMenu).toContain("Преимущества подписки Boosty");
   });
 
   it("compacts Boosty and profile actions in that order on desktop", () => {

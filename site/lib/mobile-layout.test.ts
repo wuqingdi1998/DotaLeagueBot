@@ -19,13 +19,13 @@ describe("mobile width safety", () => {
     );
   });
 
-  it("keeps the header brand from sliding under action buttons", () => {
+  it("keeps the logo square and hides brand copy when its container cannot fit it", () => {
     expect(styles).toMatch(
       /\.brand\s*>\s*span\s*\{[^}]*min-width:\s*0;[^}]*overflow:\s*hidden;/,
     );
-    expect(styles).toMatch(
-      /@media \(max-width:\s*760px\)[\s\S]*?\.brand strong,\s*\.brand small\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;/,
-    );
+    expect(styles).toMatch(/\.site-header \.brand img\s*\{[^}]*max-width:\s*none;[^}]*object-fit:\s*contain;[^}]*aspect-ratio:\s*1;/);
+    expect(styles).toContain("container: site-brand / inline-size");
+    expect(styles).toMatch(/@container site-brand \(max-width:\s*205px\)\s*\{\s*\.brand > span\s*\{[^}]*display:\s*none;/);
   });
 
   it("keeps seasonal navigation and match cards inside narrow screens", () => {

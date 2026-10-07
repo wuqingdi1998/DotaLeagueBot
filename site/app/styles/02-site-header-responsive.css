@@ -23,6 +23,11 @@
     overflow: hidden;
   }
 
+  .site-header .brand {
+    min-width: 40px;
+    container: site-brand / inline-size;
+  }
+
   .brand > span {
     min-width: 0;
     gap: 4px;
@@ -66,6 +71,11 @@
 
   .header-actions {
     grid-column: 2;
+    gap: 8px;
+  }
+
+  .header-actions .boosty-action-button {
+    display: none;
   }
 
   .discord-login {
@@ -124,7 +134,7 @@
   }
 }
 
-@media (max-width: 370px) {
+@container site-brand (max-width: 205px) {
   .brand > span {
     display: none;
   }

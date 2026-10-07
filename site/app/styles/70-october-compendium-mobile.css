@@ -1,0 +1,303 @@
+/* Mobile layout is independent of the desktop full-screen presentation. */
+@media (max-width: 960px) {
+  .october-compendium-preview {
+    --compendium-mobile-gap: 14px;
+    --compendium-mobile-radius: 16px;
+    padding-bottom: 24px;
+  }
+
+  .october-compendium-screen { scroll-margin-top: 88px; }
+
+  .october-compendium-preview .compendium-rewards-section,
+  .october-compendium-preview .compendium-daily-section {
+    width: calc(100% - 24px);
+    padding-block: var(--compendium-mobile-gap) 0;
+  }
+
+  .october-compendium-preview .compendium-hero-section {
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+    gap: 6px;
+    padding: 12px;
+  }
+
+  .october-compendium-preview .compendium-title-block {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    text-align: left;
+  }
+
+  .october-compendium-preview .compendium-title-block h1 {
+    font-size: 28px;
+    line-height: 1.15;
+  }
+
+  .october-compendium-hero-line {
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: normal;
+  }
+
+  .october-compendium-preview .compendium-summary {
+    width: 100%;
+    max-width: none;
+  }
+
+  .october-compendium-preview .compendium-tournament-countdown {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  .october-compendium-preview .compendium-tournament-countdown svg {
+    flex: 0 0 auto;
+    font-size: 16px;
+  }
+
+  .october-compendium-preview .compendium-tournament-countdown span {
+    display: none;
+  }
+
+  .october-compendium-preview .compendium-tournament-countdown strong {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .october-clan-showcase {
+    margin: 0;
+    padding: 12px;
+    border-radius: var(--compendium-mobile-radius);
+  }
+
+  .october-clan-prize-board {
+    gap: 12px;
+    padding: 10px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+  }
+
+  .october-clan-prize-copy p { font-size: 13px; line-height: 1.4; }
+  .october-clan-prize-slot--pool-start { margin-left: 0; }
+  .october-clan-prize-slot--pool-start::before { display: none; }
+
+  .october-clan-lineup {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .october-clan-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-height: 0;
+    height: auto;
+    padding: 12px;
+    text-align: left;
+  }
+
+  .october-clan-identity {
+    display: grid;
+    width: 100%;
+    height: auto;
+    grid-template-columns: 42px minmax(0, 1fr) auto;
+    gap: 4px 10px;
+  }
+
+  .october-clan-flag {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    width: 42px;
+  }
+
+  .october-clan-identity h3 {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 24px;
+    text-align: left;
+  }
+
+  .october-clan-total-stars {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 0;
+    gap: 4px;
+    padding: 5px 8px;
+    font-size: 13px;
+  }
+
+  .october-clan-standing-open {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    min-height: 36px;
+    margin: 0;
+    padding: 4px 8px;
+    font-size: 13px;
+  }
+
+  .october-clan-card-copy { width: 100%; height: auto; }
+  .october-clan-standings { height: auto; }
+  .october-clan-standings-compact { height: auto; gap: 3px; }
+
+  .october-clan-standing-row--compact {
+    grid-template-columns: 24px minmax(0, 1fr) 48px;
+    min-height: 38px;
+    gap: 7px;
+    padding: 3px 8px 3px 4px;
+  }
+
+  .october-clan-standing-you { font-size: 10px; }
+  .october-clan-standing-row > strong { justify-content: center; }
+  .october-clan-versus {
+    top: -12px;
+    left: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .october-compendium-preview .compendium-reward-track,
+  .october-compendium-preview .compendium-star-race,
+  .october-compendium-preview .compendium-rune-challenge {
+    margin-top: 0;
+    padding: 14px;
+    border-radius: var(--compendium-mobile-radius);
+  }
+
+  .october-compendium-preview .compendium-rewards { gap: 14px; }
+  .october-compendium-preview .compendium-reward-track-heading { gap: 10px; align-items: center; }
+  .october-compendium-preview .compendium-reward-track-heading span { font-size: 12px; }
+  .october-compendium-preview .compendium-reward-track-heading h2 { font-size: 26px; }
+  .october-compendium-preview .compendium-reward-track-heading > strong { padding: 7px 10px; font-size: 20px; }
+  .october-compendium-preview .compendium-reward-milestones article { min-height: 0; padding: 14px; }
+  .october-compendium-preview .compendium-reward-milestones h3 { margin-block: 9px; font-size: 16px; }
+  .october-compendium-preview .compendium-reward-milestones p { margin-top: 6px; font-size: 14px; }
+
+  .october-compendium-preview .compendium-star-race-heading span { font-size: 12px; letter-spacing: 0.03em; }
+  .october-compendium-preview .compendium-star-race-heading h2 { font-size: 25px; line-height: 1.2; }
+  .october-compendium-preview .compendium-star-race-summary { grid-template-columns: minmax(0, 1fr); gap: 10px; margin-top: 12px; }
+  .october-compendium-preview .compendium-star-race-counter,
+  .october-compendium-preview .compendium-star-race-prize { min-height: 0; padding: 10px; border-radius: 12px; }
+  .october-compendium-preview .compendium-star-race-summary span { text-transform: none; letter-spacing: normal; }
+  .october-compendium-preview .compendium-star-race-counter {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 20px;
+    gap: 4px 10px;
+  }
+  .october-compendium-preview .compendium-star-race-counter > svg:first-of-type { display: none; }
+  .october-compendium-preview .compendium-star-race-total-label { grid-column: 1; grid-row: 1; }
+  .october-compendium-preview .compendium-star-race-rank-label { grid-column: 2; grid-row: 1; margin: 0; }
+  .october-compendium-preview .compendium-star-race-total-value { grid-column: 1; grid-row: 2; }
+  .october-compendium-preview .compendium-star-race-rank-value { grid-column: 2; grid-row: 2; }
+  .october-compendium-preview .compendium-star-race-prize-name > strong { font-size: 14px; line-height: 1.4; }
+  .october-compendium-preview .october-race-rules-mobile summary { min-height: 44px; padding: 8px 10px; gap: 8px; }
+  .october-compendium-preview .compendium-star-race-quests { align-items: start; margin-top: 14px; }
+  .october-compendium-preview .compendium-star-race-quest { min-height: 0; padding: 14px; }
+  .october-compendium-preview .compendium-star-race-quest h3 { margin: 12px 0 6px; font-size: 19px; }
+  .october-compendium-preview .compendium-star-race-quest > p { font-size: 14px; line-height: 1.45; }
+  .october-compendium-preview .compendium-star-race-quest > header span,
+  .october-compendium-preview .compendium-star-race-progress > span:first-child { font-size: 12px; }
+  .october-compendium-preview .compendium-star-race-completion,
+  .october-compendium-preview .compendium-star-race-action { margin-top: 12px; padding-top: 0; }
+  .october-compendium-preview .compendium-star-race-completion a { flex-wrap: wrap; font-size: 12px; }
+  .october-compendium-preview .compendium-star-race-status { flex: none; margin-top: 12px; padding: 10px; }
+
+  .october-compendium-preview .compendium-section-heading {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
+  }
+  .october-compendium-preview .compendium-section-heading h2 { margin: 0; font-size: 26px; }
+  .october-compendium-preview .compendium-mobile-swipe-hint { justify-content: flex-start; padding: 6px 10px; border-radius: 10px; }
+  .october-compendium-preview .compendium-quest-grid { align-items: start; }
+  .october-compendium-preview .compendium-quest { min-height: 0; padding: 14px; border-radius: var(--compendium-mobile-radius); }
+  .october-compendium-preview .compendium-quest-heading { gap: 8px; margin-bottom: 12px; }
+  .october-compendium-preview .compendium-quest-heading span { font-size: 11px; letter-spacing: normal; }
+  .october-compendium-preview .compendium-quest-heading h2 { font-size: 21px; }
+  .october-compendium-preview .compendium-quest-heading-actions { gap: 6px; flex-shrink: 0; }
+  .october-compendium-preview .compendium-reward { gap: 4px; padding: 7px 9px; }
+  .october-compendium-preview .compendium-heroes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .october-compendium-preview .compendium-hero-portrait { border-radius: 8px; }
+  .october-compendium-preview .compendium-hero strong { margin: 4px 0 0; font-size: 12px; white-space: normal; line-height: 1.2; }
+  .october-compendium-preview .compendium-condition { flex: none; margin: 12px 0; font-size: 14px; line-height: 1.45; }
+  .october-compendium-preview .compendium-check-button { min-height: 44px; font-size: 15px; }
+  .october-compendium-preview .compendium-rune-challenge { margin-top: 14px; }
+  .october-compendium-preview .compendium-rune-heading { gap: 8px; align-items: center; }
+  .october-compendium-preview .compendium-rune-heading h2 { font-size: 25px; }
+  .october-compendium-preview .compendium-rune-content { margin-top: 12px; gap: 12px; }
+  .october-compendium-preview .compendium-rune-selected-hero { gap: 10px; padding: 10px; }
+  .october-compendium-preview .compendium-rune-selected-hero img { width: 88px; }
+  .october-compendium-preview .compendium-rune-selected-hero strong { font-size: 18px; white-space: normal; }
+  .october-compendium-preview .compendium-rune-action > p { font-size: 14px; line-height: 1.45; }
+  .october-compendium-preview .october-clan-quest-emblem { min-height: 64px; }
+  .october-compendium-preview .october-clan-quest-emblem svg { width: 36px; height: 36px; }
+}
+
+@media (max-width: 360px) {
+  .october-compendium-preview .compendium-title-block { gap: 4px 6px; }
+  .october-compendium-preview .compendium-title-block h1 { font-size: 25px; }
+  .october-compendium-hero-line { font-size: 12px; }
+  .october-clan-identity { grid-template-columns: 42px minmax(0, 1fr); }
+  .october-clan-total-stars { grid-column: 2; grid-row: 2; justify-self: start; }
+  .october-clan-standing-open { grid-column: 1 / -1; grid-row: 3; }
+}
+
+@media (max-width: 720px) {
+  .october-clan-prize-board[data-mobile-expanded="false"] .october-clan-prize-row--additional,
+  .october-clan-prize-board[data-mobile-expanded="false"] .october-clan-prize-row--small { display: none; }
+  .october-clan-prize-toggle {
+    display: block;
+    min-height: 42px;
+    border: 1px solid rgba(239, 214, 137, 0.42);
+    border-radius: 10px;
+    padding: 8px 12px;
+    background: rgba(25, 35, 39, 0.9);
+    color: #f2d67d;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .october-clan-prize-toggle:focus-visible { outline: 2px solid #f2d67d; outline-offset: 2px; }
+  .october-clan-standing-dialog .october-clan-standing-row,
+  .october-clan-standing-table-heading { grid-template-columns: 42px minmax(0, 1fr) 58px; gap: 8px; }
+  .october-compendium-preview .compendium-mobile-swipe-hint { display: none; }
+
+  .october-compendium-preview .compendium-star-race-quests {
+    grid-auto-columns: calc(100% - 20px);
+    grid-auto-flow: column;
+    grid-template-columns: none;
+    gap: 10px;
+    margin-right: 0;
+    scroll-snap-type: x mandatory;
+  }
+
+  .october-compendium-preview .compendium-quest-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-right: 0;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .october-compendium-preview .compendium-quest-grid > .compendium-quest,
+  .october-compendium-preview .compendium-quest-grid > .compendium-quest:last-child {
+    width: 100%;
+    grid-column: auto;
+  }
+
+  .october-compendium-preview .compendium-reward-milestones { margin-right: 0; }
+  .october-compendium-preview .compendium-reward-milestones article { flex-basis: calc(100% - 24px); }
+}

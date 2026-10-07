@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { FiGift } from "react-icons/fi";
 import {
   OCTOBER_CLAN_ADDITIONAL_PRIZES,
+  OCTOBER_CLAN_PRIZES,
   OCTOBER_CLAN_PRIMARY_PRIZES,
   OCTOBER_CLAN_SMALL_PRIZES,
   type OctoberClanPrize,
@@ -124,8 +125,9 @@ export function OctoberClanPrizeBoard({
   isOrganizer?: boolean;
   tournamentLinks?: SeasonTournamentLinks;
 }) {
+  const [areAllPrizesVisible, setAreAllPrizesVisible] = useState(false);
   return (
-    <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title">
+    <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title" data-mobile-expanded={areAllPrizesVisible}>
       <div className="october-clan-prize-copy">
         <p id="october-clan-prizes-title">
           30 предметов в финальном розыгрыше
@@ -141,7 +143,7 @@ export function OctoberClanPrizeBoard({
           tournamentLinks={tournamentLinks}
         />
       </div>
-      <div className="october-clan-prize-lists">
+      <div className="october-clan-prize-lists" id="october-clan-prize-lists">
         <ul
           className="october-clan-prize-row october-clan-prize-row--primary"
           aria-label="Основные призовые слоты кланового зачёта"
@@ -167,6 +169,15 @@ export function OctoberClanPrizeBoard({
           ))}
         </ul>
       </div>
+      <button
+        type="button"
+        className="october-clan-prize-toggle"
+        aria-expanded={areAllPrizesVisible}
+        aria-controls="october-clan-prize-lists"
+        onClick={() => setAreAllPrizesVisible((current) => !current)}
+      >
+        {areAllPrizesVisible ? "Свернуть призы" : `Показать все ${OCTOBER_CLAN_PRIZES.length} призов`}
+      </button>
     </section>
   );
 }
