@@ -8,12 +8,17 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+from database.core import async_session
 from cogs.ui.titan_checkup import (
     TitanCheckupView,
     resolved_titan_checkup_view,
 )
 from services.durable_scheduler import register_scheduled_job
-from services.october_compendium_roles import remove_clan_roles_from_player
+from services.october_compendium_roles import (
+    assign_october_clan_after_registration,
+    remove_clan_roles_from_player,
+    sync_player_clan_role,
+)
 from services.titan_checkup_service import TitanCheckupService, TitanRecipient
 
 FROKENG_DISCORD_ID = 311247030422863882
@@ -245,6 +250,20 @@ class TitanCheckup(commands.Cog):
                 ephemeral=True,
             )
             return
+        async with async_session() as session:
+            clan_id = await assign_october_clan_after_registration(
+                session,
+                int(participant),
+            )
+        if clan_id and interaction.guild:
+            try:
+                await sync_player_clan_role(
+                    interaction.guild,
+                    int(participant),
+                    clan_id,
+                )
+            except (discord.Forbidden, discord.HTTPException) as error:
+                print(f"[ERROR] Ошибка возврата роли клана: {error}")
         await interaction.response.send_message(
             f"{nickname} снова будет получать запросы. Тир остаётся неактуальным.",
             ephemeral=True,

@@ -20,6 +20,15 @@ const compendiumNavigation = readFileSync(
   new URL("../app/components/header/CompendiumNavigationLink.tsx", import.meta.url),
   "utf8",
 );
+const homePage = readFileSync(new URL("../app/page.tsx", import.meta.url), "utf8");
+const tournamentsPage = readFileSync(
+  new URL("../app/tournaments/page.tsx", import.meta.url),
+  "utf8",
+);
+const tournamentsHub = readFileSync(
+  new URL("../app/tournaments/TournamentsHub.tsx", import.meta.url),
+  "utf8",
+);
 const communityStyles = readFileSync(
   new URL("../app/styles/10-community-home.css", import.meta.url),
   "utf8",
@@ -97,6 +106,14 @@ describe("header navigation", () => {
     expect(foundationStyles).toMatch(
       /html\s*\{[^}]*scrollbar-gutter:\s*stable;/,
     );
+  });
+
+  it("renders the signed-in navigation immediately on home and tournaments pages", () => {
+    expect(homePage).toContain("<CommunityHome initialUser={await getSession()} />");
+    expect(tournamentsPage).toContain(
+      "<TournamentsDirectory initialUser={await getSession()} />",
+    );
+    expect(tournamentsHub).toContain("user: initialUser");
   });
 
   it("sweeps a text-neutral light from top to bottom on hover", () => {

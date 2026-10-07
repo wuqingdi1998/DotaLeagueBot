@@ -1,5 +1,6 @@
 import { CommunityHome } from "./tournaments/TournamentsHub";
+import { getSession } from "@/lib/auth";
 
-export default function HomePage() {
-  return <CommunityHome />;
+export default async function HomePage() {
+  return <CommunityHome initialUser={await getSession()} />;
 }

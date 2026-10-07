@@ -47,8 +47,9 @@ async def assign_october_clan_after_registration(
                 SELECT :player_id, selected_clan.clan_id, 'automatic', 0
                 FROM selected_clan
                 WHERE october_clan_player_is_eligible(:player_id)
-                ON CONFLICT (player_id) DO NOTHING
-                RETURNING clan_id
+                ON CONFLICT (player_id) DO UPDATE
+                SET player_id = EXCLUDED.player_id
+                RETURNING october_compendium_clan_members.clan_id
                 """
             ),
             {"player_id": player_id},
@@ -58,15 +59,50 @@ async def assign_october_clan_after_registration(
     return str(row["clan_id"]) if row else None
 
 
+async def sync_player_clan_role(
+    guild: discord.Guild,
+    player_id: int,
+    clan_id: str,
+) -> None:
+    member = guild.get_member(player_id)
+    if member is None:
+        try:
+            member = await guild.fetch_member(player_id)
+        except discord.NotFound:
+            return
+    await sync_clan_roles(guild, {player_id: clan_id}, members=[member])
+
+
 async def load_clan_assignments(
     session: AsyncSession,
     excluded_player_ids: list[int] | None = None,
 ) -> dict[int, str]:
+    excluded_ids = excluded_player_ids or []
     await session.execute(
         text("SELECT remove_ineligible_october_clan_players(:excluded_ids)"),
-        {"excluded_ids": excluded_player_ids or []},
+        {"excluded_ids": excluded_ids},
     )
     await session.commit()
+    missing_rows = (
+        await session.execute(
+            text(
+                """
+                SELECT player.discord_id
+                FROM players player
+                WHERE october_clan_player_is_eligible(player.discord_id)
+                  AND NOT player.discord_id = ANY(:excluded_ids)
+                  AND NOT EXISTS (
+                      SELECT 1 FROM october_compendium_clan_members member
+                      WHERE member.player_id = player.discord_id
+                  )
+                ORDER BY player.discord_id
+                """
+            ),
+            {"excluded_ids": excluded_ids},
+        )
+    ).scalars().all()
+    for player_id in missing_rows:
+        await assign_october_clan_after_registration(session, int(player_id))
     rows = (
         await session.execute(
             text("SELECT player_id, clan_id FROM october_compendium_clan_members")

@@ -42,10 +42,10 @@ const TournamentForm = dynamic(
   { ssr: false },
 );
 
-function useTournamentList() {
+function useTournamentList(initialUser: SessionUser | null = null) {
   const [data, setData] = useState<TournamentListResponse>({
     tournaments: [],
-    user: null,
+    user: initialUser,
     preferences: { shouldHideArchivedTournaments: false },
   });
   const [loading, setLoading] = useState(true);
@@ -147,8 +147,10 @@ export function PlatformShell({
   );
 }
 
-export function CommunityHome() {
-  const { data, loading, error } = useTournamentList();
+export function CommunityHome({
+  initialUser = null,
+}: { initialUser?: SessionUser | null } = {}) {
+  const { data, loading, error } = useTournamentList(initialUser);
   const featured =
     data.tournaments.find((item) => item.status === "active") ??
     data.tournaments.find((item) => item.status === "registration") ??
@@ -272,8 +274,10 @@ export function CommunityHome() {
   );
 }
 
-export function TournamentsDirectory() {
-  const { data, loading, error, reload } = useTournamentList();
+export function TournamentsDirectory({
+  initialUser = null,
+}: { initialUser?: SessionUser | null } = {}) {
+  const { data, loading, error, reload } = useTournamentList(initialUser);
   const [createOpen, setCreateOpen] = useState(false);
   const [filter, setFilter] = useState<TournamentDirectoryFilter>("all");
   const [toast, setToast] = useState("");
