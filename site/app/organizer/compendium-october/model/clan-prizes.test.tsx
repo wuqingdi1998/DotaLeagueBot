@@ -13,7 +13,7 @@ const additionalPrizeNames = [
   "Almond the Frondillo",
   "The Igneous Stone",
   "Altar Ball",
-  "Cursed Crescent",
+  "Aberrant Observer",
   "The Lightning Orchid",
   "Golden Fortune's Tout",
   "Golden Bloodfeather Feast",
@@ -142,7 +142,7 @@ describe("October clan prizes", () => {
 
     expect(winnerPrize).toMatchObject({
       name: "Auspicious Scythe of Vyse",
-      approximateValue: "1 100 ₽",
+      approximateValue: "1 400 ₽",
       imagePath: "/compendium/october/auspicious-scythe-of-vyse.png",
     });
     expect(html.match(/october-clan-prize-slot--pool-start/g)).toHaveLength(3);

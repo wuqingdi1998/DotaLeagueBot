@@ -65,7 +65,7 @@ const goldenDeepshockDestroyerPrize = {
 const auspiciousScytheOfVysePrize = {
   name: "Auspicious Scythe of Vyse",
   imagePath: "/compendium/october/auspicious-scythe-of-vyse.png",
-  approximateValue: "1 100 ₽",
+  approximateValue: "1 400 ₽",
   hasLargePreview: true,
 } as const;
 
@@ -136,7 +136,7 @@ const additionalWinnerPrizes: Readonly<Partial<Record<number, OctoberClanPrizeDe
     approximateValue: "200 ₽",
   },
   12: {
-    name: "Cursed Crescent",
+    name: "Aberrant Observer",
     imagePath: "/compendium/october/cursed-crescent.png",
     approximateValue: "200 ₽",
   },

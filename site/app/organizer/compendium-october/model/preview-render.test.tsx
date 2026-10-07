@@ -151,7 +151,7 @@ describe("October preview actions", () => {
         ),
     ).toEqual([
       "winners:1:Shattered Greatsword:6 000 ₽",
-      "winners:2:Auspicious Scythe of Vyse:1 100 ₽",
+      "winners:2:Auspicious Scythe of Vyse:1 400 ₽",
       "winners:3:Undying Love:700 ₽",
       "winners:4:Magus Mimicry:600 ₽",
       "winners:5:Snailfire:600 ₽",
@@ -164,7 +164,7 @@ describe("October preview actions", () => {
       "winners:9:Almond the Frondillo:300 ₽",
       "winners:10:The Igneous Stone:300 ₽",
       "winners:11:Altar Ball:200 ₽",
-      "winners:12:Cursed Crescent:200 ₽",
+      "winners:12:Aberrant Observer:200 ₽",
       "winners:13:The Lightning Orchid:200 ₽",
       "winners:14:Golden Fortune's Tout:200 ₽",
       "runners-up:4:Golden Bloodfeather Feast:200 ₽",
