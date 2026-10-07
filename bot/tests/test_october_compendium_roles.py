@@ -23,6 +23,8 @@ def test_registration_assigns_new_player_to_a_clan() -> None:
     assert "record_october_server_membership" in PROFILE
     assert "sync_player_clan_role" in PROFILE
     assert "ORDER BY COALESCE(SUM(member.total_points), 0)" in ROLE_SERVICE
+    assert "SELECT clans.clan_id" in ROLE_SERVICE
+    assert "GROUP BY clans.clan_id" in ROLE_SERVICE
 
 
 def test_returning_from_inactive_assigns_the_player_to_a_clan() -> None:

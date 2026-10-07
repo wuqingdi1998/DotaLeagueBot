@@ -33,13 +33,13 @@ async def assign_october_clan_after_registration(
             text(
                 """
                 WITH selected_clan AS (
-                    SELECT clan_id
+                    SELECT clans.clan_id
                     FROM (VALUES ('morbus'), ('panacea')) AS clans(clan_id)
                     LEFT JOIN october_compendium_clan_members member
                       ON member.clan_id = clans.clan_id
-                    GROUP BY clan_id
+                    GROUP BY clans.clan_id
                     ORDER BY COALESCE(SUM(member.total_points), 0),
-                             COUNT(member.player_id), clan_id
+                             COUNT(member.player_id), clans.clan_id
                     LIMIT 1
                 )
                 INSERT INTO october_compendium_clan_members
