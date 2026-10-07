@@ -210,14 +210,14 @@
   .october-compendium-preview .compendium-star-race-prize-name > strong { font-size: 13px; line-height: 1.35; }
   .october-compendium-preview .october-race-rules-mobile summary { min-height: 44px; padding: 8px 10px; gap: 8px; }
   .october-compendium-preview .october-race-rules-mobile summary strong { align-self: center; line-height: 1.2; }
-  .october-compendium-preview .compendium-star-race-quests { align-items: start; margin-top: 14px; }
+  .october-compendium-preview .compendium-star-race-quests { align-items: stretch; margin-top: 14px; }
   .october-compendium-preview .compendium-star-race-quest { min-height: 0; padding: 14px; }
   .october-compendium-preview .compendium-star-race-quest h3 { margin: 12px 0 6px; font-size: 19px; }
   .october-compendium-preview .compendium-star-race-quest > p { font-size: 14px; line-height: 1.45; }
   .october-compendium-preview .compendium-star-race-quest > header span,
   .october-compendium-preview .compendium-star-race-progress > span:first-child { font-size: 12px; }
   .october-compendium-preview .compendium-star-race-completion,
-  .october-compendium-preview .compendium-star-race-action { margin-top: 12px; padding-top: 0; }
+  .october-compendium-preview .compendium-star-race-action { margin-top: auto; padding-top: 12px; }
   .october-compendium-preview .compendium-star-race-completion a { flex-wrap: wrap; font-size: 12px; }
   .october-compendium-preview .compendium-star-race-status { flex: none; margin-top: 12px; padding: 10px; }
 
@@ -293,12 +293,7 @@
   }
 
   .october-compendium-preview .compendium-quest-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-    margin-right: 0;
-    padding: 0;
-    overflow: visible;
+    display: contents;
   }
 
   .october-compendium-preview .compendium-quest-grid > .compendium-quest,
@@ -309,4 +304,52 @@
 
   .october-compendium-preview .compendium-reward-milestones { margin-right: 0; }
   .october-compendium-preview .compendium-reward-milestones article { flex-basis: calc(100% - 24px); }
+
+  .october-compendium-preview .compendium-daily-section {
+    margin-top: var(--compendium-mobile-gap);
+    padding: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--compendium-mobile-radius);
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .october-compendium-preview .compendium-section-heading {
+    align-items: stretch;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+  .october-daily-heading-row { width: 100%; justify-content: space-between; }
+
+  .october-daily-challenges {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: calc(100% - 20px);
+    align-items: stretch;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+  }
+
+  .october-daily-challenges .compendium-quest,
+  .october-daily-challenges .compendium-rune-challenge { scroll-snap-align: start; }
+  .october-daily-challenges .compendium-condition { flex: 1; }
+  .october-compendium-preview .october-daily-challenges .compendium-rune-challenge {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    margin: 0;
+  }
+  .october-compendium-preview .october-daily-challenges .compendium-rune-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+  }
+  .october-daily-challenges .compendium-rune-action { flex: 1; justify-content: flex-start; }
+  .october-daily-challenges .compendium-rune-action > .compendium-check-button { margin-top: auto; }
 }

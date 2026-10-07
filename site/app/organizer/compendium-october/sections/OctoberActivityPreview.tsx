@@ -261,52 +261,54 @@ export function OctoberDailyPreview({
       <p className="compendium-mobile-swipe-hint">
         Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
       </p>
-      <div className="compendium-quest-grid quest-count-3">
-        {quests.map((quest) => (
-          <QuestCard
-            key={quest.id}
-            quest={quest}
+      <div className="october-daily-challenges">
+        <div className="compendium-quest-grid quest-count-3">
+          {quests.map((quest) => (
+            <QuestCard
+              key={quest.id}
+              quest={quest}
+              rewardStars={rewardStars}
+              isChecking={checkingQuestId === quest.id}
+              isRerolling={rerollingQuestId === quest.id}
+              canCheck={isLive && checkingQuestId === null && rerollingQuestId === null}
+              hasReroll={(dailyData?.rerollsRemaining ?? 1) > 0}
+              rerollsRemaining={dailyData?.rerollsRemaining ?? 1}
+              canReroll={isLive && (dailyData?.rerollsRemaining ?? 0) > 0 && checkingQuestId === null && rerollingQuestId === null}
+              onCheck={checkQuest}
+              onReroll={rerollQuest}
+              isPreview={!isLive}
+              overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
+            />
+          ))}
+          <OctoberClanOutingCard
             rewardStars={rewardStars}
-            isChecking={checkingQuestId === quest.id}
-            isRerolling={rerollingQuestId === quest.id}
-            canCheck={isLive && checkingQuestId === null && rerollingQuestId === null}
-            hasReroll={(dailyData?.rerollsRemaining ?? 1) > 0}
-            rerollsRemaining={dailyData?.rerollsRemaining ?? 1}
-            canReroll={isLive && (dailyData?.rerollsRemaining ?? 0) > 0 && checkingQuestId === null && rerollingQuestId === null}
-            onCheck={checkQuest}
-            onReroll={rerollQuest}
-            isPreview={!isLive}
+            isNoteVisible={isClanOutingVisible}
+            onDismissNote={() => guides.dismiss("clan-outing")}
             overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
+            completion={dailyData?.clanOuting}
+            isChecking={isCheckingClanOuting}
+            canCheck={isLive}
+            onCheck={() => void checkClanOuting()}
           />
-        ))}
-        <OctoberClanOutingCard
+        </div>
+        {message && <div className="compendium-toast" role="status">{message}</div>}
+        <RuneChallenge
+          initialChallenge={dailyData?.runeChallenge ?? {
+            hasAccess: true,
+            accessRoleName: "Предпросмотр подписки",
+            selection: null,
+            completion: null,
+          }}
+          currentTimeMs={currentTimeMs}
           rewardStars={rewardStars}
-          isNoteVisible={isClanOutingVisible}
-          onDismissNote={() => guides.dismiss("clan-outing")}
+          resetCountdown=""
+          onStarsChange={ignorePreviewAction}
+          onCompleted={reloadOctoberCompendiumAfterReward}
+          isPreview={!isLive}
+          showPreviewContent={!isLive}
           overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
-          completion={dailyData?.clanOuting}
-          isChecking={isCheckingClanOuting}
-          canCheck={isLive}
-          onCheck={() => void checkClanOuting()}
         />
       </div>
-      {message && <div className="compendium-toast" role="status">{message}</div>}
-      <RuneChallenge
-        initialChallenge={dailyData?.runeChallenge ?? {
-          hasAccess: true,
-          accessRoleName: "Предпросмотр подписки",
-          selection: null,
-          completion: null,
-        }}
-        currentTimeMs={currentTimeMs}
-        rewardStars={rewardStars}
-        resetCountdown=""
-        onStarsChange={ignorePreviewAction}
-        onCompleted={reloadOctoberCompendiumAfterReward}
-        isPreview={!isLive}
-        showPreviewContent={!isLive}
-        overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
-      />
     </section>
   );
 }
