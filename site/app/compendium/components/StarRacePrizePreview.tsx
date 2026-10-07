@@ -5,6 +5,7 @@ import { FiImage } from "react-icons/fi";
 import { useCallback, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { StarRacePrize } from "../model/star-race";
+import { octoberPrizeImagePath } from "../model/october-prize-images";
 
 type PrizePreviewPosition = {
   top: number;
@@ -70,7 +71,7 @@ export function StarRacePrizePreview({
     >
       {isThumbnail ? (
         <Image
-          src={prize.imageUrl}
+          src={octoberPrizeImagePath(prize.imageUrl, "thumbnail")}
           alt=""
           width={36}
           height={36}
@@ -91,10 +92,11 @@ export function StarRacePrizePreview({
         >
           <span className="compendium-star-race-prize-image">
             <Image
-              src={prize.imageUrl}
+              src={octoberPrizeImagePath(prize.imageUrl, "preview")}
               alt={prize.title}
               fill
               sizes="200px"
+              loading="eager"
               unoptimized
             />
           </span>

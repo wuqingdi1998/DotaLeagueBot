@@ -197,10 +197,10 @@ describe("October preview actions", () => {
         ),
       ),
     ).toBe(true);
-    expect(html.match(/<img[^>]+steam-gift-card-500-rub\.png[^>]*>/g)).toHaveLength(3);
-    expect(html.match(/<img[^>]+steam-gift-card-100-rub\.png[^>]*>/g)).toHaveLength(11);
-    expect(html.match(/<img[^>]+frostmoot\.png[^>]*>/g)).toHaveLength(1);
-    expect(html.match(/<img[^>]+shattered-greatsword\.png[^>]*>/g)).toHaveLength(1);
+    expect(html.match(/<img[^>]+steam-gift-card-500-rub-thumbnail-[a-f0-9]+\.webp[^>]*>/g)).toHaveLength(3);
+    expect(html.match(/<img[^>]+steam-gift-card-100-rub-thumbnail-[a-f0-9]+\.webp[^>]*>/g)).toHaveLength(11);
+    expect(html.match(/<img[^>]+frostmoot-thumbnail-[a-f0-9]+\.webp[^>]*>/g)).toHaveLength(1);
+    expect(html.match(/<img[^>]+shattered-greatsword-thumbnail-[a-f0-9]+\.webp[^>]*>/g)).toHaveLength(1);
     expect(html.match(/Steam Gift Card на 500 ₽/g)).toHaveLength(3);
     expect(html).toContain("Shattered Greatsword");
     expect(html).not.toContain("Зачёт сообщества");

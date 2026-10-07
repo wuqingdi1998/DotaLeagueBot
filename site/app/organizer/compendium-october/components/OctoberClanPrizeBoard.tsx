@@ -14,6 +14,7 @@ import {
 } from "../model/clan-prizes";
 import { OctoberStarEarningGuide } from "./OctoberStarEarningGuide";
 import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
+import { octoberPrizeImagePath } from "@/app/compendium/model/october-prize-images";
 
 const prizePoolLabels: Record<OctoberClanPrizePool, string> = {
   winners: "Победители",
@@ -83,10 +84,11 @@ function PrizeSlot({
         {slotImagePath ? (
           <Image
             className="october-clan-prize-slot-image"
-            src={slotImagePath}
+            src={octoberPrizeImagePath(slotImagePath, "thumbnail")}
             alt=""
             fill
             sizes={row === "primary" ? "56px" : "112px"}
+            loading={row === "primary" ? "eager" : "lazy"}
           />
         ) : (
           <FiGift aria-hidden="true" />
@@ -104,7 +106,7 @@ function PrizeSlot({
           style={{ position: "relative" }}
         >
           {prize.imagePath ? (
-            <Image src={prize.imagePath} alt="" fill sizes="180px" />
+            <Image src={octoberPrizeImagePath(prize.imagePath, "preview")} alt="" fill sizes="260px" loading="eager" />
           ) : (
             <FiGift aria-hidden="true" />
           )}

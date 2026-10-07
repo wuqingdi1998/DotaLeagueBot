@@ -342,7 +342,8 @@ describe("compendium star race contract", () => {
     expect(starRaceView).toContain("race.prizes.map");
     expect(starRaceView).toContain("Награда за топ-${prize.place}");
     expect(starRaceView).toContain("<StarRacePrizePreview prize={prize} />");
-    expect(starRacePrizePreview).toContain("src={prize.imageUrl}");
+    expect(starRacePrizePreview).toContain('src={octoberPrizeImagePath(prize.imageUrl, "thumbnail")}');
+    expect(starRacePrizePreview).toContain('src={octoberPrizeImagePath(prize.imageUrl, "preview")}');
     expect(starRacePrizePreview).toContain("if (!prize.imageUrl)");
     expect(starRacePrizePreview).toContain("compendium-star-race-prize-static");
     expect(starRacePrizesModel).toContain("The Lightning Orchid");
