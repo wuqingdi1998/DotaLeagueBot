@@ -4,7 +4,6 @@ export type OctoberClanCandidate = {
   discordId: string;
   reservation: OctoberClanId | null;
   activityStatus: "available" | "unavailable";
-  previousCompendiumStars: number;
   matchesLastThreeMonths: number;
   rankedMatchesLastThreeMonths: number;
   internalRating: number;
@@ -26,7 +25,6 @@ export function octoberClanActivityScore(
   player: OctoberClanCandidate,
 ): number {
   return (
-    player.previousCompendiumStars * 4 +
     player.rankedMatchesLastThreeMonths * 2 +
     player.matchesLastThreeMonths * 0.25 +
     player.internalRating / 1000 +

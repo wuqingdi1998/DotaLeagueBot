@@ -17,7 +17,6 @@ function player(
     activityScore,
     decisionOrder: 1,
     reason: "Причина",
-    previousCompendiumStars: 10,
     matchesLastThreeMonths: 20,
     rankedMatchesLastThreeMonths: 15,
     lastMatchAt: null,

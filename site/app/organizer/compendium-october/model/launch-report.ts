@@ -19,7 +19,6 @@ export type OctoberLaunchReportPlayer = {
   activityScore: number;
   decisionOrder: number;
   reason: string;
-  previousCompendiumStars: number;
   matchesLastThreeMonths: number;
   rankedMatchesLastThreeMonths: number;
   lastMatchAt: string | null;
@@ -33,7 +32,6 @@ export type OctoberLaunchClanSummary = {
   reservedCount: number;
   automaticCount: number;
   totalActivityScore: number;
-  previousCompendiumStars: number;
   matchesLastThreeMonths: number;
   rankedMatchesLastThreeMonths: number;
 };
@@ -55,7 +53,6 @@ function emptyClanSummary(): OctoberLaunchClanSummary {
     reservedCount: 0,
     automaticCount: 0,
     totalActivityScore: 0,
-    previousCompendiumStars: 0,
     matchesLastThreeMonths: 0,
     rankedMatchesLastThreeMonths: 0,
   };
@@ -74,7 +71,6 @@ export function summarizeOctoberLaunchPlayers(
     clan.playerCount += 1;
     clan[player.source === "reservation" ? "reservedCount" : "automaticCount"] += 1;
     clan.totalActivityScore += player.activityScore;
-    clan.previousCompendiumStars += player.previousCompendiumStars;
     clan.matchesLastThreeMonths += player.matchesLastThreeMonths;
     clan.rankedMatchesLastThreeMonths += player.rankedMatchesLastThreeMonths;
     if (player.openDotaStatus === "unavailable") unavailableActivityCount += 1;

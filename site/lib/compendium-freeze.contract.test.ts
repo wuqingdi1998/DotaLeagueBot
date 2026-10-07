@@ -53,6 +53,7 @@ describe("finished TI 2026 compendium freeze", () => {
     );
 
     expect(repository).toContain("isCompendiumFinished");
-    expect(archive).toContain("isCompendiumFinished");
+    expect(archive).toContain("isOctoberCompendiumFinished");
+    expect(archive).not.toContain('from "../model/lifecycle"');
   });
 });

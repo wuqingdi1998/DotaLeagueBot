@@ -1,10 +1,10 @@
 import { query } from "@/lib/db";
 import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
 import { compendiumHeroById } from "../model/heroes";
-import { CURRENT_STAR_RACE, starRaceQuestPhase } from "../model/star-race";
+import { starRaceForMoment, starRaceQuestPhase } from "../model/star-race";
+import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
 import { currentMoscowDay } from "../model/time";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
-import { loadFinalPrediction } from "../services/star-race-final-prediction-repository";
 import { ensureDailyQuestSet } from "../services/repository";
 import { regularDailyQuestCount } from "../services/personal-quest-generation";
 import {
@@ -27,21 +27,14 @@ export async function loadCompendiumAdminParticipants(): Promise<
   const dateKey = currentMoscowDay().dateKey;
   await ensureDailyQuestSet(dateKey);
   const now = new Date();
-  const finalPrediction = await loadFinalPrediction();
   const currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[] =
-    CURRENT_STAR_RACE.quests
+    starRaceForMoment(now, OCTOBER_COMPENDIUM_WEEKS).quests
       .filter(
         (quest) =>
           quest.title &&
           quest.description &&
           quest.rewardStars !== null &&
-          starRaceQuestPhase(
-            quest,
-            now,
-            quest.requirement?.kind === "final-winner-prediction"
-              ? finalPrediction.openedAt
-              : null,
-          ) === "active",
+          starRaceQuestPhase(quest, now) === "active",
       )
       .map((quest) => {
         const requirement = quest.requirement;
@@ -70,21 +63,9 @@ export async function loadCompendiumAdminParticipants(): Promise<
          FROM web_sessions session
          WHERE session.discord_avatar_url IS NOT NULL
          ORDER BY session.discord_id, session.created_at DESC
-       ), reward_operations AS (
-         SELECT completion.player_id FROM compendium_user_quest_completions completion
-         UNION ALL
-         SELECT adjustment.player_id FROM compendium_admin_star_adjustments adjustment
-         UNION ALL
-         SELECT reward.player_id FROM compendium_prediction_rewards reward
-         UNION ALL
-         SELECT completion.player_id FROM compendium_rune_challenge_completions completion
-         UNION ALL
-         SELECT completion.player_id FROM compendium_star_race_quest_completions completion
-         UNION ALL
-         SELECT completion.player_id FROM october_compendium_clan_outing_completions completion
        ), reward_counts AS (
          SELECT operation.player_id, COUNT(*)::int AS reward_count
-         FROM reward_operations operation
+         FROM october_compendium_reward_operations operation
          GROUP BY operation.player_id
        )
        SELECT
@@ -183,7 +164,9 @@ export async function loadCompendiumAdminParticipantHistory(
   playerId: string,
 ): Promise<CompendiumRewardHistory[] | null> {
   const rows = await query<CompendiumAdminSourceRow>(
-    `WITH participant AS (
+    `WITH current_operations AS (
+       SELECT * FROM october_compendium_reward_operations WHERE player_id = $1
+     ), participant AS (
        SELECT
          player.discord_id,
          player.ingame_name AS player_name,
@@ -221,6 +204,9 @@ export async function loadCompendiumAdminParticipantHistory(
        FROM participant
        LEFT JOIN compendium_user_quest_completions completion
          ON completion.player_id = participant.discord_id
+         AND EXISTS (SELECT 1 FROM current_operations operation
+           WHERE operation.history_kind = 'quest'
+             AND operation.completion_id = completion.id::text)
        LEFT JOIN compendium_daily_quests quest ON quest.id = completion.daily_quest_id
        LEFT JOIN players manual_administrator
          ON manual_administrator.discord_id = completion.completed_manually_by
@@ -253,6 +239,9 @@ export async function loadCompendiumAdminParticipantHistory(
        FROM participant
        JOIN compendium_admin_star_adjustments adjustment
          ON adjustment.player_id = participant.discord_id
+         AND EXISTS (SELECT 1 FROM current_operations operation
+           WHERE operation.history_kind = 'admin'
+             AND operation.completion_id = adjustment.id::text)
        UNION ALL
        SELECT participant.discord_id::text, participant.player_name,
          participant.dota_id, participant.avatar_url, participant.total_stars,
@@ -263,6 +252,9 @@ export async function loadCompendiumAdminParticipantHistory(
          pick.predicted_score, prediction_match.actual_score
        FROM participant
        JOIN compendium_prediction_rewards reward ON reward.player_id = participant.discord_id
+         AND EXISTS (SELECT 1 FROM current_operations operation
+           WHERE operation.history_kind = 'prediction'
+             AND operation.completion_id = reward.match_id::text)
        JOIN compendium_prediction_picks pick
          ON pick.match_id = reward.match_id AND pick.player_id = reward.player_id
        JOIN compendium_prediction_matches prediction_match ON prediction_match.id = reward.match_id
@@ -274,8 +266,11 @@ export async function loadCompendiumAdminParticipantHistory(
          reward.reward_amount, reward.hero_id, 1::smallint,
          NULL::text, NULL::text, NULL::text, NULL::text, NULL::text
        FROM participant
-       JOIN compendium_rune_challenge_completions reward
+       JOIN october_compendium_rune_challenge_completions reward
          ON reward.player_id = participant.discord_id
+         AND EXISTS (SELECT 1 FROM current_operations operation
+           WHERE operation.history_kind = 'rune'
+             AND operation.completion_id = reward.id::text)
        UNION ALL
        SELECT participant.discord_id::text, participant.player_name,
          participant.dota_id, participant.avatar_url, participant.total_stars,
@@ -287,6 +282,9 @@ export async function loadCompendiumAdminParticipantHistory(
        FROM participant
        JOIN compendium_star_race_quest_completions completion
          ON completion.player_id = participant.discord_id
+         AND EXISTS (SELECT 1 FROM current_operations operation
+           WHERE operation.history_kind = 'star_race'
+             AND operation.completion_id = completion.id::text)
        LEFT JOIN compendium_star_race_quest_wins win ON win.completion_id = completion.id
        LEFT JOIN players manual_administrator
          ON manual_administrator.discord_id = completion.completed_manually_by
@@ -301,6 +299,9 @@ export async function loadCompendiumAdminParticipantHistory(
        FROM participant
        JOIN october_compendium_clan_outing_completions outing
          ON outing.player_id = participant.discord_id
+         AND EXISTS (SELECT 1 FROM current_operations operation
+           WHERE operation.history_kind = 'clan_outing'
+             AND operation.completion_id = outing.id::text)
        JOIN players partner ON partner.discord_id = outing.partner_player_id
      ) history
      ORDER BY completed_at DESC NULLS LAST, quest_position, hero_position`,

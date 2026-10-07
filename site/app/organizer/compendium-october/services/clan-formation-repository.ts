@@ -8,7 +8,6 @@ export type OctoberFormationCandidateRecord = {
   dotaId: string;
   playerName: string;
   reservation: OctoberClanId | null;
-  previousCompendiumStars: number;
   internalRating: number;
   rankTier: number;
 };
@@ -18,7 +17,6 @@ type CandidateRow = {
   dota_id: string;
   player_name: string;
   clan_id: OctoberClanId | null;
-  previous_compendium_stars: number;
   internal_rating: number;
   rank_tier: number;
 };
@@ -63,14 +61,11 @@ export async function loadOctoberFormationCandidates(): Promise<
        player.steam_id32::text AS dota_id,
        player.ingame_name AS player_name,
        reservation.clan_id,
-       COALESCE(stars.total_stars, 0)::int AS previous_compendium_stars,
        COALESCE(player.internal_rating, 0)::int AS internal_rating,
        COALESCE(player.rank_tier, 0)::int AS rank_tier
      FROM players player
      LEFT JOIN october_compendium_clan_reservations reservation
        ON reservation.player_id = player.discord_id
-     LEFT JOIN compendium_player_star_totals stars
-       ON stars.player_id = player.discord_id
      WHERE player.is_archived = FALSE
        AND october_clan_player_is_eligible(player.discord_id)
        AND NOT EXISTS (
@@ -87,7 +82,6 @@ export async function loadOctoberFormationCandidates(): Promise<
     dotaId: row.dota_id,
     playerName: row.player_name,
     reservation: row.clan_id,
-    previousCompendiumStars: Number(row.previous_compendium_stars),
     internalRating: Number(row.internal_rating),
     rankTier: Number(row.rank_tier),
   }));

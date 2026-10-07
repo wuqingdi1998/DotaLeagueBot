@@ -146,7 +146,6 @@ export function OctoberLaunchCenter({ initialReport }: { initialReport: OctoberL
                     <h3>{clan.name}</h3>
                     <strong>{summary.playerCount} участников</strong>
                     <span>Баллы: {summary.totalActivityScore.toFixed(2)}</span>
-                    <span>Прошлый Компендиум: {summary.previousCompendiumStars} звёзд</span>
                     <span>Матчи за 90 дней: {summary.matchesLastThreeMonths}</span>
                     <span>Из них рейтинговых: {summary.rankedMatchesLastThreeMonths}</span>
                   </article>
@@ -155,7 +154,7 @@ export function OctoberLaunchCenter({ initialReport }: { initialReport: OctoberL
             </div>
             <details>
               <summary>Как считается балл активности</summary>
-              <p>Звёзды прошлого Компендиума × 4 + рейтинговые матчи за 90 дней × 2 + все матчи за 90 дней × 0,25 + внутренний рейтинг ÷ 1000 + ранг ÷ 10.</p>
+              <p>Рейтинговые матчи за 90 дней × 2 + все матчи за 90 дней × 0,25 + внутренний рейтинг ÷ 1000 + ранг ÷ 10.</p>
               <p>Если OpenDota не ответила, матчи не считаются нулевой активностью: игрок отмечается предупреждением, а решение опирается на остальные доступные показатели.</p>
             </details>
           </section>
@@ -164,7 +163,7 @@ export function OctoberLaunchCenter({ initialReport }: { initialReport: OctoberL
             <h2>Почему распределён каждый участник</h2>
             <div className="october-launch-table-wrap">
               <table>
-                <thead><tr><th>Участник</th><th>Клан</th><th>Источник</th><th>Балл</th><th>Звёзды</th><th>Матчи 90 дней</th><th>Уровень</th><th>Объяснение</th></tr></thead>
+                <thead><tr><th>Участник</th><th>Клан</th><th>Источник</th><th>Балл</th><th>Матчи 90 дней</th><th>Уровень</th><th>Объяснение</th></tr></thead>
                 <tbody>
                   {report.players.map((player) => (
                     <tr key={player.discordId}>
@@ -172,7 +171,6 @@ export function OctoberLaunchCenter({ initialReport }: { initialReport: OctoberL
                       <td>{clanName(player.clanId)}</td>
                       <td>{player.source === "reservation" ? "Личный выбор" : `Автоматически № ${player.decisionOrder}`}</td>
                       <td>{player.activityScore.toFixed(2)}</td>
-                      <td>{player.previousCompendiumStars}</td>
                       <td>
                         {player.openDotaStatus === "available"
                           ? <>{player.matchesLastThreeMonths} всего · {player.rankedMatchesLastThreeMonths} рейтинговых<small>Последний: {moscowDateTime(player.lastMatchAt)}</small></>

@@ -47,7 +47,6 @@ export async function prepareOctoberClans(
           discordId: candidate.discordId,
           reservation: candidate.reservation,
           activityStatus: activity?.status ?? "unavailable",
-          previousCompendiumStars: candidate.previousCompendiumStars,
           matchesLastThreeMonths: activity?.matchesLastThreeMonths ?? 0,
           rankedMatchesLastThreeMonths:
             activity?.rankedMatchesLastThreeMonths ?? 0,

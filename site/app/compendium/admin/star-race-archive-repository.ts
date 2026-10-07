@@ -1,12 +1,17 @@
-import { STAR_RACE_WEEKS, starRacePhase } from "../model/star-race";
+import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
+import { starRacePhase } from "../model/star-race";
 import { loadStarRaceLeaderboard } from "../services/star-race-repository";
 import { one, query } from "@/lib/db";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
 import type { CompendiumStarRaceArchive } from "./types";
-import { isCompendiumFinished } from "../model/lifecycle";
+import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
+
+function isOctoberCompendiumFinished(now: Date): boolean {
+  return now.getTime() >= Date.parse(OCTOBER_COMPENDIUM_END_AT);
+}
 
 async function loadFinishedRaceLeaderboard(
-  race: (typeof STAR_RACE_WEEKS)[number],
+  race: (typeof OCTOBER_COMPENDIUM_WEEKS)[number],
   now: Date = new Date(),
 ): Promise<CompendiumLeaderboardEntry[]> {
   const saved = await one<{ participants: CompendiumLeaderboardEntry[] }>(
@@ -17,7 +22,7 @@ async function loadFinishedRaceLeaderboard(
   );
   if (saved) return saved.participants;
   const participants = await loadStarRaceLeaderboard(race, true);
-  if (!isCompendiumFinished(now)) {
+  if (!isOctoberCompendiumFinished(now)) {
     await query(
       `INSERT INTO compendium_star_race_standings_snapshots
          (race_start_at, participants)
@@ -32,8 +37,8 @@ async function loadFinishedRaceLeaderboard(
 export async function saveFinishedStarRaceStandings(
   now: Date = new Date(),
 ): Promise<void> {
-  if (isCompendiumFinished(now)) return;
-  const finishedRaces = STAR_RACE_WEEKS.filter(
+  if (isOctoberCompendiumFinished(now)) return;
+  const finishedRaces = OCTOBER_COMPENDIUM_WEEKS.filter(
     (race) => starRacePhase(now, true, race).phase === "finished",
   );
   await Promise.all(
@@ -45,7 +50,7 @@ export async function loadCompendiumStarRaceArchive(
   now: Date = new Date(),
 ): Promise<CompendiumStarRaceArchive[]> {
   const races = await Promise.all(
-    STAR_RACE_WEEKS.map(async (race) => {
+    OCTOBER_COMPENDIUM_WEEKS.map(async (race) => {
       const phase = starRacePhase(now, true, race).phase;
       const participants = phase === "upcoming"
           ? []

@@ -68,8 +68,12 @@ export async function loadStarRace(
     loadStarRaceRank(user.discordId, race),
     loadStarRaceCompletions(user.discordId),
     loadStarRaceProgress(user.discordId),
-    loadPendingArcanaVerifications(user.discordId),
-    loadFinalPrediction(user.discordId),
+    race.quests.some((quest) => quest.requirement?.kind === "arcana-equipped-ranked-win")
+      ? loadPendingArcanaVerifications(user.discordId)
+      : Promise.resolve(new Map()),
+    race.quests.some((quest) => quest.requirement?.kind === "final-winner-prediction")
+      ? loadFinalPrediction(user.discordId)
+      : Promise.resolve({ teams: [], selectedPosition: null, winnerPosition: null, openedAt: null }),
   ]);
   return {
     ...visibility,

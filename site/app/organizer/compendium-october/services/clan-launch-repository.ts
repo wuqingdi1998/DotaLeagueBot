@@ -29,7 +29,6 @@ export async function saveOctoberClanFormationDraft(input: {
     const activity = input.activityByPlayer.get(candidate.discordId);
     return {
       player_id: candidate.discordId,
-      previous_compendium_stars: candidate.previousCompendiumStars,
       matches_last_three_months: activity?.matchesLastThreeMonths ?? 0,
       ranked_matches_last_three_months: activity?.rankedMatchesLastThreeMonths ?? 0,
       last_match_at: activity?.lastMatchAt ?? null,
@@ -43,15 +42,15 @@ export async function saveOctoberClanFormationDraft(input: {
     await client.query("DELETE FROM october_compendium_clan_assignment_drafts");
     await client.query(
       `INSERT INTO october_compendium_clan_activity
-         (player_id, previous_compendium_stars, matches_last_three_months,
+         (player_id, matches_last_three_months,
           ranked_matches_last_three_months, last_match_at, internal_rating,
           rank_tier, open_dota_status, fetched_at)
-       SELECT item.player_id::bigint, item.previous_compendium_stars,
+       SELECT item.player_id::bigint,
          item.matches_last_three_months, item.ranked_matches_last_three_months,
          item.last_match_at, item.internal_rating, item.rank_tier,
          item.open_dota_status, NOW()
        FROM jsonb_to_recordset($1::jsonb) AS item(
-         player_id text, previous_compendium_stars int,
+         player_id text,
          matches_last_three_months int, ranked_matches_last_three_months int,
          last_match_at timestamptz, internal_rating int, rank_tier int,
          open_dota_status varchar
@@ -117,7 +116,6 @@ type LaunchPlayerRow = {
   activity_score: string;
   decision_order: number;
   decision_reason: string;
-  previous_compendium_stars: number;
   matches_last_three_months: number;
   ranked_matches_last_three_months: number;
   last_match_at: Date | null;
@@ -140,7 +138,7 @@ export async function loadOctoberLaunchReport(): Promise<OctoberLaunchReport> {
          player.ingame_name AS player_name, draft.clan_id,
          draft.assignment_source, draft.activity_score::text,
          draft.decision_order, draft.decision_reason,
-         activity.previous_compendium_stars, activity.matches_last_three_months,
+         activity.matches_last_three_months,
          activity.ranked_matches_last_three_months, activity.last_match_at,
          activity.internal_rating, activity.rank_tier, activity.open_dota_status
        FROM october_compendium_clan_assignment_drafts draft
@@ -159,7 +157,6 @@ export async function loadOctoberLaunchReport(): Promise<OctoberLaunchReport> {
     activityScore: Number(row.activity_score),
     decisionOrder: row.decision_order,
     reason: row.decision_reason,
-    previousCompendiumStars: Number(row.previous_compendium_stars),
     matchesLastThreeMonths: Number(row.matches_last_three_months),
     rankedMatchesLastThreeMonths: Number(row.ranked_matches_last_three_months),
     lastMatchAt: row.last_match_at?.toISOString() ?? null,

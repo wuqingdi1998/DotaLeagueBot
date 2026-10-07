@@ -1,3 +1,4 @@
+import { OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
 import { query } from "@/lib/db";
 import type {
   PredictionHistoryDay,
@@ -38,7 +39,10 @@ export async function loadPredictionHistory(): Promise<PredictionHistoryDay[]> {
          match.team_a_name, match.team_b_name, match.wins_required,
          match.actual_score
        FROM compendium_prediction_matches match
+       WHERE match.moscow_date >= ($1::timestamptz AT TIME ZONE 'Europe/Moscow')::date
+         AND match.moscow_date < ($2::timestamptz AT TIME ZONE 'Europe/Moscow')::date
        ORDER BY match.moscow_date DESC, match.position`,
+      [OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT],
     ),
     query<HistoryPickRow>(
       `SELECT match.moscow_date::text, match.id::text AS match_id,
@@ -51,7 +55,10 @@ export async function loadPredictionHistory(): Promise<PredictionHistoryDay[]> {
        JOIN players player ON player.discord_id = pick.player_id
        LEFT JOIN compendium_prediction_rewards reward
          ON reward.match_id = pick.match_id AND reward.player_id = pick.player_id
+       WHERE match.moscow_date >= ($1::timestamptz AT TIME ZONE 'Europe/Moscow')::date
+         AND match.moscow_date < ($2::timestamptz AT TIME ZONE 'Europe/Moscow')::date
        ORDER BY match.moscow_date DESC, player.ingame_name, match.position`,
+      [OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT],
     ),
   ]);
   const matches: PredictionHistoryMatchSource[] = matchRows.map((row) => ({

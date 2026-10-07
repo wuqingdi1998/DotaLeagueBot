@@ -1,3 +1,4 @@
+import { OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
 import type { PoolClient } from "pg";
 import { query, transaction } from "@/lib/db";
 import {
@@ -304,7 +305,10 @@ export async function loadPredictionAdminMatches(now: Date): Promise<PredictionA
        match.actual_score, NULL::smallint AS reward_amount
      FROM compendium_prediction_matches match
      JOIN compendium_prediction_days day ON day.moscow_date = match.moscow_date
+     WHERE match.moscow_date >= ($1::timestamptz AT TIME ZONE 'Europe/Moscow')::date
+       AND match.moscow_date < ($2::timestamptz AT TIME ZONE 'Europe/Moscow')::date
      ORDER BY match.moscow_date, match.position`,
+    [OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT],
   );
   return rows.map((row) => {
     const match = mapPrediction(row, now);
