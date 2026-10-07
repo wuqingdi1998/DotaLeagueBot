@@ -79,6 +79,7 @@ export function RuneChallenge({
   rewardStarsLabel,
   resetCountdown,
   onStarsChange,
+  onCompleted,
   isPreview = false,
   showPreviewContent = false,
   overlay,
@@ -89,6 +90,7 @@ export function RuneChallenge({
   rewardStarsLabel?: string;
   resetCountdown: string;
   onStarsChange: (totalStars: number, communityStars: number) => void;
+  onCompleted?: () => void;
   isPreview?: boolean;
   showPreviewContent?: boolean;
   overlay?: ReactNode;
@@ -181,6 +183,7 @@ export function RuneChallenge({
       setMessage(
         `Испытание выполнено. Вы получили ${rewardStars} ${rewardStars === 1 ? "звезду" : "звезды"}!`,
       );
+      if (result.runeChallenge.completion) onCompleted?.();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось проверить испытание");
     } finally {

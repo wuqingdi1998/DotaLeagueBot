@@ -19,6 +19,7 @@ import type { OctoberDailyQuestData } from "../services/october-daily-quests";
 import type { QuestCompletion } from "@/app/compendium/model/types";
 import { useServerClock } from "@/app/compendium/hooks/useServerClock";
 import { useCompendiumToast } from "@/app/compendium/hooks/useCompendiumToast";
+import { reloadOctoberCompendiumAfterReward } from "../services/reward-refresh";
 import {
   starRaceQuestProgressLabel,
   isOctoberFirstRaceWeek,
@@ -65,6 +66,10 @@ export function OctoberRacePreview({
         throw new Error(result.error ?? "Не удалось проверить задание гонки");
       }
       setRace(result.starRace);
+      if (result.completion) {
+        reloadOctoberCompendiumAfterReward();
+        return;
+      }
       const checkedQuest = result.starRace.quests.find(
         (quest) => quest.dateKey === dateKey,
       );
@@ -152,6 +157,7 @@ export function OctoberDailyPreview({
         rerollsRemaining: result.rerollsRemaining ?? current.rerollsRemaining,
       }));
       setMessage(`Испытание выполнено. Получено звёзд: ${rewardStars}.`);
+      reloadOctoberCompendiumAfterReward();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось проверить задание");
     } finally {
@@ -197,6 +203,7 @@ export function OctoberDailyPreview({
       if (!response.ok || !result.completion) throw new Error(result.error ?? "Не удалось проверить вылазку");
       setDailyData((current) => current && ({ ...current, clanOuting: result.completion ?? current.clanOuting }));
       setMessage(`Клановая вылазка выполнена. Получено звёзд: ${rewardStars}.`);
+      reloadOctoberCompendiumAfterReward();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Не удалось проверить вылазку");
     } finally {
@@ -295,6 +302,7 @@ export function OctoberDailyPreview({
         rewardStars={rewardStars}
         resetCountdown=""
         onStarsChange={ignorePreviewAction}
+        onCompleted={reloadOctoberCompendiumAfterReward}
         isPreview={!isLive}
         showPreviewContent={!isLive}
         overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}

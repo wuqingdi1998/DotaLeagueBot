@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
+import { restoreOctoberCompendiumSection } from "../services/reward-refresh";
 
 const WHEEL_PAGE_THRESHOLD = 24;
 const PAGE_TRANSITION_LOCK_MS = 650;
@@ -13,6 +14,7 @@ export function OctoberSectionNavigation() {
   useEffect(() => {
     const scrollRoot = document.getElementById("october-compendium-scroll");
     if (!scrollRoot) return;
+    restoreOctoberCompendiumSection();
     const currentScrollRoot = scrollRoot;
     const desktopPaging = window.matchMedia(DESKTOP_PAGING_QUERY);
 
