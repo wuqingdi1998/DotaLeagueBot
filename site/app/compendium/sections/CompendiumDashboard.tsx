@@ -10,6 +10,7 @@ import { FiArrowRight, FiClock } from "react-icons/fi";
 import { useServerClock } from "../hooks/useServerClock";
 import { useCompendiumToast } from "../hooks/useCompendiumToast";
 import { STALE_QUEST_MESSAGE } from "../model/constants";
+import { dailyResetCountdownLabel } from "../model/countdown";
 import { tournamentStatusForMoment } from "../model/time";
 import type { CompendiumData, QuestCompletion } from "../model/types";
 import {
@@ -23,15 +24,6 @@ import { RuneChallenge } from "../components/RuneChallenge";
 import { CompendiumStarRace } from "../components/CompendiumStarRace";
 import type { PredictionScore } from "../model/predictions";
 import { starRaceQuestProgressLabel } from "../model/star-race";
-
-function countdownLabel(nextResetAt: string, currentTimeMs: number): string {
-  const remaining = Math.max(0, new Date(nextResetAt).getTime() - currentTimeMs);
-  const totalSeconds = Math.ceil(remaining / 1_000);
-  const hours = Math.floor(totalSeconds / 3_600);
-  const minutes = Math.floor((totalSeconds % 3_600) / 60);
-  const seconds = totalSeconds % 60;
-  return [hours, minutes, seconds].map((part) => String(part).padStart(2, "0")).join(":");
-}
 
 const progressNumber = new Intl.NumberFormat("ru-RU");
 
@@ -51,7 +43,7 @@ export function CompendiumDashboard({
   const [submittingFinalPrediction, setSubmittingFinalPrediction] = useState(false);
   const [toast, setToast] = useCompendiumToast();
   const currentTimeMs = useServerClock(data.serverNow);
-  const countdown = countdownLabel(data.nextResetAt, currentTimeMs);
+  const countdown = dailyResetCountdownLabel(data.nextResetAt, currentTimeMs);
   const tournamentStatus = tournamentStatusForMoment(
     data.tournamentStartsAt,
     new Date(currentTimeMs),

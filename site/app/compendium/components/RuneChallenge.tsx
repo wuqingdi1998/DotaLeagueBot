@@ -215,7 +215,7 @@ export function RuneChallenge({
           <FiLock aria-hidden="true" />
           <div>
             <strong>Испытание появится при открытии компендиума</strong>
-            <p>Подписчик выбирает любимого героя и получает звёзды за победу на нём в рейтинговом или обычном All Pick матче. Героя можно сменить через 7 дней. В закрытой версии выбор и начисление звёзд недоступны.</p>
+            <p>Герой выбирается на неделю (7 дней). Испытание можно выполнять каждый день по одному разу: победите на нём в рейтинговом или обычном All Pick матче. В закрытой версии выбор и начисление звёзд недоступны.</p>
           </div>
         </div>
       ) : !challenge.hasAccess ? (
@@ -234,9 +234,8 @@ export function RuneChallenge({
           {!challenge.selection ? (
             <div className="compendium-rune-first-selection">
               <p>
-                Выбор героя откроет для вас уникальное испытание. Оно обновляется
-                ежедневно вместе с остальными заданиями, а сменить героя можно
-                будет через 7 дней.
+                Выбор героя откроет для вас уникальное испытание. Герой выбирается
+                на неделю (7 дней). Задание можно выполнять <strong>КАЖДЫЙ ДЕНЬ по одному разу</strong>.
               </p>
               <HeroPicker
                 selectedHeroId={selectedHeroId}
@@ -264,7 +263,7 @@ export function RuneChallenge({
                 </div>
               </div>
               <div className="compendium-rune-action">
-                <p>Победите в рейтинговом или обычном All Pick матче на выбранном герое после его выбора.</p>
+                <p>Герой выбирается на неделю (7 дней). Победите в рейтинговом или обычном All Pick матче на выбранном герое после его выбора. Выполняйте <strong>КАЖДЫЙ ДЕНЬ по одному разу</strong>.</p>
                 {challenge.completion ? (
                   <div className="compendium-rune-completed-state">
                     <div className="compendium-completion" role="status">
@@ -281,11 +280,11 @@ export function RuneChallenge({
                         </a>
                       </div>
                     </div>
-                    <DailyResetCountdown
+                    {resetCountdown && <DailyResetCountdown
                       countdown={resetCountdown}
                       label="До нового испытания"
                       className="compendium-rune-reset-countdown"
-                    />
+                    />}
                   </div>
                 ) : (
                   <button

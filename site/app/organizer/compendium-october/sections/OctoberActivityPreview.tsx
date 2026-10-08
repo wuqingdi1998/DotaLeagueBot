@@ -15,6 +15,7 @@ import type { OctoberCompendiumWeekDefinition } from "../model/plan";
 import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
 import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
 import { OctoberDailyOpeningOverlay } from "../components/OctoberDailyOpeningOverlay";
+import { OctoberDailyCountdown } from "../components/OctoberDailyCountdown";
 import type { OctoberDailyQuestData } from "../services/october-daily-quests";
 import type { QuestCompletion } from "@/app/compendium/model/types";
 import { useServerClock } from "@/app/compendium/hooks/useServerClock";
@@ -219,25 +220,32 @@ export function OctoberDailyPreview({
       }`}
       id="compendium-quests"
     >
-      <div className="compendium-section-heading october-daily-heading">
-        <div className="october-daily-heading-row">
-          <h2>Задания дня</h2>
-          <button
-            className="october-guide-restore"
-            type="button"
-            aria-label="Вернуть пояснения к заданиям"
-            title="Вернуть скрытые пояснения"
-            onClick={guides.restoreAll}
-          >
-            <FiInfo aria-hidden="true" />
-          </button>
-        </div>
-        {rewardStars === 2 && (
-          <div className="compendium-weekend-bonus" role="status">
-            <span>Бонус выходного дня</span>
-            <strong>Х2</strong>
+      <div className="october-daily-toolbar">
+        <div className="compendium-section-heading october-daily-heading">
+          <div className="october-daily-heading-row">
+            <h2>Задания дня</h2>
+            <button
+              className="october-guide-restore"
+              type="button"
+              aria-label="Вернуть пояснения к заданиям"
+              title="Вернуть скрытые пояснения"
+              onClick={guides.restoreAll}
+            >
+              <FiInfo aria-hidden="true" />
+            </button>
           </div>
-        )}
+        </div>
+        <div className="compendium-section-status">
+          {rewardStars === 2 && (
+            <div className="compendium-weekend-bonus" role="status">
+              <span>Бонус выходного дня</span>
+              <strong>Х2</strong>
+            </div>
+          )}
+          {isLive && serverNow && (
+            <OctoberDailyCountdown serverNow={serverNow} currentTimeMs={currentTimeMs} />
+          )}
+        </div>
       </div>
       {isOverviewVisible && (
         <div className="october-compendium-example-note october-dismissible-guide">

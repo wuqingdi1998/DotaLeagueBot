@@ -1,3 +1,27 @@
+.october-daily-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 18px;
+  margin-bottom: 10px;
+}
+
+.october-daily-toolbar .october-daily-heading { margin-bottom: 0; }
+.october-daily-toolbar > .compendium-section-status {
+  flex-wrap: wrap;
+  max-width: 100%;
+  margin-left: auto;
+}
+
+.october-daily-countdown { min-width: 0; }
+.october-daily-countdown p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .october-daily-heading-row {
   display: flex;
   align-items: center;
