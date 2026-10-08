@@ -14,7 +14,7 @@
   margin-left: auto;
 }
 
-.october-daily-countdown { min-width: 0; }
+.october-daily-countdown { min-width: 0; max-width: 100%; }
 .october-daily-countdown p {
   margin: 4px 0 0;
   color: var(--muted);

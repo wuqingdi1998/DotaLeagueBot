@@ -34,7 +34,7 @@ describe("shared October daily countdown", () => {
       <OctoberDailyCountdown serverNow={serverNow} currentTimeMs={currentTimeMs} />,
     );
     expect(html).toContain("00:00:03");
-    expect(html).toContain("Испытания 1, 2, 3 и Рун");
+    expect(html).toContain("Испытания 1, 2, 3 и Рун обновляются ежедневно в 00:00 МСК");
     expect(html).toContain("00:00 МСК");
   });
 

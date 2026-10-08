@@ -23,7 +23,7 @@ export function OctoberDailyCountdown({
   return (
     <div className="october-daily-countdown">
       <DailyResetCountdown countdown={countdown} label="До обновления испытаний" />
-      <p>Испытания 1, 2, 3 и Рун · ежедневно в 00:00 МСК</p>
+      <p>Испытания 1, 2, 3 и Рун обновляются ежедневно в 00:00 МСК</p>
     </div>
   );
 }

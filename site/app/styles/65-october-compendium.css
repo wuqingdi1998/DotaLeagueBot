@@ -106,6 +106,7 @@
 }
 
 .october-compendium-screen-daily .compendium-section-heading,
+.october-compendium-screen-daily .october-daily-countdown,
 .october-compendium-screen-daily .october-compendium-example-note,
 .october-compendium-screen-daily .compendium-mobile-swipe-hint {
   border: 1px solid color-mix(in srgb, var(--line-strong) 74%, transparent);
@@ -116,6 +117,7 @@
 
 .october-daily-challenges { display: contents; }
 
+.october-compendium-screen-daily .october-daily-countdown,
 .october-compendium-screen-daily .compendium-section-heading {
   align-items: center;
   width: fit-content;
