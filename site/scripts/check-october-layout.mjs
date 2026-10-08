@@ -40,6 +40,19 @@ try {
             if (desktop && (rect.bottom > bounds.bottom + 2 || rect.top < bounds.top - 2)) issues.push(`${element.className}: outside its screen`);
           }
           if (desktop) {
+            for (const element of document.querySelectorAll(".compendium-star-race,.compendium-daily-section")) {
+              const rect = element.getBoundingClientRect();
+              if (Math.abs((rect.top + rect.bottom) - (bounds.top + bounds.bottom)) > 4) issues.push(`${element.className}: panel is not vertically centered`);
+            }
+            if (innerWidth >= 1500 && innerHeight >= 800) {
+              const active = document.querySelector(".compendium-star-race-quest.active");
+              if (active?.querySelector(".compendium-star-race-heroes") && active.querySelector(".compendium-star-race-action .compendium-star-race-progress")) {
+                const action = active.querySelector(".compendium-star-race-action");
+                if (action.getBoundingClientRect().top - action.previousElementSibling.getBoundingClientRect().bottom > 24) issues.push("active race card stretches with unnecessary empty space");
+              }
+              const grid = document.querySelector(".compendium-quest-grid");
+              if (grid && grid.getBoundingClientRect().height > bounds.height * 0.65) issues.push("daily cards stretch beyond the previous compact composition");
+            }
             for (const element of document.querySelectorAll(".compendium-star-race-quests,.compendium-quest-grid")) {
               if (element.scrollWidth > element.clientWidth + 2) issues.push(`${element.className}: horizontal scrollbar`);
             }

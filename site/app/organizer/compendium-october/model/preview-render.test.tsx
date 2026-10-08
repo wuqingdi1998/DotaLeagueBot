@@ -370,11 +370,11 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-race \.october-race-rules-mobile \{ display: none; \}/,
     );
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-hero-portrait \{\s*height: clamp\(40px, 5.5dvh, 64px\);/,
+      /\.october-compendium-screen-daily \.compendium-hero-portrait \{\s*height: clamp\(56px, 8dvh, 80px\);/,
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?flex: 1;[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 12px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?flex: 0 1 auto;[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 12px;/,
     );
     expect(previewStyles).not.toMatch(/\.october-compendium-screen-daily \{\s*height: auto;/);
     expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");
@@ -458,14 +458,14 @@ describe("October preview actions", () => {
     expect(previewStyles).toContain("min-height: clamp(300px, 38vh, 350px)");
     expect(previewStyles).toContain(".october-compendium-screen-race .compendium-star-race::before { display: none; }");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 1;[\s\S]*?justify-content: flex-start;/,
+      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 0 1 auto;[\s\S]*?justify-content: flex-start;/,
     );
     expect(starRaceSource).toContain("отдельный недельный межклановый зачёт");
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin: 10px 0;/,
     );
     expect(guideStyles).toMatch(
-      /\.october-daily-section--compact-guidance \.compendium-quest-grid \{[^}]*flex: 1;/,
+      /\.october-daily-section--compact-guidance \.compendium-quest-grid \{[^}]*flex: 0 1 auto;/,
     );
     expect(routeStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(routeStyles.indexOf("66-october-compendium-screens.css"));

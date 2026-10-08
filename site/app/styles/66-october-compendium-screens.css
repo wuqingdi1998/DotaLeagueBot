@@ -196,7 +196,7 @@
   .october-compendium-screen-race .compendium-star-race {
     display: flex;
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
     flex-direction: column;
     margin-top: 0;
     justify-content: flex-start;
@@ -244,7 +244,7 @@
 
   .october-compendium-screen-race .compendium-star-race-quests {
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
     margin-top: 10px;
   }
 
@@ -301,10 +301,11 @@
     font-size: 12px;
   }
 
+  .october-compendium-screen-daily { justify-content: center; }
   .october-compendium-screen-daily .compendium-daily-section {
     display: flex;
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
     flex-direction: column;
     justify-content: center;
     padding-top: 12px;
@@ -325,14 +326,14 @@
 
   .october-compendium-screen-daily .october-compendium-example-note {
     margin-bottom: 10px;
-    padding-block: 10px;
+    padding-block: 6px;
     font-size: 14px;
     line-height: 1.38;
   }
 
   .october-compendium-screen-daily .compendium-quest-grid {
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
   }
@@ -370,7 +371,7 @@
   }
 
   .october-compendium-screen-daily .compendium-hero-portrait {
-    height: clamp(40px, 5.5dvh, 64px);
+    height: clamp(56px, 8dvh, 80px);
     aspect-ratio: auto;
   }
 
@@ -435,9 +436,10 @@
   .october-compendium-screen-personal .compendium-reward-milestones p { font-size: 17px; }
   .october-compendium-screen-race .compendium-star-race-heading h2 { font-size: 38px; }
   .october-compendium-screen-race .compendium-star-race-quest h3 { font-size: 20px; }
-  .october-compendium-screen-daily .compendium-section-heading h2 { font-size: 32px; }
-  .october-compendium-screen-daily .compendium-quest-heading h2 { font-size: 20px; }
-  .october-compendium-screen-daily .compendium-condition { font-size: 14px; }
+  .october-compendium-screen-daily .compendium-section-heading h2 { font-size: 38px; }
+  .october-compendium-screen-daily .compendium-quest-heading h2 { font-size: 23px; }
+  .october-compendium-screen-daily .compendium-condition { font-size: 17px; }
+  .october-compendium-screen-daily .compendium-quest-grid > .compendium-quest { padding: 16px; }
 }
 
 @media (min-width: 961px) and (max-width: 1300px) {

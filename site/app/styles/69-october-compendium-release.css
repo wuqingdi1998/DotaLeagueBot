@@ -183,10 +183,10 @@
     gap: 12px;
   }
 
-  .october-compendium-screen-daily .compendium-rune-action > p { margin-bottom: 8px; font-size: 13px; line-height: 1.35; }
+  .october-compendium-screen-daily .compendium-rune-action > p { margin-bottom: 8px; font-size: 16px; line-height: 1.4; }
   .october-compendium-screen-daily .compendium-rune-selected-hero { padding: 8px; gap: 10px; }
-  .october-compendium-screen-daily .compendium-rune-selected-hero img { width: 116px; height: auto; }
-  .october-compendium-screen-daily .compendium-rune-selected-hero strong { font-size: 19px; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero img { width: 164px; height: auto; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero strong { font-size: 22px; }
   .october-compendium-screen-daily .compendium-rune-change-hero { padding-top: 8px; }
   .october-compendium-screen-daily .compendium-rune-picker select,
   .october-compendium-screen-daily .compendium-rune-picker > button { min-height: 36px; font-size: 14px; }

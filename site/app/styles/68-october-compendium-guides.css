@@ -101,15 +101,17 @@
   }
 
   .october-daily-section--expanded-guidance .compendium-quest-heading {
-    margin-bottom: 9px;
+    margin-bottom: 6px;
   }
+
+  .october-daily-section--expanded-guidance .compendium-quest-heading h2 { font-size: 20px; }
 
   .october-daily-section--expanded-guidance .compendium-heroes {
     gap: 7px;
   }
 
   .october-daily-section--expanded-guidance .compendium-hero-portrait {
-    height: clamp(40px, 5.5dvh, 64px);
+    height: 54px;
     aspect-ratio: auto;
   }
 
@@ -119,7 +121,7 @@
   }
 
   .october-daily-section--expanded-guidance .compendium-condition {
-    margin: 10px 0 12px;
+    margin: 6px 0 8px;
     font-size: 14px;
     line-height: 1.4;
   }
@@ -143,7 +145,7 @@
 
   .october-daily-section--compact-guidance .compendium-quest-grid {
     min-height: 0;
-    flex: 1;
+    flex: 0 1 auto;
   }
 
   .october-daily-section--compact-guidance .october-clan-quest-emblem { min-height: 68px; }

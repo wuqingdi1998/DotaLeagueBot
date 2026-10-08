@@ -47,7 +47,7 @@
   .october-compendium-screen-daily .compendium-rune-selected-hero img { width: 64px; }
   .october-compendium-screen-daily .compendium-rune-selected-hero strong { font-size: 17px; }
   .october-compendium-screen-daily .compendium-rune-selected-hero small { font-size: 12px; }
-  .october-compendium-screen-daily .compendium-rune-action > p { margin-top: 0; }
+  .october-compendium-screen-daily .compendium-rune-action > p { margin-top: 0; font-size: 13px; line-height: 1.35; }
   .october-compendium-screen-daily .october-clan-quest-note:last-of-type { margin-bottom: 4px; }
   .october-compendium-screen-daily .october-clan-quest-note.october-dismissible-guide > button { top: 0; }
   .october-compendium-screen-daily .october-daily-countdown { padding: 6px 10px; }
