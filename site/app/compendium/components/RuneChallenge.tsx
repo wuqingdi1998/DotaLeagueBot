@@ -18,6 +18,8 @@ import {
 import { COMPENDIUM_HEROES, compendiumHeroById } from "../model/heroes";
 import type { RuneChallengeData } from "../model/types";
 import { DailyResetCountdown } from "./DailyResetCountdown";
+import { useCompendiumToast } from "../hooks/useCompendiumToast";
+import { CompendiumToast } from "./CompendiumToast";
 
 function cooldownLabel(nextChangeAt: string, now: number): string {
   const remaining = Math.max(0, new Date(nextChangeAt).getTime() - now);
@@ -99,7 +101,7 @@ export function RuneChallenge({
   const [selectedHeroId, setSelectedHeroId] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useCompendiumToast();
   const completionHero = useMemo(
     () => challenge.completion?.matchedHeroId
       ? compendiumHeroById(challenge.completion.matchedHeroId)
@@ -314,7 +316,7 @@ export function RuneChallenge({
           )}
         </div>
       )}
-      {message && <p className="compendium-rune-message" role="status">{message}</p>}
+      <CompendiumToast message={message} />
       {overlay}
     </section>
   );

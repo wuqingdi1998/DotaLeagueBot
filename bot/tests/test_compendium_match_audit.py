@@ -81,8 +81,11 @@ class Session:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("cluster,expected_status", [(181, "stockholm"), (189, "sent")])
-async def test_worker_only_sends_non_stockholm_and_completes_audit(monkeypatch, cluster, expected_status):
+@pytest.mark.parametrize("cluster,expected_status", [
+    (181, "allowed"), (188, "allowed"), (189, "allowed"),
+    (131, "allowed"), (273, "allowed"), (151, "sent"), (191, "sent"),
+])
+async def test_worker_only_sends_outside_allowed_regions_and_completes_audit(monkeypatch, cluster, expected_status):
     session = Session([audit()])
     monkeypatch.setattr(service, "audit_session", lambda: session)
     fetch = AsyncMock(return_value=details(cluster))
@@ -98,6 +101,8 @@ async def test_worker_only_sends_non_stockholm_and_completes_audit(monkeypatch, 
     if expected_status == "sent":
         bot.get_channel.assert_called_once_with(AUDIT_CHANNEL_ID)
         assert channel.send.call_args.kwargs["allowed_mentions"].everyone is False
+    else:
+        bot.get_channel.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -105,7 +110,7 @@ async def test_worker_only_sends_non_stockholm_and_completes_audit(monkeypatch, 
 async def test_failed_checks_or_delivery_remain_queued_for_retry(monkeypatch, failure):
     session = Session([audit()])
     monkeypatch.setattr(service, "audit_session", lambda: session)
-    fetch = AsyncMock(return_value=details(189))
+    fetch = AsyncMock(return_value=details(151))
     if failure == "opendota":
         fetch.side_effect = ValueError("region missing")
     monkeypatch.setattr(service, "fetch_match_details", fetch)

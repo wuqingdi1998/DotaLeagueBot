@@ -46,6 +46,15 @@ it("queues every credited match atomically, snapshots clan members, and deduplic
     expect((await db.query("SELECT * FROM match_region_audits WHERE match_id = 8000")).rows).toHaveLength(1);
     await db.exec("UPDATE compendium_user_quest_completions SET matched_match_id = 9000 WHERE matched_match_id = 999");
     expect((await db.query("SELECT * FROM match_region_audits WHERE match_id = 9000")).rows).toHaveLength(1);
+    await db.exec("UPDATE match_region_audits SET status = 'stockholm' WHERE match_id = 9000");
+    await db.exec(readFileSync(new URL(
+      "../../../../bot/database/migrations/0172_compendium_allowed_match_regions.sql", import.meta.url,
+    ), "utf8"));
+    expect((await db.query("SELECT status FROM match_region_audits WHERE match_id = 9000")).rows)
+      .toEqual([{ status: "allowed" }]);
+    await db.exec("UPDATE match_region_audits SET status = 'allowed' WHERE match_id = 8000");
+    expect((await db.query("SELECT status FROM match_region_audits WHERE match_id = 1000 AND player_id = 100")).rows)
+      .toEqual([{ status: "pending" }]);
   } finally {
     await db.close();
   }

@@ -8,7 +8,7 @@ import discord
 
 
 AUDIT_CHANNEL_ID = 1471130762282536980
-STOCKHOLM_REGION = 8
+ALLOWED_MATCH_REGIONS = frozenset({3, 8, 28})
 DATA_DIRECTORY = Path(__file__).resolve().parents[1] / "data" / "opendota"
 REGIONS = json.loads((DATA_DIRECTORY / "region.json").read_text(encoding="utf-8"))
 CLUSTERS = json.loads((DATA_DIRECTORY / "cluster.json").read_text(encoding="utf-8"))
@@ -76,7 +76,7 @@ def audit_message(audit: Any, details: dict[str, Any]) -> discord.Embed:
     if any(player.get("account_id") is None for player in details["players"]):
         clan_text += "\nЕсть скрытые аккаунты – список может быть неполным."
     embed = discord.Embed(
-        title="Компендиум: засчитан матч вне Стокгольма",
+        title="Компендиум: засчитан матч вне разрешённых регионов",
         description=(f"Игрок: **{_safe_name(audit['player_name'])}** "
                      f"(Discord ID: {audit['player_id']})\n"
                      f"Матч: https://www.opendota.com/matches/{audit['match_id']}\n"

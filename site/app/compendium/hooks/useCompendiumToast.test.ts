@@ -80,5 +80,9 @@ describe("compendium toast lifecycle", () => {
     const dashboard = readFileSync(new URL("../sections/CompendiumDashboard.tsx", import.meta.url), "utf8");
     expect(october.match(/const \[message, setMessage\] = useCompendiumToast\(\)/g)).toHaveLength(2);
     expect(dashboard).toContain("const [toast, setToast] = useCompendiumToast()");
+    const rune = readFileSync(new URL("../components/RuneChallenge.tsx", import.meta.url), "utf8");
+    expect(rune).toContain("const [message, setMessage] = useCompendiumToast()");
+    expect(rune).toContain("<CompendiumToast message={message} />");
+    expect(rune).not.toContain("compendium-rune-message");
   });
 });

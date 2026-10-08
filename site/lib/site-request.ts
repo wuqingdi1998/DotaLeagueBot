@@ -18,9 +18,9 @@ function requestBodyKey(body: BodyInit | null | undefined): unknown {
   });
 }
 
-function failureResponse(isMutation: boolean, status = 503): Response {
+function failureResponse(isMutation: boolean, status = 503, reason?: string): Response {
   return Response.json({
-    error: isMutation ? uncertainActionMessage : unavailableDataMessage,
+    error: [reason, isMutation ? uncertainActionMessage : unavailableDataMessage].filter(Boolean).join(". "),
     outcomeUnknown: isMutation,
   }, { status });
 }
@@ -42,7 +42,18 @@ async function requestJson(
     const response = await fetch(input, { ...init, signal });
     // Keep the deadline active until the whole body arrives, not just headers.
     const text = await response.text();
-    if (response.status >= 500) return failureResponse(isMutation, response.status);
+    if (response.status >= 500) {
+      // Only this known domain failure is safe to display instead of an uncertain write.
+      // Unexpected server responses can contain internal diagnostics or saved actions.
+      try {
+        const body = JSON.parse(text);
+        if (response.status === 503 && body?.code === "OPEN_DOTA_UNAVAILABLE"
+          && typeof body.error === "string" && body.error.trim()) {
+          return Response.json({ error: body.error, code: body.code }, { status: response.status });
+        }
+      } catch { /* Fall through to a safe status-based explanation. */ }
+      return failureResponse(isMutation, response.status, `Сервер сайта вернул ошибку ${response.status}`);
+    }
     if (response.status === 204 && isMutation) return Response.json({ ok: true });
     let body: unknown;
     try {
@@ -51,10 +62,10 @@ async function requestJson(
       if (!response.ok && text.trim() && !/^\s*</.test(text)) {
         return Response.json({ error: text.trim() }, { status: response.status });
       }
-      return failureResponse(isMutation, response.ok ? 502 : response.status);
+      return failureResponse(isMutation, response.ok ? 502 : response.status, "Сайт вернул некорректный ответ");
     }
     if (!body || typeof body !== "object" || Array.isArray(body)) {
-      return failureResponse(isMutation, response.ok ? 502 : response.status);
+      return failureResponse(isMutation, response.ok ? 502 : response.status, "Сайт вернул некорректный ответ");
     }
     return Response.json(body, {
       status: response.status,
@@ -64,7 +75,9 @@ async function requestJson(
     });
   } catch (error) {
     if (init.signal?.aborted) throw error;
-    return failureResponse(isMutation);
+    return failureResponse(isMutation, 503, controller.signal.aborted
+      ? `Сервер сайта не ответил за ${(isMutation ? siteMutationTimeoutMs : siteReadTimeoutMs) / 1_000} секунд`
+      : "Не удалось связаться с сайтом: соединение прервано или недоступно");
   } finally {
     clearTimeout(timeout);
   }

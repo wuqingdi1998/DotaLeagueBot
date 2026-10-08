@@ -12,7 +12,7 @@ from sqlalchemy import text
 
 from services.compendium_match_audit_model import (
     AUDIT_CHANNEL_ID,
-    STOCKHOLM_REGION,
+    ALLOWED_MATCH_REGIONS,
     audit_message,
     match_region,
     validated_match_details,
@@ -75,7 +75,7 @@ async def process_match_audits(bot: commands.Bot) -> None:
                             "WHERE id = :id"
                         ), {"id": audit["id"], "details": json.dumps(details)})
                         message_id = None
-                        if match_region(details) != STOCKHOLM_REGION:
+                        if match_region(details) not in ALLOWED_MATCH_REGIONS:
                             channel = bot.get_channel(AUDIT_CHANNEL_ID) or await bot.fetch_channel(AUDIT_CHANNEL_ID)
                             if not isinstance(channel, (discord.TextChannel, discord.Thread)):
                                 raise RuntimeError("Audit channel is not a text channel")
@@ -89,7 +89,7 @@ async def process_match_audits(bot: commands.Bot) -> None:
                             "SET status = :status, discord_message_id = :message_id, "
                             "finished_at = NOW(), last_error = NULL WHERE id = :id"
                         ), {"id": audit["id"], "message_id": message_id,
-                            "status": "sent" if message_id is not None else "stockholm"})
+                            "status": "sent" if message_id is not None else "allowed"})
                     except (aiohttp.ClientError, asyncio.TimeoutError, discord.HTTPException,
                             ValueError, RuntimeError) as error:
                         await session.execute(text(

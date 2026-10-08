@@ -240,13 +240,6 @@
   opacity: 0.58;
 }
 
-.compendium-rune-message {
-  margin: 14px 0 0;
-  color: var(--blue-strong);
-  font-size: 14px;
-  font-weight: 700;
-}
-
 .site-shell[data-theme="light"] .compendium-rune-selected-hero span {
   color: #60409c;
 }
