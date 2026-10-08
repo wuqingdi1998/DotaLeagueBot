@@ -19,7 +19,7 @@ export const STAR_RACE_EXCLUSION_RULES = [
 ] as const;
 
 export const OCTOBER_FIRST_WEEK_RACE_RULES = [
-  `За ${OCTOBER_COMPENDIUM_WEEKS[0].dateLabel} учитываются звёзды испытаний 1, 2, 3 (клановой вылазки) и заданий гонки, полученные за эту неделю.`,
+  `В гонке учитываются звёзды испытаний 1, 2, 3 и заданий гонки за ${OCTOBER_COMPENDIUM_WEEKS[0].dateLabel}.`,
   "Звёзды за Испытание Рун не учитываются в гонке, но пополняют личный зачёт и счёт клана.",
 ] as const;
 
