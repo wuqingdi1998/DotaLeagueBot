@@ -1,3 +1,4 @@
+import { queueCompendiumMatchAudits } from "./match-audit-repository";
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
@@ -340,6 +341,7 @@ export async function replaceStarRaceProgress(input: {
   playerId: string;
   dateKey: string;
   current: number;
+  wins: MatchingWin[];
 }): Promise<void> {
   await transaction(async (client) => {
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
@@ -355,6 +357,7 @@ export async function replaceStarRaceProgress(input: {
            checked_at = EXCLUDED.checked_at`,
       [input.playerId, input.dateKey, input.current],
     );
+    await queueCompendiumMatchAudits(client, input.playerId, input.wins);
   });
 }
 

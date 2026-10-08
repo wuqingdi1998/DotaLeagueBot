@@ -178,11 +178,13 @@ describe("Tuesday star race building damage check", () => {
       playerId: user.discordId,
       dateKey: "2026-08-11",
       current: 15_000,
+      wins: [expect.objectContaining({matchId: "1001"}), expect.objectContaining({matchId: "1002"})],
     });
     expect(mocks.replaceStarRaceProgress).toHaveBeenNthCalledWith(2, {
       playerId: user.discordId,
       dateKey: "2026-08-11",
       current: 15_000,
+      wins: [expect.objectContaining({matchId: "1001"}), expect.objectContaining({matchId: "1002"})],
     });
     expect(mocks.fetchRecentPlayerMatches).toHaveBeenCalledWith(user.dotaId, {
       forceRefresh: true,
@@ -286,11 +288,13 @@ describe("Wednesday cumulative Pudge or Sniper damage check", () => {
       playerId: user.discordId,
       dateKey: "2026-08-12",
       current: 30_000,
+      wins: [expect.objectContaining({matchId: "3101"})],
     });
     expect(mocks.replaceStarRaceProgress).toHaveBeenNthCalledWith(2, {
       playerId: user.discordId,
       dateKey: "2026-08-12",
       current: 30_000,
+      wins: [expect.objectContaining({matchId: "3101"})],
     });
     expect(mocks.recordStarRaceCompletion).not.toHaveBeenCalled();
   });
@@ -406,6 +410,7 @@ describe("second-week star race checks", () => {
       playerId: user.discordId,
       dateKey: "2026-08-17",
       current: 2,
+      wins: [expect.objectContaining({matchId: "7001"}), expect.objectContaining({matchId: "7002"})],
     });
     expect(mocks.recordStarRaceCompletion).toHaveBeenCalledWith({
       playerId: user.discordId,

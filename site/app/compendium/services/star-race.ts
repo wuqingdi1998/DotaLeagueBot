@@ -297,6 +297,7 @@ export async function checkStarRaceQuest(
       playerId: user.discordId,
       dateKey,
       current: evaluation.progress,
+      wins: evaluation.wins,
     });
     if (evaluation.isComplete) {
       const evidenceWin = evaluation.wins[0];
@@ -315,6 +316,7 @@ export async function checkStarRaceQuest(
       playerId: user.discordId,
       dateKey,
       current: evaluation.progress,
+      wins: evaluation.wins,
     });
     if (evaluation.isComplete) {
       completion = await recordStarRaceCompletion({
@@ -329,6 +331,7 @@ export async function checkStarRaceQuest(
       playerId: user.discordId,
       dateKey,
       current: evaluation.progress,
+      wins: evaluation.wins,
     });
     if (evaluation.isComplete) {
       completion = await recordStarRaceCompletion({
