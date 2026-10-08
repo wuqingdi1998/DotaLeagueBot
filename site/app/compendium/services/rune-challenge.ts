@@ -140,7 +140,7 @@ export async function checkRuneChallenge(
     if (!matchingWin) {
       throw new CompendiumError(
         "NO_MATCH",
-        "Победа в рейтинговом матче на любимом герое пока не найдена",
+        "Победа в рейтинговом или обычном All Pick матче на любимом герое пока не найдена",
       );
     }
     await recordRuneChallengeCompletion({

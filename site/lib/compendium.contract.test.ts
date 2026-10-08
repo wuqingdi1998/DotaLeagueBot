@@ -208,7 +208,7 @@ describe("compendium persistence and security contract", () => {
 
   it("shows the verification notice beside the half-width reroll strip", () => {
     expect(rerollNotice).toContain(
-      "Учитываются только рейтинговые победы завершенные до",
+      "Учитываются победы в рейтинговых или обычных All Pick матчах, завершённые до",
     );
     expect(rerollNotice).toContain("23:59 текущего дня по московскому времени");
     expect(rerollNotice).toContain("data-moscow-recurring-time");

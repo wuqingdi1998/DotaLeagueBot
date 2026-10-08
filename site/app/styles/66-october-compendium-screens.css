@@ -30,8 +30,11 @@
     scroll-snap-stop: always;
   }
 
+  .october-compendium-screen-race,
   .october-compendium-screen-daily {
-    overflow: hidden;
+    height: auto;
+    min-height: calc(100dvh - 76px);
+    overflow: visible;
   }
 
   .october-section-navigation {
@@ -200,7 +203,7 @@
   .october-compendium-screen-race .compendium-star-race {
     display: flex;
     min-height: 0;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     flex-direction: column;
     margin-top: 0;
     justify-content: flex-start;
@@ -248,7 +251,7 @@
 
   .october-compendium-screen-race .compendium-star-race-quests {
     min-height: 0;
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     margin-top: 16px;
   }
 

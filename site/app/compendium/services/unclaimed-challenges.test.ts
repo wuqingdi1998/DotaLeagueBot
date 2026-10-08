@@ -81,7 +81,7 @@ describe("unclaimed compendium challenge audit", () => {
       expect.objectContaining({
         kind: "star-race",
         title: "Легкая прогулка",
-        detail: "2 / 2 рейтинговых побед",
+        detail: "2 / 2 побед",
       }),
     ]);
   });

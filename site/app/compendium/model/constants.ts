@@ -26,7 +26,7 @@ export const RANKED_GAME_MODES = new Set([1, 2, 3, 4, 16, 22]);
 export const MATCHMADE_LOBBY_TYPES = new Set([0, 5, 6, 7, 8, 9]);
 
 export const NO_MATCH_MESSAGE =
-  "Подходящий матч пока не найден. Убедитесь, что вы победили в рейтинговом матче на одном из указанных героев, и попробуйте позже.";
+  "Подходящий матч пока не найден. Убедитесь, что вы победили в рейтинговом или обычном All Pick матче на одном из указанных героев, и попробуйте позже.";
 export const OPEN_DOTA_ERROR_MESSAGE =
   "Не удалось получить данные матчей из OpenDota. Попробуйте повторить проверку позже.";
 export const STALE_QUEST_MESSAGE =

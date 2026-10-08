@@ -282,7 +282,7 @@ describe("October preview actions", () => {
   it("gives both clanmates the weekend bonus and permits the same match to close a hero quest", () => {
     const html = renderToStaticMarkup(<OctoberClanOutingCard />);
     expect(html).toContain("Клановая вылазка");
-    expect(html).toContain("Выиграйте одну рейтинговую игру вместе с участником своего клана");
+    expect(html).toContain("Выиграйте один рейтинговый или обычный All Pick матч вместе с участником своего клана");
     expect(html).toContain("каждый получит по две звезды");
     expect(html).toContain("Награда: 1 звезда каждому");
     expect(html).toContain("одновременно засчитать для испытания 1 или 2");
@@ -362,7 +362,7 @@ describe("October preview actions", () => {
     expect(html).not.toContain("compendium-check-button");
   });
 
-  it("keeps desktop daily controls compact inside the fourth full screen", () => {
+  it("keeps desktop daily controls compact while allowing long conditions to grow", () => {
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.october-race-rules-desktop \{ display: grid; \}/,
     );
@@ -376,7 +376,7 @@ describe("October preview actions", () => {
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?flex: 1;[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
     );
-    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*overflow: hidden;/);
+    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*height: auto;\s*min-height: calc\(100dvh - 76px\);\s*overflow: visible;/);
     expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");
     expect(guideStyles).toMatch(/\.october-compendium-example-note\.october-dismissible-guide \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/);
     expect(previewStyles).toMatch(
@@ -458,7 +458,7 @@ describe("October preview actions", () => {
     expect(previewStyles).toContain("min-height: clamp(300px, 38vh, 350px)");
     expect(previewStyles).toContain(".october-compendium-screen-race .compendium-star-race::before { display: none; }");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 0 1 auto;[\s\S]*?justify-content: flex-start;/,
+      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 0 0 auto;[\s\S]*?justify-content: flex-start;/,
     );
     expect(starRaceSource).toContain("отдельный недельный межклановый зачёт");
     expect(previewStyles).toMatch(

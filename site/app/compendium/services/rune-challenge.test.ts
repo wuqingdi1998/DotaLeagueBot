@@ -111,8 +111,11 @@ describe("rune challenge", () => {
     });
   });
 
-  it("checks a Rune win on a hero from the current star-race quest", async () => {
-    const now = new Date("2026-08-12T12:00:00.000Z");
+  it.each([
+    ["2026-08-12T12:00:00.000Z", 7],
+    ["2026-10-08T12:00:00.000Z", 0],
+  ])("checks a Rune win on %s in lobby %s", async (date, lobbyType) => {
+    const now = new Date(date);
     vi.useFakeTimers();
     vi.setSystemTime(now);
     const selectedAt = new Date(now.getTime() - 60 * 60 * 1_000);
@@ -135,7 +138,7 @@ describe("rune challenge", () => {
       radiant_win: true,
       duration: 600,
       game_mode: 22,
-      lobby_type: 7,
+      lobby_type: lobbyType,
       hero_id: 14,
       start_time: Math.floor((now.getTime() - 30 * 60 * 1_000) / 1_000),
     }]);

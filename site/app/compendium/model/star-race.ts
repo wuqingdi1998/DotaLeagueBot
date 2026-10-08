@@ -1,4 +1,5 @@
 import { compendiumHeroById } from "./heroes";
+import { OCTOBER_NORMAL_ALL_PICK_START_AT } from "@/lib/october-compendium-schedule";
 import { moscowDayBounds } from "./time";
 import type { CompendiumHero } from "./types";
 import {
@@ -476,7 +477,7 @@ export function starRaceQuestProgressLabel(
     return requirement.stat === "hero_damage" ? "Урон по героям" : "Убийства";
   }
   if (requirement?.kind === "ranked-wins") {
-    return "Рейтинговые победы";
+    return quest.dateKey >= OCTOBER_NORMAL_ALL_PICK_START_AT.slice(0, 10) ? "Победы" : "Рейтинговые победы";
   }
   return null;
 }

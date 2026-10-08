@@ -110,7 +110,7 @@ export function QuestCard({
       </div>
 
       <p className="compendium-condition">
-        Победите в рейтинговом матче на одном из этих героев
+        Победите в рейтинговом или обычном All Pick матче на одном из этих героев
       </p>
 
       {quest.completion ? (

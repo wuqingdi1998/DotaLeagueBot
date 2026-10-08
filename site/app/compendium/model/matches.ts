@@ -1,9 +1,8 @@
-import {
-  MATCHMADE_LOBBY_TYPES,
-  RANKED_GAME_MODES,
-  RANKED_LOBBY_TYPES,
-} from "./constants";
+import { MATCHMADE_LOBBY_TYPES } from "./constants";
+import { isCompendiumEligibleMatch, matchEndedAt } from "./match-eligibility";
 import type { MatchingWin, OpenDotaMatch } from "./types";
+
+export { matchEndedAt } from "./match-eligibility";
 
 function isPlayerWin(match: OpenDotaMatch): boolean {
   const isRadiant = match.player_slot < 128;
@@ -19,19 +18,18 @@ function isQualifyingWin(input: {
 }): boolean {
   return (
     input.allowedHeroes.has(input.match.hero_id) &&
-    isRankedWinInsideWindow(input)
+    isEligibleWinInsideWindow(input)
   );
 }
 
-function isRankedWinInsideWindow(input: {
+function isEligibleWinInsideWindow(input: {
   match: OpenDotaMatch;
   dayStart: Date;
   dayEnd: Date;
   now: Date;
 }): boolean {
   return (
-    RANKED_LOBBY_TYPES.has(input.match.lobby_type) &&
-    RANKED_GAME_MODES.has(input.match.game_mode) &&
+    isCompendiumEligibleMatch(input.match) &&
     isPlayerWin(input.match) &&
     endedInsideWindow(input)
   );
@@ -44,7 +42,7 @@ export function scanRankedWins(input: {
   now: Date;
 }): MatchingWin[] {
   return input.matches
-    .filter((match) => isRankedWinInsideWindow({ ...input, match }))
+    .filter((match) => isEligibleWinInsideWindow({ ...input, match }))
     .map(matchingWin);
 }
 
@@ -68,10 +66,6 @@ function endedInsideWindow(input: {
     endedAt < input.dayEnd.getTime() &&
     endedAt <= input.now.getTime()
   );
-}
-
-export function matchEndedAt(match: OpenDotaMatch): Date {
-  return new Date((match.start_time + match.duration) * 1_000);
 }
 
 export function findMatchingWin(input: {
@@ -154,8 +148,7 @@ export function findRankedStatWin(input: {
       isAllowedHero &&
       typeof statValue === "number" &&
       statValue >= input.minimum &&
-      RANKED_LOBBY_TYPES.has(candidate.lobby_type) &&
-      RANKED_GAME_MODES.has(candidate.game_mode) &&
+      isCompendiumEligibleMatch(candidate) &&
       isPlayerWin(candidate) &&
       endedInsideWindow({ ...input, match: candidate })
     );
@@ -179,8 +172,7 @@ export function scanCumulativeRankedWinStat(input: {
     if (
       !allowedHeroes.has(match.hero_id) ||
       typeof statValue !== "number" ||
-      !RANKED_LOBBY_TYPES.has(match.lobby_type) ||
-      !RANKED_GAME_MODES.has(match.game_mode) ||
+      !isCompendiumEligibleMatch(match) ||
       !isPlayerWin(match) ||
       !endedInsideWindow({ ...input, match })
     ) {
@@ -218,8 +210,7 @@ export function scanWinningBuildingDamage(input: {
   const wins: MatchingWin[] = [];
   for (const match of input.matches) {
     if (
-      !RANKED_LOBBY_TYPES.has(match.lobby_type) ||
-      !RANKED_GAME_MODES.has(match.game_mode) ||
+      !isCompendiumEligibleMatch(match) ||
       !isPlayerWin(match) ||
       !endedInsideWindow({ ...input, match })
     ) {

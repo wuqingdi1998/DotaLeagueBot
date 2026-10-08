@@ -63,6 +63,6 @@ export async function checkClanOuting(user: AuthUser, now = new Date()): Promise
   }
   throw new CompendiumError(
     "NO_MATCH",
-    "Победа в рейтинговой игре вместе с участником вашего клана пока не найдена.",
+    "Победа в рейтинговом или обычном All Pick матче вместе с участником вашего клана пока не найдена.",
   );
 }

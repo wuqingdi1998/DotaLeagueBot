@@ -213,7 +213,7 @@ export function RuneChallenge({
           <FiLock aria-hidden="true" />
           <div>
             <strong>Испытание появится при открытии компендиума</strong>
-            <p>Подписчик выбирает любимого героя и получает звёзды за победу на нём в рейтинговом матче. Героя можно сменить через 7 дней. В закрытой версии выбор и начисление звёзд недоступны.</p>
+            <p>Подписчик выбирает любимого героя и получает звёзды за победу на нём в рейтинговом или обычном All Pick матче. Героя можно сменить через 7 дней. В закрытой версии выбор и начисление звёзд недоступны.</p>
           </div>
         </div>
       ) : !challenge.hasAccess ? (
@@ -262,7 +262,7 @@ export function RuneChallenge({
                 </div>
               </div>
               <div className="compendium-rune-action">
-                <p>Победите в рейтинговом матче на выбранном герое после его выбора.</p>
+                <p>Победите в рейтинговом или обычном All Pick матче на выбранном герое после его выбора.</p>
                 {challenge.completion ? (
                   <div className="compendium-rune-completed-state">
                     <div className="compendium-completion" role="status">

@@ -40,7 +40,7 @@ export function OctoberClanOutingCard({
       </div>
       <h3>Клановая вылазка</h3>
       <p className="compendium-condition">
-        Выиграйте одну рейтинговую игру вместе с участником своего клана.
+        Выиграйте один рейтинговый или обычный All Pick матч вместе с участником своего клана.
       </p>
       {isNoteVisible && (
         <div className="october-clan-quest-note october-dismissible-guide">

@@ -32,7 +32,7 @@ export function DailyRerollNotice({
           <FiInfo aria-hidden="true" />
         </span>
         <p>
-          Учитываются только рейтинговые победы завершенные до{" "}
+          Учитываются победы в рейтинговых или обычных All Pick матчах, завершённые до{" "}
           <time dateTime="23:59" data-moscow-recurring-time>
             23:59 текущего дня по московскому времени
           </time>

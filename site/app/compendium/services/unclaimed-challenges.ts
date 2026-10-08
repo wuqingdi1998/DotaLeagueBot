@@ -108,7 +108,7 @@ function starRaceDetail(
       return `${groupedNumber(requirement.minimum)} ${label}`;
     }
     case "ranked-wins":
-      return `${progress} / ${requirement.requiredWins} рейтинговых побед`;
+      return `${progress} / ${requirement.requiredWins} побед`;
     case "arcana-equipped-ranked-win":
       return "Рейтинговая победа с Arcana";
     case "final-winner-prediction":

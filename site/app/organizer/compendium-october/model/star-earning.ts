@@ -92,7 +92,7 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
   {
     id: "clan-outing",
     title: "Клановая вылазка",
-    description: "Одержите одну рейтинговую победу в группе с участником своего клана. В пятницу, субботу и воскресенье каждый получает две звезды вместо одной.",
+    description: "Одержите одну победу в рейтинговом или обычном All Pick матче в группе с участником своего клана. В пятницу, субботу и воскресенье каждый получает две звезды вместо одной.",
     rewardDetails: dailyBonusRewardDetails,
     maxStars: dailyActivityStars,
   },

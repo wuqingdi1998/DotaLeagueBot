@@ -346,7 +346,7 @@ export async function checkStarRaceQuest(
         : `${quest.requirement.minimum} убийств`;
       throw new CompendiumError(
         "NO_MATCH",
-        `Пока не найден победный рейтинговый матч с результатом: ${target}.`,
+        `Пока не найден победный рейтинговый или обычный All Pick матч с результатом: ${target}.`,
       );
     }
     completion = await recordStarRaceCompletion({

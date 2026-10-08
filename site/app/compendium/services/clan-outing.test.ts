@@ -58,11 +58,16 @@ describe("October clan outing", () => {
     });
   });
 
-  it("awards both clan mates after a ranked win on the same team", async () => {
+  it.each([7, 0])("awards both clan mates after an October win in lobby %s", async (lobbyType) => {
+    const [match] = await mocks.recentMatches();
+    mocks.recentMatches.mockResolvedValue([{
+      ...match, lobby_type: lobbyType,
+      start_time: Date.parse("2026-10-08T10:00:00Z") / 1000,
+    }]);
     const result = await checkClanOuting({
       discordId: "1",
       dotaId: "101",
-    } as never, new Date("2026-10-05T12:00:00Z"));
+    } as never, new Date("2026-10-08T12:00:00Z"));
 
     expect(result.completion.partnerName).toBe("Clan mate");
     expect(mocks.recordPair).toHaveBeenCalledWith(expect.objectContaining({
