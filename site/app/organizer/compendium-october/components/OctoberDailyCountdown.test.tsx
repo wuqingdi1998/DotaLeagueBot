@@ -67,7 +67,8 @@ describe("shared October daily countdown", () => {
     expect(html.indexOf("До обновления испытаний")).toBeLessThan(html.indexOf("Испытание 1"));
     expect(html).not.toContain("compendium-rune-reset-countdown");
     expect(html).toContain("Герой выбирается на неделю (7 дней)");
-    expect(html).toContain("<strong>КАЖДЫЙ ДЕНЬ по одному разу</strong>");
+    expect(html).toContain("Выполнение доступно ежедневно и обновляется вместе с другими испытаниями раз в день в 00:00 МСК");
+    expect(html).not.toContain("КАЖДЫЙ ДЕНЬ");
     expect(html).toContain("09:00:00");
   });
 });
