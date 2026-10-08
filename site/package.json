@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "check": "npm run lint && npm run typecheck && npm run test && npm run build"
+    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx && node scripts/check-october-layout.mjs",
+    "check": "npm run lint && npm run typecheck && npm run test && npm run test:layout && npm run build"
   },
   "dependencies": {
     "jose": "^6.1.2",
@@ -35,6 +36,7 @@
     "eslint": "9.39.4",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.4.0",
+    "playwright": "^1.62.1",
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.71.0",

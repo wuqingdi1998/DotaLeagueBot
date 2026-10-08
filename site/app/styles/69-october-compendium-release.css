@@ -166,21 +166,33 @@
     align-items: stretch;
     flex: 0 0 auto;
     flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-    margin-bottom: 4px;
-    padding: 14px 18px;
+    gap: 8px;
+    margin-top: 8px;
+    margin-bottom: 0;
+    padding: 10px 14px;
   }
 
   .october-compendium-screen-daily .compendium-rune-heading h2 {
     margin: 0;
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .october-compendium-screen-daily .compendium-rune-content {
     width: 100%;
     margin-top: 0;
+    gap: 12px;
   }
+
+  .october-compendium-screen-daily .compendium-rune-action > p { margin-bottom: 8px; font-size: 13px; line-height: 1.35; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero { padding: 8px; gap: 10px; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero img { width: 116px; height: auto; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero strong { font-size: 19px; }
+  .october-compendium-screen-daily .compendium-rune-change-hero { padding-top: 8px; }
+  .october-compendium-screen-daily .compendium-rune-picker select,
+  .october-compendium-screen-daily .compendium-rune-picker > button { min-height: 36px; font-size: 14px; }
+  .october-compendium-screen-daily .compendium-rune-picker label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+  .october-compendium-screen-daily .compendium-completion { padding: 10px; }
+  .october-compendium-screen-daily .compendium-check-button { min-height: 36px; }
 
   .october-compendium-screen-daily .compendium-rune-first-selection {
     grid-template-columns: minmax(0, 0.85fr) minmax(460px, 1.15fr);
@@ -191,6 +203,8 @@
 
   .october-compendium-screen-daily .compendium-rune-first-selection > p {
     margin-top: 0;
+    font-size: 13px;
+    line-height: 1.35;
   }
 
   .october-compendium-screen-daily .compendium-rune-locked-message {

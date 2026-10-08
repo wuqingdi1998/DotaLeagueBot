@@ -47,6 +47,7 @@ jobs:
           go test ./...
           cd ../..
           npm ci
+          npx playwright install --with-deps chromium
           # Keep the security gate mandatory during temporary npm maintenance.
           npm audit --fetch-retries=20 \
             --fetch-retry-mintimeout=30000 \

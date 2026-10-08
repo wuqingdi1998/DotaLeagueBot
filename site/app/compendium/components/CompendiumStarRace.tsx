@@ -16,6 +16,7 @@ import {
 } from "react-icons/fi";
 import {
   keepGroupedNumbersTogether,
+  isOctoberFirstRaceWeek,
   STAR_RACE_EXCLUSION_RULES,
   starRaceQuestProgressLabel,
   type StarRaceData,
@@ -24,6 +25,7 @@ import {
 import { HeroChoice } from "./HeroChoice";
 import { StarRacePrizePreview } from "./StarRacePrizePreview";
 import { StarRaceFinalPrediction } from "./StarRaceFinalPrediction";
+import { StarRaceCompletionMatches } from "./StarRaceCompletionMatches";
 
 function countdownLabel(targetAt: string, currentTimeMs: number): string {
   const remaining = Math.max(0, new Date(targetAt).getTime() - currentTimeMs);
@@ -49,6 +51,7 @@ function StarRaceQuestCard({
   onCheck,
   isSubmittingPrediction,
   onSubmitPrediction,
+  compactCompletion,
 }: {
   quest: StarRaceQuest;
   countdown: string | null;
@@ -58,6 +61,7 @@ function StarRaceQuestCard({
   onCheck: (dateKey: string) => void;
   isSubmittingPrediction: boolean;
   onSubmitPrediction: (position: number) => void;
+  compactCompletion: boolean;
 }) {
   const isConfigured = Boolean(quest.title && quest.description);
   const progressLabel = starRaceQuestProgressLabel(quest);
@@ -117,7 +121,7 @@ function StarRaceQuestCard({
                   {quest.completion.isManual && (
                     <span>Засчитано организатором</span>
                   )}
-                  {quest.completion.wins.map((win) => (
+                  {compactCompletion ? <StarRaceCompletionMatches wins={quest.completion.wins} /> : quest.completion.wins.map((win) => (
                     <a
                       href={`https://www.opendota.com/matches/${win.matchId}`}
                       target="_blank"
@@ -152,7 +156,7 @@ function StarRaceQuestCard({
                 <span>
                   {quest.pendingVerification
                     ? "До проверки Arcana"
-                    : "До конца задания"}
+                    : compactCompletion ? "Осталось" : "До конца задания"}
                 </span>
                 <strong>{verificationCountdown ?? countdown}</strong>
               </div>
@@ -269,7 +273,7 @@ function StarRaceRulesList({
 }) {
   return (
     <ul>
-      <li>В зачёт входят звёзды за {race.dateLabel}.</li>
+      {!isOctoberFirstRaceWeek(race) && <li>В зачёт входят звёзды за {race.dateLabel}.</li>}
       {exclusionRules.map((rule) => <li key={rule}>{rule}</li>)}
       {isPreview && (
         <li>При равенстве звёзд выше тот, кто выполнил больше заданий гонки. Если равенство осталось, место определит жеребьёвка.</li>
@@ -407,6 +411,7 @@ export function CompendiumStarRace({
           <div className="compendium-star-race-quests">
             {race.quests.map((quest) => (
               <StarRaceQuestCard
+                compactCompletion={collapsibleRulesOnMobile}
                 key={quest.dateKey}
                 quest={quest}
                 countdown={quest.phase === "active" ? countdown : null}

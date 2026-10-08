@@ -45,9 +45,7 @@ export function OctoberClanOutingCard({
       {isNoteVisible && (
         <div className="october-clan-quest-note october-dismissible-guide">
           <p>
-            Задание закроется у обоих игроков: в субботу и воскресенье каждый получит
-            по две звезды, в остальные дни – по одной. Эту же победу можно одновременно засчитать
-            для испытания 1 или 2, если выполнены их условия.
+            Победа засчитывается обоим игрокам и может закрыть испытание 1 или 2.
           </p>
           <button type="button" aria-label="Скрыть пояснение к клановой вылазке" onClick={onDismissNote}>
             <FiX aria-hidden="true" />

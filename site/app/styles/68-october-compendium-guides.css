@@ -14,7 +14,7 @@
   margin-left: auto;
 }
 
-.october-daily-countdown { min-width: 0; max-width: 100%; }
+.october-daily-countdown { min-width: 0; max-width: 100%; padding: 12px 18px; border-radius: 18px; }
 .october-daily-countdown p {
   margin: 4px 0 0;
   color: var(--muted);
@@ -87,9 +87,17 @@
 }
 
 @media (min-width: 961px) and (min-height: 700px) {
+  .october-daily-countdown { max-width: 380px; padding: 8px 12px; border-radius: 18px; }
+  .october-daily-toolbar .compendium-section-status { gap: 12px; }
+  .october-daily-toolbar .compendium-weekend-bonus { gap: 6px; padding: 6px 10px; font-size: 12px; }
+  .october-daily-countdown .compendium-section-countdown { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .october-daily-countdown .compendium-section-countdown svg { grid-row: auto; }
+  .october-daily-countdown .compendium-section-countdown strong { margin-top: 0; }
+  .october-daily-countdown p { line-height: 1.3; }
+
   .october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest {
-    min-height: clamp(330px, 37vh, 365px);
-    padding: 16px;
+    min-height: 0;
+    padding: 12px;
   }
 
   .october-daily-section--expanded-guidance .compendium-quest-heading {
@@ -101,7 +109,7 @@
   }
 
   .october-daily-section--expanded-guidance .compendium-hero-portrait {
-    height: clamp(54px, 7vh, 68px);
+    height: clamp(40px, 5.5dvh, 64px);
     aspect-ratio: auto;
   }
 
@@ -135,7 +143,7 @@
 
   .october-daily-section--compact-guidance .compendium-quest-grid {
     min-height: 0;
-    flex: 0 0 auto;
+    flex: 1;
   }
 
   .october-daily-section--compact-guidance .october-clan-quest-emblem { min-height: 68px; }

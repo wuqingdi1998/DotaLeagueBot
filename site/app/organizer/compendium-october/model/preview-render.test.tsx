@@ -283,9 +283,9 @@ describe("October preview actions", () => {
     const html = renderToStaticMarkup(<OctoberClanOutingCard />);
     expect(html).toContain("Клановая вылазка");
     expect(html).toContain("Выиграйте один рейтинговый или обычный All Pick матч вместе с участником своего клана");
-    expect(html).toContain("каждый получит по две звезды");
+    expect(renderToStaticMarkup(<OctoberClanOutingCard rewardStars={2} />)).toContain("Награда: 2 звезды каждому");
     expect(html).toContain("Награда: 1 звезда каждому");
-    expect(html).toContain("одновременно засчитать для испытания 1 или 2");
+    expect(html).toContain("Победа засчитывается обоим игрокам и может закрыть испытание 1 или 2");
     expect(html).toMatch(/class="compendium-check-button"[^>]*disabled/);
   });
 
@@ -294,7 +294,7 @@ describe("October preview actions", () => {
     expect(html).toContain("aria-label=\"Вернуть пояснения к заданиям\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к заданиям дня\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к клановой вылазке\"");
-    expect(html).toContain("Для всех трёх заданий и Испытания Рун");
+    expect(html).toContain("все три задания и Испытание Рун приносят по две звезды вместо одной");
     expect(html.match(/aria-label="Награда: 2 звезды"/g)).toHaveLength(3); expect(html).toContain("compendium-weekend-bonus");
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
     expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");
@@ -370,13 +370,13 @@ describe("October preview actions", () => {
       /\.october-compendium-screen-race \.october-race-rules-mobile \{ display: none; \}/,
     );
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-hero-portrait \{\s*height: clamp\(56px, 8dvh, 80px\);/,
+      /\.october-compendium-screen-daily \.compendium-hero-portrait \{\s*height: clamp\(40px, 5.5dvh, 64px\);/,
     );
     expect(previewStyles).not.toContain("height: clamp(50px, 6vh, 70px)");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?flex: 1;[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 22px;/,
+      /\.october-compendium-screen-daily \.compendium-daily-section \{[\s\S]*?flex: 1;[\s\S]*?justify-content: center;[\s\S]*?padding-bottom: 12px;/,
     );
-    expect(previewStyles).toMatch(/\.october-compendium-screen-daily \{\s*height: auto;\s*min-height: calc\(100dvh - 76px\);\s*overflow: visible;/);
+    expect(previewStyles).not.toMatch(/\.october-compendium-screen-daily \{\s*height: auto;/);
     expect(guideStyles).toContain(".october-daily-section--expanded-guidance .compendium-quest-grid > .compendium-quest");
     expect(guideStyles).toMatch(/\.october-compendium-example-note\.october-dismissible-guide \{[^}]*grid-template-columns: minmax\(0, 1fr\) auto;/);
     expect(previewStyles).toMatch(
@@ -458,14 +458,14 @@ describe("October preview actions", () => {
     expect(previewStyles).toContain("min-height: clamp(300px, 38vh, 350px)");
     expect(previewStyles).toContain(".october-compendium-screen-race .compendium-star-race::before { display: none; }");
     expect(previewStyles).toMatch(
-      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 0 0 auto;[\s\S]*?justify-content: flex-start;/,
+      /\.october-compendium-screen-race \.compendium-star-race \{[\s\S]*?flex: 1;[\s\S]*?justify-content: flex-start;/,
     );
     expect(starRaceSource).toContain("отдельный недельный межклановый зачёт");
     expect(previewStyles).toMatch(
       /\.october-compendium-screen-race \.compendium-star-race-quest h3 \{\s*margin: 10px 0;/,
     );
     expect(guideStyles).toMatch(
-      /\.october-daily-section--compact-guidance \.compendium-quest-grid \{[^}]*flex: 0 0 auto;/,
+      /\.october-daily-section--compact-guidance \.compendium-quest-grid \{[^}]*flex: 1;/,
     );
     expect(routeStyles.indexOf("67-october-clan-standings.css"))
       .toBeGreaterThan(routeStyles.indexOf("66-october-compendium-screens.css"));

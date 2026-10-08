@@ -15,6 +15,7 @@ cd ../site
 npm run lint
 npm run typecheck
 npm run test
+npm run test:layout
 npm run build
 
 cd ..

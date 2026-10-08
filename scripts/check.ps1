@@ -33,6 +33,7 @@ try {
     Invoke-CheckedCommand npm run lint
     Invoke-CheckedCommand npm run typecheck
     Invoke-CheckedCommand npm run test
+    Invoke-CheckedCommand npm run test:layout
     Invoke-CheckedCommand npm run build
 }
 finally {

@@ -1,0 +1,97 @@
+@media (min-width: 961px) and (max-width: 1400px) and (min-height: 700px) {
+  .october-compendium-screen-race .compendium-star-race { padding: 12px; }
+  .october-compendium-screen-race .compendium-star-race-summary { gap: 8px; }
+  .october-compendium-screen-race .compendium-star-race-counter strong { font-size: 22px; line-height: 1.1; }
+  .october-compendium-screen-race .compendium-star-race-prize { padding: 8px; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+  .october-compendium-screen-race .compendium-star-race-prize > svg:first-of-type { width: 28px; height: 28px; padding: 5px; }
+  .october-compendium-screen-race .compendium-star-race-prize-name > strong { font-size: 12px; }
+  .october-compendium-screen-race .compendium-star-race-summary span { font-size: 11px; }
+  .october-compendium-screen-race .compendium-star-race-rules { grid-template-columns: 24px minmax(0, 1fr); gap: 6px; padding: 8px; }
+  .october-compendium-screen-race .compendium-star-race-rules > svg { width: 24px; height: 24px; padding: 4px; }
+  .october-compendium-screen-race .compendium-star-race-rules ul { font-size: 12px; }
+  .october-compendium-screen-race .compendium-star-race-quest { padding: 8px; }
+  .october-compendium-screen-race .compendium-star-race-quest h3 { font-size: 16px; margin: 5px 0; }
+  .october-compendium-screen-race .compendium-star-race-quest > p { font-size: 12px; line-height: 1.3; }
+  .october-compendium-screen-race .compendium-star-race-heroes .compendium-hero-portrait { height: 24px; }
+  .october-compendium-screen-race .compendium-star-race-progress { padding: 6px; }
+  .october-compendium-screen-race .compendium-star-race-progress > strong { font-size: 12px; }
+  .october-compendium-screen-race .compendium-star-race-progress > span:first-child { line-height: 1.2; }
+  .october-compendium-screen-race .compendium-star-race-reward { padding: 5px 7px; font-size: 12px; }
+  .october-compendium-screen-race .compendium-star-race-quest > header strong { font-size: 12px; }
+  .october-compendium-screen-race .compendium-star-race-quest > header span { font-size: 10px; letter-spacing: 0; }
+  .october-compendium-screen-race .compendium-star-race-heroes .compendium-hero strong { margin-top: 3px; line-height: 1.1; }
+  .october-compendium-screen-race .compendium-star-race-completion { gap: 4px; font-size: 12px; }
+  .october-compendium-screen-race .compendium-star-race-action { padding-top: 4px; gap: 4px; }
+  .october-compendium-screen-race .compendium-star-race-countdown { grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 3px; font-size: 10px; line-height: 1.2; }
+  .october-compendium-screen-race .compendium-star-race-countdown svg { display: none; }
+  .october-compendium-screen-race .compendium-star-race-countdown strong { font-size: 13px; }
+
+  .october-compendium-screen-daily .compendium-section-heading h2 { font-size: 26px; }
+  .october-compendium-screen-daily .compendium-quest-grid { gap: 10px; }
+  .october-compendium-screen-daily .compendium-quest-grid > .compendium-quest { padding: 10px; }
+  .october-compendium-screen-daily .compendium-quest-heading h2 { font-size: 18px; }
+  .october-compendium-screen-daily .compendium-quest-heading span { letter-spacing: 0; font-size: 10px; }
+  .october-compendium-screen-daily .compendium-reward { padding: 6px 8px; font-size: 14px; }
+  .october-compendium-screen-daily .compendium-reroll-button { width: 30px; height: 30px; }
+  .october-compendium-screen-daily .compendium-hero-portrait { height: 28px; }
+  .october-compendium-screen-daily .compendium-hero strong { font-size: 11px; }
+  .october-compendium-screen-daily .compendium-condition { margin-block: 6px 8px; font-size: 13px; line-height: 1.3; }
+  .october-compendium-screen-daily .october-clan-quest-emblem { min-height: 32px; }
+  .october-compendium-screen-daily .october-clan-quest-emblem svg { width: 28px; height: 28px; }
+  .october-compendium-screen-daily .october-clan-quest h3 { margin: 6px 0 4px; font-size: 18px; }
+  .october-compendium-screen-daily .october-clan-quest-note { font-size: 12px; }
+  .october-compendium-screen-daily .compendium-completion { min-height: 60px; padding: 8px; gap: 8px; font-size: 13px; }
+  .october-compendium-screen-daily .compendium-checkmark { flex-basis: 30px; height: 30px; }
+  .october-compendium-screen-daily .compendium-rune-content { grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr); }
+  .october-compendium-screen-daily .compendium-rune-selected-hero img { width: 64px; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero strong { font-size: 17px; }
+  .october-compendium-screen-daily .compendium-rune-selected-hero small { font-size: 12px; }
+  .october-compendium-screen-daily .compendium-rune-action > p { margin-top: 0; }
+  .october-compendium-screen-daily .october-clan-quest-note:last-of-type { margin-bottom: 4px; }
+  .october-compendium-screen-daily .october-clan-quest-note.october-dismissible-guide > button { top: 0; }
+  .october-compendium-screen-daily .october-daily-countdown { padding: 6px 10px; }
+  .october-compendium-screen-daily .october-daily-countdown p { font-size: 12px; line-height: 1.2; }
+}
+
+.october-race-matches-button {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--blue-strong);
+  font: inherit;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.october-race-matches-popover {
+  width: min(420px, calc(100vw - 32px));
+  max-height: 80dvh;
+  margin: auto;
+  padding: 20px;
+  overflow: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: 18px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+.october-race-matches-popover::backdrop { background: rgba(0, 0, 0, 0.45); }
+.october-race-matches-popover > strong { display: block; margin-bottom: 12px; }
+.compendium-star-race-completion .october-race-matches-popover a { display: flex; margin-top: 10px; font-size: 14px; }
+
+@media (min-width: 961px) and (max-width: 1180px) and (min-height: 700px) {
+  .october-compendium-screen-race .compendium-star-race-quest h3 { font-size: 14px; }
+  .october-compendium-screen-race .compendium-star-race-quest > header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px; }
+  .october-compendium-screen-race .compendium-star-race-quest > header > div { display: contents; }
+  .october-compendium-screen-race .compendium-star-race-quest > header > div > span { grid-column: 1 / -1; }
+  .october-compendium-screen-race .compendium-star-race-quest > header strong { font-size: 11px; }
+  .october-compendium-screen-race .compendium-star-race-reward { grid-row: 2; grid-column: 2; padding: 3px 5px; }
+  .october-compendium-screen-race .compendium-star-race-prize { grid-template-columns: minmax(0, 1fr); }
+  .october-compendium-screen-race .compendium-star-race-prize > svg:first-of-type { display: none; }
+  .october-compendium-screen-race .compendium-star-race-prize-label,
+  .october-compendium-screen-race .compendium-star-race-prize-name { grid-column: 1; }
+  .october-compendium-screen-race .compendium-star-race-completion { position: relative; padding-left: 0; }
+  .october-compendium-screen-race .compendium-star-race-completion > svg { display: none; }
+}

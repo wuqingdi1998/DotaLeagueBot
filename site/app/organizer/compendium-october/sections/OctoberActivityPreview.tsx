@@ -250,12 +250,11 @@ export function OctoberDailyPreview({
       {isOverviewVisible && (
         <div className="october-compendium-example-note october-dismissible-guide">
           <p>
-            Каждый день – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и одна
-            клановая вылазка. Для всех трёх заданий и Испытания Рун действует бонус выходного дня:
-            в субботу и воскресенье даётся две звезды вместо одной. Клановая вылазка может
-            закрыться одновременно с испытанием 1 или 2. После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступно две
-            замены заданий в день, после {OCTOBER_REWARD_STARS.secondReroll} – три.
-            {isOpen && " Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника."}
+            Ежедневно – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и клановая вылазка.
+            В субботу и воскресенье все три задания и Испытание Рун приносят по две звезды вместо одной.
+            После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступны две замены заданий в день,
+            после {OCTOBER_REWARD_STARS.secondReroll} – три.
+            {isOpen && !isLive && " Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника."}
           </p>
           <button
             type="button"
