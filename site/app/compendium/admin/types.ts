@@ -132,6 +132,8 @@ export type CompendiumPredictionRewardHistory = {
 };
 
 export type CompendiumRuneRewardHistory = {
+  isManual?: boolean;
+  administratorName?: string;
   kind: "rune";
   id: string;
   dateKey: string;
@@ -143,6 +145,7 @@ export type CompendiumRuneRewardHistory = {
 };
 
 export type CompendiumStarRaceRewardHistory = {
+  manualMatchIds?: string[];
   kind: "star_race";
   id: string;
   dateKey: string;
@@ -158,6 +161,8 @@ export type CompendiumStarRaceRewardHistory = {
 };
 
 export type CompendiumClanOutingRewardHistory = {
+  isManual?: boolean;
+  administratorName?: string;
   kind: "clan_outing";
   id: string;
   dateKey: string;

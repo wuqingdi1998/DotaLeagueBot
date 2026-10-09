@@ -1,232 +1,97 @@
 "use client";
-
-import { fetchSiteRequest } from "@/lib/site-request";
-
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa";
-import { FiCheck, FiLoader } from "react-icons/fi";
-import type {
-  CompendiumAdminCurrentQuest,
-  CompendiumAdminCurrentStarRaceQuest,
-  CompendiumAdminParticipantSummary,
-} from "./types";
+import { fetchSiteRequest } from "@/lib/site-request";
+import type { CompendiumAdminParticipantSummary } from "./types";
+import type { HistoricalChallenge, HistoricalChallenges } from "./challenge-history-types";
+import { ManualChallengeForm } from "./ManualChallengeForm";
 
-type CompletionTarget =
-  | { kind: "daily"; questId: string }
-  | { kind: "star_race"; dateKey: string };
-
-function ManualCompletionButton({
-  isCompleted,
-  isManual,
-  isLoading,
-  onClick,
-}: {
-  isCompleted: boolean;
-  isManual: boolean;
-  isLoading: boolean;
-  onClick: () => void;
-}) {
-  if (isCompleted) {
-    return (
-      <span className="compendium-base-current-completed">
-        <FiCheck aria-hidden="true" />
-        {isManual ? "Засчитано вручную" : "Уже выполнено"}
-      </span>
-    );
-  }
-  return (
-    <button
-      className="compendium-base-manual-complete"
-      type="button"
-      disabled={isLoading}
-      onClick={onClick}
-    >
-      {isLoading ? (
-        <><FiLoader className="compendium-spinner" aria-hidden="true" /> Засчитываем…</>
-      ) : (
-        "Засчитать вручную"
-      )}
-    </button>
-  );
-}
-
-function DailyQuestCard({
-  quest,
-  isLoading,
-  onComplete,
-}: {
-  quest: CompendiumAdminCurrentQuest;
-  isLoading: boolean;
-  onComplete: () => void;
-}) {
-  return (
-    <article className="compendium-base-current-card">
-      <div className="compendium-base-current-card-heading">
-        <strong>Испытание {quest.position}</strong>
-        <span><FaStar aria-hidden="true" /> {quest.rewardStars}</span>
-      </div>
-      <div className="compendium-base-current-heroes">
-        {quest.heroes.map((hero) => (
-          <Image
-            key={hero.id}
-            src={hero.imageUrl}
-            alt={hero.name}
-            title={hero.name}
-            width={64}
-            height={36}
-            unoptimized
-          />
-        ))}
-      </div>
-      <ManualCompletionButton
-        isCompleted={quest.isCompleted}
-        isManual={quest.isManual}
-        isLoading={isLoading}
-        onClick={onComplete}
-      />
-    </article>
-  );
-}
-
-function StarRaceQuestCard({
-  quest,
-  isLoading,
-  onComplete,
-}: {
-  quest: CompendiumAdminCurrentStarRaceQuest;
-  isLoading: boolean;
-  onComplete: () => void;
-}) {
-  return (
-    <article className="compendium-base-current-card compendium-base-race-card">
-      <div className="compendium-base-current-card-heading">
-        <strong>Испытание гонки · {quest.title}</strong>
-        <span><FaStar aria-hidden="true" /> {quest.rewardStars}</span>
-      </div>
-      <p>{quest.description}</p>
-      {quest.heroes.length > 0 && (
-        <div className="compendium-base-current-heroes">
-          {quest.heroes.map((hero) => (
-            <Image
-              key={hero.id}
-              src={hero.imageUrl}
-              alt={hero.name}
-              title={hero.name}
-              width={64}
-              height={36}
-              unoptimized
-            />
-          ))}
-        </div>
-      )}
-      <ManualCompletionButton
-        isCompleted={quest.isCompleted}
-        isManual={quest.isManual}
-        isLoading={isLoading}
-        onClick={onComplete}
-      />
-    </article>
-  );
-}
-
-export function CurrentQuestCards({
-  participant,
-  onReward,
-}: {
+export function CurrentQuestCards({ participant, onReward, initialDay }: {
   participant: CompendiumAdminParticipantSummary;
   onReward: (rewardStars: number) => void | Promise<void>;
+  initialDay?: HistoricalChallenges;
 }) {
-  const [dailyQuests, setDailyQuests] = useState(participant.currentQuests);
-  const [raceQuests, setRaceQuests] = useState(
-    participant.currentStarRaceQuests,
-  );
-  const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const [day, setDay] = useState<HistoricalChallenges | null>(initialDay ?? null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [target, setTarget] = useState<HistoricalChallenge | null>(null);
+  const [isLoading, setIsLoading] = useState(!initialDay);
+  const [isPending, setIsPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
+  const endpoint = `/api/admin/compendium-base/participants/${participant.discordId}`;
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsLoading(true);
+    fetchSiteRequest(`${endpoint}/challenges${selectedDate ? `?date=${selectedDate}` : ""}`, { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => {
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error ?? "Не удалось загрузить испытания");
+        if (!controller.signal.aborted) setDay(result);
+      })
+      .catch((error) => { if (!controller.signal.aborted) setMessage(error.message); })
+      .finally(() => { if (!controller.signal.aborted) setIsLoading(false); });
+    return () => controller.abort();
+  }, [endpoint, selectedDate, reload]);
 
-  async function complete(target: CompletionTarget) {
-    const key = target.kind === "daily" ? target.questId : target.dateKey;
-    setPendingKey(key);
+  async function complete(details: { matchIds: string[]; heroId?: number; partnerPlayerId?: string }) {
+    if (!target || !day) return;
+    setIsPending(true);
     setMessage(null);
     try {
-      const response = await fetchSiteRequest(
-        `/api/admin/compendium-base/participants/${participant.discordId}/complete`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(target),
-        },
-      );
-      const result = (await response.json().catch(() => ({}))) as {
-        error?: string;
-        rewardStars?: number;
-        wasCreated?: boolean;
-      };
-      if (!response.ok || typeof result.rewardStars !== "number") {
-        throw new Error(result.error ?? "Не удалось засчитать испытание");
-      }
-      if (target.kind === "daily") {
-        setDailyQuests((quests) => quests.map((quest) =>
-          quest.id === target.questId
-            ? { ...quest, isCompleted: true, isManual: true }
-            : quest
-        ));
-      } else {
-        setRaceQuests((quests) => quests.map((quest) =>
-          quest.dateKey === target.dateKey
-            ? { ...quest, isCompleted: true, isManual: true }
-            : quest
-        ));
-      }
+      const response = await fetchSiteRequest(`${endpoint}/complete`, {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ kind: target.kind, questId: target.id, dateKey: day.dateKey, ...details }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "Не удалось засчитать испытание");
       if (result.wasCreated) await onReward(result.rewardStars);
-      setMessage(
-        result.wasCreated
-          ? `Начислено звёзд: ${result.rewardStars}`
-          : "Испытание уже было выполнено ранее",
-      );
+      setMessage(result.wasCreated ? `Начислено звёзд: ${result.rewardStars}` : "Испытание уже было выполнено ранее");
+      setTarget(null);
+      setReload((value) => value + 1);
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Не удалось засчитать испытание",
-      );
-    } finally {
-      setPendingKey(null);
-    }
+      setMessage(error instanceof Error ? error.message : "Не удалось засчитать испытание");
+    } finally { setIsPending(false); }
   }
 
-  return (
-    <section className="compendium-base-current-quests">
-      <div className="compendium-base-current-heading">
-        <strong>Текущие испытания</strong>
-        <span>Обычные карточки и активное задание гонки</span>
+  return <section className="compendium-base-current-quests">
+    <div className="compendium-base-current-heading">
+      <strong>Испытания по датам</strong>
+      {day && <label className="compendium-base-date-picker">Дата испытаний (МСК)
+        <select value={selectedDate || day.dateKey} disabled={isPending} onChange={(event) => {
+          setSelectedDate(event.target.value); setTarget(null); setMessage(null);
+        }}>
+          {day.dates.map((date) => <option key={date.dateKey} value={date.dateKey}>{date.label}</option>)}
+        </select>
+      </label>}
+    </div>
+    {isLoading ? <p role="status">Загружаем испытания…</p> : day && (!selectedDate || day.dateKey === selectedDate) && <>
+      {day.challenges.filter((card) => card.kind === "daily").length < 2 &&
+        <p className="compendium-base-empty-current">За эту дату не сохранены все задания с героями. Новые случайные задания вместо прошлых не создаются.</p>}
+      <div className="compendium-base-current-grid">
+        {day.challenges.map((card) => <article key={`${card.kind}:${card.id}`}
+          className={`compendium-base-current-card${card.kind === "star_race" ? " compendium-base-race-card" : ""}`}>
+          <div className="compendium-base-current-card-heading">
+            <strong>{card.title}</strong><span><FaStar aria-hidden="true" /> {card.rewardStars}</span>
+          </div>
+          {card.heroes.length > 0 && <div className="compendium-base-current-heroes">
+            {card.heroes.map((hero) => <Image key={hero.id} src={hero.imageUrl} alt={hero.name} title={hero.name}
+              width={64} height={36} unoptimized />)}
+          </div>}
+          <p className="compendium-base-challenge-description">{card.description}</p>
+          {card.isCompleted ? <span className="compendium-base-current-completed">
+            {card.isManual ? "Засчитано вручную" : "Уже выполнено"}
+          </span> : card.unavailableReason ? <p className="compendium-base-empty-current">{card.unavailableReason}</p>
+            : <button type="button" className="compendium-base-manual-complete" disabled={isPending}
+              onClick={() => setTarget(card)}>Засчитать вручную</button>}
+          {target?.id === card.id && target.kind === card.kind && <ManualChallengeForm key={`${day.dateKey}:${card.kind}:${card.id}`}
+            card={card} clanMates={day.clanMates} isPending={isPending} onSave={(details) => void complete(details)}
+            onCancel={() => setTarget(null)} />}
+        </article>)}
       </div>
-      {dailyQuests.length || raceQuests.length ? (
-        <div className="compendium-base-current-grid">
-          {dailyQuests.map((quest) => (
-            <DailyQuestCard
-              quest={quest}
-              isLoading={pendingKey === quest.id}
-              onComplete={() => void complete({ kind: "daily", questId: quest.id })}
-              key={quest.id}
-            />
-          ))}
-          {raceQuests.map((quest) => (
-            <StarRaceQuestCard
-              quest={quest}
-              isLoading={pendingKey === quest.dateKey}
-              onComplete={() => void complete({
-                kind: "star_race",
-                dateKey: quest.dateKey,
-              })}
-              key={quest.dateKey}
-            />
-          ))}
-        </div>
-      ) : (
-        <p className="compendium-base-empty-current">
-          Активных испытаний сейчас нет.
-        </p>
-      )}
-      {message && <p className="compendium-base-manual-message" role="status">{message}</p>}
-    </section>
-  );
+    </>}
+    {message && <p className="compendium-base-manual-message" role="status">{message}</p>}
+    {!isLoading && (!day || (selectedDate && day.dateKey !== selectedDate)) &&
+      <button type="button" className="compendium-base-manual-complete" onClick={() => setReload((value) => value + 1)}>Повторить загрузку</button>}
+  </section>;
 }

@@ -35,6 +35,7 @@ function RuneRewardHistoryItem({
         <div>
           <span>{reward.dateLabel}</span>
           <strong>Испытание Рун: {reward.hero.name}</strong>
+          {reward.isManual && <small>Засчитано вручную: {reward.administratorName}</small>}
         </div>
         <span className="compendium-base-reward-value">
           <FaStar aria-hidden="true" /> +{reward.rewardAmount}
@@ -94,6 +95,10 @@ function StarRaceRewardHistoryItem({
         <small>Засчитано вручную: {reward.administratorName}</small>
       )}
       <div className="compendium-base-heroes" aria-label="Победы в задании гонки">
+        {reward.manualMatchIds?.map((matchId) => (
+          <a className="compendium-base-match-link" key={matchId} href={`https://www.opendota.com/matches/${matchId}`}
+            target="_blank" rel="noreferrer">Матч {matchId}<FiExternalLink aria-hidden="true" /></a>
+        ))}
         {reward.wins.map((win) => (
           <a
             className="compendium-base-match-link"
@@ -154,6 +159,7 @@ function QuestRewardHistoryItem({
       ) : (
         <small>Засчитано вручную: {reward.administratorName}</small>
       )}
+      {reward.isManual && reward.matchedMatchId && <small>Засчитано вручную: {reward.administratorName}</small>}
     </article>
   );
 }
@@ -194,6 +200,7 @@ function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
           <div><span>{reward.dateLabel}</span><strong>Клановая вылазка с {reward.partnerName}</strong></div>
           <span className="compendium-base-reward-value"><FaStar aria-hidden="true" /> +{reward.rewardAmount}</span>
         </div>
+        {reward.isManual && <small>Засчитано вручную: {reward.administratorName}</small>}
         <a className="compendium-base-match-link" href={`https://www.opendota.com/matches/${reward.matchedMatchId}`} target="_blank" rel="noreferrer">
           Матч {reward.matchedMatchId} <FiExternalLink aria-hidden="true" />
         </a>
@@ -224,6 +231,7 @@ function ParticipantHistory({
   const [rewards, setRewards] = useState<CompendiumRewardHistory[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [totalStars, setTotalStars] = useState(participant.totalStars);
   const [rewardCount, setRewardCount] = useState(participant.rewardCount);
   const router = useRouter();
@@ -257,6 +265,7 @@ function ParticipantHistory({
     <details
       className="compendium-base-participant"
       onToggle={(event: SyntheticEvent<HTMLDetailsElement>) => {
+        setIsExpanded(event.currentTarget.open);
         if (event.currentTarget.open) void loadHistory();
       }}
     >
@@ -293,7 +302,7 @@ function ParticipantHistory({
         <FiChevronDown className="compendium-base-chevron" aria-hidden="true" />
       </summary>
       <div className="compendium-base-history">
-        <CurrentQuestCards
+        {isExpanded && <CurrentQuestCards
           participant={participant}
           onReward={async (rewardStars) => {
             setTotalStars((total) => total + rewardStars);
@@ -301,7 +310,7 @@ function ParticipantHistory({
             if (rewards) await loadHistory(true);
             router.refresh();
           }}
-        />
+        />}
         {isLoading ? (
           <p className="compendium-base-history-message" role="status">
             Загружаем историю…

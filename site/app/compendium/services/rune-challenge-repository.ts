@@ -29,6 +29,7 @@ type SelectionRow = {
 };
 
 type CompletionRow = {
+  is_manual?: boolean;
   hero_id: number;
   matched_match_id: string;
   completed_at: Date;
@@ -48,7 +49,7 @@ function completionFromRow(row: CompletionRow): QuestCompletion {
     matchedHeroId: row.hero_id,
     matchedMatchId: row.matched_match_id,
     completedAt: row.completed_at.toISOString(),
-    isManual: false,
+    isManual: row.is_manual ?? false,
   };
 }
 
@@ -107,8 +108,9 @@ export async function loadRuneChallengeCompletion(
   dateKey: string,
 ): Promise<QuestCompletion | null> {
   const row = await one<CompletionRow>(
-    `SELECT hero_id, matched_match_id::text, completed_at
-     FROM ${runeChallengeTablesForDate(dateKey).completions}
+    `SELECT hero_id, matched_match_id::text, completed_at,
+       COALESCE(to_jsonb(completion)->>'completion_source', 'automatic') = 'manual' AS is_manual
+     FROM ${runeChallengeTablesForDate(dateKey).completions} completion
      WHERE player_id = $1 AND moscow_date = $2::date`,
     [playerId, dateKey],
   );

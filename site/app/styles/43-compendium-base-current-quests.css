@@ -133,6 +133,39 @@
   font-size: 12px;
 }
 
+.compendium-base-date-picker,
+.compendium-base-manual-form,
+.compendium-base-manual-form label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+.compendium-base-date-picker select,
+.compendium-base-manual-form input,
+.compendium-base-manual-form select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.compendium-base-manual-form {
+  margin-top: 12px;
+}
+
+.compendium-base-manual-form p,
+.compendium-base-challenge-description {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 @media (max-width: 720px) {
   .compendium-base-current-heading {
     align-items: flex-start;

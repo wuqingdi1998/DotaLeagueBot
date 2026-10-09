@@ -42,7 +42,7 @@ describe("manual compendium challenge completion", () => {
     expect(baseRepository).toContain("BONUS_QUEST_STAR_THRESHOLD");
     expect(baseRepository).toContain("currentStarRaceQuests");
     expect(baseView).toContain("Засчитать вручную");
-    expect(baseView).toContain("Испытание гонки");
+    expect(baseView).toContain("Испытания по датам");
   });
 
   it("shows manual completion without a fake match link", () => {

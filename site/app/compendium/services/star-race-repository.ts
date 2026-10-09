@@ -84,7 +84,8 @@ const completionSelect = `
     completion.id::text AS completion_id,
     completion.moscow_date::text,
     completion.completed_at,
-    completion.completed_manually_by IS NOT NULL AS is_manual,
+    completion.completed_manually_by IS NOT NULL
+      OR COALESCE(to_jsonb(completion)->>'completion_source', 'automatic') = 'manual' AS is_manual,
     completion.match_evidence_complete,
     win.hero_id,
     win.matched_match_id::text
