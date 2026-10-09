@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
 import {
   OCTOBER_LEAGUE_REWARD_STARS,
   OCTOBER_LEAGUE_ROUND_NUMBERS,
@@ -19,8 +20,10 @@ export async function syncOctoberLeagueMatchStars(
          AND match.status = 'completed'
          AND tournament.slug = 'league-season-9'
          AND round.round_number = ANY($2::smallint[])
+         AND CURRENT_TIMESTAMP >= $3::timestamptz
+         AND CURRENT_TIMESTAMP < $4::timestamptz
      ) AS is_eligible`,
-    [seasonMatchId, OCTOBER_LEAGUE_ROUND_NUMBERS],
+    [seasonMatchId, OCTOBER_LEAGUE_ROUND_NUMBERS, OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT],
   );
   if (!eligibility.rows[0]?.is_eligible) return;
 
@@ -38,12 +41,12 @@ export async function syncOctoberLeagueMatchStars(
          WHEN CASE participant.team_side
            WHEN 'a' THEN match.team_a_score
            ELSE match.team_b_score
-         END >= 2 THEN $4
+         END >= 2 THEN $4::smallint
          WHEN CASE participant.team_side
            WHEN 'a' THEN match.team_a_score
            ELSE match.team_b_score
-         END = 1 THEN $3
-         ELSE $2
+         END = 1 THEN $3::smallint
+         ELSE $2::smallint
        END,
        0,
        'Система · Лига 9',
@@ -53,6 +56,11 @@ export async function syncOctoberLeagueMatchStars(
      JOIN season_match_room_players participant ON participant.match_id = match.id
      WHERE match.id = $1
        AND match.status = 'completed'
+       AND EXISTS (
+         SELECT 1 FROM october_compendium_clan_members member
+         WHERE member.player_id = participant.player_id
+       )
+       AND compendium_stars_count_for_player(participant.player_id, NOW())
        AND NOT EXISTS (
          SELECT 1
          FROM player_discord_roles role

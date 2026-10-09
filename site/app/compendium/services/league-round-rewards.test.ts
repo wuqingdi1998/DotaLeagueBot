@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { syncOctoberLeagueMatchStars } from "./league-round-rewards";
+import { OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
 
 describe("October league round rewards", () => {
   it("awards 1, 3 or 6 stars once per eligible season-nine match", async () => {
@@ -15,9 +16,9 @@ describe("October league round rewards", () => {
     const [sql, parameters] = query.mock.calls[1];
     expect(eligibilitySql).toContain("tournament.slug = 'league-season-9'");
     expect(eligibilitySql).toContain("round.round_number = ANY($2::smallint[])");
-    expect(eligibilityParameters).toEqual([42, [6, 7, 8]]);
-    expect(sql).toContain("END = 1 THEN $3");
-    expect(sql).toContain("END >= 2 THEN $4");
+    expect(eligibilityParameters).toEqual([42, [6, 7, 8], OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT]);
+    expect(sql).toContain("END = 1 THEN $3::smallint");
+    expect(sql).toContain("END >= 2 THEN $4::smallint");
     expect(sql).toContain("role.role_name = 'Массовка'");
     expect(sql).toContain("ON CONFLICT (player_id, season_match_id)");
     expect(sql).toContain("DO UPDATE SET amount = EXCLUDED.amount");
