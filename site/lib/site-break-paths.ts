@@ -7,6 +7,7 @@ const siteBreakBypassPaths = new Set([
   "/api/auth/callback",
   "/api/auth/organizer",
   "/api/auth/logout",
+  "/api/internal/compendium/verification-retries",
 ]);
 
 export function isSiteBreakBypassPath(pathname: string): boolean {

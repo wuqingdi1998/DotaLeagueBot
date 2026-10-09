@@ -11,6 +11,7 @@ describe("site break path boundaries", () => {
     expect(isSiteBreakBypassPath("/api/auth/callback")).toBe(true);
     expect(isSiteBreakBypassPath("/api/auth/organizer")).toBe(true);
     expect(isSiteBreakBypassPath("/api/auth/logout")).toBe(true);
+    expect(isSiteBreakBypassPath("/api/internal/compendium/verification-retries")).toBe(true);
   });
 
   it("does not bypass public pages or ordinary APIs", () => {
@@ -19,5 +20,6 @@ describe("site break path boundaries", () => {
     expect(isSiteBreakBypassPath("/fearless-draft")).toBe(false);
     expect(isSiteBreakBypassPath("/api/tournaments")).toBe(false);
     expect(isSiteBreakBypassPath("/api/fearless-draft")).toBe(false);
+    expect(isSiteBreakBypassPath("/api/admin/compendium-base/verification-requests")).toBe(false);
   });
 });

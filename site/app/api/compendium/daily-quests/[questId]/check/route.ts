@@ -1,4 +1,5 @@
 import { checkDailyQuest } from "@/app/compendium/services/compendium";
+import { trackCompendiumVerification } from "@/app/compendium/services/tracked-verification";
 import { requireCompendiumParticipantSession } from "@/app/compendium/services/participant-access";
 import { responseFromCompendiumError } from "@/app/api/compendium/compendium-error-response";
 
@@ -16,7 +17,7 @@ export async function POST(
     }
     return Response.json({
       ok: true,
-      ...(await checkDailyQuest(user, questId)),
+      ...(await trackCompendiumVerification(user, "daily", questId, () => checkDailyQuest(user, questId))),
     });
   } catch (error) {
     return responseFromCompendiumError(error);

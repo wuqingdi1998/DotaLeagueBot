@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
+import { moscowDayBounds } from "../model/time";
 
 export type ClanOutingCompletion = {
   matchId: string;
@@ -70,11 +71,12 @@ async function insertCompletion(client: PoolClient, input: {
 }): Promise<boolean> {
   const inserted = await client.query(
     `INSERT INTO october_compendium_clan_outing_completions
-       (player_id, partner_player_id, moscow_date, matched_match_id, reward_amount)
-     VALUES ($1, $2, $3::date, $4, $5)
+       (player_id, partner_player_id, moscow_date, matched_match_id, reward_amount, completed_at)
+     VALUES ($1, $2, $3::date, $4, $5, $6::timestamptz)
      ON CONFLICT (player_id, moscow_date) DO NOTHING
      RETURNING player_id`,
-    [input.playerId, input.partnerPlayerId, input.dateKey, input.matchId, input.rewardStars],
+    [input.playerId, input.partnerPlayerId, input.dateKey, input.matchId, input.rewardStars,
+      new Date(Math.min(Date.now(), moscowDayBounds(input.dateKey).end.getTime() - 1)).toISOString()],
   );
   if (inserted.rowCount) {
     await client.query(

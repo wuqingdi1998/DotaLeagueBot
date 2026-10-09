@@ -23,6 +23,7 @@ import type {
 } from "./types";
 import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
 import { CurrentQuestCards } from "./CurrentQuestCards";
+import { VerificationQueue } from "./VerificationQueue";
 
 function RuneRewardHistoryItem({
   reward,
@@ -372,6 +373,7 @@ export function CompendiumBase({
       </section>
 
       <CompendiumStarRaceArchive races={starRaceArchive} />
+      <VerificationQueue />
 
       <section className="compendium-base-list">
         <div className="compendium-base-list-heading">

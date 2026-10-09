@@ -32,7 +32,7 @@ try {
           const section = document.querySelector(".october-compendium-screen");
           if (!section) {
             if (document.documentElement.scrollWidth > innerWidth) issues.push("results page overflows horizontally");
-            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-race-result")) {
+            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-race-result,.compendium-verification-requests article")) {
               if (element.scrollWidth > element.clientWidth + 2) issues.push("result card clips content");
             }
             return issues;
@@ -87,7 +87,7 @@ try {
           await page.screenshot({ path: fileURLToPath(new URL(`race-evidence-${width}.png`, screenshots)), fullPage: true });
           await page.keyboard.press("Escape");
         }
-        if (["race-0-4", "daily-completed-compact", "daily-change-guidance"].includes(fixture) && [1900, 1366, 393].includes(width)) {
+        if (["race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue"].includes(fixture) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
         if (fixture.startsWith("results-") && [1900, 393].includes(width)) {

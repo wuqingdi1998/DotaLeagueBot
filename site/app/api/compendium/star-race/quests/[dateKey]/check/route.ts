@@ -1,6 +1,7 @@
 import { requireCompendiumParticipantSession } from "@/app/compendium/services/participant-access";
 import { responseFromCompendiumError } from "@/app/api/compendium/compendium-error-response";
 import { checkStarRaceQuest } from "@/app/compendium/services/star-race";
+import { trackCompendiumVerification } from "@/app/compendium/services/tracked-verification";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export async function POST(
     }
     return Response.json({
       ok: true,
-      ...(await checkStarRaceQuest(user, dateKey)),
+      ...(await trackCompendiumVerification(user, "star_race", dateKey, () => checkStarRaceQuest(user, dateKey))),
     });
   } catch (error) {
     return responseFromCompendiumError(error);

@@ -7,6 +7,8 @@ import { OCTOBER_COMPENDIUM_WEEKS } from "@/app/organizer/compendium-october/mod
 import type { RuneChallengeData } from "@/app/compendium/model/types";
 import { CompendiumResults } from "@/app/compendium/sections/CompendiumResults";
 import { STAR_RACE_WEEKS } from "@/app/compendium/model/star-race";
+import { VerificationQueue } from "@/app/compendium/admin/VerificationQueue";
+import type { VerificationRequest } from "@/app/compendium/model/verification-retries";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -79,6 +81,15 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
       }} />));
     }
   }
+  const requests: VerificationRequest[] = ["pending", "completed", "exhausted"].map((status, index) => ({
+    id: String(index), playerId: "100", playerName: "Участник сообщества", status: status as VerificationRequest["status"],
+    snapshot: { kind: "star_race", dateKey: "2026-10-11", questId: "2026-10-11", title: "Гонка: Финишный дубль", dotaId: "100", rewardStars: 3,
+      startsAt: "2026-10-11T00:00:00+03:00", endsAt: "2026-10-12T00:00:00+03:00", heroIds: [], clanMates: [], requirement: null },
+    startedAt: "2026-10-11T23:30:00+03:00", nextAttemptAt: status === "pending" ? "2026-10-12T00:30:00+03:00" : null,
+    attempts: 10, manualAttempts: 1, notifiedAt: null, lastError: "Подходящий результат за исходную дату задания пока не найден",
+  }));
+  fixtures.push("verification-queue");
+  writeFileSync(new URL("verification-queue.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<VerificationQueue initialRequests={requests} />)}</div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(33);
+  expect(fixtures).toHaveLength(34);
 });

@@ -1,0 +1,33 @@
+.compendium-verification-queue {
+  width: min(1320px, calc(100% - 64px));
+  margin: 24px auto;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  min-width: 0;
+  font-size: 14px;
+}
+.compendium-verification-queue p { overflow-wrap: anywhere; }
+.compendium-verification-requests { display: grid; gap: 12px; }
+.compendium-verification-requests article {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.compendium-verification-queue button {
+  justify-self: start;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  background: var(--surface);
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .compendium-verification-queue { width: calc(100% - 28px); padding: 14px; }
+}
