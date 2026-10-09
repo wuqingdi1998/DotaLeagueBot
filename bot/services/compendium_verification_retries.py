@@ -48,6 +48,16 @@ async def request_due_verifications() -> None:
                 raise RuntimeError("Compendium retries returned an invalid response")
 
 
+async def has_due_verifications() -> bool:
+    async with verification_session() as session:
+        result = await session.execute(text(
+            "SELECT EXISTS (SELECT 1 FROM october_compendium_verification_requests "
+            "WHERE status = 'pending' AND next_attempt_at <= NOW() "
+            "AND (lease_until IS NULL OR lease_until <= NOW()))"
+        ))
+        return bool(result.scalar_one())
+
+
 def exhausted_verification_message(request: dict) -> str:
     snapshot = request["snapshot"]
     name = discord.utils.escape_markdown(str(request["player_name"]))
@@ -107,5 +117,6 @@ async def deliver_verification_notifications(bot: commands.Bot) -> None:
 async def process_verification_retries(bot: commands.Bot) -> None:
     # Notification delivery is independent of site availability after the final persisted attempt.
     await deliver_verification_notifications(bot)
-    await request_due_verifications()
-    await deliver_verification_notifications(bot)
+    if await has_due_verifications():
+        await request_due_verifications()
+        await deliver_verification_notifications(bot)

@@ -93,7 +93,18 @@ async def test_notifications_still_get_processed_if_site_unavailable(monkeypatch
     delivered = AsyncMock()
     monkeypatch.setattr(service, "deliver_verification_notifications", delivered)
     monkeypatch.setattr(service, "request_due_verifications", AsyncMock(side_effect=RuntimeError("Site unavailable")))
+    monkeypatch.setattr(service, "has_due_verifications", AsyncMock(return_value=True))
     bot = bot_mock()
     with pytest.raises(RuntimeError):
         await service.process_verification_retries(bot)
     delivered.assert_awaited_once_with(bot)
+
+
+@pytest.mark.asyncio
+async def test_other_scheduler_events_do_not_trigger_early_or_empty_site_checks(monkeypatch):
+    monkeypatch.setattr(service, "deliver_verification_notifications", AsyncMock())
+    monkeypatch.setattr(service, "has_due_verifications", AsyncMock(return_value=False))
+    request = AsyncMock()
+    monkeypatch.setattr(service, "request_due_verifications", request)
+    await service.process_verification_retries(bot_mock())
+    request.assert_not_awaited()

@@ -23,5 +23,5 @@ it("renders waiting, successful and exhausted requests without confusing recheck
     .map((name) => readFileSync(resolve("app/styles", name), "utf8")).join("\n");
   const dir = resolve(".data/verification-queue-layout");
   mkdirSync(dir, { recursive: true });
-  writeFileSync(resolve(dir, "index.html"), `<!doctype html><html lang="ru" data-theme="dark"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${styles}</style><main>${markup}</main></html>`);
+  writeFileSync(resolve(dir, "index.html"), `<!doctype html><html lang="ru" class="site-shell" data-theme="dark"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${styles}</style><main>${markup}</main></html>`);
 });
