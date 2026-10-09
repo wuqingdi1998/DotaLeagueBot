@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { one, query, transaction } from "@/lib/db";
 import { moscowDayBounds } from "../model/time";
+import { clanOutingCompletionLocks } from "./clan-outing-completion-locks";
 
 export type ClanOutingCompletion = {
   matchId: string;
@@ -96,6 +97,9 @@ export async function recordClanOutingPair(input: {
   rewardStars: 1 | 2;
 }): Promise<ClanOutingCompletion> {
   await transaction(async (client) => {
+    for (const lock of clanOutingCompletionLocks(input.playerId, input.dateKey, input.partnerPlayerId)) {
+      await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [lock]);
+    }
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
       `october-clan-outing:${input.matchId}`,
     ]);

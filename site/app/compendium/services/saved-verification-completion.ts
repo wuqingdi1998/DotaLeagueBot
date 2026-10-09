@@ -5,13 +5,17 @@ import type { VerificationRequest } from "../model/verification-retries";
 import type { VerifiedChallengeEvidence } from "./saved-verification-evaluation";
 import { verificationCompletedSql, verificationCompletionLock } from "./verification-repository";
 import { queueCompendiumMatchAudits } from "./match-audit-repository";
+import { clanOutingCompletionLocks } from "./clan-outing-completion-locks";
 
 /** Uses the same uniqueness constraints and locks as player/admin awards. No manual award is inferred from a provider failure. */
 export async function recordSavedVerification(request: VerificationRequest, token: string, evidence: VerifiedChallengeEvidence, now = new Date()): Promise<void> {
   const snapshot = request.snapshot;
   const earnedAt = new Date(Math.min(now.getTime(), Date.parse(snapshot.endsAt) - 1)).toISOString();
   await transaction(async (client) => {
-    await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [verificationCompletionLock(request.playerId, snapshot)]);
+    const locks = snapshot.kind === "clan_outing"
+      ? clanOutingCompletionLocks(request.playerId, snapshot.dateKey, evidence.partnerPlayerId)
+      : [verificationCompletionLock(request.playerId, snapshot)];
+    for (const lock of locks) await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [lock]);
     const lease = await client.query(`SELECT 1 FROM october_compendium_verification_requests request
       WHERE id = $1 AND lease_token = $2 AND status <> 'completed' AND lease_until > NOW()`, [request.id, token]);
     if (!lease.rowCount) return;

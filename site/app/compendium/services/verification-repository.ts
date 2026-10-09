@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { one, query, transaction } from "@/lib/db";
 import { VERIFICATION_LEASE_SECONDS, nextVerificationAttempt, type VerificationSnapshot, type VerificationRequest } from "../model/verification-retries";
+import { clanOutingCompletionLocks } from "./clan-outing-completion-locks";
 
 type RequestRow = {
   id: string; player_id: string; player_name: string; snapshot: VerificationSnapshot;
@@ -21,7 +22,8 @@ function fromRow(row: RequestRow): VerificationRequest {
 export function verificationCompletionLock(playerId: string, snapshot: VerificationSnapshot): string {
   return snapshot.kind === "daily" ? `compendium-quest-mutation:${playerId}:${snapshot.questId}`
     : snapshot.kind === "rune" ? `compendium-rune-completion:${playerId}:${snapshot.dateKey}`
-      : `compendium-${snapshot.kind === "star_race" ? "star-race" : "clan-outing"}:${playerId}:${snapshot.dateKey}`;
+      : snapshot.kind === "clan_outing" ? clanOutingCompletionLocks(playerId, snapshot.dateKey)[0]
+        : `compendium-star-race:${playerId}:${snapshot.dateKey}`;
 }
 export const verificationCompletedSql = `CASE request.challenge_kind
   WHEN 'daily' THEN EXISTS (SELECT 1 FROM compendium_user_quest_completions c WHERE c.player_id = request.player_id AND c.daily_quest_id::text = request.quest_key)
