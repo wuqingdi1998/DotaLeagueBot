@@ -776,6 +776,18 @@ jobs:
                FROM october_compendium_removed_clan_members removed
                LEFT JOIN players player ON player.discord_id = removed.player_id
                ORDER BY removed.id"'
+      - name: Verify current Compendium Discord commands
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          command_timeout: 5m
+          script: |
+            set -euo pipefail
+            cd /root/DotaLeagueBot
+            docker compose exec -T bot python -m services.compendium_command_verification
       - name: Verify public site externally
         run: |
           set -euo pipefail

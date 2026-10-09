@@ -19,11 +19,14 @@ beforeAll(async () => {
     CREATE TABLE october_compendium_rune_challenge_selections (player_id bigint, hero_id smallint, selected_at timestamptz);
     INSERT INTO october_compendium_rune_challenge_selections VALUES
       (100, 1, '2026-10-09 11:00+03'), (200, 2, '2026-10-09 11:00+03');`);
-  for (const migration of ["0170_isolate_october_compendium.sql", "0174_compendium_review_repairs.sql"]) {
+  for (const migration of ["0170_isolate_october_compendium.sql", "0174_compendium_review_repairs.sql", "0175_protect_star_race_evidence_clan_points.sql"]) {
     const sql = readFileSync(new URL(`../../../../bot/database/migrations/${migration}`, import.meta.url), "utf8");
     // PostgreSQL's clock is fixed only inside this test database, including in CI after October.
     await db.exec(sql.replaceAll("CURRENT_TIMESTAMP", "TIMESTAMPTZ '2026-10-09 12:00:00+03'"));
   }
+  await db.exec(`ALTER TABLE compendium_star_race_quest_completions ADD COLUMN match_evidence_complete boolean DEFAULT false;
+    CREATE TRIGGER october_star_race_clan_points AFTER INSERT OR UPDATE OR DELETE
+      ON compendium_star_race_quest_completions FOR EACH ROW EXECUTE FUNCTION apply_october_star_race_clan_points();`);
   await db.exec(`CREATE VIEW compendium_player_star_totals AS
     SELECT player.discord_id AS player_id, GREATEST(0, COALESCE(SUM(event.amount), 0))::int AS total_stars
     FROM players player LEFT JOIN compendium_star_events event ON event.player_id = player.discord_id GROUP BY player.discord_id;`);
@@ -77,4 +80,13 @@ it("allows a current manual adjustment but protects old records and inactive par
     .rejects.toThrow("outside the active October period");
   await expect(db.exec(`INSERT INTO compendium_admin_star_adjustments (id, player_id, amount, created_at)
     VALUES (951, 300, 1, '2026-10-09 12:00+03')`)).rejects.toThrow("not an active October participant");
+});
+it("does not restore manually removed clan points when match evidence or retry time changes", async () => {
+  await db.exec(`UPDATE october_compendium_clan_members SET total_points = 0 WHERE player_id = 100;
+    UPDATE compendium_star_race_quest_completions SET evidence_retry_after = NOW() WHERE id = 2;
+    UPDATE compendium_star_race_quest_completions SET match_evidence_complete = true WHERE id = 2;`);
+  expect((await db.query("SELECT total_points FROM october_compendium_clan_members WHERE player_id = 100")).rows)
+    .toEqual([{ total_points: 0 }]);
+  expect((await db.query("SELECT total_stars FROM compendium_player_star_totals WHERE player_id = 100")).rows)
+    .toEqual([{ total_stars: 13 }]);
 });
