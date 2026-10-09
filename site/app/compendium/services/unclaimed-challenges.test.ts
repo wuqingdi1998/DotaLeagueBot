@@ -52,6 +52,15 @@ afterEach(() => {
 });
 
 describe("unclaimed compendium challenge audit", () => {
+  it("ignores a rune win before the hero was selected", async () => {
+    mocks.loadCandidates.mockResolvedValue([{ playerId: "1", dotaId: "101", playerName: "Rune player",
+      dailyQuests: [], isStarRaceCandidate: false, runeHeroId: 1,
+      runeSelectedAt: "2026-10-09T11:00:00Z" }]);
+    mocks.fetchRecentPlayerMatches.mockResolvedValue([
+      winningMatch({ matchId: 9001, heroId: 1, startTime: "2026-10-09T09:00:00Z" }),
+    ]);
+    expect((await findUnclaimedChallenges(new Date("2026-10-09T12:00:00Z"))).players).toEqual([]);
+  });
   it("describes Monday's two ranked wins as ranked in the report", async () => {
     mocks.loadCandidates.mockResolvedValue([{
       playerId: "1",

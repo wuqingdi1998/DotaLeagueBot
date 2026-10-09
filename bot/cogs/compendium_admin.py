@@ -10,8 +10,8 @@ from services.compendium_star_service import (
 )
 from services.compendium_announcement import broadcast_compendium_announcement
 from services.compendium_lifecycle import (
-    TI_2026_COMPENDIUM_FINISHED_MESSAGE,
-    is_ti_2026_compendium_finished,
+    CURRENT_COMPENDIUM_UNAVAILABLE_MESSAGE,
+    is_current_compendium_active,
 )
 from services.compendium_unclaimed_stars import (
     CompendiumUnclaimedStarsError,
@@ -39,6 +39,7 @@ class CompendiumAdmin(commands.Cog):
         interaction: discord.Interaction,
         nickname: str,
         amount: int,
+        reason: str,
     ) -> None:
         await interaction.response.defer(ephemeral=True)
         try:
@@ -47,6 +48,7 @@ class CompendiumAdmin(commands.Cog):
                 amount=amount,
                 administrator_id=interaction.user.id,
                 administrator_name=str(interaction.user),
+                reason=reason,
             )
         except CompendiumStarAdjustmentError as error:
             await interaction.followup.send(f"❌ {error}", ephemeral=True)
@@ -54,15 +56,16 @@ class CompendiumAdmin(commands.Cog):
         action = "выдано" if result.amount > 0 else "снято"
         await interaction.followup.send(
             f"✅ Игроку **{result.nickname}** {action} "
-            f"**{abs(result.amount)}** звёзд. Теперь у него **{result.total_stars}**.",
+            f"**{abs(result.amount)}** звёзд. Теперь у него **{result.total_stars}**. "
+            "Изменение учтено в личном и клановом зачёте, но не в Гонке за звёздами.",
             ephemeral=True,
         )
 
     @app_commands.command(
         name="add_stars",
-        description="[Admin] Выдать игроку звёзды компендиума",
+        description="[Admin] Выдать звёзды октябрьского компендиума (вне гонки)",
     )
-    @app_commands.describe(nickname="Никнейм игрока", amount="Количество звёзд")
+    @app_commands.describe(nickname="Никнейм игрока", amount="Количество звёзд", reason="Причина начисления")
     @app_commands.autocomplete(nickname=compendium_nickname_autocomplete)
     @app_commands.checks.has_permissions(administrator=True)
     async def add_stars(
@@ -70,14 +73,15 @@ class CompendiumAdmin(commands.Cog):
         interaction: discord.Interaction,
         nickname: str,
         amount: app_commands.Range[int, 1, 10000],
+        reason: app_commands.Range[str, 1, 500],
     ) -> None:
-        await self.change_stars(interaction, nickname, int(amount))
+        await self.change_stars(interaction, nickname, int(amount), reason)
 
     @app_commands.command(
         name="delete_stars",
-        description="[Admin] Снять у игрока звёзды компендиума",
+        description="[Admin] Снять звёзды октябрьского компендиума (вне гонки)",
     )
-    @app_commands.describe(nickname="Никнейм игрока", amount="Количество звёзд")
+    @app_commands.describe(nickname="Никнейм игрока", amount="Количество звёзд", reason="Причина снятия")
     @app_commands.autocomplete(nickname=compendium_nickname_autocomplete)
     @app_commands.checks.has_permissions(administrator=True)
     async def delete_stars(
@@ -85,20 +89,21 @@ class CompendiumAdmin(commands.Cog):
         interaction: discord.Interaction,
         nickname: str,
         amount: app_commands.Range[int, 1, 10000],
+        reason: app_commands.Range[str, 1, 500],
     ) -> None:
-        await self.change_stars(interaction, nickname, -int(amount))
+        await self.change_stars(interaction, nickname, -int(amount), reason)
 
     @app_commands.command(
         name="compendium",
-        description="[Admin] Разослать участникам анонс Гонки за звёздами",
+        description="[Admin] Разослать анонс октябрьского компендиума",
     )
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
     async def announce_compendium(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
-        if is_ti_2026_compendium_finished():
+        if not is_current_compendium_active():
             await interaction.followup.send(
-                f"❌ {TI_2026_COMPENDIUM_FINISHED_MESSAGE}",
+                f"❌ {CURRENT_COMPENDIUM_UNAVAILABLE_MESSAGE}",
                 ephemeral=True,
             )
             return
@@ -128,15 +133,15 @@ class CompendiumAdmin(commands.Cog):
 
     @app_commands.command(
         name="completestars",
-        description="[Admin] Найти выполнивших задание без полученной награды",
+        description="[Admin] Найти выполненные октябрьские задания без полученной награды",
     )
     @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
     async def complete_stars(self, interaction: discord.Interaction) -> None:
         await interaction.response.defer(ephemeral=False)
-        if is_ti_2026_compendium_finished():
+        if not is_current_compendium_active():
             await interaction.followup.send(
-                f"❌ {TI_2026_COMPENDIUM_FINISHED_MESSAGE}",
+                f"❌ {CURRENT_COMPENDIUM_UNAVAILABLE_MESSAGE}",
             )
             return
         try:

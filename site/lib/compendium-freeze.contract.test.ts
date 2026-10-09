@@ -14,7 +14,8 @@ describe("finished TI 2026 compendium freeze", () => {
     const starService = read("bot/services/compendium_star_service.py");
 
     expect(scheduler).toContain("is_ti_2026_compendium_finished");
-    expect(starService).toContain("is_ti_2026_compendium_finished");
+    expect(starService).toContain("not is_current_compendium_active()");
+    expect(starService).not.toContain("is_ti_2026_compendium_finished");
   });
 
   it("blocks every compendium table from being changed", () => {
@@ -52,7 +53,8 @@ describe("finished TI 2026 compendium freeze", () => {
       "site/app/compendium/admin/star-race-archive-repository.ts",
     );
 
-    expect(repository).toContain("isCompendiumFinished");
+    expect(repository).toContain("if (Date.parse(race.startsAt) < Date.parse(OCTOBER_COMPENDIUM_START_AT)) return");
+    expect(repository).toContain("ti_2026_compendium_star_race_events");
     expect(archive).toContain("isOctoberCompendiumFinished");
     expect(archive).not.toContain('from "../model/lifecycle"');
   });

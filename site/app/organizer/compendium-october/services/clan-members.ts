@@ -16,7 +16,7 @@ export async function loadOctoberClanMembers(
   now: Date = new Date(),
 ): Promise<OctoberClanMember[]> {
   const phase = octoberCompendiumPhase(now);
-  const isPublished = phase === "published" &&
+  const isPublished = (phase === "published" || phase === "finished") &&
     await loadOctoberFormationStatus() === "complete";
   const rows = await query<OctoberClanMemberRow>(
     `SELECT

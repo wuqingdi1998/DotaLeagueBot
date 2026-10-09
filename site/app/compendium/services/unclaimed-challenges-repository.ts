@@ -1,6 +1,8 @@
 import { query } from "@/lib/db";
 import { runeChallengeTablesForDate } from "../model/rune-challenge-tables";
 import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
+import { hiddenSubscriptionDiscordIds } from "@/lib/hidden-subscription-entitlements";
+import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 
 type PlayerRow = {
   player_id: string;
@@ -28,6 +30,7 @@ export type UnclaimedChallengeCandidate = {
   dailyQuests: UnclaimedDailyQuest[];
   isStarRaceCandidate: boolean;
   runeHeroId: number | null;
+  runeSelectedAt?: string | null;
   clanMateDotaIds: string[];
 };
 
@@ -105,16 +108,19 @@ export async function loadUnclaimedChallengeCandidates(
           [dateKey],
         )
       : Promise.resolve([]),
-    query<{ player_id: string; hero_id: number }>(
-      `SELECT selection.player_id::text, selection.hero_id
+    query<{ player_id: string; hero_id: number; selected_at: Date }>(
+      `SELECT selection.player_id::text, selection.hero_id, selection.selected_at
        FROM ${runeChallengeTablesForDate(dateKey).selections} selection
        JOIN october_compendium_clan_members member ON member.player_id = selection.player_id
-       WHERE NOT EXISTS (
+       WHERE (selection.player_id = ANY($2::bigint[]) OR EXISTS (
+         SELECT 1 FROM player_discord_roles role WHERE role.player_id = selection.player_id
+           AND role.role_name = ANY($3::text[])
+       )) AND NOT EXISTS (
          SELECT 1 FROM ${runeChallengeTablesForDate(dateKey).completions} completion
          WHERE completion.player_id = selection.player_id
            AND completion.moscow_date = $1::date
        )`,
-      [dateKey],
+      [dateKey, hiddenSubscriptionDiscordIds, runeChallengeAccessRoleNames],
     ),
     query<{ player_id: string; mate_dota_id: string }>(
       `SELECT member.player_id::text, player.steam_id32::text AS mate_dota_id
@@ -131,6 +137,7 @@ export async function loadUnclaimedChallengeCandidates(
   );
   const questsByPlayer = new Map<string, Map<string, UnclaimedDailyQuest>>();
   const runeHeroByPlayer = new Map(runeRows.map((row) => [row.player_id, row.hero_id]));
+  const runeSelectedAtByPlayer = new Map(runeRows.map((row) => [row.player_id, row.selected_at.toISOString()]));
   const clanMatesByPlayer = new Map<string, string[]>();
   for (const row of clanMateRows) {
     clanMatesByPlayer.set(row.player_id, [
@@ -164,6 +171,7 @@ export async function loadUnclaimedChallengeCandidates(
       dailyQuests,
       isStarRaceCandidate,
       runeHeroId,
+      runeSelectedAt: runeSelectedAtByPlayer.get(player.player_id) ?? null,
       clanMateDotaIds,
     }];
   });
@@ -199,7 +207,7 @@ export async function loadClaimedChallengeKeys(input: {
     input.runePlayerIds.length
       ? query<{ claim_key: string }>(
           `SELECT 'rune:' || player_id::text || ':' || moscow_date::text AS claim_key
-           FROM compendium_rune_challenge_completions
+           FROM ${runeChallengeTablesForDate(input.dateKey).completions}
            WHERE moscow_date = $1::date AND player_id = ANY($2::bigint[])`,
           [input.dateKey, input.runePlayerIds],
         )

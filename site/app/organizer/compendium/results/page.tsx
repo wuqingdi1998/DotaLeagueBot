@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function OrganizerCompendiumResultsPage() {
   const user = await getSession();
   if (!user?.isAdmin) notFound();
-  const data = await loadCompendiumResults(user.discordId);
+  const data = await loadCompendiumResults(user.discordId, "ti-2026");
 
   return (
     <PlatformShell user={user}>

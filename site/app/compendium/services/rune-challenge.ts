@@ -6,6 +6,7 @@ import { CompendiumError } from "../model/errors";
 import { assertCompendiumActive } from "../model/lifecycle";
 import { COMPENDIUM_HEROES, compendiumHeroById } from "../model/heroes";
 import { findMatchingWin } from "../model/matches";
+import { runeChallengeWindowStart } from "../model/rune-window";
 import { currentMoscowDay } from "../model/time";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import type { RuneChallengeData } from "../model/types";
@@ -130,10 +131,7 @@ export async function checkRuneChallenge(
     const matchingWin = findMatchingWin({
       matches,
       heroIds: [state.selection.heroId],
-      dayStart: new Date(Math.max(
-        day.start.getTime(),
-        state.selection.selectedAt.getTime(),
-      )),
+      dayStart: runeChallengeWindowStart(day.start, state.selection.selectedAt),
       dayEnd: day.end,
       now: verificationNow,
     });

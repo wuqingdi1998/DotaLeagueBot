@@ -5,6 +5,8 @@ import { OctoberDailyPreview, OctoberRacePreview } from "@/app/organizer/compend
 import { octoberDailyQuestSamples, octoberRacePreviewData } from "@/app/organizer/compendium-october/model/preview";
 import { OCTOBER_COMPENDIUM_WEEKS } from "@/app/organizer/compendium-october/model/plan";
 import type { RuneChallengeData } from "@/app/compendium/model/types";
+import { CompendiumResults } from "@/app/compendium/sections/CompendiumResults";
+import { STAR_RACE_WEEKS } from "@/app/compendium/model/star-race";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -22,6 +24,19 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   function save(name: string, screen: string, html: string) {
     fixtures.push(name);
     writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="height:76px"></div><main class="compendium-page october-compendium-preview"><section class="october-compendium-screen october-compendium-screen-${screen}">${html}</section></main></div>`);
+  }
+
+  for (const period of ["october", "ti-2026"] as const) {
+    const leaders = [{ rank: 1, playerId: "100", dotaId: "100", playerName: "Участник", avatarUrl: null, totalStars: 20 }];
+    const data = { period, isFinished: true, communityStars: 100, leaders,
+      personal: { totalStars: 20, dailyQuestStars: 10, starRaceStars: 5, predictionStars: 0,
+        tournamentParticipationStars: 3, otherStars: 2 },
+      races: (period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS)
+        .map((week) => ({ id: week.id, dateLabel: week.dateLabel, prizes: week.prizes, leaders })),
+    };
+    const name = `results-${period}`;
+    fixtures.push(name);
+    writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<CompendiumResults data={data} />)}</div>`);
   }
 
   for (const [weekIndex, week] of OCTOBER_COMPENDIUM_WEEKS.entries()) {
@@ -65,5 +80,5 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
     }
   }
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(31);
+  expect(fixtures).toHaveLength(33);
 });

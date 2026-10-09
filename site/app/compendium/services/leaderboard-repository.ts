@@ -1,5 +1,6 @@
 import { query } from "@/lib/db";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
+import { compendiumPeriodTables, type CompendiumPeriod } from "../model/period";
 
 type CompendiumLeaderboardRow = {
   rank: number;
@@ -10,7 +11,7 @@ type CompendiumLeaderboardRow = {
   total_stars: number;
 };
 
-export async function loadCompendiumLeaderboard(): Promise<
+export async function loadCompendiumLeaderboard(period: CompendiumPeriod = "october"): Promise<
   CompendiumLeaderboardEntry[]
 > {
   const rows = await query<CompendiumLeaderboardRow>(
@@ -24,7 +25,7 @@ export async function loadCompendiumLeaderboard(): Promise<
          NULLIF(latest_session.discord_avatar_url, '')
        ) AS avatar_url,
        star_total.total_stars::int AS total_stars
-     FROM compendium_player_star_totals star_total
+     FROM ${compendiumPeriodTables(period).totals} star_total
      JOIN players player ON player.discord_id = star_total.player_id
      LEFT JOIN LATERAL (
        SELECT session.discord_avatar_url

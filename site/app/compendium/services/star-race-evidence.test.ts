@@ -54,6 +54,14 @@ it("keeps the original result if the history no longer reproduces its saved stat
   expect(mocks.repair).not.toHaveBeenCalled();
   expect(data.completions.get(dateKey)?.wins).toHaveLength(1);
 });
+it("can repair a previous week's evidence after the next week has started", async () => {
+  vi.setSystemTime(new Date("2026-10-13T12:00:00Z"));
+  const data = input();
+  data.quests = OCTOBER_COMPENDIUM_WEEKS.flatMap((week) => week.quests);
+  await restoreStarRaceEvidence(data);
+  expect(data.completions.get(dateKey)?.hasCompleteMatchEvidence).toBe(true);
+  expect(mocks.matches).toHaveBeenCalledWith(data.user.dotaId, { historyDays: 9 });
+});
 it("does not replace evidence with a different set that happens to have the same total", async () => {
   mocks.matches.mockResolvedValue([match(3001, 17407)]);
   await restoreStarRaceEvidence(input());

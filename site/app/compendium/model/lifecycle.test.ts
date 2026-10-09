@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertCompendiumActive,
   compendiumDisplayDateKey,
+  isCompendiumActive,
   isCompendiumFinished,
 } from "./lifecycle";
 
@@ -22,4 +23,16 @@ describe("TI 2026 compendium lifecycle", () => {
     );
     expect(compendiumDisplayDateKey(end)).toBe("2026-08-23");
   });
+});
+
+it("opens October with its own date and closes exactly at Moscow midnight on October 26", () => {
+  const now = new Date("2026-10-09T12:00:00+03:00");
+  expect(isCompendiumActive(now)).toBe(true);
+  expect(isCompendiumFinished(now)).toBe(false);
+  expect(compendiumDisplayDateKey(now)).toBe("2026-10-09");
+  const end = new Date("2026-10-26T00:00:00+03:00");
+  expect(isCompendiumActive(new Date(end.getTime() - 1))).toBe(true);
+  expect(isCompendiumFinished(end)).toBe(true);
+  expect(() => assertCompendiumActive(end)).toThrow();
+  expect(compendiumDisplayDateKey(end)).toBe("2026-10-25");
 });

@@ -6,8 +6,8 @@ from sqlalchemy import text
 
 from database.core import async_session
 from services.compendium_lifecycle import (
-    TI_2026_COMPENDIUM_FINISHED_MESSAGE,
-    is_ti_2026_compendium_finished,
+    CURRENT_COMPENDIUM_UNAVAILABLE_MESSAGE,
+    is_current_compendium_active,
 )
 
 
@@ -48,16 +48,20 @@ class CompendiumStarService:
         amount: int,
         administrator_id: int,
         administrator_name: str,
+        reason: str,
     ) -> CompendiumStarAdjustmentResult:
-        if is_ti_2026_compendium_finished():
+        if not is_current_compendium_active():
             raise CompendiumStarAdjustmentError(
-                TI_2026_COMPENDIUM_FINISHED_MESSAGE
+                CURRENT_COMPENDIUM_UNAVAILABLE_MESSAGE
             )
         if amount == 0 or abs(amount) > 10000:
             raise CompendiumStarAdjustmentError(
                 "Количество должно быть от 1 до 10 000 звёзд."
             )
         normalized_nickname = nickname.strip()
+        normalized_reason = reason.strip()
+        if not normalized_reason or len(normalized_reason) > 500:
+            raise CompendiumStarAdjustmentError("Укажите причину длиной от 1 до 500 символов.")
         if not normalized_nickname:
             raise CompendiumStarAdjustmentError("Укажите никнейм игрока.")
 
@@ -87,6 +91,12 @@ class CompendiumStarService:
                 )
             player_id = int(matches[0].discord_id)
             player_nickname = str(matches[0].ingame_name)
+            participant = await session.execute(
+                text("SELECT 1 FROM october_compendium_clan_members WHERE player_id = :player_id"),
+                {"player_id": player_id},
+            )
+            if participant.scalar_one_or_none() is None:
+                raise CompendiumStarAdjustmentError("Игрок не участвует в октябрьском компендиуме.")
             await session.execute(
                 text("SELECT pg_advisory_xact_lock(hashtext(:lock_key))"),
                 {"lock_key": f"compendium-admin-stars:{player_id}"},
@@ -113,12 +123,16 @@ class CompendiumStarService:
                         player_id,
                         amount,
                         administered_by,
-                        administrator_name
+                        administrator_name,
+                        reason,
+                        is_star_race_eligible
                     ) VALUES (
                         :player_id,
                         :amount,
                         :administrator_id,
-                        :administrator_name
+                        :administrator_name,
+                        :reason,
+                        FALSE
                     )
                     """
                 ),
@@ -127,7 +141,14 @@ class CompendiumStarService:
                     "amount": amount,
                     "administrator_id": administrator_id,
                     "administrator_name": administrator_name[:120],
+                    "reason": normalized_reason,
                 },
+            )
+            await session.execute(
+                text("UPDATE october_compendium_clan_members SET total_points = "
+                     "(SELECT total_stars FROM compendium_player_star_totals WHERE player_id = :player_id) "
+                     "WHERE player_id = :player_id"),
+                {"player_id": player_id},
             )
             return CompendiumStarAdjustmentResult(
                 nickname=player_nickname,

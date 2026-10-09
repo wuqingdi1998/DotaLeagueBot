@@ -16,6 +16,8 @@ describe("October compendium release schedule", () => {
     ["2026-10-04T20:30:00.000Z", "formation"],
     ["2026-10-04T20:59:59.999Z", "formation"],
     ["2026-10-04T21:00:00.000Z", "published"],
+    ["2026-10-25T20:59:59.999Z", "published"],
+    ["2026-10-25T21:00:00.000Z", "finished"],
   ] as const)("uses the exact Moscow boundary at %s", (now, phase) => {
     expect(octoberCompendiumPhase(new Date(now))).toBe(phase);
   });

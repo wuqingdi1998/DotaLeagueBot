@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Результаты Компендиума — Linken's Sphere Esports",
-  description: "Итоги Компендиума The International 2026.",
+  description: "Результаты октябрьского компендиума сезона 9.",
 };
 
 export default async function CompendiumResultsPage() {

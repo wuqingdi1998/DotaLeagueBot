@@ -54,7 +54,7 @@ describe("finished compendium results contract", () => {
     expect(organizerCompendiumPage).toContain(
       "if (!user?.isAdmin) notFound()",
     );
-    expect(organizerCompendiumPage).toContain("<CompendiumDashboard");
+    expect(organizerCompendiumPage).toContain('redirect("/organizer/compendium/results")');
     expect(organizerResultsPage).toContain(
       "if (!user?.isAdmin) notFound()",
     );
@@ -70,13 +70,11 @@ describe("finished compendium results contract", () => {
     expect(resultsPage).toContain('redirect("/login?returnTo=%2Fcompendium%2Fresults")');
     expect(resultsPage).toContain("isExcludedFromCompendium(user.discordId)");
     expect(resultsPage).toContain("loadCompendiumResults(user.discordId)");
-    expect(resultsRepository).toContain("loadCompendiumLeaderboard()");
-    expect(resultsRepository).toContain("STAR_RACE_WEEKS.map");
-    expect(resultsRepository).toContain("compendium_user_quest_completions");
-    expect(resultsRepository).toContain(
-      "compendium_star_race_quest_completions",
-    );
-    expect(resultsRepository).toContain("compendium_prediction_rewards");
+    expect(resultsRepository).toContain("loadCompendiumLeaderboard(period)");
+    expect(resultsRepository).toContain('period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS');
+    expect(organizerResultsPage).toContain('loadCompendiumResults(user.discordId, "ti-2026")');
+    expect(resultsRepository).toContain("compendiumPeriodTables(period)");
+    expect(resultsRepository).toContain("compendium_stars_count_for_player(player_id, earned_at)");
   });
 
   it("shows the requested community, personal, and race summaries", () => {
@@ -99,18 +97,11 @@ describe("finished compendium results contract", () => {
   });
 
   it("shows earned stars instead of completed activity counts", () => {
-    expect(resultsRepository).toMatch(
-      /SELECT SUM\(completion\.reward_amount\)[\s\S]*FROM compendium_user_quest_completions[\s\S]*SELECT SUM\(rune_completion\.reward_amount\)[\s\S]*FROM compendium_rune_challenge_completions[\s\S]*AS daily_quest_stars/,
-    );
-    expect(resultsRepository).toMatch(
-      /SELECT SUM\(completion\.reward_amount\)[\s\S]*AS star_race_stars/,
-    );
-    expect(resultsRepository).toMatch(
-      /SELECT SUM\(reward\.reward_amount\)[\s\S]*AS prediction_stars/,
-    );
-    expect(resultsRepository).toMatch(
-      /SELECT SUM\(adjustment\.amount\)[\s\S]*is_star_race_eligible = FALSE[\s\S]*AS tournament_participation_stars/,
-    );
+    expect(resultsRepository).toContain("SUM(amount) FILTER");
+    expect(resultsRepository).toContain("history_kind IN ('quest', 'rune', 'clan_outing')");
+    expect(resultsRepository).toContain("history_kind = 'star_race'");
+    expect(resultsRepository).toContain("history_kind = 'prediction'");
+    expect(resultsRepository).toContain("season_match_id IS NOT NULL");
     expect(resultsRepository).not.toContain("COUNT(");
     expect(resultsView).toContain("Звёзд за ежедневные испытания");
     expect(resultsView).toContain("Звёзд за задания гонки");
@@ -118,7 +109,7 @@ describe("finished compendium results contract", () => {
     expect(resultsView).toContain("Звёзд за участие в турнире");
     expect(resultsView).not.toContain("Испытание Рун и ручные начисления");
     expect(resultsView).toMatch(
-      /за\s+победы на картах клоз матчей, ручные начисления или корректировки/,
+      /победы на картах клоз матчей, ручные начисления или корректировки/,
     );
     expect(resultsModel).toContain("tournamentParticipationStars: number");
     expect(resultsRepository).toMatch(

@@ -1,4 +1,5 @@
 import { runeChallengeAccessRoleNames } from "./subscription-roles";
+import { OCTOBER_COMPENDIUM_END_AT } from "./october-compendium-schedule";
 
 export const OCTOBER_PUBLIC_LAUNCH_AT = "2026-10-03T22:30:00+03:00";
 export const OCTOBER_CLAN_FORMATION_AT = "2026-10-04T23:30:00+03:00";
@@ -12,7 +13,8 @@ export type OctoberCompendiumPhase =
   | "hidden"
   | "reservation"
   | "formation"
-  | "published";
+  | "published"
+  | "finished";
 
 export function octoberCompendiumPhase(
   now: Date = new Date(),
@@ -21,6 +23,7 @@ export function octoberCompendiumPhase(
   if (currentTime < Date.parse(OCTOBER_PUBLIC_LAUNCH_AT)) return "hidden";
   if (currentTime < Date.parse(OCTOBER_CLAN_FORMATION_AT)) return "reservation";
   if (currentTime < Date.parse(OCTOBER_CLAN_PUBLICATION_AT)) return "formation";
+  if (currentTime >= Date.parse(OCTOBER_COMPENDIUM_END_AT)) return "finished";
   return "published";
 }
 

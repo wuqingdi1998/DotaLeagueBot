@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -9,8 +9,11 @@ import discord
 
 
 class AnnouncementAudienceMember(Protocol):
-    bot: bool
-    roles: list[object]
+    @property
+    def bot(self) -> bool: ...
+
+    @property
+    def roles(self) -> Sequence[object]: ...
 
 
 class AnnouncementMember(AnnouncementAudienceMember, Protocol):
@@ -48,16 +51,24 @@ def is_compendium_announcement_recipient(
     )
 
 
-def compendium_announcement_text() -> str:
+def compendium_announcement_text(*, is_current: bool = False) -> str:
     public_base_url = (
         os.getenv("PUBLIC_BASE_URL") or "https://lsesports.ru"
     ).rstrip("/")
+    clan_instructions = (
+        "Распределение кланов завершено. Ваш клан и текущие результаты доступны на сайте. "
+        "Новые допущенные участники получают клан после регистрации."
+        if is_current else
+        "Компендиум уже открыт к просмотру. До 4 октября 23:30 МСК владельцы подписки Суппортер "
+        "и цветных Рун, кроме Руны Воды, смогут выбрать клан на сайте и забронировать себе место "
+        "в одном из них. Остальных допущенных участников система распределит автоматически."
+    )
     return f"""**КОМПЕНДИУМ LINKEN'S SPHERE ESPORTS**
 
 С 5 по 25 октября участники сервера разделятся на два клана – **Морбус** и **Панацея** – и будут зарабатывать звёзды для себя и своих соклановцев. Общая ценность всех призов компендиума **~ 20 000 ₽**.
 
 **Как попасть в клан**
-Компендиум уже открыт к просмотру. До 4 октября 23:30 МСК владельцы подписки Суппортер и цветных Рун, кроме Руны Воды, смогут выбрать клан на сайте и забронировать себе место в одном из них. Остальных допущенных участников система распределит автоматически.
+{clan_instructions}
 
 **Как зарабатывать звёзды**
 • выполнять ежедневные испытания героев;
@@ -65,7 +76,7 @@ def compendium_announcement_text() -> str:
 • выполнять задания «Гонки за звёздами»;
 • играть и побеждать на картах в 6-м, 7-м и 8-м турах сезонной лиги;
 • участвовать в турнирах – Fastcup #14 и CD Fastcup #8.
-Для подписчиков цветных Рун и «Суппортеров» будет дополнительное Испытание Рун. По пятницам, субботам и воскресеньям награда за ежедневные задания и клановую вылазку удваивается.
+Для подписчиков цветных Рун и «Суппортеров» доступно Испытание Рун. По субботам и воскресеньям награда за ежедневные задания и клановую вылазку удваивается. Испытания обновляются в 00:00 МСК.
 
 **Как получить призы**
 Каждая звезда даёт дополнительный шанс в финальном розыгрыше. Клан-победитель разыграет среди своих участников **21 приз**, второй клан – **9 призов**. Лидеры еженедельной «Гонки за звёздами» получат отдельные награды. За личный прогресс также выдаются постоянные клановые бейджи и дополнительные замены заданий.
@@ -78,7 +89,7 @@ def compendium_announcement_text() -> str:
 async def broadcast_compendium_announcement(
     guild: AnnouncementGuild,
 ) -> CompendiumAnnouncementReport:
-    message = compendium_announcement_text()
+    message = compendium_announcement_text(is_current=True)
     sent_count = 0
     failed_count = 0
     skipped_bot_count = 0

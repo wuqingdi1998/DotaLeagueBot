@@ -231,7 +231,8 @@ describe("compendium persistence and security contract", () => {
     expect(rewards).toContain("compendium-community-stars-link");
     expect(leaderboardPage).toContain("getSession()");
     expect(leaderboardPage).toContain("loadCompendiumLeaderboard()");
-    expect(leaderboardRepository).toContain("compendium_player_star_totals");
+    expect(leaderboardRepository).toContain("compendiumPeriodTables(period).totals");
+    expect(leaderboardRepository).toContain('CompendiumPeriod = "october"');
     expect(leaderboardRepository).toContain("RANK() OVER");
     expect(leaderboardRepository).toContain("total_stars > 0");
     expect(leaderboardRepository).not.toContain(

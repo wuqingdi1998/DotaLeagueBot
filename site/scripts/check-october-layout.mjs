@@ -30,6 +30,13 @@ try {
           const issues = [];
           const desktop = innerWidth > 960 && innerHeight >= 700;
           const section = document.querySelector(".october-compendium-screen");
+          if (!section) {
+            if (document.documentElement.scrollWidth > innerWidth) issues.push("results page overflows horizontally");
+            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-race-result")) {
+              if (element.scrollWidth > element.clientWidth + 2) issues.push("result card clips content");
+            }
+            return issues;
+          }
           const bounds = section.getBoundingClientRect();
           if (document.documentElement.scrollWidth > innerWidth) issues.push("page overflows horizontally");
           if (desktop && bounds.height > innerHeight - 76 + 2) issues.push(`screen height ${bounds.height} exceeds ${innerHeight - 76}`);
@@ -79,6 +86,9 @@ try {
           await page.keyboard.press("Escape");
         }
         if (["race-0-4", "daily-completed-compact", "daily-change-guidance"].includes(fixture) && [1900, 1366, 393].includes(width)) {
+          await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
+        }
+        if (fixture.startsWith("results-") && [1900, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
       }

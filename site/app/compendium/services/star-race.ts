@@ -2,6 +2,7 @@ import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
 import { assertCompendiumActive } from "../model/lifecycle";
 import { evaluateStarRaceRequirement } from "../model/star-race-evaluation";
+import { hasPendingStarRaceStatistics } from "../model/star-race-statistics";
 import {
   starRaceForMoment,
   starRacePhase,
@@ -36,6 +37,7 @@ import { checkStarRaceArcanaQuest } from "./star-race-arcana";
 import { loadPendingArcanaVerifications } from "./star-race-arcana-repository";
 import { loadFinalPrediction } from "./star-race-final-prediction-repository";
 import { restoreStarRaceEvidence } from "./star-race-evidence";
+import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
 
 export async function loadStarRace(
   user: AuthUser,
@@ -76,7 +78,9 @@ export async function loadStarRace(
       ? loadFinalPrediction(user.discordId)
       : Promise.resolve({ teams: [], selectedPosition: null, winnerPosition: null, openedAt: null }),
   ]);
-  await restoreStarRaceEvidence({ user, quests: race.quests, completions, progresses });
+  await restoreStarRaceEvidence({
+    user, quests: OCTOBER_COMPENDIUM_WEEKS.flatMap((week) => week.quests), completions, progresses,
+  });
   return {
     ...visibility,
     id: race.id,
@@ -244,6 +248,11 @@ export async function checkStarRaceQuest(
     );
   }
   const bounds = starRaceQuestBounds(quest);
+  if (hasPendingStarRaceStatistics({ requirement: quest.requirement, matches,
+    dayStart: bounds.start, dayEnd: bounds.end, now: verificationNow })) {
+    throw new CompendiumError("OPEN_DOTA_UNAVAILABLE",
+      "OpenDota ещё не передал статистику одного из подходящих матчей. Повторите проверку позже; сохранённый прогресс не изменён.");
+  }
   const evaluation = evaluateStarRaceRequirement({
     requirement: quest.requirement,
     matches,

@@ -8,6 +8,7 @@ import {
   type StarRaceQuestDefinition,
 } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
+import { runeChallengeWindowStart } from "../model/rune-window";
 import type { MatchingWin, OpenDotaMatch } from "../model/types";
 import { fetchRecentPlayerMatches } from "./opendota";
 import { fetchOpenDotaMatchDetails } from "./opendota-match-details";
@@ -201,7 +202,8 @@ async function scanCandidate(input: {
   const runeWin = runeHeroId === null ? null : findMatchingWin({
     matches,
     heroIds: [runeHeroId],
-    dayStart: input.dayStart,
+    dayStart: runeChallengeWindowStart(input.dayStart,
+      input.candidate.runeSelectedAt ? new Date(input.candidate.runeSelectedAt) : input.dayStart),
     dayEnd: input.dayEnd,
     now: input.now,
   });

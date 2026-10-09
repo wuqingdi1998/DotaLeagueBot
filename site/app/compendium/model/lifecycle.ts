@@ -12,6 +12,9 @@ import {
 const compendiumEndTime = new Date(COMPENDIUM_END_AT).getTime();
 
 export function isCompendiumFinished(now: Date = new Date()): boolean {
+  if (now.getTime() >= Date.parse(OCTOBER_COMPENDIUM_START_AT)) {
+    return now.getTime() >= Date.parse(OCTOBER_COMPENDIUM_END_AT);
+  }
   return now.getTime() >= compendiumEndTime;
 }
 
@@ -33,6 +36,11 @@ export function assertCompendiumActive(now: Date = new Date()): void {
 }
 
 export function compendiumDisplayDateKey(now: Date = new Date()): string {
+  if (now.getTime() >= Date.parse(OCTOBER_COMPENDIUM_START_AT)) {
+    return isCompendiumFinished(now)
+      ? currentMoscowDay(new Date(Date.parse(OCTOBER_COMPENDIUM_END_AT) - 1)).dateKey
+      : currentMoscowDay(now).dateKey;
+  }
   return isCompendiumFinished(now)
     ? COMPENDIUM_FINAL_DATE
     : currentMoscowDay(now).dateKey;

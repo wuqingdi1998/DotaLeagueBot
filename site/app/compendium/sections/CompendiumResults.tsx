@@ -94,15 +94,18 @@ export function CompendiumResults({
   data: CompendiumResultsData;
   currentPlayerId?: string;
 }) {
+  const isOctober = data.period === "october";
   return (
     <main className="compendium-results-page">
       <section className="compendium-results-hero">
         <div className="compendium-results-hero-copy">
-          <span className="compendium-results-eyebrow">THE INTERNATIONAL 2026</span>
+          <span className="compendium-results-eyebrow">{isOctober ? "СЕЗОН 9 · 5–25 ОКТЯБРЯ 2026" : "THE INTERNATIONAL 2026"}</span>
           <h1>Результаты Компендиума</h1>
           <p>
-            Ивент завершён. Здесь навсегда остаются общий результат сообщества,
-            личные достижения и итоги двух недель гонки за звёздами.
+            {isOctober
+              ? data.isFinished ? "Компендиум завершён. Здесь сохранены личные результаты и итоги трёх недель гонки."
+                : "Текущие результаты компендиума. Зачёт продолжается до 26 октября, 00:00 МСК."
+              : "Ивент завершён. Здесь навсегда остаются общий результат сообщества, личные достижения и итоги двух недель гонки за звёздами."}
           </p>
         </div>
         <div className="compendium-results-community-total">
@@ -112,7 +115,7 @@ export function CompendiumResults({
         </div>
       </section>
 
-      <section className="compendium-results-section compendium-community-result">
+      {!isOctober && <section className="compendium-results-section compendium-community-result">
         <header className="compendium-results-section-heading">
           <span><FiAward aria-hidden="true" /> Итоги сообщества</span>
           <h2>Итог Компендиума</h2>
@@ -133,7 +136,7 @@ export function CompendiumResults({
             </article>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section className="compendium-results-section">
         <header className="compendium-results-section-heading">
@@ -186,7 +189,7 @@ export function CompendiumResults({
               </article>
               <article>
                 <FiAward />
-                <span>Звёзд за участие в турнире</span>
+                <span>{isOctober ? "Звёзд за сезонную лигу" : "Звёзд за участие в турнире"}</span>
                 <strong className="compendium-personal-star-value">
                   <FaStar aria-hidden="true" /> {data.personal.tournamentParticipationStars}
                 </strong>
@@ -195,7 +198,7 @@ export function CompendiumResults({
             {data.personal.otherStars !== 0 && (
               <p className="compendium-personal-note">
                 В общей сумме также учтено {data.personal.otherStars} звёзд за
-                победы на картах клоз матчей, ручные начисления или корректировки.
+                {isOctober ? "ручные начисления или корректировки." : "победы на картах клоз матчей, ручные начисления или корректировки."}
               </p>
             )}
           </>
@@ -213,7 +216,7 @@ export function CompendiumResults({
         <header className="compendium-results-section-heading">
           <span><FiFlag aria-hidden="true" /> Гонка за звёздами</span>
           <h2>Топ-5 каждой недели</h2>
-          <p>Финальные места двух завершённых недель гонки.</p>
+          <p>{isOctober ? "Результаты трёх недель гонки. Места становятся окончательными после завершения каждой недели." : "Финальные места двух завершённых недель гонки."}</p>
         </header>
         <div className="compendium-results-races">
           {data.races.map((race, index) => (

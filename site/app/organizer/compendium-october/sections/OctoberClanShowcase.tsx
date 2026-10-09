@@ -27,7 +27,7 @@ export function OctoberClanShowcase({
         isOrganizer={isOrganizer}
         tournamentLinks={tournamentLinks}
       />
-      {reservation && reservation.phase !== "published" && (
+      {reservation && reservation.phase !== "published" && reservation.phase !== "finished" && (
         <OctoberClanReservationPanel
           key={reservation.phase}
           initialState={reservation}

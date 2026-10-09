@@ -219,10 +219,8 @@ async function ensureStarRaceTiebreakRolls(
   race: StarRaceWeekDefinition,
   includeArchivedPlayers: boolean,
 ): Promise<void> {
-  if (
-    isCompendiumFinished() &&
-    Date.parse(race.startsAt) < Date.parse(OCTOBER_COMPENDIUM_START_AT)
-  ) return;
+  if (Date.parse(race.startsAt) < Date.parse(OCTOBER_COMPENDIUM_START_AT)) return;
+  if (isCompendiumFinished()) return;
   await query(
     `${eligibleStarRaceTotalsCte}
      INSERT INTO compendium_star_race_tiebreak_rolls
@@ -265,7 +263,9 @@ export async function loadStarRaceLeaderboard(
 > {
   await ensureStarRaceTiebreakRolls(race, includeArchivedPlayers);
   const rows = await query<StarRaceLeaderboardRow>(
-    `${rankedStarRaceTotalsCte}
+    `${Date.parse(race.startsAt) < Date.parse(OCTOBER_COMPENDIUM_START_AT)
+      ? rankedStarRaceTotalsCte.replace("compendium_star_race_events", "ti_2026_compendium_star_race_events")
+      : rankedStarRaceTotalsCte}
      SELECT
        ranked_total.rank,
        player.discord_id::text AS player_id,

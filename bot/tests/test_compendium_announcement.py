@@ -87,7 +87,7 @@ async def test_compendium_announcement_reaches_humans_and_skips_bots(
     assert report.failed_count == 1
     assert report.skipped_bot_count == 1
     assert report.skipped_excluded_count == 1
-    assert receiving_member.messages == [compendium_announcement_text()]
+    assert receiving_member.messages == [compendium_announcement_text(is_current=True)]
     assert blocked_member.messages == []
     assert bot_member.messages == []
     assert excluded_member.messages == []

@@ -58,9 +58,19 @@ function addScopedAccountId(value: unknown, requestedDotaId: string): unknown {
 }
 
 function uniqueMatches(matches: OpenDotaMatch[]): OpenDotaMatch[] {
-  return Array.from(
-    new Map(matches.map((match) => [String(match.match_id), match])).values(),
-  );
+  const merged = new Map<string, OpenDotaMatch>();
+  for (const match of matches) {
+    const key = String(match.match_id);
+    const previous = merged.get(key);
+    merged.set(key, previous ? {
+      ...previous,
+      ...match,
+      tower_damage: match.tower_damage ?? previous.tower_damage,
+      hero_damage: match.hero_damage ?? previous.hero_damage,
+      kills: match.kills ?? previous.kills,
+    } : match);
+  }
+  return [...merged.values()];
 }
 
 async function requestMatchList(url: URL): Promise<{

@@ -36,6 +36,7 @@ export default async function CompendiumPage() {
     redirect("/login?returnTo=%2Fcompendium");
   }
   if (scheduledPhase === "hidden") redirect("/compendium/results");
+  if (scheduledPhase === "finished") redirect("/compendium/results");
   if (await isExcludedFromCompendium(user.discordId)) {
     return (
       <PlatformShell user={user} hasFooter={false}>

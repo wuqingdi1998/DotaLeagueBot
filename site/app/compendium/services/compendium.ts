@@ -1,4 +1,5 @@
 import type { AuthUser } from "@/lib/auth";
+import { OCTOBER_COMPENDIUM_START_AT } from "@/lib/october-compendium-schedule";
 import { normalizeDotaAccountId } from "@/lib/player-profile";
 import {
   COMPENDIUM_TOURNAMENT_START_AT,
@@ -71,7 +72,8 @@ export async function loadCompendium(
     moscowDate: dateKey,
     moscowDateLabel: moscowDateLabel(dateKey),
     nextResetAt: day.end.toISOString(),
-    tournamentStartsAt: COMPENDIUM_TOURNAMENT_START_AT,
+    tournamentStartsAt: dateKey >= OCTOBER_COMPENDIUM_START_AT.slice(0, 10)
+      ? OCTOBER_COMPENDIUM_START_AT : COMPENDIUM_TOURNAMENT_START_AT,
     dailyChallengeRewardStars: dailyChallengeRewardStars(dateKey),
     rerollsRemaining,
     totalStars,
