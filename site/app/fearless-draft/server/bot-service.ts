@@ -11,6 +11,8 @@ import { randomCoinTossResult } from "./coin-toss";
 import { makeDraftChoice, selectDraftHero } from "./series-service";
 import { submitDraftLineupAssignment } from "./lineup-assignment-service";
 import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
+import { createBot3Captains, processBot3Captains } from "./bot3-captain-service";
+import { isBotActionDue, clearBotActionDue } from "./bot-timing-service";
 
 type BotSeriesState = {
   status: string;
@@ -28,6 +30,8 @@ type BotSeriesState = {
   version: number;
   series_id: number;
   is_season_lobby_preview: boolean;
+  step_started_at: Date | null;
+  bot_lineup_submitted: boolean;
 };
 
 const heroIds = ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id);
@@ -49,7 +53,9 @@ async function loadBotSeriesState(playerId: string): Promise<BotSeriesState | nu
             map.id::int AS map_id, map.status AS map_status,
             map.first_chooser_id::text, map.first_choice,
             map.first_pick_player_id::text, map.current_step::int,
-            map.version::int
+            map.version::int, map.step_started_at,
+            EXISTS (SELECT 1 FROM draft_lineup_assignments assignment
+              WHERE assignment.map_id = map.id AND assignment.captain_id = $2) AS bot_lineup_submitted
      FROM draft_series series
      JOIN draft_maps map
        ON map.series_id = series.id AND map.map_number = series.current_map
@@ -148,16 +154,39 @@ export async function startBotDraft(
        WHERE status = 'PENDING' AND (sender_id = $1 OR recipient_id = $1)`,
       [playerId],
     );
+    if (mode === "season-lobby-preview") await createBot3Captains(client, seriesResult.rows[0].id, playerId);
   });
 }
 
 export async function advanceBotDraft(playerId: string): Promise<void> {
+  const isChoosingCaptain = await processBot3Captains(playerId);
   for (let attempt = 0; attempt < DRAFT_SEQUENCE.length + 4; attempt += 1) {
     const state = await loadBotSeriesState(playerId);
     if (!state) return;
+    if (isChoosingCaptain && !state.end_requested_by) return;
+    if (state.map_status === "LINEUP_ASSIGNMENT" && state.bot_lineup_submitted && !state.end_requested_by) return;
+    const isBotReady = state.player1_id === FEARLESS_DRAFT_BOT_PLAYER_ID
+      ? state.player1_ready_for_next_map : state.player2_ready_for_next_map;
+    const isBotTurn = state.end_requested_by || (state.status === "MAP_COMPLETE" && !isBotReady) ||
+      state.map_status === "LINEUP_ASSIGNMENT" ||
+      (state.map_status === "FIRST_DECISION" && state.first_chooser_id === FEARLESS_DRAFT_BOT_PLAYER_ID) ||
+      (state.map_status === "SECOND_DECISION" && secondChooserId(state) === FEARLESS_DRAFT_BOT_PLAYER_ID) ||
+      (state.map_status === "DRAFTING" && currentActorId(state) === FEARLESS_DRAFT_BOT_PLAYER_ID);
+    const actionKey = `${state.map_status}:${state.version}:${state.current_step}:${state.end_requested_by ?? ""}:${state.status}`;
+    if (state.is_season_lobby_preview && isBotTurn) {
+      const duration = DRAFT_SEQUENCE[state.current_step]?.baseDurationSeconds;
+      const deadline = state.map_status === "DRAFTING" && state.step_started_at && duration
+        ? new Date(state.step_started_at.getTime() + duration * 1_000) : null;
+      if (!await isBotActionDue(state.map_id, actionKey, deadline)) return;
+    }
+    const runAction = async (action: () => Promise<void>) => {
+      const completed = await runBotAction(action);
+      if (state.is_season_lobby_preview) await clearBotActionDue(state.map_id, actionKey);
+      return completed;
+    };
 
     if (state.end_requested_by && state.end_requested_by !== FEARLESS_DRAFT_BOT_PLAYER_ID) {
-      await runBotAction(() =>
+      await runAction(() =>
         respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", playerId)
       );
       return;
@@ -168,7 +197,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         ? state.player1_ready_for_next_map
         : state.player2_ready_for_next_map;
       if (!isReady) {
-        await runBotAction(() =>
+        await runAction(() =>
           markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, playerId)
         );
         continue;
@@ -189,7 +218,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         [state.map_id, FEARLESS_DRAFT_BOT_PLAYER_ID],
       );
       if (botPlayers.length !== 5 || pickedHeroes.length !== 5) return;
-      await runBotAction(() => submitDraftLineupAssignment(
+      await runAction(() => submitDraftLineupAssignment(
         FEARLESS_DRAFT_BOT_PLAYER_ID,
         pickedHeroes.map((pick, index) => ({
           heroId: pick.hero_id,
@@ -201,7 +230,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
     }
     if (state.map_status === "FIRST_DECISION") {
       if (state.first_chooser_id !== FEARLESS_DRAFT_BOT_PLAYER_ID) return;
-      await runBotAction(() =>
+      await runAction(() =>
         makeDraftChoice(
           FEARLESS_DRAFT_BOT_PLAYER_ID,
           randomItem(["FIRST", "SECOND", "RADIANT", "DIRE"] as const),
@@ -215,7 +244,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
       const choices = state.first_choice === "RADIANT" || state.first_choice === "DIRE"
         ? (["FIRST", "SECOND"] as const)
         : (["RADIANT", "DIRE"] as const);
-      await runBotAction(() =>
+      await runAction(() =>
         makeDraftChoice(
           FEARLESS_DRAFT_BOT_PLAYER_ID,
           randomItem(choices),
@@ -228,7 +257,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
       return;
     }
     const heroId = await randomAvailableHeroId(state);
-    await runBotAction(() =>
+    await runAction(() =>
       selectDraftHero(
         FEARLESS_DRAFT_BOT_PLAYER_ID,
         heroId,

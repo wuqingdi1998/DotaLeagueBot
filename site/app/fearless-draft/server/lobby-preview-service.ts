@@ -16,6 +16,7 @@ type LobbyPreviewProfileRow = {
   real_name: string | null;
   positions: string | null;
   avatar_url: string | null;
+  tier: number | null;
 };
 
 function profileFromRow(row: LobbyPreviewProfileRow): LobbyPreviewProfile {
@@ -25,6 +26,8 @@ function profileFromRow(row: LobbyPreviewProfileRow): LobbyPreviewProfile {
     name: row.name,
     serverName: playerServerName(row.real_name, row.name, row.positions),
     avatarUrl: row.avatar_url,
+    positions: row.positions,
+    tier: row.tier,
   };
 }
 
@@ -39,6 +42,9 @@ async function loadPreviewProfiles(
             player.ingame_name AS name,
             player.real_name,
             player.positions,
+            COALESCE(NULLIF(player.internal_rating, 0),
+              CASE WHEN player.rank_tier >= 10 THEN player.rank_tier / 10
+                WHEN player.rank_tier > 0 THEN player.rank_tier END)::int AS tier,
             COALESCE(
               NULLIF(player.avatar_url, ''),
               NULLIF(latest.discord_avatar_url, '')
@@ -83,13 +89,10 @@ export async function loadLobbyPreviewPlayers(
   user: AuthUser,
   seriesId: number,
 ): Promise<DraftLobbyPlayer[]> {
-  return buildRoster(client, {
-    id: user.discordId,
-    dotaId: user.dotaId,
-    name: user.playerName,
-    serverName: user.serverName,
-    avatarUrl: user.avatarUrl,
-  }, seriesId);
+  const roster = await loadLobbyPreviewPlayersByViewerId(client, user.discordId, seriesId);
+  return roster.map((player) => player.id === user.discordId
+    ? { ...player, name: user.playerName, serverName: user.serverName, avatarUrl: user.avatarUrl }
+    : player);
 }
 
 export async function loadLobbyPreviewPlayersByViewerId(
@@ -103,6 +106,9 @@ export async function loadLobbyPreviewPlayersByViewerId(
             player.ingame_name AS name,
             player.real_name,
             player.positions,
+            COALESCE(NULLIF(player.internal_rating, 0),
+              CASE WHEN player.rank_tier >= 10 THEN player.rank_tier / 10
+                WHEN player.rank_tier > 0 THEN player.rank_tier END)::int AS tier,
             COALESCE(
               NULLIF(player.avatar_url, ''),
               NULLIF(latest.discord_avatar_url, '')

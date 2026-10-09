@@ -33,6 +33,7 @@ import {
 } from "@/app/fearless-draft/server/bot-service";
 import { fearlessSeasonMatchId } from
   "@/app/fearless-draft/server/season-match-context";
+import { processBot3Captains } from "@/app/fearless-draft/server/bot3-captain-service";
 import { removeDraftHeroSuggestions, toggleDraftHeroSuggestion } from
   "@/app/fearless-draft/server/suggestion-service";
 import { submitDraftLineupAssignment } from
@@ -63,6 +64,8 @@ export async function POST(request: Request) {
     const user = await requireSession();
     const seasonMatchId = fearlessSeasonMatchId(request);
     const command = (await request.json()) as Partial<FearlessDraftCommand>;
+    if (["MAKE_CHOICE", "SELECT_HERO", "HIGHLIGHT_HERO", "SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP"].includes(command.action ?? "") &&
+      await processBot3Captains(user.discordId)) throw new DraftRequestError("Сначала завершите выбор капитанов", 409);
     if ([
       "START_BOT",
       "START_BOT2",
@@ -74,6 +77,15 @@ export async function POST(request: Request) {
       await requirePlayerParticipation(user.discordId);
     }
     switch (command.action) {
+      case "BOT3_CAPTAIN_INTEREST":
+        if (typeof command.wantsCaptain !== "boolean") throw new DraftRequestError("Ответ не указан");
+        await processBot3Captains(user.discordId, { action: command.action, value: command.wantsCaptain });
+        break;
+      case "BOT3_CAPTAIN_VOTE":
+      case "BOT3_CAPTAIN_TIEBREAK":
+        if (typeof command.candidatePlayerId !== "string") throw new DraftRequestError("Кандидат не указан");
+        await processBot3Captains(user.discordId, { action: command.action, value: command.candidatePlayerId });
+        break;
       case "START_BOT":
         await startBotDraft(user.discordId);
         break;
@@ -211,7 +223,7 @@ export async function POST(request: Request) {
     if (seasonMatchId && command.action === "SUBMIT_LINEUP_ASSIGNMENT") {
       publishLiveUpdate(seasonLobbyChannel(seasonMatchId));
     }
-    if (command.action === "SELECT_HERO") {
+    if (command.action === "SELECT_HERO" || command.action?.startsWith("BOT3_CAPTAIN_")) {
       const snapshot = await loadFearlessDraftSnapshot(user, { seasonMatchId });
       const durationMs = Date.now() - startedAt;
       if (durationMs >= 1_000) {

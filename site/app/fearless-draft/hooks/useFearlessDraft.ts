@@ -20,6 +20,7 @@ function keepNewestDraftSnapshot(
   current: FearlessDraftSnapshot,
   incoming: FearlessDraftSnapshot,
 ): FearlessDraftSnapshot {
+  if (Date.parse(incoming.serverNow) < Date.parse(current.serverNow)) return current;
   const currentMap = current.series?.map;
   const incomingMap = incoming.series?.map;
   if (

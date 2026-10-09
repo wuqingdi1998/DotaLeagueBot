@@ -1,6 +1,8 @@
 import type { AuthUser } from "@/lib/auth";
 import type { PoolClient } from "pg";
 import { transaction } from "@/lib/db";
+import { loadBot3Room } from "./bot3-captain-service";
+import { displayBot3Captains } from "../model/bot3-room";
 import {
   DRAFT_QUEUE_TTL_SECONDS,
   DRAFT_SEQUENCE,
@@ -423,11 +425,14 @@ export async function loadFearlessDraftSnapshot(
       joinedAt: row.joined_at.toISOString(),
     }));
     const series = await loadSeries(client, user.discordId, options.seasonMatchId);
-    const lobbyPlayers: DraftLobbyPlayer[] | undefined = series?.isLobbyPreview
+    const serverNow = await databaseNow(client);
+    const bot3Room = series?.isSeasonLobbyPreview ? await loadBot3Room(client, series.id, user.isAdmin, serverNow.toISOString(), series) : undefined;
+    let lobbyPlayers: DraftLobbyPlayer[] | undefined = series?.isLobbyPreview
       ? await loadLobbyPreviewPlayers(client, user, series.id)
       : series && options.seasonMatchId
         ? await loadSeasonLobbyPlayers(client, options.seasonMatchId)
         : undefined;
+    if (bot3Room) lobbyPlayers = lobbyPlayers?.map((player) => ({ ...player, isCaptain: bot3Room.players.some((member) => member.playerId === player.id && member.isCaptain) }));
     const previewBotCaptain = lobbyPlayers
       ? buildLobbyPreviewBotCaptain(lobbyPlayers, FEARLESS_DRAFT_BOT_PLAYER_ID)
       : null;
@@ -475,7 +480,6 @@ export async function loadFearlessDraftSnapshot(
         },
       };
     }
-    const serverNow = await databaseNow(client);
     return {
       serverNow: serverNow.toISOString(),
       user: playerFromAuth(user),
@@ -484,7 +488,8 @@ export async function loadFearlessDraftSnapshot(
       waitingPlayers,
       invitations,
       lobbyPlayers,
-      series: displayedSeries,
+      bot3Room,
+      series: displayedSeries ? displayBot3Captains(displayedSeries, bot3Room) : null,
     };
   });
 }

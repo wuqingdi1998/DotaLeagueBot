@@ -62,6 +62,7 @@ beforeAll(async () => {
     CREATE TABLE players (
       discord_id bigint PRIMARY KEY, ingame_name text, steam_id32 bigint,
       real_name text, positions text, avatar_url text,
+      internal_rating integer, rank_tier integer,
       is_archived boolean DEFAULT false
     );
     CREATE TABLE web_sessions (

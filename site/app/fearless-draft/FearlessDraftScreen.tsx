@@ -23,25 +23,28 @@ export function FearlessDraftScreen({
   seasonMatchId,
   lobbyPlayers,
   canAdvanceToNextMap = true,
+  controller,
 }: {
   initialSnapshot: FearlessDraftSnapshot;
   seasonMatchId?: number;
   lobbyPlayers?: DraftLobbyPlayer[];
   canAdvanceToNextMap?: boolean;
+  controller?: ReturnType<typeof useFearlessDraft>;
 }) {
   return (
     <DraftLocaleProvider>
-      <FearlessDraftContent
+      {controller ? <FearlessDraftContent controller={controller}
+        lobbyPlayers={lobbyPlayers} canAdvanceToNextMap={canAdvanceToNextMap} /> : <ConnectedFearlessDraftContent
         initialSnapshot={initialSnapshot}
         seasonMatchId={seasonMatchId}
         lobbyPlayers={lobbyPlayers}
         canAdvanceToNextMap={canAdvanceToNextMap}
-      />
+      />}
     </DraftLocaleProvider>
   );
 }
 
-function FearlessDraftContent({
+function ConnectedFearlessDraftContent({
   initialSnapshot,
   seasonMatchId,
   lobbyPlayers,
@@ -52,8 +55,16 @@ function FearlessDraftContent({
   lobbyPlayers?: DraftLobbyPlayer[];
   canAdvanceToNextMap: boolean;
 }) {
-  const { snapshot, error, isSending, isConnected, send } =
-    useFearlessDraft(initialSnapshot, seasonMatchId);
+  const controller = useFearlessDraft(initialSnapshot, seasonMatchId);
+  return <FearlessDraftContent controller={controller} lobbyPlayers={lobbyPlayers} canAdvanceToNextMap={canAdvanceToNextMap} />;
+}
+
+function FearlessDraftContent({ controller, lobbyPlayers, canAdvanceToNextMap }: {
+  controller: ReturnType<typeof useFearlessDraft>;
+  lobbyPlayers?: DraftLobbyPlayer[];
+  canAdvanceToNextMap: boolean;
+}) {
+  const { snapshot, error, isSending, isConnected, send } = controller;
   const { locale, text } = useDraftLocale();
   const {
     draftRef,

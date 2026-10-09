@@ -9,6 +9,7 @@ import {
 import { draftTurnDeadline } from "../model/deadline";
 import { settleExpiredDraftEndRequests } from "./agreement-service";
 import { advanceAllBotDrafts } from "./bot-service";
+import { nextBotActionDueAt } from "./bot-timing-service";
 import {
   settleExpiredDraftSeries,
   settleFinalPickReview,
@@ -82,6 +83,7 @@ async function nextDeadline(drafts: TimedDraftRow[]): Promise<Date | null> {
     ),
   ]);
   const deadlines = [
+    await nextBotActionDueAt(),
     invitation?.deadline ?? null,
     endRequest?.deadline ?? null,
     finalReview?.deadline ?? null,

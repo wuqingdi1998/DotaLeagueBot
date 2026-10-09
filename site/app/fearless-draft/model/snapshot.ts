@@ -7,6 +7,7 @@ import type {
   DraftSide,
 } from "./types";
 import type { DraftTeamPlayerColorSlot } from "./player-colors";
+import type { SeasonLobbyRoomSnapshot } from "@/app/season-lobby/[matchId]/model/types";
 
 export type DraftPlayer = {
   id: string;
@@ -25,6 +26,8 @@ export type DraftLobbyPlayer = {
   isOnline: boolean;
   slotNumber?: number | null;
   isCaptain?: boolean;
+  tier?: number | null;
+  positions?: string | null;
 };
 
 export type DraftHeroSuggestion = {
@@ -131,10 +134,14 @@ export type FearlessDraftSnapshot = {
   waitingPlayers: WaitingDraftPlayer[];
   invitations: DraftInvitationSnapshot[];
   lobbyPlayers?: DraftLobbyPlayer[];
+  bot3Room?: SeasonLobbyRoomSnapshot;
   series: DraftSeriesSnapshot | null;
 };
 
 export type FearlessDraftCommand =
+  | { action: "BOT3_CAPTAIN_INTEREST"; wantsCaptain: boolean }
+  | { action: "BOT3_CAPTAIN_VOTE"; candidatePlayerId: string }
+  | { action: "BOT3_CAPTAIN_TIEBREAK"; candidatePlayerId: string }
   | { action: "START_BOT" }
   | { action: "START_BOT2" }
   | { action: "START_BOT3" }

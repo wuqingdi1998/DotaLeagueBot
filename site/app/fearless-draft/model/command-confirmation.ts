@@ -6,6 +6,9 @@ export function isDraftCommandConfirmed(
   before: FearlessDraftSnapshot,
   after: FearlessDraftSnapshot,
 ): boolean {
+  if (command.action === "BOT3_CAPTAIN_INTEREST") return after.bot3Room?.ownCaptainInterest === command.wantsCaptain;
+  if (command.action === "BOT3_CAPTAIN_VOTE") return after.bot3Room?.ownVoteCandidateId === command.candidatePlayerId;
+  if (command.action === "BOT3_CAPTAIN_TIEBREAK") return after.bot3Room?.captainTiebreak?.selectedCandidateId === command.candidatePlayerId;
   const previousMap = before.series?.map;
   const map = after.series?.map;
   if (!previousMap || !map || previousMap.id !== map.id) return false;

@@ -87,9 +87,10 @@ describe("Fearless Draft bot mode", () => {
     expect(route).toContain("await advanceBotDraft(user.discordId)");
   });
 
-  it("instantly assigns the bot team's heroes in Bot3", () => {
+  it("assigns the bot team's heroes through the normal rules after its scheduled delay", () => {
     expect(botService).toContain('state.map_status === "LINEUP_ASSIGNMENT"');
     expect(botService).toContain("submitDraftLineupAssignment(");
+    expect(botService).toContain("await isBotActionDue");
     expect(route).toContain('"SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP"');
   });
 
