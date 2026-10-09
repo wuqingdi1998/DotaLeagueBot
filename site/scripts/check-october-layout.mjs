@@ -68,11 +68,12 @@ try {
         });
         if (issues.length) failures.push({ fixture, width, height, issues });
         if (fixture === "race-1-5" && width === 1366) {
-          await page.locator(".october-race-matches-button").first().click();
+          await page.locator(".compendium-star-race-quest").nth(2).locator(".october-race-matches-button").click();
           const evidence = page.locator(".october-race-matches-popover:popover-open");
           if (!await evidence.isVisible() || await evidence.locator("a").count() === 0) {
             failures.push({ fixture, width, height, issues: ["completed match evidence does not open"] });
           }
+          if (await evidence.locator("p").count()) failures.push({ fixture, width, height, issues: ["complete non-stat quest incorrectly says evidence needs repair"] });
           await page.keyboard.press("Escape");
         }
         if (fixture === "race-0-4" && [1900, 1366, 393].includes(width)) {
@@ -82,6 +83,7 @@ try {
           if (!await evidence.isVisible() || await evidence.locator("a").count() !== 2) {
             failures.push({ fixture, width, height, issues: ["building damage evidence does not show all contributing matches"] });
           }
+          if (!await evidence.locator("p").count()) failures.push({ fixture, width, height, issues: ["legacy building evidence does not show its restoration status"] });
           await page.screenshot({ path: fileURLToPath(new URL(`race-evidence-${width}.png`, screenshots)), fullPage: true });
           await page.keyboard.press("Escape");
         }

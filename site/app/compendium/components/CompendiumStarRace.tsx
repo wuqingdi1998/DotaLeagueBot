@@ -121,7 +121,7 @@ function StarRaceQuestCard({
                   {quest.completion.isManual && (
                     <span>Засчитано организатором</span>
                   )}
-                  {compactCompletion ? <StarRaceCompletionMatches wins={quest.completion.wins} hasCompleteEvidence={quest.completion.hasCompleteMatchEvidence ?? true} /> : quest.completion.wins.map((win) => (
+                  {compactCompletion ? <StarRaceCompletionMatches wins={quest.completion.wins} hasCompleteEvidence={quest.requirement?.kind !== "winning-building-damage" || quest.completion.hasCompleteMatchEvidence !== false} /> : quest.completion.wins.map((win) => (
                     <a
                       href={`https://www.opendota.com/matches/${win.matchId}`}
                       target="_blank"
