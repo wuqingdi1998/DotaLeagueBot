@@ -280,6 +280,7 @@ export async function loadSeasonLobbyRoomSnapshot(
       const { realName, serverPlayerName, positions, ...player } = row;
       return {
         ...player,
+        positions,
         isCaptain: player.isCaptain && isSelectedCaptainVisible({
           status: state.status,
           isOrganizer: user.isAdmin,

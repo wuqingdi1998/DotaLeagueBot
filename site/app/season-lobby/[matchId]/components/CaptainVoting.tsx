@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from "react";
 import { FiCheck, FiClock, FiUsers } from "react-icons/fi";
 import { AvatarImage } from "@/app/components/AvatarImage";
+import { PlayerRoleBadge } from "@/app/components/PlayerRoleBadge";
 import { SubscriptionRuneNickname } from "@/app/components/SubscriptionRuneNickname";
 import type {
   SeasonLobbyCaptainBallot,
@@ -155,7 +156,7 @@ function CandidateCard({
               subscriptionRole={candidate.subscriptionRole}
             />
           </strong>
-          <small>Тир {candidate.tier ?? "–"}</small>
+          <small>Тир {candidate.tier ?? "–"}<PlayerRoleBadge positions={candidate.positions} /></small>
         </span>
         {isSelected && <FiCheck aria-label="Ваш голос" />}
       </div>
@@ -205,10 +206,14 @@ function CaptainInterest({
         title="Вы хотите быть капитаном?"
         description="Не ответившие до конца таймера автоматически выбирают «Нет»."
       />
-      {pendingInterest === null ? (
+      {fixedInterest === true ? (
+        <div className="season-room-captain-resolved" role="status">
+          <strong>Вы хотите быть капитаном</strong>
+          <span>Ожидаем ответы остальных участников.</span>
+        </div>
+      ) : pendingInterest === null ? (
         <div className="season-room-interest-actions">
           <button
-            className={fixedInterest === true ? "selected yes" : ""}
             type="button"
             disabled={isSending || fixedInterest !== null}
             onClick={() => setPendingInterest(true)}
@@ -270,7 +275,7 @@ function CaptainChoice({
       <VotingHeader
         snapshot={snapshot}
         stage="Этап 2 из 3"
-        title="Выберите капитана"
+        title="Вы выбираете капитана"
         description={canVote
           ? "Нажмите на одного из игроков, которые хотят стать капитаном."
           : "Кандидаты не голосуют на этом этапе: их голос уже отдан за себя."}
@@ -413,7 +418,7 @@ function CaptainTiebreak({
       <VotingHeader
         snapshot={snapshot}
         stage="Этап 3 из 3"
-        title="Решающий голос"
+        title={canVote ? "Вы выбираете капитана" : "Решающий голос"}
         description={canVote
           ? "Вы не получили внешний голос. Выберите капитана из двух лидеров."
           : "В вашей команде возникла особая ничья. Ожидаем решающий голос."}

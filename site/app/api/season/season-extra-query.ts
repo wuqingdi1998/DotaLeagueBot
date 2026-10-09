@@ -41,6 +41,7 @@ export type SubstitutionRow = {
   incoming_nickname: string;
   incoming_avatar_url: string | null;
   incoming_tier: number | null;
+  incoming_positions: string | null;
   incoming_is_captain: boolean;
   team_side: "a" | "b";
   technical_loss: boolean;
@@ -154,6 +155,7 @@ export async function loadSeasonExtras(
            CASE WHEN incoming.rank_tier >= 10 THEN incoming.rank_tier / 10
              WHEN incoming.rank_tier > 0 THEN incoming.rank_tier END
          )::int AS incoming_tier,
+         COALESCE(current_incoming.positions, incoming.positions) AS incoming_positions,
          EXISTS (
            SELECT 1 FROM season_match_rooms room
            WHERE room.match_id = substitution.match_id

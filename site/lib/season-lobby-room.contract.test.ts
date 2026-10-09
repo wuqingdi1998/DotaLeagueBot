@@ -197,7 +197,7 @@ describe("season lobby room contract", () => {
     expect(captainSelection).toContain("SEASON_CAPTAIN_STAGE_SECONDS");
     expect(captainSelection).toContain("advanceCaptainSelection");
     expect(captainVoting).toContain("Вы хотите быть капитаном?");
-    expect(captainVoting).toContain("Выберите капитана");
+    expect(captainVoting).toContain("Вы выбираете капитана");
     expect(captainVoting).toContain("После подтверждения изменить ответ нельзя.");
     expect(captainVoting).toContain("confirmation.pendingCandidate.nickname");
     expect(captainSelectionActions).toContain(

@@ -38,6 +38,7 @@ export function buildBot3SeasonLobbySnapshot(
       subscriptionRole: null,
       teamSide: player.teamSide,
       tier: null,
+      positions: null,
       slotNumber: player.slotNumber ?? null,
       isCaptain: Boolean(player.isCaptain),
       isHost: player.id === draft.user.id,

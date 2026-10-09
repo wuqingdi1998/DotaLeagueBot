@@ -28,6 +28,7 @@ export function seasonTeamLineupSlots(
         nickname: substitution.incoming_nickname,
         avatar_url: substitution.incoming_avatar_url,
         tier_snapshot: substitution.incoming_tier ?? null,
+        positions: substitution.incoming_positions ?? null,
         is_captain: substitution.incoming_is_captain ?? player.is_captain,
         is_host: match.host_player_id === substitution.incoming_player_id,
         isFormerPlayer: false,

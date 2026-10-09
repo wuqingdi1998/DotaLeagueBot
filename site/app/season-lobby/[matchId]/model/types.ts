@@ -20,6 +20,7 @@ export type SeasonLobbyRoomPlayer = {
   subscriptionRole: SubscriptionRoleName | null;
   teamSide: "a" | "b";
   tier: number | null;
+  positions: string | null;
   slotNumber: number | null;
   isCaptain: boolean;
   isHost: boolean;

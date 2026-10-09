@@ -14,7 +14,7 @@ const match: SeasonMatch = {
   sort_order: 1, can_enter_lobby: false, host_player_id: "200",
   participants: [{
     player_id: "100", dota_id: "101", nickname: "Первый игрок", avatar_url: null,
-    positions: null, team_side: "a", is_captain: true, tier_snapshot: 8,
+    positions: "1/2", team_side: "a", is_captain: true, tier_snapshot: 8,
     slot_number: 3, is_host: false,
   }],
   games: [{
@@ -25,7 +25,7 @@ const match: SeasonMatch = {
     id: 1, match_id: 10, game_id: 2, game_number: 2, outgoing_player_id: "100",
     outgoing_dota_id: "101", outgoing_nickname: "Первый игрок", incoming_player_id: "200",
     incoming_dota_id: "201", incoming_nickname: "Второй игрок", incoming_avatar_url: null,
-    incoming_tier: 6, incoming_is_captain: true, team_side: "a", technical_loss: true, note: null,
+    incoming_tier: 6, incoming_positions: "4/5", incoming_is_captain: true, team_side: "a", technical_loss: true, note: null,
   }],
 };
 
@@ -35,6 +35,7 @@ describe("season lineup by map", () => {
     expect(lineup.map((player) => [player.nickname, player.isFormerPlayer, player.mapLabel, player.slot_number]))
       .toEqual([["Первый игрок", true, "(1-я карта)", 3], ["Второй игрок", false, "(2-я карта)", 3]]);
     expect(lineup[1]).toMatchObject({ dota_id: "201", is_host: true, is_captain: true, tier_snapshot: 6 });
+    expect(lineup.map((player) => player.positions)).toEqual(["1/2", "4/5"]);
     expect(seasonTeamLineup(match, "b")).toEqual([]);
     expect(seasonTeamLineupSlots(match, "a")[0].players.map((player) => player.nickname))
       .toEqual(["Первый игрок", "Второй игрок"]);
@@ -64,6 +65,8 @@ describe("season lineup by map", () => {
     expect(html).toContain("(2-я карта)");
     expect(html).toContain('href="/players/201"');
     expect(html).toContain('Сумма тиров</small><strong>6</strong>');
+    expect(html).toContain('aria-label="Игровые позиции: 1/2"');
+    expect(html).toContain('aria-label="Игровые позиции: 4/5"');
   });
 
   it("shows only the incoming player in the compact panel after a pre-match replacement", () => {

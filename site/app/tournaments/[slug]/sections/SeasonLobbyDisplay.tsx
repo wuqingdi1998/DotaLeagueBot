@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FiCalendar, FiExternalLink, FiLayers, FiLogIn, FiUsers } from "react-icons/fi";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { AvatarImage } from "@/app/components/AvatarImage";
+import { PlayerRoleBadge } from "@/app/components/PlayerRoleBadge";
 import { seasonMatchLinks } from "@/lib/season";
 import { groupSeasonFinalMedalists } from "@/lib/season-finals";
 import { SeasonSteamNicknameButton } from "../components/SeasonSteamNicknameButton";
@@ -355,6 +356,7 @@ function SeasonTemporaryTeam({
             <span className="season-player-row-actions">
               {!player.isFormerPlayer && participantAction?.(match, player)}
               <small className="player-tier">тир {player.tier_snapshot ?? "—"}</small>
+              <PlayerRoleBadge positions={player.positions} />
             </span>
           </li>
         ))}

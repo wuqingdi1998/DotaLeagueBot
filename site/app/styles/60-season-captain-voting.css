@@ -15,7 +15,8 @@
   padding: 9px 12px;
   background: color-mix(in srgb, var(--blue) 9%, var(--surface));
   color: var(--blue-strong);
-  font-size: 14px;
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .season-room-stage-timer {
@@ -44,8 +45,7 @@
   font-weight: 900;
 }
 
-.season-room-interest-actions button:hover:not(:disabled),
-.season-room-interest-actions button.selected.yes {
+.season-room-interest-actions button:hover:not(:disabled) {
   border-color: #2fc579;
   background: color-mix(in srgb, #2fc579 12%, var(--surface));
 }

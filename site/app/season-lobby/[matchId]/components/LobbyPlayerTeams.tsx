@@ -2,6 +2,7 @@
 
 import { FaTools } from "react-icons/fa";
 import { AvatarImage } from "@/app/components/AvatarImage";
+import { PlayerRoleBadge } from "@/app/components/PlayerRoleBadge";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
 import { SubscriptionRuneNickname } from "@/app/components/SubscriptionRuneNickname";
 import type {
@@ -40,6 +41,7 @@ function RoomPlayer({ player }: { player: SeasonLobbyRoomPlayer }) {
         </PlayerProfileLink>
         <small>
           тир {player.tier ?? "—"}
+          <PlayerRoleBadge positions={player.positions} />
           {player.isCaptain ? " · капитан" : ""}
         </small>
       </span>
