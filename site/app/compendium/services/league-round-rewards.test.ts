@@ -11,9 +11,9 @@ describe("October league round rewards", () => {
 
     await syncOctoberLeagueMatchStars({ query } as never, 42);
 
-    expect(query).toHaveBeenCalledTimes(2);
+    expect(query).toHaveBeenCalledTimes(4);
     const [eligibilitySql, eligibilityParameters] = query.mock.calls[0];
-    const [sql, parameters] = query.mock.calls[1];
+    const [sql, parameters] = query.mock.calls[2];
     expect(eligibilitySql).toContain("tournament.slug = 'league-season-9'");
     expect(eligibilitySql).toContain("round.round_number = ANY($2::smallint[])");
     expect(eligibilityParameters).toEqual([42, [6, 7, 8], OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT]);
@@ -23,6 +23,9 @@ describe("October league round rewards", () => {
     expect(sql).toContain("ON CONFLICT (player_id, season_match_id)");
     expect(sql).toContain("DO UPDATE SET amount = EXCLUDED.amount");
     expect(parameters).toEqual([42, 1, 3, 6]);
+    expect(query.mock.calls[1][0]).toContain("FOR UPDATE OF member");
+    expect(query.mock.calls[3][0]).toContain("SET total_points = total.total_stars");
+    expect(query.mock.calls[3][1]).toEqual([42]);
   });
 
   it("does not touch Compendium data for another season or round", async () => {

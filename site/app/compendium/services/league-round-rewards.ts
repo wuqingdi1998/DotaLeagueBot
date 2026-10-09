@@ -28,6 +28,16 @@ export async function syncOctoberLeagueMatchStars(
   if (!eligibility.rows[0]?.is_eligible) return;
 
   await client.query(
+    `SELECT member.player_id
+     FROM october_compendium_clan_members member
+     JOIN season_match_room_players participant ON participant.player_id = member.player_id
+     WHERE participant.match_id = $1
+     ORDER BY member.player_id
+     FOR UPDATE OF member`,
+    [seasonMatchId],
+  );
+
+  await client.query(
     `INSERT INTO compendium_admin_star_adjustments (
        player_id,
        amount,
@@ -80,5 +90,19 @@ export async function syncOctoberLeagueMatchStars(
       OCTOBER_LEAGUE_REWARD_STARS.oneMapWin,
       OCTOBER_LEAGUE_REWARD_STARS.twoMapWins,
     ],
+  );
+
+  await client.query(
+    `UPDATE october_compendium_clan_members member
+     SET total_points = total.total_stars
+     FROM compendium_player_star_totals total
+     WHERE total.player_id = member.player_id
+       AND EXISTS (
+         SELECT 1 FROM compendium_admin_star_adjustments adjustment
+         WHERE adjustment.player_id = member.player_id
+           AND adjustment.season_match_id = $1
+           AND compendium_stars_count_for_player(adjustment.player_id, adjustment.created_at)
+       )`,
+    [seasonMatchId],
   );
 }
