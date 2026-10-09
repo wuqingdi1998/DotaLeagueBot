@@ -163,16 +163,20 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
   for (let attempt = 0; attempt < DRAFT_SEQUENCE.length + 4; attempt += 1) {
     const state = await loadBotSeriesState(playerId);
     if (!state) return;
-    if (isChoosingCaptain && !state.end_requested_by) return;
-    if (state.map_status === "LINEUP_ASSIGNMENT" && state.bot_lineup_submitted && !state.end_requested_by) return;
+    if (isChoosingCaptain && !state.end_requested_by) {
+      await clearBotActionDue(state.map_id);
+      return;
+    }
     const isBotReady = state.player1_id === FEARLESS_DRAFT_BOT_PLAYER_ID
       ? state.player1_ready_for_next_map : state.player2_ready_for_next_map;
     const isBotTurn = state.end_requested_by || (state.status === "MAP_COMPLETE" && !isBotReady) ||
-      state.map_status === "LINEUP_ASSIGNMENT" ||
+      (state.map_status === "LINEUP_ASSIGNMENT" && !state.bot_lineup_submitted) ||
       (state.map_status === "FIRST_DECISION" && state.first_chooser_id === FEARLESS_DRAFT_BOT_PLAYER_ID) ||
       (state.map_status === "SECOND_DECISION" && secondChooserId(state) === FEARLESS_DRAFT_BOT_PLAYER_ID) ||
       (state.map_status === "DRAFTING" && currentActorId(state) === FEARLESS_DRAFT_BOT_PLAYER_ID);
     const actionKey = `${state.map_status}:${state.version}:${state.current_step}:${state.end_requested_by ?? ""}:${state.status}`;
+    if (state.is_season_lobby_preview && !isBotTurn) await clearBotActionDue(state.map_id);
+    if (state.map_status === "LINEUP_ASSIGNMENT" && state.bot_lineup_submitted && !state.end_requested_by) return;
     if (state.is_season_lobby_preview && isBotTurn) {
       const duration = DRAFT_SEQUENCE[state.current_step]?.baseDurationSeconds;
       const deadline = state.map_status === "DRAFTING" && state.step_started_at && duration

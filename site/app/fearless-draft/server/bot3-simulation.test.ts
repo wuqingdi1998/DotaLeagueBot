@@ -66,5 +66,8 @@ describe("persisted Bot3 simulation", () => {
     expect(await nextBotActionDueAt()).not.toBeNull();
     await clearBotActionDue(1, "turn:1");
     expect(await nextBotActionDueAt()).toBeNull();
+    await isBotActionDue(1, "cancelled-request", null);
+    await clearBotActionDue(1);
+    expect(await nextBotActionDueAt()).toBeNull();
   });
 });

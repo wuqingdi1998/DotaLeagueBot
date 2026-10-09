@@ -35,7 +35,7 @@ it("waits for the saved Bot3 decision time and then takes exactly one valid choi
   mocks.isBotActionDue.mockResolvedValue(true);
   await advanceBotDraft("1");
   expect(mocks.makeDraftChoice).toHaveBeenCalledOnce();
-  expect(mocks.clearBotActionDue).toHaveBeenCalledOnce();
+  expect(mocks.clearBotActionDue).toHaveBeenCalledWith(1, expect.any(String));
 });
 
 it("does not start the draft until captain selection finishes", async () => {
@@ -67,4 +67,14 @@ it("does not repeat a confirmed lineup or change Bot1 and Bot2 timing", async ()
   await advanceBotDraft("1");
   expect(mocks.makeDraftChoice).toHaveBeenCalledOnce();
   expect(mocks.isBotActionDue).not.toHaveBeenCalled();
+});
+
+it("clears a cancelled reply while waiting for the human or captain stage", async () => {
+  state.first_chooser_id = "1";
+  await advanceBotDraft("1");
+  expect(mocks.clearBotActionDue).toHaveBeenCalledWith(1);
+  expect(mocks.isBotActionDue).not.toHaveBeenCalled();
+  mocks.processBot3Captains.mockResolvedValue(true);
+  await advanceBotDraft("1");
+  expect(mocks.clearBotActionDue).toHaveBeenCalledTimes(2);
 });

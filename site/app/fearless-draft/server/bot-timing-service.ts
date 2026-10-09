@@ -21,8 +21,8 @@ export async function isBotActionDue(mapId: number, key: string, deadline: Date 
   return existing?.is_due === true;
 }
 
-export async function clearBotActionDue(mapId: number, key: string) {
-  await query("UPDATE draft_maps SET bot_action_due_at = NULL, bot_action_key = NULL WHERE id = $1 AND bot_action_key = $2", [mapId, key]);
+export async function clearBotActionDue(mapId: number, key?: string) {
+  await query("UPDATE draft_maps SET bot_action_due_at = NULL, bot_action_key = NULL WHERE id = $1 AND bot_action_due_at IS NOT NULL AND ($2::text IS NULL OR bot_action_key = $2)", [mapId, key ?? null]);
 }
 
 export async function nextBotActionDueAt(): Promise<Date | null> {
