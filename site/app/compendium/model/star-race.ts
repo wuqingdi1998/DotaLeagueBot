@@ -330,6 +330,7 @@ export type StarRaceQuestCompletion = {
   completedAt: string;
   wins: StarRaceQuestWin[];
   isManual: boolean;
+  hasCompleteMatchEvidence?: boolean;
 };
 
 export type StarRaceQuestProgress = {

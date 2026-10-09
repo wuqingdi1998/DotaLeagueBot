@@ -19,6 +19,15 @@ afterEach(() => {
 });
 
 describe("OpenDota client", () => {
+  it("requests and separately caches a longer history for completed quest evidence", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([validMatch])));
+    vi.stubGlobal("fetch", fetchMock);
+    await fetchRecentPlayerMatches("301109815", { historyDays: 5 });
+    expect(new URL(String(fetchMock.mock.calls[0][0])).searchParams.get("date")).toBe("5");
+    fetchMock.mockImplementation(() => Promise.resolve(new Response(JSON.stringify([validMatch]))));
+    await fetchRecentPlayerMatches("301109815");
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
   it("merges a fresh Turbo match that is only present in recentMatches", async () => {
     const turboMatch = {
       ...validMatch,

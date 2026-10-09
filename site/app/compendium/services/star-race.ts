@@ -35,6 +35,7 @@ import {
 import { checkStarRaceArcanaQuest } from "./star-race-arcana";
 import { loadPendingArcanaVerifications } from "./star-race-arcana-repository";
 import { loadFinalPrediction } from "./star-race-final-prediction-repository";
+import { restoreStarRaceEvidence } from "./star-race-evidence";
 
 export async function loadStarRace(
   user: AuthUser,
@@ -75,6 +76,7 @@ export async function loadStarRace(
       ? loadFinalPrediction(user.discordId)
       : Promise.resolve({ teams: [], selectedPosition: null, winnerPosition: null, openedAt: null }),
   ]);
+  await restoreStarRaceEvidence({ user, quests: race.quests, completions, progresses });
   return {
     ...visibility,
     id: race.id,
@@ -300,15 +302,14 @@ export async function checkStarRaceQuest(
       wins: evaluation.wins,
     });
     if (evaluation.isComplete) {
-      const evidenceWin = evaluation.wins[0];
-      if (!evidenceWin) {
+      if (!evaluation.wins.length) {
         throw new Error("Completed building damage scan has no winning match");
       }
       completion = await recordStarRaceCompletion({
         playerId: user.discordId,
         dateKey,
         rewardStars: quest.rewardStars,
-        wins: [evidenceWin],
+        wins: evaluation.wins,
       });
     }
   } else if (quest.requirement.kind === "cumulative-ranked-win-stat") {

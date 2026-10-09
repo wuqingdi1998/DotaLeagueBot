@@ -35,7 +35,9 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
         progress: quest.requirement?.kind === "cumulative-ranked-win-stat" ? { current: 0, target: quest.requirement.target, checkedAt: null }
           : quest.requirement?.kind === "winning-building-damage" ? { current: day < activeDay ? 17407 : 0, target: quest.requirement.targetDamage, checkedAt: null }
           : quest.requirement?.kind === "ranked-wins" ? { current: day < activeDay ? quest.requirement.requiredWins : 0, target: quest.requirement.requiredWins, checkedAt: null } : null,
-        completion: day < activeDay ? { completedAt: quest.endsAt, wins: quest.heroes.slice(0, 2).map((hero) => ({ hero, matchId: "9035544919" })), isManual: false } : null,
+        completion: day < activeDay ? { completedAt: quest.endsAt,
+          wins: (quest.requirement?.kind === "winning-building-damage" ? octoberDailyQuestSamples()[0].heroes.slice(0, 2) : quest.heroes.slice(0, 2))
+            .map((hero, index) => ({ hero, matchId: String(9035544919 + index) })), isManual: false } : null,
       }));
       const serverNow = new Date(Date.parse(race.quests[activeDay].startsAt) + 60_000).toISOString();
       save(`race-${weekIndex}-${activeDay}`, "race", renderToStaticMarkup(<div className="compendium-rewards-section"><OctoberRacePreview week={week} initialRace={race} serverNow={serverNow} /></div>));

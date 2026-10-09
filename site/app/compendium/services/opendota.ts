@@ -86,11 +86,12 @@ async function requestMatchList(url: URL): Promise<{
 
 async function requestRecentPlayerMatches(
   dotaId: string,
+  historyDays: number = 1,
 ): Promise<OpenDotaMatch[]> {
   const url = openDotaApiUrl(
     `/api/players/${encodeURIComponent(dotaId)}/matches`,
   );
-  url.searchParams.set("date", "1");
+  url.searchParams.set("date", String(historyDays));
   for (const field of [
     "account_id",
     "hero_id",
@@ -130,7 +131,7 @@ async function requestRecentPlayerMatches(
     const matches = uniqueMatches(
       payload.filter((match) => isOpenDotaMatch(match, dotaId)),
     );
-    matchCache.set(dotaId, {
+    matchCache.set(`${dotaId}:${historyDays}`, {
       matches,
       expiresAt: Date.now() + OPEN_DOTA_CACHE_TTL_MS,
     });
@@ -150,9 +151,11 @@ async function requestRecentPlayerMatches(
 
 export async function fetchRecentPlayerMatches(
   dotaId: string,
-  options: { forceRefresh?: boolean } = {},
+  options: { forceRefresh?: boolean; historyDays?: number } = {},
 ): Promise<OpenDotaMatch[]> {
-  const cached = matchCache.get(dotaId);
+  const historyDays = Math.max(1, Math.ceil(options.historyDays ?? 1));
+  const cacheKey = `${dotaId}:${historyDays}`;
+  const cached = matchCache.get(cacheKey);
   if (
     !options.forceRefresh &&
     cached &&
@@ -160,13 +163,13 @@ export async function fetchRecentPlayerMatches(
   ) {
     return cached.matches;
   }
-  const pending = pendingMatchRequests.get(dotaId);
+  const pending = pendingMatchRequests.get(cacheKey);
   if (pending) return pending;
 
-  const request = requestRecentPlayerMatches(dotaId).finally(() => {
-    pendingMatchRequests.delete(dotaId);
+  const request = requestRecentPlayerMatches(dotaId, historyDays).finally(() => {
+    pendingMatchRequests.delete(cacheKey);
   });
-  pendingMatchRequests.set(dotaId, request);
+  pendingMatchRequests.set(cacheKey, request);
   return request;
 }
 

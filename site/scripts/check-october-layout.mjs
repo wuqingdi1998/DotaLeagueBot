@@ -68,6 +68,16 @@ try {
           }
           await page.keyboard.press("Escape");
         }
+        if (fixture === "race-0-4" && [1900, 1366, 393].includes(width)) {
+          const card = page.locator(".compendium-star-race-quest").nth(1);
+          await card.getByRole("button", { name: "Матчи: 2", exact: true }).click();
+          const evidence = page.locator(".october-race-matches-popover:popover-open");
+          if (!await evidence.isVisible() || await evidence.locator("a").count() !== 2) {
+            failures.push({ fixture, width, height, issues: ["building damage evidence does not show all contributing matches"] });
+          }
+          await page.screenshot({ path: fileURLToPath(new URL(`race-evidence-${width}.png`, screenshots)), fullPage: true });
+          await page.keyboard.press("Escape");
+        }
         if (["race-0-4", "daily-completed-compact", "daily-change-guidance"].includes(fixture) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }

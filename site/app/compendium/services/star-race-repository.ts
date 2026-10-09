@@ -20,6 +20,7 @@ type StarRaceCompletionRow = {
   moscow_date: string;
   completed_at: Date;
   is_manual: boolean;
+  match_evidence_complete: boolean;
   hero_id: number | null;
   matched_match_id: string | null;
 };
@@ -65,6 +66,7 @@ function completionsFromRows(
       completedAt: row.completed_at.toISOString(),
       wins: [],
       isManual: row.is_manual,
+      hasCompleteMatchEvidence: row.match_evidence_complete,
     };
     if (row.hero_id !== null && row.matched_match_id !== null) {
       completion.wins.push({
@@ -83,6 +85,7 @@ const completionSelect = `
     completion.moscow_date::text,
     completion.completed_at,
     completion.completed_manually_by IS NOT NULL AS is_manual,
+    completion.match_evidence_complete,
     win.hero_id,
     win.matched_match_id::text
   FROM compendium_star_race_quest_completions completion
@@ -417,8 +420,8 @@ export async function recordStarRaceCompletion(input: {
 
     const inserted = await client.query<{ id: string }>(
       `INSERT INTO compendium_star_race_quest_completions
-         (player_id, moscow_date, reward_amount)
-       VALUES ($1, $2::date, $3)
+         (player_id, moscow_date, reward_amount, match_evidence_complete)
+       VALUES ($1, $2::date, $3, TRUE)
        ON CONFLICT (player_id, moscow_date) DO NOTHING
        RETURNING id::text`,
       [input.playerId, input.dateKey, input.rewardStars],

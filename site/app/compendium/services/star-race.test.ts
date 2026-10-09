@@ -212,7 +212,7 @@ describe("Tuesday star race building damage check", () => {
       playerId: user.discordId,
       dateKey: "2026-08-11",
       rewardStars: 2,
-      wins: [expect.objectContaining({ matchId: "2001" })],
+      wins: [expect.objectContaining({ matchId: "2001" }), expect.objectContaining({ matchId: "2002" })],
     });
   });
 });
