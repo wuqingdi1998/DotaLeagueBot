@@ -17,7 +17,7 @@ export async function recordSavedVerification(request: VerificationRequest, toke
       : [verificationCompletionLock(request.playerId, snapshot)];
     for (const lock of locks) await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [lock]);
     const lease = await client.query(`SELECT 1 FROM october_compendium_verification_requests request
-      WHERE id = $1 AND lease_token = $2 AND status <> 'completed' AND lease_until > NOW()`, [request.id, token]);
+      WHERE id = $1 AND lease_token = $2 AND status IN ('pending', 'exhausted') AND lease_until > NOW()`, [request.id, token]);
     if (!lease.rowCount) return;
     const already = await client.query(`SELECT 1 FROM october_compendium_verification_requests request WHERE id = $1 AND (${verificationCompletedSql})`, [request.id]);
     if (already.rowCount) {

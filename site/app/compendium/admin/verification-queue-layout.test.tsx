@@ -7,9 +7,9 @@ import { VerificationQueue } from "./VerificationQueue";
 import type { VerificationRequest } from "../model/verification-retries";
 
 it("hides successful requests and keeps pending and exhausted requests available for rechecking", () => {
-  const requests: VerificationRequest[] = ["pending", "completed", "exhausted"].map((status, index) => ({
+  const requests: VerificationRequest[] = ["pending", "completed", "exhausted", "cancelled"].map((status, index) => ({
     id: String(index + 1), playerId: "100", playerName: "Участник с длинным именем", status: status as VerificationRequest["status"],
-    snapshot: { kind: "daily", dateKey: "2026-10-11", questId: "10", title: "Испытание 1", dotaId: "100", rewardStars: 2,
+    snapshot: { kind: "daily", dateKey: "2026-10-11", questId: "10", title: status === "cancelled" ? "Удалённое испытание" : "Испытание 1", dotaId: "100", rewardStars: 2,
       startsAt: "2026-10-11T00:00:00+03:00", endsAt: "2026-10-12T00:00:00+03:00", heroIds: [7], clanMates: [], requirement: null },
     startedAt: "2026-10-11T23:30:00+03:00", nextAttemptAt: status === "pending" ? "2026-10-12T00:30:00+03:00" : null,
     attempts: 10, manualAttempts: 1, notifiedAt: null, lastError: status === "completed" ? null : "OpenDota ещё не передал статистику подходящих матчей",
@@ -17,6 +17,8 @@ it("hides successful requests and keeps pending and exhausted requests available
   const markup = renderToStaticMarkup(<VerificationQueue initialRequests={requests} />);
   expect(markup).not.toContain("Результат засчитан");
   expect(markup.match(/<article/g)).toHaveLength(2);
+  expect(markup).not.toContain("Удалённое испытание");
+  expect(markup.match(/title="Удалить запрос и остановить автопроверку"/g)).toHaveLength(2);
   expect(markup).toContain("Два часа истекли");
   expect(markup.match(/>Проверить вручную</g)).toHaveLength(2);
   expect(markup).toContain("запрашивает результат у OpenDota");

@@ -53,7 +53,7 @@ export async function enqueueVerification(playerId: string, snapshot: Verificati
 export async function listVerificationRequests(): Promise<VerificationRequest[]> {
   return (await query<RequestRow>(`SELECT ${columns} FROM october_compendium_verification_requests request
     JOIN players player ON player.discord_id = request.player_id
-    WHERE request.status <> 'completed'
+    WHERE request.status IN ('pending', 'exhausted')
     ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'exhausted' THEN 1 ELSE 2 END, started_at DESC`)).map(fromRow);
 }
 
@@ -61,7 +61,7 @@ export async function claimVerification(id?: string): Promise<{ request: Verific
   const token = randomUUID();
   const row = await one<RequestRow>(`WITH claimed AS (
     SELECT id FROM october_compendium_verification_requests WHERE
-      ($1::bigint IS NOT NULL AND id = $1 AND status <> 'completed'
+      ($1::bigint IS NOT NULL AND id = $1 AND status IN ('pending', 'exhausted')
        OR $1::bigint IS NULL AND status = 'pending' AND next_attempt_at <= NOW())
       AND (lease_until IS NULL OR lease_until <= NOW())
     ORDER BY next_attempt_at, id FOR UPDATE SKIP LOCKED LIMIT 1
@@ -85,6 +85,6 @@ export async function finishVerificationAttempt(request: VerificationRequest, to
     next_attempt_at = CASE WHEN $4 THEN next_attempt_at ELSE $5::timestamptz END,
     finished_at = CASE WHEN NOT $4 AND $5::timestamptz IS NULL THEN NOW() ELSE finished_at END,
     notification_retry_at = CASE WHEN NOT $4 AND $5::timestamptz IS NULL THEN NOW() ELSE notification_retry_at END
-    WHERE id = $1 AND lease_token = $2 AND status <> 'completed'`,
+    WHERE id = $1 AND lease_token = $2 AND status IN ('pending', 'exhausted')`,
   [request.id, token, error.slice(0, 1000), isManual, next?.at ?? null]);
 }

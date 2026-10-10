@@ -21,7 +21,7 @@ export type VerificationRequest = {
   playerId: string;
   playerName: string;
   snapshot: VerificationSnapshot;
-  status: "pending" | "completed" | "exhausted";
+  status: "pending" | "completed" | "exhausted" | "cancelled";
   startedAt: string;
   nextAttemptAt: string | null;
   attempts: number;

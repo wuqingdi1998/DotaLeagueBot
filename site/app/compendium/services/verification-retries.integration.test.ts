@@ -6,6 +6,7 @@ vi.mock("@/lib/db", () => mocks);
 import { enqueueVerification, claimVerification, finishVerificationAttempt, listVerificationRequests } from "./verification-repository";
 import { recordSavedVerification } from "./saved-verification-completion";
 import { recordClanOutingPair } from "./clan-outing-repository";
+import { cancelVerification } from "./cancel-verification";
 import type { VerificationSnapshot } from "../model/verification-retries";
 
 const db = new PGlite();
@@ -38,6 +39,7 @@ beforeAll(async () => {
   await db.exec(source("0174_compendium_review_repairs.sql").split("-- Keep archived results")[0]);
   await db.exec(source("0178_october_challenge_history.sql"));
   await db.exec(source("0179_compendium_verification_retries.sql"));
+  await db.exec(source("0180_cancel_compendium_verification.sql"));
   await db.exec(source("0168_october_rune_challenge.sql").slice(source("0168_october_rune_challenge.sql").indexOf("CREATE OR REPLACE FUNCTION apply_october_rune_clan_points()")));
   await db.exec(source("0175_protect_star_race_evidence_clan_points.sql"));
   await db.exec(`CREATE TRIGGER october_star_race_clan_points AFTER INSERT OR UPDATE OR DELETE ON compendium_star_race_quest_completions
@@ -186,4 +188,39 @@ it("attributes a direct outing response crossing midnight to Sunday rather than 
     expect((await db.query("SELECT SUM(amount)::int AS total FROM compendium_star_race_events WHERE earned_at >= '2026-10-18 00:00+03' AND earned_at < '2026-10-19 00:00+03'")).rows)
       .toEqual([{ total: 4 }]);
   } finally { vi.useRealTimers(); }
+});
+
+it("cancels an in-flight request without late awards, revival, or a restarted retry clock", async () => {
+  await db.exec("INSERT INTO compendium_daily_quests VALUES (13,10,2,100)");
+  const original = { ...snapshot, questId: "13" };
+  const request = (await enqueueVerification("100", original, "No match"))!;
+  const claimed = (await claimVerification(request.id))!;
+  await cancelVerification(request.id);
+  await cancelVerification(request.id);
+  await recordSavedVerification(claimed.request, claimed.token, {
+    wins: [{ matchId: "900160", heroId: 7, endedAt: new Date("2026-10-11T23:00:00+03:00") }],
+  }, new Date("2026-10-12T01:00:00+03:00"));
+  await finishVerificationAttempt(claimed.request, claimed.token, "late failure", false);
+  expect((await db.query("SELECT id FROM compendium_user_quest_completions WHERE daily_quest_id=13")).rows).toEqual([]);
+  expect((await storedRequest(request.id)).status).toBe("cancelled");
+  expect((await storedRequest(request.id)).nextAttemptAt).toBeNull();
+  expect(await listVerificationRequests()).toEqual([]);
+  expect(await claimVerification(request.id)).toBeNull();
+  expect(await claimVerification()).toBeNull();
+  const repeated = (await enqueueVerification("100", original, "player clicked again"))!;
+  expect(repeated.id).toBe(request.id);
+  expect(repeated.status).toBe("cancelled");
+  expect(repeated.startedAt).toBe(request.startedAt);
+});
+
+it("removes exhausted requests from organizer review and pending Discord notifications", async () => {
+  const request = (await enqueueVerification("100", { ...snapshot, kind: "rune", dateKey: "2026-10-12", questId: "2026-10-12" }, "No match"))!;
+  await db.query("UPDATE october_compendium_verification_requests SET status='exhausted',next_attempt_at=NULL WHERE id=$1", [request.id]);
+  await cancelVerification(request.id);
+  expect((await storedRequest(request.id)).status).toBe("cancelled");
+  expect((await db.query("SELECT id FROM october_compendium_verification_requests WHERE status='exhausted' AND notified_at IS NULL")).rows).toEqual([]);
+  expect(await listVerificationRequests()).toEqual([]);
+  await cancelVerification("999999");
+  await cancelVerification("1");
+  expect((await storedRequest("1")).status).toBe("completed");
 });
