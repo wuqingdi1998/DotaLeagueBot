@@ -40,6 +40,7 @@ beforeAll(async () => {
   await db.exec(source("0178_october_challenge_history.sql"));
   await db.exec(source("0179_compendium_verification_retries.sql"));
   await db.exec(source("0180_cancel_compendium_verification.sql"));
+  await db.exec(source("0181_compendium_notification_cleanup.sql"));
   await db.exec(source("0168_october_rune_challenge.sql").slice(source("0168_october_rune_challenge.sql").indexOf("CREATE OR REPLACE FUNCTION apply_october_rune_clan_points()")));
   await db.exec(source("0175_protect_star_race_evidence_clan_points.sql"));
   await db.exec(`CREATE TRIGGER october_star_race_clan_points AFTER INSERT OR UPDATE OR DELETE ON compendium_star_race_quest_completions
@@ -223,4 +224,19 @@ it("removes exhausted requests from organizer review and pending Discord notific
   await cancelVerification("999999");
   await cancelVerification("1");
   expect((await storedRequest("1")).status).toBe("completed");
+});
+
+it("keeps completed notification receipts eligible for cleanup, including messages sent before channel IDs were saved", async () => {
+  await db.query("UPDATE october_compendium_verification_requests SET discord_message_id=900,notified_at=NOW() WHERE id=1");
+  await db.query("UPDATE october_compendium_verification_requests SET discord_message_id=901,notified_at=NOW() WHERE status='cancelled'");
+  const pending = (await enqueueVerification("100", { ...snapshot, kind: "rune", dateKey: "2026-10-13", questId: "2026-10-13" }, "No match"))!;
+  await db.query("UPDATE october_compendium_verification_requests SET status='exhausted',discord_message_id=902 WHERE id=$1", [pending.id]);
+  const cleanupSql = `SELECT id::text,discord_channel_id FROM october_compendium_verification_requests
+    WHERE status='completed' AND discord_message_id IS NOT NULL AND notification_deleted_at IS NULL
+      AND notification_delete_retry_at <= NOW()`;
+  expect((await db.query(cleanupSql)).rows).toEqual([{ id: "1", discord_channel_id: null }]);
+  await db.query("UPDATE october_compendium_verification_requests SET notification_delete_retry_at=NOW()+INTERVAL '5 minutes' WHERE id=1");
+  expect((await db.query(cleanupSql)).rows).toEqual([]);
+  await db.query("UPDATE october_compendium_verification_requests SET notification_delete_retry_at=NOW(),notification_deleted_at=NOW() WHERE id=1");
+  expect((await db.query(cleanupSql)).rows).toEqual([]);
 });

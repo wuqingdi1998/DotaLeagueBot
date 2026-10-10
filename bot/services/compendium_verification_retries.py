@@ -25,7 +25,9 @@ async def next_verification_due_at() -> datetime | None:
             "SELECT GREATEST(next_attempt_at, COALESCE(lease_until, next_attempt_at)) AS due_at "
             "FROM october_compendium_verification_requests WHERE status = 'pending' "
             "UNION ALL SELECT GREATEST(notification_retry_at, COALESCE(lease_until, notification_retry_at)) "
-            "FROM october_compendium_verification_requests WHERE status = 'exhausted' AND notified_at IS NULL"
+            "FROM october_compendium_verification_requests WHERE status = 'exhausted' AND notified_at IS NULL "
+            "UNION ALL SELECT notification_delete_retry_at FROM october_compendium_verification_requests "
+            "WHERE status = 'completed' AND discord_message_id IS NOT NULL AND notification_deleted_at IS NULL"
             ") deadlines"
         ))
         return result.scalar_one_or_none()
@@ -105,8 +107,8 @@ async def deliver_verification_notifications(bot: commands.Bot) -> None:
                         message = await bot.http.send_message(channel.id, params=parameters)
                     await session.execute(text(
                         "UPDATE october_compendium_verification_requests SET notified_at = NOW(), "
-                        "discord_message_id = :message_id, notification_error = NULL WHERE id = :id"
-                    ), {"id": request["id"], "message_id": int(message["id"])})
+                        "discord_message_id = :message_id, discord_channel_id = :channel_id, notification_error = NULL WHERE id = :id"
+                    ), {"id": request["id"], "message_id": int(message["id"]), "channel_id": channel.id})
                 except (discord.HTTPException, OSError, TimeoutError) as error:
                     await session.execute(text(
                         "UPDATE october_compendium_verification_requests "
@@ -114,9 +116,50 @@ async def deliver_verification_notifications(bot: commands.Bot) -> None:
                     ), {"id": request["id"], "error": f"Discord notification failed: {type(error).__name__}"})
 
 
+async def remove_completed_verification_notifications(bot: commands.Bot) -> None:
+    for _ in range(10):
+        async with verification_session() as session:
+            async with session.begin():
+                result = await session.execute(text(
+                    "SELECT request.* FROM october_compendium_verification_requests request "
+                    "WHERE request.status = 'completed' AND request.discord_message_id IS NOT NULL "
+                    "AND request.notification_deleted_at IS NULL AND request.notification_delete_retry_at <= NOW() "
+                    "ORDER BY request.notification_delete_retry_at, request.id FOR UPDATE SKIP LOCKED LIMIT 1"
+                ))
+                row = result.mappings().first()
+                if row is None:
+                    return
+                request = dict(row)
+                try:
+                    channel_id = request.get("discord_channel_id")
+                    if channel_id is None:
+                        # Notifications sent before channel IDs were stored still belong to the reviewer's DM.
+                        reviewer = bot.get_user(COMPENDIUM_REVIEWER_DISCORD_ID) or await bot.fetch_user(COMPENDIUM_REVIEWER_DISCORD_ID)
+                        channel = reviewer.dm_channel or await reviewer.create_dm()
+                        channel_id = channel.id
+                    try:
+                        await bot.http.delete_message(int(channel_id), int(request["discord_message_id"]))
+                    except discord.NotFound as error:
+                        if error.code != 10008:  # Unknown Message also means cleanup is already complete.
+                            raise
+                    await session.execute(text(
+                        "UPDATE october_compendium_verification_requests SET notification_deleted_at = NOW(), "
+                        "notification_delete_error = NULL WHERE id = :id"
+                    ), {"id": request["id"]})
+                except (discord.HTTPException, OSError, TimeoutError) as error:
+                    await session.execute(text(
+                        "UPDATE october_compendium_verification_requests "
+                        "SET notification_delete_retry_at = NOW() + INTERVAL '5 minutes', notification_delete_error = :error WHERE id = :id"
+                    ), {"id": request["id"], "error": f"Discord notification cleanup failed: {type(error).__name__}"})
+
+
 async def process_verification_retries(bot: commands.Bot) -> None:
     # Notification delivery is independent of site availability after the final persisted attempt.
+    await remove_completed_verification_notifications(bot)
     await deliver_verification_notifications(bot)
     if await has_due_verifications():
-        await request_due_verifications()
-        await deliver_verification_notifications(bot)
+        try:
+            await request_due_verifications()
+            await deliver_verification_notifications(bot)
+        finally:
+            await remove_completed_verification_notifications(bot)
