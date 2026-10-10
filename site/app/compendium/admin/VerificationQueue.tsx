@@ -14,6 +14,7 @@ export function VerificationQueue({ initialRequests }: { initialRequests?: Verif
   const [requests, setRequests] = useState(initialRequests ?? []);
   const [error, setError] = useState<string | null>(null);
   const [checking, setChecking] = useState<string | null>(null);
+  const visibleRequests = requests.filter((request) => request.status !== "completed");
   const router = useRouter();
   const load = useCallback(async () => {
     try {
@@ -47,18 +48,18 @@ export function VerificationQueue({ initialRequests }: { initialRequests?: Verif
     <p>Автоматически через {VERIFICATION_RETRY_MINUTES.join(", ")} минут. Время и дата задания – по МСК.</p>
     <p>«Проверить вручную» запрашивает результат у OpenDota. Для самостоятельного зачёта откройте игрока ниже и выберите исходную дату задания.</p>
     {error && <p role="alert">{error}</p>}
-    {!requests.length && <p>Ожидающих запросов нет.</p>}
-    <div className="compendium-verification-requests">{requests.map((request) => <article key={request.id}>
+    {!visibleRequests.length && <p>Ожидающих запросов нет.</p>}
+    <div className="compendium-verification-requests">{visibleRequests.map((request) => <article key={request.id}>
       <strong>{request.playerName} · {request.snapshot.title}</strong>
       <span>Задание за {request.snapshot.dateKey} · ожидание с {moscowTime(request.startedAt)}</span>
-      <span>{request.isChecking ? "Проверка выполняется" : request.status === "completed" ? "Результат засчитан" : request.status === "exhausted"
+      <span>{request.isChecking ? "Проверка выполняется" : request.status === "exhausted"
         ? "Два часа истекли – нужна проверка организатора" : "Ожидает автоматической проверки"}</span>
       <span>Автоматических попыток: {request.attempts} · проверок организатора: {request.manualAttempts}</span>
       {request.nextAttemptAt && <span>Следующая попытка: {moscowTime(request.nextAttemptAt)} МСК</span>}
       {request.lastError && <span>Последний результат: {request.lastError}</span>}
       {request.status === "exhausted" && <span>{request.notifiedAt ? "Уведомление организатору отправлено" : "Уведомление организатору ожидает отправки"}</span>}
-      {request.status !== "completed" && <button type="button" disabled={checking !== null || request.isChecking} onClick={() => void check(request.id)}>
-        {checking === request.id ? "Проверяем…" : "Проверить вручную"}</button>}
+      <button type="button" disabled={checking !== null || request.isChecking} onClick={() => void check(request.id)}>
+        {checking === request.id ? "Проверяем…" : "Проверить вручную"}</button>
     </article>)}</div>
   </section>;
 }

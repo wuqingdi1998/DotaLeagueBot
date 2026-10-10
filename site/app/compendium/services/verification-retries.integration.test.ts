@@ -54,6 +54,12 @@ beforeAll(async () => {
 }, 20000);
 afterAll(async () => db.close());
 
+async function storedRequest(id: string) {
+  const result = await db.query<{ id: string; status: string; nextAttemptAt: Date | null }>(
+    `SELECT id::text, status, next_attempt_at AS "nextAttemptAt" FROM october_compendium_verification_requests WHERE id=$1`, [id]);
+  return result.rows[0];
+}
+
 it("deduplicates repeated and concurrent failures without restarting the clock or replacing the original heroes", async () => {
   const first = await enqueueVerification("100", snapshot, "OpenDota unavailable");
   const repeated = await Promise.all([enqueueVerification("100", { ...snapshot, heroIds: [2] }, "No match"), enqueueVerification("100", snapshot, "No match")]);
@@ -81,9 +87,10 @@ it("awards Sunday after midnight only once, cancels the queue, and attributes st
   const evidence = { wins: [{ matchId: "900111", heroId: 7, endedAt: new Date("2026-10-11T23:59:00+03:00") }] };
   await recordSavedVerification(claimed.request, claimed.token, evidence, new Date("2026-10-12T01:00:00+03:00"));
   await recordSavedVerification(claimed.request, claimed.token, evidence, new Date("2026-10-12T01:00:00+03:00"));
-  const saved = (await listVerificationRequests())[0];
+  const saved = await storedRequest(request.id);
   expect(saved.status).toBe("completed");
   expect(saved.nextAttemptAt).toBeNull();
+  expect(await listVerificationRequests()).toEqual([]);
   expect(await claimVerification(saved.id)).toBeNull();
   expect((await db.query("SELECT total_points FROM october_compendium_clan_members WHERE player_id=100")).rows).toEqual([{ total_points: before + 2 }]);
   expect((await db.query("SELECT SUM(amount)::int AS total FROM compendium_star_race_events WHERE earned_at >= '2026-10-11 00:00+03' AND earned_at < '2026-10-12 00:00+03'")).rows).toEqual([{ total: 2 }]);
@@ -97,7 +104,8 @@ it("cancels pending requests when an ordinary player or manual award wins the ra
   await db.exec(`INSERT INTO compendium_user_quest_completions(player_id,daily_quest_id,reward_amount,completed_at,matched_hero_id,matched_match_id)
     VALUES (100,11,2,'2026-10-11 23:30+03',7,900112)`);
   await finishVerificationAttempt(claimed.request, claimed.token, "late failure", false, new Date(Date.parse(claimed.request.startedAt) + 120 * 60_000));
-  expect((await listVerificationRequests()).find((row) => row.id === request!.id)?.status).toBe("completed");
+  expect((await storedRequest(request!.id)).status).toBe("completed");
+  expect(await listVerificationRequests()).toEqual([]);
 });
 
 it("stops after the final two hour attempt and cannot be restarted by another player failure", async () => {
@@ -131,8 +139,9 @@ it("keeps all race evidence and cancels all four completion kinds including manu
     VALUES (100,'2026-10-11',2,'2026-10-11 23:00+03',900122,200,'manual');
     INSERT INTO october_compendium_rune_challenge_completions(player_id,moscow_date,reward_amount,completed_at,matched_match_id,hero_id,completion_source)
     VALUES (100,'2026-10-11',2,'2026-10-11 23:00+03',900123,7,'manual');`);
-  expect((await listVerificationRequests()).find((row) => row.id === outing.id)?.status).toBe("completed");
-  expect((await listVerificationRequests()).every((row) => row.status === "completed")).toBe(true);
+  expect((await storedRequest(outing.id)).status).toBe("completed");
+  expect((await storedRequest(race.id)).status).toBe("completed");
+  expect(await listVerificationRequests()).toEqual([]);
 });
 
 it("awards both outing teammates once and cancels both pending requests", async () => {
@@ -145,9 +154,10 @@ it("awards both outing teammates once and cancels both pending requests", async 
     wins: [{ matchId: "900130", heroId: 7, endedAt: new Date("2026-10-10T23:00:00+03:00") }], partnerPlayerId: "200",
   }, new Date("2026-10-11T01:00:00+03:00"));
   expect((await db.query("SELECT COUNT(*)::int AS count FROM october_compendium_clan_outing_completions WHERE moscow_date='2026-10-10'")).rows).toEqual([{ count: 2 }]);
-  const completed = (await listVerificationRequests()).filter((row) => [first.id, second.id].includes(row.id));
+  const completed = await Promise.all([storedRequest(first.id), storedRequest(second.id)]);
   expect(completed).toHaveLength(2);
   expect(completed.every((row) => row.status === "completed")).toBe(true);
+  expect(await listVerificationRequests()).toEqual([]);
 });
 
 it("recovers an abandoned lease after a restart and ignores the obsolete worker's result", async () => {
@@ -163,7 +173,8 @@ it("recovers an abandoned lease after a restart and ignores the obsolete worker'
   expect((await db.query("SELECT id FROM compendium_user_quest_completions WHERE daily_quest_id=12")).rows).toEqual([]);
   expect((await listVerificationRequests()).find((row) => row.id === request.id)?.status).toBe("pending");
   await recordSavedVerification(recovered.request, recovered.token, evidence, new Date("2026-10-12T01:00:00+03:00"));
-  expect((await listVerificationRequests()).find((row) => row.id === request.id)?.status).toBe("completed");
+  expect((await storedRequest(request.id)).status).toBe("completed");
+  expect(await listVerificationRequests()).toEqual([]);
 });
 
 it("attributes a direct outing response crossing midnight to Sunday rather than the next race week", async () => {

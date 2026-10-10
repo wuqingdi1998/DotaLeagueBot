@@ -53,8 +53,7 @@ export async function enqueueVerification(playerId: string, snapshot: Verificati
 export async function listVerificationRequests(): Promise<VerificationRequest[]> {
   return (await query<RequestRow>(`SELECT ${columns} FROM october_compendium_verification_requests request
     JOIN players player ON player.discord_id = request.player_id
-    WHERE status <> 'completed' OR request.id IN (SELECT id FROM october_compendium_verification_requests
-      WHERE status = 'completed' ORDER BY finished_at DESC LIMIT 50)
+    WHERE request.status <> 'completed'
     ORDER BY CASE status WHEN 'pending' THEN 0 WHEN 'exhausted' THEN 1 ELSE 2 END, started_at DESC`)).map(fromRow);
 }
 
