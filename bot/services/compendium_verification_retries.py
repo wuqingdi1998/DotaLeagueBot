@@ -10,6 +10,7 @@ from discord.http import handle_message_parameters
 from sqlalchemy import text
 
 COMPENDIUM_REVIEWER_DISCORD_ID = 311247030422863882
+COMPENDIUM_REVIEW_CHANNEL_ID = 1558511866056024115
 
 
 def verification_session():
@@ -27,7 +28,7 @@ async def next_verification_due_at() -> datetime | None:
             "UNION ALL SELECT GREATEST(notification_retry_at, COALESCE(lease_until, notification_retry_at)) "
             "FROM october_compendium_verification_requests WHERE status = 'exhausted' AND notified_at IS NULL "
             "UNION ALL SELECT notification_delete_retry_at FROM october_compendium_verification_requests "
-            "WHERE status = 'completed' AND discord_message_id IS NOT NULL AND notification_deleted_at IS NULL"
+            "WHERE status IN ('completed', 'cancelled') AND discord_message_id IS NOT NULL AND notification_deleted_at IS NULL"
             ") deadlines"
         ))
         return result.scalar_one_or_none()
@@ -94,8 +95,6 @@ async def deliver_verification_notifications(bot: commands.Bot) -> None:
                     return
                 request = dict(row)
                 try:
-                    reviewer = bot.get_user(COMPENDIUM_REVIEWER_DISCORD_ID) or await bot.fetch_user(COMPENDIUM_REVIEWER_DISCORD_ID)
-                    channel = reviewer.dm_channel or await reviewer.create_dm()
                     # A stable enforced nonce also deduplicates delivery if sending succeeded but saving its receipt failed.
                     with handle_message_parameters(
                         content=exhausted_verification_message(request),
@@ -104,11 +103,11 @@ async def deliver_verification_notifications(bot: commands.Bot) -> None:
                         if parameters.payload is None:
                             raise RuntimeError("Discord message payload is missing")
                         parameters.payload["enforce_nonce"] = True
-                        message = await bot.http.send_message(channel.id, params=parameters)
+                        message = await bot.http.send_message(COMPENDIUM_REVIEW_CHANNEL_ID, params=parameters)
                     await session.execute(text(
                         "UPDATE october_compendium_verification_requests SET notified_at = NOW(), "
                         "discord_message_id = :message_id, discord_channel_id = :channel_id, notification_error = NULL WHERE id = :id"
-                    ), {"id": request["id"], "message_id": int(message["id"]), "channel_id": channel.id})
+                    ), {"id": request["id"], "message_id": int(message["id"]), "channel_id": COMPENDIUM_REVIEW_CHANNEL_ID})
                 except (discord.HTTPException, OSError, TimeoutError) as error:
                     await session.execute(text(
                         "UPDATE october_compendium_verification_requests "
@@ -116,13 +115,13 @@ async def deliver_verification_notifications(bot: commands.Bot) -> None:
                     ), {"id": request["id"], "error": f"Discord notification failed: {type(error).__name__}"})
 
 
-async def remove_completed_verification_notifications(bot: commands.Bot) -> None:
+async def remove_resolved_verification_notifications(bot: commands.Bot) -> None:
     for _ in range(10):
         async with verification_session() as session:
             async with session.begin():
                 result = await session.execute(text(
                     "SELECT request.* FROM october_compendium_verification_requests request "
-                    "WHERE request.status = 'completed' AND request.discord_message_id IS NOT NULL "
+                    "WHERE request.status IN ('completed', 'cancelled') AND request.discord_message_id IS NOT NULL "
                     "AND request.notification_deleted_at IS NULL AND request.notification_delete_retry_at <= NOW() "
                     "ORDER BY request.notification_delete_retry_at, request.id FOR UPDATE SKIP LOCKED LIMIT 1"
                 ))
@@ -155,11 +154,11 @@ async def remove_completed_verification_notifications(bot: commands.Bot) -> None
 
 async def process_verification_retries(bot: commands.Bot) -> None:
     # Notification delivery is independent of site availability after the final persisted attempt.
-    await remove_completed_verification_notifications(bot)
+    await remove_resolved_verification_notifications(bot)
     await deliver_verification_notifications(bot)
     if await has_due_verifications():
         try:
             await request_due_verifications()
             await deliver_verification_notifications(bot)
         finally:
-            await remove_completed_verification_notifications(bot)
+            await remove_resolved_verification_notifications(bot)
