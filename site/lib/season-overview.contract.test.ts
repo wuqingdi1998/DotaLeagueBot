@@ -107,7 +107,8 @@ describe("season overview page", () => {
     expect(model.match(/startsOn: "/g)).toHaveLength(5);
     expect(model.match(/endsOn: "/g)).toHaveLength(5);
     expect(model.match(/period: "/g)).toHaveLength(2);
-    expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(5);
+    expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(4);
+    expect(model).toMatch(/title: "Linken’s Sphere Fastcup #14",\s*prize: "1 500 ₽"/);
     expect(model.match(/format: "/g)).toHaveLength(5);
     expect(model.match(/^    accent: "/gm)).toHaveLength(5);
     expect(model.match(/^    accent: "cd"/gm)).toHaveLength(2);

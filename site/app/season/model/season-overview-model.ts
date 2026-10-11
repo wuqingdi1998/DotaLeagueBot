@@ -166,7 +166,7 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
   defineFastCup({
     linkId: "fastcup-14",
     title: "Linken’s Sphere Fastcup #14",
-    prize: "2 000 ₽",
+    prize: "1 500 ₽",
     startsOn: "2026-10-10",
     endsOn: "2026-10-11",
     format: "Capitan's Mode",
