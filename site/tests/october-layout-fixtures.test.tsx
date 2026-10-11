@@ -9,6 +9,7 @@ import { CompendiumResults } from "@/app/compendium/sections/CompendiumResults";
 import { STAR_RACE_WEEKS } from "@/app/compendium/model/star-race";
 import { VerificationQueue } from "@/app/compendium/admin/VerificationQueue";
 import type { VerificationRequest } from "@/app/compendium/model/verification-retries";
+import { ProfileBadgesCard } from "@/app/players/[dotaId]/ProfileBadgesCard";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -90,6 +91,8 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   }));
   fixtures.push("verification-queue");
   writeFileSync(new URL("verification-queue.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<VerificationQueue initialRequests={requests} />)}</div>`);
+  fixtures.push("profile-badges");
+  writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(34);
+  expect(fixtures).toHaveLength(35);
 });

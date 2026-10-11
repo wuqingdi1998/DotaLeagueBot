@@ -423,7 +423,7 @@ export default async function PlayerPage({ params }: PlayerPageProps) {
             </Link>
           </section>
 
-          <ProfileBadgesCard badgeKeys={profile.profileBadges} />
+          <ProfileBadgesCard badgeKeys={profile.profileBadges} dotaId={profile.dotaId} />
 
           <section className="profile-side-card last-tournament-card">
             <p className="section-kicker">Последнее участие</p>
