@@ -16,6 +16,7 @@ try {
       const page = await browser.newPage({ viewport: { width, height } });
       await page.route("https://layout.test/**", (route) => {
         const url = new URL(route.request().url());
+        if (url.pathname === "/_next/image") url.pathname = url.searchParams.get("url");
         if (url.pathname.startsWith("/api/compendium/heroes/")) {
           return route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="164" height="92"><rect width="164" height="92" fill="#244352"/></svg>' });
         }
@@ -38,6 +39,19 @@ try {
             return issues;
           }
           const bounds = section.getBoundingClientRect();
+          const lead = document.querySelector(".october-clan-lead");
+          if (lead) {
+            const board = document.querySelector(".october-clan-prize-board").getBoundingClientRect();
+            const rect = lead.getBoundingClientRect();
+            if (rect.left < board.left || rect.right > board.right || rect.top < board.top || rect.bottom > board.bottom) issues.push("clan lead is outside the prize board");
+            if (lead.scrollWidth > lead.clientWidth + 2) issues.push("clan lead clips text");
+            if (desktop && board.bottom > bounds.bottom + 2) issues.push("clan prizes exceed the screen");
+            if (innerWidth > 1200 && rect.right > document.querySelector(".october-clan-prize-lists").getBoundingClientRect().left) issues.push("clan lead is not to the left of prizes");
+            for (const card of document.querySelectorAll(".october-clan-card")) {
+              if (desktop && card.getBoundingClientRect().bottom > bounds.bottom + 2) issues.push("clan card exceeds the screen");
+              if (card.scrollHeight > card.clientHeight + 2) issues.push("clan card clips content");
+            }
+          }
           if (document.documentElement.scrollWidth > innerWidth) issues.push("page overflows horizontally");
           if (desktop && bounds.height > innerHeight - 76 + 2) issues.push(`screen height ${bounds.height} exceeds ${innerHeight - 76}`);
           const selectors = [".compendium-star-race", ".compendium-star-race-quest", ".compendium-daily-section", ".compendium-quest", ".compendium-rune-challenge", ".october-daily-countdown"];
@@ -90,7 +104,7 @@ try {
         if (["race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue", "profile-badges"].includes(fixture) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
-        if (fixture.startsWith("results-") && [1900, 393].includes(width)) {
+        if ((fixture.startsWith("results-") || fixture.startsWith("clans-")) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
       }

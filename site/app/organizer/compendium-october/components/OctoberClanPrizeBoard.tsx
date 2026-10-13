@@ -13,6 +13,8 @@ import {
   type OctoberClanPrizePool,
 } from "../model/clan-prizes";
 import { OctoberStarEarningGuide } from "./OctoberStarEarningGuide";
+import { OctoberClanLead } from "./OctoberClanLead";
+import type { OctoberClanMember } from "../model/clan-members";
 import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 import { octoberPrizeImagePath } from "@/app/compendium/model/october-prize-images";
 
@@ -121,9 +123,11 @@ function PrizeSlot({
 }
 
 export function OctoberClanPrizeBoard({
+  members = [],
   isOrganizer = false,
   tournamentLinks = {},
 }: {
+  members?: readonly OctoberClanMember[];
   isOrganizer?: boolean;
   tournamentLinks?: SeasonTournamentLinks;
 }) {
@@ -144,6 +148,7 @@ export function OctoberClanPrizeBoard({
           isOrganizer={isOrganizer}
           tournamentLinks={tournamentLinks}
         />
+        <OctoberClanLead members={members} />
       </div>
       <div className="october-clan-prize-lists" id="october-clan-prize-lists">
         <ul

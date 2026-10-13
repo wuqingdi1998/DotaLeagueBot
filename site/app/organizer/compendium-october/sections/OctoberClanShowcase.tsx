@@ -24,6 +24,7 @@ export function OctoberClanShowcase({
   return (
     <section className="october-clan-showcase" aria-label="Клановый зачёт">
       <OctoberClanPrizeBoard
+        members={members}
         isOrganizer={isOrganizer}
         tournamentLinks={tournamentLinks}
       />

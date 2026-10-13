@@ -1,4 +1,5 @@
 import type { OctoberClanMember } from "./clan-members";
+import { OCTOBER_CLANS } from "./clans";
 
 export const OCTOBER_CLAN_CARD_LEADER_LIMIT = 10;
 
@@ -19,6 +20,15 @@ export function octoberClanTotalPoints(
   members: readonly OctoberClanMember[],
 ): number {
   return members.reduce((total, member) => total + member.totalPoints, 0);
+}
+
+export function octoberClanLead(members: readonly OctoberClanMember[]) {
+  const standings = OCTOBER_CLANS.map((clan) => ({
+    clan,
+    total: octoberClanTotalPoints(members.filter((member) => member.clanId === clan.id)),
+  })).sort((left, right) => right.total - left.total);
+  const advantage = standings[0].total - standings[1].total;
+  return { leader: advantage > 0 ? standings[0].clan : null, advantage };
 }
 
 export function octoberClanCardRows(

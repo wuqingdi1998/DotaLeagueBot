@@ -10,6 +10,8 @@ import { STAR_RACE_WEEKS } from "@/app/compendium/model/star-race";
 import { VerificationQueue } from "@/app/compendium/admin/VerificationQueue";
 import type { VerificationRequest } from "@/app/compendium/model/verification-retries";
 import { ProfileBadgesCard } from "@/app/players/[dotaId]/ProfileBadgesCard";
+import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections/OctoberClanShowcase";
+import { FiCalendar } from "react-icons/fi";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -27,6 +29,21 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   function save(name: string, screen: string, html: string) {
     fixtures.push(name);
     writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="height:76px"></div><main class="compendium-page october-compendium-preview"><section class="october-compendium-screen october-compendium-screen-${screen}">${html}</section></main></div>`);
+  }
+
+  for (const [name, morbus, panacea] of [["morbus", 1243, 1121], ["panacea", 1100, 1542], ["tie", 1000, 1000]] as const) {
+    save(`clans-${name}`, "clans", renderToStaticMarkup(<>
+      <div className="compendium-hero-section">
+        <div className="compendium-title-block"><h1>Компендиум</h1><p className="october-compendium-hero-line">Сезон 9. Часть 1.</p></div>
+        <div className="compendium-summary"><div className="compendium-tournament-countdown"><FiCalendar aria-hidden="true" /><span>Период события</span><strong>5–25 октября 2026</strong></div></div>
+      </div>
+      <div className="compendium-rewards-section"><OctoberClanShowcase members={
+      Array.from({ length: 24 }, (_, index) => ({
+        discordId: String(index), dotaId: String(index), playerName: `Участник ${index + 1}`,
+        avatarUrl: null, clanId: index < 12 ? "morbus" : "panacea",
+        totalPoints: index === 0 ? morbus : index === 12 ? panacea : 0,
+      }))
+    } /></div></>));
   }
 
   for (const period of ["october", "ti-2026"] as const) {
@@ -94,5 +111,5 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   fixtures.push("profile-badges");
   writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(35);
+  expect(fixtures).toHaveLength(38);
 });
