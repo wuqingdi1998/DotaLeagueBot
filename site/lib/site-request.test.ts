@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   fetchSiteRequest,
   siteMutationTimeoutMs,
@@ -9,6 +9,84 @@ import {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
+});
+
+describe("iOS 16 request compatibility", () => {
+  beforeEach(() => {
+    class LegacyResponse extends Response {}
+    class LegacyAbortSignal extends AbortSignal {}
+    Object.defineProperty(LegacyResponse, "json", { value: undefined });
+    Object.defineProperty(LegacyAbortSignal, "any", { value: undefined });
+    vi.stubGlobal("Response", LegacyResponse);
+    vi.stubGlobal("AbortSignal", LegacyAbortSignal);
+  });
+
+  it("loads home page data without the newer static browser functions", async () => {
+    const body = { tournaments: [{ id: 7, title: "Турнир" }] };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify(body))));
+    const response = await fetchSiteRequest("/api/tournaments", { signal: new AbortController().signal });
+    expect(response.ok).toBe(true);
+    expect(response.headers.get("Content-Type")).toBe("application/json");
+    expect(await response.json()).toEqual(body);
+  });
+
+  it.each([
+    [204, null, { ok: true }],
+    [429, '{"error":"Подождите"}', { error: "Подождите" }],
+    [400, "Проверьте данные", { error: "Проверьте данные" }],
+    [503, '{"code":"OPEN_DOTA_UNAVAILABLE","error":"Повторите позже"}',
+      { code: "OPEN_DOTA_UNAVAILABLE", error: "Повторите позже" }],
+  ])("preserves action results and retry headers for status %s", async (status, text, body) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(text, {
+      status, headers: { "Retry-After": "12" },
+    })));
+    const response = await fetchSiteRequest("/api/example", { method: "POST" });
+    expect(response.status).toBe(status === 204 ? 200 : status);
+    expect(await response.json()).toEqual(body);
+    if (status === 429) expect(response.headers.get("Retry-After")).toBe("12");
+  });
+
+  it.each(["offline", "server", "invalid"])("explains a %s failure without a browser exception", async (failure) => {
+    const fetchMock = failure === "offline"
+      ? vi.fn().mockRejectedValue(new TypeError("Failed to fetch"))
+      : vi.fn().mockResolvedValue(new Response(failure === "server" ? "" : "<html>error</html>", {
+        status: failure === "server" ? 502 : 200,
+      }));
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await fetchSiteRequest("/api/tournaments");
+    expect(response.ok).toBe(false);
+    expect(await response.json()).toEqual({
+      error: expect.stringContaining(unavailableDataMessage), outcomeUnknown: false,
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("forwards caller cancellation and releases its listener", async () => {
+    const controller = new AbortController();
+    const removeListener = vi.spyOn(controller.signal, "removeEventListener");
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Promise((_resolve, reject) => {
+      init.signal.addEventListener("abort", () => reject(init.signal.reason));
+    })));
+    const pending = fetchSiteRequest("/api/tournaments", { signal: controller.signal });
+    const rejection = expect(pending).rejects.toMatchObject({ name: "AbortError" });
+    controller.abort();
+    await rejection;
+    expect(removeListener).toHaveBeenCalledWith("abort", expect.any(Function));
+  });
+
+  it("keeps the timeout when a caller signal is supplied", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const removeListener = vi.spyOn(controller.signal, "removeEventListener");
+    vi.stubGlobal("fetch", vi.fn(async (_url, init) => new Promise((_resolve, reject) => {
+      init.signal.addEventListener("abort", () => reject(init.signal.reason));
+    })));
+    const pending = fetchSiteRequest("/api/example", { method: "POST", signal: controller.signal });
+    await vi.advanceTimersByTimeAsync(siteMutationTimeoutMs);
+    expect((await (await pending).json()).outcomeUnknown).toBe(true);
+    expect(controller.signal.aborted).toBe(false);
+    expect(removeListener).toHaveBeenCalledWith("abort", expect.any(Function));
+  });
 });
 
 describe("site action transport", () => {
