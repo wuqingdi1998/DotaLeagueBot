@@ -45,6 +45,11 @@ try {
             const rect = lead.getBoundingClientRect();
             if (rect.left < board.left || rect.right > board.right || rect.top < board.top || rect.bottom > board.bottom) issues.push("clan lead is outside the prize board");
             if (lead.scrollWidth > lead.clientWidth + 2) issues.push("clan lead clips text");
+            if (rect.width > 260) issues.push("clan lead has excessive empty width");
+            if (innerWidth > 1200) {
+              const copy = document.querySelector(".october-clan-prize-copy").getBoundingClientRect();
+              if (rect.left < copy.right - 2) issues.push("clan lead is not to the right of prize copy");
+            }
             if (desktop && board.bottom > bounds.bottom + 2) issues.push("clan prizes exceed the screen");
             if (innerWidth > 1200 && rect.right > document.querySelector(".october-clan-prize-lists").getBoundingClientRect().left) issues.push("clan lead is not to the left of prizes");
             for (const card of document.querySelectorAll(".october-clan-card")) {

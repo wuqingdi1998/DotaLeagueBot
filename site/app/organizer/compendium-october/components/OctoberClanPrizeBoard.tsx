@@ -134,20 +134,22 @@ export function OctoberClanPrizeBoard({
   const [areAllPrizesVisible, setAreAllPrizesVisible] = useState(false);
   return (
     <section className="october-clan-prize-board" aria-labelledby="october-clan-prizes-title" data-mobile-expanded={areAllPrizesVisible}>
-      <div className="october-clan-prize-copy">
-        <p id="october-clan-prizes-title">
-          30 предметов в финальном розыгрыше
-        </p>
-        <p>
-          Каждая звезда – дополнительный шанс на выигрыш
-        </p>
-        <p>
-          Победители разыграют 21 предмет, проигравшие – 9
-        </p>
-        <OctoberStarEarningGuide
-          isOrganizer={isOrganizer}
-          tournamentLinks={tournamentLinks}
-        />
+      <div className="october-clan-prize-intro">
+        <div className="october-clan-prize-copy">
+          <p id="october-clan-prizes-title">
+            30 предметов в финальном розыгрыше
+          </p>
+          <p>
+            Каждая звезда – дополнительный шанс на выигрыш
+          </p>
+          <p>
+            Победители разыграют 21 предмет, проигравшие – 9
+          </p>
+          <OctoberStarEarningGuide
+            isOrganizer={isOrganizer}
+            tournamentLinks={tournamentLinks}
+          />
+        </div>
         <OctoberClanLead members={members} />
       </div>
       <div className="october-clan-prize-lists" id="october-clan-prize-lists">

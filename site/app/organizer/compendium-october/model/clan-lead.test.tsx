@@ -21,8 +21,17 @@ describe("clan lead beside prizes", () => {
 
   it.each([[0, 0], [10, 10]])("shows a tie for %i versus %i", (left, right) => {
     expect(octoberClanLead(members(left, right))).toEqual({ leader: null, advantage: 0 });
-    expect(renderToStaticMarkup(<OctoberClanPrizeBoard members={members(left, right)} />))
-      .toContain("Кланы идут наравне");
+    const html = renderToStaticMarkup(<OctoberClanPrizeBoard members={members(left, right)} />);
+    expect(html).toContain("Кланы идут наравне");
+    expect(html).toContain('class="october-clan-lead-tie"');
+    expect(html).not.toContain('class="october-clan-lead-emblem"');
+  });
+
+  it.each([[12, 1, "morbus"], [1, 12, "panacea"]])("shows the leading clan's emblem", (morbus, panacea, clan) => {
+    const html = renderToStaticMarkup(<OctoberClanPrizeBoard members={members(morbus, panacea)} />);
+    expect(html).toContain(`${clan}-emblem.png`);
+    expect(html).toContain('class="october-clan-lead-emblem"');
+    expect(html).not.toContain('class="october-clan-lead-tie"');
   });
 
   it.each([[1, "звезду"], [2, "звезды"], [11, "звёзд"], [21, "звезду"]])(

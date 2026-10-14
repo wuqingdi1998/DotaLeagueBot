@@ -14,5 +14,6 @@
 
 @media (min-width: 961px) and (max-width: 1200px) and (min-height: 700px) {
   .october-clan-prize-board { grid-template-columns: minmax(0, 1fr) minmax(474px, 0.9fr); gap: 12px; }
-  .october-clan-lead { gap: 8px; padding-inline: 10px; }
+  .october-clan-prize-intro { gap: 6px; }
+  .october-clan-lead { gap: 8px; padding: 6px 10px; }
 }
