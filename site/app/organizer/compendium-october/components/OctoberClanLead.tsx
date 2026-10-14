@@ -13,16 +13,18 @@ export function OctoberClanLead({ members }: { members: readonly OctoberClanMemb
   return (
     <div className="october-clan-lead" aria-label="Лидер кланового зачёта">
       <OctoberClanActivity clan={OCTOBER_CLANS[0]} side="left" />
-      {leader ? (
-        <Image className="october-clan-lead-emblem" src={leader.emblem} alt="" width={48} height={48} />
-      ) : (
-        <span className="october-clan-lead-tie" aria-label="Ничья">
-          <FaEquals aria-hidden="true" />
-        </span>
-      )}
-      <div>
-        <strong>{leader ? `Лидирует ${leader.name}` : "Кланы идут наравне"}</strong>
-        <span>{leader ? `Впереди на ${stars} ${starWord}` : "Разница – 0 звёзд"}</span>
+      <div className="october-clan-lead-panel">
+        {leader ? (
+          <Image className="october-clan-lead-emblem" src={leader.emblem} alt="" width={48} height={48} />
+        ) : (
+          <span className="october-clan-lead-tie" aria-label="Ничья">
+            <FaEquals aria-hidden="true" />
+          </span>
+        )}
+        <div>
+          <strong>{leader ? `Лидирует ${leader.name}` : "Кланы идут наравне"}</strong>
+          <span>{leader ? `Впереди на ${stars} ${starWord}` : "Разница – 0 звёзд"}</span>
+        </div>
       </div>
       <OctoberClanActivity clan={OCTOBER_CLANS[1]} side="right" />
     </div>

@@ -65,6 +65,17 @@ try {
       await route.fulfill({ status: shouldFail ? 500 : 200, json: body });
     });
     await page.goto(url);
+    const tabs = page.locator(".october-clan-activity-tab");
+    assert.equal(await tabs.count(), 2);
+    assert.equal(await tabs.locator("svg").count(), 0);
+    const tabGeometry = await page.locator(".october-clan-lead").evaluate((lead) => {
+      const panel = lead.querySelector(".october-clan-lead-panel").getBoundingClientRect();
+      const left = lead.querySelector(".october-clan-activity-tab--left").getBoundingClientRect();
+      const right = lead.querySelector(".october-clan-activity-tab--right").getBoundingClientRect();
+      return left.left < panel.left && right.right > panel.right && left.height === panel.height && right.height === panel.height;
+    });
+    assert.ok(tabGeometry, `Side tabs must frame the lead panel at ${width}`);
+    await page.locator(".october-clan-lead").screenshot({ path: fileURLToPath(new URL(`tabs-${width}.png`, directory)) });
     await page.getByRole("button", { name: "Активность клана Морбус за сегодня", exact: true }).click();
     const dialog = page.locator(".october-clan-activity-dialog[open]");
     await dialog.getByRole("table").waitFor();
@@ -106,7 +117,7 @@ try {
     assert.equal(await page.evaluate(() => document.body.style.overflow), "");
     await page.close();
   }
-  console.log("Clan wings, daily reset, rewards, tooltips, retry and dialogs verified on desktop and mobile.");
+  console.log("Clan side tabs, daily reset, rewards, tooltips, retry and dialogs verified on desktop and mobile.");
 } finally {
   await browser.close();
   server.close();

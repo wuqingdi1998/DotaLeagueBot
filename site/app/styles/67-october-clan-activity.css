@@ -1,25 +1,27 @@
-.october-clan-activity-wing {
+.october-clan-activity-tab {
+  --clan-tab-accent: #d66a54;
   position: absolute;
-  top: 50%;
+  top: 0;
+  z-index: 1;
   display: grid;
-  width: 28px;
-  height: 76px;
+  width: 24px;
+  height: 100%;
   padding: 0;
   place-items: center;
-  border: 0;
-  background: transparent;
-  color: #f2d67d;
+  border: 1px solid color-mix(in srgb, var(--clan-tab-accent) 58%, #40545b);
+  outline: 2px solid transparent;
+  outline-offset: 1px;
+  background: color-mix(in srgb, var(--clan-tab-accent) 24%, #192327);
+  color: var(--clan-tab-accent);
   cursor: pointer;
-  transform: translateY(-50%);
+  transition: filter 150ms ease, outline-color 150ms ease, box-shadow 150ms ease;
 }
-.october-clan-activity-wing--left { left: 0; }
-.october-clan-activity-wing--right { right: 0; }
-.october-clan-activity-wing > svg:first-child { position: absolute; width: 28px; height: 74px; fill: rgba(225, 195, 104, 0.15); stroke: currentColor; stroke-width: 1; }
-.october-clan-activity-wing--right > svg:first-child { transform: scaleX(-1); }
-.october-clan-activity-wing > svg:last-child { width: 10px; height: 10px; }
-.october-clan-activity-wing:hover > svg:first-child,
-.october-clan-activity-wing:focus-visible > svg:first-child { fill: rgba(225, 195, 104, 0.4); }
-.october-clan-activity-wing:focus-visible { outline: 2px solid currentColor; border-radius: 6px; }
+.october-clan-activity-tab--left { left: 0; border-radius: 10px 0 0 10px; }
+.october-clan-activity-tab--right { right: 0; border-radius: 0 10px 10px 0; }
+.october-clan-activity-tab--panacea { --clan-tab-accent: #55d5cb; }
+.october-clan-activity-tab img { width: 20px; height: 28px; object-fit: contain; }
+.october-clan-activity-tab:hover,
+.october-clan-activity-tab:focus-visible { outline-color: var(--clan-tab-accent); filter: brightness(1.15) saturate(1.08); box-shadow: 0 0 12px color-mix(in srgb, var(--clan-tab-accent) 72%, transparent); }
 
 .october-clan-activity-dialog { text-align: left; }
 .october-clan-activity-table { min-width: 0; }

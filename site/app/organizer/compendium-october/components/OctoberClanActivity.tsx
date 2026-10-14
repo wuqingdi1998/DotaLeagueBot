@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { FiX } from "react-icons/fi";
-import { FaStar } from "react-icons/fa";
 import type { OCTOBER_CLANS } from "../model/clans";
 import { CLAN_ACTIVITY_COLUMNS, type ClanActivityQuest, type ClanDailyActivity } from "../model/clan-daily-activity";
 import { useClanActivity } from "../hooks/useClanActivity";
@@ -47,11 +47,10 @@ export function OctoberClanActivity({ clan, side }: { clan: typeof OCTOBER_CLANS
   const titleId = `october-${clan.id}-activity-title`;
   return (
     <>
-      <button className={`october-clan-activity-wing october-clan-activity-wing--${side}`} type="button"
+      <button className={`october-clan-activity-tab october-clan-activity-tab--${side} october-clan-activity-tab--${clan.id}`} type="button"
         aria-label={`Активность клана ${clan.name} за сегодня`} title={`${clan.name} – активность за сегодня`}
         onClick={openDialog}>
-        <svg viewBox="0 0 36 74" aria-hidden="true"><path d="M33 8C23 15 12 16 3 6c1 16 9 23 20 25C13 34 6 31 2 26c3 15 10 20 23 20C16 50 10 48 5 45c4 12 12 19 28 23Z" /></svg>
-        <FaStar aria-hidden="true" />
+        <Image src={clan.emblem} alt="" width={20} height={28} />
       </button>
       <dialog ref={dialogRef} className={`october-clan-standing-dialog october-clan-standing-dialog--${clan.id} october-clan-activity-dialog`}
         aria-labelledby={titleId} onClose={onDialogClose} onClick={(event) => { if (event.target === event.currentTarget) closeDialog(); }}>
