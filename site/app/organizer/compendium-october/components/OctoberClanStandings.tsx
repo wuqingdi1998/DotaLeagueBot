@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useOctoberClanDialog } from "../hooks/useOctoberClanDialog";
 import Image from "next/image";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
@@ -85,40 +85,11 @@ export function OctoberClanStandings({
   members: readonly OctoberClanMember[];
   viewerDiscordId?: string;
 }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { dialogRef, openDialog, closeDialog, onDialogClose } = useOctoberClanDialog();
   const rankedMembers = rankOctoberClanMembers(members);
   const cardRows = octoberClanCardRows(members, viewerDiscordId);
   const totalPoints = octoberClanTotalPoints(members);
   const titleId = `october-${clanId}-standings-title`;
-
-  useEffect(() => {
-    if (!isDialogOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    const compendiumScrollContainer = dialogRef.current
-      ?.closest<HTMLElement>(".october-compendium-preview");
-    const previousCompendiumOverflow = compendiumScrollContainer?.style.overflowY;
-    document.body.style.overflow = "hidden";
-    if (compendiumScrollContainer) {
-      compendiumScrollContainer.style.overflowY = "hidden";
-    }
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      if (compendiumScrollContainer) {
-        compendiumScrollContainer.style.overflowY = previousCompendiumOverflow ?? "";
-      }
-    };
-  }, [isDialogOpen]);
-
-  function openDialog() {
-    dialogRef.current?.showModal();
-    setIsDialogOpen(true);
-  }
-
-  function closeDialog() {
-    dialogRef.current?.close();
-    setIsDialogOpen(false);
-  }
 
   return (
     <article className={`october-clan-card october-clan-card--${clanId}`}>
@@ -169,7 +140,7 @@ export function OctoberClanStandings({
         className={`october-clan-standing-dialog october-clan-standing-dialog--${clanId}`}
         ref={dialogRef}
         aria-labelledby={titleId}
-        onClose={() => setIsDialogOpen(false)}
+        onClose={onDialogClose}
         onClick={(event) => {
           if (event.target === event.currentTarget) closeDialog();
         }}

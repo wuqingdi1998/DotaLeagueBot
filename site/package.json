@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx && node scripts/check-october-layout.mjs",
+    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx && node scripts/check-october-layout.mjs && node scripts/check-clan-activity.mjs",
     "check": "npm run lint && npm run typecheck && npm run test && npm run test:layout && npm run build"
   },
   "dependencies": {
@@ -40,6 +40,7 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3",
     "typescript-eslint": "^8.71.0",
+    "vite": "8.2.2",
     "vitest": "^4.1.11"
   },
   "overrides": {

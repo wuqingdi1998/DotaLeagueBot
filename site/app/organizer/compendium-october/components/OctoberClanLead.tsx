@@ -2,6 +2,8 @@ import Image from "next/image";
 import { FaEquals } from "react-icons/fa";
 import type { OctoberClanMember } from "../model/clan-members";
 import { octoberClanLead } from "../model/clan-standings";
+import { OCTOBER_CLANS } from "../model/clans";
+import { OctoberClanActivity } from "./OctoberClanActivity";
 
 export function OctoberClanLead({ members }: { members: readonly OctoberClanMember[] }) {
   const { leader, advantage } = octoberClanLead(members);
@@ -10,6 +12,7 @@ export function OctoberClanLead({ members }: { members: readonly OctoberClanMemb
   const starWord = starLabel === "one" ? "звезду" : starLabel === "few" ? "звезды" : "звёзд";
   return (
     <div className="october-clan-lead" aria-label="Лидер кланового зачёта">
+      <OctoberClanActivity clan={OCTOBER_CLANS[0]} side="left" />
       {leader ? (
         <Image className="october-clan-lead-emblem" src={leader.emblem} alt="" width={48} height={48} />
       ) : (
@@ -21,6 +24,7 @@ export function OctoberClanLead({ members }: { members: readonly OctoberClanMemb
         <strong>{leader ? `Лидирует ${leader.name}` : "Кланы идут наравне"}</strong>
         <span>{leader ? `Впереди на ${stars} ${starWord}` : "Разница – 0 звёзд"}</span>
       </div>
+      <OctoberClanActivity clan={OCTOBER_CLANS[1]} side="right" />
     </div>
   );
 }
