@@ -29,8 +29,8 @@
 .october-clan-lead span { color: #e4e6d7; font-size: 13px; line-height: 1.4; }
 
 @media (min-width: 1201px), (min-width: 661px) and (max-width: 960px) {
-  .october-clan-prize-intro { grid-template-columns: minmax(0, 1fr) auto; gap: 18px; }
-  .october-clan-lead { flex-direction: column; gap: 8px; padding: 14px; text-align: center; }
+  .october-clan-prize-intro { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .october-clan-lead { justify-self: center; flex-direction: column; gap: 8px; padding: 14px; text-align: center; }
   .october-clan-lead-emblem,
   .october-clan-lead-tie { width: 48px; height: 48px; }
 }
