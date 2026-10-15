@@ -294,7 +294,7 @@ describe("October preview actions", () => {
     expect(html).toContain("aria-label=\"Вернуть пояснения к заданиям\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к заданиям дня\"");
     expect(html).toContain("aria-label=\"Скрыть пояснение к клановой вылазке\"");
-    expect(html).toContain("все три задания и Испытание Рун приносят по две звезды вместо одной");
+    expect(html).toContain("С пятницы по воскресенье задания и Испытание Рун дают по две звезды");
     expect(html.match(/aria-label="Награда: 2 звезды"/g)).toHaveLength(3); expect(html).toContain("compendium-weekend-bonus");
     expect(html).not.toContain("Два испытания с героями · одна клановая вылазка");
     expect(guideStyles).toContain(".october-daily-section--compact-guidance .compendium-quest-grid");

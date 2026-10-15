@@ -1,5 +1,6 @@
 import { runeChallengeAccessRoleNames } from "./subscription-roles";
 import { OCTOBER_COMPENDIUM_END_AT } from "./october-compendium-schedule";
+import { dailyChallengeRewardStars } from "@/app/compendium/model/weekend-bonus";
 
 export const OCTOBER_PUBLIC_LAUNCH_AT = "2026-10-03T22:30:00+03:00";
 export const OCTOBER_CLAN_FORMATION_AT = "2026-10-04T23:30:00+03:00";
@@ -28,7 +29,5 @@ export function octoberCompendiumPhase(
 }
 
 export function octoberDailyRewardStars(dateKey: string): 1 | 2 {
-  const [year, month, day] = dateKey.split("-").map(Number);
-  const weekday = new Date(Date.UTC(year, month - 1, day)).getUTCDay();
-  return weekday === 0 || weekday === 6 ? 2 : 1;
+  return dailyChallengeRewardStars(dateKey);
 }
