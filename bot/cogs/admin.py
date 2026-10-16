@@ -4,102 +4,35 @@ from discord.ext import commands
 import io
 import re
 import asyncio
+from uuid import uuid4
 from datetime import timedelta
 
 
-WEBHOOK_NAME = "LS Bot"
-
-DISCORD_CONTENT_LIMIT = 2000
-DISCORD_EMBED_DESC_LIMIT = 4096
-DISCORD_EMBED_TITLE_LIMIT = 256
-BRAND_EMBED_COLOR = 0x00C3FF
-
-
-# --- HELPER: Get or create persistent webhook ---
-async def get_or_create_webhook(channel: discord.TextChannel) -> discord.Webhook:
-    """Find an existing persistent webhook or create one."""
-    webhooks = await channel.webhooks()
-    for wh in webhooks:
-        if wh.name == WEBHOOK_NAME:
-            return wh
-    return await channel.create_webhook(name=WEBHOOK_NAME)
-
-
-def split_for_discord(text: str, limit: int = DISCORD_CONTENT_LIMIT) -> list[str]:
-    """Split text into <= limit-char chunks, preferring line breaks, then spaces."""
-    if not text:
-        return []
-    if len(text) <= limit:
-        return [text]
-
-    chunks: list[str] = []
-    remaining = text
-    while len(remaining) > limit:
-        window = remaining[:limit]
-        cut = window.rfind("\n")
-        if cut <= 0:
-            cut = window.rfind(" ")
-        if cut <= 0:
-            cut = limit
-        chunk = remaining[:cut].rstrip()
-        if chunk:
-            chunks.append(chunk)
-        remaining = remaining[cut:].lstrip("\n").lstrip(" ")
-
-    tail = remaining.rstrip()
-    if tail:
-        chunks.append(tail)
-    return chunks
-
-
-def build_messages(prefix: str, body: str, limit: int = DISCORD_CONTENT_LIMIT) -> list[str]:
-    """Build a list of Discord-sized messages: `prefix` is prepended to the first only."""
-    prefix = prefix or ""
-    body = body or ""
-    sep = "\n" if prefix and body else ""
-    first_budget = limit - len(prefix) - len(sep)
-
-    if not body:
-        head = prefix.rstrip()
-        return [head] if head else []
-
-    if first_budget < 1:
-        # Prefix alone already at/over the limit — emit it separately.
-        head = prefix.rstrip()
-        rest = split_for_discord(body, limit)
-        return ([head] if head else []) + rest
-
-    if len(body) <= first_budget:
-        head = (prefix + sep + body).rstrip()
-        return [head] if head else []
-
-    window = body[:first_budget]
-    cut = window.rfind("\n")
-    if cut <= 0:
-        cut = window.rfind(" ")
-    if cut <= 0:
-        cut = first_budget
-    first_body = body[:cut].rstrip()
-    remaining = body[cut:].lstrip()
-
-    head = (prefix + sep + first_body).rstrip()
-    rest = split_for_discord(remaining, limit) if remaining else []
-    return ([head] if head else []) + rest
-
-
-def build_announcement_embed(title: str | None, description: str) -> discord.Embed:
-    """Create an announcement embed in the Linken's Sphere brand color."""
-    return discord.Embed(
-        title=title,
-        description=description,
-        color=BRAND_EMBED_COLOR,
-    )
+from services.announcement_delivery import (
+    BRAND_EMBED_COLOR,
+    DISCORD_CONTENT_LIMIT,
+    DISCORD_EMBED_DESC_LIMIT,
+    DISCORD_EMBED_TITLE_LIMIT,
+    build_announcement_embed,
+    build_messages,
+    get_or_create_webhook,
+    send_announcement,
+)
+from services.postponed_posts import (
+    POST_DATE_FORMAT,
+    SAY_INPUT_TIMEOUT_SECONDS,
+    encode_post,
+    enqueue_post,
+    parse_post_date,
+    require_future_date,
+)
 
 
 # --- 1. CONFIRMATION VIEW CLASS ---
 class ConfirmSendView(discord.ui.View):
-    def __init__(self, channel, username, avatar_url, mentions, proc_text, embed, files_data):
-        super().__init__(timeout=300)  # Button active for 5 minutes
+    def __init__(self, channel, username, avatar_url, mentions, proc_text, embed, files_data,
+                 scheduled_at=None, author_id=None):
+        super().__init__(timeout=SAY_INPUT_TIMEOUT_SECONDS)
         self.channel = channel
         self.username = username
         self.avatar_url = avatar_url
@@ -107,86 +40,67 @@ class ConfirmSendView(discord.ui.View):
         self.proc_text = proc_text or ""
         self.embed = embed
         self.files_data = files_data  # List of tuples [(filename, bytes)]
+        self.scheduled_at = scheduled_at
+        self.author_id = author_id
+        self.post_id = str(uuid4())
+        self.confirm_lock = asyncio.Lock()
+        self.is_completed = False
+        if scheduled_at:
+            self.confirm.label = "Отложить публикацию"
 
-    def _build_files(self):
-        files = []
-        for f_name, f_bytes in self.files_data:
-            files.append(discord.File(io.BytesIO(f_bytes), filename=f_name))
-        return files
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if self.author_id is not None and interaction.user.id != self.author_id:
+            await interaction.response.send_message("Это объявление создано другим администратором.", ephemeral=True)
+            return False
+        return True
 
     @discord.ui.button(label="Отправить в канал", style=discord.ButtonStyle.green, emoji="🚀")
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
-        # Defer immediately to avoid interaction timeout
         await interaction.response.defer(ephemeral=True)
+        async with self.confirm_lock:
+            if self.is_completed:
+                await interaction.followup.send("Этот пост уже отправлен или отложен.", ephemeral=True)
+                return
+            await self._confirm_once(interaction)
 
+    async def _confirm_once(self, interaction):
         try:
-            webhook = await get_or_create_webhook(self.channel)
+            if self.scheduled_at:
+                require_future_date(self.scheduled_at)
+                from database.core import async_session
 
-            if self.embed:
-                files = self._build_files()
-                if files:
-                    self.embed.set_image(url=f"attachment://{self.files_data[0][0]}")
-                first_msg = await webhook.send(
-                    content=self.mentions or None,
-                    embed=self.embed,
-                    files=files,
-                    username=self.username,
-                    avatar_url=self.avatar_url,
-                    allowed_mentions=discord.AllowedMentions.all(),
-                    wait=True,
+                payload = encode_post(
+                    self.username, self.avatar_url, self.mentions, self.proc_text,
+                    self.embed, self.files_data,
                 )
-            else:
-                messages = build_messages(self.mentions, self.proc_text, DISCORD_CONTENT_LIMIT)
-                if not messages:
-                    # No text, but there may still be an image-only post to send.
-                    if self.files_data:
-                        first_msg = await webhook.send(
-                            content=self.mentions or None,
-                            files=self._build_files(),
-                            username=self.username,
-                            avatar_url=self.avatar_url,
-                            allowed_mentions=discord.AllowedMentions.all(),
-                            wait=True,
-                        )
-                        self.stop()
-                        await interaction.followup.send(
-                            f"✅ Успешно опубликовано в {self.channel.mention}\n"
-                            f"🔗 ID сообщения: `{first_msg.id}`",
-                            ephemeral=True
-                        )
-                        return
-                    await interaction.followup.send("❌ Пустое сообщение.", ephemeral=True)
-                    return
-
-                first_msg = None
-                last_idx = len(messages) - 1
-                for i, content in enumerate(messages):
-                    files = self._build_files() if i == last_idx else []
-                    allowed = (
-                        discord.AllowedMentions.all() if i == 0
-                        else discord.AllowedMentions.none()
+                async with async_session() as session:
+                    await enqueue_post(
+                        session, post_id=self.post_id, guild_id=self.channel.guild.id,
+                        channel_id=self.channel.id, author_id=self.author_id,
+                        scheduled_at=self.scheduled_at, payload=payload,
                     )
-                    sent = await webhook.send(
-                        content=content,
-                        files=files,
-                        username=self.username,
-                        avatar_url=self.avatar_url,
-                        allowed_mentions=allowed,
-                        wait=True,
-                    )
-                    if i == 0:
-                        first_msg = sent
-
+                self.is_completed = True
+                self.stop()
+                await interaction.followup.send(
+                    f"✅ Пост отложен до {self.scheduled_at.strftime(POST_DATE_FORMAT)} МСК "
+                    f"в {self.channel.mention}. Отменить все ожидающие посты: `/postponed_del`.",
+                    ephemeral=True,
+                )
+                return
+            first_msg = await send_announcement(
+                self.channel, self.username, self.avatar_url, self.mentions,
+                self.proc_text, self.embed, self.files_data,
+            )
+            self.is_completed = True
             self.stop()
-
             await interaction.followup.send(
                 f"✅ Успешно опубликовано в {self.channel.mention}\n"
-                f"🔗 ID сообщения: `{first_msg.id}`",
-                ephemeral=True
+                f"🔗 ID сообщения: `{first_msg.id}`", ephemeral=True,
             )
-
-        except Exception as e:
-            await interaction.followup.send(f"❌ Error sending webhook: {e}", ephemeral=True)
+        except ValueError as error:
+            await interaction.followup.send(f"❌ {error}", ephemeral=True)
+        except Exception:
+            await interaction.followup.send("❌ Не удалось отправить или отложить пост. Проверьте права бота и повторите попытку.", ephemeral=True)
 
 
 # --- 2. MAIN ADMIN COG ---
@@ -195,6 +109,9 @@ class Admin(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name="say", description="[Admin] Создать пост (Текст вводится следующим сообщением)")
+    @app_commands.rename(postpone="отложить")
+    @app_commands.describe(postpone="Дата публикации: HH:MM DD.MM.YYYY по Москве, например 19:30 25.12.2026")
+    @app_commands.guild_only()
     @app_commands.checks.has_permissions(administrator=True)
     async def say(self, interaction: discord.Interaction,
                   channel: discord.TextChannel,
@@ -203,7 +120,8 @@ class Admin(commands.Cog):
                   ping_role: discord.Role = None,
                   ping_everyone: bool = False,
                   username: str = "Linken's Sphere Esports",
-                  avatar_url: str = None):
+                  avatar_url: str = None,
+                  postpone: str = None):
         await self._say_impl(
             interaction=interaction,
             channel=channel,
@@ -213,6 +131,7 @@ class Admin(commands.Cog):
             ping_everyone=ping_everyone,
             username=username,
             avatar_url=avatar_url,
+            postpone=postpone,
         )
 
     async def _say_impl(
@@ -226,14 +145,21 @@ class Admin(commands.Cog):
         username: str = "Linken's Sphere Esports",
         avatar_url: str = None,
         force_embed: bool = False,
+        postpone: str = None,
     ):
-
+        scheduled_at = None
+        if postpone is not None:
+            try:
+                scheduled_at = parse_post_date(postpone)
+            except ValueError as error:
+                await interaction.response.send_message(f"❌ {error}", ephemeral=True)
+                return
         # 1. Prompt the user to send the text message
         await interaction.response.send_message(
             f"✍️ **Ожидание ввода текста...**\n"
             f"Напишите текст объявления следующим сообщением в этот чат.\n"
             f"Вы можете использовать переносы строк (Enter), пинги и смайлики.\n"
-            f"*(У вас есть 5 минут)*",
+            f"*(У вас есть {SAY_INPUT_TIMEOUT_SECONDS // 60} минут)*",
             ephemeral=True
         )
 
@@ -243,7 +169,7 @@ class Admin(commands.Cog):
 
         try:
             # Wait for user input
-            user_msg = await self.bot.wait_for('message', check=check, timeout=300)
+            user_msg = await self.bot.wait_for('message', check=check, timeout=SAY_INPUT_TIMEOUT_SECONDS)
 
             # Capture content and any attachments from the follow-up message.
             # This lets an admin post an image with no caption (image-only).
@@ -340,10 +266,14 @@ class Admin(commands.Cog):
                 mentions=mentions,
                 proc_text="" if final_embed else proc_text,
                 embed=final_embed,
-                files_data=files_to_save
+                files_data=files_to_save,
+                scheduled_at=scheduled_at,
+                author_id=interaction.user.id,
             )
 
             preview_header = f"**ПРЕВЬЮ ДЛЯ КАНАЛА {channel.mention}:**"
+            if scheduled_at:
+                preview_header += f"\n🕒 Публикация: **{scheduled_at.strftime(POST_DATE_FORMAT)} МСК**"
 
             if final_embed:
                 await interaction.followup.send(
@@ -388,7 +318,7 @@ class Admin(commands.Cog):
 
                 # Final ephemeral message with the publish button + preview image
                 await interaction.followup.send(
-                    content="✅ Готов к публикации? Нажмите кнопку ниже.",
+                    content="✅ Подтвердите постановку в очередь." if scheduled_at else "✅ Готов к публикации? Нажмите кнопку ниже.",
                     view=confirm_view,
                     files=preview_files,
                     ephemeral=True,
