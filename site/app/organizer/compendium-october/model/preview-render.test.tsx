@@ -53,7 +53,7 @@ const previewSource = readFileSync(
   "utf8",
 );
 const prizeBoardSource = readFileSync(
-  new URL("../components/OctoberClanPrizeBoard.tsx", import.meta.url),
+  new URL("../components/OctoberClanPrizeBoardView.tsx", import.meta.url),
   "utf8",
 );
 const clanStandingsSource = readFileSync(

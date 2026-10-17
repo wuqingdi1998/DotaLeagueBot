@@ -62,6 +62,6 @@ export function testDailyQuests(state: TestState): DailyQuest[] {
     const offset = day * 12 + (position - 1) * 6 + (state.heroOffsets[key] ?? 0);
     const heroes = Array.from({ length: 6 }, (_, index) => COMPENDIUM_HEROES[(offset + index) % COMPENDIUM_HEROES.length]);
     return { id: `sandbox-${position}`, position, heroes, completion: state.completed.includes(key)
-      ? { matchedHeroId: heroes[0].id, matchedMatchId: null, completedAt: testDayBounds(day).start.toISOString(), isManual: true } : null };
+      ? { matchedHeroId: heroes[0].id, matchedMatchId: null, completedAt: testDayBounds(day).start.toISOString(), isManual: false } : null };
   });
 }

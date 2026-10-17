@@ -77,7 +77,7 @@ const dailyQuestExclusions = source(
   "../app/compendium/model/daily-quest-exclusions.ts",
 );
 const runeChallengeView = source(
-  "../app/compendium/components/RuneChallenge.tsx",
+  "../app/compendium/components/RuneChallengeView.tsx",
 );
 const runeChallengeCss = source("../app/styles/42-compendium-rune-challenge.css");
 const runeChallengeSelectionRoute = source(

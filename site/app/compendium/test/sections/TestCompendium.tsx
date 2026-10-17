@@ -29,6 +29,7 @@ export function TestCompendium() {
   return <div className="site-shell" data-theme="dark">
     <TestToolbar state={state} dispatch={dispatch} activeId={activeId} onOpen={openSection} />
     <main ref={root} className="compendium-page october-compendium-preview compendium-test-page">
+      <nav className="october-section-navigation" aria-label="Разделы компендиума">{TEST_SECTIONS.map((section) => <a key={section.id} href={`#${section.id}`} aria-label={section.label} title={section.label} aria-current={activeId === section.id ? "step" : undefined} onClick={(event) => { event.preventDefault(); openSection(section.id); }} />)}</nav>
       <section className="october-compendium-screen october-compendium-screen-clans" id="test-clans" aria-label="Кланы (тест)">
         <div className="compendium-hero-section"><div className="compendium-title-block"><h1>{TEST_COMPENDIUM.title}</h1><p className="october-compendium-hero-line">{TEST_COMPENDIUM.subtitle}</p></div>
           <div className="compendium-summary"><div className="compendium-tournament-countdown"><FiCalendar aria-hidden="true" /><span>Период события</span><strong>{TEST_COMPENDIUM.dateLabel}</strong></div></div>

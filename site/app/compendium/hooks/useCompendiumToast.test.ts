@@ -82,7 +82,10 @@ describe("compendium toast lifecycle", () => {
     expect(dashboard).toContain("const [toast, setToast] = useCompendiumToast()");
     const rune = readFileSync(new URL("../components/RuneChallenge.tsx", import.meta.url), "utf8");
     expect(rune).toContain("const [message, setMessage] = useCompendiumToast()");
-    expect(rune).toContain("<CompendiumToast message={message} />");
+    expect(rune).toContain("message={message}");
+    const runeView = readFileSync(new URL("../components/RuneChallengeView.tsx", import.meta.url), "utf8");
+    expect(runeView).toContain("<CompendiumToast message={message} />");
+    expect(runeView).not.toContain("compendium-rune-message");
     expect(rune).not.toContain("compendium-rune-message");
   });
 });

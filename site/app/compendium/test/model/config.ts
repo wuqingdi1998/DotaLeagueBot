@@ -5,6 +5,7 @@ export const TEST_COMPENDIUM = {
   playerId: "sandbox-player", partnerId: "sandbox-partner", clanId: "morbus",
   dailyReward: 1, weekendReward: 2, firstReroll: 25, secondReroll: 60,
   bonusStars: 20, goldThreshold: 80,
+  resetCountdown: "12:00:00",
 } as const;
 export const TEST_SECTIONS = [
   { id: "test-clans", label: "Кланы" }, { id: "test-personal", label: "Личный зачёт" },

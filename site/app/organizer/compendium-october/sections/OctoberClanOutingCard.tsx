@@ -57,9 +57,9 @@ export function OctoberClanOutingCard({
           <span className="compendium-checkmark"><FiCheck aria-hidden="true" /></span>
           <div>
             <strong>Вылазка выполнена вместе с {completion.partnerName}</strong>
-            <a href={`https://www.opendota.com/matches/${completion.matchId}`} target="_blank" rel="noreferrer">
+            {completion.matchId && <a href={`https://www.opendota.com/matches/${completion.matchId}`} target="_blank" rel="noreferrer">
               Матч {completion.matchId} <FiExternalLink aria-hidden="true" />
-            </a>
+            </a>}
           </div>
         </div>
       ) : (

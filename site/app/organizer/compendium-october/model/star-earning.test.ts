@@ -76,7 +76,10 @@ describe("October star earning guide", () => {
       "utf8",
     );
 
-    expect(guide).toContain("SeasonTournamentLinkEditor");
+    const prizeBoard = readFileSync(new URL("../components/OctoberClanPrizeBoard.tsx", import.meta.url), "utf8");
+    expect(prizeBoard).toContain("SeasonTournamentLinkEditor");
+    expect(prizeBoard).toContain("renderTournamentEditor=");
+    expect(guide).toContain("renderTournamentEditor?.(tournament)");
     expect(guide).toContain("isOrganizer && source.tournaments?.map");
     expect(guide).toContain("tournamentLinks[tournament.linkId]");
   });

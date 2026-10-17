@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { FaStar } from "react-icons/fa";
 import { FiHelpCircle, FiX } from "react-icons/fi";
@@ -10,15 +10,16 @@ import {
   OCTOBER_STAR_EARNING_SOURCES,
   OCTOBER_SUBSCRIBER_MAX_STARS,
 } from "../model/star-earning";
-import { SeasonTournamentLinkEditor } from "@/app/season/admin/SeasonTournamentLinkEditor";
-import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
+import type { SeasonTournamentLinkId, SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
 
 export function OctoberStarEarningGuide({
   isOrganizer = false,
   tournamentLinks = {},
+  renderTournamentEditor,
 }: {
   isOrganizer?: boolean;
   tournamentLinks?: SeasonTournamentLinks;
+  renderTournamentEditor?: (tournament: { linkId: SeasonTournamentLinkId; label: string }) => ReactNode;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = "october-star-guide-title";
@@ -83,11 +84,7 @@ export function OctoberStarEarningGuide({
                         const href = tournamentLinks[tournament.linkId]
                           ?? tournament.fallbackHref;
                         return !href ? (
-                          <SeasonTournamentLinkEditor
-                            key={tournament.linkId}
-                            linkId={tournament.linkId}
-                            tournamentTitle={tournament.label}
-                          />
+                          renderTournamentEditor?.(tournament)
                         ) : null;
                       })}
                       {source.subscriberOnly && (

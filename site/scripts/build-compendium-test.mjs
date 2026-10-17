@@ -20,9 +20,10 @@ await build({
     lib: { entry: fileURLToPath(new URL("entry.tsx", runtime)), formats: ["iife"], name: "CompendiumTest", fileName: () => "sandbox.js" } },
 });
 const styles = new URL("app/styles/", root);
-const names = ["01-foundation.css", ...[...readFileSync(new URL("compendium-route.css", styles), "utf8").matchAll(/@import "\.\/(.*?)";/g)].map((match) => match[1]), "72-compendium-test.css"];
-const css = names.map((name) => readFileSync(new URL(name, styles), "utf8")).join("\n").replace(/url\(["']?(\/fonts\/[^)"']+)["']?\)/g, (_, path) => `url("data:font/ttf;base64,${readFileSync(new URL(`public${path}`, root)).toString("base64")}")`);
-const script = readFileSync(new URL("bundle/sandbox.js", directory), "utf8").replace(/<\/script/gi, "<\\/script");
+const globalNames = [...readFileSync(new URL("app/globals.css", root), "utf8").matchAll(/@import "\.\/styles\/(.*?)";/g)].map((match) => match[1]);
+const names = [...globalNames, ...[...readFileSync(new URL("compendium-route.css", styles), "utf8").matchAll(/@import "\.\/(.*?)";/g)].map((match) => match[1]), "72-compendium-test.css"];
+const css = [readFileSync(new URL("node_modules/tailwindcss/preflight.css", root), "utf8"), ...names.map((name) => readFileSync(new URL(name, styles), "utf8"))].join("\n").replace(/url\(["']?(\/fonts\/[^)"']+)["']?\)/g, (_, path) => `url("data:font/ttf;base64,${readFileSync(new URL(`public${path}`, root)).toString("base64")}")`);
+const script = readFileSync(new URL("bundle/sandbox.js", directory), "utf8").replace(/<\/script/gi, "<\\/script").replaceAll("__TEST_BRAND_IMAGE__", `data:image/png;base64,${readFileSync(new URL("public/linkens-sphere-logo.png", root)).toString("base64")}`);
 const policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src data:; img-src __TEST_ASSET_ORIGIN__/compendium/ https://cdn.cloudflare.steamstatic.com data:; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'";
 writeFileSync(new URL("frame.html", directory), `<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="${policy}"><title>Компендиум · ТЕСТ</title><style>${css}</style><div id="compendium-test"></div><script>${script}</script></html>`);
 console.log("Independent compendium test built; live service imports are forbidden.");

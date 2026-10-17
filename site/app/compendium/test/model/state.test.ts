@@ -3,6 +3,20 @@ import { INITIAL_TEST_STATE, testReducer, testTotals, testRerollsRemaining } fro
 import { testMembers } from "./presentation";
 import { TEST_RACE_WEEK } from "./config";
 import { OCTOBER_COMPENDIUM_WEEKS } from "../../model/october-star-race";
+import { testClanActivity } from "./activity";
+
+it("provides exactly twenty named independent participants in each test clan", () => {
+  const members = testMembers(INITIAL_TEST_STATE);
+  expect(members).toHaveLength(40);
+  expect(new Set(members.map((member) => member.discordId)).size).toBe(40);
+  expect(new Set(members.map((member) => member.playerName)).size).toBe(40);
+  for (const clanId of ["morbus", "panacea"]) expect(members.filter((member) => member.clanId === clanId)).toHaveLength(20);
+  expect(members.every((member) => /^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$/.test(member.playerName) && member.totalPoints === 0 && member.dotaId.startsWith("sandbox-"))).toBe(true);
+  const activity = testClanActivity(testReducer(INITIAL_TEST_STATE, { type: "complete", kind: "outing" }));
+  expect(activity.members).toHaveLength(40);
+  expect(activity.members.filter((member) => member.dailyStars > 0).map((member) => member.dailyStars)).toEqual([1, 1]);
+  expect(testMembers(INITIAL_TEST_STATE)).toEqual(members);
+});
 
 it("keeps race, daily, rune and clan totals independent from live definitions and identities", () => {
   const liveBefore = JSON.stringify(OCTOBER_COMPENDIUM_WEEKS);

@@ -13,7 +13,7 @@ const dashboard = source(
 );
 const questCard = source("../app/compendium/components/QuestCard.tsx");
 const runeChallenge = source(
-  "../app/compendium/components/RuneChallenge.tsx",
+  "../app/compendium/components/RuneChallengeView.tsx",
 );
 const dailyResetCountdown = source(
   "../app/compendium/components/DailyResetCountdown.tsx",

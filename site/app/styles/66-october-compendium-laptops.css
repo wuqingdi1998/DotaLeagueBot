@@ -72,14 +72,15 @@
   .october-compendium-screen-daily .october-compendium-example-note { padding-block: 6px; font-size: 13px; line-height: 1.3; }
   .october-compendium-screen-daily .compendium-section-heading h2 { font-size: 24px; }
   .october-compendium-screen-daily .october-daily-countdown { max-width: 350px; }
-  .october-compendium-screen-daily .compendium-quest-grid > .compendium-quest { padding: 6px; }
-  .october-compendium-screen-daily .compendium-quest-heading { margin-bottom: 6px; }
+  .october-compendium-screen-daily .compendium-quest-grid > .compendium-quest { padding: 4px 6px; }
+  .october-compendium-screen-daily .compendium-quest-heading { margin-bottom: 4px; }
+  .october-compendium-screen-daily .compendium-quest-heading h2 { margin-top: 3px; font-size: 16px; line-height: 1.2; white-space: nowrap; }
   .october-compendium-screen-daily .october-clan-quest-emblem { display: none; }
   .october-compendium-screen-daily .october-clan-quest h3 { margin-top: 4px; font-size: 16px; }
   .october-compendium-screen-daily .october-clan-quest-note { font-size: 11px; line-height: 1.2; }
   .october-compendium-screen-daily .compendium-hero-portrait { height: 24px; }
-  .october-compendium-screen-daily .compendium-condition { font-size: 12px; line-height: 1.25; }
-  .october-compendium-screen-daily .compendium-completion { min-height: 54px; font-size: 12px; padding: 6px; }
+  .october-compendium-screen-daily .compendium-condition { margin-block: 4px 6px; font-size: 12px; line-height: 1.25; }
+  .october-compendium-screen-daily .compendium-completion { min-height: 54px; font-size: 12px; line-height: 1.2; padding: 6px; }
   .october-compendium-screen-daily .compendium-checkmark { flex-basis: 26px; height: 26px; }
   .october-compendium-screen-daily .compendium-rune-challenge { padding-block: 8px; }
   .october-compendium-screen-daily .compendium-rune-action > p { font-size: 12px; line-height: 1.3; }

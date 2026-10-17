@@ -27,6 +27,10 @@ const server = createServer((request, response) => {
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const url = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
+async function openSection(frame, section) {
+  await frame.getByRole("button", { name: "Управление тестом", exact: true }).click();
+  await frame.getByRole("button", { name: section, exact: true }).click();
+}
 try {
   for (const [width, height] of [[1900, 870], [1366, 768], [961, 700], [393, 852]]) {
     const context = await browser.newContext({ viewport: { width, height } });
@@ -35,16 +39,17 @@ try {
     await page.route("https://cdn.cloudflare.steamstatic.com/**", (route) => route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="#244352"/></svg>' }));
     await page.goto(`${url}/compendium/test`);
     const frame = page.frames().find((frame) => frame.parentFrame());
-    await frame.getByRole("button", { name: "Гонка", exact: true }).click();
+    await openSection(frame, "Гонка");
     await frame.getByRole("button", { name: "Путь Созидания (Support)", exact: true }).click();
     await frame.getByRole("button", { name: "Выполнить (тест)", exact: true }).click();
     assert.equal(await frame.getByTestId("test-total").innerText(), "★ 4");
-    await frame.getByRole("button", { name: "Задания", exact: true }).click();
+    await openSection(frame, "Задания");
+    await page.screenshot({ path: fileURLToPath(new URL(`screen-daily-initial-${width}.png`, directory)) });
     await frame.locator("#test-daily .compendium-quest").first().getByRole("button", { name: "Проверить", exact: true }).click();
-    await frame.getByRole("button", { name: "Выполнить вылазку (тест)", exact: true }).click();
-    await frame.getByLabel("Любимый герой (тест)").selectOption("1");
-    await frame.getByRole("button", { name: "Выбрать героя (тест)", exact: true }).click();
-    await frame.getByRole("button", { name: "Выполнить руны (тест)", exact: true }).click();
+    await frame.locator(".october-clan-quest").getByRole("button", { name: "Проверить", exact: true }).click();
+    await frame.locator(".compendium-rune-picker select").selectOption("1");
+    await frame.getByRole("button", { name: "Выбрать героя", exact: true }).click();
+    await frame.locator(".compendium-rune-challenge").getByRole("button", { name: "Проверить", exact: true }).click();
     assert.equal(await frame.getByTestId("test-total").innerText(), "★ 7");
     const protection = await frame.evaluate(async () => {
       const blocked = {};
@@ -56,14 +61,14 @@ try {
     });
     assert.deepEqual(protection, { parent: true, cookie: true, storage: true, network: true });
     for (const section of ["Кланы", "Личный зачёт", "Гонка", "Задания"]) {
-      await frame.getByRole("button", { name: section, exact: true }).click();
+      await openSection(frame, section);
       await frame.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(500);
       const issues = await frame.evaluate(() => {
         const problems = [];
         if (document.documentElement.scrollWidth > innerWidth + 2) problems.push("horizontal page overflow");
         if (innerWidth > 960 && innerHeight >= 700) for (const section of document.querySelectorAll(".october-compendium-screen")) {
-          for (const panel of section.querySelectorAll(".compendium-star-race,.compendium-daily-section,.october-clan-showcase,.compendium-rewards")) {
+          for (const panel of section.querySelectorAll(".compendium-star-race,.compendium-daily-section,.october-clan-showcase,.compendium-rewards,.compendium-quest,.compendium-rune-challenge")) {
             const a = panel.getBoundingClientRect(), b = section.getBoundingClientRect();
             if (a.top < b.top - 2 || a.bottom > b.bottom + 2) problems.push(`${panel.className}: outside screen`);
             if (panel.scrollHeight > panel.clientHeight + 2) problems.push(`${panel.className}: clipped content`);
@@ -73,14 +78,26 @@ try {
       });
       if (issues.length) {
         await page.screenshot({ path: fileURLToPath(new URL(`failure-${width}.png`, directory)) });
-        console.log(await frame.locator("#test-clans").evaluate((root) => [...root.querySelectorAll("div,section")].map((el) => ({ name: el.className, height: el.clientHeight, content: el.scrollHeight, top: Math.round(el.getBoundingClientRect().top) })).filter((el) => el.height > 100)));
+        console.log(await frame.locator("#test-daily .compendium-quest").first().evaluate((root) => [root, ...root.children].map((el) => ({ name: el.className, height: el.clientHeight, content: el.scrollHeight, top: Math.round(el.getBoundingClientRect().top), margin: getComputedStyle(el).margin, flex: getComputedStyle(el).flex }))));
       }
       assert.deepEqual(issues, [], `${section} at ${width} × ${height}`);
       await page.screenshot({ path: fileURLToPath(new URL(`screen-${section === "Кланы" ? "clans" : section === "Гонка" ? "race" : section === "Задания" ? "daily" : "personal"}-${width}.png`, directory)) });
     }
+    await openSection(frame, "Кланы");
+    for (const name of ["Морбус", "Панацея"]) {
+      await frame.locator(`.october-clan-card--${name === "Морбус" ? "morbus" : "panacea"}`).getByRole("button", { name: "Полный зачёт клана" }).click();
+      const dialog = frame.getByRole("dialog", { name });
+      assert.equal(await dialog.locator("ol > li").count(), 20);
+      assert.match(await dialog.innerText(), /20 участников/);
+      await dialog.getByRole("button", { name: "Закрыть полный зачёт" }).click();
+      await frame.getByRole("button", { name: `Активность клана ${name} за сегодня` }).click();
+      assert.equal(await frame.locator("dialog[open] [role=row]").count(), 21);
+      await frame.getByRole("button", { name: "Закрыть активность клана" }).click();
+    }
+    await frame.getByRole("button", { name: "Управление тестом", exact: true }).click();
     await frame.getByRole("button", { name: "Сбросить тест", exact: true }).click();
     assert.equal(await frame.getByTestId("test-total").innerText(), "★ 0");
-    await frame.getByRole("button", { name: "Гонка", exact: true }).click();
+    await openSection(frame, "Гонка");
     await frame.getByRole("button", { name: "Путь Разрушения (Core)", exact: true }).waitFor();
     assert.equal((await context.cookies()).find((cookie) => cookie.name === "main-session-sentinel").value, "protected");
     await context.close();

@@ -1,31 +1,21 @@
-.compendium-test-toolbar { height: 76px; padding: 6px 14px 6px 142px; display: grid; gap: 4px; background: #091b28; color: #eef8ff; border-bottom: 1px solid var(--line); }
-.compendium-test-toolbar-top, .compendium-test-controls, .compendium-test-toolbar nav { display: flex; align-items: center; gap: 10px; }
-.compendium-test-toolbar-top > strong { color: #f4c869; white-space: nowrap; }
-.compendium-test-toolbar-top > span { margin-left: auto; white-space: nowrap; font-weight: 800; }
-.compendium-test-toolbar button, .compendium-test-toolbar select { padding: 4px 8px; border: 1px solid var(--line-strong); border-radius: 7px; background: var(--surface); color: var(--text); cursor: pointer; font-size: 12px; }
-.compendium-test-toolbar button[aria-current] { border-color: #f4c869; color: #f4c869; }
-.compendium-test-toolbar select { max-width: 220px; }
-.compendium-test-toolbar label { display: flex; gap: 5px; align-items: center; font-size: 12px; }
-.compendium-test-controls > span { color: var(--muted); font-size: 11px; }
-.compendium-test-toolbar select:disabled { opacity: 0.5; }
-.compendium-test-page .october-clan-lead { display: block; width: auto; padding: 0; }
-.compendium-test-page .october-clan-lead-panel { display: flex; align-items: center; gap: 10px; }
-.compendium-test-page .october-clan-lead-panel > img, .compendium-test-page .october-clan-lead-panel > svg { width: 40px; height: 40px; }
-.compendium-test-page .october-clan-lead-panel strong, .compendium-test-page .october-clan-lead-panel span { display: block; }
-.compendium-test-page .october-clan-prize-slot > button { display: block; width: 100%; height: 100%; border: 0; padding: 0; background: transparent; color: inherit; cursor: pointer; }
-.compendium-test-inert-link { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.compendium-test-note { color: #f4c869; font-size: 12px; }
-.compendium-test-prize-dialog { max-width: min(400px, calc(100% - 24px)); padding: 20px; border: 1px solid var(--line-strong); border-radius: 18px; color: var(--text); background: var(--surface); }
-.compendium-test-prize-dialog::backdrop { background: #000a; }
-.compendium-test-prize-dialog img { display: block; max-width: 100%; height: 220px; object-fit: contain; }
-.compendium-test-rune-access { display: flex; gap: 8px; align-items: center; font-size: 13px; margin-bottom: 8px; }
-.compendium-test-page .compendium-rune-selected-hero > .compendium-hero { width: 100px; }
-.compendium-test-page .compendium-rune-selected-hero > div > strong { display: block; }
+.compendium-test-header { position: relative; height: 76px; }
+.compendium-test-settings-button { cursor: pointer; }
+.compendium-test-settings-button > svg { width: 24px; height: 24px; color: var(--blue-soft); }
+.compendium-test-settings-button > span { display: grid; gap: 2px; font-size: 12px; }
+.compendium-test-settings-button strong { color: #f4c869; }
+.compendium-test-exit-space { width: 42px; }
+.compendium-test-controls { position: fixed; z-index: 50; top: 78px; right: 16px; display: grid; width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 96px); overflow-y: auto; gap: 12px; padding: 18px; }
+.compendium-test-controls[hidden] { display: none; }
+.compendium-test-controls-title { display: flex; align-items: center; justify-content: space-between; }
+.compendium-test-controls p { margin: 0; color: var(--muted); font-size: 13px; }
+.compendium-test-controls nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.compendium-test-controls button, .compendium-test-controls select { padding: 7px 10px; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--text); background: var(--surface); cursor: pointer; font: inherit; font-size: 13px; }
+.compendium-test-controls label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.compendium-test-controls select { min-width: 0; flex: 1; }
+.compendium-test-controls button[aria-current] { border-color: #f4c869; color: #f4c869; }
 @media (max-width: 960px), (max-height: 699px) {
-  .compendium-test-toolbar { position: sticky; top: 0; z-index: 40; height: auto; min-height: 120px; padding: 58px 14px 12px; }
-  .compendium-test-toolbar-top, .compendium-test-controls { flex-wrap: wrap; gap: 8px; }
-  .compendium-test-toolbar nav { flex-wrap: wrap; gap: 6px; }
-  .compendium-test-toolbar select { max-width: 200px; }
-  .compendium-test-page .october-clan-lead { width: auto; }
-  .compendium-test-page .october-compendium-screen { scroll-margin-top: 200px; }
+  .compendium-test-header { position: sticky; top: 0; z-index: 40; }
+}
+@media (max-width: 660px) {
+  .compendium-test-header .community-action-button, .compendium-test-header .theme-button { display: none; }
 }
