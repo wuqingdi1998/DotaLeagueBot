@@ -52,7 +52,7 @@ function StarRaceQuestCard({
   isSubmittingPrediction,
   onSubmitPrediction,
   compactCompletion,
-  isAlternativeCompleted = false,
+  checkButtonLabel = "Проверить",
 }: {
   quest: StarRaceQuest;
   countdown: string | null;
@@ -63,7 +63,7 @@ function StarRaceQuestCard({
   isSubmittingPrediction: boolean;
   onSubmitPrediction: (position: number) => void;
   compactCompletion: boolean;
-  isAlternativeCompleted?: boolean;
+  checkButtonLabel?: string;
 }) {
   const isConfigured = Boolean(quest.title && quest.description);
   const progressLabel = starRaceQuestProgressLabel(quest);
@@ -137,8 +137,6 @@ function StarRaceQuestCard({
                 </div>
               </div>
             </>
-          ) : isAlternativeCompleted ? (
-            <span className="compendium-star-race-status">Награда уже получена</span>
           ) : quest.requirement?.kind === "final-winner-prediction" ? (
             <StarRaceFinalPrediction
               quest={quest}
@@ -179,7 +177,7 @@ function StarRaceQuestCard({
                 ) : quest.pendingVerification ? (
                   "Матч обрабатывается…"
                 ) : (
-                  "Проверить"
+                  checkButtonLabel
                 )}
               </button>
             </div>
@@ -239,7 +237,7 @@ function StarRaceCounter({
       <FaStar aria-hidden="true" />
       <span className="compendium-star-race-total-label">Ваш результат</span>
       <strong className="compendium-star-race-total-value">
-        {isPreview ? "—" : race.personalStars ?? 0}
+        {race.personalStars ?? (isPreview ? "—" : 0)}
       </strong>
       <span className="compendium-star-race-rank-label">Ваше место в гонке</span>
       <strong className="compendium-star-race-rank-value">
@@ -250,7 +248,7 @@ function StarRaceCounter({
   );
   if (isPreview) {
     return (
-      <div className="compendium-star-race-counter" aria-label="Гонка ещё не открыта, результат и место появятся после старта">
+      <div className="compendium-star-race-counter" aria-label={race.personalStars === null ? "Гонка ещё не открыта, результат и место появятся после старта" : `Тестовый результат: ${race.personalStars} звёзд`}>
         {content}
       </div>
     );
@@ -303,6 +301,7 @@ export function CompendiumStarRace({
   collapsibleRulesOnMobile = false,
   questLanes,
   rulesOverride,
+  checkButtonLabel,
 }: {
   race: StarRaceData;
   currentTimeMs: number;
@@ -317,6 +316,7 @@ export function CompendiumStarRace({
   collapsibleRulesOnMobile?: boolean;
   questLanes?: readonly { title: string; quests: readonly StarRaceQuest[] }[];
   rulesOverride?: readonly string[];
+  checkButtonLabel?: string;
 }) {
   const router = useRouter();
   const automaticCheckKey = useRef<string | null>(null);
@@ -426,7 +426,7 @@ export function CompendiumStarRace({
                 {lane.quests.map((quest) => (
                   <StarRaceQuestCard
                     compactCompletion={collapsibleRulesOnMobile}
-                    isAlternativeCompleted={Boolean(questLanes && !quest.completion && race.quests.some((other) => other.dateKey === quest.dateKey && other.completion))}
+                    checkButtonLabel={checkButtonLabel}
                     key={quest.dateKey}
                     quest={quest}
                     countdown={quest.phase === "active" ? countdown : null}

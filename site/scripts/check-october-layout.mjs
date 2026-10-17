@@ -61,6 +61,7 @@ try {
           if (desktop && bounds.height > innerHeight - 76 + 2) issues.push(`screen height ${bounds.height} exceeds ${innerHeight - 76}`);
           const selectors = [".compendium-star-race", ".compendium-star-race-quest", ".compendium-daily-section", ".compendium-quest", ".compendium-rune-challenge", ".october-daily-countdown"];
           for (const element of document.querySelectorAll(selectors.join(","))) {
+            if (section.classList.contains("october-final-race-screen") && element.scrollWidth > element.clientWidth + 2) issues.push(`${element.className}: preview content overflows horizontally`);
             if (element.scrollHeight > element.clientHeight + 2) issues.push(`${element.className}: content height ${element.scrollHeight} exceeds ${element.clientHeight}`);
             const rect = element.getBoundingClientRect();
             if (desktop && (rect.bottom > bounds.bottom + 2 || rect.top < bounds.top - 2)) issues.push(`${element.className}: outside its screen`);
@@ -106,7 +107,7 @@ try {
           await page.screenshot({ path: fileURLToPath(new URL(`race-evidence-${width}.png`, screenshots)), fullPage: true });
           await page.keyboard.press("Escape");
         }
-        if (["race-two-paths-3-active", "race-two-paths-6-completed", "clans-morbus", "race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue", "profile-badges"].includes(fixture) && [1900, 1366, 393].includes(width)) {
+        if (["race-path-choice", "race-two-paths-4-active", "race-two-paths-support-4-active", "race-two-paths-3-active", "race-two-paths-6-completed", "clans-morbus", "race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue", "profile-badges"].includes(fixture) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
         if ((fixture.startsWith("results-") || fixture.startsWith("clans-")) && [1900, 1366, 393].includes(width)) {

@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx && node scripts/check-october-layout.mjs && node scripts/check-clan-activity.mjs",
+    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx && node scripts/check-october-layout.mjs && node scripts/check-clan-activity.mjs && node scripts/check-final-race-preview.mjs",
     "check": "npm run lint && npm run typecheck && npm run test && npm run test:layout && npm run build"
   },
   "dependencies": {

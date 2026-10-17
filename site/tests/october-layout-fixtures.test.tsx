@@ -83,13 +83,15 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   for (let day = 0; day < 7; day++) {
     for (const isCompleted of [false, true]) {
       save(`race-two-paths-${day}-${isCompleted ? "completed" : "active"}`, "race october-final-race-screen", renderToStaticMarkup(
-        <div className="compendium-rewards-section"><FinalRacePreviewPanel activeDay={day} isCompleted={isCompleted} /></div>,
+        <div className="compendium-rewards-section"><FinalRacePreviewPanel state={{ path: "core", activeDay: day, completedDays: Array.from({ length: day + (isCompleted ? 1 : 0) }, (_, index) => index) }} /></div>,
       ));
       save(`race-two-paths-support-${day}-${isCompleted ? "completed" : "active"}`, "race october-final-race-screen", renderToStaticMarkup(
-        <div className="compendium-rewards-section"><FinalRacePreviewPanel activeDay={day} isCompleted={isCompleted} completedPath="support" /></div>,
+        <div className="compendium-rewards-section"><FinalRacePreviewPanel state={{ path: "support", activeDay: day, completedDays: Array.from({ length: day + (isCompleted ? 1 : 0) }, (_, index) => index) }} /></div>,
       ));
     }
   }
+
+  save("race-path-choice", "race october-final-race-screen", renderToStaticMarkup(<div className="compendium-rewards-section"><FinalRacePreviewPanel /></div>));
 
   for (const hasGuidance of [false, true]) {
     guidance.isVisible = hasGuidance;
@@ -123,5 +125,5 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   fixtures.push("profile-badges");
   writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(66);
+  expect(fixtures).toHaveLength(67);
 });
