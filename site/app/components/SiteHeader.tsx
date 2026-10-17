@@ -20,6 +20,7 @@ import { CompendiumNavigationLink } from "./header/CompendiumNavigationLink";
 import {
   FiArrowRight,
   FiDatabase,
+  FiEye,
   FiLogIn,
   FiMenu,
   FiMoon,
@@ -312,6 +313,9 @@ export function SiteHeader({
                         >
                           База компендиума <FiDatabase aria-hidden="true" />
                         </Link>
+                        <a className="profile-popover-link" href="/compendium/test" onClick={() => setProfileOpen(false)}>
+                          Предпросмотр (тест) <FiEye aria-hidden="true" />
+                        </a>
                         {profileMenuExtras}
                       </>
                     )}

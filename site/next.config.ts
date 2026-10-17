@@ -16,6 +16,7 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  outputFileTracingIncludes: { "/compendium/test": ["./.data/compendium-test/frame.html"] },
   poweredByHeader: false,
   async headers() {
     return [

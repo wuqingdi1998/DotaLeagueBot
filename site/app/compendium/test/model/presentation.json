@@ -1,0 +1,364 @@
+{
+  "clans": [
+    {
+      "id": "morbus",
+      "name": "Морбус",
+      "emblem": "/compendium/october/morbus-emblem.png"
+    },
+    {
+      "id": "panacea",
+      "name": "Панацея",
+      "emblem": "/compendium/october/panacea-emblem.png"
+    }
+  ],
+  "prizes": [
+    {
+      "id": "winners-1",
+      "pool": "winners",
+      "poolPosition": 1,
+      "name": "Shattered Greatsword",
+      "imagePath": "/compendium/october/shattered-greatsword.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "6 000 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-2",
+      "pool": "winners",
+      "poolPosition": 2,
+      "name": "Auspicious Scythe of Vyse",
+      "imagePath": "/compendium/october/auspicious-scythe-of-vyse.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "1 400 ₽",
+      "hasLargePreview": true
+    },
+    {
+      "id": "winners-3",
+      "pool": "winners",
+      "poolPosition": 3,
+      "name": "Undying Love",
+      "imagePath": "/compendium/october/undying-love.png",
+      "thumbnailImagePath": "/compendium/october/undying-love-thumbnail.png",
+      "approximateValue": "700 ₽",
+      "hasLargePreview": true
+    },
+    {
+      "id": "winners-4",
+      "pool": "winners",
+      "poolPosition": 4,
+      "name": "Magus Mimicry",
+      "imagePath": "/compendium/october/magus-mimicry.png",
+      "thumbnailImagePath": "/compendium/october/magus-mimicry-thumbnail.png",
+      "approximateValue": "600 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-5",
+      "pool": "winners",
+      "poolPosition": 5,
+      "name": "Snailfire",
+      "imagePath": "/compendium/october/snailfire.png",
+      "thumbnailImagePath": "/compendium/october/snailfire-thumbnail.png",
+      "approximateValue": "600 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-6",
+      "pool": "winners",
+      "poolPosition": 6,
+      "name": "Steam Gift Card на 500 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-500-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "500 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-7",
+      "pool": "winners",
+      "poolPosition": 7,
+      "name": "Steam Gift Card на 500 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-500-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "500 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-1",
+      "pool": "runners-up",
+      "poolPosition": 1,
+      "name": "Doll of the Dead",
+      "imagePath": "/compendium/october/doll-of-the-dead.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "700 ₽",
+      "hasLargePreview": true
+    },
+    {
+      "id": "runners-up-2",
+      "pool": "runners-up",
+      "poolPosition": 2,
+      "name": "Steam Gift Card на 500 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-500-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "500 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-3",
+      "pool": "runners-up",
+      "poolPosition": 3,
+      "name": "Mantle of the Cinder Baron",
+      "imagePath": "/compendium/october/mantle-of-the-cinder-baron.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "300 ₽",
+      "hasLargePreview": true
+    },
+    {
+      "id": "winners-8",
+      "pool": "winners",
+      "poolPosition": 8,
+      "name": "Frostmoot",
+      "imagePath": "/compendium/october/frostmoot.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "500 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-9",
+      "pool": "winners",
+      "poolPosition": 9,
+      "name": "Almond the Frondillo",
+      "imagePath": "/compendium/october/almond-the-frondillo.png",
+      "thumbnailImagePath": "/compendium/october/almond-the-frondillo-thumbnail.png",
+      "approximateValue": "300 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-10",
+      "pool": "winners",
+      "poolPosition": 10,
+      "name": "The Igneous Stone",
+      "imagePath": "/compendium/october/the-igneous-stone.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "300 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-11",
+      "pool": "winners",
+      "poolPosition": 11,
+      "name": "Altar Ball",
+      "imagePath": "/compendium/october/altar-ball.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "200 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-12",
+      "pool": "winners",
+      "poolPosition": 12,
+      "name": "Aberrant Observer",
+      "imagePath": "/compendium/october/cursed-crescent.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "200 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-13",
+      "pool": "winners",
+      "poolPosition": 13,
+      "name": "The Lightning Orchid",
+      "imagePath": "/compendium/october/the-lightning-orchid.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "200 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-14",
+      "pool": "winners",
+      "poolPosition": 14,
+      "name": "Golden Fortune's Tout",
+      "imagePath": "/compendium/october/golden-fortunes-tout.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "200 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-4",
+      "pool": "runners-up",
+      "poolPosition": 4,
+      "name": "Golden Bloodfeather Feast",
+      "imagePath": "/compendium/october/golden-bloodfeather-feast.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "200 ₽",
+      "hasLargePreview": true
+    },
+    {
+      "id": "runners-up-5",
+      "pool": "runners-up",
+      "poolPosition": 5,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-6",
+      "pool": "runners-up",
+      "poolPosition": 6,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-15",
+      "pool": "winners",
+      "poolPosition": 15,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-16",
+      "pool": "winners",
+      "poolPosition": 16,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-17",
+      "pool": "winners",
+      "poolPosition": 17,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-18",
+      "pool": "winners",
+      "poolPosition": 18,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-19",
+      "pool": "winners",
+      "poolPosition": 19,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-20",
+      "pool": "winners",
+      "poolPosition": 20,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "winners-21",
+      "pool": "winners",
+      "poolPosition": 21,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-7",
+      "pool": "runners-up",
+      "poolPosition": 7,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-8",
+      "pool": "runners-up",
+      "poolPosition": 8,
+      "name": "Steam Gift Card на 100 ₽",
+      "imagePath": "/compendium/october/steam-gift-card-100-rub.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": false
+    },
+    {
+      "id": "runners-up-9",
+      "pool": "runners-up",
+      "poolPosition": 9,
+      "name": "Golden Deepshock Destroyer",
+      "imagePath": "/compendium/october/golden-deepshock-destroyer.png",
+      "thumbnailImagePath": null,
+      "approximateValue": "100 ₽",
+      "hasLargePreview": true
+    }
+  ],
+  "rewards": [
+    {
+      "stars": 10,
+      "title": "Бронзовый бейдж клана",
+      "description": "Символ вашего клана навсегда появится в профиле.",
+      "badgeKeys": [
+        "october-2026-morbus-bronze",
+        "october-2026-panacea-bronze"
+      ]
+    },
+    {
+      "stars": 25,
+      "title": "Ещё одна замена в день",
+      "description": "Ежедневный запас замен заданий увеличится с одной до двух."
+    },
+    {
+      "stars": 40,
+      "title": "Серебряный бейдж клана",
+      "description": "Бронзовый знак в профиле сменится серебряным.",
+      "badgeKeys": [
+        "october-2026-morbus-silver",
+        "october-2026-panacea-silver"
+      ]
+    },
+    {
+      "stars": 60,
+      "title": "Ещё одна замена в день",
+      "description": "Ежедневный запас замен заданий увеличится с двух до трёх."
+    },
+    {
+      "stars": 80,
+      "title": "Золотой бейдж клана",
+      "description": "Золотой знак вашего клана навсегда останется в профиле.",
+      "badgeKeys": [
+        "october-2026-morbus-gold",
+        "october-2026-panacea-gold"
+      ]
+    },
+    {
+      "stars": 120,
+      "title": "Платиновый бейдж клана",
+      "description": "Скрытая цель откроется после 80 звёзд. Платиновый знак останется в профиле.",
+      "badgeKeys": [
+        "october-2026-morbus-platinum",
+        "october-2026-panacea-platinum"
+      ]
+    }
+  ]
+}

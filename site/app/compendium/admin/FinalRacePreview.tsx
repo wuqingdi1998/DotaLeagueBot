@@ -12,16 +12,17 @@ const previewRules = [
 
 function ignorePreviewAction() {}
 
-export function FinalRacePreviewPanel({ state = INITIAL_FINAL_RACE_PREVIEW, onChoosePath = ignorePreviewAction, onCompleteQuest = ignorePreviewAction }: {
+export function FinalRacePreviewPanel({ state = INITIAL_FINAL_RACE_PREVIEW, onChoosePath = ignorePreviewAction, onCompleteQuest = ignorePreviewAction, personalStars }: {
   state?: FinalRacePreviewState;
   onChoosePath?: (path: FinalRacePath) => void;
   onCompleteQuest?: (dateKey: string) => void;
+  personalStars?: number;
 }) {
   const preview = finalRacePreviewData(state);
   if (!preview) return <FinalRacePathChoice onChoosePath={onChoosePath} />;
   const { race, path, currentTimeMs } = preview;
   return <CompendiumStarRace
-    race={race} questLanes={[{ title: path.title, quests: race.quests }]} currentTimeMs={currentTimeMs}
+    race={{ ...race, personalStars: personalStars ?? race.personalStars }} questLanes={[{ title: path.title, quests: race.quests }]} currentTimeMs={currentTimeMs}
     checkingDateKey={null} canCheck onCheck={onCompleteQuest} checkButtonLabel="Выполнить (тест)"
     isSubmittingPrediction={false} onSubmitPrediction={ignorePreviewAction}
     isPreview collapsibleRulesOnMobile rulesOverride={previewRules}
