@@ -106,7 +106,7 @@ try {
           await page.screenshot({ path: fileURLToPath(new URL(`race-evidence-${width}.png`, screenshots)), fullPage: true });
           await page.keyboard.press("Escape");
         }
-        if (["clans-morbus", "race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue", "profile-badges"].includes(fixture) && [1900, 1366, 393].includes(width)) {
+        if (["race-two-paths-3-active", "race-two-paths-6-completed", "clans-morbus", "race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue", "profile-badges"].includes(fixture) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
         if ((fixture.startsWith("results-") || fixture.startsWith("clans-")) && [1900, 1366, 393].includes(width)) {

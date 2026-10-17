@@ -24,6 +24,7 @@ import type {
 import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
 import { CurrentQuestCards } from "./CurrentQuestCards";
 import { VerificationQueue } from "./VerificationQueue";
+import { FinalRacePreview } from "./FinalRacePreview";
 
 function RuneRewardHistoryItem({
   reward,
@@ -396,6 +397,7 @@ export function CompendiumBase({
           <div className="compendium-base-empty">Участников пока нет.</div>
         )}
       </section>
+      <FinalRacePreview />
     </div>
   );
 }

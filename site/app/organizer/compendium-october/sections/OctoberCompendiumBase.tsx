@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FinalRacePreview } from "@/app/compendium/admin/FinalRacePreview";
 import { FaStar } from "react-icons/fa";
 import { FiArrowLeft, FiGift } from "react-icons/fi";
 import { OCTOBER_COMPENDIUM_DATE_LABEL, OCTOBER_COMPENDIUM_WEEKS } from "../model/plan";
@@ -55,6 +56,7 @@ export function OctoberCompendiumBase({
           <OctoberRacePreview key={week.id} week={week} />
         ))}
       </div>
+      <FinalRacePreview />
     </main>
   );
 }

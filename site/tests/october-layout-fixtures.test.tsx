@@ -12,6 +12,7 @@ import type { VerificationRequest } from "@/app/compendium/model/verification-re
 import { ProfileBadgesCard } from "@/app/players/[dotaId]/ProfileBadgesCard";
 import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections/OctoberClanShowcase";
 import { FiCalendar } from "react-icons/fi";
+import { FinalRacePreviewPanel } from "@/app/compendium/admin/FinalRacePreview";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -79,6 +80,17 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
     }
   }
 
+  for (let day = 0; day < 7; day++) {
+    for (const isCompleted of [false, true]) {
+      save(`race-two-paths-${day}-${isCompleted ? "completed" : "active"}`, "race october-final-race-screen", renderToStaticMarkup(
+        <div className="compendium-rewards-section"><FinalRacePreviewPanel activeDay={day} isCompleted={isCompleted} /></div>,
+      ));
+      save(`race-two-paths-support-${day}-${isCompleted ? "completed" : "active"}`, "race october-final-race-screen", renderToStaticMarkup(
+        <div className="compendium-rewards-section"><FinalRacePreviewPanel activeDay={day} isCompleted={isCompleted} completedPath="support" /></div>,
+      ));
+    }
+  }
+
   for (const hasGuidance of [false, true]) {
     guidance.isVisible = hasGuidance;
     for (const state of ["open", "completed", "selection", "change", "locked"]) {
@@ -111,5 +123,5 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   fixtures.push("profile-badges");
   writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(38);
+  expect(fixtures).toHaveLength(66);
 });
