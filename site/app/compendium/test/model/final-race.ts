@@ -5,14 +5,15 @@ import type { StarRaceData, StarRaceQuest, StarRaceQuestRequirement } from "../.
 export const FINAL_RACE_PREVIEW_WEEK = TEST_RACE_WEEK;
 export type FinalRacePath = "core" | "support";
 export const FINAL_RACE_PATHS = [
-  { id: "core", title: "Путь Разрушения (Core)", description: "Урон, натиск и решающий удар", image: "/compendium/october/path-destruction.webp" },
-  { id: "support", title: "Путь Созидания (Support)", description: "Лечение, поддержка и сила команды", image: "/compendium/october/path-creation.webp" },
+  { id: "core", title: "Путь Разрушения (Core)", raceTitle: "Гонка за звёздами · Путь Разрушения", description: "Урон, натиск и решающий удар", image: "/compendium/october/path-destruction.webp" },
+  { id: "support", title: "Путь Созидания (Support)", raceTitle: "Гонка за звёздами · Путь Созидания", description: "Лечение, поддержка и сила команды", image: "/compendium/october/path-creation.webp" },
 ] as const;
 
 type PreviewChallenge = { title: string; description: string; requirement?: StarRaceQuestRequirement };
+const mondayChallenge: PreviewChallenge = { title: "Понедельник день тяжелый", description: "Выиграть 1 рейтинговую игру." };
 
 const coreChallenges: readonly PreviewChallenge[] = [
-  { title: "Десятка", description: "Сделайте не менее 10 убийств в одном победном рейтинговом или обычном All Pick матче." },
+  mondayChallenge,
   { title: "До трона", description: "Нанесите суммарно 25 000 урона строениям в победных рейтинговых или обычных All Pick матчах за день.", requirement: { kind: "winning-building-damage", targetDamage: 25_000 } },
   { title: "Угроза", description: "Нанесите не менее 30 000 урона героям в одном победном рейтинговом или обычном All Pick матче." },
   { title: "Богатство", description: "Выиграйте рейтинговый или обычный All Pick матч с GPM не ниже 650 (золота в минуту)." },
@@ -22,7 +23,7 @@ const coreChallenges: readonly PreviewChallenge[] = [
 ];
 
 const supportChallenges: readonly PreviewChallenge[] = [
-  { title: "Помощь", description: "Суммарно вылечите союзникам 8 000 здоровья в победных рейтинговых или обычных All Pick матчах за день." },
+  mondayChallenge,
   { title: "Команда", description: "Сделайте не менее 20 содействий в одном победном рейтинговом или обычном All Pick матче." },
   { title: "Живи!", description: "Вылечите союзникам не менее 6 000 здоровья в одном победном рейтинговом или обычном All Pick матче." },
   { title: "Рядом", description: "Сделайте суммарно 35 содействий в победных рейтинговых или обычных All Pick матчах за день." },
@@ -76,7 +77,7 @@ export function finalRacePreviewData(state: FinalRacePreviewState) {
     };
   });
   const race: StarRaceData = {
-    ...FINAL_RACE_PREVIEW_WEEK, title: path.title, phase: "active", isDetailsVisible: true,
+    ...FINAL_RACE_PREVIEW_WEEK, title: path.raceTitle, phase: "active", isDetailsVisible: true,
     personalStars: state.completedDays.reduce((sum, day) => sum + finalRacePreviewReward(day), 0), personalRank: null, quests,
   };
   return { race, path, currentTimeMs: Date.parse(quests[state.activeDay].startsAt) + 12 * 60 * 60 * 1000 };

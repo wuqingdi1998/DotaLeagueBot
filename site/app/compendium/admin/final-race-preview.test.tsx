@@ -12,7 +12,7 @@ it("hides quests before choosing a path and requires a first-day choice", () => 
   expect(html).toContain("Путь Разрушения (Core)");
   expect(html).toContain("Путь Созидания (Support)");
   expect(html).not.toContain('class="compendium-star-race-quest ');
-  expect(html).not.toContain("Десятка");
+  expect(html).not.toContain("Понедельник день тяжелый");
   expect(finalRacePreviewReducer(INITIAL_FINAL_RACE_PREVIEW, { type: "set-day", day: 1 })).toBe(INITIAL_FINAL_RACE_PREVIEW);
   expect(finalRacePreviewReducer({ ...INITIAL_FINAL_RACE_PREVIEW, activeDay: 1 }, { type: "choose-path", path: "core" }).path).toBeNull();
   expect(finalRacePreviewReducer(INITIAL_FINAL_RACE_PREVIEW, { type: "complete", dateKey: FINAL_RACE_PREVIEW_WEEK.quests[0].dateKey })).toBe(INITIAL_FINAL_RACE_PREVIEW);
@@ -49,13 +49,16 @@ it("sorts both Friday hero sets alphabetically and applies the requested weekend
   expect(support.quests[6]).toMatchObject({ title: "Универсальный солдат", description: "Выиграйте рейтинговый или обычный All Pick матч: не более 10 смертей и не менее 20 содействий." });
 });
 
-it.each(["core", "support"] as const)("states eligible modes and victory in every %s quest, including daily totals", (path) => {
-  const { quests } = raceFor(path);
-  for (const quest of quests) {
+it.each(["core", "support"] as const)("states the selected %s title and eligible modes, with ranked-only Monday", (path) => {
+  const { title, quests } = raceFor(path);
+  expect(title).toBe(path === "core" ? "Гонка за звёздами · Путь Разрушения" : "Гонка за звёздами · Путь Созидания");
+  expect(quests[0]).toMatchObject({ title: "Понедельник день тяжелый", description: "Выиграть 1 рейтинговую игру." });
+  expect(quests[0].description).not.toContain("All Pick");
+  for (const quest of quests.slice(1)) {
     expect(quest.description).toMatch(/рейтингов\S* или обычн\S* All Pick/);
     expect(quest.description).toMatch(/победн|Выиграйте/);
   }
-  for (const day of path === "core" ? [1] : [0, 3]) {
+  for (const day of path === "core" ? [1] : [3]) {
     expect(quests[day].description?.toLowerCase()).toContain("суммарно");
     expect(quests[day].description).toContain("за день");
   }
