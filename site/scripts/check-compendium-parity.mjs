@@ -7,6 +7,7 @@ import postcss from "postcss";
 import tailwindcss from "@tailwindcss/postcss";
 import sharp from "sharp";
 import { chromium } from "playwright";
+import { visualStyleDifferences } from "./compendium-parity-styles.ts";
 
 const root = new URL("../", import.meta.url);
 const directory = new URL(".data/compendium-parity/", root);
@@ -140,7 +141,7 @@ async function assertSame(main, test, label) {
       return { tag: element.tagName, className: element.getAttribute("class"), css: read(null), before: read("::before"), after: read("::after") };
     });
     const mainStyles = await main.locator.evaluate(allStyles), testStyles = await test.locator.evaluate(allStyles);
-    const differences = mainStyles.flatMap((element, index) => ["css", "before", "after"].flatMap((part) => Object.keys(element[part]).filter((property) => element[part][property] !== testStyles[index]?.[part][property]).map((property) => ({ index, className: element.className, part, property, main: element[part][property], test: testStyles[index]?.[part][property] }))));
+    const differences = visualStyleDifferences(mainStyles, testStyles);
     writeFileSync(new URL(`screenshots/${label}-layout.json`, directory), JSON.stringify({ main: main.layout, test: test.layout, origins: [main.origin, test.origin] }, null, 2));
     writeFileSync(new URL(`screenshots/${label}-main.png`, directory), main.pixels);
     writeFileSync(new URL(`screenshots/${label}-test.png`, directory), test.pixels);
