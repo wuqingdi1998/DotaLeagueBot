@@ -4,10 +4,6 @@ import type { StarRaceData, StarRaceQuest, StarRaceQuestRequirement } from "../.
 
 export const FINAL_RACE_PREVIEW_WEEK = TEST_RACE_WEEK;
 export type FinalRacePath = "core" | "support";
-export const FINAL_RACE_PATH_RULES = [
-  "Победы в рейтинге или обычном All Pick. Если не указан один матч – сумма за день.",
-  "Выбранный в первый день путь действует всю неделю. За задание – 4 звезды, в воскресенье – 5.",
-] as const;
 export const FINAL_RACE_PATHS = [
   { id: "core", title: "Путь Разрушения (Core)", description: "Урон, натиск и решающий удар", image: "/compendium/october/path-destruction.webp" },
   { id: "support", title: "Путь Созидания (Support)", description: "Лечение, поддержка и сила команды", image: "/compendium/october/path-creation.webp" },
@@ -16,23 +12,23 @@ export const FINAL_RACE_PATHS = [
 type PreviewChallenge = { title: string; description: string; requirement?: StarRaceQuestRequirement };
 
 const coreChallenges: readonly PreviewChallenge[] = [
-  { title: "Десятка", description: "10 убийств за один матч." },
-  { title: "До трона", description: "25 000 урона строениям за день.", requirement: { kind: "winning-building-damage", targetDamage: 25_000 } },
-  { title: "Угроза", description: "30 000 урона героям за один матч." },
-  { title: "Богатство", description: "650 золота в минуту за один матч." },
-  { title: "Авангард", description: "Выиграйте матч на одном из героев ниже.", requirement: { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [43, 72, 52, 129, 108, 63] } },
-  { title: "Золотой темп", description: "Выиграйте матч с GPM не ниже 700 (золота в минуту)." },
-  { title: "Идеалыч (почти)", description: "Выиграйте один матч, умерев не более 3 раз." },
+  { title: "Десятка", description: "Сделайте не менее 10 убийств в одном победном рейтинговом или обычном All Pick матче." },
+  { title: "До трона", description: "Нанесите суммарно 25 000 урона строениям в победных рейтинговых или обычных All Pick матчах за день.", requirement: { kind: "winning-building-damage", targetDamage: 25_000 } },
+  { title: "Угроза", description: "Нанесите не менее 30 000 урона героям в одном победном рейтинговом или обычном All Pick матче." },
+  { title: "Богатство", description: "Выиграйте рейтинговый или обычный All Pick матч с GPM не ниже 650 (золота в минуту)." },
+  { title: "Авангард", description: "Выиграйте рейтинговый или обычный All Pick матч на одном из героев ниже.", requirement: { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [43, 72, 52, 129, 108, 63] } },
+  { title: "Золотой темп", description: "Выиграйте рейтинговый или обычный All Pick матч с GPM не ниже 700 (золота в минуту)." },
+  { title: "Идеалыч (почти)", description: "Выиграйте рейтинговый или обычный All Pick матч, умерев не более 3 раз." },
 ];
 
 const supportChallenges: readonly PreviewChallenge[] = [
-  { title: "Помощь", description: "8 000 лечения союзников за день." },
-  { title: "Команда", description: "20 содействий за один матч." },
-  { title: "Живи!", description: "6 000 лечения союзников за один матч." },
-  { title: "Рядом", description: "35 содействий за день." },
-  { title: "Хранители", description: "Выиграйте матч на одном из героев ниже.", requirement: { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [66, 103, 58, 155, 45, 79] } },
-  { title: "Целитель", description: "Выиграйте один матч с лечением не менее 10 000." },
-  { title: "Универсальный солдат", description: "Выиграйте один матч: не более 10 смертей и не менее 20 содействий." },
+  { title: "Помощь", description: "Суммарно вылечите союзникам 8 000 здоровья в победных рейтинговых или обычных All Pick матчах за день." },
+  { title: "Команда", description: "Сделайте не менее 20 содействий в одном победном рейтинговом или обычном All Pick матче." },
+  { title: "Живи!", description: "Вылечите союзникам не менее 6 000 здоровья в одном победном рейтинговом или обычном All Pick матче." },
+  { title: "Рядом", description: "Сделайте суммарно 35 содействий в победных рейтинговых или обычных All Pick матчах за день." },
+  { title: "Хранители", description: "Выиграйте рейтинговый или обычный All Pick матч на одном из героев ниже.", requirement: { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [66, 103, 58, 155, 45, 79] } },
+  { title: "Целитель", description: "Выиграйте рейтинговый или обычный All Pick матч с лечением не менее 10 000." },
+  { title: "Универсальный солдат", description: "Выиграйте рейтинговый или обычный All Pick матч: не более 10 смертей и не менее 20 содействий." },
 ];
 
 export type FinalRacePreviewState = { path: FinalRacePath | null; activeDay: number; completedDays: readonly number[] };

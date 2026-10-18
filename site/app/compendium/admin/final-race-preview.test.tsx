@@ -45,8 +45,20 @@ it("sorts both Friday hero sets alphabetically and applies the requested weekend
   expect(support.quests[4].heroes.map((hero) => hero.name)).toEqual(["Chen", "Elder Titan", "Enchantress", "Largo", "Pugna", "Shadow Demon"]);
   expect(core.quests[5].description).toContain("GPM не ниже 700");
   expect(support.quests[5].description).toContain("лечением не менее 10 000");
-  expect(core.quests[6]).toMatchObject({ title: "Идеалыч (почти)", description: "Выиграйте один матч, умерев не более 3 раз." });
-  expect(support.quests[6]).toMatchObject({ title: "Универсальный солдат", description: "Выиграйте один матч: не более 10 смертей и не менее 20 содействий." });
+  expect(core.quests[6]).toMatchObject({ title: "Идеалыч (почти)", description: "Выиграйте рейтинговый или обычный All Pick матч, умерев не более 3 раз." });
+  expect(support.quests[6]).toMatchObject({ title: "Универсальный солдат", description: "Выиграйте рейтинговый или обычный All Pick матч: не более 10 смертей и не менее 20 содействий." });
+});
+
+it.each(["core", "support"] as const)("states eligible modes and victory in every %s quest, including daily totals", (path) => {
+  const { quests } = raceFor(path);
+  for (const quest of quests) {
+    expect(quest.description).toMatch(/рейтингов\S* или обычн\S* All Pick/);
+    expect(quest.description).toMatch(/победн|Выиграйте/);
+  }
+  for (const day of path === "core" ? [1] : [0, 3]) {
+    expect(quests[day].description?.toLowerCase()).toContain("суммарно");
+    expect(quests[day].description).toContain("за день");
+  }
 });
 
 it("keeps experimental conditions out of live race definitions", () => {

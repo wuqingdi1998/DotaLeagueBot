@@ -30,12 +30,10 @@ export function OctoberRacePreview({
   week,
   initialRace,
   serverNow,
-  exclusionRules,
 }: {
   week: OctoberCompendiumWeekDefinition;
   initialRace?: StarRaceData;
   serverNow?: string;
-  exclusionRules?: readonly string[];
 }) {
   const [race, setRace] = useState(initialRace ?? octoberRacePreviewData(week));
   const [checkingDateKey, setCheckingDateKey] = useState<string | null>(null);
@@ -100,7 +98,7 @@ export function OctoberRacePreview({
         isPreview={!isLive}
         collapsibleRulesOnMobile
         sectionId={`october-race-${week.id}`}
-        exclusionRules={exclusionRules ?? (isOctoberFirstRaceWeek(race) ? OCTOBER_FIRST_WEEK_RACE_RULES : OCTOBER_RACE_EXCLUSION_RULES)}
+        exclusionRules={isOctoberFirstRaceWeek(race) ? OCTOBER_FIRST_WEEK_RACE_RULES : OCTOBER_RACE_EXCLUSION_RULES}
       />
       {message && <div className="compendium-toast" role="status">{message}</div>}
     </>

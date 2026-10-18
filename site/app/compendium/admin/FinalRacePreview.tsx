@@ -4,7 +4,7 @@ import { useReducer } from "react";
 import { CompendiumStarRace } from "../components/CompendiumStarRace";
 import { FinalRacePathChoice } from "./FinalRacePathChoice";
 import { OCTOBER_RACE_EXCLUSION_RULES } from "@/app/organizer/compendium-october/model/preview";
-import { FINAL_RACE_PATH_RULES, FINAL_RACE_PREVIEW_WEEK, INITIAL_FINAL_RACE_PREVIEW, finalRacePreviewData, finalRacePreviewReducer, type FinalRacePreviewState, type FinalRacePath } from "./final-race-preview";
+import { FINAL_RACE_PREVIEW_WEEK, INITIAL_FINAL_RACE_PREVIEW, finalRacePreviewData, finalRacePreviewReducer, type FinalRacePreviewState, type FinalRacePath } from "./final-race-preview";
 
 function ignorePreviewAction() {}
 
@@ -21,7 +21,7 @@ export function FinalRacePreviewPanel({ state = INITIAL_FINAL_RACE_PREVIEW, onCh
     race={{ ...race, personalStars: personalStars ?? race.personalStars }} currentTimeMs={currentTimeMs}
     checkingDateKey={null} canCheck onCheck={onCompleteQuest} checkButtonLabel="Выполнить (тест)"
     isSubmittingPrediction={false} onSubmitPrediction={ignorePreviewAction}
-    collapsibleRulesOnMobile exclusionRules={[...OCTOBER_RACE_EXCLUSION_RULES, ...FINAL_RACE_PATH_RULES]} standingsHref={null}
+    collapsibleRulesOnMobile exclusionRules={OCTOBER_RACE_EXCLUSION_RULES} standingsHref={null}
     sectionId="final-race-two-paths"
   />;
 }

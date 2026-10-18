@@ -10,8 +10,7 @@ import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { octoberRewardsForStars } from "@/app/organizer/compendium-october/model/rewards";
 import { FinalRacePathChoice } from "@/app/compendium/admin/FinalRacePathChoice";
-import { FINAL_RACE_PATH_RULES, finalRacePreviewData } from "@/app/compendium/admin/final-race-preview";
-import { OCTOBER_RACE_EXCLUSION_RULES } from "@/app/organizer/compendium-october/model/preview";
+import { finalRacePreviewData } from "@/app/compendium/admin/final-race-preview";
 import { OctoberDailyPreview, OctoberRacePreview } from "@/app/organizer/compendium-october/sections/OctoberActivityPreview";
 import { OCTOBER_COMPENDIUM_WEEKS } from "@/app/organizer/compendium-october/model/plan";
 import { TestCompendium } from "@/app/compendium/test/sections/TestCompendium";
@@ -80,8 +79,7 @@ it.each(Object.entries(cases))("writes independent main and test renders for %s"
   const preview = finalRacePreviewData(state.race);
   // Render the real main controller, allowing only the requested test action and disabled ranking link.
   const mainRace = (preview ? render(<OctoberRacePreview week={OCTOBER_COMPENDIUM_WEEKS[2]}
-    initialRace={{ ...preview.race, personalStars: testTotals(state).weekly }} serverNow={new Date(preview.currentTimeMs).toISOString()}
-    exclusionRules={[...OCTOBER_RACE_EXCLUSION_RULES, ...FINAL_RACE_PATH_RULES]} />)
+    initialRace={{ ...preview.race, personalStars: testTotals(state).weekly }} serverNow={new Date(preview.currentTimeMs).toISOString()} />)
     : render(<FinalRacePathChoice onChoosePath={() => {}} />))
     .replace(/>Проверить</g, ">Выполнить (тест)<")
     .replace(/<a\b[^>]*class="compendium-star-race-counter"[^>]*>/g, (opening) => opening.replace('href="/compendium/star-race"', 'href="#" aria-disabled="true"'));
