@@ -53,8 +53,12 @@ try {
     await frame.getByRole("dialog").getByRole("button", { name: "Выбрать путь", exact: true }).click();
     const raceCounter = frame.locator(".compendium-star-race-counter");
     assert.equal(await raceCounter.getAttribute("aria-disabled"), "true");
-    assert.equal(await raceCounter.getAttribute("href"), null, "Test results must not link to the main ranking");
-    await raceCounter.click();
+    assert.equal(await raceCounter.getAttribute("href"), "#", "Test results may only use an inert in-page fragment");
+    // Use a physical click: locator.click deliberately refuses aria-disabled links.
+    await raceCounter.scrollIntoViewIfNeeded();
+    const counterBounds = await raceCounter.boundingBox();
+    assert.ok(counterBounds);
+    await page.mouse.click(counterBounds.x + counterBounds.width / 2, counterBounds.y + counterBounds.height / 2);
     assert.equal(frame.url(), "about:srcdoc", "Clicking test results must stay inside the isolated test");
     await frame.getByRole("button", { name: "Выполнить (тест)", exact: true }).click();
     assert.equal(await frame.getByTestId("test-total").innerText(), "★ 4");
