@@ -52,6 +52,6 @@ describe("optimal season lobby fairness", () => {
 
     expect(even).not.toBeNull();
     expect(uneven).not.toBeNull();
-    expect(even?.[4]).toBeLessThan(uneven?.[4] ?? 0);
+    expect(even?.[5]).toBeLessThan(uneven?.[5] ?? 0);
   });
 });

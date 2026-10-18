@@ -14,8 +14,8 @@ const optimizationOptions: Array<{
 }> = [
   ...OPTIMAL_SEASON_LOBBY_VARIANTS.map((variant, index) => ({
     description: index === 0
-      ? "Лучший баланс ролей и команд"
-      : `Отличающийся вариант №${index + 1} по тем же правилам`,
+      ? "Лучший доступный баланс ролей и команд; при необходимости условия смягчаются"
+      : `Следующий по качеству состав №${index + 1}, с другим распределением команд`,
     label: index === 0
       ? "Оптимальный состав"
       : `Оптимальный состав ${index + 1}`,
@@ -27,9 +27,14 @@ const optimizationOptions: Array<{
     variant: "together",
   },
   {
-    description: "Смешивает тиры при строгом балансе команд",
+    description: "Смешивает тиры с ближайшим возможным балансом команд",
     label: "Челлендж",
     variant: "challenge",
+  },
+  {
+    description: "Второй состав по правилам Челленджа с другим распределением команд",
+    label: "Челлендж ALT",
+    variant: "challengeAlt",
   },
 ];
 

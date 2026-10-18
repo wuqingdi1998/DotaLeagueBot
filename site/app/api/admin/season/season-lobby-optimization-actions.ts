@@ -9,7 +9,6 @@ import {
   type SeasonLobbyOptimizationPlayer,
   type SeasonLobbyOptimizationVariant,
 } from "@/lib/season-lobby-optimization";
-import { optimalSeasonLobbyVariantIndex } from "@/lib/season-lobby-variants";
 import {
   insertSeasonLobby,
   loadSeasonLobbyReferences,
@@ -79,19 +78,8 @@ export async function optimizeSeasonLobbyConfiguration(
       ({ placements }) => placements.length !== SEASON_LOBBY_SIZE,
     )
   ) {
-    const hasLowerNumberedOptimal = optimalSeasonLobbyVariantIndex(variant) > 0 &&
-      optimizeSeasonLobbyPlayers(players, MAX_SEASON_LOBBY_COUNT, {
-        roleHistory,
-        variant: "optimal",
-      }).lobbies.every(
-        ({ placements }) => placements.length === SEASON_LOBBY_SIZE,
-      );
     throw new Response(
-      variant === "challenge"
-        ? "Не удалось собрать «Челлендж» с разницей сумм команд до 1 и коров до 2"
-        : hasLowerNumberedOptimal
-          ? "Для этих игроков нет стольких разных честных составов. Выберите «Оптимальный состав» с меньшим номером."
-          : "Не удалось собрать состав с корректными ролями и сопоставимой нагрузкой команд. Проверьте роли участников.",
+      "Не удалось заполнить все места в лобби. Проверьте список участников.",
       { status: 409 },
     );
   }

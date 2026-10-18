@@ -4,11 +4,8 @@ import {
   seasonLobbyRoleBurden,
   type SeasonLobbyRoleHistory,
 } from "./season-lobby-role-policy";
-import {
-  assignmentScore,
-  isFairOptimalAssignment,
-} from "./season-lobby-assignment-score";
-import { optimalSeasonLobbyVariantIndex } from "./season-lobby-variants";
+import { assignmentScore } from "./season-lobby-assignment-score";
+import { isChallengeSeasonLobbyVariant, optimalSeasonLobbyVariantIndex } from "./season-lobby-variants";
 import type { SeasonLobbyOptimizationVariant } from "./season-lobby-variants";
 
 export type SeasonLobbyOptimizationPlayer = {
@@ -56,6 +53,7 @@ type RankedLobbyPlayer = {
 };
 
 type TeamRoleAssignment = {
+  roleRestrictionViolations: number;
   coreRoleBurden: number;
   coreTier: number;
   forcedCoreRoleBurden: number;
@@ -96,7 +94,7 @@ export function optimizeSeasonLobbyPlayers(
   const assignedCount = lobbyCount * SEASON_LOBBY_SIZE;
   const eligiblePlayers = players.slice(0, assignedCount);
   const variant = options.variant ?? "optimal";
-  const lobbyGroups = variant === "challenge"
+  const lobbyGroups = isChallengeSeasonLobbyVariant(variant)
     ? seedChallengeLobbyGroups(eligiblePlayers, lobbyCount)
     : seedSeasonLobbyGroups(
       eligiblePlayers,
@@ -243,6 +241,7 @@ export function sortSeasonLobbyTeamByTier<
 function balanceLobbyPlayers(
   players: SeasonLobbyOptimizationPlayer[],
   options: Required<SeasonLobbyOptimizationOptions>,
+  shouldRelaxRoles = false,
 ): SeasonLobbyOptimizedPlacement[] {
   const playersWithRoles = players.map((player) => ({
     ...player,
@@ -251,8 +250,6 @@ function balanceLobbyPlayers(
   }));
   const candidates: LobbyTeamCandidate[] = [];
   const optimalVariantIndex = optimalSeasonLobbyVariantIndex(options.variant);
-  let minimumRoleSacrifice: number[] | undefined;
-  let hasFairMinimumRoleSacrifice = false;
 
   for (const leftIndexes of fivePlayerTeamIndexes(playersWithRoles.length)) {
     const leftIndexSet = new Set(leftIndexes);
@@ -262,8 +259,8 @@ function balanceLobbyPlayers(
     const rightPlayers = playersWithRoles.filter(
       (_, index) => !leftIndexSet.has(index),
     );
-    const leftAssignments = teamRoleAssignments(leftPlayers);
-    const rightAssignments = teamRoleAssignments(rightPlayers);
+    const leftAssignments = teamRoleAssignments(leftPlayers, shouldRelaxRoles);
+    const rightAssignments = teamRoleAssignments(rightPlayers, shouldRelaxRoles);
     const primaryRoleBalance = primaryRoleBalanceScore(
       leftPlayers,
       rightPlayers,
@@ -280,29 +277,16 @@ function balanceLobbyPlayers(
     let bestForTeams: LobbyTeamCandidate | undefined;
     for (const left of leftAssignments) {
       for (const right of rightAssignments) {
-        if (optimalVariantIndex >= 0) {
-          const roleSacrifice = [
-            left.offRoleCount + right.offRoleCount,
-            left.secondaryRoleCount + right.secondaryRoleCount,
-          ];
-          if (!minimumRoleSacrifice ||
-              compareScores(roleSacrifice, minimumRoleSacrifice) < 0) {
-            minimumRoleSacrifice = roleSacrifice;
-            hasFairMinimumRoleSacrifice = false;
-          }
-          if (!isFairOptimalAssignment(left, right)) continue;
-          if (minimumRoleSacrifice &&
-              compareScores(roleSacrifice, minimumRoleSacrifice) === 0) {
-            hasFairMinimumRoleSacrifice = true;
-          }
-        }
-        const score = assignmentScore(left, right, primaryRoleBalance, {
+        const assignmentRank = assignmentScore(left, right, primaryRoleBalance, {
           repeatedTeammateCount,
           teamTierSpreads,
           variant: options.variant,
         });
+        const score = [
+          left.roleRestrictionViolations + right.roleRestrictionViolations,
+          ...assignmentRank,
+        ];
         if (
-          score &&
           (!bestForTeams || compareScores(score, bestForTeams.score) < 0)
         ) {
           bestForTeams = { left, right, score };
@@ -312,12 +296,11 @@ function balanceLobbyPlayers(
     if (bestForTeams) candidates.push(bestForTeams);
   }
 
-  if (optimalVariantIndex >= 0 && !hasFairMinimumRoleSacrifice) {
-    return [];
-  }
   candidates.sort((left, right) => compareScores(left.score, right.score));
-  const alternativeIndex = Math.max(0, optimalVariantIndex);
+  const alternativeIndex = options.variant === "challengeAlt"
+    ? 1 : Math.max(0, optimalVariantIndex);
   const best = candidates[alternativeIndex];
+  if (!best && !shouldRelaxRoles) return balanceLobbyPlayers(players, options, true);
   if (!best) return [];
   return [
     ...placementsForSide(best.left, "a"),
@@ -358,7 +341,7 @@ function fivePlayerTeamIndexes(playerCount: number) {
   return teams;
 }
 
-function teamRoleAssignments(players: PlayerWithRoles[]) {
+function teamRoleAssignments(players: PlayerWithRoles[], shouldRelaxRoles: boolean) {
   return permutations(players).flatMap((placements) => {
     let coreRoleBurden = 0;
     let coreTier = 0;
@@ -368,9 +351,13 @@ function teamRoleAssignments(players: PlayerWithRoles[]) {
     let secondaryRoleCount = 0;
     let supportTier = 0;
     let supportRoleBurden = 0;
+    let roleRestrictionViolations = 0;
     for (const [index, player] of placements.entries()) {
       const assignedRole = index + 1;
-      if (!canFillSeasonLobbyRole(player, assignedRole)) return [];
+      if (!canFillSeasonLobbyRole(player, assignedRole)) {
+        if (!shouldRelaxRoles) return [];
+        roleRestrictionViolations += 1;
+      }
       roleShortfall += primaryRoleShortfall(
         player.roleHistory,
         assignedRole === player.primaryRole,
@@ -396,6 +383,7 @@ function teamRoleAssignments(players: PlayerWithRoles[]) {
       else supportTier += player.tierSnapshot;
     }
     return [{
+      roleRestrictionViolations,
       coreRoleBurden,
       coreTier,
       forcedCoreRoleBurden,

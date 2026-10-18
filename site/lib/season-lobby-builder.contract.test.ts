@@ -173,12 +173,14 @@ describe("season lobby builder contract", () => {
     expect(optimizationActions).toContain("sortSeasonLobbyTeamByTier");
   });
 
-  it("opens nine optimal lineup choices and the separate modes", () => {
+  it("opens five optimal lineup choices and both challenge modes", () => {
     expect(optimizationMenu).toContain("Оптимальный состав");
     expect(optimizationMenu).toContain("OPTIMAL_SEASON_LOBBY_VARIANTS.map");
-    expect(source("./season-lobby-variants.ts")).toContain('"optimal9"');
+    expect(source("./season-lobby-variants.ts")).toContain('"optimal5"');
+    expect(source("./season-lobby-variants.ts")).not.toMatch(/"optimal[6-9]"/);
     expect(optimizationMenu).toContain("Играли вместе");
     expect(optimizationMenu).toContain("Челлендж");
+    expect(optimizationMenu).toContain("Челлендж ALT");
     expect(optimizationMenu).toContain('selectVariant("optimal")');
     expect(builder).toContain("optimizationVariant: variant");
     expect(optimizationMenuStyles).toContain(

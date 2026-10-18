@@ -1,4 +1,4 @@
-import type { SeasonLobbyOptimizationVariant } from "./season-lobby-variants";
+import { isChallengeSeasonLobbyVariant, type SeasonLobbyOptimizationVariant } from "./season-lobby-variants";
 
 export type SeasonLobbyAssignmentMetrics = {
   coreRoleBurden: number;
@@ -25,21 +25,16 @@ export function assignmentScore(
   right: SeasonLobbyAssignmentMetrics,
   primaryRoleBalance: number[],
   options: SeasonLobbyScoreOptions,
-): number[] | null {
+): number[] {
   const totalTierDifference = Math.abs(left.totalTier - right.totalTier);
   const coreTierDifference = Math.abs(left.coreTier - right.coreTier);
   const supportTierDifference = Math.abs(
     left.supportTier - right.supportTier,
   );
-  if (
-    options.variant === "challenge" &&
-    (totalTierDifference > MAX_SEASON_TEAM_TIER_DIFFERENCE ||
-      coreTierDifference > 2)
-  ) {
-    return null;
-  }
-  if (options.variant === "challenge") {
+  if (isChallengeSeasonLobbyVariant(options.variant)) {
     return [
+      Math.max(0, totalTierDifference - MAX_SEASON_TEAM_TIER_DIFFERENCE) +
+        Math.max(0, coreTierDifference - 2),
       left.primaryRoleShortfall + right.primaryRoleShortfall,
       left.offRoleCount + right.offRoleCount,
       Math.max(left.offRoleCount, right.offRoleCount),
@@ -58,6 +53,7 @@ export function assignmentScore(
       left.offRoleCount + right.offRoleCount,
       left.primaryRoleShortfall + right.primaryRoleShortfall,
       left.secondaryRoleCount + right.secondaryRoleCount,
+      forcedCoreRoleImbalance(left, right),
       totalTierDifference > MAX_SEASON_TEAM_TIER_DIFFERENCE
         ? totalTierDifference
         : 0,
@@ -93,6 +89,13 @@ export function isFairOptimalAssignment(
   left: SeasonLobbyAssignmentMetrics,
   right: SeasonLobbyAssignmentMetrics,
 ): boolean {
+  return forcedCoreRoleImbalance(left, right) === 0;
+}
+
+function forcedCoreRoleImbalance(
+  left: SeasonLobbyAssignmentMetrics,
+  right: SeasonLobbyAssignmentMetrics,
+): number {
   const lowerBurden = Math.min(
     left.forcedCoreRoleBurden,
     right.forcedCoreRoleBurden,
@@ -101,5 +104,5 @@ export function isFairOptimalAssignment(
     left.forcedCoreRoleBurden,
     right.forcedCoreRoleBurden,
   );
-  return higherBurden <= lowerBurden * 1.5 + 2;
+  return Math.max(0, higherBurden - lowerBurden * 1.5 - 2);
 }

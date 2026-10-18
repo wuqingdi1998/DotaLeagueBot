@@ -35,7 +35,7 @@ describe("season lobby role optimization", () => {
     )).every(({ slotNumber }) => slotNumber <= 3)).toBe(true);
   });
 
-  it("never assigns a dedicated support to a core position even when roles are scarce", () => {
+  it("fills scarce core roles with the fewest unavoidable role restrictions relaxed", () => {
     const players = [
       ...Array.from({ length: 5 }, (_, index) =>
         player(index, 8, index < 2 ? 4 : 5, index < 2 ? 5 : 4),
@@ -47,7 +47,10 @@ describe("season lobby role optimization", () => {
 
     const [lobby] = optimizeSeasonLobbyPlayers(players, 1).lobbies;
 
-    expect(lobby.placements).toHaveLength(0);
+    expect(lobby.placements).toHaveLength(10);
+    expect(lobby.placements.filter(({ primaryRole, slotNumber }) =>
+      primaryRole !== null && primaryRole >= 4 && slotNumber <= 3,
+    )).toHaveLength(1);
   });
 
   it("shares unavoidable core-role displacement between opponents", () => {
@@ -70,7 +73,7 @@ describe("season lobby role optimization", () => {
     expect(displacedCoreCounts).toEqual([1, 1]);
   });
 
-  it("rejects an unavoidable one-sided core displacement instead of adding a fake swap", () => {
+  it("accepts the nearest unavoidable one-sided displacement without adding a fake swap", () => {
     const players = [
       ...Array.from({ length: 3 }, (_, index) => player(index, 8, 1, 3)),
       player(3, 8, 2, 3),
@@ -81,7 +84,10 @@ describe("season lobby role optimization", () => {
 
     const [lobby] = optimizeSeasonLobbyPlayers(players, 1).lobbies;
 
-    expect(lobby.placements).toHaveLength(0);
+    expect(lobby.placements).toHaveLength(10);
+    expect(lobby.placements.filter(({ primaryRole, secondaryRole, slotNumber }) =>
+      primaryRole !== slotNumber && secondaryRole !== slotNumber,
+    )).toHaveLength(1);
   });
 
   it("rotates flexible cores back to primary roles using completed-match history", () => {
