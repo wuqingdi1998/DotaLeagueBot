@@ -42,13 +42,13 @@ const server = createServer((request, response) => {
   if (match) {
     const [, mode, name] = match;
     response.setHeader("Content-Type", "text/html; charset=utf-8");
-    response.end(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${mode === "main" ? mainCss : testCss}</style>${fixtures[name][mode]}`);
+    response.end(`<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${mode === "main" ? mainCss : testCss}</style>${fixtures[name][mode]}`);
     return;
   }
   if (url.pathname === "/runtime") {
     const source = testFrame.replaceAll("__TEST_ASSET_ORIGIN__", `http://127.0.0.1:${server.address().port}`);
     response.setHeader("Content-Type", "text/html; charset=utf-8");
-    response.end(`<!doctype html><style>body{margin:0}iframe{width:100%;height:100dvh;border:0;display:block}</style><iframe sandbox="allow-scripts" credentialless srcdoc="${source.replaceAll("&", "&amp;").replaceAll('"', "&quot;")}"></iframe>`);
+    response.end(`<!doctype html><html lang="ru"><style>body{margin:0}iframe{width:100%;height:100dvh;border:0;display:block}</style><iframe sandbox="allow-scripts" credentialless srcdoc="${source.replaceAll("&", "&amp;").replaceAll('"', "&quot;")}"></iframe>`);
     return;
   }
   const file = new URL(`public${url.pathname}`, root);
@@ -68,6 +68,7 @@ const hideNavigation = ".october-section-navigation,.site-header{visibility:hidd
 
 async function capture(page, target, section) {
   await target.evaluate((css) => {
+    if (document.documentElement.lang !== "ru") throw new Error("Parity documents must use the real site's Russian language");
     if (document.getElementById("parity-toolbar-exclusion")) return;
     const style = document.createElement("style");
     style.id = "parity-toolbar-exclusion";
