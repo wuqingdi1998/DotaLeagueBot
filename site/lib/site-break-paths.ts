@@ -1,6 +1,7 @@
 const siteBreakBypassPaths = new Set([
   "/break",
   "/api/health",
+  "/api/discord-avatars",
   "/api/site-break/events",
   "/api/site-break/status",
   "/api/auth/discord",

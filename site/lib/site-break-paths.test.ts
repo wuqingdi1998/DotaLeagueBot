@@ -21,5 +21,12 @@ describe("site break path boundaries", () => {
     expect(isSiteBreakBypassPath("/api/tournaments")).toBe(false);
     expect(isSiteBreakBypassPath("/api/fearless-draft")).toBe(false);
     expect(isSiteBreakBypassPath("/api/admin/compendium-base/verification-requests")).toBe(false);
+    expect(isSiteBreakBypassPath("/api/compendium/star-race/path")).toBe(false);
+    expect(isSiteBreakBypassPath("/api/compendium/star-race/quests/2026-10-19/check")).toBe(false);
+  });
+
+  it("serves the public avatar image health probe during a break without opening adjacent routes", () => {
+    expect(isSiteBreakBypassPath("/api/discord-avatars")).toBe(true);
+    expect(isSiteBreakBypassPath("/api/discord-avatars/private")).toBe(false);
   });
 });
