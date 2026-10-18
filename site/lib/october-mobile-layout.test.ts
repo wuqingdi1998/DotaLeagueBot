@@ -24,7 +24,8 @@ describe("October mobile presentation", () => {
       .toEqual(['@import "./70-october-compendium-mobile.css";', '@import "./71-compendium-final-race-preview.css";']);
     const previewStyles = readFileSync(new URL("../app/styles/71-compendium-final-race-preview.css", import.meta.url), "utf8");
     postcss.parse(previewStyles).walkRules((rule) => {
-      expect(rule.selector).toMatch(/^\.(compendium-final-race|october-final-race-screen)/);
+      expect(rule.selector).toMatch(/^\.compendium-final-race/);
+      expect(rule.selector).not.toMatch(/compendium-star-race-(quests?|heroes|summary|rules|counter|countdown|progress|prize|heading|reward|status|action)/);
     });
   });
 });

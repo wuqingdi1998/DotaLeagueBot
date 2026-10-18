@@ -82,16 +82,16 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
 
   for (let day = 0; day < 7; day++) {
     for (const isCompleted of [false, true]) {
-      save(`race-two-paths-${day}-${isCompleted ? "completed" : "active"}`, "race october-final-race-screen", renderToStaticMarkup(
+      save(`race-two-paths-${day}-${isCompleted ? "completed" : "active"}`, "race", renderToStaticMarkup(
         <div className="compendium-rewards-section"><FinalRacePreviewPanel state={{ path: "core", activeDay: day, completedDays: Array.from({ length: day + (isCompleted ? 1 : 0) }, (_, index) => index) }} /></div>,
       ));
-      save(`race-two-paths-support-${day}-${isCompleted ? "completed" : "active"}`, "race october-final-race-screen", renderToStaticMarkup(
+      save(`race-two-paths-support-${day}-${isCompleted ? "completed" : "active"}`, "race", renderToStaticMarkup(
         <div className="compendium-rewards-section"><FinalRacePreviewPanel state={{ path: "support", activeDay: day, completedDays: Array.from({ length: day + (isCompleted ? 1 : 0) }, (_, index) => index) }} /></div>,
       ));
     }
   }
 
-  save("race-path-choice", "race october-final-race-screen", renderToStaticMarkup(<div className="compendium-rewards-section"><FinalRacePreviewPanel /></div>));
+  save("race-path-choice", "race", renderToStaticMarkup(<div className="compendium-rewards-section"><FinalRacePreviewPanel /></div>));
 
   for (const hasGuidance of [false, true]) {
     guidance.isVisible = hasGuidance;

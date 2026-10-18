@@ -51,6 +51,11 @@ try {
     await frame.getByRole("button", { name: "Путь Созидания (Support)", exact: true }).click();
     assert.equal(await frame.locator(".compendium-star-race-quest").count(), 0);
     await frame.getByRole("dialog").getByRole("button", { name: "Выбрать путь", exact: true }).click();
+    const raceCounter = frame.locator(".compendium-star-race-counter");
+    assert.equal(await raceCounter.getAttribute("aria-disabled"), "true");
+    assert.equal(await raceCounter.getAttribute("href"), null, "Test results must not link to the main ranking");
+    await raceCounter.click();
+    assert.equal(frame.url(), "about:srcdoc", "Clicking test results must stay inside the isolated test");
     await frame.getByRole("button", { name: "Выполнить (тест)", exact: true }).click();
     assert.equal(await frame.getByTestId("test-total").innerText(), "★ 4");
     await openSection(frame, "Задания");

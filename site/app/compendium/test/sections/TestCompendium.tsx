@@ -28,7 +28,7 @@ export function TestCompendium({ initialState = INITIAL_TEST_STATE }: { initialS
   }
   return <div className="site-shell platform-shell" data-theme="dark">
     <TestToolbar state={state} dispatch={dispatch} activeId={activeId} onOpen={openSection} />
-    <OctoberCompendiumView rootRef={root} sections={TEST_SECTIONS} isFinalRace
+    <OctoberCompendiumView rootRef={root} sections={TEST_SECTIONS}
       navigation={      <nav className="october-section-navigation" aria-label="Разделы компендиума">{TEST_SECTIONS.map((section) => <a key={section.id} href={`#${section.id}`} aria-label={section.label} title={section.label} aria-current={activeId === section.id ? "step" : undefined} onClick={(event) => { event.preventDefault(); openSection(section.id); }} />)}</nav>}
       clans={<TestClans state={state} />}
       rewards={<CompendiumRewards personalStars={totals.personal} communityStars={0} isPreview showCommunity={false} personalRewards={testRewards(totals.personal)} />}

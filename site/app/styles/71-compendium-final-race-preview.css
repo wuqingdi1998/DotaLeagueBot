@@ -35,77 +35,9 @@
 .compendium-final-race-path:hover > img { transform: scale(1.035); }
 .compendium-final-race-path:focus-visible,
 .compendium-final-race-controls button:focus-visible { outline: 3px solid var(--blue-soft); outline-offset: 4px; }
-.october-final-race-screen .compendium-star-race-lane-title { margin: 12px 0 0; color: var(--star-race-gold); font-size: 15px; }
-.october-final-race-screen .compendium-star-race-quests { margin-top: 6px; }
-.october-final-race-screen .compendium-star-race-quest h3 { overflow-wrap: anywhere; }
-.october-final-race-screen .compendium-star-race-heroes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.october-final-race-screen .compendium-star-race-heroes .compendium-hero strong { overflow: visible; white-space: normal; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.15; }
-
-@media (min-width: 961px) and (min-height: 700px) {
-  .october-final-race-screen .compendium-rewards-section { width: min(1740px, calc(100% - 32px)); padding-block: 8px; }
-  .october-final-race-screen .compendium-star-race { flex-shrink: 0; }
-  .october-final-race-screen .compendium-star-race-heading h2 { font-size: 28px; }
-  .october-final-race-screen .compendium-star-race-summary { margin-top: 8px; }
-  .october-final-race-screen .compendium-star-race:not(.compendium-final-race-choice) { padding: 8px; }
-  .october-final-race-screen .compendium-star-race-lane-title { margin-top: 6px; font-size: 14px; line-height: 1.15; }
-  .october-final-race-screen .compendium-star-race-quests { margin-top: 4px; gap: 6px; }
-  .october-final-race-screen .compendium-star-race-rules ul { font-size: 12px; line-height: 1.3; }
-  .october-final-race-screen .compendium-star-race-rules { grid-template-columns: minmax(0, 1fr); min-height: 0; padding: 6px; }
-  .october-final-race-screen .compendium-star-race-rules > svg { display: none; }
-  .october-final-race-screen .compendium-star-race-rules strong { margin-bottom: 4px; font-size: 15px; }
-  .october-final-race-screen .compendium-star-race-rules li + li { margin-top: 4px; }
-  .october-final-race-screen .compendium-star-race-quest { padding: 6px; }
-  .october-final-race-screen .compendium-star-race-quest > header > div { width: 100%; }
-  .october-final-race-screen .compendium-star-race-quest > header strong { font-size: 12px; margin-top: 4px; }
-  .october-final-race-screen .compendium-star-race-reward { position: absolute; top: 5px; right: 6px; padding: 3px 6px; }
-  .october-final-race-screen .compendium-star-race-quest h3 { margin: 5px 0; font-size: 16px; line-height: 1.15; }
-  .october-final-race-screen .compendium-star-race-quest > p { font-size: 13px; line-height: 1.3; }
-  .october-final-race-screen .compendium-star-race-status { padding: 6px; font-size: 11px; }
-  .october-final-race-screen .compendium-star-race-countdown { display: flex; flex-wrap: wrap; gap: 2px 4px; font-size: 11px; }
-  .october-final-race-screen .compendium-star-race-countdown svg { display: none; }
-  .october-final-race-screen .compendium-star-race-progress { padding: 4px; gap: 2px; }
-  .october-final-race-screen .compendium-star-race-progress,
-  .october-final-race-screen .compendium-star-race-action { min-width: 0; }
-  .october-final-race-screen .compendium-star-race-progress > strong { overflow-wrap: anywhere; }
-  .october-final-race-screen .compendium-star-race-progress > span:first-child { font-size: 10px; letter-spacing: 0; }
-  .october-final-race-screen .compendium-star-race-progress > strong { font-size: 11px; }
-  .october-final-race-screen .compendium-star-race-action { padding-top: 4px; gap: 4px; }
-}
-
-@media (min-width: 961px) and (max-width: 1200px) and (min-height: 700px),
-       (min-width: 961px) and (min-height: 700px) and (max-height: 760px) {
-  .october-final-race-screen .compendium-rewards-section { padding-block: 4px; }
-  .october-final-race-screen .compendium-star-race-heading h2 { font-size: 24px; }
-  .october-final-race-screen .compendium-star-race-lane-title { margin-top: 4px; font-size: 13px; }
-  .october-final-race-screen .compendium-star-race-quest > header { display: flex; align-items: center; gap: 3px; }
-  .october-final-race-screen .compendium-star-race-quest > header > div { display: block; width: auto; }
-  .october-final-race-screen .compendium-star-race-quest > header > div > span { display: none; }
-  .october-final-race-screen .compendium-star-race-quest > header strong { margin: 0; font-size: 11px; }
-  .october-final-race-screen .compendium-star-race-reward { position: static; padding: 2px 3px; }
-  .october-final-race-screen .compendium-star-race-progress > span:first-child { display: none; }
-  .october-final-race-screen .compendium-star-race-summary span { font-size: 10px; }
-  .october-final-race-screen .compendium-star-race-prize { padding: 6px; grid-template-columns: 20px minmax(0, 1fr); }
-  .october-final-race-screen .compendium-star-race-prize > svg:first-of-type { display: block; width: 20px; height: 20px; padding: 3px; }
-  .october-final-race-screen .compendium-star-race-prize-label,
-  .october-final-race-screen .compendium-star-race-prize-name,
-  .october-final-race-screen .compendium-star-race-prize-static { grid-column: 2; }
-  .october-final-race-screen .compendium-star-race-prize-name > strong,
-  .october-final-race-screen .compendium-star-race-prize-static { font-size: 12px; line-height: 1.2; }
-}
-
-@media (max-width: 960px), (max-height: 699px) {
-  .october-final-race-screen { height: auto; overflow: visible; }
-  .october-final-race-screen .compendium-rewards-section { width: 100%; }
-  .october-final-race-screen .compendium-star-race:not(.compendium-final-race-choice) { padding: 16px; }
-  .october-final-race-screen .compendium-star-race-summary { grid-template-columns: minmax(0, 1fr); }
-  .october-final-race-screen .compendium-star-race-quests { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
-  .october-final-race-screen .compendium-star-race-quest { min-width: 0; padding: 12px; }
-}
-
 @media (max-width: 540px) {
   .compendium-final-race-paths { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .compendium-final-race-path-copy { inset: auto 16px 18px; }
-  .october-final-race-screen .compendium-star-race-quests { grid-template-columns: minmax(0, 1fr); }
   .compendium-final-race-controls { align-items: flex-start; flex-direction: column; }
   .compendium-final-race-controls label { flex-wrap: wrap; }
 }

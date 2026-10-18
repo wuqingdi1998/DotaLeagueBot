@@ -190,6 +190,18 @@ try {
       writeFileSync(new URL(`screenshots/verified-${section}-${width}.png`, directory), test.pixels);
       comparisons++;
     }
+    for (const [name, label] of [["support", "Путь Созидания (Support)"], ["core", "Путь Разрушения (Core)"]]) {
+      await testPage.goto(`${base}/runtime`);
+      const chosenFrame = testPage.frames().find((frame) => frame.parentFrame());
+      await chosenFrame.getByRole("button", { name: label, exact: true }).click();
+      await chosenFrame.getByRole("dialog").getByRole("button", { name: "Выбрать путь", exact: true }).click();
+      await mainPage.goto(`${base}/main/${name}`);
+      const main = await capture(mainPage, mainPage, "race");
+      const test = await capture(testPage, chosenFrame, "race");
+      await assertSame(main, test, `runtime-${name}-race-${width}`);
+      writeFileSync(new URL(`screenshots/verified-${name}-race-${width}.png`, directory), test.pixels);
+      comparisons++;
+    }
     await context.close();
     console.log(`Visual geometry, styles and image parity passed at ${width} × ${height}.`);
   }

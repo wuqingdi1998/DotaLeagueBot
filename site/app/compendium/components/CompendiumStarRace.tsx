@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FaStar } from "react-icons/fa";
@@ -228,9 +228,11 @@ function StarRaceProgress({
 function StarRaceCounter({
   race,
   isPreview,
+  standingsHref,
 }: {
   race: StarRaceData;
   isPreview: boolean;
+  standingsHref: string | null;
 }) {
   const content = (
     <>
@@ -256,7 +258,9 @@ function StarRaceCounter({
   return (
     <Link
       className="compendium-star-race-counter"
-      href="/compendium/star-race"
+      href={standingsHref ?? "#"}
+      aria-disabled={standingsHref === null ? true : undefined}
+      onClick={standingsHref === null ? (event) => event.preventDefault() : undefined}
       aria-label={`Открыть рейтинг гонки: ваш результат — ${race.personalStars ?? 0} звёзд, ваше место — ${race.personalRank ?? "пока без места"}`}
     >
       {content}
@@ -268,14 +272,11 @@ function StarRaceRulesList({
   race,
   exclusionRules,
   isPreview,
-  rulesOverride,
 }: {
   race: StarRaceData;
   exclusionRules: readonly string[];
   isPreview: boolean;
-  rulesOverride?: readonly string[];
 }) {
-  if (rulesOverride) return <ul>{rulesOverride.map((rule) => <li key={rule}>{rule}</li>)}</ul>;
   return (
     <ul>
       {!isOctoberFirstRaceWeek(race) && <li>В зачёт входят звёзды за {race.dateLabel}.</li>}
@@ -299,8 +300,7 @@ export function CompendiumStarRace({
   sectionId = "compendium-star-race",
   exclusionRules = STAR_RACE_EXCLUSION_RULES,
   collapsibleRulesOnMobile = false,
-  questLanes,
-  rulesOverride,
+  standingsHref = "/compendium/star-race",
   checkButtonLabel,
 }: {
   race: StarRaceData;
@@ -314,8 +314,7 @@ export function CompendiumStarRace({
   sectionId?: string;
   exclusionRules?: readonly string[];
   collapsibleRulesOnMobile?: boolean;
-  questLanes?: readonly { title: string; quests: readonly StarRaceQuest[] }[];
-  rulesOverride?: readonly string[];
+  standingsHref?: string | null;
   checkButtonLabel?: string;
 }) {
   const router = useRouter();
@@ -386,12 +385,12 @@ export function CompendiumStarRace({
       ) : (
         <>
           <div className="compendium-star-race-summary">
-            <StarRaceCounter race={race} isPreview={isPreview} />
+            <StarRaceCounter race={race} isPreview={isPreview} standingsHref={standingsHref} />
             <div className={`compendium-star-race-rules${collapsibleRulesOnMobile ? " october-race-rules-desktop" : ""}`}>
               <FiInfo aria-hidden="true" />
               <div>
                 <strong>Условия гонки</strong>
-                <StarRaceRulesList race={race} exclusionRules={exclusionRules} isPreview={isPreview} rulesOverride={rulesOverride} />
+                <StarRaceRulesList race={race} exclusionRules={exclusionRules} isPreview={isPreview} />
               </div>
             </div>
             {collapsibleRulesOnMobile && (
@@ -401,7 +400,7 @@ export function CompendiumStarRace({
                   <strong>Условия гонки</strong>
                   <FiChevronDown className="october-race-rules-chevron" aria-hidden="true" />
                 </summary>
-                <StarRaceRulesList race={race} exclusionRules={exclusionRules} isPreview={isPreview} rulesOverride={rulesOverride} />
+                <StarRaceRulesList race={race} exclusionRules={exclusionRules} isPreview={isPreview} />
               </details>
             )}
             <div className="compendium-star-race-prizes">
@@ -419,32 +418,27 @@ export function CompendiumStarRace({
               ))}
             </div>
           </div>
-          {(questLanes ?? [{ title: "", quests: race.quests }]).map((lane) => (
-            <Fragment key={lane.title}>
-              {lane.title && <h3 className="compendium-star-race-lane-title">{lane.title}</h3>}
-              <div className="compendium-star-race-quests">
-                {lane.quests.map((quest) => (
-                  <StarRaceQuestCard
-                    compactCompletion={collapsibleRulesOnMobile}
-                    checkButtonLabel={checkButtonLabel}
-                    key={quest.dateKey}
-                    quest={quest}
-                    countdown={quest.phase === "active" ? countdown : null}
-                    verificationCountdown={
-                      pendingQuest?.dateKey === quest.dateKey
-                        ? verificationCountdown
-                        : null
-                    }
-                    isChecking={checkingDateKey === quest.dateKey}
-                    canCheck={canCheck}
-                    onCheck={onCheck}
-                    isSubmittingPrediction={isSubmittingPrediction}
-                    onSubmitPrediction={onSubmitPrediction}
-                  />
-                ))}
-              </div>
-            </Fragment>
-          ))}
+          <div className="compendium-star-race-quests">
+            {race.quests.map((quest) => (
+              <StarRaceQuestCard
+                compactCompletion={collapsibleRulesOnMobile}
+                checkButtonLabel={checkButtonLabel}
+                key={quest.dateKey}
+                quest={quest}
+                countdown={quest.phase === "active" ? countdown : null}
+                verificationCountdown={
+                  pendingQuest?.dateKey === quest.dateKey
+                    ? verificationCountdown
+                    : null
+                }
+                isChecking={checkingDateKey === quest.dateKey}
+                canCheck={canCheck}
+                onCheck={onCheck}
+                isSubmittingPrediction={isSubmittingPrediction}
+                onSubmitPrediction={onSubmitPrediction}
+              />
+            ))}
+          </div>
         </>
       )}
     </section>

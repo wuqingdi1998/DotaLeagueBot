@@ -4,6 +4,10 @@ import type { StarRaceData, StarRaceQuest, StarRaceQuestRequirement } from "../.
 
 export const FINAL_RACE_PREVIEW_WEEK = TEST_RACE_WEEK;
 export type FinalRacePath = "core" | "support";
+export const FINAL_RACE_PATH_RULES = [
+  "Победы в рейтинге или обычном All Pick. Если не указан один матч – сумма за день.",
+  "Выбранный в первый день путь действует всю неделю. За задание – 4 звезды, в воскресенье – 5.",
+] as const;
 export const FINAL_RACE_PATHS = [
   { id: "core", title: "Путь Разрушения (Core)", description: "Урон, натиск и решающий удар", image: "/compendium/october/path-destruction.webp" },
   { id: "support", title: "Путь Созидания (Support)", description: "Лечение, поддержка и сила команды", image: "/compendium/october/path-creation.webp" },
@@ -76,7 +80,7 @@ export function finalRacePreviewData(state: FinalRacePreviewState) {
     };
   });
   const race: StarRaceData = {
-    ...FINAL_RACE_PREVIEW_WEEK, phase: "active", isDetailsVisible: true,
+    ...FINAL_RACE_PREVIEW_WEEK, title: path.title, phase: "active", isDetailsVisible: true,
     personalStars: state.completedDays.reduce((sum, day) => sum + finalRacePreviewReward(day), 0), personalRank: null, quests,
   };
   return { race, path, currentTimeMs: Date.parse(quests[state.activeDay].startsAt) + 12 * 60 * 60 * 1000 };

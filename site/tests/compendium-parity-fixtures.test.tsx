@@ -9,8 +9,11 @@ import { OctoberCompendiumView } from "@/app/organizer/compendium-october/sectio
 import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections/OctoberClanShowcase";
 import { CompendiumRewards } from "@/app/compendium/components/CompendiumRewards";
 import { octoberRewardsForStars } from "@/app/organizer/compendium-october/model/rewards";
-import { FinalRacePreviewPanel } from "@/app/compendium/admin/FinalRacePreview";
-import { OctoberDailyPreview } from "@/app/organizer/compendium-october/sections/OctoberActivityPreview";
+import { FinalRacePathChoice } from "@/app/compendium/admin/FinalRacePathChoice";
+import { FINAL_RACE_PATH_RULES, finalRacePreviewData } from "@/app/compendium/admin/final-race-preview";
+import { OCTOBER_RACE_EXCLUSION_RULES } from "@/app/organizer/compendium-october/model/preview";
+import { OctoberDailyPreview, OctoberRacePreview } from "@/app/organizer/compendium-october/sections/OctoberActivityPreview";
+import { OCTOBER_COMPENDIUM_WEEKS } from "@/app/organizer/compendium-october/model/plan";
 import { TestCompendium } from "@/app/compendium/test/sections/TestCompendium";
 import { TestDaily } from "@/app/compendium/test/sections/TestDaily";
 import { TestToolbar } from "@/app/compendium/test/components/TestToolbar";
@@ -55,7 +58,8 @@ const chosen = testReducer(INITIAL_TEST_STATE, { type: "race", action: { type: "
 const selected = testReducer(chosen, { type: "rune-hero", heroId: 1 });
 const completed = (["daily-1", "daily-2", "outing", "rune"] as const).reduce((state, kind) => testReducer(state, { type: "complete", kind }), selected);
 const cases: Record<string, TestState> = {
-  initial: INITIAL_TEST_STATE, selected, completed,
+  initial: INITIAL_TEST_STATE, selected, completed, support: chosen,
+  core: testReducer(INITIAL_TEST_STATE, { type: "race", action: { type: "choose-path", path: "core" } }),
   friday: testReducer(selected, { type: "race", action: { type: "set-day", day: 4 } }),
   saturday: testReducer(completed, { type: "race", action: { type: "set-day", day: 5 } }),
   sunday: testReducer(selected, { type: "race", action: { type: "set-day", day: 6 } }),
@@ -73,18 +77,25 @@ it.each(Object.entries(cases))("writes independent main and test renders for %s"
   const directory = new URL("../.data/compendium-parity/", import.meta.url);
   mkdirSync(directory, { recursive: true });
   fixture.activity = testClanActivity(state);
+  const preview = finalRacePreviewData(state.race);
+  // Render the real main controller, allowing only the requested test action and disabled ranking link.
+  const mainRace = (preview ? render(<OctoberRacePreview week={OCTOBER_COMPENDIUM_WEEKS[2]}
+    initialRace={{ ...preview.race, personalStars: testTotals(state).weekly }} serverNow={new Date(preview.currentTimeMs).toISOString()}
+    exclusionRules={[...OCTOBER_RACE_EXCLUSION_RULES, ...FINAL_RACE_PATH_RULES]} />)
+    : render(<FinalRacePathChoice onChoosePath={() => {}} />))
+    .replace(/>Проверить</g, ">Выполнить (тест)<")
+    .replace(/<a\b[^>]*class="compendium-star-race-counter"[^>]*>/g, (opening) => opening.replace('href="/compendium/star-race"', 'href="#" aria-disabled="true"'));
   // The fixture gives both documents identical test controls outside the compared content.
   const main = render(<div className="site-shell platform-shell" data-theme="dark"><TestToolbar state={state} dispatch={() => {}} activeId="test-clans" onOpen={() => {}} />
-    <OctoberCompendiumView navigation={null} isFinalRace
+    <OctoberCompendiumView navigation={null}
       clans={<OctoberClanShowcase members={testMembers(state)} viewerDiscordId={TEST_COMPENDIUM.playerId} />}
       rewards={<CompendiumRewards personalStars={testTotals(state).personal} communityStars={0} isPreview showCommunity={false} personalRewards={octoberRewardsForStars(testTotals(state).personal)} />}
-      // Both references include the explicitly requested new race. On mobile its height also
-      // affects the continuous background of the other screens; do not replace that background.
-      race={<FinalRacePreviewPanel state={state.race} personalStars={testTotals(state).weekly} onChoosePath={() => {}} onCompleteQuest={() => {}} />}
+      race="__MAIN_RACE_REFERENCE__"
       daily={<OctoberDailyPreview viewerDiscordId={TEST_COMPENDIUM.playerId} initialData={mainDailyData(state)} rewardStars={testReward(state.race.activeDay)} serverNow={serverNow(state)} />}
     />
-  </div>);
+  </div>).replace("__MAIN_RACE_REFERENCE__", mainRace.replace(/<link\b[^>]*>/g, ""));
   const test = render(<TestCompendium initialState={state} />);
-  writeFileSync(new URL(`${name}.json`, directory), JSON.stringify({ main, test }));
+  const preloads = (mainRace.match(/<link\b[^>]*>/g) ?? []).join("");
+  writeFileSync(new URL(`${name}.json`, directory), JSON.stringify({ main: preloads + main, test }));
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(Object.keys(cases)));
 });

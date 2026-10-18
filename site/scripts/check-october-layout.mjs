@@ -4,13 +4,19 @@ import { fileURLToPath } from "node:url";
 
 const root = new URL("../", import.meta.url);
 const directory = new URL(".data/october-layout/", root);
-const fixtures = JSON.parse(readFileSync(new URL("manifest.json", directory), "utf8"));
+const fixturePrefix = process.argv.find((argument) => argument.startsWith("--fixture="))?.slice(10);
+const requestedWidth = Number(process.argv.find((argument) => argument.startsWith("--width="))?.slice(8));
+const requestedHeight = Number(process.argv.find((argument) => argument.startsWith("--height="))?.slice(9));
+const fixtures = JSON.parse(readFileSync(new URL("manifest.json", directory), "utf8")).filter((name) => !fixturePrefix || name.startsWith(fixturePrefix));
+if (!fixtures.length) throw new Error("Unknown layout fixture");
 const screenshots = new URL("screenshots/", directory);
 mkdirSync(screenshots, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 const failures = [];
 try {
-  const viewports = [[1900, 870], [1920, 1080], [1788, 819], [1536, 864], [1366, 768], [1280, 720], [1024, 768], [961, 700], [961, 741], [1280, 700], [1920, 700], [1920, 741], [768, 1024], [393, 852]];
+  const viewports = [[1900, 870], [1920, 1080], [1788, 819], [1536, 864], [1366, 768], [1280, 720], [1024, 768], [961, 700], [961, 741], [1280, 700], [1920, 700], [1920, 741], [768, 1024], [393, 852]]
+    .filter(([width, height]) => (!requestedWidth || width === requestedWidth) && (!requestedHeight || height === requestedHeight));
+  if (!viewports.length) throw new Error("Unknown layout viewport");
   for (let start = 0; start < viewports.length; start += 3) {
     await Promise.all(viewports.slice(start, start + 3).map(async ([width, height]) => {
       const page = await browser.newPage({ viewport: { width, height } });
@@ -27,7 +33,7 @@ try {
       for (const fixture of fixtures) {
         await page.goto(`https://layout.test/${fixture}.html`, { waitUntil: "load" });
         await page.evaluate(() => document.fonts.ready);
-        const issues = await page.evaluate(() => {
+        const issues = await page.evaluate((fixture) => {
           const issues = [];
           const desktop = innerWidth > 960 && innerHeight >= 700;
           const section = document.querySelector(".october-compendium-screen");
@@ -61,7 +67,7 @@ try {
           if (desktop && bounds.height > innerHeight - 76 + 2) issues.push(`screen height ${bounds.height} exceeds ${innerHeight - 76}`);
           const selectors = [".compendium-star-race", ".compendium-star-race-quest", ".compendium-daily-section", ".compendium-quest", ".compendium-rune-challenge", ".october-daily-countdown"];
           for (const element of document.querySelectorAll(selectors.join(","))) {
-            if (section.classList.contains("october-final-race-screen") && element.scrollWidth > element.clientWidth + 2) issues.push(`${element.className}: preview content overflows horizontally`);
+            if (fixture.startsWith("race-two-paths") && element.scrollWidth > element.clientWidth + 2) issues.push(`${element.className}: preview content overflows horizontally`);
             if (element.scrollHeight > element.clientHeight + 2) issues.push(`${element.className}: content height ${element.scrollHeight} exceeds ${element.clientHeight}`);
             const rect = element.getBoundingClientRect();
             if (desktop && (rect.bottom > bounds.bottom + 2 || rect.top < bounds.top - 2)) issues.push(`${element.className}: outside its screen`);
@@ -85,7 +91,7 @@ try {
             }
           }
           return issues;
-        });
+        }, fixture);
         if (issues.length) failures.push({ fixture, width, height, issues });
         if (fixture === "race-1-5" && width === 1366) {
           await page.locator(".compendium-star-race-quest").nth(2).locator(".october-race-matches-button").click();

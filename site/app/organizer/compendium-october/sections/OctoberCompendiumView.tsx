@@ -4,10 +4,10 @@ import { OCTOBER_COMPENDIUM_DATE_LABEL } from "../model/plan";
 import { OCTOBER_PREVIEW_SECTIONS } from "../model/sections";
 
 export function OctoberCompendiumView({ navigation, clans, rewards, race, daily, rootRef,
-  sections = OCTOBER_PREVIEW_SECTIONS, isFinalRace = false,
+  sections = OCTOBER_PREVIEW_SECTIONS,
 }: {
   navigation: ReactNode; clans: ReactNode; rewards: ReactNode; race: ReactNode; daily: ReactNode;
-  rootRef?: Ref<HTMLElement>; sections?: readonly { id: string }[]; isFinalRace?: boolean;
+  rootRef?: Ref<HTMLElement>; sections?: readonly { id: string }[];
 }) {
   return (
     <main ref={rootRef} className="compendium-page october-compendium-preview" id="october-compendium-scroll">
@@ -37,7 +37,7 @@ export function OctoberCompendiumView({ navigation, clans, rewards, race, daily,
         </div>
       </section>
 
-      <section className={`october-compendium-screen october-compendium-screen-race${isFinalRace ? " october-final-race-screen" : ""}`} id={sections[2].id} aria-label="Гонка за звёздами">
+      <section className="october-compendium-screen october-compendium-screen-race" id={sections[2].id} aria-label="Гонка за звёздами">
         <div className="compendium-rewards-section">
           {race}
         </div>
