@@ -9,8 +9,20 @@
 .compendium-final-race-controls button { padding: 9px 14px; border: 1px solid var(--line-strong); border-radius: 9px; color: var(--text); background: var(--surface-soft); cursor: pointer; }
 .compendium-final-race-controls button:disabled { opacity: 0.5; cursor: default; }
 .compendium-final-race-controls > span { color: var(--muted); font-size: 13px; }
-.compendium-final-race-choice > p { margin: 12px 0; color: var(--muted); line-height: 1.45; }
-.compendium-final-race-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-top: 20px; }
+.compendium-final-race-choice.compendium-star-race { padding: 24px; }
+.compendium-final-race-choice-intro,
+.compendium-final-race-choice-note { text-align: center; }
+.compendium-final-race-choice-intro h2 { margin: 0; font-size: clamp(24px, 2vw, 28px); line-height: 1.2; }
+.compendium-final-race-choice-intro p,
+.compendium-final-race-choice-note p { margin: 8px 0 0; color: var(--muted); line-height: 1.45; }
+.compendium-final-race-choice-note p:first-child { margin-top: 0; }
+.compendium-final-race-choice-note strong { color: var(--text); }
+.compendium-final-race-paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; margin-block: 24px; }
+.compendium-final-race-confirmation { width: min(560px, calc(100% - 32px)); max-height: calc(100dvh - 32px); margin: auto; padding: 28px; border: 1px solid var(--line-strong); border-radius: 20px; color: var(--text); background: var(--surface); box-shadow: 0 24px 80px #0009; }
+.compendium-final-race-confirmation::backdrop { background: #020a14b3; backdrop-filter: blur(5px); }
+.compendium-final-race-confirmation h2 { margin: 0; font-size: 24px; line-height: 1.3; }
+.compendium-final-race-confirmation p { margin: 16px 0 0; line-height: 1.5; }
+.compendium-final-race-confirmation-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; margin-top: 24px; }
 .compendium-final-race-path { --path-accent: #f8ac55; position: relative; display: block; min-width: 0; padding: 0; overflow: hidden; isolation: isolate; border: 1px solid var(--path-accent); border-radius: 20px; background: #0b1822; color: #fff; text-align: left; cursor: pointer; box-shadow: 0 10px 30px #0006; transition: transform 180ms ease, box-shadow 180ms ease; }
 .compendium-final-race-path-support { --path-accent: #6ce1c9; }
 .compendium-final-race-path::after { position: absolute; z-index: 1; inset: 0; content: ""; background: linear-gradient(180deg, transparent 30%, #06121bea 100%); pointer-events: none; }
@@ -34,7 +46,7 @@
   .october-final-race-screen .compendium-star-race { flex-shrink: 0; }
   .october-final-race-screen .compendium-star-race-heading h2 { font-size: 28px; }
   .october-final-race-screen .compendium-star-race-summary { margin-top: 8px; }
-  .october-final-race-screen .compendium-star-race { padding: 8px; }
+  .october-final-race-screen .compendium-star-race:not(.compendium-final-race-choice) { padding: 8px; }
   .october-final-race-screen .compendium-star-race-lane-title { margin-top: 6px; font-size: 14px; line-height: 1.15; }
   .october-final-race-screen .compendium-star-race-quests { margin-top: 4px; gap: 6px; }
   .october-final-race-screen .compendium-star-race-rules ul { font-size: 12px; line-height: 1.3; }
@@ -84,7 +96,7 @@
 @media (max-width: 960px), (max-height: 699px) {
   .october-final-race-screen { height: auto; overflow: visible; }
   .october-final-race-screen .compendium-rewards-section { width: 100%; }
-  .october-final-race-screen .compendium-star-race { padding: 16px; }
+  .october-final-race-screen .compendium-star-race:not(.compendium-final-race-choice) { padding: 16px; }
   .october-final-race-screen .compendium-star-race-summary { grid-template-columns: minmax(0, 1fr); }
   .october-final-race-screen .compendium-star-race-quests { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row; grid-auto-columns: auto; overflow: visible; }
   .october-final-race-screen .compendium-star-race-quest { min-width: 0; padding: 12px; }

@@ -49,6 +49,8 @@ try {
     const frame = page.frames().find((frame) => frame.parentFrame());
     await openSection(frame, "Гонка");
     await frame.getByRole("button", { name: "Путь Созидания (Support)", exact: true }).click();
+    assert.equal(await frame.locator(".compendium-star-race-quest").count(), 0);
+    await frame.getByRole("dialog").getByRole("button", { name: "Выбрать путь", exact: true }).click();
     await frame.getByRole("button", { name: "Выполнить (тест)", exact: true }).click();
     assert.equal(await frame.getByTestId("test-total").innerText(), "★ 4");
     await openSection(frame, "Задания");

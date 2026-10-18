@@ -44,7 +44,7 @@ const server = createServer((request, response) => {
 await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 try {
-  for (const [width, height] of [[1900, 870], [1366, 768], [393, 852]]) {
+  for (const [width, height] of [[1900, 870], [1366, 768], [961, 700], [393, 852]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     const reset = page.getByRole("button", { name: "Сбросить тестовую неделю", exact: true });
@@ -54,8 +54,39 @@ try {
       assert.equal(await page.locator(".compendium-star-race-quest").count(), 0);
       assert.equal(await daySelect.isDisabled(), true);
       assert.equal(await page.locator(".compendium-final-race-path img").evaluateAll((images) => images.every((image) => image.complete && image.naturalWidth > 0)), true);
+      const spacing = await page.locator(".compendium-final-race-choice").evaluate((panel) => {
+        const outer = panel.getBoundingClientRect();
+        const intro = panel.querySelector("header").getBoundingClientRect();
+        const paths = panel.querySelector(".compendium-final-race-paths").getBoundingClientRect();
+        const note = panel.querySelector("footer").getBoundingClientRect();
+        return [intro.top - outer.top - panel.clientTop, paths.top - intro.bottom, note.top - paths.bottom, outer.bottom - note.bottom - panel.clientTop];
+      });
+      assert.ok(spacing.every((gap) => Math.abs(gap - 24) < 1), `Balanced text spacing: ${spacing}`);
       if (path.includes("Core")) await page.screenshot({ path: fileURLToPath(new URL(`choice-${width}.png`, directory)), fullPage: true });
       await page.getByRole("button", { name: path, exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: `Хотите выбрать ${path.includes("Core") ? "Путь Разрушения" : "Путь Созидания"}?`, exact: true });
+      await dialog.waitFor();
+      assert.equal(await dialog.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return bounds.left >= 0 && bounds.right <= innerWidth && bounds.top >= 0 && bounds.bottom <= innerHeight && element.scrollHeight <= element.clientHeight;
+      }), true, "Confirmation fits the viewport without clipping");
+      assert.match(await dialog.innerText(), /Выбор окончательный и его нельзя будет изменить/);
+      assert.match(await dialog.innerText(), path.includes("Core") ? /игроков основы/ : /игроков поддержки/);
+      assert.equal(await page.locator(".compendium-star-race-quest").count(), 0);
+      assert.equal(await daySelect.isDisabled(), true);
+      await page.screenshot({ path: fileURLToPath(new URL(`confirmation-${path.includes("Core") ? "core" : "support"}-${width}.png`, directory)), fullPage: true });
+      await dialog.getByRole("button", { name: "Отмена", exact: true }).click();
+      await dialog.waitFor({ state: "hidden" });
+      assert.equal(await page.locator(".compendium-final-race-path").count(), 2);
+      assert.equal(await page.getByRole("button", { name: path, exact: true }).evaluate((button) => button === document.activeElement), true);
+      await page.getByRole("button", { name: path, exact: true }).click();
+      await page.keyboard.press("Escape");
+      await dialog.waitFor({ state: "hidden" });
+      await page.getByRole("button", { name: path, exact: true }).click();
+      await page.mouse.click(2, 2);
+      await dialog.waitFor({ state: "hidden" });
+      await page.getByRole("button", { name: path, exact: true }).click();
+      await dialog.getByRole("button", { name: "Выбрать путь", exact: true }).click();
       assert.equal(await page.locator(".compendium-final-race-path").count(), 0);
       assert.equal(await page.locator(".compendium-star-race-quest").count(), 7);
       for (let day = 0; day < 7; day++) {
@@ -75,6 +106,7 @@ try {
       assert.equal(await daySelect.inputValue(), "0");
       assert.equal(await page.locator(".compendium-star-race-quest").count(), 0);
       await page.getByRole("button", { name: path, exact: true }).click();
+      await page.getByRole("dialog").getByRole("button", { name: "Выбрать путь", exact: true }).click();
       assert.equal(await page.locator(".compendium-star-race-total-value").innerText(), "0");
       await reset.click();
     }
