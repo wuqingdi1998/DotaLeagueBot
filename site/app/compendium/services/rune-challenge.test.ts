@@ -112,19 +112,23 @@ describe("rune challenge", () => {
   });
 
   it.each([
-    ["2026-08-12T12:00:00.000Z", 7],
-    ["2026-10-08T12:00:00.000Z", 0],
-  ])("checks a Rune win on %s in lobby %s", async (date, lobbyType) => {
+    ["2026-08-12T12:00:00.000Z", 7, 14],
+    ["2026-10-08T12:00:00.000Z", 0, 14],
+    ["2026-10-21T12:00:00.000Z", 7, 1],
+    ["2026-10-21T12:00:00.000Z", 0, 5],
+    ["2026-10-23T12:00:00.000Z", 7, 43],
+    ["2026-10-23T12:00:00.000Z", 0, 66],
+  ])("checks a Rune win on %s in lobby %s for hero %s", async (date, lobbyType, heroId) => {
     const now = new Date(date);
     vi.useFakeTimers();
     vi.setSystemTime(now);
     const selectedAt = new Date(now.getTime() - 60 * 60 * 1_000);
     const currentState = {
       ...state(selectedAt),
-      selection: { ...state(selectedAt).selection, heroId: 14 },
+      selection: { ...state(selectedAt).selection, heroId },
     };
     const completion = {
-      matchedHeroId: 14,
+      matchedHeroId: heroId,
       matchedMatchId: "9014",
       completedAt: now.toISOString(),
     };
@@ -139,7 +143,7 @@ describe("rune challenge", () => {
       duration: 600,
       game_mode: 22,
       lobby_type: lobbyType,
-      hero_id: 14,
+      hero_id: heroId,
       start_time: Math.floor((now.getTime() - 30 * 60 * 1_000) / 1_000),
     }]);
     mocks.recordCompletion.mockResolvedValue(completion);
@@ -148,8 +152,20 @@ describe("rune challenge", () => {
       runeChallenge: { completion },
     });
     expect(mocks.recordCompletion).toHaveBeenCalledWith(
-      expect.objectContaining({ heroId: 14, matchId: "9014" }),
+      expect.objectContaining({ heroId, matchId: "9014" }),
     );
+  });
+
+  it.each([
+    ["2026-10-21", [1, 2, 74, 104, 12, 21, 5, 50, 31, 26, 14, 30]],
+    ["2026-10-23", [43, 72, 52, 129, 108, 63, 66, 103, 58, 155, 45, 79]],
+  ] as const)("allows selecting all race heroes for Runes on %s", async (dateKey, heroIds) => {
+    const now = new Date(`${dateKey}T12:00:00Z`);
+    for (const heroId of heroIds) {
+      mocks.loadState.mockResolvedValue({ ...state(now), selection: { ...state(now).selection, heroId } });
+      await selectRuneChallengeHero(user, heroId, now);
+      expect(mocks.saveSelection).toHaveBeenLastCalledWith({ playerId: user.discordId, heroId, dateKey });
+    }
   });
 
   it("awards two stars for a Friday ranked win after hero selection", async () => {

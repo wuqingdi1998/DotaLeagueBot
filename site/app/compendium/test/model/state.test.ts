@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
-import { INITIAL_TEST_STATE, testReducer, testTotals, testRerollsRemaining } from "./state";
+import { INITIAL_TEST_STATE, testReducer, testTotals, testRerollsRemaining, testDailyQuests } from "./state";
+import { finalRacePreviewData } from "./final-race";
 import { testMembers } from "./presentation";
 import { TEST_RACE_WEEK } from "./config";
 import { OCTOBER_COMPENDIUM_WEEKS } from "../../model/october-star-race";
@@ -46,4 +47,20 @@ it("uses only local daily reroll and weekend reward state", () => {
   state = testReducer(state, { type: "bonus" });
   state = testReducer(state, { type: "bonus" });
   expect(testRerollsRemaining(state)).toBe(1);
+});
+
+it.each(["core", "support"] as const)("excludes %s race heroes from both sandbox trials and rerolls while allowing Runes", (path) => {
+  for (const day of [2, 4]) {
+    let state = testReducer(INITIAL_TEST_STATE, { type: "race", action: { type: "choose-path", path } });
+    state = testReducer(state, { type: "race", action: { type: "set-day", day } });
+    const raceHeroes = finalRacePreviewData(state.race)!.race.quests[day].heroes;
+    for (const current of [state, testReducer(state, { type: "reroll", position: 1 })]) {
+      expect(testDailyQuests(current).flatMap((quest) => quest.heroes).filter((hero) => raceHeroes.some(({ id }) => id === hero.id))).toEqual([]);
+    }
+    for (const hero of raceHeroes) {
+      const rune = testReducer(state, { type: "rune-hero", heroId: hero.id });
+      expect(rune.runeHeroId).toBe(hero.id);
+      expect(testReducer(rune, { type: "complete", kind: "rune" }).completed).toContain(`${day}:rune`);
+    }
+  }
 });

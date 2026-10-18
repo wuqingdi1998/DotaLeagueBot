@@ -54,6 +54,13 @@ export function finalRaceQuests(path: FinalRacePath) {
   }));
 }
 
+/** Reserve both paths before selection so a late path choice cannot overlap daily trials. */
+export function finalRaceReservedHeroIds(day: number): readonly number[] {
+  return [...new Set([coreChallenges[day], supportChallenges[day]].flatMap((challenge) =>
+    challenge?.requirement.kind === "distinct-hero-wins" ? challenge.requirement.heroIds : [],
+  ))];
+}
+
 export function isFinalRaceDate(dateKey: string) {
   return dateKey >= FINAL_RACE_WEEK_ID && dateKey < OCTOBER_COMPENDIUM_END_AT.slice(0, 10);
 }

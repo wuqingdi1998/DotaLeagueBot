@@ -1,4 +1,5 @@
 import { COMPENDIUM_HEROES } from "../../model/heroes";
+import { finalRaceReservedHeroIds } from "../../model/final-star-race-definitions";
 import type { DailyQuest } from "../../model/types";
 import { INITIAL_FINAL_RACE_PREVIEW, finalRacePreviewData, finalRacePreviewReducer, type FinalRacePreviewAction, type FinalRacePreviewState } from "./final-race";
 import { TEST_COMPENDIUM, testDayBounds } from "./config";
@@ -56,11 +57,13 @@ export function testReducer(state: TestState, action: TestAction): TestState {
 }
 
 export function testDailyQuests(state: TestState): DailyQuest[] {
+  const day = state.race.activeDay;
+  const reservedHeroes = new Set(finalRaceReservedHeroIds(day));
+  const availableHeroes = COMPENDIUM_HEROES.filter((hero) => !reservedHeroes.has(hero.id));
   return ([1, 2] as const).map((position) => {
-    const day = state.race.activeDay;
     const key = testCompletionKey(day, `daily-${position}`);
     const offset = day * 12 + (position - 1) * 6 + (state.heroOffsets[key] ?? 0);
-    const heroes = Array.from({ length: 6 }, (_, index) => COMPENDIUM_HEROES[(offset + index) % COMPENDIUM_HEROES.length]);
+    const heroes = Array.from({ length: 6 }, (_, index) => availableHeroes[(offset + index) % availableHeroes.length]);
     return { id: `sandbox-${position}`, position, heroes, completion: state.completed.includes(key)
       ? { matchedHeroId: heroes[0].id, matchedMatchId: null, completedAt: testDayBounds(day).start.toISOString(), isManual: false } : null };
   });
