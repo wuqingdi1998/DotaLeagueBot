@@ -1,4 +1,4 @@
-import { createRoot } from "react-dom/client";
+import { hydrateRoot } from "react-dom/client";
 import { TestCompendium } from "../sections/TestCompendium";
 
-createRoot(document.getElementById("compendium-test")!).render(<TestCompendium />);
+hydrateRoot(document.getElementById("compendium-test")!, <TestCompendium />);

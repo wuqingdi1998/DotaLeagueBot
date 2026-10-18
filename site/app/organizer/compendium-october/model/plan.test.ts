@@ -193,9 +193,11 @@ describe("October compendium draft", () => {
     }
     const activityPreview = readFileSync(new URL("../sections/OctoberActivityPreview.tsx", import.meta.url), "utf8");
     expect(activityPreview).toContain("<CompendiumStarRace");
-    expect(activityPreview).toContain("<QuestCard");
+    const dailyView = readFileSync(new URL("../sections/OctoberDailyView.tsx", import.meta.url), "utf8");
+    expect(activityPreview).toContain("<OctoberDailyView");
+    expect(dailyView).toContain("<QuestCard");
     expect(activityPreview).toContain("<RuneChallenge");
-    expect(activityPreview).toContain("<OctoberClanOutingCard");
+    expect(dailyView).toContain("<OctoberClanOutingCard");
     expect(activityPreview).toContain("collapsibleRulesOnMobile");
     expect(activityPreview).toContain("initialRace");
     expect(activityPreview).toContain("/api/compendium/star-race/quests/");

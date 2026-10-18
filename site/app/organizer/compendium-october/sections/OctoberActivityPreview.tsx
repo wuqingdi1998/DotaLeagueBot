@@ -1,18 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { FiArrowRight, FiInfo, FiX } from "react-icons/fi";
 import { fetchSiteRequest } from "@/lib/site-request";
 import { CompendiumStarRace } from "@/app/compendium/components/CompendiumStarRace";
-import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
-import {
-  HEROES_PER_QUEST,
-} from "@/app/compendium/model/constants";
-import { OCTOBER_HERO_QUEST_COUNT, OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
-import { OCTOBER_REWARD_STARS } from "@/lib/october-reward-thresholds";
+import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
 import type { OctoberCompendiumWeekDefinition } from "../model/plan";
-import { OctoberClanOutingCard } from "./OctoberClanOutingCard";
+import { OctoberDailyView } from "./OctoberDailyView";
 import { useOctoberGuideVisibility } from "../hooks/useOctoberGuideVisibility";
 import { OctoberDailyOpeningOverlay } from "../components/OctoberDailyOpeningOverlay";
 import { OctoberDailyCountdown } from "../components/OctoberDailyCountdown";
@@ -130,8 +124,6 @@ export function OctoberDailyPreview({
   const [rerollingQuestId, setRerollingQuestId] = useState<string | null>(null);
   const [isCheckingClanOuting, setIsCheckingClanOuting] = useState(false);
   const [message, setMessage] = useCompendiumToast();
-  const isOverviewVisible = guides.isVisible("daily-overview");
-  const isClanOutingVisible = guides.isVisible("clan-outing");
   const quests = dailyData?.quests ?? octoberDailyQuestSamples();
   const isLive = isOpen && dailyData !== undefined;
   const currentTimeMs = useServerClock(serverNow ?? "1970-01-01T00:00:00.000Z");
@@ -211,94 +203,13 @@ export function OctoberDailyPreview({
       setIsCheckingClanOuting(false);
     }
   }
-  return (
-    <section
-      className={`compendium-daily-section ${
-        isOverviewVisible
-          ? "october-daily-section--expanded-guidance"
-          : "october-daily-section--compact-guidance"
-      }`}
-      id="compendium-quests"
-    >
-      <div className="october-daily-toolbar">
-        <div className="compendium-section-heading october-daily-heading">
-          <div className="october-daily-heading-row">
-            <h2>Задания дня</h2>
-            <button
-              className="october-guide-restore"
-              type="button"
-              aria-label="Вернуть пояснения к заданиям"
-              title="Вернуть скрытые пояснения"
-              onClick={guides.restoreAll}
-            >
-              <FiInfo aria-hidden="true" />
-            </button>
-          </div>
-        </div>
-        <div className="compendium-section-status">
-          {rewardStars === 2 && (
-            <div className="compendium-weekend-bonus" role="status">
-              <span>Бонус выходного дня</span>
-              <strong>Х2</strong>
-            </div>
-          )}
-          {isLive && serverNow && (
-            <OctoberDailyCountdown serverNow={serverNow} currentTimeMs={currentTimeMs} />
-          )}
-        </div>
-      </div>
-      {isOverviewVisible && (
-        <div className="october-compendium-example-note october-dismissible-guide">
-          <p>
-            Ежедневно – {OCTOBER_HERO_QUEST_COUNT} испытания по {HEROES_PER_QUEST} героев и клановая вылазка.
-            С пятницы по воскресенье задания и Испытание Рун дают по две звезды.
-            После {OCTOBER_REWARD_STARS.firstReroll} личных звёзд доступны две замены заданий в день,
-            после {OCTOBER_REWARD_STARS.secondReroll} – три.
-            {isOpen && !isLive && " Герои на карточках ниже – только пример: реальные наборы будут обновляться для каждого участника."}
-          </p>
-          <button
-            type="button"
-            aria-label="Скрыть пояснение к заданиям дня"
-            onClick={() => guides.dismiss("daily-overview")}
-          >
-            <FiX aria-hidden="true" />
-          </button>
-        </div>
-      )}
-      <p className="compendium-mobile-swipe-hint">
-        Листайте задания влево и вправо <FiArrowRight aria-hidden="true" />
-      </p>
-      <div className="october-daily-challenges">
-        <div className="compendium-quest-grid quest-count-3">
-          {quests.map((quest) => (
-            <QuestCard
-              key={quest.id}
-              quest={quest}
-              rewardStars={rewardStars}
-              isChecking={checkingQuestId === quest.id}
-              isRerolling={rerollingQuestId === quest.id}
-              canCheck={isLive && checkingQuestId === null && rerollingQuestId === null}
-              hasReroll={(dailyData?.rerollsRemaining ?? 1) > 0}
-              rerollsRemaining={dailyData?.rerollsRemaining ?? 1}
-              canReroll={isLive && (dailyData?.rerollsRemaining ?? 0) > 0 && checkingQuestId === null && rerollingQuestId === null}
-              onCheck={checkQuest}
-              onReroll={rerollQuest}
-              isPreview={!isLive}
-              overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
-            />
-          ))}
-          <OctoberClanOutingCard
-            rewardStars={rewardStars}
-            isNoteVisible={isClanOutingVisible}
-            onDismissNote={() => guides.dismiss("clan-outing")}
-            overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
-            completion={dailyData?.clanOuting}
-            isChecking={isCheckingClanOuting}
-            canCheck={isLive}
-            onCheck={() => void checkClanOuting()}
-          />
-        </div>
-        {message && <div className="compendium-toast" role="status">{message}</div>}
+  return <OctoberDailyView
+    isOpen={isOpen} isLive={isLive} rewardStars={rewardStars} dailyData={dailyData} quests={quests}
+    checkingQuestId={checkingQuestId} rerollingQuestId={rerollingQuestId}
+    isCheckingClanOuting={isCheckingClanOuting} message={message} guides={guides}
+    checkQuest={checkQuest} rerollQuest={rerollQuest} checkClanOuting={checkClanOuting}
+    countdown={isLive && serverNow ? <OctoberDailyCountdown serverNow={serverNow} currentTimeMs={currentTimeMs} /> : null}
+    rune={
         <RuneChallenge
           initialChallenge={dailyData?.runeChallenge ?? {
             hasAccess: true,
@@ -315,7 +226,6 @@ export function OctoberDailyPreview({
           showPreviewContent={!isLive}
           overlay={isOpen ? undefined : <OctoberDailyOpeningOverlay />}
         />
-      </div>
-    </section>
-  );
+    }
+  />;
 }

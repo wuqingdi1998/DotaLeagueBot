@@ -16,6 +16,7 @@ vi.mock("@/app/compendium/hooks/useServerClock", () => ({ useServerClock: () => 
 vi.mock("@/app/compendium/hooks/useCompendiumToast", () => ({ useCompendiumToast: () => ["", vi.fn()] }));
 
 import { OctoberDailyPreview, OctoberRacePreview } from "./OctoberActivityPreview";
+import { OctoberDailyView } from "./OctoberDailyView";
 import { QuestCard } from "@/app/compendium/components/QuestCard";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import { CompendiumStarRace } from "@/app/compendium/components/CompendiumStarRace";
@@ -25,10 +26,13 @@ import { octoberDailyQuestSamples, octoberRacePreviewData } from "../model/previ
 
 function findProps(node: ReactNode, type: unknown): Record<string, unknown> {
   for (const child of Children.toArray(node)) {
-    if (!isValidElement<{ children?: ReactNode }>(child)) continue;
+    if (!isValidElement<Partial<Parameters<typeof OctoberDailyView>[0]> & { children?: ReactNode }>(child)) continue;
     if (child.type === type) return child.props;
-    const found = findProps(child.props.children, type);
+    const view = child.type === OctoberDailyView ? OctoberDailyView(child.props as Parameters<typeof OctoberDailyView>[0]) : child.props.children;
+    const found = findProps(view, type);
     if (Object.keys(found).length) return found;
+    const rune = findProps(child.props.rune, type);
+    if (Object.keys(rune).length) return rune;
   }
   return {};
 }

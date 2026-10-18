@@ -18,5 +18,5 @@ export async function loadTestDocument(assetOrigin: string): Promise<string> {
 
 export const TEST_DOCUMENT_HEADERS = {
   "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow",
-  "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src 'self' about:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'; img-src 'self' https://cdn.cloudflare.steamstatic.com data:; font-src data:",
+  "Content-Security-Policy": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-src 'self' about:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'; img-src 'self' data:; font-src data:",
 } as const;

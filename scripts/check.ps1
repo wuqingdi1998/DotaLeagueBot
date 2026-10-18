@@ -35,6 +35,7 @@ try {
     Invoke-CheckedCommand npm run test
     Invoke-CheckedCommand npm run test:layout
     Invoke-CheckedCommand npm run build
+    Invoke-CheckedCommand npm run test:parity:production
 }
 finally {
     Pop-Location

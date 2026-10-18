@@ -49,7 +49,7 @@ const rewardStyles = readFileSync(
   "utf8",
 );
 const previewSource = readFileSync(
-  new URL("../sections/OctoberCompendiumPreview.tsx", import.meta.url),
+  new URL("../sections/OctoberCompendiumView.tsx", import.meta.url),
   "utf8",
 );
 const prizeBoardSource = readFileSync(

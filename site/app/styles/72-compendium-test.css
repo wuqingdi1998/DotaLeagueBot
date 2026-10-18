@@ -1,4 +1,3 @@
-.compendium-test-header { position: relative; height: 76px; }
 .compendium-test-settings-button { cursor: pointer; }
 .compendium-test-settings-button > svg { width: 24px; height: 24px; color: var(--blue-soft); }
 .compendium-test-settings-button > span { display: grid; gap: 2px; font-size: 12px; }
@@ -13,9 +12,6 @@
 .compendium-test-controls label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .compendium-test-controls select { min-width: 0; flex: 1; }
 .compendium-test-controls button[aria-current] { border-color: #f4c869; color: #f4c869; }
-@media (max-width: 960px), (max-height: 699px) {
-  .compendium-test-header { position: sticky; top: 0; z-index: 40; }
-}
 @media (max-width: 660px) {
   .compendium-test-header .community-action-button, .compendium-test-header .theme-button { display: none; }
 }

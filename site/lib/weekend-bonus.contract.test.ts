@@ -19,7 +19,7 @@ const dailyResetCountdown = source(
   "../app/compendium/components/DailyResetCountdown.tsx",
 );
 const octoberDailyPreview = source(
-  "../app/organizer/compendium-october/sections/OctoberActivityPreview.tsx",
+  "../app/organizer/compendium-october/sections/OctoberDailyView.tsx",
 );
 const questRepository = source(
   "../app/compendium/services/repository.ts",
