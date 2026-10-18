@@ -45,7 +45,7 @@ export function OctoberCompendiumPreview({
     clans={<OctoberClanShowcase members={clanMembers} viewerDiscordId={viewerDiscordId}
       reservation={reservation} isOrganizerPreview={isOrganizerPreview} isOrganizer={isOrganizer} tournamentLinks={tournamentLinks} />}
     rewards={<CompendiumRewards personalStars={personalStars} communityStars={0} isPreview showCommunity={false} personalRewards={octoberRewardsForStars(personalStars)} />}
-    race={<OctoberRacePreview week={week} initialRace={starRaceData} serverNow={serverNow} />}
+    race={<OctoberRacePreview key={`${week.id}:${starRaceData?.pathSelection?.path ?? "unselected"}:${starRaceData?.quests.find(({ phase }) => phase === "active")?.dateKey ?? "none"}`} week={week} initialRace={starRaceData} serverNow={serverNow} />}
     daily={<OctoberDailyPreview viewerDiscordId={viewerDiscordId} isOpen={areDailyQuestsOpen} rewardStars={dailyRewardStars} initialData={dailyQuestData} serverNow={serverNow} />}
   />;
 }

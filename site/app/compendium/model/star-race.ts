@@ -32,6 +32,15 @@ export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
 
 export type StarRaceQuestRequirement =
   | {
+      readonly kind: "match-stat-win";
+      readonly isRankedOnly?: boolean;
+      readonly conditions: readonly { readonly stat: "assists" | "hero_healing" | "gold_per_min" | "deaths"; readonly minimum?: number; readonly maximum?: number }[];
+    }
+  | {
+      readonly kind: "cumulative-assists";
+      readonly target: number;
+    }
+  | {
       readonly kind: "distinct-hero-wins";
       readonly requiredDistinctWins: number;
       readonly heroIds: readonly number[];
@@ -370,6 +379,7 @@ export type StarRaceQuest = StarRaceQuestDefinition & {
 };
 
 export type StarRaceData = {
+  pathSelection?: { path: "core" | "support" | null; selectedOn: string | null; canChoose: boolean };
   id: string;
   title: string;
   dateLabel: string;
@@ -477,6 +487,7 @@ export function starRaceQuestProgressLabel(
   if (requirement?.kind === "cumulative-ranked-win-stat") {
     return requirement.stat === "hero_damage" ? "Урон по героям" : "Убийства";
   }
+  if (requirement?.kind === "cumulative-assists") return "Содействия";
   if (requirement?.kind === "ranked-wins") {
     return quest.dateKey >= OCTOBER_NORMAL_ALL_PICK_START_AT.slice(0, 10) ? "Победы" : "Рейтинговые победы";
   }

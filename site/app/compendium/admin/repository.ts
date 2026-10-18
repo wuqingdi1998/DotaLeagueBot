@@ -1,3 +1,5 @@
+import { finalRaceQuests, isFinalRaceDate, type FinalRacePath } from "../model/final-star-race-definitions";
+import { starRaceQuestHeroes } from "../model/star-race";
 import { query } from "@/lib/db";
 import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
 import { compendiumHeroById } from "../model/heroes";
@@ -152,12 +154,26 @@ export async function loadCompendiumAdminParticipants(): Promise<
         )
         : Promise.resolve([]),
     ]);
-  return buildCompendiumAdminParticipantSummaries(
+  const summaries = buildCompendiumAdminParticipantSummaries(
     rows,
     currentQuestRows,
     currentStarRaceQuests,
     currentStarRaceCompletionRows,
   );
+  if (isFinalRaceDate(dateKey)) {
+    const choices = await query<{ player_id: string; path: FinalRacePath; selected_on: string }>(
+      `SELECT player_id::text, path, selected_on::text FROM october_compendium_final_race_paths`);
+    const byPlayer = new Map(choices.map((choice) => [choice.player_id, choice]));
+    for (const participant of summaries) {
+      const choice = byPlayer.get(participant.discordId);
+      const quest = choice && dateKey >= choice.selected_on ? finalRaceQuests(choice.path).find((quest) => quest.dateKey === dateKey) : null;
+      participant.currentStarRaceQuests = quest ? [{ dateKey, title: quest.title, description: quest.description,
+        rewardStars: quest.rewardStars, heroes: starRaceQuestHeroes(quest),
+        isCompleted: currentStarRaceCompletionRows.some((row) => row.player_id === participant.discordId),
+        isManual: currentStarRaceCompletionRows.find((row) => row.player_id === participant.discordId)?.is_manual ?? false }] : [];
+    }
+  }
+  return summaries;
 }
 
 export async function loadCompendiumAdminParticipantHistory(

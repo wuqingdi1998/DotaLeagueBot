@@ -7,9 +7,11 @@ import { loadDailyQuests } from "../services/repository";
 import { OCTOBER_NORMAL_ALL_PICK_START_AT } from "@/lib/october-compendium-schedule";
 import { assertChallengeDate, challengeDates, historicalRewardTime } from "./challenge-date";
 import type { HistoricalChallenge, HistoricalChallenges } from "./challenge-history-types";
+import { finalRaceQuests, isFinalRaceDate } from "../model/final-star-race-definitions";
+import { loadFinalRaceSelection } from "../services/final-race-path";
 
 export async function preserveChallengeDays() {
-  const definitions = OCTOBER_COMPENDIUM_WEEKS.flatMap((week) => week.quests);
+  const definitions = OCTOBER_COMPENDIUM_WEEKS.slice(0, 2).flatMap((week) => week.quests);
   await query(`INSERT INTO october_compendium_challenge_days (moscow_date, race_definition)
     SELECT (definition->>'dateKey')::date, definition
     FROM jsonb_array_elements($1::jsonb) definition
@@ -71,7 +73,10 @@ export async function loadHistoricalChallenges(playerId: string, dateKey: string
     isCompleted: Boolean(rune?.is_completed), isManual: Boolean(rune?.is_manual),
     unavailableReason: rune?.hero_id ? null : "За эту дату нет сохранённого выбора героя Рун",
   });
-  const race = raceDay?.race_definition;
+  const selection = isFinalRaceDate(dateKey) ? await loadFinalRaceSelection(playerId) : null;
+  const race = isFinalRaceDate(dateKey)
+    ? selection && dateKey >= selection.selectedOn ? finalRaceQuests(selection.path).find((quest) => quest.dateKey === dateKey) : null
+    : raceDay?.race_definition;
   if (race?.requirement && race.rewardStars !== null && race.title) {
     const heroIds = "heroIds" in race.requirement ? race.requirement.heroIds ?? [] : [];
     challenges.push({ kind: "star_race", id: dateKey, title: `Испытание гонки · ${race.title}`,

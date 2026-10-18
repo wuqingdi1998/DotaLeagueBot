@@ -8,6 +8,7 @@ import {
 } from "./matches";
 import type { StarRaceQuestRequirement } from "./star-race";
 import type { MatchingWin, OpenDotaMatch } from "./types";
+import { evaluateFinalRaceStatistics } from "./final-race-evaluation";
 
 export type StarRaceRequirementEvaluation = {
   isComplete: boolean;
@@ -29,6 +30,9 @@ export function evaluateStarRaceRequirement(input: {
     now: input.now,
   };
   const requirement = input.requirement;
+  if (requirement.kind === "match-stat-win" || requirement.kind === "cumulative-assists") {
+    return evaluateFinalRaceStatistics({ ...input, requirement });
+  }
   if (requirement.kind === "ranked-wins") {
     const wins = scanRankedWins(sharedWindow);
     return {

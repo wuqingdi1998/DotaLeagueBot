@@ -29,6 +29,8 @@ function isOpenDotaMatch(
     typeof match.lobby_type === "number" &&
     typeof match.hero_id === "number" &&
     typeof match.start_time === "number" &&
+    (["assists", "deaths", "gold_per_min", "hero_healing"] as const).every((stat) =>
+      match[stat] == null || (typeof match[stat] === "number" && Number.isFinite(match[stat]) && match[stat]! >= 0)) &&
     (match.tower_damage === undefined ||
       match.tower_damage === null ||
       (typeof match.tower_damage === "number" && match.tower_damage >= 0)) &&
@@ -68,6 +70,10 @@ function uniqueMatches(matches: OpenDotaMatch[]): OpenDotaMatch[] {
       tower_damage: match.tower_damage ?? previous.tower_damage,
       hero_damage: match.hero_damage ?? previous.hero_damage,
       kills: match.kills ?? previous.kills,
+      assists: match.assists ?? previous.assists,
+      deaths: match.deaths ?? previous.deaths,
+      gold_per_min: match.gold_per_min ?? previous.gold_per_min,
+      hero_healing: match.hero_healing ?? previous.hero_healing,
     } : match);
   }
   return [...merged.values()];
@@ -109,6 +115,10 @@ async function requestRecentPlayerMatches(
     "tower_damage",
     "hero_damage",
     "kills",
+    "assists",
+    "deaths",
+    "gold_per_min",
+    "hero_healing",
   ]) {
     url.searchParams.append("project", field);
   }

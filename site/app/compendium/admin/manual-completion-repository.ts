@@ -1,9 +1,9 @@
+import { starRaceQuestForPlayer } from "../services/final-race-path";
 import { transaction } from "@/lib/db";
 import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
 import { CompendiumError } from "../model/errors";
 import { assertCompendiumActive } from "../model/lifecycle";
 import {
-  starRaceQuestByDate,
   starRaceQuestPhase,
 } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
@@ -76,7 +76,7 @@ export async function completeStarRaceQuestManually(input: {
 }): Promise<ManualCompletionResult> {
   const now = input.now ?? new Date();
   assertCompendiumActive(now);
-  const quest = starRaceQuestByDate(input.dateKey);
+  const quest = await starRaceQuestForPlayer(input.playerId, input.dateKey);
   const rewardStars = quest?.rewardStars ?? null;
   const finalPredictionOpenedAt =
     quest?.requirement?.kind === "final-winner-prediction"

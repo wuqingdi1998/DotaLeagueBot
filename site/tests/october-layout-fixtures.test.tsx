@@ -1,3 +1,4 @@
+import { finalRaceQuests } from "@/app/compendium/model/final-star-race-definitions";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it, vi } from "vitest";
@@ -60,7 +61,7 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
     writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<CompendiumResults data={data} />)}</div>`);
   }
 
-  for (const [weekIndex, week] of OCTOBER_COMPENDIUM_WEEKS.entries()) {
+  for (const [weekIndex, week] of [...OCTOBER_COMPENDIUM_WEEKS, { ...OCTOBER_COMPENDIUM_WEEKS[2], quests: finalRaceQuests("support") }].entries()) {
     for (let activeDay = 0; activeDay < week.quests.length; activeDay++) {
       const race = octoberRacePreviewData(week);
       race.phase = "active";
@@ -68,7 +69,7 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
       race.personalRank = 2;
       race.quests = race.quests.map((quest, day) => ({
         ...quest, phase: day === activeDay ? "active" : day < activeDay ? "finished" : "upcoming",
-        progress: quest.requirement?.kind === "cumulative-ranked-win-stat" ? { current: 0, target: quest.requirement.target, checkedAt: null }
+        progress: (quest.requirement?.kind === "cumulative-ranked-win-stat" || quest.requirement?.kind === "cumulative-assists") ? { current: 17, target: quest.requirement.target, checkedAt: null }
           : quest.requirement?.kind === "winning-building-damage" ? { current: day < activeDay ? 17407 : 0, target: quest.requirement.targetDamage, checkedAt: null }
           : quest.requirement?.kind === "ranked-wins" ? { current: day < activeDay ? quest.requirement.requiredWins : 0, target: quest.requirement.requiredWins, checkedAt: null } : null,
         completion: day < activeDay ? { completedAt: quest.endsAt, hasCompleteMatchEvidence: false,
@@ -90,6 +91,10 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
       ));
     }
   }
+
+  const liveChoice = { ...octoberRacePreviewData(OCTOBER_COMPENDIUM_WEEKS[2]), phase: "active" as const,
+    quests: [], pathSelection: { path: null, selectedOn: null, canChoose: true } };
+  save("race-live-path-choice", "race", renderToStaticMarkup(<div className="compendium-rewards-section"><OctoberRacePreview week={OCTOBER_COMPENDIUM_WEEKS[2]} initialRace={liveChoice} serverNow="2026-10-19T12:00:00+03:00" /></div>));
 
   save("race-path-choice", "race", renderToStaticMarkup(<div className="compendium-rewards-section"><FinalRacePreviewPanel /></div>));
 
@@ -125,5 +130,5 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   fixtures.push("profile-badges");
   writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(67);
+  expect(fixtures).toHaveLength(75);
 });

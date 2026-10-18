@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { fetchSiteRequest } from "@/lib/site-request";
+import { FinalRacePathChoice } from "@/app/compendium/components/FinalRacePathChoice";
+import type { FinalRacePath } from "@/app/compendium/model/final-star-race-definitions";
 import { CompendiumStarRace } from "@/app/compendium/components/CompendiumStarRace";
 import { RuneChallenge } from "@/app/compendium/components/RuneChallenge";
 import { OCTOBER_RACE_EXCLUSION_RULES, octoberDailyQuestSamples, octoberRacePreviewData } from "../model/preview";
@@ -40,6 +42,20 @@ export function OctoberRacePreview({
   const [message, setMessage] = useCompendiumToast();
   const currentTimeMs = useServerClock(serverNow ?? "1970-01-01T00:00:00.000Z");
   const isLive = initialRace !== undefined;
+  const [isChoosingPath, setIsChoosingPath] = useState(false);
+
+  async function choosePath(path: FinalRacePath) {
+    if (!isLive || isChoosingPath) return;
+    setIsChoosingPath(true);
+    try {
+      const response = await fetchSiteRequest("/api/compendium/star-race/path", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ path }) });
+      const result = await response.json() as { error?: string; starRace?: StarRaceData };
+      if (!response.ok || !result.starRace) throw new Error(result.error ?? "Не удалось сохранить путь");
+      setRace(result.starRace);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Не удалось сохранить путь");
+    } finally { setIsChoosingPath(false); }
+  }
 
   async function checkQuest(dateKey: string) {
     if (!isLive || checkingDateKey) return;
@@ -87,7 +103,7 @@ export function OctoberRacePreview({
 
   return (
     <>
-      <CompendiumStarRace
+      {race.pathSelection && !race.pathSelection.path ? <FinalRacePathChoice onChoosePath={choosePath} isBusy={isChoosingPath} canChoose={race.pathSelection.canChoose} /> : <CompendiumStarRace
         race={race}
         currentTimeMs={currentTimeMs}
         checkingDateKey={checkingDateKey}
@@ -99,7 +115,7 @@ export function OctoberRacePreview({
         collapsibleRulesOnMobile
         sectionId={`october-race-${week.id}`}
         exclusionRules={isOctoberFirstRaceWeek(race) ? OCTOBER_FIRST_WEEK_RACE_RULES : OCTOBER_RACE_EXCLUSION_RULES}
-      />
+      />}
       {message && <div className="compendium-toast" role="status">{message}</div>}
     </>
   );

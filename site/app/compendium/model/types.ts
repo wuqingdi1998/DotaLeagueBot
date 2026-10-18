@@ -94,6 +94,10 @@ export type OpenDotaMatch = {
   tower_damage?: number | null;
   hero_damage?: number | null;
   kills?: number | null;
+  assists?: number | null;
+  deaths?: number | null;
+  gold_per_min?: number | null;
+  hero_healing?: number | null;
 };
 
 export type MatchingWin = {

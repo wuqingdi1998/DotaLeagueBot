@@ -6,7 +6,7 @@ import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
-it("hides quests before choosing a path and requires a first-day choice", () => {
+it("hides quests before choosing a path and allows a late choice without backfilling earlier days", () => {
   expect(finalRacePreviewData(INITIAL_FINAL_RACE_PREVIEW)).toBeNull();
   const html = renderToStaticMarkup(<FinalRacePreviewPanel />);
   expect(html).toContain("Путь Разрушения (Core)");
@@ -14,7 +14,11 @@ it("hides quests before choosing a path and requires a first-day choice", () => 
   expect(html).not.toContain('class="compendium-star-race-quest ');
   expect(html).not.toContain("Понедельник день тяжелый");
   expect(finalRacePreviewReducer(INITIAL_FINAL_RACE_PREVIEW, { type: "set-day", day: 1 })).toBe(INITIAL_FINAL_RACE_PREVIEW);
-  expect(finalRacePreviewReducer({ ...INITIAL_FINAL_RACE_PREVIEW, activeDay: 1 }, { type: "choose-path", path: "core" }).path).toBeNull();
+  const late = finalRacePreviewReducer({ ...INITIAL_FINAL_RACE_PREVIEW, activeDay: 1 }, { type: "choose-path", path: "core" });
+  expect(late.path).toBe("core");
+  expect(late.selectedDay).toBe(1);
+  const past = finalRacePreviewReducer(late, { type: "set-day", day: 0 });
+  expect(finalRacePreviewReducer(past, { type: "complete", dateKey: FINAL_RACE_PREVIEW_WEEK.quests[0].dateKey }).completedDays).toEqual([]);
   expect(finalRacePreviewReducer(INITIAL_FINAL_RACE_PREVIEW, { type: "complete", dateKey: FINAL_RACE_PREVIEW_WEEK.quests[0].dateKey })).toBe(INITIAL_FINAL_RACE_PREVIEW);
 });
 
@@ -64,7 +68,7 @@ it.each(["core", "support"] as const)("states the selected %s title and eligible
   }
 });
 
-it("keeps experimental conditions out of live race definitions", () => {
+it("shares released conditions while keeping sandbox state isolated", () => {
   expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.quests.length)).toEqual([7, 7, 7]);
   expect(OCTOBER_COMPENDIUM_WEEKS[2].quests.some((quest) => quest.description.includes("здоровья"))).toBe(false);
 });

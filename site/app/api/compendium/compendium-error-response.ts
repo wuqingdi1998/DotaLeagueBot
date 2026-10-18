@@ -20,6 +20,8 @@ const compendiumErrorStatuses = {
   PREDICTION_NOT_OPEN: 409,
   PREDICTION_LOCKED: 409,
   STAR_RACE_NOT_ACTIVE: 409,
+  STAR_RACE_PATH_REQUIRED: 409,
+  STAR_RACE_PATH_LOCKED: 409,
 } as const;
 
 export function responseFromCompendiumError(error: unknown): Response {

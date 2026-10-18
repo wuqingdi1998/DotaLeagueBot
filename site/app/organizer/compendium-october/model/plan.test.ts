@@ -48,12 +48,12 @@ describe("October compendium draft", () => {
     expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[0].title)).toEqual([
       "1 месяц Dota+ + 1 месяц подарочной подписки на любую цветную руну Boosty",
       "1 месяц Dota+ + 1 месяц подарочной подписки на любую цветную руну Boosty",
-      "Предмет выберем позже",
+      "Подписка на любую цветную руну на 3 месяца + Trove of Terror",
     ]);
     expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[0].imageUrl)).toEqual([
       "/compendium/october/dota-plus-one-month.png",
       "/compendium/october/dota-plus-one-month.png",
-      null,
+      "/compendium/october/trove-of-terror.webp",
     ]);
     expect(OCTOBER_COMPENDIUM_WEEKS.map((week) => week.prizes[1])).toEqual([
       {
@@ -66,7 +66,7 @@ describe("October compendium draft", () => {
         title: "The Igneous Stone",
         imageUrl: "/compendium/october/the-igneous-stone.png",
       },
-      { place: 2, title: "Предмет выберем позже", imageUrl: null },
+      { place: 2, title: "Подписка на любую цветную руну на 1 месяц + Trove of Terror", imageUrl: "/compendium/october/trove-of-terror.webp" },
     ]);
   });
 

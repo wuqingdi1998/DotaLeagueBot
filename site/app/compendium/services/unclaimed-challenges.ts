@@ -8,6 +8,8 @@ import {
   type StarRaceQuestDefinition,
 } from "../model/star-race";
 import { currentMoscowDay } from "../model/time";
+import { isFinalRaceDate } from "../model/final-star-race-definitions";
+import { starRaceQuestForPlayer } from "./final-race-path";
 import { runeChallengeWindowStart } from "../model/rune-window";
 import type { MatchingWin, OpenDotaMatch } from "../model/types";
 import { fetchRecentPlayerMatches } from "./opendota";
@@ -87,6 +89,10 @@ function starRaceDetail(
   const requirement = quest.requirement;
   if (!requirement) return "Условие выполнено";
   switch (requirement.kind) {
+    case "match-stat-win":
+      return "Победа по условиям выбранного пути";
+    case "cumulative-assists":
+      return `${progress} / ${requirement.target} содействий`;
     case "distinct-hero-wins": {
       const heroes = wins
         .slice(0, requirement.requiredDistinctWins)
@@ -192,6 +198,13 @@ async function scanCandidate(input: {
   dayEnd: Date;
   now: Date;
 }): Promise<LocatedPlayer> {
+  if (isFinalRaceDate(currentMoscowDay(input.now).dateKey)) {
+    try { input = { ...input, quest: await starRaceQuestForPlayer(input.candidate.playerId, currentMoscowDay(input.now).dateKey) }; }
+    catch (error) {
+      if (!(error instanceof Error) || !("code" in error) || !["STAR_RACE_PATH_REQUIRED", "STAR_RACE_NOT_ACTIVE"].includes(String(error.code))) throw error;
+      input = { ...input, quest: null };
+    }
+  }
   const matches = await fetchRecentPlayerMatches(input.candidate.dotaId, {
     forceRefresh: true,
   });

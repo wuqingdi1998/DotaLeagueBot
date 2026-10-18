@@ -6,7 +6,6 @@ import { hasPendingStarRaceStatistics } from "../model/star-race-statistics";
 import {
   starRaceForMoment,
   starRacePhase,
-  starRaceQuestByDate,
   starRaceQuestBounds,
   starRaceQuestHeroes,
   starRaceQuestPhase,
@@ -37,17 +36,25 @@ import { checkStarRaceArcanaQuest } from "./star-race-arcana";
 import { loadPendingArcanaVerifications } from "./star-race-arcana-repository";
 import { loadFinalPrediction } from "./star-race-final-prediction-repository";
 import { restoreStarRaceEvidence } from "./star-race-evidence";
+import { loadFinalRaceSelection, starRaceQuestForPlayer } from "./final-race-path";
+import { FINAL_RACE_WEEK_ID, FINAL_RACE_PATHS, finalRaceQuests } from "../model/final-star-race-definitions";
 import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
 
 export async function loadStarRace(
   user: AuthUser,
   now: Date = new Date(),
 ): Promise<StarRaceData> {
-  const race = starRaceForMoment(now);
+  let race = starRaceForMoment(now);
+  const isFinalWeek = race.id === FINAL_RACE_WEEK_ID;
+  const selection = isFinalWeek ? await loadFinalRaceSelection(user.discordId) : null;
+  const pathSelection = isFinalWeek ? { path: selection?.path ?? null, selectedOn: selection?.selectedOn ?? null, canChoose: now.getTime() >= Date.parse(race.startsAt) && now.getTime() < Date.parse(race.endsAt) } : undefined;
+  if (isFinalWeek) race = { ...race, quests: selection ? finalRaceQuests(selection.path) : [],
+    title: selection ? FINAL_RACE_PATHS.find(({ id }) => id === selection.path)!.raceTitle : race.title };
   const visibility = starRacePhase(now, user.isAdmin, race);
   if (!visibility.isDetailsVisible) {
     return {
       ...visibility,
+      pathSelection,
       id: race.id,
       title: race.title,
       dateLabel: race.dateLabel,
@@ -79,10 +86,11 @@ export async function loadStarRace(
       : Promise.resolve({ teams: [], selectedPosition: null, winnerPosition: null, openedAt: null }),
   ]);
   await restoreStarRaceEvidence({
-    user, quests: OCTOBER_COMPENDIUM_WEEKS.flatMap((week) => week.quests), completions, progresses,
+    user, quests: [...OCTOBER_COMPENDIUM_WEEKS.slice(0, 2).flatMap((week) => week.quests), ...(isFinalWeek ? race.quests : [])], completions, progresses,
   });
   return {
     ...visibility,
+    pathSelection,
     id: race.id,
     title: race.title,
     dateLabel: race.dateLabel,
@@ -111,7 +119,7 @@ export async function loadStarRace(
               target: quest.requirement.targetDamage,
               checkedAt: savedProgress?.checkedAt ?? null,
             }
-          : quest.requirement?.kind === "cumulative-ranked-win-stat"
+          : (quest.requirement?.kind === "cumulative-ranked-win-stat" || quest.requirement?.kind === "cumulative-assists")
             ? {
                 current: savedProgress?.current ?? 0,
                 target: quest.requirement.target,
@@ -195,7 +203,7 @@ export async function checkStarRaceQuest(
 ): Promise<CheckStarRaceQuestResult> {
   assertCompendiumActive(now);
   const dotaId = requireCompendiumDotaId(user);
-  const quest = starRaceQuestByDate(dateKey);
+  const quest = await starRaceQuestForPlayer(user.discordId, dateKey);
   if (
     !quest ||
     !quest.title ||
@@ -321,7 +329,7 @@ export async function checkStarRaceQuest(
         wins: evaluation.wins,
       });
     }
-  } else if (quest.requirement.kind === "cumulative-ranked-win-stat") {
+  } else if ((quest.requirement.kind === "cumulative-ranked-win-stat" || quest.requirement.kind === "cumulative-assists")) {
     await replaceStarRaceProgress({
       playerId: user.discordId,
       dateKey,
@@ -351,6 +359,10 @@ export async function checkStarRaceQuest(
         wins: evaluation.wins.slice(0, quest.requirement.requiredWins),
       });
     }
+  } else if (quest.requirement.kind === "match-stat-win") {
+    const win = evaluation.wins[0];
+    if (!win) throw new CompendiumError("NO_MATCH", "Подходящая победа по условиям выбранного пути пока не найдена.");
+    completion = await recordStarRaceCompletion({ playerId: user.discordId, dateKey, rewardStars: quest.rewardStars, wins: [win] });
   } else if (quest.requirement.kind === "ranked-win-stat") {
     const win = evaluation.wins[0];
     if (!win) {

@@ -9,18 +9,21 @@ const sharp = require("sharp");
 const sourceModules = [
   "app/organizer/compendium-october/model/clan-prizes.ts",
   "app/compendium/model/october-star-race.ts",
+  "app/compendium/model/final-star-race-definitions.ts",
 ];
 const variants = {
   thumbnail: { size: 224, quality: 85 },
   preview: { size: 640, quality: 88 },
 };
 const outputDirectory = "/compendium/october/prizes/";
-const manifest = {};
+const requestedSource = process.argv.find((argument) => argument.startsWith("--source="))?.slice(9);
+const manifestPath = new URL("app/compendium/model/october-prize-images.generated.json", siteRoot);
+const manifest = requestedSource ? JSON.parse(await readFile(manifestPath, "utf8")) : {};
 const sourcePaths = new Set();
 
 for (const modulePath of sourceModules) {
   const source = await readFile(new URL(modulePath, siteRoot), "utf8");
-  for (const match of source.matchAll(/"(\/compendium\/october\/[^"\s]+\.png)"/g)) {
+  for (const match of source.matchAll(/"(\/compendium\/october\/[^"\s]+\.(?:png|webp))"/g)) {
     sourcePaths.add(match[1]);
   }
 }
@@ -28,8 +31,9 @@ for (const modulePath of sourceModules) {
 await mkdir(new URL(`public${outputDirectory}`, siteRoot), { recursive: true });
 
 for (const sourcePath of [...sourcePaths].sort()) {
+  if (requestedSource && sourcePath !== requestedSource) continue;
   const original = await readFile(new URL(`public${sourcePath}`, siteRoot));
-  const stem = sourcePath.split("/").at(-1).replace(/\.png$/, "");
+  const stem = sourcePath.split("/").at(-1).replace(/\.(?:png|webp)$/, "");
   manifest[sourcePath] = {};
   for (const [variant, { size, quality }] of Object.entries(variants)) {
     const image = await sharp(original)
@@ -44,7 +48,7 @@ for (const sourcePath of [...sourcePaths].sort()) {
 }
 
 await writeFile(
-  new URL("app/compendium/model/october-prize-images.generated.json", siteRoot),
+  manifestPath,
   `${JSON.stringify(manifest, null, 2)}\n`,
 );
 console.log(`Prepared thumbnail and preview images for ${sourcePaths.size} prize sources.`);

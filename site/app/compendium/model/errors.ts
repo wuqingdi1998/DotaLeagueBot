@@ -16,7 +16,10 @@ export type CompendiumErrorCode =
   | "PREDICTION_NOT_FOUND"
   | "PREDICTION_NOT_OPEN"
   | "PREDICTION_LOCKED"
+  | "STAR_RACE_PATH_REQUIRED"
+  | "STAR_RACE_PATH_LOCKED"
   | "STAR_RACE_NOT_ACTIVE";
+
 
 export class CompendiumError extends Error {
   constructor(

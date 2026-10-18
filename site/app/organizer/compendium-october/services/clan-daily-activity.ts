@@ -1,3 +1,4 @@
+import { finalRaceQuests, isFinalRaceDate, type FinalRacePath } from "@/app/compendium/model/final-star-race-definitions";
 import { query } from "@/lib/db";
 import { runeChallengeAccessRoleNames } from "@/lib/subscription-roles";
 import { hiddenSubscriptionRoleForDiscordId } from "@/lib/hidden-subscription-entitlements";
@@ -48,10 +49,14 @@ export async function loadClanDailyActivity(now = new Date()): Promise<ClanDaily
     [members.map((member) => member.discordId), day.start, day.end, day.dateKey, runeChallengeAccessRoleNames],
   );
   const activityByPlayer = new Map(rows.map((row) => [row.player_id, row]));
-  const raceQuest = starRaceQuestByDate(day.dateKey);
+  const defaultRaceQuest = starRaceQuestByDate(day.dateKey);
+  const choices = isFinalRaceDate(day.dateKey) ? await query<{ player_id: string; path: FinalRacePath; selected_on: string }>(`SELECT player_id::text, path, selected_on::text FROM october_compendium_final_race_paths`) : [];
+  const byPlayer = new Map(choices.map((choice) => [choice.player_id, choice]));
   const rewardStars = dailyChallengeRewardStars(day.dateKey);
   result.members = rankClanDailyActivity(members.flatMap((member) => {
     const activity = activityByPlayer.get(member.discordId);
+    const choice = byPlayer.get(member.discordId);
+    const raceQuest = isFinalRaceDate(day.dateKey) ? choice && day.dateKey >= choice.selected_on ? finalRaceQuests(choice.path).find((quest) => quest.dateKey === day.dateKey) : null : defaultRaceQuest;
     if (!activity) return [];
     const hasRuneAccess = activity.has_rune_access || hiddenSubscriptionRoleForDiscordId(member.discordId) !== null;
     return [{ ...member, dailyStars: Number(activity.daily_stars), quests: CLAN_ACTIVITY_COLUMNS.map((label, index) => ({

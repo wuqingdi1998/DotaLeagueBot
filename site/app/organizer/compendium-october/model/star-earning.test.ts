@@ -15,7 +15,7 @@ describe("October star earning guide", () => {
         { id: "hero-quests", maxStars: 60 },
         { id: "clan-outing", maxStars: 30 },
         { id: "rune-challenge", maxStars: 30 },
-        { id: "star-race", maxStars: 62 },
+        { id: "star-race", maxStars: 66 },
         { id: "league-rounds", maxStars: 18 },
         { id: "fastcups", maxStars: 12 },
       ]);
@@ -35,7 +35,7 @@ describe("October star earning guide", () => {
       [
         { label: "1-я неделя", stars: 15 },
         { label: "2-я неделя", stars: 22 },
-        { label: "3-я неделя", stars: 25 },
+        { label: "3-я неделя", stars: 29 },
       ],
       [
         { label: "Участие", stars: 1 },
@@ -65,9 +65,9 @@ describe("October star earning guide", () => {
   });
 
   it("shows base, subscriber and absolute maximums", () => {
-    expect(OCTOBER_STANDARD_MAX_STARS).toBe(170);
-    expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(200);
-    expect(OCTOBER_ABSOLUTE_MAX_STARS).toBe(212);
+    expect(OCTOBER_STANDARD_MAX_STARS).toBe(174);
+    expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(204);
+    expect(OCTOBER_ABSOLUTE_MAX_STARS).toBe(216);
   });
 
   it("shows the organizer link editor beside an unlinked Fastcup", () => {

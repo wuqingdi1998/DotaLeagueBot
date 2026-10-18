@@ -1,3 +1,4 @@
+import { FINAL_RACE_PRIZES, finalRaceReward } from "../../model/final-star-race-definitions";
 import type { StarRaceWeekDefinition } from "../../model/star-race";
 
 export const TEST_COMPENDIUM = {
@@ -16,10 +17,10 @@ export const TEST_SECTIONS = [
 export const TEST_RACE_WEEK: StarRaceWeekDefinition = {
   id: "sandbox-final-week", title: "Гонка за звёздами · Финал", dateLabel: "19–25 октября 2026",
   startsAt: "2026-10-19T00:00:00+03:00", endsAt: "2026-10-26T00:00:00+03:00",
-  prizes: [{ place: 1, title: "Предмет выберем позже", imageUrl: null }, { place: 2, title: "Предмет выберем позже", imageUrl: null }],
+  prizes: FINAL_RACE_PRIZES,
   quests: ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"].map((weekday, index) => ({
     dateKey: `2026-10-${19 + index}`, weekday, dateLabel: `${19 + index} октября`,
-    title: null, description: null, rewardStars: index === 6 ? 5 : 4, requirement: null,
+    title: null, description: null, rewardStars: finalRaceReward(index), requirement: null,
   })),
 };
 

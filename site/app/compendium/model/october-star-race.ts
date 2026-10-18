@@ -1,3 +1,4 @@
+import { finalRaceQuests, FINAL_RACE_PRIZES } from "./final-star-race-definitions";
 import type {
   StarRaceQuestDefinition,
   StarRaceQuestRequirement,
@@ -73,28 +74,15 @@ export const OCTOBER_SECOND_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] =
   raceQuest("2026-10-18", "Два героя", "Выиграйте по одному рейтинговому или обычному All Pick матчу на двух разных героях из списка ниже.", 4, { kind: "distinct-hero-wins", requiredDistinctWins: 2, heroIds: [1, 8, 11, 41, 48, 70] }),
 ];
 
-export const OCTOBER_THIRD_RACE_QUESTS: readonly OctoberRaceQuestDefinition[] = [
-  raceQuest("2026-10-19", "Решающий отрезок", "Выиграйте два рейтинговых или обычных All Pick матча за день.", 3, { kind: "ranked-wins", requiredWins: 2 }),
-  raceQuest("2026-10-20", "До трона", "Нанесите суммарно 25 000 урона строениям в победных рейтинговых или обычных All Pick матчах за день.", 3, { kind: "winning-building-damage", targetDamage: 25_000 }),
-  raceQuest("2026-10-21", "Сильный матч", "Нанесите не менее 30 000 урона героям в одном победном рейтинговом или обычном All Pick матче на любом герое.", 3, { kind: "ranked-win-stat", heroIds: null, stat: "hero_damage", minimum: 30_000 }),
-  raceQuest("2026-10-22", "Два лица магии", "Выиграйте по одному рейтинговому или обычному All Pick матчу на двух разных героях из списка ниже.", 4, { kind: "distinct-hero-wins", requiredDistinctWins: 2, heroIds: [13, 17, 21, 25, 74, 126] }),
-  raceQuest("2026-10-23", "Несокрушимые", "45 000 урона героям за день. Победы в рейтинге или обычном All Pick на героях ниже.", 4, { kind: "cumulative-ranked-win-stat", heroIds: [2, 18, 19, 28, 49, 104], stat: "hero_damage", target: 45_000 }),
-  raceQuest("2026-10-24", "Последняя передышка", "Выиграйте один матч в режиме Turbo.", 3, { kind: "game-mode-win", gameMode: 23 }),
-  raceQuest("2026-10-25", "Финальный рывок", "Выиграйте три рейтинговых или обычных All Pick матча за день.", 5, { kind: "ranked-wins", requiredWins: 3 }),
-];
+export const OCTOBER_THIRD_RACE_QUESTS = finalRaceQuests("core");
 
 const dotaPlusRacePrizes = [
   { place: 1, title: "1 месяц Dota+ + 1 месяц подарочной подписки на любую цветную руну Boosty", imageUrl: "/compendium/october/dota-plus-one-month.png" },
   { place: 2, title: "The Igneous Stone", imageUrl: "/compendium/october/the-igneous-stone.png" },
 ] as const;
 
-const unannouncedPrizes = [
-  { place: 1, title: "Предмет выберем позже", imageUrl: null },
-  { place: 2, title: "Предмет выберем позже", imageUrl: null },
-] as const;
-
 export const OCTOBER_COMPENDIUM_WEEKS: readonly OctoberStarRaceWeekDefinition[] = [
   { id: "2026-10-05", title: "Гонка за звёздами · Разгон", dateLabel: "5–11 октября 2026", startsAt: OCTOBER_COMPENDIUM_START_AT, endsAt: "2026-10-12T00:00:00+03:00", prizes: dotaPlusRacePrizes, quests: OCTOBER_FIRST_RACE_QUESTS },
   { id: "2026-10-12", title: "Гонка за звёздами · Темп", dateLabel: "12–18 октября 2026", startsAt: "2026-10-12T00:00:00+03:00", endsAt: "2026-10-19T00:00:00+03:00", prizes: dotaPlusRacePrizes, quests: OCTOBER_SECOND_RACE_QUESTS },
-  { id: "2026-10-19", title: "Гонка за звёздами · Финал", dateLabel: "19–25 октября 2026", startsAt: "2026-10-19T00:00:00+03:00", endsAt: OCTOBER_COMPENDIUM_END_AT, prizes: unannouncedPrizes, quests: OCTOBER_THIRD_RACE_QUESTS },
+  { id: "2026-10-19", title: "Гонка за звёздами · Финал", dateLabel: "19–25 октября 2026", startsAt: "2026-10-19T00:00:00+03:00", endsAt: OCTOBER_COMPENDIUM_END_AT, prizes: FINAL_RACE_PRIZES, quests: OCTOBER_THIRD_RACE_QUESTS },
 ];

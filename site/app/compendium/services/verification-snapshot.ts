@@ -1,9 +1,10 @@
+import { starRaceQuestForPlayer } from "./final-race-path";
 import type { AuthUser } from "@/lib/auth";
 import { CompendiumError } from "../model/errors";
 import { assertCompendiumActive } from "../model/lifecycle";
 import { currentMoscowDay } from "../model/time";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
-import { starRaceQuestByDate, starRaceQuestBounds, starRaceQuestPhase } from "../model/star-race";
+import { starRaceQuestBounds, starRaceQuestPhase } from "../model/star-race";
 import { runeChallengeWindowStart } from "../model/rune-window";
 import type { VerificationKind, VerificationSnapshot } from "../model/verification-retries";
 import { requireCompendiumDotaId } from "./participant";
@@ -37,7 +38,7 @@ export async function captureVerificationSnapshot(user: AuthUser, kind: Verifica
     snapshot.clanMates = [...(await loadClanMateDotaIds(user.discordId)).entries()]
       .map(([dotaId, mate]) => ({ dotaId, playerId: mate.playerId }));
   } else {
-    const quest = starRaceQuestByDate(key!);
+    const quest = await starRaceQuestForPlayer(user.discordId, key!);
     if (!quest?.requirement || quest.rewardStars === null || starRaceQuestPhase(quest, now) !== "active") {
       throw new CompendiumError("STAR_RACE_NOT_ACTIVE", "Задание доступно только в назначенный день по московскому времени.");
     }

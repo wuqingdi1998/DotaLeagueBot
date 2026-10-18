@@ -170,6 +170,10 @@ describe("OpenDota client", () => {
       "tower_damage",
       "hero_damage",
       "kills",
+      "assists",
+      "deaths",
+      "gold_per_min",
+      "hero_healing",
     ]);
   });
 
