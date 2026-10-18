@@ -730,7 +730,7 @@ jobs:
             cd /root/DotaLeagueBot
             for attempt in $(seq 1 60); do
               if docker compose logs --since=10m bot 2>&1 |
-                grep -q '\[OCTOBER CLANS\] Roles synchronized for guild'; then
+                grep -F '[OCTOBER CLANS] Roles synchronized for guild' >/dev/null; then
                 break
               fi
               if [ "$attempt" -eq 60 ]; then
