@@ -47,7 +47,11 @@ it("sorts both Friday hero sets alphabetically and applies the requested weekend
   const support = raceFor("support");
   expect(core.quests[4].heroes.map((hero) => hero.name)).toEqual(["Death Prophet", "Gyrocopter", "Leshrac", "Mars", "Underlord", "Weaver"]);
   expect(support.quests[4].heroes.map((hero) => hero.name)).toEqual(["Chen", "Elder Titan", "Enchantress", "Largo", "Pugna", "Shadow Demon"]);
-  expect(core.quests[5].description).toContain("GPM не ниже 700");
+  expect(core.quests[5]).toMatchObject({
+    title: "Золотой темп",
+    description: "Наберите суммарно 60 000 ценности в победных рейтинговых или обычных All Pick матчах за день.",
+    requirement: { kind: "cumulative-net-worth", target: 60_000 },
+  });
   expect(support.quests[5].description).toContain("лечением не менее 10 000");
   expect(core.quests[6]).toMatchObject({ title: "Идеалыч (почти)", description: "Выиграйте рейтинговый или обычный All Pick матч, умерев не более 3 раз." });
   expect(support.quests[6]).toMatchObject({ title: "Универсальный солдат", description: "Выиграйте рейтинговый или обычный All Pick матч: не более 10 смертей и не менее 20 содействий." });
@@ -62,7 +66,7 @@ it.each(["core", "support"] as const)("states the selected %s title and eligible
     expect(quest.description).toMatch(/рейтингов\S* или обычн\S* All Pick/);
     expect(quest.description).toMatch(/победн|Выиграйте/);
   }
-  for (const day of path === "core" ? [1] : [3]) {
+  for (const day of path === "core" ? [1, 5] : [3]) {
     expect(quests[day].description?.toLowerCase()).toContain("суммарно");
     expect(quests[day].description).toContain("за день");
   }
