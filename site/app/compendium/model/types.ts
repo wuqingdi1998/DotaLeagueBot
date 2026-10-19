@@ -97,6 +97,7 @@ export type OpenDotaMatch = {
   assists?: number | null;
   deaths?: number | null;
   gold_per_min?: number | null;
+  net_worth?: number | null;
   hero_healing?: number | null;
 };
 

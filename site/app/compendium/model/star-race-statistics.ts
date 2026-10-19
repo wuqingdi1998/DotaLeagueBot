@@ -11,8 +11,9 @@ export function hasPendingStarRaceStatistics(input: {
   now: Date;
 }): boolean {
   const requirement = input.requirement;
-  if (requirement.kind === "match-stat-win" || requirement.kind === "cumulative-assists") {
-    const stats = requirement.kind === "cumulative-assists" ? ["assists" as const] : requirement.conditions.map(({ stat }) => stat);
+  if (requirement.kind === "match-stat-win" || requirement.kind === "cumulative-assists" || requirement.kind === "cumulative-net-worth") {
+    const stats = requirement.kind === "cumulative-assists" ? ["assists" as const]
+      : requirement.kind === "cumulative-net-worth" ? ["net_worth" as const] : requirement.conditions.map(({ stat }) => stat);
     const winningIds = new Set(scanRankedWins(input).map((win) => win.matchId));
     return input.matches.some((match) => winningIds.has(String(match.match_id)) &&
       (!("isRankedOnly" in requirement) || !requirement.isRankedOnly || RANKED_LOBBY_TYPES.has(match.lobby_type)) &&

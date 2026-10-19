@@ -10,6 +10,7 @@ import {
 import { currentMoscowDay } from "../model/time";
 import { isFinalRaceDate } from "../model/final-star-race-definitions";
 import { starRaceQuestForPlayer } from "./final-race-path";
+import { enrichStarRaceNetWorth } from "./final-race-net-worth";
 import { runeChallengeWindowStart } from "../model/rune-window";
 import type { MatchingWin, OpenDotaMatch } from "../model/types";
 import { fetchRecentPlayerMatches } from "./opendota";
@@ -93,6 +94,8 @@ function starRaceDetail(
       return "Победа по условиям выбранного пути";
     case "cumulative-assists":
       return `${progress} / ${requirement.target} содействий`;
+    case "cumulative-net-worth":
+      return `${groupedNumber(progress)} / ${groupedNumber(requirement.target)} ценности`;
     case "distinct-hero-wins": {
       const heroes = wins
         .slice(0, requirement.requiredDistinctWins)
@@ -205,9 +208,13 @@ async function scanCandidate(input: {
       input = { ...input, quest: null };
     }
   }
-  const matches = await fetchRecentPlayerMatches(input.candidate.dotaId, {
+  let matches = await fetchRecentPlayerMatches(input.candidate.dotaId, {
     forceRefresh: true,
   });
+  if (input.candidate.isStarRaceCandidate && input.quest?.requirement) {
+    matches = await enrichStarRaceNetWorth({ ...input, dotaId: input.candidate.dotaId,
+      requirement: input.quest.requirement, matches });
+  }
   const sharedInput = { ...input, matches };
   const dailyChallenges = findDailyChallenges(sharedInput);
   const starRaceChallenge = findStarRaceChallenge(sharedInput);

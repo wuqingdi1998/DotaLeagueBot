@@ -50,7 +50,7 @@ describe("released final race", () => {
   });
 
   it.each([
-    ["core", 3, "gold_per_min", 650, 649], ["core", 5, "gold_per_min", 700, 699],
+    ["core", 3, "gold_per_min", 650, 649],
     ["core", 6, "deaths", 3, 4], ["support", 1, "assists", 20, 19],
     ["support", 5, "hero_healing", 10_000, 9_999], ["support", 6, "deaths", 10, 11],
   ] as const)("checks %s day %s statistic %s at its boundary", (path, day, stat, accepted, rejected) => {

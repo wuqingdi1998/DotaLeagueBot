@@ -31,6 +31,13 @@ it("keeps every contributing match for cumulative statistics", async () => {
   expect((await evaluateSavedVerification({ ...snapshot, kind: "star_race", requirement: { kind: "winning-building-damage", targetDamage: 15000 } }, now)).wins.map((win) => win.matchId))
     .toEqual(["9001", "9002"]);
 });
+it("retrieves final net worth for delayed Golden tempo verification using its original day", async () => {
+  mocks.matches.mockResolvedValue([match("2026-10-24T21:00:00+03:00", 7, 0, 9101), match("2026-10-24T22:00:00+03:00", 7, 0, 9102)]);
+  mocks.details.mockImplementation(async (id: string) => ({ matchId: id, players: [{ accountId: "100", playerSlot: 0, heroId: 7, netWorth: id === "9101" ? 25_000 : 35_000 }] }));
+  const result = await evaluateSavedVerification({ ...snapshot, kind: "star_race", dateKey: "2026-10-24",
+    startsAt: "2026-10-24T00:00:00+03:00", endsAt: "2026-10-25T00:00:00+03:00", requirement: { kind: "cumulative-net-worth", target: 60_000 } }, new Date("2026-10-25T01:00:00+03:00"));
+  expect(result.wins.map(({ matchId }) => matchId)).toEqual(["9101", "9102"]);
+});
 it("keeps waiting when statistics are missing rather than awarding from incomplete data", async () => {
   mocks.matches.mockResolvedValue([{ ...match("2026-10-11T22:00:00+03:00"), tower_damage: null }]);
   await expect(evaluateSavedVerification({ ...snapshot, kind: "star_race", requirement: { kind: "winning-building-damage", targetDamage: 15000 } }, now))

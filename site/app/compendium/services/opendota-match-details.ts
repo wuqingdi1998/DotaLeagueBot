@@ -17,6 +17,7 @@ export type OpenDotaParsedMatch = {
     accountId: string | null;
     playerSlot: number;
     heroId: number;
+    netWorth?: number;
     cosmetics: OpenDotaCosmetic[];
   }>;
 };
@@ -82,6 +83,8 @@ function parseMatchDetails(value: unknown): OpenDotaParsedMatch {
           : null,
       playerSlot: player.player_slot,
       heroId: player.hero_id,
+      ...(typeof player.net_worth === "number" && Number.isFinite(player.net_worth) && player.net_worth >= 0
+        ? { netWorth: player.net_worth } : {}),
       cosmetics: parseCosmetics(player.cosmetics),
     }];
   });

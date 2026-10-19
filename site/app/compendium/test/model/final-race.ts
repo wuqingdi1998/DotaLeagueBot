@@ -45,7 +45,8 @@ export function finalRacePreviewData(state: FinalRacePreviewState) {
       phase: index < (state.selectedDay ?? 0) ? "finished" : index === state.activeDay ? "active" : index < state.activeDay ? "finished" : "upcoming",
       heroes, progress: requirement?.kind === "winning-building-damage"
         ? { current: isCompleted ? requirement.targetDamage : 12_500, target: requirement.targetDamage, checkedAt: null }
-        : requirement?.kind === "cumulative-assists" ? { current: isCompleted ? requirement.target : 17, target: requirement.target, checkedAt: null } : null,
+        : (requirement?.kind === "cumulative-assists" || requirement?.kind === "cumulative-net-worth")
+          ? { current: isCompleted ? requirement.target : requirement.kind === "cumulative-net-worth" ? 30_000 : 17, target: requirement.target, checkedAt: null } : null,
       heroProgress: null, pendingVerification: null, finalPrediction: null,
       completion: isCompleted ? { completedAt: bounds.start.toISOString(), wins: [], isManual: false } : null,
     };

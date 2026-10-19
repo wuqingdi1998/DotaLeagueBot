@@ -11,6 +11,13 @@ afterEach(() => {
 });
 
 describe("OpenDota parsed match client", () => {
+  it.each([0, 16_139])("reads final net worth %s without substituting earned gold", async (netWorth) => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      match_id: 1, players: [{ account_id: 100, player_slot: 0, hero_id: 1, net_worth: netWorth, total_gold: 100_000 }],
+    }))));
+    expect((await fetchOpenDotaMatchDetails("1")).players[0].netWorth).toBe(netWorth);
+  });
+
   it("recognizes an Arcana assigned to the checked player", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
       match_id: 8946503036,

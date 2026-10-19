@@ -37,6 +37,7 @@ import { loadPendingArcanaVerifications } from "./star-race-arcana-repository";
 import { loadFinalPrediction } from "./star-race-final-prediction-repository";
 import { restoreStarRaceEvidence } from "./star-race-evidence";
 import { loadFinalRaceSelection, starRaceQuestForPlayer } from "./final-race-path";
+import { enrichStarRaceNetWorth } from "./final-race-net-worth";
 import { FINAL_RACE_WEEK_ID, FINAL_RACE_PATHS, finalRaceQuests } from "../model/final-star-race-definitions";
 import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
 
@@ -119,7 +120,7 @@ export async function loadStarRace(
               target: quest.requirement.targetDamage,
               checkedAt: savedProgress?.checkedAt ?? null,
             }
-          : (quest.requirement?.kind === "cumulative-ranked-win-stat" || quest.requirement?.kind === "cumulative-assists")
+          : (quest.requirement?.kind === "cumulative-ranked-win-stat" || quest.requirement?.kind === "cumulative-assists" || quest.requirement?.kind === "cumulative-net-worth")
             ? {
                 current: savedProgress?.current ?? 0,
                 target: quest.requirement.target,
@@ -244,9 +245,12 @@ export async function checkStarRaceQuest(
     );
   }
 
-  const matches = await fetchRecentPlayerMatches(dotaId, {
+  let matches = await fetchRecentPlayerMatches(dotaId, {
     forceRefresh: true,
   });
+  const bounds = starRaceQuestBounds(quest);
+  matches = await enrichStarRaceNetWorth({ dotaId, requirement: quest.requirement, matches,
+    dayStart: bounds.start, dayEnd: bounds.end, now: new Date() });
   const verificationNow = new Date();
   assertCompendiumActive(verificationNow);
   if (starRaceQuestPhase(quest, verificationNow) !== "active") {
@@ -255,7 +259,6 @@ export async function checkStarRaceQuest(
       "Время выполнения задания уже закончилось.",
     );
   }
-  const bounds = starRaceQuestBounds(quest);
   if (hasPendingStarRaceStatistics({ requirement: quest.requirement, matches,
     dayStart: bounds.start, dayEnd: bounds.end, now: verificationNow })) {
     throw new CompendiumError("OPEN_DOTA_UNAVAILABLE",
@@ -329,7 +332,7 @@ export async function checkStarRaceQuest(
         wins: evaluation.wins,
       });
     }
-  } else if ((quest.requirement.kind === "cumulative-ranked-win-stat" || quest.requirement.kind === "cumulative-assists")) {
+  } else if ((quest.requirement.kind === "cumulative-ranked-win-stat" || quest.requirement.kind === "cumulative-assists" || quest.requirement.kind === "cumulative-net-worth")) {
     await replaceStarRaceProgress({
       playerId: user.discordId,
       dateKey,

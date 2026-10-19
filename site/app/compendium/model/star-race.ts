@@ -8,6 +8,7 @@ import {
   type StarRacePrize,
 } from "./star-race-prizes";
 import { OCTOBER_COMPENDIUM_WEEKS } from "./october-star-race";
+import type { FinalRaceStatRequirement } from "./final-race-requirements";
 
 export { starRacePrizeDescription, type StarRacePrize } from "./star-race-prizes";
 
@@ -31,15 +32,7 @@ export type StarRacePhase = "upcoming" | "active" | "finished";
 export type StarRaceQuestPhase = "upcoming" | "active" | "finished";
 
 export type StarRaceQuestRequirement =
-  | {
-      readonly kind: "match-stat-win";
-      readonly isRankedOnly?: boolean;
-      readonly conditions: readonly { readonly stat: "assists" | "hero_healing" | "gold_per_min" | "deaths"; readonly minimum?: number; readonly maximum?: number }[];
-    }
-  | {
-      readonly kind: "cumulative-assists";
-      readonly target: number;
-    }
+  | FinalRaceStatRequirement
   | {
       readonly kind: "distinct-hero-wins";
       readonly requiredDistinctWins: number;
@@ -488,6 +481,7 @@ export function starRaceQuestProgressLabel(
     return requirement.stat === "hero_damage" ? "Урон по героям" : "Убийства";
   }
   if (requirement?.kind === "cumulative-assists") return "Содействия";
+  if (requirement?.kind === "cumulative-net-worth") return "Ценность";
   if (requirement?.kind === "ranked-wins") {
     return quest.dateKey >= OCTOBER_NORMAL_ALL_PICK_START_AT.slice(0, 10) ? "Победы" : "Рейтинговые победы";
   }

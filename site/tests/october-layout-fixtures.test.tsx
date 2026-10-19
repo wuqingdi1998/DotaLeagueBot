@@ -69,7 +69,7 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
       race.personalRank = 2;
       race.quests = race.quests.map((quest, day) => ({
         ...quest, phase: day === activeDay ? "active" : day < activeDay ? "finished" : "upcoming",
-        progress: (quest.requirement?.kind === "cumulative-ranked-win-stat" || quest.requirement?.kind === "cumulative-assists") ? { current: 17, target: quest.requirement.target, checkedAt: null }
+        progress: (quest.requirement?.kind === "cumulative-ranked-win-stat" || quest.requirement?.kind === "cumulative-assists" || quest.requirement?.kind === "cumulative-net-worth") ? { current: quest.requirement.kind === "cumulative-net-worth" ? 30_000 : 17, target: quest.requirement.target, checkedAt: null }
           : quest.requirement?.kind === "winning-building-damage" ? { current: day < activeDay ? 17407 : 0, target: quest.requirement.targetDamage, checkedAt: null }
           : quest.requirement?.kind === "ranked-wins" ? { current: day < activeDay ? quest.requirement.requiredWins : 0, target: quest.requirement.requiredWins, checkedAt: null } : null,
         completion: day < activeDay ? { completedAt: quest.endsAt, hasCompleteMatchEvidence: false,

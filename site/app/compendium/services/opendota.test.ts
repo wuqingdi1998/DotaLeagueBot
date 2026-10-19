@@ -23,10 +23,11 @@ describe("OpenDota client", () => {
     vi.stubGlobal("fetch", vi.fn().mockImplementation((input: URL) => Promise.resolve(new Response(JSON.stringify([
       { ...validMatch, tower_damage: input.pathname.endsWith("recentMatches") ? null : 9000,
         hero_damage: input.pathname.endsWith("recentMatches") ? undefined : 40000,
-        kills: input.pathname.endsWith("recentMatches") ? 0 : 10 },
+        kills: input.pathname.endsWith("recentMatches") ? 0 : 10,
+        net_worth: input.pathname.endsWith("recentMatches") ? null : 27_000 },
     ])))));
     expect((await fetchRecentPlayerMatches("301109815"))[0])
-      .toMatchObject({ tower_damage: 9000, hero_damage: 40000, kills: 0 });
+      .toMatchObject({ tower_damage: 9000, hero_damage: 40000, kills: 0, net_worth: 27_000 });
   });
   it("requests and separately caches a longer history for completed quest evidence", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify([validMatch])));
@@ -173,6 +174,7 @@ describe("OpenDota client", () => {
       "assists",
       "deaths",
       "gold_per_min",
+      "net_worth",
       "hero_healing",
     ]);
   });

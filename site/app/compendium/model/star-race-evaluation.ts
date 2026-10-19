@@ -30,7 +30,7 @@ export function evaluateStarRaceRequirement(input: {
     now: input.now,
   };
   const requirement = input.requirement;
-  if (requirement.kind === "match-stat-win" || requirement.kind === "cumulative-assists") {
+  if (requirement.kind === "match-stat-win" || requirement.kind === "cumulative-assists" || requirement.kind === "cumulative-net-worth") {
     return evaluateFinalRaceStatistics({ ...input, requirement });
   }
   if (requirement.kind === "ranked-wins") {

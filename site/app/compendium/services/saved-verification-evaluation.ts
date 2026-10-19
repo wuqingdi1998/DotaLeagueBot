@@ -6,6 +6,7 @@ import type { VerificationSnapshot } from "../model/verification-retries";
 import { fetchRecentPlayerMatches } from "./opendota";
 import { fetchOpenDotaMatchDetails } from "./opendota-match-details";
 import type { MatchingWin } from "../model/types";
+import { enrichStarRaceNetWorth } from "./final-race-net-worth";
 
 export type VerifiedChallengeEvidence = { wins: MatchingWin[]; partnerPlayerId?: string };
 
@@ -14,6 +15,7 @@ export async function evaluateSavedVerification(snapshot: VerificationSnapshot, 
   const matches = await fetchRecentPlayerMatches(snapshot.dotaId, { forceRefresh: true, historyDays });
   const window = { matches, dayStart: new Date(snapshot.startsAt), dayEnd: new Date(snapshot.endsAt), now };
   if (snapshot.kind === "star_race" && snapshot.requirement) {
+    window.matches = await enrichStarRaceNetWorth({ ...window, dotaId: snapshot.dotaId, requirement: snapshot.requirement });
     if (hasPendingStarRaceStatistics({ ...window, requirement: snapshot.requirement })) {
       throw new CompendiumError("OPEN_DOTA_UNAVAILABLE", "OpenDota ещё не передал статистику подходящих матчей");
     }

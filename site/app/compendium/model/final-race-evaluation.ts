@@ -1,9 +1,9 @@
 import { scanRankedWins } from "./matches";
 import { RANKED_LOBBY_TYPES } from "./constants";
-import type { StarRaceQuestRequirement } from "./star-race";
+import type { FinalRaceStatRequirement } from "./final-race-requirements";
 import type { MatchingWin, OpenDotaMatch } from "./types";
 
-export type FinalRaceStatRequirement = Extract<StarRaceQuestRequirement, { kind: "match-stat-win" | "cumulative-assists" }>;
+export type { FinalRaceStatRequirement } from "./final-race-requirements";
 
 export function evaluateFinalRaceStatistics(input: {
   requirement: FinalRaceStatRequirement; matches: OpenDotaMatch[]; dayStart: Date; dayEnd: Date; now: Date;
@@ -15,10 +15,12 @@ export function evaluateFinalRaceStatistics(input: {
     const win = eligible.get(String(match.match_id));
     if (!win) continue;
     const requirement = input.requirement;
-    if (requirement.kind === "cumulative-assists") {
-      if (typeof match.assists !== "number" || !Number.isFinite(match.assists) || match.assists < 0) continue;
+    if (requirement.kind === "cumulative-assists" || requirement.kind === "cumulative-net-worth") {
+      const value = match[requirement.kind === "cumulative-assists" ? "assists" : "net_worth"];
+      if (typeof value !== "number" || !Number.isFinite(value) || value < 0) continue;
+      eligible.delete(win.matchId);
       wins.push(win);
-      progress += match.assists;
+      progress += value;
     } else if ((!requirement.isRankedOnly || RANKED_LOBBY_TYPES.has(match.lobby_type)) &&
       requirement.conditions.every(({ stat, minimum, maximum }) => {
         const value = match[stat];
@@ -28,5 +30,5 @@ export function evaluateFinalRaceStatistics(input: {
       return { isComplete: true, progress: 1, wins: [win] };
     }
   }
-  return { isComplete: input.requirement.kind === "cumulative-assists" && progress >= input.requirement.target, progress, wins };
+  return { isComplete: input.requirement.kind !== "match-stat-win" && progress >= input.requirement.target, progress, wins };
 }

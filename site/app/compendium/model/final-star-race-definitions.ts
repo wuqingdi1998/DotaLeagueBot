@@ -17,7 +17,7 @@ export const coreChallenges: readonly FinalRaceChallenge[] = [
   { title: "Всеобщие любимчики", description: "Выиграйте рейтинговый или обычный All Pick матч на одном из героев ниже.", requirement: { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [1, 2, 74, 104, 12, 21] } },
   { title: "Богатство", description: "Выиграйте рейтинговый или обычный All Pick матч с GPM не ниже 650 (золота в минуту).", requirement: { kind: "match-stat-win", conditions: [{ stat: "gold_per_min", minimum: 650 }] } },
   { title: "Авангард", description: "Выиграйте рейтинговый или обычный All Pick матч на одном из героев ниже.", requirement: { kind: "distinct-hero-wins", requiredDistinctWins: 1, heroIds: [43, 72, 52, 129, 108, 63] } },
-  { title: "Золотой темп", description: "Выиграйте рейтинговый или обычный All Pick матч с GPM не ниже 700 (золота в минуту).", requirement: { kind: "match-stat-win", conditions: [{ stat: "gold_per_min", minimum: 700 }] } },
+  { title: "Золотой темп", description: "Наберите суммарно 60 000 ценности в победных рейтинговых или обычных All Pick матчах за день.", requirement: { kind: "cumulative-net-worth", target: 60_000 } },
   { title: "Идеалыч (почти)", description: "Выиграйте рейтинговый или обычный All Pick матч, умерев не более 3 раз.", requirement: { kind: "match-stat-win", conditions: [{ stat: "deaths", maximum: 3 }] } },
 ];
 
