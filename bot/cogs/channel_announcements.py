@@ -36,6 +36,7 @@ class ChannelAnnouncements(commands.Cog):
                         SELECT MIN(available_at) AS due_at
                         FROM channel_announcement_outbox
                         WHERE status = 'pending'
+                          AND available_at < 'infinity'::TIMESTAMPTZ
                         UNION ALL
                         SELECT MIN(report_available_at) AS due_at
                         FROM channel_announcement_outbox
