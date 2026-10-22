@@ -1,0 +1,16 @@
+.league-backdrop-preview-shell { position: relative; isolation: isolate; }
+.league-backdrop {
+  position: fixed;
+  inset: 76px 0 0;
+  z-index: -1;
+  pointer-events: none;
+  mask-image: linear-gradient(90deg, #000, transparent 30%, transparent 70%, #000);
+}
+.league-backdrop-picker { display: grid; gap: 8px; padding: 12px 0; border-top: 1px solid var(--line); }
+.league-backdrop-picker > span { font-size: 13px; color: var(--muted); }
+.league-backdrop-picker select {
+  width: 100%; min-width: 0; max-width: 100%; padding: 9px 10px;
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: 13px;
+}
+@media (max-width: 1050px) { .league-backdrop { display: none; } }
