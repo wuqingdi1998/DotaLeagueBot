@@ -99,25 +99,25 @@ describe("season overview page", () => {
     expect(model).toContain("Linken’s Sphere SD Fastcup #2");
     expect(model).toContain("Linken’s Sphere Fastcup #14");
     expect(model).toContain("Linken’s Sphere CD Fastcup #8");
-    expect(model).toContain("Linken’s Sphere Fastcup #15");
+    expect(model).not.toContain("Linken’s Sphere Fastcup #15");
     expect(model).toContain('period: "6 сентября – 20 декабря 2026"');
     expect(model).toContain('period: "2 ноября – 13 декабря 2026"');
     expect(model).toContain('startsOn: "2026-09-12"');
     expect(model).toContain('endsOn: "2026-12-06"');
-    expect(model.match(/startsOn: "/g)).toHaveLength(5);
-    expect(model.match(/endsOn: "/g)).toHaveLength(5);
+    expect(model.match(/startsOn: "/g)).toHaveLength(4);
+    expect(model.match(/endsOn: "/g)).toHaveLength(4);
     expect(model.match(/period: "/g)).toHaveLength(2);
-    expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(4);
+    expect(model.match(/prize: "2 000 ₽"/g)).toHaveLength(3);
     expect(model).toMatch(/title: "Linken’s Sphere Fastcup #14",\s*prize: "1 500 ₽"/);
-    expect(model.match(/format: "/g)).toHaveLength(5);
-    expect(model.match(/^    accent: "/gm)).toHaveLength(5);
+    expect(model.match(/format: "/g)).toHaveLength(4);
+    expect(model.match(/^    accent: "/gm)).toHaveLength(4);
     expect(model.match(/^    accent: "cd"/gm)).toHaveLength(2);
     expect(model.match(/^    accent: "sd"/gm)).toHaveLength(1);
-    expect(model.match(/^    accent: "cm"/gm)).toHaveLength(2);
+    expect(model.match(/^    accent: "cm"/gm)).toHaveLength(1);
     expect(model).toContain('format: "Capitan\'s Draft"');
     expect(model).toContain('format: "Single Draft"');
     expect(model).toContain('format: "Capitan\'s Mode"');
-    expect(model.match(/tournamentHref: null/g)).toHaveLength(6);
+    expect(model.match(/tournamentHref: null/g)).toHaveLength(5);
     expect(fastCupSection).toContain("fastCupOverviews.map");
     expect(fastCupSection).toContain(">Fastcup<");
     expect(fastCupSection).toContain("fast-cups-title-row");
@@ -161,7 +161,7 @@ describe("season overview page", () => {
       /\.season-primary-grid\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/,
     );
     expect(secondaryStyles).toMatch(
-      /\.fast-cups-grid\s*\{[^}]*grid-template-columns:\s*repeat\(5, minmax\(0, 1fr\)\);/,
+      /\.fast-cups-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4, minmax\(0, 1fr\)\);/,
     );
     expect(routeStyles).toContain("64-season-overview.css");
     expect(secondaryStyles).toContain(".fast-cups-grid");

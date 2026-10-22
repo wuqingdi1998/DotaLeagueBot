@@ -9,7 +9,6 @@ export const seasonTournamentLinkIds = [
   "sd-fastcup-2",
   "fastcup-14",
   "cd-fastcup-8",
-  "fastcup-15",
 ] as const;
 
 export type SeasonTournamentLinkId =
@@ -177,20 +176,10 @@ export const fastCupOverviews: readonly FastCupOverview[] = [
     linkId: "cd-fastcup-8",
     title: "Linken’s Sphere CD Fastcup #8",
     prize: "2 000 ₽",
-    startsOn: "2026-10-24",
-    endsOn: "2026-10-25",
-    format: "Capitan's Draft",
-    accent: "cd",
-    tournamentHref: null,
-  }),
-  defineFastCup({
-    linkId: "fastcup-15",
-    title: "Linken’s Sphere Fastcup #15",
-    prize: "2 000 ₽",
     startsOn: "2026-12-05",
     endsOn: "2026-12-06",
-    format: "Capitan's Mode",
-    accent: "cm",
+    format: "Capitan's Draft",
+    accent: "cd",
     tournamentHref: null,
   }),
 ] as const;

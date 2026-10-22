@@ -10,7 +10,6 @@ describe("featured Fastcup selection", () => {
       "12–13 сентября 2026",
       "26–27 сентября 2026",
       "10–11 октября 2026",
-      "24–25 октября 2026",
       "5–6 декабря 2026",
     ]);
   });
@@ -33,6 +32,17 @@ describe("featured Fastcup selection", () => {
   it("falls back to the latest tournament after the season", () => {
     expect(
       selectFeaturedFastCup("2026-12-31", fastCupOverviews)?.linkId,
-    ).toBe("fastcup-15");
+    ).toBe("cd-fastcup-8");
+  });
+
+  it("moves CD Fastcup 8 to December and removes the cancelled event", () => {
+    expect(fastCupOverviews.map((cup) => cup.linkId)).toEqual([
+      "cd-fastcup-7", "sd-fastcup-2", "fastcup-14", "cd-fastcup-8",
+    ]);
+    expect(selectFeaturedFastCup("2026-10-24")).toMatchObject({
+      linkId: "cd-fastcup-8", startsOn: "2026-12-05", endsOn: "2026-12-06",
+      format: "Capitan's Draft", prize: "2 000 ₽", accent: "cd",
+    });
+    expect(selectFeaturedFastCup("2026-12-05")?.linkId).toBe("cd-fastcup-8");
   });
 });

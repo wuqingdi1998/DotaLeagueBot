@@ -7,6 +7,7 @@ import {
 describe("season tournament links", () => {
   it("recognizes only links shown as editable on the season page", () => {
     expect(isSeasonTournamentLinkId("cd-fastcup-7")).toBe(true);
+    expect(isSeasonTournamentLinkId("fastcup-15")).toBe(false);
     expect(isSeasonTournamentLinkId("league-season-9")).toBe(false);
     expect(isSeasonTournamentLinkId(7)).toBe(false);
   });
