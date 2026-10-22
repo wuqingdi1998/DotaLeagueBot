@@ -125,7 +125,7 @@ export function OctoberStarEarningGuide({
                 <strong><FaStar aria-hidden="true" /> {OCTOBER_SUBSCRIBER_MAX_STARS}</strong>
               </div>
               <div>
-                <span>Абсолютный максимум с двумя победами на Fastcup</span>
+                <span>Абсолютный максимум с победой на Fastcup</span>
                 <strong><FaStar aria-hidden="true" /> {OCTOBER_ABSOLUTE_MAX_STARS}</strong>
               </div>
             </div>

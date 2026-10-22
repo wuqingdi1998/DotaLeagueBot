@@ -36,7 +36,7 @@ export const OCTOBER_FASTCUP_PLACE_REWARDS = [
   { place: "other", stars: 1 },
 ] as const;
 
-const octoberFastcupLinkIds = new Set(["fastcup-14", "cd-fastcup-8"]);
+const octoberFastcupLinkIds = new Set(["fastcup-14"]);
 const octoberFastcups = fastCupOverviews.filter(
   (fastcup) => octoberFastcupLinkIds.has(fastcup.linkId),
 );
@@ -62,6 +62,8 @@ const dailyActivityStars = octoberDates.reduce(
 );
 const firstPlaceFastcupStars = OCTOBER_FASTCUP_PLACE_REWARDS[0].stars;
 const fastcupMaxStars = octoberFastcups.length * firstPlaceFastcupStars;
+const leagueRoundNames = new Intl.ListFormat("ru-RU", { type: "conjunction" })
+  .format(OCTOBER_LEAGUE_ROUND_NUMBERS.map((round) => `${round}-й`));
 const leagueRoundMaxStars = (
   OCTOBER_LEAGUE_ROUND_NUMBERS.length * OCTOBER_LEAGUE_ROUND_MAXIMUM_STARS
 );
@@ -114,13 +116,13 @@ export const OCTOBER_STAR_EARNING_SOURCES: readonly OctoberStarEarningSource[] =
   {
     id: "league-rounds",
     title: "Туры сезонной лиги",
-    description: "В период компендиума пройдут 6-й, 7-й и 8-й туры. Звёзды получает каждый сыгравший участник по результату своего матча.",
+    description: `В период компендиума пройдут ${leagueRoundNames} туры. Звёзды получает каждый сыгравший участник по результату своего матча.`,
     rewardDetails: OCTOBER_LEAGUE_REWARD_DETAILS,
     maxStars: leagueRoundMaxStars,
   },
   {
     id: "fastcups",
-    title: "Fastcup #14 и CD Fastcup #8",
+    title: octoberFastcups.map((cup) => cup.title.replace("Linken’s Sphere ", "")).join(" и "),
     description: `${octoberFastcups.map((fastcup) => fastcup.period).join(". ")}. Звёзды получает каждый игрок команды по итоговому месту.`,
     tournaments: octoberFastcups.map((fastcup) => ({
       linkId: fastcup.linkId,

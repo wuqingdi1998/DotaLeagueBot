@@ -115,6 +115,17 @@ try {
     await page.getByRole("dialog").waitFor({ state: "hidden" });
     await page.waitForFunction(() => document.body.style.overflow === "");
     assert.equal(await page.evaluate(() => document.body.style.overflow), "");
+    await page.getByRole("button", { name: "Как получить звёзды?", exact: true }).click();
+    const guide = page.locator(".october-star-guide-dialog[open]");
+    assert.match(await guide.innerText(), /6-й, 7-й, 8-й и 9-й туры/);
+    assert.equal(await guide.getByText("CD Fastcup #8", { exact: true }).count(), 0);
+    const league = guide.locator(".october-star-guide-item").filter({ hasText: "Туры сезонной лиги" });
+    const fastcup = guide.locator(".october-star-guide-item").filter({ hasText: "Fastcup #14" });
+    assert.equal(await league.locator(":scope > strong").getAttribute("aria-label"), "Максимум 24 звёзд");
+    assert.equal(await fastcup.locator(":scope > strong").getAttribute("aria-label"), "Максимум 6 звёзд");
+    assert.equal(await guide.evaluate((element) => element.scrollWidth > element.clientWidth), false);
+    await guide.screenshot({ path: fileURLToPath(new URL(`star-guide-${width}.png`, directory)) });
+    await page.keyboard.press("Escape");
     await page.close();
   }
   console.log("Clan side tabs, daily reset, rewards, tooltips, retry and dialogs verified on desktop and mobile.");

@@ -16,7 +16,7 @@ describe("October league round rewards", () => {
     const [sql, parameters] = query.mock.calls[2];
     expect(eligibilitySql).toContain("tournament.slug = 'league-season-9'");
     expect(eligibilitySql).toContain("round.round_number = ANY($2::smallint[])");
-    expect(eligibilityParameters).toEqual([42, [6, 7, 8], OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT]);
+    expect(eligibilityParameters).toEqual([42, [6, 7, 8, 9], OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT]);
     expect(sql).toContain("END = 1 THEN $3::smallint");
     expect(sql).toContain("END >= 2 THEN $4::smallint");
     expect(sql).toContain("role.role_name = 'Массовка'");

@@ -36,7 +36,7 @@ beforeAll(async () => {
     CREATE FUNCTION compendium_stars_count_for_player(player_id bigint, earned_at timestamptz)
       RETURNS boolean LANGUAGE sql AS $$ SELECT player_id <> 4 $$;
     INSERT INTO tournaments VALUES (1, 'league-season-9');
-    INSERT INTO season_rounds VALUES (1, 1, 6);
+    INSERT INTO season_rounds VALUES (1, 1, 9);
     INSERT INTO season_lobbies VALUES (1, 1);
     INSERT INTO season_matches VALUES (42, 1, 'completed', 2, 0);
     INSERT INTO season_match_room_players VALUES (42, 1, 'a'), (42, 2, 'b'), (42, 3, 'a'),
@@ -54,7 +54,7 @@ beforeAll(async () => {
 
 afterAll(async () => { await db.close(); });
 
-it("saves league rewards with the real smallint column and October protection trigger", async () => {
+it("saves round-nine rewards with the real smallint column and October protection trigger", async () => {
   await syncOctoberLeagueMatchStars(client as never, 42);
   expect((await db.query(`SELECT player_id::int, amount, is_star_race_eligible
     FROM compendium_admin_star_adjustments ORDER BY player_id`)).rows).toEqual([

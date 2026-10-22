@@ -16,8 +16,8 @@ describe("October star earning guide", () => {
         { id: "clan-outing", maxStars: 30 },
         { id: "rune-challenge", maxStars: 30 },
         { id: "star-race", maxStars: 66 },
-        { id: "league-rounds", maxStars: 18 },
-        { id: "fastcups", maxStars: 12 },
+        { id: "league-rounds", maxStars: 24 },
+        { id: "fastcups", maxStars: 6 },
       ]);
     expect(OCTOBER_STAR_EARNING_SOURCES.map((source) => source.rewardDetails)).toEqual([
       [
@@ -60,13 +60,16 @@ describe("October star earning guide", () => {
     ]);
     expect(OCTOBER_STAR_EARNING_SOURCES.at(-1)?.tournaments).toMatchObject([
       { linkId: "fastcup-14", label: "Fastcup #14" },
-      { linkId: "cd-fastcup-8", label: "CD Fastcup #8" },
     ]);
   });
 
   it("shows base, subscriber and absolute maximums", () => {
-    expect(OCTOBER_STANDARD_MAX_STARS).toBe(174);
-    expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(204);
+    expect(OCTOBER_STAR_EARNING_SOURCES.find((source) => source.id === "league-rounds")?.description)
+      .toContain("6-й, 7-й, 8-й и 9-й туры");
+    expect(OCTOBER_STAR_EARNING_SOURCES.find((source) => source.id === "fastcups")?.description)
+      .not.toContain("декабря");
+    expect(OCTOBER_STANDARD_MAX_STARS).toBe(180);
+    expect(OCTOBER_SUBSCRIBER_MAX_STARS).toBe(210);
     expect(OCTOBER_ABSOLUTE_MAX_STARS).toBe(216);
   });
 

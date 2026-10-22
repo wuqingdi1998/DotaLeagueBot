@@ -70,8 +70,8 @@ describe("October clan prizes", () => {
     expect(html).toContain("Все способы получить звёзды");
     expect(html).toContain("Максимум без подписки и Fastcup");
     expect(html).toContain("Абсолютный максимум");
-    expect(html).toContain("174");
-    expect(html).toContain("204");
+    expect(html).toContain("180");
+    expect(html).toContain("210");
     expect(html).toContain("216");
     expect(html.match(/class="october-star-guide-reward-stars"/g)).toHaveLength(16);
     expect(html).toContain("Для Boosty-подписчиков рун кроме Руны Воды");
@@ -205,7 +205,7 @@ describe("October clan prizes", () => {
 
     expect(html).toContain('href="/tournaments/ls-fastcup-14"');
     expect(html).toContain("Fastcup #14");
-    expect(html).toContain("CD Fastcup #8");
+    expect(html).not.toContain("CD Fastcup #8");
   });
 
   it("adds the four requested winner prizes with dedicated readable thumbnails", () => {
