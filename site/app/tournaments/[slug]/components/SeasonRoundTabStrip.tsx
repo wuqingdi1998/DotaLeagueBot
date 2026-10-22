@@ -11,6 +11,8 @@ import { FiChevronLeft, FiChevronRight, FiEyeOff } from "react-icons/fi";
 import type { SeasonRound } from "../model/season-types";
 import type { TournamentTab } from "../model/types";
 
+import { nextSeasonRoundNumber } from "../model/next-season-round";
+
 const scrollEdgeTolerance = 2;
 const dragThreshold = 4;
 
@@ -36,6 +38,7 @@ export function SeasonRoundTabStrip({
   rounds,
   onOpenRound,
 }: SeasonRoundTabStripProps) {
+  const nextRoundNumber = nextSeasonRoundNumber(rounds);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const activeRoundRef = useRef<HTMLButtonElement>(null);
   const dragStateRef = useRef<DragState | null>(null);
@@ -170,7 +173,7 @@ export function SeasonRoundTabStrip({
             <button
               className={`${isActive ? "active" : ""}${
                 !round.is_visible ? " season-round-hidden" : ""
-              }`}
+              }${round.round_number === nextRoundNumber ? " is-next-round" : ""}`}
               key={round.id}
               ref={isActive ? activeRoundRef : undefined}
               onClick={() => openRoundWithoutScrolling(round.round_number)}

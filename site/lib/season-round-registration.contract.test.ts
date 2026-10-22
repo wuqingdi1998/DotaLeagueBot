@@ -15,7 +15,8 @@ const registrationRoute = source(
   "../app/api/season/registration/route.ts",
 );
 const registrationRules = source("./season-round-registration.ts");
-const seasonRoute = source("../app/api/season/route.ts");
+const seasonRoute = source("../app/api/season/route.ts")
+  + source("../app/api/season/season-round-query.ts");
 const seasonTypes = source(
   "../app/tournaments/[slug]/model/season-types.ts",
 );

@@ -107,6 +107,7 @@ export type SeasonRoundRegistration = {
 };
 
 export type SeasonRound = {
+  results_announced?: boolean;
   id: number;
   tournament_id: number;
   round_number: number;

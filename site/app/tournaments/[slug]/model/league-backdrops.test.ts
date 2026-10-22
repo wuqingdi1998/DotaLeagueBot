@@ -8,9 +8,9 @@ it("offers twenty distinct designs and rejects unknown saved choices", () => {
   expect(leagueBackdropById("none")).toBeUndefined();
   expect(leagueBackdropById("21")).toBeUndefined();
 });
-it("restricts both the picker and decoration to season-nine organizers", () => {
+it("shares the default backdrop while restricting the picker to organizers", () => {
   const page = readFileSync(new URL("../TournamentPageView.tsx", import.meta.url), "utf8");
-  expect(page).toContain('data.user?.isAdmin && data.tournament.slug === "league-season-9"');
-  expect(page).toContain("{canPreviewBackdrop && <LeagueBackdrop");
+  expect(page).toContain('data.user?.isAdmin && hasLeagueBackdrop');
+  expect(page).toContain("{hasLeagueBackdrop && <LeagueBackdrop");
   expect(page).toContain("profileMenuExtras={canPreviewBackdrop ? <LeagueBackdropPicker");
 });

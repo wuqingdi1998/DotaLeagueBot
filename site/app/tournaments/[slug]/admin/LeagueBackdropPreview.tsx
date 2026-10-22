@@ -1,7 +1,7 @@
 "use client";
 
 import { useLeagueBackdrop } from "../hooks/useLeagueBackdrop";
-import { leagueBackdropById, leagueBackdropOptions } from "../model/league-backdrops";
+import { leagueBackdropOptions } from "../model/league-backdrops";
 
 export function LeagueBackdropPicker({ organizerId }: { organizerId: string }) {
   const { selected, select } = useLeagueBackdrop(organizerId);
@@ -12,9 +12,4 @@ export function LeagueBackdropPicker({ organizerId }: { organizerId: string }) {
       {leagueBackdropOptions.map((option) => <option key={option.id} value={option.id}>{option.label}</option>)}
     </select>
   </label>;
-}
-export function LeagueBackdrop({ organizerId }: { organizerId: string }) {
-  const { selected } = useLeagueBackdrop(organizerId);
-  const option = leagueBackdropById(selected);
-  return option ? <div className="league-backdrop" aria-hidden="true" style={{ backgroundImage: option.backgroundImage }} /> : null;
 }

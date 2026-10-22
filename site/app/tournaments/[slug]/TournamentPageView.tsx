@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { LeagueBackdrop, LeagueBackdropPicker } from "./admin/LeagueBackdropPreview";
+import { LeagueBackdropPicker } from "./admin/LeagueBackdropPreview";
 import "@/app/styles/league-backdrop-preview.css";
+import { LeagueBackdrop } from "./components/LeagueBackdrop";
 import dynamic from "next/dynamic";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { TournamentModals } from "./components/TournamentModals";
@@ -91,10 +92,11 @@ export function TournamentPageView() {
     );
   }
 
-  const canPreviewBackdrop = Boolean(data.user?.isAdmin && data.tournament.slug === "league-season-9");
+  const hasLeagueBackdrop = data.tournament.slug === "league-season-9";
+  const canPreviewBackdrop = Boolean(data.user?.isAdmin && hasLeagueBackdrop);
   return (
-    <main className={`site-shell${canPreviewBackdrop ? " league-backdrop-preview-shell" : ""}`} data-theme={theme}>
-      {canPreviewBackdrop && <LeagueBackdrop organizerId={data.user!.discordId} />}
+    <main className={`site-shell${hasLeagueBackdrop ? " league-backdrop-preview-shell" : ""}`} data-theme={theme}>
+      {hasLeagueBackdrop && <LeagueBackdrop organizerId={canPreviewBackdrop ? data.user!.discordId : undefined} />}
       <SiteHeader
         theme={theme}
         setTheme={setTheme}

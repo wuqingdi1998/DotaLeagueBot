@@ -66,9 +66,6 @@ export function SeasonRoundPanel() {
     <div className="tab-panel season-round-panel">
       <div className="panel-heading">
         <div>
-          <p className="card-kicker">
-            {isRegularRound ? `Тур ${round.round_number}` : "Финальный этап"}
-          </p>
           <h3>
             {round.name ||
               (isRegularRound ? `Тур ${round.round_number}` : "Финалы")}

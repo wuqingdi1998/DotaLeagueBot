@@ -24,28 +24,29 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
     const url = `http://127.0.0.1:${server.address().port}`;
     await page.goto(url);
-    assert.equal(await page.locator(".league-backdrop").count(), 0);
+    assert.equal(await page.locator(".league-backdrop").count(), 1);
     await page.getByRole("button", { name: "Профиль участника", exact: true }).click();
     const select = page.getByRole("combobox", { name: "Оформление фона лиги" });
     assert.equal(await select.locator("option").count(), 21);
     for (let id = 1; id <= 20; id++) {
       await select.selectOption(String(id));
       assert.equal(await page.locator(".league-backdrop").count(), 1);
-      const appearance = await page.locator(".league-backdrop").evaluate(element => ({ image: getComputedStyle(element).backgroundImage, pointer: getComputedStyle(element).pointerEvents, display: getComputedStyle(element).display }));
+      const appearance = await page.locator(".league-backdrop").evaluate(element => ({ image: getComputedStyle(element).backgroundImage, top: element.getBoundingClientRect().top, pointer: getComputedStyle(element).pointerEvents, display: getComputedStyle(element).display }));
       assert.notEqual(appearance.image, "none");
       assert.equal(appearance.pointer, "none");
+      if (width > 1050) assert.equal(appearance.top, 0);
       assert.equal(appearance.display === "none", width <= 1050);
       if (width === 1920) await page.screenshot({ path: fileURLToPath(new URL(`variant-${id}.png`, directory)) });
     }
     await page.reload();
     await page.getByRole("button", { name: "Профиль участника", exact: true }).click();
     assert.equal(await select.getAttribute("aria-label"), "Оформление фона лиги");
-    assert.equal(await select.evaluate(element => element.value), "20");
+    assert.equal(await select.evaluate(element => element.value), "1");
     await select.selectOption("none");
     assert.equal(await page.locator(".league-backdrop").count(), 0);
     await select.selectOption("1");
     await page.getByRole("button", { name: "Сменить доступ", exact: true }).click();
-    assert.equal(await page.locator(".league-backdrop").count(), 0);
+    assert.equal(await page.locator(".league-backdrop").count(), 1);
     assert.equal(await select.count(), 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
     await page.close();

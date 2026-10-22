@@ -1,6 +1,7 @@
 import type { SeasonStandingSnapshot } from "@/lib/season";
 
 export type RoundRow = {
+  results_announced?: boolean;
   id: number;
   tournament_id: number;
   round_number: number;
