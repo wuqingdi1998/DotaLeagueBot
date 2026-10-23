@@ -47,8 +47,8 @@ try {
     await page.screenshot({ path: fileURLToPath(new URL(`excel-menu-${width}.png`, directory)) });
     const select = page.getByRole("combobox", { name: "Оформление фона турнира" });
     assert.equal(await select.locator("option").count(), 21);
-    assert.equal(await select.inputValue(), "3");
-    assert.match(await page.locator(".league-backdrop").getAttribute("style"), /repeating-radial-gradient/);
+    assert.equal(await select.inputValue(), "1");
+    assert.doesNotMatch(await page.locator(".league-backdrop").getAttribute("style"), /repeating-radial-gradient/);
     for (let id = 1; id <= 20; id++) {
       await select.selectOption(String(id));
       assert.equal(await page.locator(".league-backdrop").count(), 1);
@@ -62,7 +62,7 @@ try {
     await page.reload();
     await page.getByRole("button", { name: "Профиль участника", exact: true }).click();
     assert.equal(await select.getAttribute("aria-label"), "Оформление фона турнира");
-    assert.equal(await select.evaluate(element => element.value), "3");
+    assert.equal(await select.evaluate(element => element.value), "1");
     await select.selectOption("none");
     assert.equal(await page.locator(".league-backdrop").count(), 0);
     await select.selectOption("1");
@@ -71,6 +71,10 @@ try {
     assert.equal(await select.count(), 0);
     assert.equal(await download.count(), 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+    await page.goto(`${url}/directory`);
+    assert.match(await page.locator(".league-backdrop").getAttribute("style"), /repeating-radial-gradient/);
+    await page.goto(url);
+    assert.doesNotMatch(await page.locator(".league-backdrop").getAttribute("style"), /repeating-radial-gradient/);
     await page.close();
     console.log(`Twenty backdrop choices, persistence, reset and access verified at ${width}px`);
   }

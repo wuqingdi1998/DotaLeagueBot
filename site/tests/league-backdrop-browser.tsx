@@ -2,12 +2,13 @@ import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { LeagueBackdropPicker } from "@/app/tournaments/[slug]/admin/LeagueBackdropPreview";
 import { LeagueBackdrop } from "@/app/tournaments/[slug]/components/LeagueBackdrop";
+import { tournamentDirectoryBackdropId } from "@/app/tournaments/[slug]/model/league-backdrops";
 import { LeagueExcelDownload } from "@/app/tournaments/[slug]/admin/LeagueExcelDownload";
 function Preview() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   return <main className={`site-shell league-backdrop-preview-shell`} data-theme="dark">
-    <LeagueBackdrop organizerId={isAdmin ? "preview-organizer" : undefined} />
+    <LeagueBackdrop organizerId={isAdmin ? "preview-organizer" : undefined} variantId={window.location.pathname === "/directory" ? tournamentDirectoryBackdropId : undefined} />
     <header style={{ height: 76, padding: 20, display: "flex", justifyContent: "flex-end", gap: 12 }}>
       <button onClick={() => setIsAdmin(!isAdmin)}>Сменить доступ</button>
       <button onClick={() => setIsOpen(!isOpen)}>Профиль участника</button>

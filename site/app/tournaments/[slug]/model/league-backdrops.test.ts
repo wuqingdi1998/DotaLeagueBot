@@ -1,12 +1,13 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
-import { defaultLeagueBackdropId, leagueBackdropById, leagueBackdropOptions } from "./league-backdrops";
-it("defaults to icy orbital rings and includes them in the tournament directory", () => {
-  expect(defaultLeagueBackdropId).toBe("3");
-  expect(leagueBackdropById(defaultLeagueBackdropId)?.label).toContain("Орбитальные кольца");
+import { defaultLeagueBackdropId, tournamentDirectoryBackdropId, leagueBackdropById, leagueBackdropOptions } from "./league-backdrops";
+it("uses northern lights inside tournaments and orbital rings only in the directory", () => {
+  expect(defaultLeagueBackdropId).toBe("1");
+  expect(leagueBackdropById(defaultLeagueBackdropId)?.label).toContain("Северное сияние");
+  expect(leagueBackdropById(tournamentDirectoryBackdropId)?.label).toContain("Орбитальные кольца");
   const directory = readFileSync(new URL("../../TournamentsHub.tsx", import.meta.url), "utf8");
   expect(directory).toContain('<PlatformShell user={data.user} hasLeagueBackdrop>');
-  expect(directory).toContain('{hasLeagueBackdrop && <LeagueBackdrop />}');
+  expect(directory).toContain('{hasLeagueBackdrop && <LeagueBackdrop variantId={tournamentDirectoryBackdropId} />}');
 });
 it("offers twenty distinct designs and rejects unknown saved choices", () => {
   expect(leagueBackdropOptions).toHaveLength(20);

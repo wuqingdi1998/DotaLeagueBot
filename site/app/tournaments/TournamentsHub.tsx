@@ -2,6 +2,7 @@
 
 import { fetchSiteRequest } from "@/lib/site-request";
 import { LeagueBackdrop } from "./[slug]/components/LeagueBackdrop";
+import { tournamentDirectoryBackdropId } from "./[slug]/model/league-backdrops";
 import "@/app/styles/league-backdrop-preview.css";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -107,7 +108,7 @@ export function PlatformShell({
       className={`site-shell platform-shell${hasFooter ? " has-platform-footer" : ""}${hasLeagueBackdrop ? " league-backdrop-preview-shell" : ""}`}
       data-theme={theme}
     >
-      {hasLeagueBackdrop && <LeagueBackdrop />}
+      {hasLeagueBackdrop && <LeagueBackdrop variantId={tournamentDirectoryBackdropId} />}
       <SiteHeader
         theme={theme}
         setTheme={setTheme}
