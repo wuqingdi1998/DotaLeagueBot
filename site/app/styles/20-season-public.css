@@ -363,7 +363,6 @@
   border-radius: 999px;
   line-height: 1.35;
 }
-.season-round-tabs button.is-next-round { color: var(--text); }
 .season-round-tabs button.is-next-round .season-round-tab-label::after {
   position: absolute;
   top: 0;
