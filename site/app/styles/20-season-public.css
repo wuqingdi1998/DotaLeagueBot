@@ -41,6 +41,7 @@
   overflow-y: hidden;
   overscroll-behavior-inline: contain;
   scroll-behavior: smooth;
+  gap: 8px;
   scrollbar-width: none;
   touch-action: pan-x;
   cursor: grab;
@@ -56,6 +57,7 @@
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  padding-bottom: 12px;
 }
 
 .season-round-tabs button svg {
@@ -351,9 +353,35 @@
 
 .season-round-panel { margin-top: 12px; }
 .season-round-panel > .panel-heading h3 { color: var(--text); }
-.season-round-tabs button.is-next-round {
-  color: var(--text);
-  background: linear-gradient(180deg, rgba(0,195,255,.18), rgba(92,70,255,.12));
-  box-shadow: inset 0 0 0 1px rgba(0,195,255,.3), inset 0 0 18px rgba(0,195,255,.1);
-  border-radius: 9px 9px 0 0;
+.season-round-tab-label {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  line-height: 1.35;
+}
+.season-round-tabs button.is-next-round { color: var(--text); }
+.season-round-tabs button.is-next-round .season-round-tab-label::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(115deg, rgba(0,195,255,.08), rgba(0,195,255,.25), rgba(114,108,255,.18), rgba(0,195,255,.08));
+  background-size: 260% 100%;
+  box-shadow: inset 0 0 0 1px rgba(121,221,255,.12);
+  content: "";
+  animation: season-current-round-shimmer 9s ease-in-out infinite alternate;
+}
+@keyframes season-current-round-shimmer {
+  from { background-position: 0% 50%; opacity: .65; }
+  to { background-position: 100% 50%; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .season-round-tabs button.is-next-round .season-round-tab-label::before {
+    animation: none;
+    background-position: 50% 50%;
+  }
 }

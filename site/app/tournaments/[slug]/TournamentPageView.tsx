@@ -92,11 +92,10 @@ export function TournamentPageView() {
     );
   }
 
-  const hasLeagueBackdrop = data.tournament.slug === "league-season-9";
-  const canPreviewBackdrop = Boolean(data.user?.isAdmin && hasLeagueBackdrop);
+  const canPreviewBackdrop = Boolean(data.user?.isAdmin);
   return (
-    <main className={`site-shell${hasLeagueBackdrop ? " league-backdrop-preview-shell" : ""}`} data-theme={theme}>
-      {hasLeagueBackdrop && <LeagueBackdrop organizerId={canPreviewBackdrop ? data.user!.discordId : undefined} />}
+    <main className="site-shell league-backdrop-preview-shell" data-theme={theme}>
+      <LeagueBackdrop organizerId={canPreviewBackdrop ? data.user!.discordId : undefined} />
       <SiteHeader
         theme={theme}
         setTheme={setTheme}

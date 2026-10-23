@@ -26,7 +26,7 @@ try {
     await page.goto(url);
     assert.equal(await page.locator(".league-backdrop").count(), 1);
     await page.getByRole("button", { name: "Профиль участника", exact: true }).click();
-    const select = page.getByRole("combobox", { name: "Оформление фона лиги" });
+    const select = page.getByRole("combobox", { name: "Оформление фона турнира" });
     assert.equal(await select.locator("option").count(), 21);
     for (let id = 1; id <= 20; id++) {
       await select.selectOption(String(id));
@@ -40,7 +40,7 @@ try {
     }
     await page.reload();
     await page.getByRole("button", { name: "Профиль участника", exact: true }).click();
-    assert.equal(await select.getAttribute("aria-label"), "Оформление фона лиги");
+    assert.equal(await select.getAttribute("aria-label"), "Оформление фона турнира");
     assert.equal(await select.evaluate(element => element.value), "1");
     await select.selectOption("none");
     assert.equal(await page.locator(".league-backdrop").count(), 0);

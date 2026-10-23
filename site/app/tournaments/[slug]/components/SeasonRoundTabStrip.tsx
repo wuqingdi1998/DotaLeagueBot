@@ -179,18 +179,21 @@ export function SeasonRoundTabStrip({
               onClick={() => openRoundWithoutScrolling(round.round_number)}
               role="tab"
               aria-selected={isActive}
+              aria-current={round.round_number === nextRoundNumber ? "step" : undefined}
               title={
                 round.is_visible
                   ? round.name || `Тур ${round.round_number}`
                   : "Тур скрыт от обычных пользователей"
               }
             >
+              <span className="season-round-tab-label">
               {round.round_kind === "finals"
                 ? "Финалы"
                 : `Тур ${round.round_number}`}
               {!round.is_visible && isOrganizer && (
                 <FiEyeOff aria-label="Скрыт" />
               )}
+              </span>
             </button>
           );
         })}
