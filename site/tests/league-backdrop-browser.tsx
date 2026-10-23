@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import { LeagueBackdropPicker } from "@/app/tournaments/[slug]/admin/LeagueBackdropPreview";
 import { LeagueBackdrop } from "@/app/tournaments/[slug]/components/LeagueBackdrop";
+import { LeagueExcelDownload } from "@/app/tournaments/[slug]/admin/LeagueExcelDownload";
 function Preview() {
   const [isAdmin, setIsAdmin] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -10,8 +11,9 @@ function Preview() {
     <header style={{ height: 76, padding: 20, display: "flex", justifyContent: "flex-end", gap: 12 }}>
       <button onClick={() => setIsAdmin(!isAdmin)}>Сменить доступ</button>
       <button onClick={() => setIsOpen(!isOpen)}>Профиль участника</button>
-      {isAdmin && isOpen && <div style={{ position: "absolute", right: 20, top: 76, width: 320, background: "var(--surface)", padding: 16, zIndex: 2 }}>
+      {isAdmin && isOpen && <div className="player-profile-popover" style={{ position: "absolute", right: 20, top: 76, width: 320, background: "var(--surface)", padding: 16, zIndex: 2 }}>
         <LeagueBackdropPicker organizerId="preview-organizer" />
+        <LeagueExcelDownload slug="test-league" title="Лига 9" />
       </div>}
     </header>
     <section style={{ maxWidth: 1100, margin: "120px auto", minHeight: 500, padding: 40, background: "var(--surface)", borderRadius: 24 }}>

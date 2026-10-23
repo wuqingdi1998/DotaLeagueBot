@@ -14,5 +14,6 @@ it("shares the default backdrop while restricting the picker to organizers", () 
   expect(page).not.toContain('data.tournament.slug ===');
   expect(page).toContain('className="site-shell league-backdrop-preview-shell"');
   expect(page).toContain("<LeagueBackdrop organizerId=");
-  expect(page).toContain("profileMenuExtras={canPreviewBackdrop ? <LeagueBackdropPicker");
+  expect(page).toContain("profileMenuExtras={canPreviewBackdrop ? <>");
+  expect(page).toContain("<LeagueBackdropPicker organizerId=");
 });

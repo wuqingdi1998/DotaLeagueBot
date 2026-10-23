@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { LeagueExcelDownload } from "./admin/LeagueExcelDownload";
 import { LeagueBackdropPicker } from "./admin/LeagueBackdropPreview";
 import "@/app/styles/league-backdrop-preview.css";
 import { LeagueBackdrop } from "./components/LeagueBackdrop";
@@ -101,7 +102,10 @@ export function TournamentPageView() {
         setTheme={setTheme}
         user={data.user}
         discordUrl={data.tournament.discord_url}
-        profileMenuExtras={canPreviewBackdrop ? <LeagueBackdropPicker organizerId={data.user!.discordId} /> : undefined}
+        profileMenuExtras={canPreviewBackdrop ? <>
+          <LeagueBackdropPicker organizerId={data.user!.discordId} />
+          {data.tournament.tournament_type === "seasonal" && <LeagueExcelDownload slug={data.tournament.slug} title={data.tournament.name} />}
+        </> : undefined}
       />
 
       <TournamentHero />
