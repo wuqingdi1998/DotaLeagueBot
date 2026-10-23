@@ -1,3 +1,5 @@
+export const defaultLeagueBackdropId = "3";
+
 const palettes = [
   ["Ледяная сфера", "0,195,255", "92,70,255"],
   ["Изумрудный сад", "0,214,154", "0,124,189"],

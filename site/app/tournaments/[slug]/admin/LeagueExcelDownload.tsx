@@ -21,8 +21,8 @@ export function LeagueExcelDownload({ slug, title }: { slug: string; title: stri
   }
 
   return <>
-    <button type="button" disabled={isDownloading} onClick={() => void download()}>
-      {isDownloading ? "Готовим Excel…" : "Скачать Excel"} <FiDownload aria-hidden="true" />
+    <button className="league-excel-download" type="button" disabled={isDownloading} onClick={() => void download()}>
+      <span>{isDownloading ? "Готовим Excel…" : "Скачать Excel"}</span><FiDownload aria-hidden="true" />
     </button>
     {error && <span role="alert">{error}</span>}
   </>;

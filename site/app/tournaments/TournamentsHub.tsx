@@ -1,6 +1,8 @@
 "use client";
 
 import { fetchSiteRequest } from "@/lib/site-request";
+import { LeagueBackdrop } from "./[slug]/components/LeagueBackdrop";
+import "@/app/styles/league-backdrop-preview.css";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
@@ -86,11 +88,13 @@ export function PlatformShell({
   user,
   hasFooter = true,
   profileMenuExtras,
+  hasLeagueBackdrop = false,
 }: {
   children: React.ReactNode;
   user: SessionUser | null;
   hasFooter?: boolean;
   profileMenuExtras?: React.ReactNode;
+  hasLeagueBackdrop?: boolean;
 }) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   useEffect(() => {
@@ -100,9 +104,10 @@ export function PlatformShell({
 
   return (
     <main
-      className={`site-shell platform-shell${hasFooter ? " has-platform-footer" : ""}`}
+      className={`site-shell platform-shell${hasFooter ? " has-platform-footer" : ""}${hasLeagueBackdrop ? " league-backdrop-preview-shell" : ""}`}
       data-theme={theme}
     >
+      {hasLeagueBackdrop && <LeagueBackdrop />}
       <SiteHeader
         theme={theme}
         setTheme={setTheme}
@@ -333,7 +338,7 @@ export function TournamentsDirectory({
   }
 
   return (
-    <PlatformShell user={data.user}>
+    <PlatformShell user={data.user} hasLeagueBackdrop>
       <section className="directory-hero">
         <div>
           <h1>Турниры</h1>

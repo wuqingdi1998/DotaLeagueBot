@@ -1,0 +1,16 @@
+.league-excel-download {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  line-height: 1.4;
+}
+.league-excel-download > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.league-excel-download:disabled { cursor: wait; opacity: .65; }

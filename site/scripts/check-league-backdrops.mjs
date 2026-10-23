@@ -12,7 +12,7 @@ await build({ configFile: false, root: fileURLToPath(root), logLevel: "error",
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
   build: { outDir: fileURLToPath(new URL("bundle/", directory)), emptyOutDir: true,
     lib: { entry: fileURLToPath(new URL("tests/league-backdrop-browser.tsx", root)), formats: ["iife"], name: "BackdropCheck", fileName: () => "preview.js" } } });
-const css = ["01-foundation.css", "02-site-header.css", "league-backdrop-preview.css"].map(name => readFileSync(new URL(`app/styles/${name}`, root), "utf8")).join("\n");
+const css = ["01-foundation.css", "02-site-header.css", "league-backdrop-preview.css", "league-excel-download.css"].map(name => readFileSync(new URL(`app/styles/${name}`, root), "utf8")).join("\n");
 const server = createServer((request, response) => {
   if (request.url === "/preview.js") { response.setHeader("content-type", "text/javascript"); response.end(readFileSync(new URL("bundle/preview.js", directory))); }
   else { response.setHeader("content-type", "text/html; charset=utf-8"); response.end(`<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div id="root"></div><script src="/preview.js"></script>`); }
@@ -33,6 +33,11 @@ try {
     assert.equal(await download.count(), 1);
     const bounds = await download.boundingBox();
     assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width);
+    const textBounds = await download.locator("span").boundingBox();
+    const iconBounds = await download.locator("svg").boundingBox();
+    assert.ok(Math.abs(textBounds.y + textBounds.height / 2 - iconBounds.y - iconBounds.height / 2) < 1);
+    assert.equal(iconBounds.width, 16);
+    assert.ok(bounds.height >= 40);
     const savedFile = page.waitForEvent("download");
     await download.click();
     const file = await savedFile;
@@ -42,6 +47,8 @@ try {
     await page.screenshot({ path: fileURLToPath(new URL(`excel-menu-${width}.png`, directory)) });
     const select = page.getByRole("combobox", { name: "Оформление фона турнира" });
     assert.equal(await select.locator("option").count(), 21);
+    assert.equal(await select.inputValue(), "3");
+    assert.match(await page.locator(".league-backdrop").getAttribute("style"), /repeating-radial-gradient/);
     for (let id = 1; id <= 20; id++) {
       await select.selectOption(String(id));
       assert.equal(await page.locator(".league-backdrop").count(), 1);
@@ -55,7 +62,7 @@ try {
     await page.reload();
     await page.getByRole("button", { name: "Профиль участника", exact: true }).click();
     assert.equal(await select.getAttribute("aria-label"), "Оформление фона турнира");
-    assert.equal(await select.evaluate(element => element.value), "1");
+    assert.equal(await select.evaluate(element => element.value), "3");
     await select.selectOption("none");
     assert.equal(await page.locator(".league-backdrop").count(), 0);
     await select.selectOption("1");
