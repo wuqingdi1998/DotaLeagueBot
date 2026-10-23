@@ -19,11 +19,13 @@ const migration = source(
 );
 
 describe("tournament hero collapse", () => {
-  it("keeps the hero open by default and stores a separate account preference", () => {
+  it("keeps the hero collapsed by default and stores a separate account preference", () => {
     expect(migration).toContain(
       "PRIMARY KEY (tournament_id, player_id)",
     );
-    expect(migration).toContain("is_collapsed BOOLEAN NOT NULL DEFAULT FALSE");
+    expect(hero).toContain("DEFAULT_TOURNAMENT_HERO_COLLAPSED");
+    expect(hero).not.toContain("Турнир сообщества");
+    expect(hero).not.toContain('className="eyebrow"');
     expect(tournamentRoute).toContain("loadTournamentHeroPreference(");
     expect(route).toContain("requireSession()");
     expect(hook).toContain('fetchSiteRequest(');
@@ -36,7 +38,7 @@ describe("tournament hero collapse", () => {
     expect(hero).toContain("FiChevronUp");
     expect(hero).toContain("FiChevronDown");
     expect(styles).toMatch(
-      /\.tournament-hero-toggle\s*\{[^}]*top:\s*100%;[^}]*right:\s*0;/,
+      /\.tournament-hero-toggle\s*\{[^}]*top:\s*100%;[^}]*right:\s*clamp\(/,
     );
   });
 

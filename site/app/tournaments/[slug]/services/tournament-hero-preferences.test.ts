@@ -20,23 +20,23 @@ beforeEach(() => {
 });
 
 describe("tournament hero preference storage", () => {
-  it("opens the hero by default for guests and participants without a row", async () => {
+  it("collapses the hero by default for guests and participants without a row", async () => {
     expect(await loadTournamentHeroPreference(null, 7)).toEqual({
-      isCollapsed: false,
+      isCollapsed: true,
     });
     expect(mocks.one).not.toHaveBeenCalled();
 
     mocks.one.mockResolvedValue(null);
     expect(await loadTournamentHeroPreference("123", 7)).toEqual({
-      isCollapsed: false,
+      isCollapsed: true,
     });
   });
 
   it("loads the value for the requested participant and tournament", async () => {
-    mocks.one.mockResolvedValue({ isCollapsed: true });
+    mocks.one.mockResolvedValue({ isCollapsed: false });
 
     expect(await loadTournamentHeroPreference("123", 7)).toEqual({
-      isCollapsed: true,
+      isCollapsed: false,
     });
     expect(mocks.one).toHaveBeenCalledWith(expect.any(String), [7, "123"]);
   });

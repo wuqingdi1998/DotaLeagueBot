@@ -1,11 +1,11 @@
 .hero {
   position: relative;
   display: grid;
-  min-height: 650px;
-  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.65fr);
+  min-height: 434px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.65fr);
   align-items: center;
-  gap: clamp(46px, 6vw, 96px);
-  padding: 62px clamp(26px, 8vw, 130px) 48px;
+  gap: clamp(32px, 5vw, 72px);
+  padding: 32px clamp(26px, 8vw, 130px) 28px;
   background:
     linear-gradient(110deg, transparent 54%, rgba(49, 85, 181, 0.065) 54%, rgba(0, 195, 255, 0.08) 58%, transparent 58%),
     radial-gradient(circle at 78% 34%, rgba(0, 195, 255, 0.18), transparent 30%),
@@ -112,12 +112,12 @@
 
 .hero h1 {
   max-width: 870px;
-  margin: 0;
+  margin: 18px 0 0;
   font-family: "5ka Sans Design", sans-serif;
-  font-size: clamp(60px, 7.3vw, 108px);
+  font-size: clamp(44px, 4.8vw, 72px);
   font-weight: 600;
   letter-spacing: -0.045em;
-  line-height: 0.88;
+  line-height: 0.96;
   text-transform: uppercase;
 }
 
@@ -128,10 +128,14 @@
 
 .hero-description {
   max-width: 660px;
-  margin: 28px 0 0;
+  margin: 18px 0 0;
   color: var(--muted);
   font-size: 17px;
   line-height: 1.65;
+}
+
+.hero .hero-buttons {
+  margin-top: 22px;
 }
 
 .hero-footnote {
@@ -143,11 +147,11 @@
 
 .hero-poster {
   width: min(100%, 430px);
-  min-height: 515px;
+  min-height: 344px;
   justify-self: center;
   border: 1px solid var(--line-strong);
   border-radius: 28px;
-  padding: 28px;
+  padding: 22px;
   background:
     linear-gradient(150deg, rgba(0, 195, 255, 0.2), transparent 43%),
     radial-gradient(circle at 95% 95%, rgba(49, 85, 181, 0.12), transparent 42%),
@@ -183,8 +187,8 @@
 .poster-logo-wrap {
   position: relative;
   display: grid;
-  width: 270px;
-  height: 270px;
+  width: 210px;
+  height: 170px;
   margin: 17px auto 5px;
   place-items: center;
 }
@@ -192,15 +196,16 @@
 .poster-logo-wrap img {
   position: relative;
   z-index: 2;
-  width: 155px;
+  width: 112px;
+  height: auto;
   border-radius: 34px;
   box-shadow: 0 20px 60px rgba(0, 195, 255, 0.3);
 }
 
 .poster-ring {
   position: absolute;
-  width: 245px;
-  height: 115px;
+  width: 190px;
+  height: 88px;
   border: 1px solid var(--blue);
   border-radius: 50%;
   transform: rotate(-25deg);
@@ -222,7 +227,7 @@
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 25px;
+  margin-bottom: 18px;
   font-family: "5ka Sans Design", sans-serif;
   text-transform: uppercase;
 }
@@ -248,7 +253,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   border-top: 1px solid var(--line);
-  padding-top: 21px;
+  padding-top: 15px;
 }
 
 .poster-meta div {
@@ -339,7 +344,7 @@
 
 .quick-facts > div {
   display: flex;
-  min-height: 94px;
+  min-height: 64px;
   align-items: center;
   justify-content: center;
   gap: 17px;
@@ -373,7 +378,7 @@
 .tournament-section {
   max-width: 1320px;
   margin: 0 auto;
-  padding: 82px 38px 105px;
+  padding: 28px 38px 105px;
 }
 
 .section-heading {

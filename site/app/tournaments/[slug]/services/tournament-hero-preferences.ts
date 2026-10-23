@@ -1,11 +1,12 @@
 import { one, query } from "@/lib/db";
+import { DEFAULT_TOURNAMENT_HERO_COLLAPSED } from "../model/tournament-hero-preference";
 
 export type TournamentHeroPreference = {
   isCollapsed: boolean;
 };
 
 const defaultTournamentHeroPreference: TournamentHeroPreference = {
-  isCollapsed: false,
+  isCollapsed: DEFAULT_TOURNAMENT_HERO_COLLAPSED,
 };
 
 export async function loadTournamentHeroPreference(

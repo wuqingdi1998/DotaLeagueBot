@@ -1,0 +1,1 @@
+export const DEFAULT_TOURNAMENT_HERO_COLLAPSED = true;

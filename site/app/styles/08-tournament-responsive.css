@@ -1,8 +1,8 @@
 @media (max-width: 1050px) {
   .hero {
     grid-template-columns: minmax(0, 1fr);
-    gap: 70px;
-    padding-top: 56px;
+    gap: 32px;
+    padding-top: 32px;
   }
 
   .hero-poster {
@@ -24,7 +24,7 @@
     max-width: 100%;
     min-height: auto;
     grid-template-columns: minmax(0, 1fr);
-    padding: 48px 20px 70px;
+    padding: 28px 20px 32px;
   }
 
   .hero h1 {
@@ -57,21 +57,21 @@
 
   .hero-poster {
     width: min(100%, 430px);
-    min-height: 475px;
+    min-height: 320px;
     padding: 23px;
   }
 
   .poster-logo-wrap {
-    width: 230px;
-    height: 245px;
+    width: 210px;
+    height: 165px;
   }
 
   .poster-ring {
-    width: 220px;
+    width: 190px;
   }
 
   .poster-logo-wrap img {
-    width: 140px;
+    width: 112px;
   }
 
   .poster-dates {
@@ -92,7 +92,7 @@
   }
 
   .tournament-section {
-    padding: 36px 18px 52px;
+    padding: 24px 18px 52px;
   }
 
   .section-heading {
@@ -399,7 +399,7 @@
 
 @media (max-width: 380px) {
   .tournament-section {
-    padding: 28px 10px 44px;
+    padding: 24px 10px 44px;
   }
 
   .tournament-editor,

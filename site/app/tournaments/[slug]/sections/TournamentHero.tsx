@@ -13,6 +13,7 @@ import {
 } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
 import { useTournamentHeroVisibility } from "../hooks/useTournamentHeroVisibility";
+import { DEFAULT_TOURNAMENT_HERO_COLLAPSED } from "../model/tournament-hero-preference";
 import { formatDayMonth, formatTimelineMoment } from "../model/formatters";
 
 export function TournamentHero() {
@@ -26,7 +27,7 @@ export function TournamentHero() {
   } = useTournament();
   const { isCollapsed, isSaving, toggleHeroVisibility } =
     useTournamentHeroVisibility({
-      initialIsCollapsed: data?.heroPreference.isCollapsed ?? false,
+      initialIsCollapsed: data?.heroPreference.isCollapsed ?? DEFAULT_TOURNAMENT_HERO_COLLAPSED,
       playerId: data?.user?.discordId ?? null,
       tournamentId: data?.tournament.id ?? null,
       onSaveError: setToast,
@@ -84,7 +85,6 @@ export function TournamentHero() {
             <i />
             {tournament.status_label}
           </div>
-          <p className="eyebrow">{tournament.eyebrow}</p>
           <h1>
             {tournament.headline}
             <span>{tournament.headline_accent}</span>
@@ -300,7 +300,6 @@ export function TournamentHeading() {
   return (
     <div className="section-heading">
       <div className="tournament-heading-copy">
-        {!isPast && <p className="section-kicker">Турнир сообщества</p>}
         <h2>{tournament.name}</h2>
         <p className="tournament-heading-dates">
           {formatTournamentShortDateRange(
