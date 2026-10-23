@@ -364,24 +364,24 @@
   line-height: 1.35;
 }
 .season-round-tabs button.is-next-round { color: var(--text); }
-.season-round-tabs button.is-next-round .season-round-tab-label::before {
+.season-round-tabs button.is-next-round .season-round-tab-label::after {
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: inherit;
-  background: linear-gradient(115deg, rgba(0,195,255,.08), rgba(0,195,255,.25), rgba(114,108,255,.18), rgba(0,195,255,.08));
-  background-size: 260% 100%;
-  box-shadow: inset 0 0 0 1px rgba(121,221,255,.12);
+  top: 0;
+  right: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #35d78a;
+  pointer-events: none;
   content: "";
-  animation: season-current-round-shimmer 9s ease-in-out infinite alternate;
+  animation: season-current-round-pulse 2.4s ease-in-out infinite;
 }
-@keyframes season-current-round-shimmer {
-  from { background-position: 0% 50%; opacity: .65; }
-  to { background-position: 100% 50%; opacity: 1; }
+@keyframes season-current-round-pulse {
+  0%, 100% { opacity: .3; }
+  50% { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .season-round-tabs button.is-next-round .season-round-tab-label::before {
+  .season-round-tabs button.is-next-round .season-round-tab-label::after {
     animation: none;
-    background-position: 50% 50%;
   }
 }
