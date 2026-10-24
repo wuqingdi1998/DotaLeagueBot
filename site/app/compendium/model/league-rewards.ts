@@ -1,4 +1,5 @@
 export const OCTOBER_LEAGUE_ROUND_NUMBERS = [6, 7, 8, 9] as const;
+export const OCTOBER_LEAGUE_FINAL_ROUND = 9;
 
 export const OCTOBER_LEAGUE_REWARD_STARS = {
   participation: 1,

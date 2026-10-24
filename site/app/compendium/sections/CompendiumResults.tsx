@@ -10,6 +10,7 @@ import {
   type CompendiumResultsData,
 } from "../model/results";
 import { StarRacePrizePreview } from "../components/StarRacePrizePreview";
+import { CompendiumClanResults } from "./CompendiumClanResults";
 
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
@@ -100,11 +101,12 @@ export function CompendiumResults({
       <section className="compendium-results-hero">
         <div className="compendium-results-hero-copy">
           <span className="compendium-results-eyebrow">{isOctober ? "СЕЗОН 9 · 5–25 ОКТЯБРЯ 2026" : "THE INTERNATIONAL 2026"}</span>
-          <h1>Результаты Компендиума</h1>
+          <h1>{data.closure === "settling" ? "Подведение итогов Компендиума" : "Результаты Компендиума"}</h1>
           <p>
             {isOctober
               ? data.isFinished ? "Компендиум завершён. Здесь сохранены личные результаты и итоги трёх недель гонки."
-                : "Текущие результаты компендиума. Зачёт продолжается до 26 октября, 00:00 МСК."
+                : data.closure === "settling" ? "Задания завершены. Ожидаем завершения 9-го тура лиги и начисления звёзд за него. Эти результаты ещё не окончательные."
+                  : "Задания доступны до 26 октября, 00:00 МСК. Итоги появятся после завершения 9-го тура лиги и начисления звёзд."
               : "Ивент завершён. Здесь навсегда остаются общий результат сообщества, личные достижения и итоги двух недель гонки за звёздами."}
           </p>
         </div>
@@ -114,6 +116,8 @@ export function CompendiumResults({
           <span>звёзд собрало сообщество</span>
         </div>
       </section>
+
+      {isOctober && data.clans && <CompendiumClanResults clans={data.clans} isFinished={data.isFinished === true} />}
 
       {!isOctober && <section className="compendium-results-section compendium-community-result">
         <header className="compendium-results-section-heading">

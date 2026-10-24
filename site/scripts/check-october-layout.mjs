@@ -39,7 +39,7 @@ try {
           const section = document.querySelector(".october-compendium-screen");
           if (!section) {
             if (document.documentElement.scrollWidth > innerWidth) issues.push("results page overflows horizontally");
-            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-race-result,.compendium-verification-requests article,.profile-badges-card,.profile-badges-list")) {
+            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-clan-result,.compendium-race-result,.compendium-verification-requests article,.profile-badges-card,.profile-badges-list")) {
               if (element.scrollWidth > element.clientWidth + 2) issues.push("result card clips content");
             }
             return issues;

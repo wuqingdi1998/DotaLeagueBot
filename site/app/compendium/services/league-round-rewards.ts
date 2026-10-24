@@ -3,6 +3,7 @@ import { OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT } from "@/lib/oc
 import {
   OCTOBER_LEAGUE_REWARD_STARS,
   OCTOBER_LEAGUE_ROUND_NUMBERS,
+  OCTOBER_LEAGUE_FINAL_ROUND,
 } from "@/app/compendium/model/league-rewards";
 
 export async function syncOctoberLeagueMatchStars(
@@ -21,9 +22,9 @@ export async function syncOctoberLeagueMatchStars(
          AND tournament.slug = 'league-season-9'
          AND round.round_number = ANY($2::smallint[])
          AND CURRENT_TIMESTAMP >= $3::timestamptz
-         AND CURRENT_TIMESTAMP < $4::timestamptz
+         AND (CURRENT_TIMESTAMP < $4::timestamptz OR round.round_number = $5)
      ) AS is_eligible`,
-    [seasonMatchId, OCTOBER_LEAGUE_ROUND_NUMBERS, OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT],
+    [seasonMatchId, OCTOBER_LEAGUE_ROUND_NUMBERS, OCTOBER_COMPENDIUM_START_AT, OCTOBER_COMPENDIUM_END_AT, OCTOBER_LEAGUE_FINAL_ROUND],
   );
   if (!eligibility.rows[0]?.is_eligible) return;
 
@@ -37,6 +38,7 @@ export async function syncOctoberLeagueMatchStars(
     [seasonMatchId],
   );
 
+  // Delayed round-nine rewards belong to the final competition day, preserving the frozen October totals.
   await client.query(
     `INSERT INTO compendium_admin_star_adjustments (
        player_id,
@@ -44,7 +46,8 @@ export async function syncOctoberLeagueMatchStars(
        administered_by,
        administrator_name,
        is_star_race_eligible,
-       season_match_id
+       season_match_id,
+       created_at
      )
      SELECT participant.player_id,
        CASE
@@ -61,7 +64,8 @@ export async function syncOctoberLeagueMatchStars(
        0,
        'Система · Лига 9',
        FALSE,
-       match.id
+       match.id,
+       LEAST(NOW(), $5::timestamptz - INTERVAL '1 microsecond')
      FROM season_matches match
      JOIN season_match_room_players participant ON participant.match_id = match.id
      WHERE match.id = $1
@@ -70,7 +74,7 @@ export async function syncOctoberLeagueMatchStars(
          SELECT 1 FROM october_compendium_clan_members member
          WHERE member.player_id = participant.player_id
        )
-       AND compendium_stars_count_for_player(participant.player_id, NOW())
+       AND compendium_stars_count_for_player(participant.player_id, LEAST(NOW(), $5::timestamptz - INTERVAL '1 microsecond'))
        AND NOT EXISTS (
          SELECT 1
          FROM player_discord_roles role
@@ -83,12 +87,13 @@ export async function syncOctoberLeagueMatchStars(
        administered_by = EXCLUDED.administered_by,
        administrator_name = EXCLUDED.administrator_name,
        is_star_race_eligible = FALSE,
-       created_at = NOW()`,
+       created_at = EXCLUDED.created_at`,
     [
       seasonMatchId,
       OCTOBER_LEAGUE_REWARD_STARS.participation,
       OCTOBER_LEAGUE_REWARD_STARS.oneMapWin,
       OCTOBER_LEAGUE_REWARD_STARS.twoMapWins,
+      OCTOBER_COMPENDIUM_END_AT,
     ],
   );
 

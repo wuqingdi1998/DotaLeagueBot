@@ -1,9 +1,10 @@
-import { one } from "@/lib/db";
+import { one, query } from "@/lib/db";
 import type { CompendiumResultsData, PersonalCompendiumResult } from "../model/results";
 import { STAR_RACE_WEEKS } from "../model/star-race";
 import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
 import { compendiumPeriodTables, type CompendiumPeriod } from "../model/period";
-import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
+import { loadOctoberCompendiumClosure } from "./october-closure";
+import { compendiumClanResults } from "../model/clan-results";
 import { loadCompendiumLeaderboard } from "./leaderboard-repository";
 import { loadStarRaceLeaderboard } from "./star-race-repository";
 
@@ -46,14 +47,19 @@ export async function loadCompendiumResults(
   now: Date = new Date(),
 ): Promise<CompendiumResultsData> {
   const weeks = period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS;
-  const [community, leaderboard, raceLeaderboards, personal] = await Promise.all([
+  const closure = period === "october" ? await loadOctoberCompendiumClosure(now) : "finished";
+  const [community, leaderboard, raceLeaderboards, personal, clanTotals] = await Promise.all([
     one<{ total: number }>(`SELECT COALESCE(SUM(total_stars), 0)::int AS total FROM ${compendiumPeriodTables(period).totals}`),
     loadCompendiumLeaderboard(period),
     Promise.all(weeks.map((race) => loadStarRaceLeaderboard(race, true))),
     playerId ? loadPersonalResult(playerId, period) : Promise.resolve(null),
+    period === "october" ? query<{ clan_id: string; stars: number }>(
+      `SELECT clan_id, COALESCE(SUM(total_points), 0)::int AS stars FROM october_compendium_clan_members GROUP BY clan_id`,
+    ) : Promise.resolve([]),
   ]);
   return {
-    period, isFinished: period === "ti-2026" || now.getTime() >= Date.parse(OCTOBER_COMPENDIUM_END_AT),
+    period, isFinished: closure === "finished", closure,
+    clans: period === "october" ? compendiumClanResults(clanTotals, closure === "finished") : undefined,
     communityStars: Number(community?.total ?? 0), leaders: leaderboard.slice(0, 10), personal,
     races: weeks.map((race, index) => ({ id: race.id, dateLabel: race.dateLabel,
       leaders: raceLeaderboards[index].slice(0, 5), prizes: race.prizes })),

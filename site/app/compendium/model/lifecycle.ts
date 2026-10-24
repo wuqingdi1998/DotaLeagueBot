@@ -30,7 +30,7 @@ export function assertCompendiumActive(now: Date = new Date()): void {
   if (!isCompendiumActive(now)) {
     throw new CompendiumError(
       "COMPENDIUM_FINISHED",
-      "Компендиум завершён. Задания и начисление звёзд остановлены.",
+      "Задания компендиума завершены. Новые задания больше недоступны.",
     );
   }
 }

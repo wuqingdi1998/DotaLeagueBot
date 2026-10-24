@@ -14,6 +14,7 @@ import { ProfileBadgesCard } from "@/app/players/[dotaId]/ProfileBadgesCard";
 import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections/OctoberClanShowcase";
 import { FiCalendar } from "react-icons/fi";
 import { FinalRacePreviewPanel } from "@/app/compendium/admin/FinalRacePreview";
+import { compendiumClanResults } from "@/app/compendium/model/clan-results";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -48,15 +49,16 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
     } /></div></>));
   }
 
-  for (const period of ["october", "ti-2026"] as const) {
+  for (const [period, closure] of [["october", "finished"], ["october", "settling"], ["ti-2026", "finished"]] as const) {
     const leaders = [{ rank: 1, playerId: "100", dotaId: "100", playerName: "Участник", avatarUrl: null, totalStars: 20 }];
-    const data = { period, isFinished: true, communityStars: 100, leaders,
+    const data = { period, isFinished: closure === "finished", closure, communityStars: 100, leaders,
+      clans: period === "october" ? compendiumClanResults([{ clan_id: "morbus", stars: 123456 }, { clan_id: "panacea", stars: 112345 }], closure === "finished") : undefined,
       personal: { totalStars: 20, dailyQuestStars: 10, starRaceStars: 5, predictionStars: 0,
         tournamentParticipationStars: 3, otherStars: 2 },
       races: (period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS)
         .map((week) => ({ id: week.id, dateLabel: week.dateLabel, prizes: week.prizes, leaders })),
     };
-    const name = `results-${period}`;
+    const name = `results-${period}${closure === "settling" ? "-settling" : ""}`;
     fixtures.push(name);
     writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<CompendiumResults data={data} />)}</div>`);
   }
@@ -130,5 +132,5 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   fixtures.push("profile-badges");
   writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(75);
+  expect(fixtures).toHaveLength(76);
 });

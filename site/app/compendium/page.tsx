@@ -20,6 +20,8 @@ import { CompendiumExclusionNotice } from "./components/CompendiumExclusionNotic
 import { isExcludedFromCompendium } from "./services/participant-access";
 import { loadOctoberDailyQuests } from "@/app/organizer/compendium-october/services/october-daily-quests";
 import { loadStarRace } from "./services/star-race";
+import { CompendiumClosingPage } from "./sections/CompendiumClosingPage";
+import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +38,6 @@ export default async function CompendiumPage() {
     redirect("/login?returnTo=%2Fcompendium");
   }
   if (scheduledPhase === "hidden") redirect("/compendium/results");
-  if (scheduledPhase === "finished") redirect("/compendium/results");
   if (await isExcludedFromCompendium(user.discordId)) {
     return (
       <PlatformShell user={user} hasFooter={false}>
@@ -44,6 +45,7 @@ export default async function CompendiumPage() {
       </PlatformShell>
     );
   }
+  if (scheduledPhase === "finished") return <CompendiumClosingPage user={user} now={now} />;
   const formationStatus = await loadOctoberFormationStatus();
   const visiblePhase = scheduledPhase === "published" && formationStatus !== "complete"
     ? "formation"
@@ -62,7 +64,7 @@ export default async function CompendiumPage() {
     ? OCTOBER_CLAN_FORMATION_AT
     : visiblePhase === "formation"
       ? OCTOBER_CLAN_PUBLICATION_AT
-      : null;
+      : OCTOBER_COMPENDIUM_END_AT;
 
   return (
     <PlatformShell user={user} hasFooter={false}>

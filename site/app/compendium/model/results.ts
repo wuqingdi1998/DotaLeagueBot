@@ -1,6 +1,8 @@
 import type { CompendiumLeaderboardEntry } from "./leaderboard";
 import type { StarRacePrize } from "./star-race";
 import type { CompendiumPeriod } from "./period";
+import type { CompendiumClanResult } from "./clan-results";
+export type OctoberCompendiumClosure = "active" | "settling" | "finished";
 
 export const finishedCompendiumCommunityOutcome = {
   finalsPrize: "12 000 ₽",
@@ -26,6 +28,8 @@ export type CompendiumRaceResult = {
 export type CompendiumResultsData = {
   period?: CompendiumPeriod;
   isFinished?: boolean;
+  closure?: OctoberCompendiumClosure;
+  clans?: CompendiumClanResult[];
   communityStars: number;
   leaders: CompendiumLeaderboardEntry[];
   personal: PersonalCompendiumResult | null;

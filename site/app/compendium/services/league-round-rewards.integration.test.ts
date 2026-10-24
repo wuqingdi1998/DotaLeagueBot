@@ -1,7 +1,12 @@
 import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { syncOctoberLeagueMatchStars } from "./league-round-rewards";
+import { loadOctoberCompendiumClosure } from "./october-closure";
+import { assertCompendiumActive } from "../model/lifecycle";
+
+const mocks = vi.hoisted(() => ({ one: vi.fn() }));
+vi.mock("@/lib/db", () => ({ one: mocks.one }));
 
 const db = new PGlite();
 let serverTime = "2026-10-10T00:00:00+03:00";
@@ -14,7 +19,7 @@ const client = {
 beforeAll(async () => {
   await db.exec(`
     CREATE TABLE tournaments (id int PRIMARY KEY, slug text);
-    CREATE TABLE season_rounds (id int PRIMARY KEY, tournament_id int, round_number smallint);
+    CREATE TABLE season_rounds (id int PRIMARY KEY, tournament_id int, round_number smallint, status text DEFAULT 'active', lobby_configuration_status text DEFAULT 'published');
     CREATE TABLE season_lobbies (id int PRIMARY KEY, round_id int);
     CREATE TABLE season_matches (id int PRIMARY KEY, lobby_id int, status text, team_a_score int, team_b_score int);
     CREATE TABLE season_match_room_players (match_id int, player_id bigint, team_side text);
@@ -32,11 +37,12 @@ beforeAll(async () => {
       SELECT player_id, GREATEST(0, SUM(amount))::int AS total_stars FROM (
         SELECT player_id, amount FROM other_october_stars
         UNION ALL SELECT player_id, amount FROM compendium_admin_star_adjustments
+          WHERE created_at >= '2026-10-05T00:00:00+03' AND created_at < '2026-10-26T00:00:00+03'
       ) rewards GROUP BY player_id;
     CREATE FUNCTION compendium_stars_count_for_player(player_id bigint, earned_at timestamptz)
-      RETURNS boolean LANGUAGE sql AS $$ SELECT player_id <> 4 $$;
+      RETURNS boolean LANGUAGE sql AS $$ SELECT player_id <> 4 AND earned_at >= TIMESTAMPTZ '2026-10-05T00:00:00+03' AND earned_at < TIMESTAMPTZ '2026-10-26T00:00:00+03' $$;
     INSERT INTO tournaments VALUES (1, 'league-season-9');
-    INSERT INTO season_rounds VALUES (1, 1, 9);
+    INSERT INTO season_rounds (id, tournament_id, round_number) VALUES (1, 1, 9);
     INSERT INTO season_lobbies VALUES (1, 1);
     INSERT INTO season_matches VALUES (42, 1, 'completed', 2, 0);
     INSERT INTO season_match_room_players VALUES (42, 1, 'a'), (42, 2, 'b'), (42, 3, 'a'),
@@ -50,6 +56,10 @@ beforeAll(async () => {
   ), "utf8");
   await db.exec(migration.slice(migration.indexOf("CREATE FUNCTION allow_october_admin_star_adjustment()"))
     .replace(/CURRENT_TIMESTAMP/g, `TIMESTAMPTZ '${serverTime}'`));
+  const closingMigration = readFileSync(new URL("../../../../bot/database/migrations/0191_october_final_round_after_deadline.sql", import.meta.url), "utf8");
+  await db.query("SELECT set_config('test.server_time', $1, false)", [serverTime]);
+  await db.exec(closingMigration.replace(/CURRENT_TIMESTAMP/g, "current_setting('test.server_time')::timestamptz"));
+  mocks.one.mockImplementation(async (sql: string, values: unknown[]) => (await db.query(sql, values)).rows[0]);
 }, 20000);
 
 afterAll(async () => { await db.close(); });
@@ -88,10 +98,43 @@ it("repairs already awarded league stars without awarding them twice", async () 
 });
 
 it("leaves archived awards intact when league results are saved outside October", async () => {
+  await db.exec("UPDATE season_rounds SET round_number = 8");
   for (const time of ["2026-10-04T23:59:59+03:00", "2026-10-26T00:00:00+03:00"]) {
     serverTime = time;
     await syncOctoberLeagueMatchStars(client as never, 42);
   }
   expect((await db.query("SELECT amount FROM compendium_admin_star_adjustments ORDER BY player_id")).rows)
     .toEqual([{ amount: 3 }, { amount: 3 }]);
+  await db.exec("UPDATE season_rounds SET round_number = 9");
+});
+
+it("waits for every final-round result and reward, including after midnight, without duplicate stars", async () => {
+  const afterDeadline = new Date("2026-10-26T01:00:00+03:00");
+  expect(() => assertCompendiumActive(afterDeadline)).toThrow();
+  expect(await loadOctoberCompendiumClosure(new Date("2026-10-25T23:59:59+03:00"))).toBe("active");
+  await db.exec("UPDATE season_rounds SET lobby_configuration_status = 'none'");
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("settling");
+  await db.exec(`UPDATE season_rounds SET lobby_configuration_status = 'published';
+    INSERT INTO season_matches VALUES (43, 1, 'published', 0, 0);
+    INSERT INTO season_match_room_players VALUES (43, 1, 'a'), (43, 2, 'b'), (43, 3, 'a'), (43, 4, 'a'), (43, 5, 'a');`);
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("settling");
+  await db.exec("UPDATE season_matches SET status='completed', team_a_score=2, team_b_score=0 WHERE id=43");
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("settling");
+  serverTime = afterDeadline.toISOString();
+  await db.query("SELECT set_config('test.server_time', $1, false)", [serverTime]);
+  await syncOctoberLeagueMatchStars(client as never, 43);
+  await syncOctoberLeagueMatchStars(client as never, 43);
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("finished");
+  expect((await db.query("SELECT amount FROM compendium_admin_star_adjustments WHERE season_match_id=43 ORDER BY player_id")).rows).toEqual([{ amount: 6 }, { amount: 1 }]);
+  expect((await db.query("SELECT total_points FROM october_compendium_clan_members WHERE player_id IN(1,2) ORDER BY player_id")).rows).toEqual([{ total_points: 26 }, { total_points: 12 }]);
+  expect((await db.query("SELECT COUNT(*)::int AS rewards FROM compendium_admin_star_adjustments WHERE season_match_id=43 AND created_at < TIMESTAMPTZ '2026-10-26T00:00:00+03'")).rows).toEqual([{ rewards: 2 }]);
+  await db.exec("UPDATE october_compendium_clan_members SET total_points = 17 WHERE player_id = 1");
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("settling");
+  await syncOctoberLeagueMatchStars(client as never, 43);
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("finished");
+  await db.exec("UPDATE season_matches SET team_a_score=1,team_b_score=1 WHERE id=43");
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("settling");
+  await syncOctoberLeagueMatchStars(client as never, 43);
+  expect(await loadOctoberCompendiumClosure(afterDeadline)).toBe("finished");
+  await expect(db.exec("INSERT INTO compendium_admin_star_adjustments(player_id,amount,created_at) VALUES(1,100,'2026-10-25T23:59:59+03')")).rejects.toThrow("outside the active October period");
 });
