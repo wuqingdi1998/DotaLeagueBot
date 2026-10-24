@@ -31,8 +31,10 @@ export async function loadClanDailyActivity(now = new Date()): Promise<ClanDaily
   const members = await loadOctoberClanMembers(now);
   const rows = await query<ActivityRow>(
     `SELECT member.player_id::text,
-       COALESCE((SELECT SUM(event.amount) FROM compendium_star_events event
-         WHERE event.player_id = member.player_id AND event.earned_at >= $2 AND event.earned_at < $3), 0)::int AS daily_stars,
+       COALESCE((SELECT SUM(event.amount) FROM october_compendium_reward_operations event
+         WHERE event.player_id = member.player_id AND event.earned_at >= $2 AND event.earned_at < $3
+           AND event.history_kind IN ('quest', 'star_race', 'clan_outing', 'rune')
+           AND compendium_stars_count_for_player(event.player_id, event.earned_at)), 0)::int AS daily_stars,
        ARRAY(SELECT quest.position::int FROM compendium_daily_quests quest
          JOIN compendium_daily_quest_sets quest_set ON quest_set.id = quest.quest_set_id
          JOIN compendium_user_quest_completions completion ON completion.daily_quest_id = quest.id

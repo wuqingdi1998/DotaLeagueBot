@@ -8,10 +8,11 @@ import { loadClanDailyActivity } from "./clan-daily-activity";
 
 const db = new PGlite();
 beforeAll(async () => {
-  await db.exec(`CREATE TABLE october_compendium_clan_members (player_id bigint);
+  await db.exec(`CREATE FUNCTION compendium_stars_count_for_player(bigint, timestamptz) RETURNS boolean LANGUAGE sql AS 'SELECT TRUE';
+    CREATE TABLE october_compendium_clan_members (player_id bigint);
     INSERT INTO october_compendium_clan_members VALUES (1), (2), (3), (4);
-    CREATE TABLE compendium_star_events (player_id bigint, amount int, earned_at timestamptz);
-    INSERT INTO compendium_star_events VALUES
+    CREATE TABLE october_compendium_reward_operations (player_id bigint, amount int, earned_at timestamptz, history_kind text DEFAULT 'quest');
+    INSERT INTO october_compendium_reward_operations (player_id, amount, earned_at) VALUES
       (1, 99, '2026-10-13 23:59:59+03'), (1, 2, '2026-10-14 00:00+03'),
       (1, 1, '2026-10-14 23:59:59+03'), (1, 77, '2026-10-15 00:00+03'),
       (2, 5, '2026-10-14 12:00+03'), (3, 0, '2026-10-14 12:00+03'),
@@ -53,8 +54,22 @@ it("starts a new daily list and resets every quest at midnight", async () => {
   expect(result.members[0].quests.every((quest) => !quest.isCompleted)).toBe(true);
 });
 
+it("counts only quests when league, prediction and manual rewards arrive on the same day", async () => {
+  await db.exec(`INSERT INTO october_compendium_reward_operations VALUES
+    (1, 80, '2026-10-14 12:00+03', 'admin'),
+    (2, 20, '2026-10-14 12:00+03', 'prediction'),
+    (3, 100, '2026-10-14 12:00+03', 'league');`);
+  try {
+    const result = await loadClanDailyActivity(new Date("2026-10-14T12:00:00+03:00"));
+    expect(result.members.map((member) => [member.discordId, member.dailyStars])).toEqual([["2", 5], ["1", 3]]);
+    expect((await db.query<{ total: number }>("SELECT SUM(amount)::int AS total FROM october_compendium_reward_operations WHERE history_kind <> 'quest'")).rows[0].total).toBe(200);
+  } finally {
+    await db.exec("DELETE FROM october_compendium_reward_operations WHERE history_kind <> 'quest'");
+  }
+});
+
 it("uses doubled rewards on Friday even for empty quest circles", async () => {
-  await db.exec("INSERT INTO compendium_star_events VALUES (1, 1, '2026-10-16 12:00+03');");
+  await db.exec("INSERT INTO october_compendium_reward_operations (player_id, amount, earned_at) VALUES (1, 1, '2026-10-16 12:00+03');");
   const result = await loadClanDailyActivity(new Date("2026-10-16T12:00:00+03:00"));
   expect(result.members[0].quests.slice(1).map((quest) => quest.rewardStars)).toEqual([2, 2, 2, 2]);
 });
