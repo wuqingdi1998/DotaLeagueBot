@@ -43,6 +43,7 @@ async function addResults(status: string) {
 beforeEach(async () => {
   db = new PGlite();
   await db.exec(`
+    CREATE TABLE channel_announcement_edits (available_at TIMESTAMPTZ, attempts INTEGER);
     CREATE TABLE tournaments (id BIGINT PRIMARY KEY, slug TEXT);
     INSERT INTO tournaments VALUES (42, 'league-season-9');
     CREATE TABLE channel_announcement_outbox (

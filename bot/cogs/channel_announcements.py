@@ -7,6 +7,7 @@ from sqlalchemy import text
 
 from database.core import async_session
 from services.durable_scheduler import register_scheduled_job
+from services.channel_announcement_edits import deliver_pending_announcement_edits
 from services.channel_announcement_delivery import (
     deliver_pending_announcement_reports,
     deliver_pending_channel_announcements,
@@ -23,6 +24,7 @@ class ChannelAnnouncements(commands.Cog):
 
     async def process_due(self) -> None:
         async with async_session() as session:
+            await deliver_pending_announcement_edits(self.bot, session)
             await deliver_pending_channel_announcements(self.bot, session)
             await deliver_pending_announcement_reports(self.bot, session)
 
@@ -41,6 +43,9 @@ class ChannelAnnouncements(commands.Cog):
                         SELECT MIN(report_available_at) AS due_at
                         FROM channel_announcement_outbox
                         WHERE status = 'sent' AND report_status = 'pending'
+                        UNION ALL
+                        SELECT MIN(available_at) AS due_at
+                        FROM channel_announcement_edits WHERE attempts < 5
                     ) scheduled
                     """
                 )
