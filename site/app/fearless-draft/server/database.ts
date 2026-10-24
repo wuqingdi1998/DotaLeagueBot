@@ -1,6 +1,13 @@
 import type { PoolClient } from "pg";
 import type { DraftChoice, DraftFormat } from "../model/types";
 import { DraftRequestError } from "./errors";
+import {
+  requireDraftContext,
+  validateDraftActionTarget,
+  type DraftActionTarget,
+  type DraftContext,
+} from "./draft-context";
+import { ensureTrainingDraftNotExpired } from "./training-expiry-service";
 
 export type DraftSeriesRow = {
   id: number;
@@ -45,10 +52,11 @@ export const activeSeriesStatuses = [
 export async function lockDraftPlayers(
   client: PoolClient,
   playerIds: readonly string[],
+  context: DraftContext = {},
 ): Promise<void> {
   for (const playerId of [...new Set(playerIds)].sort()) {
     await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [
-      `fearless-draft:${playerId}`,
+      `fearless-draft:${context.seasonMatchId ? "season" : "training"}:${playerId}`,
     ]);
   }
 }
@@ -56,13 +64,14 @@ export async function lockDraftPlayers(
 export async function hasActiveSeries(
   client: PoolClient,
   playerId: string,
-  excludeSeasonMatchId?: number,
+  context: DraftContext = {},
 ): Promise<boolean> {
   const result = await client.query(
     `SELECT 1
      FROM draft_series
      WHERE (player1_id = $1 OR player2_id = $1)
        AND status = ANY($2::text[])
+       AND (season_match_id IS NULL) = ($3::bigint IS NULL)
        AND ($3::bigint IS NULL OR season_match_id IS DISTINCT FROM $3)
        AND NOT EXISTS (
          SELECT 1 FROM season_match_rooms room
@@ -70,82 +79,38 @@ export async function hasActiveSeries(
            AND room.status = 'completed'
        )
      LIMIT 1`,
-    [playerId, activeSeriesStatuses, excludeSeasonMatchId ?? null],
+    [playerId, activeSeriesStatuses, context.seasonMatchId ?? null],
   );
   return Boolean(result.rowCount);
-}
-
-export async function currentSeriesId(
-  client: PoolClient,
-  playerId: string,
-  opponentId?: string,
-): Promise<number> {
-  const result = await client.query<{ id: number }>(
-    `SELECT id::int
-     FROM draft_series
-     WHERE (player1_id = $1 OR player2_id = $1)
-       AND status = ANY($2::text[])
-       AND ($3::bigint IS NULL OR player1_id = $3 OR player2_id = $3)
-     ORDER BY updated_at DESC
-     LIMIT 1
-     FOR UPDATE`,
-    [playerId, activeSeriesStatuses, opponentId ?? null],
-  );
-  const id = result.rows[0]?.id;
-  if (!id) throw new DraftRequestError("Активная серия не найдена", 404);
-  return id;
 }
 
 export async function loadLockedDraftSeries(
   client: PoolClient,
   playerId: string,
-  opponentId?: string,
+  rawTarget: DraftActionTarget,
+  allowedStatuses: readonly string[] = activeSeriesStatuses,
 ): Promise<{ series: DraftSeriesRow; map: DraftMapRow }> {
-  const seriesId = await currentSeriesId(client, playerId, opponentId);
-  return loadLockedDraftSeriesById(client, seriesId);
+  const target = validateDraftActionTarget(rawTarget);
+  const draft = await loadLockedDraftSeriesById(client, target.seriesId);
+  requireDraftContext(draft.series, draft.map, target);
+  if (![draft.series.player1_id, draft.series.player2_id].includes(playerId)) {
+    throw new DraftRequestError("Пользователь не участвует в этой серии", 403);
+  }
+  if (!allowedStatuses.includes(draft.series.status)) {
+    throw new DraftRequestError("Серия уже завершена", 409);
+  }
+  if (!draft.series.season_match_id && activeSeriesStatuses.some(
+    (status) => status === draft.series.status,
+  )) await ensureTrainingDraftNotExpired(client, draft.series.id);
+  return draft;
 }
 
 export async function loadDraftSeriesForPreview(
   client: PoolClient,
   playerId: string,
+  target: DraftActionTarget,
 ): Promise<{ series: DraftSeriesRow; map: DraftMapRow }> {
-  const result = await client.query<DraftSeriesRow & DraftMapRow & {
-    series_id: number;
-    map_id: number;
-    series_status: string;
-    map_status: string;
-  }>(
-    `SELECT series.id::int AS series_id,
-            series.player1_id::text, series.player2_id::text, series.format,
-            series.status AS series_status, series.current_map::int,
-            series.map1_coin_toss_winner_id::text,
-            series.end_requested_by::text, series.end_requested_at,
-            series.player1_ready_for_next_map,
-            series.player2_ready_for_next_map,
-            series.season_match_id::int, series.is_season_lobby_preview,
-            map.id::int AS map_id, map.status AS map_status,
-            map.map_number::int, map.first_chooser_id::text,
-            map.coin_toss_segment::int, map.first_choice,
-            map.radiant_player_id::text, map.first_pick_player_id::text,
-            map.current_step::int, map.step_started_at,
-            map.final_pick_review_ends_at,
-            map.player1_reserve_seconds::float8,
-            map.player2_reserve_seconds::float8,
-            map.preview_hero_id::int, map.version::int
-     FROM draft_series series
-     JOIN draft_maps map
-       ON map.series_id = series.id AND map.map_number = series.current_map
-     WHERE (series.player1_id = $1 OR series.player2_id = $1)
-       AND series.status = 'DRAFTING' AND map.status = 'DRAFTING'
-     ORDER BY series.updated_at DESC LIMIT 1`,
-    [playerId],
-  );
-  const row = result.rows[0];
-  if (!row) throw new DraftRequestError("Активная серия не найдена", 404);
-  return {
-    series: { ...row, id: row.series_id, status: row.series_status },
-    map: { ...row, id: row.map_id, status: row.map_status },
-  };
+  return loadLockedDraftSeries(client, playerId, target);
 }
 
 export async function loadLockedDraftSeriesById(
@@ -162,6 +127,7 @@ export async function loadLockedDraftSeriesById(
     [seriesId],
   );
   const series = seriesResult.rows[0];
+  if (!series) throw new DraftRequestError("Серия не найдена", 404);
   const mapResult = await client.query<DraftMapRow>(
     `SELECT id::int, status, map_number::int, first_chooser_id::text,
             coin_toss_segment::int,

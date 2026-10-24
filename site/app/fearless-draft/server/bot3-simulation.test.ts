@@ -17,7 +17,8 @@ beforeAll(async () => {
     CREATE TABLE players (discord_id bigint PRIMARY KEY, steam_id32 bigint, ingame_name text,
       real_name text, positions text, avatar_url text, internal_rating int, rank_tier int, is_archived boolean DEFAULT false);
     CREATE TABLE web_sessions (discord_id bigint, discord_avatar_url text, created_at timestamptz);
-    CREATE TABLE draft_series (id bigint PRIMARY KEY, player1_id bigint, player2_id bigint, status text, current_map int);
+    CREATE TABLE draft_series (id bigint PRIMARY KEY, player1_id bigint, player2_id bigint, status text,
+      current_map int, season_match_id bigint, last_human_action_at timestamptz DEFAULT now());
     CREATE TABLE draft_maps (id bigint PRIMARY KEY, series_id bigint, map_number int);
     INSERT INTO players SELECT n, n+100, 'Участник ' || n, NULL, '3/4', NULL, 5, 50, false FROM generate_series(1,10) n;
     INSERT INTO draft_series VALUES (1,1,9223372036854775806,'CHOOSING',1);
@@ -40,10 +41,10 @@ describe("persisted Bot3 simulation", () => {
     const initial = await loadBot3Room(client, 1, false, mocks.now.toISOString());
     expect(initial?.players).toHaveLength(10);
     expect(initial?.players.every((player) => player.positions === "3/4" && player.tier === 5 && !player.isCaptain)).toBe(true);
-    await processBot3Captains("1", { action: "BOT3_CAPTAIN_INTEREST", value: true });
+    await processBot3Captains("1", { action: "BOT3_CAPTAIN_INTEREST", value: true }, { seriesId: 1, mapId: 1 });
     expect((await loadBot3Room(client, 1, false, mocks.now.toISOString()))?.ownCaptainInterest).toBe(true);
-    await expect(processBot3Captains("1", { action: "BOT3_CAPTAIN_INTEREST", value: false })).rejects.toThrow("уже сохранён");
-    await expect(processBot3Captains("2", { action: "BOT3_CAPTAIN_INTEREST", value: true })).rejects.toThrow("не найден");
+    await expect(processBot3Captains("1", { action: "BOT3_CAPTAIN_INTEREST", value: false }, { seriesId: 1, mapId: 1 })).rejects.toThrow("уже сохранён");
+    await expect(processBot3Captains("2", { action: "BOT3_CAPTAIN_INTEREST", value: true }, { seriesId: 1, mapId: 1 })).rejects.toThrow("не найден");
     for (let stage = 0; stage < 6; stage++) {
       mocks.now = new Date(mocks.now.getTime() + 70_000);
       await processBot3Captains("1");

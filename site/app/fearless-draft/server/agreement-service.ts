@@ -10,6 +10,7 @@ import { loadLockedDraftSeries } from "./database";
 import { databaseNow } from "./database-clock";
 import { randomCoinTossResult } from "./coin-toss";
 import { DraftRequestError } from "./errors";
+import { recordDraftHumanActivity, type DraftActionTarget } from "./draft-context";
 
 export async function settleExpiredDraftEndRequests(): Promise<(number | null)[]> {
   const rows = await query<{ season_match_id: number | null }>(
@@ -25,9 +26,10 @@ export async function settleExpiredDraftEndRequests(): Promise<(number | null)[]
   return rows.map((row) => row.season_match_id);
 }
 
-export async function requestDraftSeriesEnd(playerId: string): Promise<void> {
+export async function requestDraftSeriesEnd(playerId: string, target: DraftActionTarget): Promise<void> {
   await transaction(async (client) => {
-    const { series } = await loadLockedDraftSeries(client, playerId);
+    const { series } = await loadLockedDraftSeries(client, playerId, target);
+    await recordDraftHumanActivity(client, series, playerId);
     if (series.end_requested_by) {
       throw new DraftRequestError(
         series.end_requested_by === playerId
@@ -48,10 +50,11 @@ export async function requestDraftSeriesEnd(playerId: string): Promise<void> {
 export async function respondToDraftSeriesEnd(
   playerId: string,
   response: "ACCEPT" | "DECLINE",
-  opponentId?: string,
+  target: DraftActionTarget,
 ): Promise<void> {
   await transaction(async (client) => {
-    const { series } = await loadLockedDraftSeries(client, playerId, opponentId);
+    const { series } = await loadLockedDraftSeries(client, playerId, target);
+    await recordDraftHumanActivity(client, series, playerId);
     if (!series.end_requested_by || !series.end_requested_at) {
       throw new DraftRequestError("Активного запроса на завершение нет", 409);
     }
@@ -71,9 +74,10 @@ export async function respondToDraftSeriesEnd(
   });
 }
 
-export async function cancelDraftSeriesEnd(playerId: string): Promise<void> {
+export async function cancelDraftSeriesEnd(playerId: string, target: DraftActionTarget): Promise<void> {
   await transaction(async (client) => {
-    const { series } = await loadLockedDraftSeries(client, playerId);
+    const { series } = await loadLockedDraftSeries(client, playerId, target);
+    await recordDraftHumanActivity(client, series, playerId);
     if (series.end_requested_by !== playerId) {
       throw new DraftRequestError("Отменить запрос может только его автор", 403);
     }
@@ -88,10 +92,11 @@ export async function cancelDraftSeriesEnd(playerId: string): Promise<void> {
 
 export async function markReadyForNextDraftMap(
   playerId: string,
-  opponentId?: string,
+  target: DraftActionTarget,
 ): Promise<void> {
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, playerId, opponentId);
+    const { series, map } = await loadLockedDraftSeries(client, playerId, target);
+    await recordDraftHumanActivity(client, series, playerId);
     if (series.status !== "MAP_COMPLETE" || map.status !== "COMPLETE") {
       throw new DraftRequestError("Текущая карта ещё не завершена", 409);
     }

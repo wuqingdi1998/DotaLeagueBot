@@ -9,7 +9,7 @@ vi.mock("./bot3-captain-service", () => ({ ...mocks, createBot3Captains: vi.fn()
 vi.mock("./series-service", () => mocks);
 vi.mock("./agreement-service", () => ({ markReadyForNextDraftMap: mocks.ready, respondToDraftSeriesEnd: mocks.respond }));
 vi.mock("./lineup-assignment-service", () => ({ submitDraftLineupAssignment: mocks.submit }));
-import { advanceBotDraft } from "./bot-service";
+import { advanceBotDraft, advanceAllBotDrafts } from "./bot-service";
 import { FEARLESS_DRAFT_BOT_PLAYER_ID as bot } from "../model/bot";
 
 let state: Record<string, unknown>;
@@ -54,7 +54,7 @@ it("bounds a Bot3 ban by the actual turn timer and preserves normal hero selecti
   expect(mocks.selectDraftHero).not.toHaveBeenCalled();
   mocks.isBotActionDue.mockResolvedValue(true);
   await advanceBotDraft("1");
-  expect(mocks.selectDraftHero).toHaveBeenCalledWith(bot, expect.any(Number), 0, true, "1");
+  expect(mocks.selectDraftHero).toHaveBeenCalledWith(bot, expect.any(Number), 0, { seriesId: 1, mapId: 1 }, true);
 });
 
 it("does not repeat a confirmed lineup or change Bot1 and Bot2 timing", async () => {
@@ -77,4 +77,18 @@ it("clears a cancelled reply while waiting for the human or captain stage", asyn
   mocks.processBot3Captains.mockResolvedValue(true);
   await advanceBotDraft("1");
   expect(mocks.clearBotActionDue).toHaveBeenCalledTimes(2);
+});
+
+it("does not let a failed training prevent other series from reaching their deadlines", async () => {
+  mocks.query.mockResolvedValue([{ player_id: "1", series_id: 1 }, { player_id: "2", series_id: 2 }]);
+  mocks.one.mockImplementation(async (_sql: string, params: unknown[]) => {
+    if (params[3] === 1) throw new Error("Broken training");
+    return null;
+  });
+  const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+  try {
+    await expect(advanceAllBotDrafts()).resolves.toBe(2);
+    expect(mocks.one).toHaveBeenCalledWith(expect.any(String), expect.arrayContaining(["2", 2]));
+    expect(error).toHaveBeenCalledOnce();
+  } finally { error.mockRestore(); }
 });

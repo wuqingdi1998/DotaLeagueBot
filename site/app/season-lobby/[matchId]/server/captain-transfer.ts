@@ -91,8 +91,8 @@ async function changeSeasonLobbyCaptain(
         403,
       );
     }
-    await lockDraftPlayers(client, [currentCaptainId, newCaptainId]);
-    if (await hasActiveSeries(client, newCaptainId)) {
+    await lockDraftPlayers(client, [currentCaptainId, newCaptainId], { seasonMatchId: matchId });
+    if (await hasActiveSeries(client, newCaptainId, { seasonMatchId: matchId })) {
       throw new SeasonLobbyRoomError(
         "Выбранный игрок уже участвует в другом Fearless Draft",
         409,

@@ -175,7 +175,7 @@ export async function respondToDraftInvitation(
              WHEN player1_id = ANY($1::bigint[]) THEN NOW() ELSE player1_dismissed_at END,
            player2_dismissed_at = CASE
              WHEN player2_id = ANY($1::bigint[]) THEN NOW() ELSE player2_dismissed_at END
-       WHERE status = 'COMPLETE'
+        WHERE status = 'COMPLETE' AND season_match_id IS NULL
          AND (player1_id = ANY($1::bigint[]) OR player2_id = ANY($1::bigint[]))`,
       [players],
     );

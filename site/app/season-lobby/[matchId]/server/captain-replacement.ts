@@ -63,7 +63,7 @@ export async function replaceSeasonDraftCaptain(
     [matchId, newCaptainId],
   );
   await client.query(
-    "DELETE FROM draft_presence WHERE player_id = $1",
-    [currentCaptainId],
+    "DELETE FROM draft_presence WHERE player_id = $1 AND series_id = $2",
+    [currentCaptainId, series.id],
   );
 }

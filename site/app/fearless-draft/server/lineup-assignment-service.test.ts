@@ -16,6 +16,8 @@ import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
 
 let database: PGlite;
 const captains = ["10001", "10006"] as const;
+const seasonTarget = { seriesId: 1, mapId: 1, seasonMatchId: 10 };
+const trainingTarget = { seriesId: 1, mapId: 1 };
 const lobbyPlayers: DraftLobbyPlayer[] = Array.from({ length: 10 }, (_, index) => ({
   id: String(10001 + index),
   dotaId: String(20001 + index),
@@ -78,7 +80,7 @@ beforeAll(async () => {
       end_requested_by bigint, end_requested_at timestamptz,
       player1_ready_for_next_map boolean, player2_ready_for_next_map boolean,
       season_match_id bigint, is_season_lobby_preview boolean DEFAULT false,
-      updated_at timestamptz
+      updated_at timestamptz, last_human_action_at timestamptz DEFAULT now()
     );
     CREATE TABLE draft_maps (
       id bigserial PRIMARY KEY, series_id bigint, map_number integer, status text,
@@ -143,7 +145,7 @@ describe("season Fearless Draft lineup assignment", () => {
         SELECT 1, id - 1, 10006, 'BAN', id + 20
         FROM generate_series(1, 23) AS id;
     `);
-    await selectDraftHero("10001", 1, 25);
+    await selectDraftHero("10001", 1, 25, seasonTarget);
     expect((await database.query(
       "SELECT status, current_step FROM draft_maps",
     )).rows[0]).toEqual({ status: "FINAL_PICK_REVIEW", current_step: 24 });
@@ -169,7 +171,7 @@ describe("season Fearless Draft lineup assignment", () => {
         SELECT 1, id - 1, 10006, 'BAN', id + 20
         FROM generate_series(1, 23) AS id;
     `);
-    await selectDraftHero("10001", 1, 25);
+    await selectDraftHero("10001", 1, 25, trainingTarget);
     expect((await database.query(
       "SELECT status, current_step FROM draft_maps",
     )).rows[0]).toEqual({ status: "COMPLETE", current_step: 24 });
@@ -178,7 +180,7 @@ describe("season Fearless Draft lineup assignment", () => {
   });
 
   it("keeps the first lineup hidden from opponents and reveals both together", async () => {
-    await submitDraftLineupAssignment("10001", assignments(1, 10001));
+    await submitDraftLineupAssignment("10001", assignments(1, 10001), seasonTarget);
     const client = await queryClient();
     const teammateView = await loadDraftLineupAssignment(
       client, 1, captains, "10002", lobbyPlayers,
@@ -196,7 +198,7 @@ describe("season Fearless Draft lineup assignment", () => {
     expect((await database.query("SELECT status FROM draft_maps")).rows[0])
       .toEqual({ status: "LINEUP_ASSIGNMENT" });
 
-    await submitDraftLineupAssignment("10006", assignments(6, 10006));
+    await submitDraftLineupAssignment("10006", assignments(6, 10006), seasonTarget);
     const revealed = await loadDraftLineupAssignment(
       client, 1, captains, "10007", lobbyPlayers,
     );
@@ -214,10 +216,12 @@ describe("season Fearless Draft lineup assignment", () => {
     await expect(submitDraftLineupAssignment(
       "10001",
       assignments(1, 10001).slice(0, 4),
+      seasonTarget,
     )).rejects.toMatchObject({ status: 400 });
     await expect(submitDraftLineupAssignment(
       "10001",
       assignments(2, 10001),
+      seasonTarget,
     )).rejects.toMatchObject({ status: 400 });
     expect((await database.query(
       "SELECT COUNT(*)::int AS count FROM draft_lineup_assignments",
@@ -254,7 +258,7 @@ describe("season Fearless Draft lineup assignment", () => {
     await submitDraftLineupAssignment(
       FEARLESS_DRAFT_BOT_PLAYER_ID,
       teamB.map((player, index) => ({ heroId: index + 6, playerId: player.id })),
-      "10001",
+      trainingTarget,
     );
     const hidden = await loadDraftLineupAssignment(
       client,
@@ -273,6 +277,7 @@ describe("season Fearless Draft lineup assignment", () => {
     await submitDraftLineupAssignment(
       "10001",
       teamA.map((player, index) => ({ heroId: index + 1, playerId: player.id })),
+      trainingTarget,
     );
     const revealed = await loadDraftLineupAssignment(
       client,

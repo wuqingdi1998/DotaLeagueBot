@@ -66,6 +66,9 @@ const roomAccess = source(
 const captainVoting = source(
   "../app/season-lobby/[matchId]/components/CaptainVoting.tsx",
 );
+const captainCandidateCard = source(
+  "../app/season-lobby/[matchId]/components/CaptainCandidateCard.tsx",
+);
 const captainSelection = source(
   "../app/season-lobby/[matchId]/server/captain-selection.ts",
 );
@@ -151,7 +154,9 @@ describe("season lobby room contract", () => {
     expect(roomQuery).toContain("subscriptionRoleNames");
     expect(lobbyPlayerTeams).toContain("SubscriptionRuneNickname");
     expect(lobbyPlayerTeams).toContain('className="season-room-player-identity"');
-    expect(captainVoting).toContain("SubscriptionRuneNickname");
+    expect(captainVoting).toContain('import { CaptainCandidateCard as CandidateCard }');
+    expect(captainVoting).toContain("<CandidateCard");
+    expect(captainCandidateCard).toContain("SubscriptionRuneNickname");
     expect(subscriptionRuneNickname).toContain("/participant-runes/water.png");
     expect(sharedRuneStyles).toContain(".subscription-rune-icon");
     expect(lobbyTeamStyles).toContain(".season-room-teams li > img");
@@ -204,7 +209,7 @@ describe("season lobby room contract", () => {
       "Голос уже зафиксирован и не может быть изменён",
     );
     expect(captainSelection).toContain("isTeamVotingComplete");
-    expect(captainVoting).toContain("season-room-voter-avatar");
+    expect(captainCandidateCard).toContain("season-room-voter-avatar");
     expect(captainVoting).toContain("CaptainVoterStatus");
     expect(captainVoting).toContain('status === "captain_reveal"');
     expect(roomQuery).toContain('state.status === "captain_reveal"');

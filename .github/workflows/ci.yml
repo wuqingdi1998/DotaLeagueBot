@@ -60,6 +60,7 @@ jobs:
       - run: npm run test:coverage
       - run: npm run test:layout
       - run: npm run build
+      - run: npm run test:draft-performance
 
   containers:
     runs-on: ubuntu-latest

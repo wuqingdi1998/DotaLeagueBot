@@ -1,0 +1,1 @@
+export const DRAFT_HERO_ACTION_BUDGET_MS = 200;

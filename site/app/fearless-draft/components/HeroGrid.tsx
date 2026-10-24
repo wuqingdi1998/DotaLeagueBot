@@ -96,6 +96,8 @@ export function HeroGrid({
     heroId: number;
     version: number;
   } | null>(null);
+  const [pendingAction, setPendingAction] = useState<"BAN" | "PICK" | null>(null);
+  const isSelectingHeroRef = useRef(false);
   const [flashingAction, setFlashingAction] = useState<{
     heroId: number;
     type: "PICK" | "BAN";
@@ -131,6 +133,8 @@ export function HeroGrid({
     : null;
   const selectedHero = selectedHeroId ? FEARLESS_DRAFT_HEROES_BY_ID.get(selectedHeroId) : null;
   const isOwnTurn = map.currentActorId === userId;
+  const pendingActionLabel = pendingAction === "BAN" ? text.banSaving
+    : pendingAction === "PICK" ? text.pickSaving : null;
   useHeroSearchHotkeys(searchInputRef, setSearch);
 
   useEffect(() => () => {
@@ -236,6 +240,26 @@ export function HeroGrid({
       !pendingRemovalHeroIds.has(suggestion.heroId),
   );
 
+  async function confirmHeroSelection() {
+    if (!selectedHero || !map.currentAction || isSending || isSelectingHeroRef.current) return;
+    isSelectingHeroRef.current = true;
+    setPendingAction(map.currentAction);
+    if (previewTimer.current !== null) {
+      window.clearTimeout(previewTimer.current);
+      previewTimer.current = null;
+    }
+    try {
+      await send({
+        action: "SELECT_HERO",
+        heroId: selectedHero.id,
+        expectedVersion: map.version,
+      });
+    } finally {
+      isSelectingHeroRef.current = false;
+      setPendingAction(null);
+    }
+  }
+
   return (
     <section className="fearless-hero-pool" ref={animationRootRef}>
       <div className="fearless-hero-toolbar">
@@ -264,7 +288,7 @@ export function HeroGrid({
             <div>
               {group.heroes.map((hero) => {
                 const state = heroState(hero.id);
-                const canSelect = isOwnTurn && state === "available";
+                const canSelect = isOwnTurn && state === "available" && pendingAction === null;
                 const canSuggestHero = canSuggest && state === "available";
                 const suggestions = visibleHeroSuggestions.filter(
                   (suggestion) => suggestion.heroId === hero.id,
@@ -346,18 +370,9 @@ export function HeroGrid({
           <button
             className={map.currentAction === "BAN" ? "ban" : "pick"}
             type="button"
-            disabled={isSending}
-            onClick={() => {
-              if (previewTimer.current !== null) {
-                window.clearTimeout(previewTimer.current);
-                previewTimer.current = null;
-              }
-              void send({
-                action: "SELECT_HERO",
-                heroId: selectedHero.id,
-                expectedVersion: map.version,
-              });
-            }}
+            disabled={isSending || pendingAction !== null}
+            aria-busy={pendingAction !== null}
+            onClick={() => void confirmHeroSelection()}
           >
             <Image
               className="fearless-hero-confirm-image"
@@ -367,11 +382,11 @@ export function HeroGrid({
               sizes="360px"
               unoptimized
             />
-            <span className="fearless-hero-confirm-label">
-              {map.currentAction === "BAN" ? text.banHero : text.pickHero}
+            <span className="fearless-hero-confirm-label" role="status">
+              {pendingActionLabel ?? (map.currentAction === "BAN" ? text.banHero : text.pickHero)}
             </span>
-            <span className="fearless-hero-confirm-action">
-              {map.currentAction === "BAN" ? text.ban : text.pick}
+            <span className="fearless-hero-confirm-action" role="status">
+              {pendingActionLabel ?? (map.currentAction === "BAN" ? text.ban : text.pick)}
             </span>
           </button>
         </div>

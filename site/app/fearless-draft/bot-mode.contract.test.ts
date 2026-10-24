@@ -68,23 +68,23 @@ describe("Fearless Draft bot mode", () => {
       "hasActiveSeries(client, FEARLESS_DRAFT_BOT_PLAYER_ID)",
     );
     expect(botService).toContain(
-      'respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", playerId)',
+      'respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", target)',
     );
     expect(botService).toContain(
-      "markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, playerId)",
+      "markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, target)",
     );
   });
 
   it("randomly resolves bot choices, picks and bans through normal draft rules", () => {
     expect(botService).toContain("randomAvailableHeroId");
     expect(botService).toMatch(
-      /makeDraftChoice\(\s*FEARLESS_DRAFT_BOT_PLAYER_ID,[\s\S]*?playerId,/,
+      /makeDraftChoice\(\s*FEARLESS_DRAFT_BOT_PLAYER_ID,[\s\S]*?target,/,
     );
     expect(botService).toContain("selectDraftHero(");
     expect(botService).toContain("state.version");
     expect(botService).toContain("true,");
     expect(botService).toContain("runBotAction");
-    expect(route).toContain("await advanceBotDraft(user.discordId)");
+    expect(route).toContain("await advanceBotDraft(user.discordId, command.seriesId)");
   });
 
   it("assigns the bot team's heroes through the normal rules after its scheduled delay", () => {

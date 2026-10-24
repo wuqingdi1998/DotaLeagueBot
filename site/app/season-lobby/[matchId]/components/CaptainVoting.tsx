@@ -2,36 +2,15 @@
 
 import { useState, type ReactNode } from "react";
 import { FiCheck, FiClock, FiUsers } from "react-icons/fi";
-import { AvatarImage } from "@/app/components/AvatarImage";
-import { PlayerRoleBadge } from "@/app/components/PlayerRoleBadge";
-import { SubscriptionRuneNickname } from "@/app/components/SubscriptionRuneNickname";
 import type {
-  SeasonLobbyCaptainBallot,
   SeasonLobbyRoomCommand,
   SeasonLobbyRoomPlayer,
   SeasonLobbyRoomSnapshot,
 } from "../model/types";
 import { CaptainStageTimer } from "./CaptainStageTimer";
 import { CaptainVoterStatus } from "./CaptainVoterStatus";
-
-function PlayerAvatar({
-  player,
-  className,
-}: {
-  player: SeasonLobbyRoomPlayer;
-  className: string;
-}) {
-  return (
-    <AvatarImage
-      className={className}
-      source={player.avatarUrl}
-      alt=""
-      width={48}
-      height={48}
-      fallback={<i className={className}>{player.nickname.slice(0, 1)}</i>}
-    />
-  );
-}
+import { CaptainCandidateCard as CandidateCard } from "./CaptainCandidateCard";
+import { captainWaitingMessage } from "../model/captain-waiting";
 
 function VotingHeader({
   snapshot,
@@ -78,6 +57,7 @@ function ConfirmationPrompt({
     <div className="season-room-vote-confirmation" role="group">
       <p>{question}</p>
       <span>После подтверждения изменить ответ нельзя.</span>
+      {isSending && <span role="status">Сохраняем ответ…</span>}
       <div>
         <button type="button" disabled={isSending} onClick={onConfirm}>
           Да
@@ -116,63 +96,6 @@ function useCandidateConfirmation(
   };
 }
 
-function CandidateCard({
-  candidate,
-  ballots,
-  players,
-  isSelected,
-  canSelect,
-  isSending,
-  showVoters = false,
-  onSelect,
-}: {
-  candidate: SeasonLobbyRoomPlayer;
-  ballots: SeasonLobbyCaptainBallot[];
-  players: SeasonLobbyRoomPlayer[];
-  isSelected: boolean;
-  canSelect: boolean;
-  isSending: boolean;
-  showVoters?: boolean;
-  onSelect: () => void;
-}) {
-  const voters = ballots.flatMap((ballot) => {
-    if (ballot.candidatePlayerId !== candidate.playerId) return [];
-    const voter = players.find((player) => player.playerId === ballot.voterPlayerId);
-    return voter ? [voter] : [];
-  });
-  return (
-    <button
-      className={`season-room-candidate-card${isSelected ? " selected" : ""}`}
-      type="button"
-      disabled={!canSelect || isSending}
-      onClick={onSelect}
-    >
-      <div className="season-room-candidate-name">
-        <PlayerAvatar player={candidate} className="season-room-candidate-avatar" />
-        <span>
-          <strong>
-            <SubscriptionRuneNickname
-              nickname={candidate.nickname}
-              subscriptionRole={candidate.subscriptionRole}
-            />
-          </strong>
-          <small>Тир {candidate.tier ?? "–"}<PlayerRoleBadge positions={candidate.positions} /></small>
-        </span>
-        {isSelected && <FiCheck aria-label="Ваш голос" />}
-      </div>
-      {showVoters && (
-        <div className="season-room-candidate-voters">
-          {voters.length > 0 ? voters.map((voter) => (
-            <span title={`${voter.nickname} проголосовал здесь`} key={voter.playerId}>
-              <PlayerAvatar player={voter} className="season-room-voter-avatar" />
-            </span>
-          )) : <small>Пока нет голосов</small>}
-        </div>
-      )}
-    </button>
-  );
-}
-
 function CaptainInterest({
   snapshot,
   isSending,
@@ -206,10 +129,10 @@ function CaptainInterest({
         title="Вы хотите быть капитаном?"
         description="Не ответившие до конца таймера автоматически выбирают «Нет»."
       />
-      {fixedInterest === true ? (
+      {fixedInterest !== null ? (
         <div className="season-room-captain-resolved" role="status">
-          <strong>Вы хотите быть капитаном</strong>
-          <span>Ожидаем ответы остальных участников.</span>
+          <strong>{fixedInterest ? "Вы хотите быть капитаном" : "Вы не хотите быть капитаном"}</strong>
+          <span>{captainWaitingMessage(snapshot, true)}</span>
         </div>
       ) : pendingInterest === null ? (
         <div className="season-room-interest-actions">
@@ -221,7 +144,6 @@ function CaptainInterest({
             Да, хочу
           </button>
           <button
-            className={fixedInterest === false ? "selected no" : ""}
             type="button"
             disabled={isSending || fixedInterest !== null}
             onClick={() => setPendingInterest(false)}
@@ -278,12 +200,12 @@ function CaptainChoice({
         title="Вы выбираете капитана"
         description={canVote
           ? "Нажмите на одного из игроков, которые хотят стать капитаном."
-          : "Кандидаты не голосуют на этом этапе: их голос уже отдан за себя."}
+          : captainWaitingMessage(snapshot)}
       />
       {captain ? (
         <div className="season-room-captain-resolved">
           <strong>{captain.nickname} выбран капитаном</strong>
-          <span>Ожидаем завершения выбора в другой команде.</span>
+          <span>{captainWaitingMessage(snapshot)}</span>
         </div>
       ) : confirmation.pendingCandidate ? (
         <ConfirmationPrompt
@@ -312,7 +234,7 @@ function CaptainChoice({
       ) : (
         <div className="season-room-captain-resolved">
           <strong>Капитан команды уже определён</strong>
-          <span>Ожидаем завершения выбора в другой команде.</span>
+          <span>{captainWaitingMessage(snapshot)}</span>
         </div>
       )}
       <CaptainVoterStatus
@@ -421,12 +343,12 @@ function CaptainTiebreak({
         title={canVote ? "Вы выбираете капитана" : "Решающий голос"}
         description={canVote
           ? "Вы не получили внешний голос. Выберите капитана из двух лидеров."
-          : "В вашей команде возникла особая ничья. Ожидаем решающий голос."}
+          : captainWaitingMessage(snapshot)}
       />
       {captain ? (
         <div className="season-room-captain-resolved">
           <strong>{captain.nickname} выбран капитаном</strong>
-          <span>Ожидаем завершения выбора в другой команде.</span>
+          <span>{captainWaitingMessage(snapshot)}</span>
         </div>
       ) : confirmation.pendingCandidate ? (
         <ConfirmationPrompt
@@ -456,7 +378,7 @@ function CaptainTiebreak({
       ) : (
         <div className="season-room-captain-resolved">
           <strong>Капитан вашей команды определён</strong>
-          <span>Ожидаем решающий голос в другой команде.</span>
+          <span>{captainWaitingMessage(snapshot)}</span>
         </div>
       )}
       <CaptainVoterStatus

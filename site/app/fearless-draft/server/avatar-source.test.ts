@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const auth = readFileSync(resolve(process.cwd(), "lib/auth.ts"), "utf8");
 const snapshot = readFileSync(
-  resolve(process.cwd(), "app/fearless-draft/server/snapshot-service.ts"),
+  resolve(process.cwd(), "app/fearless-draft/server/snapshot-players.ts"),
   "utf8",
 );
 

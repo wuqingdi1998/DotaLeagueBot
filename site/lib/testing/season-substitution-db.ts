@@ -73,7 +73,8 @@ export async function substitutionTestDatabase() {
       map1_coin_toss_winner_id bigint, player1_dismissed_at timestamptz,
       player2_dismissed_at timestamptz, end_requested_by bigint, end_requested_at timestamptz,
       player1_ready_for_next_map boolean DEFAULT false,
-      player2_ready_for_next_map boolean DEFAULT false, updated_at timestamptz DEFAULT now());
+      player2_ready_for_next_map boolean DEFAULT false, updated_at timestamptz DEFAULT now(),
+      last_human_action_at timestamptz DEFAULT now());
     CREATE TABLE draft_maps (id bigserial PRIMARY KEY, series_id bigint, map_number integer,
       status text DEFAULT 'FIRST_DECISION', coin_toss_winner_id bigint, coin_toss_segment integer,
       first_chooser_id bigint, radiant_player_id bigint, first_pick_player_id bigint,
@@ -84,7 +85,7 @@ export async function substitutionTestDatabase() {
     CREATE TABLE draft_actions (map_id bigint, actor_id bigint, hero_id integer, action_type text);
     CREATE TABLE draft_hero_suggestions (map_id bigint, player_id bigint, hero_id integer,
       created_at timestamptz DEFAULT now());
-    CREATE TABLE draft_presence (player_id bigint);
+    CREATE TABLE draft_presence (player_id bigint, series_id bigint, PRIMARY KEY(series_id, player_id));
     CREATE TABLE tournament_audit_log (tournament_id bigint, actor_discord_id bigint,
       action text, entity_type text, entity_id text, details jsonb);
     CREATE FUNCTION sync_season_lobby_notifications(bigint)

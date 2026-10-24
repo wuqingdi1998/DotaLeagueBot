@@ -19,17 +19,22 @@ import {
 } from "./database";
 import { databaseNow } from "./database-clock";
 import { DraftRequestError } from "./errors";
+import { recordDraftHumanActivity, type DraftActionTarget } from "./draft-context";
+import { loadHeroActionResult } from "./hero-action-result-service";
+import type { DraftHeroActionResult } from "../model/hero-action-result";
+import { ensureTrainingDraftNotExpired } from "./training-expiry-service";
 
 const heroIds = new Set(ENABLED_FEARLESS_DRAFT_HEROES.map((hero) => hero.id));
 
 export async function makeDraftChoice(
   playerId: string,
   choice: unknown,
-  opponentId?: string,
+  target: DraftActionTarget,
 ): Promise<void> {
   if (!isDraftChoice(choice)) throw new DraftRequestError("Некорректный выбор");
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, playerId, opponentId);
+    const { series, map } = await loadLockedDraftSeries(client, playerId, target);
+    await recordDraftHumanActivity(client, series, playerId);
     const secondChooserId = draftOpponentId(series, map.first_chooser_id);
     if (map.status === "FIRST_DECISION") {
       if (playerId !== map.first_chooser_id) {
@@ -238,13 +243,21 @@ async function commitHeroAction(
 
 export async function settleFinalPickReview(mapId: number): Promise<boolean> {
   return transaction(async (client) => {
+    const parent = await client.query<{ series_id: number }>(
+      "SELECT series_id::int FROM draft_maps WHERE id = $1", [mapId],
+    );
+    if (!parent.rows[0]) return false;
+    const { series, map } = await loadLockedDraftSeriesById(client, parent.rows[0].series_id);
+    if (map.id !== mapId || !await canAdvanceAutomatically(client, series)) return false;
     const now = await databaseNow(client);
     const result = await client.query(
       `UPDATE draft_maps
        SET status = 'LINEUP_ASSIGNMENT', final_pick_review_ends_at = NULL,
          version = version + 1
        WHERE id = $1 AND status = 'FINAL_PICK_REVIEW'
-         AND final_pick_review_ends_at <= $2`,
+         AND final_pick_review_ends_at <= $2
+         AND EXISTS (SELECT 1 FROM draft_series series
+           WHERE series.id = draft_maps.series_id AND series.status = 'DRAFTING')`,
       [mapId, now],
     );
     return Boolean(result.rowCount);
@@ -257,7 +270,8 @@ async function resolveExpiredStep(
   map: DraftMapRow,
   now: Date,
 ): Promise<boolean> {
-  if (map.status !== "DRAFTING" || map.current_step >= DRAFT_SEQUENCE.length) return false;
+  if (!await canAdvanceAutomatically(client, series) || map.status !== "DRAFTING" ||
+      map.current_step >= DRAFT_SEQUENCE.length) return false;
   const actorId = actorIdForStep(series, map, map.current_step);
   const timer = timerUsage(map, reserveForActor(series, map, actorId), now);
   if (!timer.isExpired) return false;
@@ -278,6 +292,18 @@ async function resolveExpiredStep(
   return true;
 }
 
+async function canAdvanceAutomatically(client: PoolClient, series: DraftSeriesRow): Promise<boolean> {
+  if (series.status !== "DRAFTING") return false;
+  if (series.season_match_id) return true;
+  try {
+    await ensureTrainingDraftNotExpired(client, series.id);
+    return true;
+  } catch (error) {
+    if (error instanceof DraftRequestError && error.status === 409) return false;
+    throw error;
+  }
+}
+
 function validateHeroCommand(heroId: number, expectedVersion: number): void {
   if (!Number.isInteger(heroId) || !heroIds.has(heroId)) {
     throw new DraftRequestError("Герой не найден", 404);
@@ -292,9 +318,9 @@ async function loadSelectableHeroTurn(
   playerId: string,
   heroId: number,
   expectedVersion: number,
-  opponentId?: string,
+  target: DraftActionTarget,
 ) {
-  const { series, map } = await loadLockedDraftSeries(client, playerId, opponentId);
+  const { series, map } = await loadLockedDraftSeries(client, playerId, target);
   if (map.status !== "DRAFTING" || series.status !== "DRAFTING") {
     throw new DraftRequestError("Сейчас нельзя выбирать героя", 409);
   }
@@ -333,10 +359,12 @@ export async function highlightDraftHero(
   playerId: string,
   heroId: number,
   expectedVersion: number,
+  target: DraftActionTarget,
 ): Promise<void> {
   validateHeroCommand(heroId, expectedVersion);
   await transaction(async (client) => {
-    const { series, map } = await loadDraftSeriesForPreview(client, playerId);
+    const { series, map } = await loadDraftSeriesForPreview(client, playerId, target);
+    await recordDraftHumanActivity(client, series, playerId);
     if (map.version !== expectedVersion) {
       throw new DraftRequestError("Ход уже изменился — экран обновлён", 409);
     }
@@ -365,30 +393,36 @@ export async function selectDraftHero(
   playerId: string,
   heroId: number,
   expectedVersion: number,
+  target: DraftActionTarget,
   isAutomatic = false,
-  opponentId?: string,
-): Promise<void> {
+): Promise<DraftHeroActionResult> {
   validateHeroCommand(heroId, expectedVersion);
-  await transaction(async (client) => {
+  return transaction(async (client) => {
     const { series, map, now } = await loadSelectableHeroTurn(
       client,
       playerId,
       heroId,
       expectedVersion,
-      opponentId,
+      target,
     );
+    if (!isAutomatic) await recordDraftHumanActivity(client, series, playerId);
     await commitHeroAction(client, series, map, heroId, isAutomatic, now);
+    return loadHeroActionResult(client, series.id, map.id, map.current_step);
   });
 }
 
-export async function dismissCompletedSeries(playerId: string): Promise<void> {
+export async function dismissCompletedSeries(
+  playerId: string,
+  target: DraftActionTarget,
+): Promise<void> {
   await transaction(async (client) => {
+    const { series } = await loadLockedDraftSeries(client, playerId, target, ["COMPLETE"]);
     const result = await client.query(
       `UPDATE draft_series
        SET player1_dismissed_at = CASE WHEN player1_id = $1 THEN NOW() ELSE player1_dismissed_at END,
            player2_dismissed_at = CASE WHEN player2_id = $1 THEN NOW() ELSE player2_dismissed_at END
-       WHERE (player1_id = $1 OR player2_id = $1) AND status = 'COMPLETE'`,
-      [playerId],
+       WHERE id = $2 AND (player1_id = $1 OR player2_id = $1) AND status = 'COMPLETE'`,
+      [playerId, series.id],
     );
     if (!result.rowCount) throw new DraftRequestError("Завершённая серия не найдена", 404);
   });

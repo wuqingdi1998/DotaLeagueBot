@@ -14,13 +14,15 @@ import {
 } from "../services/draft-request";
 import { createDraftHighlightQueue } from "../services/highlight-queue";
 
-type CommandResponse = { error?: string; snapshot?: FearlessDraftSnapshot };
+import { applyDraftHeroActionResult, type DraftHeroActionResult } from "../model/hero-action-result";
+
+type CommandResponse = { error?: string; snapshot?: FearlessDraftSnapshot; heroAction?: DraftHeroActionResult };
 
 function keepNewestDraftSnapshot(
   current: FearlessDraftSnapshot,
   incoming: FearlessDraftSnapshot,
 ): FearlessDraftSnapshot {
-  if (Date.parse(incoming.serverNow) < Date.parse(current.serverNow)) return current;
+
   const currentMap = current.series?.map;
   const incomingMap = incoming.series?.map;
   if (
@@ -29,6 +31,9 @@ function keepNewestDraftSnapshot(
   ) {
     return current;
   }
+  if (currentMap?.id !== incomingMap?.id && Date.parse(incoming.serverNow) < Date.parse(current.serverNow)) return current;
+  if (currentMap?.id === incomingMap?.id && currentMap?.version === incomingMap?.version &&
+      Date.parse(incoming.serverNow) < Date.parse(current.serverNow)) return current;
   return incoming;
 }
 
@@ -107,7 +112,11 @@ export function useFearlessDraft(
       const response = await fetchDraftRequest(`/api/fearless-draft${suffix}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(command),
+        body: JSON.stringify({
+          ...command,
+          seriesId: snapshot.series?.id,
+          mapId: snapshot.series?.map.id,
+        }),
       });
       const body = await readDraftResponse<CommandResponse>(
         response,
@@ -117,6 +126,10 @@ export function useFearlessDraft(
       const confirmedSnapshot = body.snapshot;
       if (confirmedSnapshot) {
         setSnapshot((current) => keepNewestDraftSnapshot(current, confirmedSnapshot));
+      }
+      if (body.heroAction) {
+        const savedAction = body.heroAction;
+        setSnapshot((current) => applyDraftHeroActionResult(current, savedAction));
       }
       setError("");
       if (!isConnected) {

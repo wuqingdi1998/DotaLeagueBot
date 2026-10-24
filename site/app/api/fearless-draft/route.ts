@@ -1,4 +1,5 @@
 import { after } from "next/server";
+import { DRAFT_HERO_ACTION_BUDGET_MS } from "@/app/fearless-draft/model/performance";
 import { requireSession } from "@/lib/auth";
 import { requirePlayerParticipation } from "@/lib/player-participation";
 import type { FearlessDraftCommand } from "@/app/fearless-draft/model/snapshot";
@@ -44,6 +45,9 @@ import {
   seasonLobbyChannel,
 } from "@/lib/live-update-events";
 
+import { validateDraftActionTarget } from "@/app/fearless-draft/server/draft-context";
+import type { DraftHeroActionResult } from "@/app/fearless-draft/model/hero-action-result";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -63,9 +67,13 @@ export async function POST(request: Request) {
   try {
     const user = await requireSession();
     const seasonMatchId = fearlessSeasonMatchId(request);
-    const command = (await request.json()) as Partial<FearlessDraftCommand>;
-    if (["MAKE_CHOICE", "SELECT_HERO", "HIGHLIGHT_HERO", "SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP"].includes(command.action ?? "") &&
-      await processBot3Captains(user.discordId)) throw new DraftRequestError("Сначала завершите выбор капитанов", 409);
+    const command = (await request.json()) as Partial<FearlessDraftCommand> & { seriesId?: number; mapId?: number };
+    const target = () => validateDraftActionTarget({
+      seriesId: command.seriesId, mapId: command.mapId, seasonMatchId,
+    });
+    let heroAction: DraftHeroActionResult | undefined;
+    if (!seasonMatchId && ["MAKE_CHOICE", "SELECT_HERO", "HIGHLIGHT_HERO", "SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP"].includes(command.action ?? "") &&
+      await processBot3Captains(user.discordId, undefined, target())) throw new DraftRequestError("Сначала завершите выбор капитанов", 409);
     if ([
       "START_BOT",
       "START_BOT2",
@@ -79,12 +87,12 @@ export async function POST(request: Request) {
     switch (command.action) {
       case "BOT3_CAPTAIN_INTEREST":
         if (typeof command.wantsCaptain !== "boolean") throw new DraftRequestError("Ответ не указан");
-        await processBot3Captains(user.discordId, { action: command.action, value: command.wantsCaptain });
+        await processBot3Captains(user.discordId, { action: command.action, value: command.wantsCaptain }, target());
         break;
       case "BOT3_CAPTAIN_VOTE":
       case "BOT3_CAPTAIN_TIEBREAK":
         if (typeof command.candidatePlayerId !== "string") throw new DraftRequestError("Кандидат не указан");
-        await processBot3Captains(user.discordId, { action: command.action, value: command.candidatePlayerId });
+        await processBot3Captains(user.discordId, { action: command.action, value: command.candidatePlayerId }, target());
         break;
       case "START_BOT":
         await startBotDraft(user.discordId);
@@ -130,16 +138,17 @@ export async function POST(request: Request) {
       }
       case "MAKE_CHOICE":
         if (!("choice" in command)) throw new DraftRequestError("Выбор не указан");
-        await makeDraftChoice(user.discordId, command.choice);
+        await makeDraftChoice(user.discordId, command.choice, target());
         break;
       case "SELECT_HERO":
         if (!("heroId" in command) || !("expectedVersion" in command)) {
           throw new DraftRequestError("Герой не указан");
         }
-        await selectDraftHero(
+        heroAction = await selectDraftHero(
           user.discordId,
           Number(command.heroId),
           Number(command.expectedVersion),
+          target(),
         );
         break;
       case "HIGHLIGHT_HERO":
@@ -150,6 +159,7 @@ export async function POST(request: Request) {
           user.discordId,
           Number(command.heroId),
           Number(command.expectedVersion),
+          target(),
         );
         break;
       case "TOGGLE_HERO_SUGGESTION":
@@ -160,7 +170,7 @@ export async function POST(request: Request) {
           user.discordId,
           Number(command.heroId),
           Number(command.expectedVersion),
-          seasonMatchId,
+          target(),
         );
         break;
       case "REMOVE_HERO_SUGGESTIONS":
@@ -172,20 +182,20 @@ export async function POST(request: Request) {
           user.discordId,
           command.heroIds.map(Number),
           Number(command.expectedVersion),
-          seasonMatchId,
+          target(),
         );
         break;
       case "SUBMIT_LINEUP_ASSIGNMENT":
         if (!("assignments" in command) || !Array.isArray(command.assignments)) {
           throw new DraftRequestError("Распределение героев не указано");
         }
-        await submitDraftLineupAssignment(user.discordId, command.assignments);
+        await submitDraftLineupAssignment(user.discordId, command.assignments, target());
         break;
       case "READY_FOR_NEXT_MAP":
-        await markReadyForNextDraftMap(user.discordId);
+        await markReadyForNextDraftMap(user.discordId, target());
         break;
       case "REQUEST_SERIES_END":
-        await requestDraftSeriesEnd(user.discordId);
+        await requestDraftSeriesEnd(user.discordId, target());
         break;
       case "RESPOND_SERIES_END":
         if (
@@ -194,13 +204,13 @@ export async function POST(request: Request) {
         ) {
           throw new DraftRequestError("Ответ на запрос не указан");
         }
-        await respondToDraftSeriesEnd(user.discordId, command.response);
+        await respondToDraftSeriesEnd(user.discordId, command.response, target());
         break;
       case "CANCEL_SERIES_END":
-        await cancelDraftSeriesEnd(user.discordId);
+        await cancelDraftSeriesEnd(user.discordId, target());
         break;
       case "DISMISS_COMPLETE":
-        await dismissCompletedSeries(user.discordId);
+        await dismissCompletedSeries(user.discordId, target());
         break;
       default:
         throw new DraftRequestError("Неизвестное действие");
@@ -209,31 +219,31 @@ export async function POST(request: Request) {
       "START_BOT", "START_BOT2", "START_BOT3", "MAKE_CHOICE", "SELECT_HERO",
       "SUBMIT_LINEUP_ASSIGNMENT", "READY_FOR_NEXT_MAP", "REQUEST_SERIES_END",
     ].includes(command.action ?? "");
-    if (shouldAdvanceBot) {
-      after(async () => {
+    after(async () => {
+      publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
+      if (seasonMatchId && command.action === "SUBMIT_LINEUP_ASSIGNMENT") {
+        publishLiveUpdate(seasonLobbyChannel(seasonMatchId));
+      }
+      if (shouldAdvanceBot && !seasonMatchId) {
         try {
-          await advanceBotDraft(user.discordId);
+          await advanceBotDraft(user.discordId, command.seriesId);
           publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
         } catch (error) {
           console.error("Bot follow-up failed after saved draft action", error);
         }
+      }
+    });
+    if (heroAction) {
+      const durationMs = Date.now() - startedAt;
+      if (durationMs > DRAFT_HERO_ACTION_BUDGET_MS) console.warn("Slow Fearless Draft hero selection", {
+        seasonMatchId, durationMs, seriesId: heroAction.seriesId,
+      });
+      return Response.json({ ok: true, heroAction }, {
+        headers: { "Server-Timing": `draft;dur=${durationMs}` },
       });
     }
-    publishLiveUpdate(fearlessDraftChannel(seasonMatchId));
-    if (seasonMatchId && command.action === "SUBMIT_LINEUP_ASSIGNMENT") {
-      publishLiveUpdate(seasonLobbyChannel(seasonMatchId));
-    }
-    if (command.action === "SELECT_HERO" || command.action?.startsWith("BOT3_CAPTAIN_")) {
-      const snapshot = await loadFearlessDraftSnapshot(user, { seasonMatchId });
-      const durationMs = Date.now() - startedAt;
-      if (durationMs >= 1_000) {
-        console.warn("Slow Fearless Draft hero selection", {
-          seasonMatchId,
-          playerId: user.discordId,
-          durationMs,
-        });
-      }
-      return Response.json({ ok: true, snapshot });
+    if (command.action?.startsWith("BOT3_CAPTAIN_")) {
+      return Response.json({ ok: true, snapshot: await loadFearlessDraftSnapshot(user, { seasonMatchId }) });
     }
     return Response.json({ ok: true });
   } catch (error) {

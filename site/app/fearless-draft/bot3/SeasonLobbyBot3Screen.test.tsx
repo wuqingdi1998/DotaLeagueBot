@@ -43,6 +43,10 @@ it("uses the live captain interface and roles in Bot3 without displaying the dra
   const accepted = save("accepted");
   expect(accepted).toContain("Вы хотите быть капитаном</strong>");
   expect(accepted).not.toContain("Да, хочу");
+  state.room.ownCaptainInterest = false;
+  const declined = save("declined");
+  expect(declined).toContain("Вы не хотите быть капитаном</strong>");
+  expect(declined).not.toContain("Да, хочу");
   state.room.players[0].wantsCaptain = false;
   advanceBot3Captains(state, now + 30_000, () => 0.1);
   state.room.serverNow = new Date(now + 30_000).toISOString();

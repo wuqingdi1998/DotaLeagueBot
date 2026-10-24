@@ -9,6 +9,7 @@ import {
   type DraftLineupSelection,
 } from "../model/lineup-assignment";
 import { loadLockedDraftSeries } from "./database";
+import { recordDraftHumanActivity, type DraftActionTarget } from "./draft-context";
 import { databaseNow } from "./database-clock";
 import { DraftRequestError } from "./errors";
 import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
@@ -81,10 +82,11 @@ export async function loadDraftLineupAssignment(
 export async function submitDraftLineupAssignment(
   captainId: string,
   assignments: readonly DraftLineupSelection[],
-  opponentId?: string,
+  target: DraftActionTarget,
 ): Promise<void> {
   await transaction(async (client) => {
-    const { series, map } = await loadLockedDraftSeries(client, captainId, opponentId);
+    const { series, map } = await loadLockedDraftSeries(client, captainId, target);
+    await recordDraftHumanActivity(client, series, captainId);
     if (
       (!series.season_match_id && !series.is_season_lobby_preview) ||
       map.status !== "LINEUP_ASSIGNMENT"

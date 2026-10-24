@@ -13,6 +13,7 @@ import { submitDraftLineupAssignment } from "./lineup-assignment-service";
 import { loadLobbyPreviewPlayersByViewerId } from "./lobby-preview-service";
 import { createBot3Captains, processBot3Captains } from "./bot3-captain-service";
 import { isBotActionDue, clearBotActionDue } from "./bot-timing-service";
+import type { DraftActionTarget } from "./draft-context";
 
 type BotSeriesState = {
   status: string;
@@ -42,7 +43,7 @@ function randomItem<T>(items: readonly T[]): T {
   return items[randomInt(items.length)];
 }
 
-async function loadBotSeriesState(playerId: string): Promise<BotSeriesState | null> {
+async function loadBotSeriesState(playerId: string, seriesId?: number): Promise<BotSeriesState | null> {
   return one<BotSeriesState>(
     `SELECT series.id::int AS series_id, series.status,
             series.player1_id::text, series.player2_id::text,
@@ -62,9 +63,11 @@ async function loadBotSeriesState(playerId: string): Promise<BotSeriesState | nu
      WHERE (series.player1_id = $1 OR series.player2_id = $1)
        AND (series.player1_id = $2 OR series.player2_id = $2)
        AND series.status = ANY($3::text[])
+        AND series.season_match_id IS NULL
+        AND ($4::bigint IS NULL OR series.id = $4)
      ORDER BY series.updated_at DESC
      LIMIT 1`,
-    [playerId, FEARLESS_DRAFT_BOT_PLAYER_ID, ["CHOOSING", "DRAFTING", "MAP_COMPLETE"]],
+    [playerId, FEARLESS_DRAFT_BOT_PLAYER_ID, ["CHOOSING", "DRAFTING", "MAP_COMPLETE"], seriesId ?? null],
   );
 }
 
@@ -84,7 +87,7 @@ function currentActorId(state: BotSeriesState): string | null {
     : state.player1_id;
 }
 
-async function runBotAction(action: () => Promise<void>): Promise<boolean> {
+async function runBotAction(action: () => Promise<unknown>): Promise<boolean> {
   try {
     await action();
     return true;
@@ -121,7 +124,7 @@ export async function startBotDraft(
 ): Promise<void> {
   if (!formats.includes(format)) throw new DraftRequestError("Некорректный формат");
   await transaction(async (client) => {
-    await lockDraftPlayers(client, [playerId, FEARLESS_DRAFT_BOT_PLAYER_ID]);
+    await lockDraftPlayers(client, [playerId]);
     if (await hasActiveSeries(client, playerId)) {
       throw new DraftRequestError("Сначала завершите активный Fearless Draft", 409);
     }
@@ -158,11 +161,22 @@ export async function startBotDraft(
   });
 }
 
-export async function advanceBotDraft(playerId: string): Promise<void> {
-  const isChoosingCaptain = await processBot3Captains(playerId);
+export async function advanceBotDraft(playerId: string, seriesId?: number): Promise<void> {
+  const initial = await loadBotSeriesState(playerId, seriesId);
+  if (!initial) return;
+  let isChoosingCaptain: boolean;
+  try {
+    isChoosingCaptain = await processBot3Captains(playerId, undefined, {
+      seriesId: initial.series_id, mapId: initial.map_id,
+    });
+  } catch (error) {
+    if (error instanceof DraftRequestError && error.status === 409) return;
+    throw error;
+  }
   for (let attempt = 0; attempt < DRAFT_SEQUENCE.length + 4; attempt += 1) {
-    const state = await loadBotSeriesState(playerId);
+    const state = await loadBotSeriesState(playerId, initial.series_id);
     if (!state) return;
+    const target: DraftActionTarget = { seriesId: state.series_id, mapId: state.map_id };
     if (isChoosingCaptain && !state.end_requested_by) {
       await clearBotActionDue(state.map_id);
       return;
@@ -183,7 +197,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         ? new Date(state.step_started_at.getTime() + duration * 1_000) : null;
       if (!await isBotActionDue(state.map_id, actionKey, deadline)) return;
     }
-    const runAction = async (action: () => Promise<void>) => {
+    const runAction = async (action: () => Promise<unknown>) => {
       const completed = await runBotAction(action);
       if (state.is_season_lobby_preview) await clearBotActionDue(state.map_id, actionKey);
       return completed;
@@ -191,7 +205,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
 
     if (state.end_requested_by && state.end_requested_by !== FEARLESS_DRAFT_BOT_PLAYER_ID) {
       await runAction(() =>
-        respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", playerId)
+        respondToDraftSeriesEnd(FEARLESS_DRAFT_BOT_PLAYER_ID, "ACCEPT", target)
       );
       return;
     }
@@ -202,7 +216,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         : state.player2_ready_for_next_map;
       if (!isReady) {
         await runAction(() =>
-          markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, playerId)
+          markReadyForNextDraftMap(FEARLESS_DRAFT_BOT_PLAYER_ID, target)
         );
         continue;
       }
@@ -228,7 +242,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
           heroId: pick.hero_id,
           playerId: botPlayers[index].id,
         })),
-        playerId,
+        target,
       ));
       return;
     }
@@ -238,7 +252,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         makeDraftChoice(
           FEARLESS_DRAFT_BOT_PLAYER_ID,
           randomItem(["FIRST", "SECOND", "RADIANT", "DIRE"] as const),
-          playerId,
+          target,
         )
       );
       continue;
@@ -252,7 +266,7 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         makeDraftChoice(
           FEARLESS_DRAFT_BOT_PLAYER_ID,
           randomItem(choices),
-          playerId,
+          target,
         )
       );
       continue;
@@ -266,24 +280,31 @@ export async function advanceBotDraft(playerId: string): Promise<void> {
         FEARLESS_DRAFT_BOT_PLAYER_ID,
         heroId,
         state.version,
+        target,
         true,
-        playerId,
       )
     );
   }
 }
 
 export async function advanceAllBotDrafts(): Promise<number> {
-  const rows = await query<{ player_id: string }>(
-    `SELECT DISTINCT CASE
+  const rows = await query<{ player_id: string; series_id: number }>(
+    `SELECT id::int AS series_id, CASE
        WHEN player1_id = $1 THEN player2_id::text
        ELSE player1_id::text
      END AS player_id
      FROM draft_series
      WHERE (player1_id = $1 OR player2_id = $1)
+        AND season_match_id IS NULL
        AND status = ANY($2::text[])`,
     [FEARLESS_DRAFT_BOT_PLAYER_ID, ["CHOOSING", "DRAFTING", "MAP_COMPLETE"]],
   );
-  for (const row of rows) await advanceBotDraft(row.player_id);
+  for (const row of rows) {
+    try {
+      await advanceBotDraft(row.player_id, row.series_id);
+    } catch (error) {
+      console.error("Bot draft background action failed", { seriesId: row.series_id, error });
+    }
+  }
   return rows.length;
 }

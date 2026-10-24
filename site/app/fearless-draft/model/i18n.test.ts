@@ -2,6 +2,14 @@ import { describe, expect, it } from "vitest";
 import { DRAFT_TRANSLATIONS, translateDraftError } from "./i18n";
 
 describe("Fearless Draft translations", () => {
+  it("makes pending bans and picks explicit in every language", () => {
+    expect(DRAFT_TRANSLATIONS.ru.banSaving).toBe("Бан сохраняется…");
+    expect(DRAFT_TRANSLATIONS.ru.pickSaving).toBe("Пик сохраняется…");
+    expect(DRAFT_TRANSLATIONS.en.banSaving).toBe("Saving ban…");
+    expect(DRAFT_TRANSLATIONS.en.pickSaving).toBe("Saving pick…");
+    expect(DRAFT_TRANSLATIONS.uk.banSaving).toBe("Бан зберігається…");
+    expect(DRAFT_TRANSLATIONS.uk.pickSaving).toBe("Пік зберігається…");
+  });
   it("keeps identical translation keys for Russian, English and Ukrainian", () => {
     expect(Object.keys(DRAFT_TRANSLATIONS.en).sort()).toEqual(
       Object.keys(DRAFT_TRANSLATIONS.ru).sort(),

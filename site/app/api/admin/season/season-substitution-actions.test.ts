@@ -26,6 +26,7 @@ const viewer = (discordId: string): AuthUser => ({
 });
 const finishFirstMap = () => reportSeasonLobbyGameResult(10, viewer("10001"), "8986462059", "a");
 const firstRow = async (sql: string) => (await db.query(sql)).rows[0];
+const draftTarget = { seriesId: 1, mapId: 1, seasonMatchId: 10 };
 
 beforeAll(async () => { db = await substitutionTestDatabase(); }, 30_000);
 afterAll(async () => { await db.close(); });
@@ -45,7 +46,7 @@ describe("live second-map substitutions", () => {
 
   it("admits the substitute between maps, transfers captain and host, and starts the next draft", async () => {
     await finishFirstMap();
-    await markReadyForNextDraftMap("10006");
+    await markReadyForNextDraftMap("10006", draftTarget);
     await createSeasonSubstitution(substitution);
     expect(await firstRow("SELECT game_number, status, winner_side, dota_match_id FROM season_match_games WHERE game_number = 2"))
       .toEqual({ game_number: 2, status: "published", winner_side: null, dota_match_id: null });
@@ -58,10 +59,10 @@ describe("live second-map substitutions", () => {
     expect(room.players).toHaveLength(10);
     expect(room.players.find((player) => player.playerId === "10011")?.isCaptain).toBe(true);
     await expect(loadSeasonLobbyRoomSnapshot(viewer("10001"), 10)).rejects.toMatchObject({ status: 403 });
-    await expect(markReadyForNextDraftMap("10001")).rejects.toMatchObject({ status: 404 });
-    await markReadyForNextDraftMap("10011");
+    await expect(markReadyForNextDraftMap("10001", draftTarget)).rejects.toMatchObject({ status: 403 });
+    await markReadyForNextDraftMap("10011", draftTarget);
     expect(await firstRow("SELECT current_map FROM draft_series")).toEqual({ current_map: 1 });
-    await markReadyForNextDraftMap("10006");
+    await markReadyForNextDraftMap("10006", draftTarget);
     expect(await firstRow("SELECT current_map, player1_id::text, map1_coin_toss_winner_id::text FROM draft_series"))
       .toEqual({ current_map: 2, player1_id: "10011", map1_coin_toss_winner_id: "10011" });
     expect(await firstRow("SELECT first_chooser_id::text FROM draft_maps WHERE map_number = 2"))
@@ -77,13 +78,13 @@ describe("live second-map substitutions", () => {
   it("allows a non-captain substitute to propose heroes and denies the replaced player", async () => {
     await finishFirstMap();
     await createSeasonSubstitution({ ...substitution, outgoingPlayerId: "10002" });
-    await markReadyForNextDraftMap("10001");
-    await markReadyForNextDraftMap("10006");
+    await markReadyForNextDraftMap("10001", draftTarget);
+    await markReadyForNextDraftMap("10006", draftTarget);
     await db.exec("UPDATE draft_series SET status = 'DRAFTING'; UPDATE draft_maps SET status = 'DRAFTING' WHERE map_number = 2;");
-    await toggleDraftHeroSuggestion("10011", 1, 0, 10);
+    await toggleDraftHeroSuggestion("10011", 1, 0, { ...draftTarget, mapId: 2 });
     expect(await firstRow("SELECT player_id::text, hero_id FROM draft_hero_suggestions"))
       .toEqual({ player_id: "10011", hero_id: 1 });
-    await expect(toggleDraftHeroSuggestion("10002", 2, 0, 10)).rejects.toMatchObject({ status: 403 });
+    await expect(toggleDraftHeroSuggestion("10002", 2, 0, { ...draftTarget, mapId: 2 })).rejects.toMatchObject({ status: 403 });
   });
 
   it("corrects and removes a substitution without doubling the penalty or losing the host", async () => {
@@ -104,12 +105,22 @@ describe("live second-map substitutions", () => {
 
   it("rolls back the entire change when the incoming captain is busy in another draft", async () => {
     await finishFirstMap();
-    await db.exec("INSERT INTO draft_series (player1_id, player2_id) VALUES (10011, 10012)");
+    await db.exec("INSERT INTO draft_series (season_match_id, player1_id, player2_id) VALUES (11, 10011, 10012)");
     await expect(createSeasonSubstitution(substitution)).rejects.toMatchObject({ status: 409 });
     expect(await firstRow("SELECT count(*)::int AS count FROM season_match_substitutions")).toEqual({ count: 0 });
     expect(await firstRow("SELECT count(*)::int AS count FROM season_match_games WHERE game_number = 2")).toEqual({ count: 0 });
     expect(await firstRow("SELECT count(*)::int AS count FROM season_penalty_events")).toEqual({ count: 0 });
     expect(await firstRow("SELECT host_player_id::text FROM season_matches")).toEqual({ host_player_id: "10001" });
+  });
+
+  it("admits a replacement captain who has a separate active training", async () => {
+    await finishFirstMap();
+    await db.exec("INSERT INTO draft_series (player1_id, player2_id) VALUES (10011, 10012)");
+    await expect(createSeasonSubstitution(substitution)).resolves.toBeDefined();
+    expect(await firstRow("SELECT player1_id::text FROM draft_series WHERE season_match_id = 10"))
+      .toEqual({ player1_id: "10011" });
+    expect(await firstRow("SELECT status FROM draft_series WHERE season_match_id IS NULL"))
+      .toEqual({ status: "MAP_COMPLETE" });
   });
 
   it("retains the full-match substitution without a second-map penalty", async () => {

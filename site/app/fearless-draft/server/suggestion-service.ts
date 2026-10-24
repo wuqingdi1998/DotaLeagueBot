@@ -8,6 +8,7 @@ import type {
 } from "../model/snapshot";
 import type { DraftTeamPlayerColorSlot } from "../model/player-colors";
 import { DraftRequestError } from "./errors";
+import { recordDraftHumanActivity, validateDraftActionTarget, type DraftActionTarget } from "./draft-context";
 
 const MAX_SUGGESTIONS_PER_PLAYER = 5;
 
@@ -23,8 +24,9 @@ type SuggestionContextRow = {
 async function loadSuggestionContext(
   client: PoolClient,
   playerId: string,
-  seasonMatchId?: number,
+  rawTarget: DraftActionTarget,
 ): Promise<SuggestionContextRow> {
+  const target = validateDraftActionTarget(rawTarget);
   const result = await client.query<SuggestionContextRow>(
     `SELECT series.id::int AS series_id, map.id::int AS map_id,
             map.map_number::int, map.version::int, series.is_lobby_preview,
@@ -33,8 +35,10 @@ async function loadSuggestionContext(
      JOIN draft_maps map
        ON map.series_id = series.id AND map.map_number = series.current_map
      WHERE series.status = 'DRAFTING' AND map.status = 'DRAFTING'
+        AND series.id = $3 AND map.id = $4
        AND (
-         (series.is_lobby_preview = TRUE AND series.player1_id = $1)
+          ($2::bigint IS NULL AND series.season_match_id IS NULL
+            AND series.is_lobby_preview = TRUE AND series.player1_id = $1)
          OR (
            $2::bigint IS NOT NULL AND series.season_match_id = $2
            AND EXISTS (
@@ -46,13 +50,14 @@ async function loadSuggestionContext(
        )
      ORDER BY series.updated_at DESC
      LIMIT 1
-     FOR UPDATE OF map`,
-    [playerId, seasonMatchId ?? null],
+      FOR UPDATE OF series, map`,
+    [playerId, target.seasonMatchId ?? null, target.seriesId, target.mapId],
   );
   const context = result.rows[0];
   if (!context) {
     throw new DraftRequestError("Предлагать героев могут только участники текущего лобби", 403);
   }
+  await recordDraftHumanActivity(client, { id: context.series_id, season_match_id: context.season_match_id }, playerId);
   return context;
 }
 
@@ -88,13 +93,13 @@ export async function toggleDraftHeroSuggestion(
   playerId: string,
   heroId: number,
   expectedVersion: number,
-  seasonMatchId?: number,
+  target: DraftActionTarget,
 ): Promise<void> {
   if (!Number.isInteger(heroId) || !Number.isInteger(expectedVersion)) {
     throw new DraftRequestError("Некорректное предложение героя");
   }
   await transaction(async (client) => {
-    const context = await loadSuggestionContext(client, playerId, seasonMatchId);
+    const context = await loadSuggestionContext(client, playerId, target);
     if (context.version !== expectedVersion) {
       throw new DraftRequestError("Состояние драфта устарело", 409);
     }
@@ -137,7 +142,7 @@ export async function removeDraftHeroSuggestions(
   playerId: string,
   heroIds: number[],
   expectedVersion: number,
-  seasonMatchId?: number,
+  target: DraftActionTarget,
 ): Promise<void> {
   const uniqueHeroIds = [...new Set(heroIds)];
   if (
@@ -149,7 +154,7 @@ export async function removeDraftHeroSuggestions(
     throw new DraftRequestError("Некорректный список героев");
   }
   await transaction(async (client) => {
-    const context = await loadSuggestionContext(client, playerId, seasonMatchId);
+    const context = await loadSuggestionContext(client, playerId, target);
     if (context.version !== expectedVersion) {
       throw new DraftRequestError("Состояние драфта устарело", 409);
     }

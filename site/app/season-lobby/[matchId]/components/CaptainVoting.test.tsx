@@ -36,6 +36,33 @@ it("replaces consent buttons with the saved captain intention, including after r
   expect(unanswered).toContain("Нет</button>");
 });
 
+it("replaces a saved refusal with its explanation and no answer buttons", () => {
+  const html = renderToStaticMarkup(<CaptainVoting snapshot={{ ...snapshot, ownCaptainInterest: false }} isSending={false} send={send} />);
+  expect(html).toContain("Вы не хотите быть капитаном</strong>");
+  expect(html).not.toContain("<button");
+  expect(html).toContain("Ответ сохранён");
+});
+
+it("explains when the entire own team is waiting for opponents", () => {
+  const answeredTeam = players.map((player) => ({ ...player,
+    hasAnsweredCaptainInterest: player.teamSide === "a",
+  }));
+  const html = renderToStaticMarkup(<CaptainVoting snapshot={{ ...snapshot, players: answeredTeam, ownCaptainInterest: false }} isSending={false} send={send} />);
+  expect(html).toContain("Оппонент делает выбор");
+  expect(html).toContain("Вы не хотите быть капитаном");
+  expect(html).toContain("Ответили: 5/5");
+});
+
+it("does not blame opponents when both teams have finished or results are displayed", () => {
+  const answeredPlayers = players.map((player) => ({ ...player, hasAnsweredCaptainInterest: true }));
+  const html = renderToStaticMarkup(<CaptainVoting snapshot={{ ...snapshot, players: answeredPlayers, ownCaptainInterest: false }} isSending={false} send={send} />);
+  expect(html).not.toContain("Оппонент делает выбор");
+  expect(html).toContain("Переходим к следующему этапу");
+  const revealed = renderToStaticMarkup(<CaptainVoting snapshot={{ ...snapshot, status: "captain_reveal", captainRevealNextStatus: "drafting" }} isSending={false} send={send} />);
+  expect(revealed).not.toContain("Оппонент делает выбор");
+  expect(revealed).toContain("Через 10 секунд начнётся Fearless Draft");
+});
+
 it("clearly announces captain selection and displays every player's positions", () => {
   const choice = { ...snapshot, status: "captain_voting" as const, ownCaptainInterest: false };
   const html = renderToStaticMarkup(<CaptainVoting snapshot={choice} isSending={false} send={send} />);
@@ -51,7 +78,7 @@ it("renders lobby visual scenarios for desktop and phone checks", () => {
   const css = ["01-foundation.css", "60-season-lobby-entry-and-shell.css", "60-season-lobby-room.css", "60-season-captain-voting.css"]
     .map((name) => readFileSync(new URL(name, styles), "utf8")).join("\n") +
     readFileSync(new URL("../../../components/PlayerRoleBadge.module.css", import.meta.url), "utf8").replaceAll(".badge", '[aria-label^="Игровые позиции"]');
-  for (const [name, state] of Object.entries({ open: snapshot, accepted: { ...snapshot, ownCaptainInterest: true }, voting: { ...snapshot, status: "captain_voting" as const, ownCaptainInterest: false } })) {
+  for (const [name, state] of Object.entries({ open: snapshot, accepted: { ...snapshot, ownCaptainInterest: true }, declined: { ...snapshot, ownCaptainInterest: false }, opponent: { ...snapshot, ownCaptainInterest: false, players: players.map((player) => ({ ...player, hasAnsweredCaptainInterest: player.teamSide === "a" })) }, voting: { ...snapshot, status: "captain_voting" as const, ownCaptainInterest: false } })) {
     const html = renderToStaticMarkup(<><CaptainVoting snapshot={state} isSending={false} send={send} /><LobbyPlayerTeams snapshot={state} /></>);
     writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><style>${css}</style><div class="site-shell" data-theme="dark"><main class="season-room-page">${html}</main></div>`);
   }

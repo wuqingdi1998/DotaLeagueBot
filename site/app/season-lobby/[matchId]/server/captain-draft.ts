@@ -15,7 +15,7 @@ export async function createSeasonLobbyDraft(
   const { teamA, teamB } = captains;
   const format = seasonLobbyDraftFormat(bestOf);
   if (!format) throw new SeasonLobbyRoomError("Формат драфта не поддерживается", 409);
-  await lockDraftPlayers(client, [teamA, teamB]);
+  await lockDraftPlayers(client, [teamA, teamB], { seasonMatchId: matchId });
   const existing = await client.query<{
     id: number;
     player1_id: string;
@@ -41,8 +41,8 @@ export async function createSeasonLobbyDraft(
     return;
   }
   if (
-    (await hasActiveSeries(client, teamA, matchId)) ||
-    (await hasActiveSeries(client, teamB, matchId))
+    (await hasActiveSeries(client, teamA, { seasonMatchId: matchId })) ||
+    (await hasActiveSeries(client, teamB, { seasonMatchId: matchId }))
   ) {
     throw new SeasonLobbyRoomError(
       "Один из выбранных капитанов уже участвует в другом Fearless Draft",
@@ -92,16 +92,5 @@ async function activateSeasonLobbyDraft(
        draft_started_at = COALESCE(draft_started_at, NOW()), updated_at = NOW()
      WHERE match_id = $1`,
     [matchId, teamA, teamB],
-  );
-  await client.query(
-    `UPDATE draft_invitations
-     SET status = 'CANCELLED', responded_at = NOW()
-     WHERE status = 'PENDING'
-       AND (sender_id = ANY($1::bigint[]) OR recipient_id = ANY($1::bigint[]))`,
-    [[teamA, teamB]],
-  );
-  await client.query(
-    "DELETE FROM draft_queue WHERE player_id = ANY($1::bigint[])",
-    [[teamA, teamB]],
   );
 }

@@ -11,6 +11,10 @@ import { settleExpiredDraftEndRequests } from "./agreement-service";
 import { advanceAllBotDrafts } from "./bot-service";
 import { nextBotActionDueAt } from "./bot-timing-service";
 import {
+  expireInactiveTrainingDrafts,
+  nextTrainingDraftExpiryAt,
+} from "./training-expiry-service";
+import {
   settleExpiredDraftSeries,
   settleFinalPickReview,
 } from "./series-service";
@@ -71,7 +75,10 @@ async function nextDeadline(drafts: TimedDraftRow[]): Promise<Date | null> {
     ),
     one<DeadlineRow>(
       `SELECT MIN(final_pick_review_ends_at) AS deadline
-       FROM draft_maps WHERE status = 'FINAL_PICK_REVIEW'`,
+       FROM draft_maps map
+       JOIN draft_series series ON series.id = map.series_id
+       WHERE map.status = 'FINAL_PICK_REVIEW'
+         AND series.status IN ('CHOOSING', 'DRAFTING', 'MAP_COMPLETE')`,
     ),
     one<DeadlineRow>(
       `SELECT MIN(end_requested_at + ($1::int * INTERVAL '1 minute')) AS deadline
@@ -84,6 +91,7 @@ async function nextDeadline(drafts: TimedDraftRow[]): Promise<Date | null> {
   ]);
   const deadlines = [
     await nextBotActionDueAt(),
+    await nextTrainingDraftExpiryAt(),
     invitation?.deadline ?? null,
     endRequest?.deadline ?? null,
     finalReview?.deadline ?? null,
@@ -96,12 +104,14 @@ async function nextDeadline(drafts: TimedDraftRow[]): Promise<Date | null> {
 }
 
 export async function processFearlessDraftDeadlines(): Promise<{
+  expiredTrainings: number;
   expiredInvitations: number;
   expiredEndRequests: number;
   expiredTurns: number;
   completedFinalPickReviews: number;
   nextDueAt: string | null;
 }> {
+  const expiredTrainings = await expireInactiveTrainingDrafts();
   await advanceAllBotDrafts();
   const expiredInvitations = await query<{ id: number }>(
     `UPDATE draft_invitations
@@ -130,6 +140,7 @@ export async function processFearlessDraftDeadlines(): Promise<{
      FROM draft_maps map
      JOIN draft_series series ON series.id = map.series_id
      WHERE map.status = 'FINAL_PICK_REVIEW'
+       AND series.status IN ('CHOOSING', 'DRAFTING', 'MAP_COMPLETE')
        AND map.final_pick_review_ends_at <= NOW()`,
   );
   for (const review of finalReviews) {
@@ -143,7 +154,7 @@ export async function processFearlessDraftDeadlines(): Promise<{
     if (matchId) changedSeasonMatches.add(matchId);
   }
   if (
-    expiredInvitations.length || endedSeasonMatches.length || expiredTurns ||
+    expiredTrainings.length || expiredInvitations.length || endedSeasonMatches.length || expiredTurns ||
     completedFinalPickReviews
   ) {
     publishLiveUpdate(fearlessDraftChannel(null));
@@ -153,6 +164,7 @@ export async function processFearlessDraftDeadlines(): Promise<{
   }
   const nextDueAt = await nextDeadline(await timedDrafts());
   return {
+    expiredTrainings: expiredTrainings.length,
     expiredInvitations: expiredInvitations.length,
     expiredEndRequests: endedSeasonMatches.length,
     expiredTurns,

@@ -53,8 +53,8 @@ export async function syncSeasonSubstitutionRoster(
     hasChanges = true;
     const series = before.series;
     if (series && [series.player1_id, series.player2_id].includes(previous.player_id)) {
-      await lockDraftPlayers(client, [previous.player_id, next.player_id]);
-      if (await hasActiveSeries(client, next.player_id)) {
+      await lockDraftPlayers(client, [previous.player_id, next.player_id], { seasonMatchId: before.matchId });
+      if (await hasActiveSeries(client, next.player_id, { seasonMatchId: before.matchId })) {
         throw new Response("Игрок замены уже является капитаном в другом драфте", { status: 409 });
       }
       await replaceSeasonDraftCaptain(
