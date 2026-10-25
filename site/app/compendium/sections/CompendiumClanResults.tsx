@@ -15,7 +15,6 @@ export function CompendiumClanResults({ clans, isFinished }: { clans: Compendium
       <span>{outcomeLabels[clan.outcome]}</span>
       <h3>{clan.name}</h3>
       <strong><FaStar aria-hidden="true" /> {clan.stars.toLocaleString("ru-RU")}</strong>
-      <small>звёзд</small>
     </article>)}</div>
   </section>;
 }

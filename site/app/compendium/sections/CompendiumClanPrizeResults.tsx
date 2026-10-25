@@ -7,9 +7,7 @@ export function CompendiumClanPrizeResults() {
   return (
     <section className="compendium-results-section compendium-clan-prize-results" aria-labelledby="clan-prize-results-title">
       <header className="compendium-results-section-heading">
-        <span><FiGift aria-hidden="true" /> Клановые призы</span>
-        <h2 id="clan-prize-results-title">Результаты розыгрыша</h2>
-        <p>Все призы и их получатели в клановом противостоянии.</p>
+        <h2 id="clan-prize-results-title"><FiGift aria-hidden="true" /> Результаты розыгрыша</h2>
       </header>
       <div className="compendium-clan-prize-results-grid">
         {OCTOBER_CLAN_PRIZE_RESULTS.map((draw) => (
@@ -22,12 +20,16 @@ export function CompendiumClanPrizeResults() {
               </div>
               <strong>Призов: {draw.prizes.length}</strong>
             </header>
-            <table className="compendium-clan-prize-table" aria-label={`Призы клана ${draw.clan.name}`}>
+            <div className="compendium-clan-prize-tables">
+            {Array.from({ length: draw.pool === "winners" ? 2 : 1 }, (_, index) => {
+              const columnSize = Math.ceil(draw.prizes.length / (draw.pool === "winners" ? 2 : 1));
+              const prizes = draw.prizes.slice(index * columnSize, (index + 1) * columnSize);
+              return <table key={index} className="compendium-clan-prize-table" aria-label={`Призы клана ${draw.clan.name}${index ? ", продолжение" : ""}`}>
               <thead>
                 <tr><th scope="col">№</th><th scope="col">Приз</th><th scope="col">Получатель</th></tr>
               </thead>
               <tbody>
-                {draw.prizes.map((prize) => (
+                {prizes.map((prize) => (
                   <tr key={prize.id}>
                     <td>{prize.poolPosition}</td>
                     <td>
@@ -35,17 +37,19 @@ export function CompendiumClanPrizeResults() {
                         <Image
                           src={octoberPrizeImagePath(prize.thumbnailImagePath ?? prize.imagePath, "thumbnail")}
                           alt=""
-                          width={48}
-                          height={48}
+                          width={24}
+                          height={24}
                         />
-                        <span>{prize.name}</span>
+                        <span title={prize.name}>{prize.name.replace("Steam Gift Card на", "Steam")}</span>
                       </div>
                     </td>
                     <td><strong>{prize.recipientName}</strong></td>
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </table>;
+            })}
+            </div>
           </article>
         ))}
       </div>

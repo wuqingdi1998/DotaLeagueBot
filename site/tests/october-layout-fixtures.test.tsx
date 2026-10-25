@@ -50,17 +50,18 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   }
 
   for (const [period, closure] of [["october", "finished"], ["october", "settling"], ["ti-2026", "finished"]] as const) {
-    const leaders = [{ rank: 1, playerId: "100", dotaId: "100", playerName: "Участник", avatarUrl: null, totalStars: 20 }];
-    const data = { period, isFinished: closure === "finished", closure, communityStars: 100, leaders,
+    const names = ["Sinister=)", "#яхочуумереть", "GOLDEN PAPI", "Ame's bastard", "ДЕД_ЕСЕНИН", "MirrorShard", "confuse~", ".Purvs", "Sanraizu", "1lynya<3"];
+    const leaders = names.map((playerName, index) => ({ rank: index + 1, playerId: String(100 + index), dotaId: String(100 + index), playerName, avatarUrl: null, totalStars: 120 - index }));
+    const data = { period, isFinished: closure === "finished", closure, communityStars: 1624, leaders,
       clans: period === "october" ? compendiumClanResults([{ clan_id: "morbus", stars: 112345 }, { clan_id: "panacea", stars: 123456 }], closure === "finished") : undefined,
       personal: { totalStars: 20, dailyQuestStars: 10, starRaceStars: 5, predictionStars: 0,
         tournamentParticipationStars: 3, otherStars: 2 },
       races: (period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS)
-        .map((week) => ({ id: week.id, dateLabel: week.dateLabel, prizes: week.prizes, leaders })),
+        .map((week) => ({ id: week.id, dateLabel: week.dateLabel, prizes: week.prizes, leaders: leaders.slice(0, 5) })),
     };
     const name = `results-${period}${closure === "settling" ? "-settling" : ""}`;
     fixtures.push(name);
-    writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<CompendiumResults data={data} />)}</div>`);
+    writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><header style="height:76px"></header>${renderToStaticMarkup(<CompendiumResults data={data} currentPlayerId="100" />)}<footer style="height:120px"></footer></div>`);
   }
 
   for (const [weekIndex, week] of [...OCTOBER_COMPENDIUM_WEEKS, { ...OCTOBER_COMPENDIUM_WEEKS[2], quests: finalRaceQuests("support") }].entries()) {

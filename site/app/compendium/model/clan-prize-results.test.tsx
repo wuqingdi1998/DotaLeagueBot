@@ -48,13 +48,13 @@ it("assigns all 30 prize slots once to the recipients specified by the organizer
   expect(new Set(ids).size).toBe(30);
 });
 
-it("renders two accessible tables with all recipients and safely escaped nicknames", () => {
+it("renders both clan draws with all recipients and safely escaped nicknames", () => {
   const html = renderToStaticMarkup(<CompendiumClanPrizeResults />);
   expect(html).toContain('aria-label="Призы клана Панацея"');
   expect(html).toContain('aria-label="Призы клана Морбус"');
   expect(html).toContain("Призов: 21");
   expect(html).toContain("Призов: 9");
-  expect(html.match(/<tbody>/g)).toHaveLength(2);
+  expect(html.match(/<tbody>/g)).toHaveLength(3);
   expect(html.match(/<td>/g)).toHaveLength(90);
   expect(html).toContain("1lynya&lt;3");
   expect(html).toContain("Ame&#x27;s bastard");

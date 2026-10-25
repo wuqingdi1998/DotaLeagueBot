@@ -43,6 +43,17 @@ try {
               if (element.scrollWidth > element.clientWidth + 2) issues.push("result card clips content");
             }
             if (fixture.startsWith("results-october")) {
+              const results = document.querySelector(".compendium-results-page");
+              if (results.textContent.includes("прогноз")) issues.push("October results must not show predictions");
+              if (document.querySelectorAll(".compendium-results-row").length !== 25) issues.push("results must retain the top ten and all three weekly top fives");
+              if (fixture === "results-october" && innerWidth >= 1280 && document.documentElement.scrollHeight > innerHeight * 2) issues.push(`results height ${document.documentElement.scrollHeight} exceeds two screens (${innerHeight * 2})`);
+              for (const heading of results.querySelectorAll('[role="columnheader"]')) {
+                const range = document.createRange();
+                range.selectNodeContents(heading);
+                const text = range.getBoundingClientRect();
+                const cell = heading.getBoundingClientRect();
+                if (text.left < cell.left - 1 || text.right > cell.right + 1) issues.push("result column heading is clipped");
+              }
               if (document.querySelectorAll(".compendium-clan-prize-table tbody tr").length !== 30) issues.push("clan draw must show all 30 recipients");
               for (const number of document.querySelectorAll(".compendium-clan-prize-table tbody td:first-child")) {
                 const range = document.createRange();
