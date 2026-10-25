@@ -39,8 +39,22 @@ try {
           const section = document.querySelector(".october-compendium-screen");
           if (!section) {
             if (document.documentElement.scrollWidth > innerWidth) issues.push("results page overflows horizontally");
-            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-clan-result,.compendium-race-result,.compendium-verification-requests article,.profile-badges-card,.profile-badges-list")) {
+            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-clan-result,.compendium-clan-prize-result,.compendium-clan-prize-table td,.compendium-race-result,.compendium-verification-requests article,.profile-badges-card,.profile-badges-list")) {
               if (element.scrollWidth > element.clientWidth + 2) issues.push("result card clips content");
+            }
+            if (fixture.startsWith("results-october")) {
+              if (document.querySelectorAll(".compendium-clan-prize-table tbody tr").length !== 30) issues.push("clan draw must show all 30 recipients");
+              for (const number of document.querySelectorAll(".compendium-clan-prize-table tbody td:first-child")) {
+                const range = document.createRange();
+                range.selectNodeContents(number);
+                if (range.getClientRects().length !== 1) issues.push("prize number wraps across lines");
+              }
+              for (const table of document.querySelectorAll(".compendium-clan-prize-table")) {
+                const heading = table.querySelector("th:last-child");
+                const recipient = table.querySelector("tbody td:last-child strong").getBoundingClientRect();
+                const headingStart = heading.getBoundingClientRect().left + parseFloat(getComputedStyle(heading).paddingLeft);
+                if (Math.abs(headingStart - recipient.left) > 1) issues.push("recipient column is misaligned");
+              }
             }
             return issues;
           }

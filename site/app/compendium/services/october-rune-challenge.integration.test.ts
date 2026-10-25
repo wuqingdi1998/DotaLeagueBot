@@ -8,6 +8,11 @@ import {
   loadRuneChallengeSelection, saveRuneChallengeSelection, recordRuneChallengeCompletion,
 } from "./rune-challenge-repository";
 
+// Keep the isolated database inside the October event after the real event has ended.
+const atOctoberTime = (sql: string) => sql.replaceAll(
+  /\bCURRENT_TIMESTAMP\b|\bNOW\(\)/gi, "TIMESTAMPTZ '2026-10-05 12:00:00+03'",
+);
+
 it("starts October empty, saves the player's choice and preserves frozen TI data", async () => {
   const db = new PGlite();
   try {
@@ -35,17 +40,17 @@ it("starts October empty, saves the player's choice and preserves frozen TI data
       CREATE FUNCTION compendium_stars_count_for_player(bigint, timestamptz)
         RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT true $$;
     `);
-    await db.exec(readFileSync(new URL(
+    await db.exec(atOctoberTime(readFileSync(new URL(
       "../../../../bot/database/migrations/0168_october_rune_challenge.sql", import.meta.url,
-    ), "utf8"));
+    ), "utf8")));
     const client = {
       query: async (sql: string, values: unknown[] = []) => {
-        const result = await db.query(sql, values);
+        const result = await db.query(atOctoberTime(sql), values);
         return { rows: result.rows, rowCount: result.affectedRows || result.rows.length };
       },
     };
     mocks.one.mockImplementation(async (sql: string, values: unknown[]) =>
-      (await db.query(sql, values)).rows[0] ?? null);
+      (await db.query(atOctoberTime(sql), values)).rows[0] ?? null);
     mocks.transaction.mockImplementation(async (callback) => {
       await db.exec("BEGIN");
       try {
@@ -65,12 +70,12 @@ it("starts October empty, saves the player's choice and preserves frozen TI data
     expect((await loadRuneChallengeSelection("100", "2026-10-05"))?.heroId).toBe(14);
     await expect(saveRuneChallengeSelection({ playerId: "100", heroId: 16, dateKey: "2026-10-05" }))
       .rejects.toMatchObject({ code: "RUNE_HERO_LOCKED" });
-    const { rows } = await db.query<{ today: string }>(
-      "SELECT (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Moscow')::date::text AS today",
-    );
     await recordRuneChallengeCompletion({
-      playerId: "100", dateKey: rows[0].today, heroId: 14, matchId: "123456", rewardStars: 1,
+      playerId: "100", dateKey: "2026-10-05", heroId: 14, matchId: "123456", rewardStars: 1,
     });
+    await expect(recordRuneChallengeCompletion({
+      playerId: "100", dateKey: "2026-10-06", heroId: 14, matchId: "123457", rewardStars: 1,
+    })).rejects.toMatchObject({ code: "STALE_QUEST" });
     expect((await db.query("SELECT SUM(amount)::int AS stars FROM compendium_star_events")).rows)
       .toEqual([{ stars: 1 }]);
     expect((await db.query("SELECT total_points FROM october_compendium_clan_members")).rows)

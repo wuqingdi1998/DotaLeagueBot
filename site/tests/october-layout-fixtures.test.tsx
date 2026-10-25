@@ -52,7 +52,7 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   for (const [period, closure] of [["october", "finished"], ["october", "settling"], ["ti-2026", "finished"]] as const) {
     const leaders = [{ rank: 1, playerId: "100", dotaId: "100", playerName: "Участник", avatarUrl: null, totalStars: 20 }];
     const data = { period, isFinished: closure === "finished", closure, communityStars: 100, leaders,
-      clans: period === "october" ? compendiumClanResults([{ clan_id: "morbus", stars: 123456 }, { clan_id: "panacea", stars: 112345 }], closure === "finished") : undefined,
+      clans: period === "october" ? compendiumClanResults([{ clan_id: "morbus", stars: 112345 }, { clan_id: "panacea", stars: 123456 }], closure === "finished") : undefined,
       personal: { totalStars: 20, dailyQuestStars: 10, starRaceStars: 5, predictionStars: 0,
         tournamentParticipationStars: 3, otherStars: 2 },
       races: (period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS)

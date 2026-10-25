@@ -11,6 +11,7 @@ import {
 } from "../model/results";
 import { StarRacePrizePreview } from "../components/StarRacePrizePreview";
 import { CompendiumClanResults } from "./CompendiumClanResults";
+import { CompendiumClanPrizeResults } from "./CompendiumClanPrizeResults";
 
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
@@ -118,6 +119,7 @@ export function CompendiumResults({
       </section>
 
       {isOctober && data.clans && <CompendiumClanResults clans={data.clans} isFinished={data.isFinished === true} />}
+      {isOctober && <CompendiumClanPrizeResults />}
 
       {!isOctober && <section className="compendium-results-section compendium-community-result">
         <header className="compendium-results-section-heading">
