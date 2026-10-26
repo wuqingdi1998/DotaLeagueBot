@@ -9,6 +9,7 @@ import { OctoberRacePreview } from "./OctoberActivityPreview";
 import { OctoberClanShowcase } from "./OctoberClanShowcase";
 import type { OctoberClanMember } from "../model/clan-members";
 import type { SeasonTournamentLinks } from "@/app/season/model/season-overview-model";
+import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
 
 export function OctoberCompendiumBase({
   clanMembers,
@@ -26,15 +27,14 @@ export function OctoberCompendiumBase({
           <FiArrowLeft aria-hidden="true" /> Вернуться в компендиум
         </Link>
         <span className="compendium-base-kicker">Только для организатора</span>
-        <h1>База компендиума</h1>
+        <h1>План заданий компендиума №{COMPENDIUM_ARCHIVES.october.number}</h1>
         <p>
-          Здесь видны условия всех трёх недель. Участникам будущие задания не показываются.
-          Это закрытый план: звёзды пока не начисляются, конкретные призы добавим позже.
+          Условия всех трёх недель и награды. Этот раздел доступен только организаторам.
         </p>
         <div className="compendium-base-totals">
           <div><FiGift aria-hidden="true" /><strong>3</strong><span>недельные гонки</span></div>
           <div><FaStar aria-hidden="true" /><strong>21</strong><span>задание гонок</span></div>
-          <div><FiGift aria-hidden="true" /><strong>2</strong><span>призовых места в каждой</span></div>
+          <div><FiGift aria-hidden="true" /><strong>{OCTOBER_COMPENDIUM_WEEKS[0].prizes.length}</strong><span>призовых мест в каждой</span></div>
         </div>
       </section>
       <div className="compendium-rewards-section">

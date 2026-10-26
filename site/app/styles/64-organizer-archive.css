@@ -1,6 +1,6 @@
 .organizer-archive {
   min-height: calc(100vh - 120px);
-  padding: clamp(54px, 7vw, 100px) clamp(20px, 7vw, 110px) 110px;
+  padding: 36px clamp(20px, 5vw, 78px) 54px;
   background:
     radial-gradient(circle at 78% 12%, rgba(0, 195, 255, 0.14), transparent 30%),
     var(--bg);
@@ -8,7 +8,7 @@
 
 .organizer-archive-heading {
   width: min(100%, 880px);
-  margin: 0 auto 42px;
+  margin: 0 auto 28px;
   text-align: center;
 }
 
@@ -24,7 +24,7 @@
 .organizer-archive-heading h1 {
   margin: 0;
   font-family: "5ka Sans Design", sans-serif;
-  font-size: clamp(46px, 6vw, 78px);
+  font-size: clamp(32px, 4vw, 48px);
   font-weight: 600;
   letter-spacing: -0.035em;
   line-height: 1;
@@ -33,29 +33,29 @@
 .organizer-archive-heading span {
   display: block;
   max-width: 680px;
-  margin: 22px auto 0;
+  margin: 14px auto 0;
   color: var(--muted);
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.65;
 }
 
 .organizer-archive-menu {
   display: grid;
   width: min(100%, 1120px);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
   margin-inline: auto;
 }
 
 .organizer-archive-menu a {
   display: grid;
-  min-height: 210px;
+  min-height: 96px;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 30px;
+  border-radius: 16px;
+  padding: 18px;
   background: var(--surface);
   color: var(--text);
   box-shadow: 0 18px 52px rgba(3, 25, 39, 0.16);
@@ -68,10 +68,10 @@
 }
 
 .organizer-archive-menu-icon {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 15px;
-  padding: 11px;
+  padding: 9px;
   background: var(--surface-blue);
   color: var(--blue);
 }
@@ -83,27 +83,8 @@
 
 .organizer-archive-menu strong {
   font-family: "5ka Sans Design", sans-serif;
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 600;
-}
-
-.organizer-archive-badge {
-  width: fit-content;
-  border: 1px solid rgba(77, 204, 255, 0.45);
-  border-radius: 999px;
-  padding: 5px 10px;
-  background: var(--surface-blue);
-  color: var(--blue);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.organizer-archive-menu small {
-  color: var(--muted);
-  font-size: 15px;
-  line-height: 1.55;
 }
 
 .organizer-archive-menu-arrow {
@@ -111,10 +92,50 @@
   font-size: 24px;
 }
 
+.organizer-compendium-archive {
+  width: min(100%, 1120px);
+  margin: 0 auto 24px;
+}
+
+.organizer-compendium-archive-heading {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+}
+
+.organizer-compendium-archive-heading h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.organizer-compendium-archive-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.organizer-archive-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  width: min(100%, 1120px);
+  margin: 24px auto 0;
+}
+
+.organizer-archive-tools a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 @media (max-width: 760px) {
   .organizer-archive {
     min-height: 0;
-    padding: 46px 20px 72px;
+    padding: 26px 16px 40px;
   }
 
   .organizer-archive-heading {
@@ -123,7 +144,7 @@
   }
 
   .organizer-archive-heading h1 {
-    font-size: 48px;
+    font-size: 36px;
   }
 
   .organizer-archive-heading span {
@@ -136,10 +157,10 @@
   }
 
   .organizer-archive-menu a {
-    min-height: 170px;
+    min-height: 80px;
     gap: 16px;
     border-radius: 20px;
-    padding: 22px;
+    padding: 14px;
   }
 
   .organizer-archive-menu-icon {
@@ -148,6 +169,6 @@
   }
 
   .organizer-archive-menu strong {
-    font-size: 24px;
+    font-size: 21px;
   }
 }

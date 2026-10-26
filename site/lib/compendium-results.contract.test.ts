@@ -11,6 +11,7 @@ const organizerPage = source("../app/organizer/page.tsx");
 const organizerArchive = source(
   "../app/organizer/sections/OrganizerArchive.tsx",
 );
+const archiveModel = source("../app/compendium/model/archive.ts");
 const organizerCompendiumPage = source(
   "../app/organizer/compendium/page.tsx",
 );
@@ -47,14 +48,16 @@ describe("finished compendium results contract", () => {
     expect(organizerPage).toContain("user?.isAdmin ? (");
     expect(organizerPage).toContain('<LoginScreen user={user} returnTo="/organizer" />');
     expect(organizerPage).toContain("<OrganizerArchive />");
-    expect(organizerArchive).toContain('href: "/organizer/compendium"');
-    expect(organizerArchive).toContain(
-      'href: "/organizer/compendium/results"',
+    expect(organizerArchive).toContain("COMPENDIUM_ARCHIVES");
+    expect(archiveModel).toContain('pageHref: "/organizer/compendium"');
+    expect(archiveModel).toContain(
+      'resultsHref: "/organizer/compendium/results"',
     );
     expect(organizerCompendiumPage).toContain(
       "if (!user?.isAdmin) notFound()",
     );
-    expect(organizerCompendiumPage).toContain('redirect("/organizer/compendium/results")');
+    expect(organizerCompendiumPage).toContain("<ArchivedCompendium");
+    expect(organizerCompendiumPage).not.toContain("redirect(");
     expect(organizerResultsPage).toContain(
       "if (!user?.isAdmin) notFound()",
     );
@@ -72,7 +75,8 @@ describe("finished compendium results contract", () => {
     expect(resultsPage).toContain("loadCompendiumResults(user.discordId)");
     expect(resultsRepository).toContain("loadCompendiumLeaderboard(period)");
     expect(resultsRepository).toContain('period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS');
-    expect(organizerResultsPage).toContain('loadCompendiumResults(user.discordId, "ti-2026")');
+    expect(organizerResultsPage).toContain('loadCompendiumResults(playerId, "ti-2026")');
+    expect(organizerResultsPage).toContain("user.isStandaloneOrganizer");
     expect(resultsRepository).toContain("compendiumPeriodTables(period)");
     expect(resultsRepository).toContain("compendium_stars_count_for_player(player_id, earned_at)");
   });

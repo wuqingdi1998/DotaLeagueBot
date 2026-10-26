@@ -1,11 +1,13 @@
 import { finalRaceQuests, isFinalRaceDate, type FinalRacePath } from "../model/final-star-race-definitions";
 import { starRaceQuestHeroes } from "../model/star-race";
 import { query } from "@/lib/db";
-import { BONUS_QUEST_STAR_THRESHOLD } from "../model/constants";
+import { BONUS_QUEST_STAR_THRESHOLD, COMPENDIUM_FINAL_DATE } from "../model/constants";
 import { compendiumHeroById } from "../model/heroes";
 import { starRaceForMoment, starRaceQuestPhase } from "../model/star-race";
 import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
-import { currentMoscowDay } from "../model/time";
+import { compendiumDisplayDateKey, isCompendiumActive } from "../model/lifecycle";
+import { compendiumPeriodTables, type CompendiumPeriod } from "../model/period";
+import { OCTOBER_COMPENDIUM_START_AT } from "@/lib/october-compendium-schedule";
 import { dailyChallengeRewardStars } from "../model/weekend-bonus";
 import { ensureDailyQuestSet } from "../services/repository";
 import { regularDailyQuestCount } from "../services/personal-quest-generation";
@@ -23,14 +25,18 @@ import type {
   CompendiumRewardHistory,
 } from "./types";
 
-export async function loadCompendiumAdminParticipants(): Promise<
+export async function loadCompendiumAdminParticipants(
+  period: CompendiumPeriod = "october",
+  now: Date = new Date(),
+): Promise<
   CompendiumAdminParticipantSummary[]
 > {
-  const dateKey = currentMoscowDay().dateKey;
-  await ensureDailyQuestSet(dateKey);
-  const now = new Date();
+  const tables = compendiumPeriodTables(period);
+  const dateKey = period === "october" ? compendiumDisplayDateKey(now) : COMPENDIUM_FINAL_DATE;
+  const hasOctoberQuests = period === "october" && dateKey >= OCTOBER_COMPENDIUM_START_AT.slice(0, 10);
+  if (hasOctoberQuests && isCompendiumActive(now)) await ensureDailyQuestSet(dateKey);
   const currentStarRaceQuests: CompendiumAdminCurrentStarRaceQuest[] =
-    starRaceForMoment(now, OCTOBER_COMPENDIUM_WEEKS).quests
+    (hasOctoberQuests ? starRaceForMoment(now, OCTOBER_COMPENDIUM_WEEKS).quests : [])
       .filter(
         (quest) =>
           quest.title &&
@@ -67,7 +73,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
          ORDER BY session.discord_id, session.created_at DESC
        ), reward_counts AS (
          SELECT operation.player_id, COUNT(*)::int AS reward_count
-         FROM october_compendium_reward_operations operation
+         FROM ${tables.operations} operation
          GROUP BY operation.player_id
        )
        SELECT
@@ -78,18 +84,18 @@ export async function loadCompendiumAdminParticipants(): Promise<
            NULLIF(player.avatar_url, ''),
            NULLIF(avatar.discord_avatar_url, '')
          ) AS avatar_url,
-         COALESCE(member.total_points, 0)::int AS total_stars,
+         COALESCE(member.${period === "october" ? "total_points" : "total_stars"}, 0)::int AS total_stars,
          COALESCE(reward_count.reward_count, 0)::int AS reward_count
        FROM players player
        LEFT JOIN latest_avatars avatar ON avatar.discord_id = player.discord_id
-       JOIN october_compendium_clan_members member
+       JOIN ${period === "october" ? "october_compendium_clan_members" : tables.totals} member
          ON member.player_id = player.discord_id
        LEFT JOIN reward_counts reward_count
          ON reward_count.player_id = player.discord_id
-       WHERE player.is_archived = FALSE
+       WHERE ${period === "october" ? "player.is_archived = FALSE" : "TRUE"}
        ORDER BY total_stars DESC, LOWER(player.ingame_name), player.discord_id`,
       ),
-      query<CompendiumAdminCurrentQuestSourceRow>(
+      hasOctoberQuests ? query<CompendiumAdminCurrentQuestSourceRow>(
       `SELECT
          player.discord_id::text AS player_id,
          quest.id::text AS quest_id,
@@ -131,7 +137,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
            quest.position <= $4
            OR COALESCE((
              SELECT total_stars
-             FROM compendium_player_star_totals player_total
+             FROM ${tables.totals} player_total
              WHERE player_total.player_id = player.discord_id
            ), 0) >= $3
          )
@@ -142,7 +148,7 @@ export async function loadCompendiumAdminParticipants(): Promise<
         BONUS_QUEST_STAR_THRESHOLD,
         regularDailyQuestCount(dateKey),
       ],
-      ),
+      ) : Promise.resolve([]),
       currentRaceDates.length
         ? query<CompendiumAdminCurrentStarRaceCompletionRow>(
           `SELECT completion.player_id::text,
@@ -178,10 +184,13 @@ export async function loadCompendiumAdminParticipants(): Promise<
 
 export async function loadCompendiumAdminParticipantHistory(
   playerId: string,
+  period: CompendiumPeriod = "october",
 ): Promise<CompendiumRewardHistory[] | null> {
+  const tables = compendiumPeriodTables(period);
+  const runeCompletions = period === "october" ? "october_compendium_rune_challenge_completions" : "compendium_rune_challenge_completions";
   const rows = await query<CompendiumAdminSourceRow>(
     `WITH current_operations AS (
-       SELECT * FROM october_compendium_reward_operations WHERE player_id = $1
+       SELECT * FROM ${tables.operations} WHERE player_id = $1
      ), participant AS (
        SELECT
          player.discord_id,
@@ -190,9 +199,9 @@ export async function loadCompendiumAdminParticipantHistory(
          player.avatar_url,
          COALESCE(star_total.total_stars, 0)::int AS total_stars
        FROM players player
-       LEFT JOIN compendium_player_star_totals star_total
+       LEFT JOIN ${tables.totals} star_total
          ON star_total.player_id = player.discord_id
-       WHERE player.is_archived = FALSE
+       WHERE ${period === "october" ? "player.is_archived = FALSE" : "TRUE"}
          AND player.discord_id = $1
      )
      SELECT * FROM (
@@ -282,7 +291,7 @@ export async function loadCompendiumAdminParticipantHistory(
          reward.reward_amount, reward.hero_id, 1::smallint,
          NULL::text, NULL::text, NULL::text, NULL::text, NULL::text
        FROM participant
-       JOIN october_compendium_rune_challenge_completions reward
+       JOIN ${runeCompletions} reward
          ON reward.player_id = participant.discord_id
          AND EXISTS (SELECT 1 FROM current_operations operation
            WHERE operation.history_kind = 'rune'

@@ -15,6 +15,9 @@ import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections
 import { FiCalendar } from "react-icons/fi";
 import { FinalRacePreviewPanel } from "@/app/compendium/admin/FinalRacePreview";
 import { compendiumClanResults } from "@/app/compendium/model/clan-results";
+import { OrganizerArchive } from "@/app/organizer/sections/OrganizerArchive";
+import { ArchivedCompendium } from "@/app/organizer/compendium/sections/ArchivedCompendium";
+import { CompendiumBase } from "@/app/compendium/admin/CompendiumBase";
 
 const guidance = vi.hoisted(() => ({ isVisible: false }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -26,7 +29,7 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   const directory = new URL("../.data/october-layout/", import.meta.url);
   mkdirSync(directory, { recursive: true });
   const styles = new URL("../app/styles/", import.meta.url);
-  const styleNames = ["01-foundation.css", ...[...readFileSync(new URL("compendium-route.css", styles), "utf8").matchAll(/@import "\.\/(.*?)";/g)].map((match) => match[1])];
+  const styleNames = ["01-foundation.css", ...[...readFileSync(new URL("compendium-route.css", styles), "utf8").matchAll(/@import "\.\/(.*?)";/g)].map((match) => match[1]), "64-organizer-archive.css"];
   const css = styleNames.map((name) => readFileSync(new URL(name, styles), "utf8")).join("\n");
   const fixtures: string[] = [];
   function save(name: string, screen: string, html: string) {
@@ -132,6 +135,19 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
   writeFileSync(new URL("verification-queue.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(<VerificationQueue initialRequests={requests} />)}</div>`);
   fixtures.push("profile-badges");
   writeFileSync(new URL("profile-badges.html", directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><div style="max-width:360px;margin:24px auto">${renderToStaticMarkup(<ProfileBadgesCard badgeKeys={["ti-2026-gold", "october-2026-morbus-platinum"]} />)}</div></div>`);
+  const archivedRaces = STAR_RACE_WEEKS.map((race) => ({ ...race, phase: "finished" as const, participants: [] }));
+  const participant = { discordId: "100", dotaId: "100", playerName: "Участник", avatarUrl: null,
+    totalStars: 10, rewardCount: 10, currentQuests: [], currentStarRaceQuests: [] };
+  for (const [name, view] of [
+    ["organizer-archive", <OrganizerArchive key="archive" />],
+    ["organizer-compendium-one", <ArchivedCompendium key="page" personalStars={10} communityStars={609} races={archivedRaces} />],
+    ["organizer-base-one", <CompendiumBase key="one" participants={[participant]} starRaceArchive={archivedRaces} period="ti-2026" />],
+    ["organizer-base-two", <CompendiumBase key="two" participants={[participant]} starRaceArchive={[]} />],
+  ] as const) {
+    fixtures.push(name);
+    writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark">${renderToStaticMarkup(view)}</div>`);
+  }
   writeFileSync(new URL("manifest.json", directory), JSON.stringify(fixtures));
-  expect(fixtures).toHaveLength(76);
+  expect(fixtures).toHaveLength(80);
+  expect(JSON.parse(readFileSync(new URL("manifest.json", directory), "utf8"))).toEqual(fixtures);
 });

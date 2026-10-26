@@ -39,7 +39,7 @@ try {
           const section = document.querySelector(".october-compendium-screen");
           if (!section) {
             if (document.documentElement.scrollWidth > innerWidth) issues.push("results page overflows horizontally");
-            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-clan-result,.compendium-clan-prize-result,.compendium-clan-prize-table td,.compendium-race-result,.compendium-verification-requests article,.profile-badges-card,.profile-badges-list")) {
+            for (const element of document.querySelectorAll(".compendium-personal-results article,.compendium-clan-result,.compendium-clan-prize-result,.compendium-clan-prize-table td,.compendium-race-result,.compendium-verification-requests article,.profile-badges-card,.profile-badges-list,.organizer-archive-menu a")) {
               if (element.scrollWidth > element.clientWidth + 2) issues.push("result card clips content");
             }
             if (fixture.startsWith("results-october")) {
@@ -61,11 +61,22 @@ try {
                 if (range.getClientRects().length !== 1) issues.push("prize number wraps across lines");
               }
               for (const table of document.querySelectorAll(".compendium-clan-prize-table")) {
+                const number = table.querySelector("tbody td:first-child");
+                const numberText = document.createRange();
+                numberText.selectNodeContents(number);
+                if (numberText.getBoundingClientRect().left - table.getBoundingClientRect().left < (innerWidth > 480 ? 12 : 10)) issues.push("prize number is too close to the table edge");
+                const prizeCell = table.querySelector("tbody td:nth-child(2)");
+                if (parseFloat(getComputedStyle(prizeCell).borderLeftWidth) < 1) issues.push("prize table has no visible column grid");
                 const heading = table.querySelector("th:last-child");
                 const recipient = table.querySelector("tbody td:last-child strong").getBoundingClientRect();
                 const headingStart = heading.getBoundingClientRect().left + parseFloat(getComputedStyle(heading).paddingLeft);
                 if (Math.abs(headingStart - recipient.left) > 1) issues.push("recipient column is misaligned");
               }
+            }
+            if (fixture === "organizer-archive") {
+              const groups = document.querySelectorAll(".organizer-compendium-archive");
+              if (groups.length !== 2) issues.push("archive must show both numbered compendiums");
+              if (document.querySelectorAll(".organizer-archive-menu a").length !== 6) issues.push("each compendium must have page, results and base links");
             }
             return issues;
           }
@@ -141,7 +152,7 @@ try {
         if (["race-path-choice", "race-two-paths-4-active", "race-two-paths-support-4-active", "race-two-paths-3-active", "race-two-paths-6-completed", "clans-morbus", "race-0-4", "daily-completed-compact", "daily-change-guidance", "verification-queue", "profile-badges"].includes(fixture) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
-        if ((fixture.startsWith("results-") || fixture.startsWith("clans-")) && [1900, 1366, 393].includes(width)) {
+        if ((fixture.startsWith("results-") || fixture.startsWith("clans-") || fixture.startsWith("organizer-")) && [1900, 1366, 393].includes(width)) {
           await page.screenshot({ path: fileURLToPath(new URL(`${fixture}-${width}.png`, screenshots)), fullPage: true });
         }
       }

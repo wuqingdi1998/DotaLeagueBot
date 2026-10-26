@@ -5,11 +5,12 @@ import { getSession } from "@/lib/auth";
 import { CompendiumBase } from "../admin/CompendiumBase";
 import { loadCompendiumAdminParticipants } from "../admin/repository";
 import { loadCompendiumStarRaceArchive } from "../admin/star-race-archive-repository";
+import { COMPENDIUM_ARCHIVES } from "../model/archive";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "База компендиума — Linken's Sphere Esports",
+  title: `База компендиума №${COMPENDIUM_ARCHIVES.october.number} – Linken's Sphere Esports`,
 };
 
 export default async function CompendiumBasePage() {

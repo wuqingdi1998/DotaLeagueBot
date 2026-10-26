@@ -18,11 +18,12 @@ import { currentMoscowDay } from "@/app/compendium/model/time";
 import { octoberCompendiumPhase, octoberDailyRewardStars } from "./model/release";
 import { octoberReservationForStartedPreview } from "./model/clan-reservation";
 import { getSeasonTournamentLinks } from "@/app/season/services/season-tournament-links";
+import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Новый компендиум · Предпросмотр",
+  title: `Компендиум №${COMPENDIUM_ARCHIVES.october.number} · Архив организатора`,
   robots: { index: false, follow: false },
 };
 export default async function OctoberCompendiumPage({
@@ -38,13 +39,16 @@ export default async function OctoberCompendiumPage({
   const personalStars = octoberPreviewStars(query[OCTOBER_PREVIEW_STARS_PARAM]);
   const isTournamentStarted = octoberPreviewStarted(
     query[OCTOBER_PREVIEW_STARTED_PARAM],
-    scheduledPhase === "published",
+    scheduledPhase === "published" || scheduledPhase === "finished",
   );
   const [clanMembers, reservation, tournamentLinks] = await Promise.all([
     loadOctoberClanMembers(now),
     loadOctoberClanReservationState(user, now),
     getSeasonTournamentLinks(),
   ]);
+  const displayedPersonalStars = scheduledPhase === "finished" && query[OCTOBER_PREVIEW_STARS_PARAM] === undefined
+    ? clanMembers.find((member) => member.discordId === user.discordId)?.totalPoints ?? 0
+    : personalStars;
 
   return (
     <PlatformShell
@@ -61,7 +65,7 @@ export default async function OctoberCompendiumPage({
         week={octoberRaceForMoment(now)}
         clanMembers={clanMembers}
         viewerDiscordId={user.discordId}
-        personalStars={personalStars}
+        personalStars={displayedPersonalStars}
         reservation={octoberReservationForStartedPreview(reservation, isTournamentStarted)}
         areDailyQuestsOpen={isTournamentStarted}
         dailyRewardStars={octoberDailyRewardStars(currentMoscowDay(now).dateKey)}

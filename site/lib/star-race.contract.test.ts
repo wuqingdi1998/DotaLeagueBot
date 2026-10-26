@@ -283,7 +283,8 @@ describe("compendium star race contract", () => {
   it("archives every configured week and its standings in the organizer base", () => {
     expect(basePage).toContain("loadCompendiumStarRaceArchive");
     expect(baseView).toContain("CompendiumStarRaceArchive");
-    expect(archiveRepository).toContain("OCTOBER_COMPENDIUM_WEEKS.map");
+    expect(archiveRepository).toContain('period: CompendiumPeriod = "october"');
+    expect(archiveRepository).toContain('(period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS).map');
     expect(archiveRepository).toContain("loadStarRaceLeaderboard(race, true)");
     expect(archiveRepository).toContain('phase === "upcoming"');
     expect(archiveRepository).toContain("loadFinishedRaceLeaderboard");

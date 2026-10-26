@@ -25,6 +25,8 @@ import { CompendiumStarRaceArchive } from "./CompendiumStarRaceArchive";
 import { CurrentQuestCards } from "./CurrentQuestCards";
 import { VerificationQueue } from "./VerificationQueue";
 import { FinalRacePreview } from "./FinalRacePreview";
+import { COMPENDIUM_ARCHIVES } from "../model/archive";
+import type { CompendiumPeriod } from "../model/period";
 
 function RuneRewardHistoryItem({
   reward,
@@ -227,8 +229,10 @@ function RewardHistoryItem({ reward }: { reward: CompendiumRewardHistory }) {
 
 function ParticipantHistory({
   participant,
+  period,
 }: {
   participant: CompendiumAdminParticipantSummary;
+  period: CompendiumPeriod;
 }) {
   const [rewards, setRewards] = useState<CompendiumRewardHistory[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -244,7 +248,7 @@ function ParticipantHistory({
     setLoadError(null);
     try {
       const response = await fetch(
-        `/api/admin/compendium-base/participants/${participant.discordId}/history`,
+        `/api/admin/compendium-base/participants/${participant.discordId}/history?period=${period}`,
       );
       const result = (await response.json().catch(() => ({}))) as {
         error?: string;
@@ -304,7 +308,7 @@ function ParticipantHistory({
         <FiChevronDown className="compendium-base-chevron" aria-hidden="true" />
       </summary>
       <div className="compendium-base-history">
-        {isExpanded && <CurrentQuestCards
+        {isExpanded && period === "october" && <CurrentQuestCards
           participant={participant}
           onReward={async (rewardStars) => {
             setTotalStars((total) => total + rewardStars);
@@ -342,10 +346,13 @@ function ParticipantHistory({
 export function CompendiumBase({
   participants,
   starRaceArchive,
+  period = "october",
 }: {
   participants: CompendiumAdminParticipantSummary[];
   starRaceArchive: ArchivedRace[];
+  period?: CompendiumPeriod;
 }) {
+  const archive = COMPENDIUM_ARCHIVES[period];
   const totalStars = participants.reduce(
     (sum, participant) => sum + participant.totalStars,
     0,
@@ -357,11 +364,12 @@ export function CompendiumBase({
   return (
     <div className="compendium-base-page">
       <section className="compendium-base-hero">
-        <Link href="/compendium" className="compendium-base-back">
-          <FiArrowLeft aria-hidden="true" /> Вернуться в компендиум
+        <Link href="/organizer" className="compendium-base-back">
+          <FiArrowLeft aria-hidden="true" /> Архив организатора
         </Link>
         <span className="compendium-base-kicker">Только для организаторов</span>
-        <h1>База компендиума</h1>
+        <h1>База компендиума №{archive.number}</h1>
+        <p>{archive.label}</p>
         <p>
           Нажмите на участника, чтобы увидеть его текущих героев, историю
           заданий и побед, а также ручные изменения звёзд.
@@ -374,7 +382,7 @@ export function CompendiumBase({
       </section>
 
       <CompendiumStarRaceArchive races={starRaceArchive} />
-      <VerificationQueue />
+      {period === "october" && <VerificationQueue />}
 
       <section className="compendium-base-list">
         <div className="compendium-base-list-heading">
@@ -390,6 +398,7 @@ export function CompendiumBase({
               <ParticipantHistory
                 key={participant.discordId}
                 participant={participant}
+                period={period}
               />
             ))}
           </div>
@@ -397,7 +406,7 @@ export function CompendiumBase({
           <div className="compendium-base-empty">Участников пока нет.</div>
         )}
       </section>
-      <FinalRacePreview />
+      {period === "october" && <FinalRacePreview />}
     </div>
   );
 }

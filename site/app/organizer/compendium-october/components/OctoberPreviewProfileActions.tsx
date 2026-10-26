@@ -1,4 +1,5 @@
 "use client";
+import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -43,7 +44,7 @@ export function OctoberPreviewProfileActions({
         Архив организатора <FiArchive aria-hidden="true" />
       </Link>
       <Link className="profile-popover-link" href="/organizer/compendium-october/base">
-        База компендиума <FiDatabase aria-hidden="true" />
+        План заданий компендиума №{COMPENDIUM_ARCHIVES.october.number} <FiDatabase aria-hidden="true" />
       </Link>
       <a className="profile-popover-link" href="/compendium/test">Предпросмотр (тест) <FiEye aria-hidden="true" /></a>
       <Link className="profile-popover-link" href="/organizer/compendium-october/launch">

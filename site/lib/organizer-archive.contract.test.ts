@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
+import { OrganizerArchive } from "@/app/organizer/sections/OrganizerArchive";
 
 function source(path: string) {
   return readFileSync(new URL(path, import.meta.url), "utf8");
@@ -33,15 +37,20 @@ describe("organizer archive navigation", () => {
     expect(header).not.toContain("Результаты<br />компендиума");
   });
 
-  it("shows the two requested archived pages", () => {
-    expect(organizerArchive).toContain('title: "Компендиум"');
-    expect(organizerArchive).toContain('href: "/organizer/compendium"');
-    expect(organizerArchive).toContain(
-      'title: "Результаты компендиума"',
-    );
-    expect(organizerArchive).toContain(
-      'href: "/organizer/compendium/results"',
-    );
+  it("separates each numbered compendium into page, results and participant base links", () => {
+    const html = renderToStaticMarkup(createElement(OrganizerArchive));
+    expect(organizerArchive).toContain("COMPENDIUM_ARCHIVES");
+    expect(Object.values(COMPENDIUM_ARCHIVES).map((archive) => archive.number)).toEqual([1, 2]);
+    const destinations = Object.values(COMPENDIUM_ARCHIVES).flatMap((archive) => [archive.pageHref, archive.resultsHref, archive.baseHref]);
+    expect(new Set(destinations).size).toBe(6);
+    for (const href of destinations) expect(html).toContain(`href="${href}"`);
+    for (const number of [1, 2]) {
+      for (const title of ["Страница", "Результаты", "База участников"]) {
+        expect(html).toContain(`${title} компендиума №${number}`);
+      }
+    }
+    expect(html).not.toContain("Будущий апдейт");
+    expect(html).not.toContain("Новый компендиум");
   });
 
   it("loads organizer styles only on organizer routes and adapts to phones", () => {

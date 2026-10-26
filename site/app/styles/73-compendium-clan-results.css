@@ -26,10 +26,17 @@
 }
 
 .compendium-clan-prize-result {
+  --clan-prize-grid: color-mix(in srgb, var(--line) 70%, var(--muted));
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
+}
+
+.compendium-clan-prize-results .compendium-results-section-heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .compendium-clan-prize-result.is-winners {
@@ -103,13 +110,27 @@
 }
 
 .compendium-clan-prize-table th {
+  background: var(--surface-soft);
   color: var(--muted);
   font-size: 13px;
   font-weight: 500;
 }
 
 .compendium-clan-prize-table th:first-child {
-  width: 28px;
+  width: 44px;
+}
+
+.compendium-clan-prize-table th + th,
+.compendium-clan-prize-table td + td {
+  border-left: 1px solid var(--clan-prize-grid);
+}
+
+.compendium-clan-prize-table + .compendium-clan-prize-table {
+  border-left: 2px solid var(--clan-prize-grid);
+}
+
+.compendium-clan-prize-table tbody tr:nth-child(even) {
+  background: var(--surface-soft);
 }
 
 .compendium-clan-prize-table th:last-child,
@@ -119,7 +140,7 @@
 }
 
 .compendium-clan-prize-table tbody tr {
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--clan-prize-grid);
 }
 
 .compendium-clan-prize-table td:first-child {
@@ -165,6 +186,11 @@
   .compendium-clan-prize-tables {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  .compendium-clan-prize-table + .compendium-clan-prize-table {
+    border-left: 0;
+    border-top: 2px solid var(--clan-prize-grid);
+  }
 }
 
 @media (max-width: 480px) {
@@ -183,7 +209,7 @@
   }
 
   .compendium-clan-prize-table th:first-child {
-    width: 28px;
+    width: 40px;
   }
 
   .compendium-clan-prize-table th:last-child,

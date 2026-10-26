@@ -5,11 +5,12 @@ import { getSession } from "@/lib/auth";
 import { loadOctoberClanMembers } from "../services/clan-members";
 import { OctoberCompendiumBase } from "../sections/OctoberCompendiumBase";
 import { getSeasonTournamentLinks } from "@/app/season/services/season-tournament-links";
+import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
 
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "База нового компендиума · Только для организатора",
+  title: `План заданий компендиума №${COMPENDIUM_ARCHIVES.october.number} · Только для организатора`,
   robots: { index: false, follow: false },
 };
 

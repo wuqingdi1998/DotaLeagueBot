@@ -1,17 +1,18 @@
 import { OCTOBER_COMPENDIUM_WEEKS } from "../model/october-star-race";
-import { starRacePhase } from "../model/star-race";
+import { starRacePhase, STAR_RACE_WEEKS, type StarRaceWeekDefinition } from "../model/star-race";
+import type { CompendiumPeriod } from "../model/period";
 import { loadStarRaceLeaderboard } from "../services/star-race-repository";
 import { one, query } from "@/lib/db";
 import type { CompendiumLeaderboardEntry } from "../model/leaderboard";
 import type { CompendiumStarRaceArchive } from "./types";
-import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
+import { OCTOBER_COMPENDIUM_END_AT, OCTOBER_COMPENDIUM_START_AT } from "@/lib/october-compendium-schedule";
 
 function isOctoberCompendiumFinished(now: Date): boolean {
   return now.getTime() >= Date.parse(OCTOBER_COMPENDIUM_END_AT);
 }
 
 async function loadFinishedRaceLeaderboard(
-  race: (typeof OCTOBER_COMPENDIUM_WEEKS)[number],
+  race: StarRaceWeekDefinition,
   now: Date = new Date(),
 ): Promise<CompendiumLeaderboardEntry[]> {
   const saved = await one<{ participants: CompendiumLeaderboardEntry[] }>(
@@ -22,7 +23,7 @@ async function loadFinishedRaceLeaderboard(
   );
   if (saved) return saved.participants;
   const participants = await loadStarRaceLeaderboard(race, true);
-  if (!isOctoberCompendiumFinished(now)) {
+  if (!isOctoberCompendiumFinished(now) && Date.parse(race.startsAt) >= Date.parse(OCTOBER_COMPENDIUM_START_AT)) {
     await query(
       `INSERT INTO compendium_star_race_standings_snapshots
          (race_start_at, participants)
@@ -48,9 +49,10 @@ export async function saveFinishedStarRaceStandings(
 
 export async function loadCompendiumStarRaceArchive(
   now: Date = new Date(),
+  period: CompendiumPeriod = "october",
 ): Promise<CompendiumStarRaceArchive[]> {
   const races = await Promise.all(
-    OCTOBER_COMPENDIUM_WEEKS.map(async (race) => {
+    (period === "october" ? OCTOBER_COMPENDIUM_WEEKS : STAR_RACE_WEEKS).map(async (race) => {
       const phase = starRacePhase(now, true, race).phase;
       const participants = phase === "upcoming"
           ? []

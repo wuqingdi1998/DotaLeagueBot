@@ -158,7 +158,7 @@ describe("October compendium draft", () => {
     );
     expect(page).toContain("profileMenuExtras");
     expect(profileActions).toContain("Архив организатора");
-    expect(profileActions).toContain("База компендиума");
+    expect(profileActions).toContain("План заданий компендиума №");
     expect(profileActions).toContain("Показать 120 звёзд");
     expect(profileActions).toContain("Турнир стартовал");
     expect(page).toContain("isTournamentStarted");

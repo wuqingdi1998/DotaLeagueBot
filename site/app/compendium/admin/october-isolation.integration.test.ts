@@ -16,10 +16,19 @@ beforeAll(async () => {
   await db.exec(readFileSync(new URL(
     "../../../../bot/database/migrations/0170_isolate_october_compendium.sql", import.meta.url,
   ), "utf8"));
+  const archiveMigration = readFileSync(new URL(
+    "../../../../bot/database/migrations/0174_compendium_review_repairs.sql", import.meta.url,
+  ), "utf8");
+  await db.exec(archiveMigration.slice(
+    archiveMigration.indexOf("CREATE VIEW ti_2026_compendium_reward_operations"),
+    archiveMigration.indexOf("ALTER TABLE compendium_admin_star_adjustments ADD COLUMN reason"),
+  ));
   await db.exec(`CREATE VIEW compendium_player_star_totals AS
     SELECT player.discord_id AS player_id, GREATEST(0, COALESCE(SUM(event.amount), 0))::int AS total_stars
     FROM players player LEFT JOIN compendium_star_events event ON event.player_id = player.discord_id
     GROUP BY player.discord_id;`);
+  await db.exec(`CREATE TABLE october_compendium_final_race_paths
+    (player_id bigint, path text, selected_on date);`);
   mocks.query.mockImplementation(async (sql: string, values: unknown[] = []) => {
     const { rows } = await db.query(sql, values);
     // node-postgres returns timestamps as Date objects; PGlite returns strings.
@@ -84,4 +93,31 @@ it("saves finished October weeks using the new compendium's end date", async () 
   expect(races.find((race) => race.id === "2026-10-05")?.phase).toBe("finished");
   expect((await db.query(`SELECT (race_start_at AT TIME ZONE 'Europe/Moscow')::date::text AS date
     FROM compendium_star_race_standings_snapshots`)).rows).toEqual([{ date: "2026-10-05" }]);
+});
+
+it("opens both finished participant bases inside a read-only transaction without generating quests", async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-10-26T12:00:00+03:00"));
+  mocks.ensureDailyQuestSet.mockClear();
+  await db.exec("BEGIN READ ONLY");
+  try {
+    const october = await loadCompendiumAdminParticipants();
+    expect(october.find((player) => player.discordId === "100")?.totalStars).toBe(9);
+    const archived = await loadCompendiumAdminParticipants("ti-2026");
+    const expected = await db.query<{ total_stars: number }>(
+      "SELECT total_stars FROM ti_2026_compendium_player_star_totals WHERE player_id = 100",
+    );
+    expect(archived.find((player) => player.discordId === "100")?.totalStars).toBe(expected.rows[0].total_stars);
+    expect(archived.every((player) => player.currentQuests.length === 0 && player.currentStarRaceQuests.length === 0)).toBe(true);
+    const rewards = await loadCompendiumAdminParticipantHistory("100", "ti-2026");
+    expect(rewards?.reduce((sum, reward) => sum + reward.rewardAmount, 0)).toBe(expected.rows[0].total_stars);
+    expect(rewards?.every((reward) => reward.dateKey < "2026-08-24")).toBe(true);
+    const races = await loadCompendiumStarRaceArchive(new Date(), "ti-2026");
+    expect(races).toHaveLength(2);
+    expect(races.every((race) => race.startsAt < "2026-08-24")).toBe(true);
+    expect(mocks.ensureDailyQuestSet).not.toHaveBeenCalled();
+  } finally {
+    await db.exec("ROLLBACK");
+    vi.useRealTimers();
+  }
 });
