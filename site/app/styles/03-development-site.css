@@ -1,0 +1,104 @@
+.development-info-button {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 110;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--blue-soft);
+  border-radius: 24px;
+  background: var(--blue-night);
+  color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 3px 18px #0004;
+}
+
+.development-info-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--blue-soft);
+  border-radius: 16px;
+  background: #102335;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow: auto;
+}
+
+.development-info-dialog::backdrop {
+  background: #0009;
+}
+
+.development-info-dialog header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.development-info-dialog h2 {
+  flex: 1;
+  margin: 0;
+  font-size: 20px;
+}
+
+.development-info-dialog header button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--blue-soft);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.development-versions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+}
+
+.development-versions dd {
+  margin: 0;
+  color: var(--blue-soft);
+}
+
+.development-info-dialog li {
+  margin-block: 8px;
+  overflow-wrap: anywhere;
+}
+
+.development-login {
+  width: min(560px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(32px, 10vh, 96px) 0;
+}
+
+.development-login h1 {
+  margin: 0 0 20px;
+  font-size: clamp(24px, 5vw, 32px);
+  line-height: 1.2;
+}
+
+.development-login .auth-choice-card > p {
+  min-height: 0;
+}
+
+@media (max-width: 600px) {
+  .development-info-dialog {
+    padding: 16px;
+  }
+
+  .development-info-dialog h2 {
+    font-size: 18px;
+  }
+}

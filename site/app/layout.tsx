@@ -6,6 +6,8 @@ import { PreventSpaceScroll } from "./components/PreventSpaceScroll";
 import { SiteBreakWatcher } from "./components/SiteBreakWatcher";
 import { HeaderNavigationAnimation } from "./components/header/HeaderNavigationAnimation";
 import { OctoberClanBadgesProvider } from "./components/october-clan-badges/OctoberClanBadgesProvider";
+import { DevelopmentTools } from "./components/development/DevelopmentTools";
+import { isDevelopmentSite } from "@/lib/development/environment";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -26,6 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase,
+    robots: isDevelopmentSite() ? { index: false, follow: false } : undefined,
     title,
     description,
     icons: {
@@ -58,6 +61,7 @@ export default function RootLayout({
         <LocalTimeHints />
         <PreventSpaceScroll />
         <SiteBreakWatcher />
+        <DevelopmentTools />
         <OctoberClanBadgesProvider>
           <HeaderNavigationAnimation>{children}</HeaderNavigationAnimation>
         </OctoberClanBadgesProvider>

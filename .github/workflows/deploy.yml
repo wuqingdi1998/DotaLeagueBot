@@ -1,9 +1,10 @@
-name: Deploy (main)
+name: Deploy (main and development)
 
 on:
   push:
     branches:
       - main
+      - codex/dev
   workflow_dispatch: {}
 
 concurrency:
@@ -31,6 +32,11 @@ jobs:
         with:
           go-version: "1.24"
           cache-dependency-path: site/tools/arcana-replay-parser/go.sum
+      - name: Validate production and development configuration
+        run: |
+          docker compose --env-file .env.example config --no-env-resolution --quiet
+          docker compose --env-file .env.example -f docker-compose.development.yml config --no-env-resolution --quiet
+          bash -n scripts/deploy-development.sh
       - name: Check bot
         working-directory: bot
         run: |
@@ -55,10 +61,15 @@ jobs:
           npm run check
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record production release
+        run: python scripts/build-release-manifest.py
       - name: Build production images
         run: |
           docker build --tag dotaleaguebot-bot:deploy --file bot/Dockerfile .
@@ -119,7 +130,8 @@ jobs:
             cd "$APP_DIR"
             git fetch origin main
             git checkout main
-            git reset --hard origin/main
+            git reset --hard ${{ github.sha }}
+            export SITE_RELEASE_SHA=${{ github.sha }}
 
             if [ ! -s "$IMAGE_ARTIFACT" ]; then
               echo "Missing prebuilt production images." >&2
@@ -808,3 +820,64 @@ jobs:
             https://lsesports.ru/api/discord-avatars
           grep -qi '^content-type: image/' "$avatar_headers"
           grep -qi '^x-avatar-cache: ' "$avatar_headers"
+
+  development:
+    if: github.ref == 'refs/heads/codex/dev'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record development release
+        run: python scripts/build-release-manifest.py
+      - name: Build isolated development images
+        run: |
+          docker build --tag dotaleaguebot-bot:development --file bot/Dockerfile .
+          docker build --tag dotaleaguebot-site:development ./site
+          docker save dotaleaguebot-bot:development dotaleaguebot-site:development |
+            gzip -1 > development-images.tar.gz
+      - name: Transfer development images
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          source: development-images.tar.gz
+          target: /tmp/dotaleaguebot-dev-${{ github.sha }}
+      - name: Deploy isolated test site
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT }}
+          command_timeout: 20m
+          script: |
+            set -euo pipefail
+            APP_DIR=/root/DotaLeagueBotDev
+            if [ ! -d "$APP_DIR/.git" ]; then
+              git clone --branch codex/dev git@github.com:wuqingdi1998/DotaLeagueBot.git "$APP_DIR"
+            fi
+            cd "$APP_DIR"
+            git fetch origin main codex/dev
+            git checkout codex/dev
+            git reset --hard ${{ github.sha }}
+            artifact=/tmp/dotaleaguebot-dev-${{ github.sha }}/development-images.tar.gz
+            test -s "$artifact"
+            gzip -dc "$artifact" | docker load
+            rm "$artifact"
+            rmdir /tmp/dotaleaguebot-dev-${{ github.sha }}
+            bash scripts/deploy-development.sh
+      - name: Verify development site externally
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error \
+            --retry 12 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
+            --max-time 15 https://dev.lsesports.ru/api/health | grep -q '"ok":true'
+          curl --fail --silent --show-error --max-time 15 \
+            https://dev.lsesports.ru/api/version | grep -q '${{ github.sha }}'
+          status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --max-time 15 https://dev.lsesports.ru/api/development/changes)
+          test "$status" = 401

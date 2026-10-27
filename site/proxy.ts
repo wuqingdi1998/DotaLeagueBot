@@ -8,6 +8,7 @@ import { isSiteBreakBypassPath } from "@/lib/site-break-paths";
 import { decideSiteBreakAccess } from "@/lib/site-break-policy";
 import { hasOrganizerAccess, isSiteBreakEnabled } from "@/lib/site-break";
 import { isParticipantViewEnabled, participantViewCookie } from "@/lib/participant-view";
+import { developmentAccessResponse } from "@/lib/development/access";
 
 function clientAddress(request: NextRequest) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -48,7 +49,9 @@ export async function proxy(request: NextRequest) {
       return response;
     }
   }
-  if (isSiteBreakBypassPath(pathname)) return NextResponse.next();
+  const developmentRejection = await developmentAccessResponse(request);
+  if (developmentRejection) return developmentRejection;
+  if (isSiteBreakBypassPath(pathname) || pathname === "/api/version" || pathname === "/development/login") return NextResponse.next();
 
   let breakEnabled: boolean;
   try {

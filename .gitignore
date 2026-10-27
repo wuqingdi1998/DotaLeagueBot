@@ -16,6 +16,8 @@ credentials.json
 league_test.db
 postgres_data/
 uploads_data/
+/development/
+.env.development
 site/.data/
 site/public/downloads/linkens-dotabuff-helper.zip
 site/.next/

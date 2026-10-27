@@ -2,6 +2,25 @@ www.{$SITE_DOMAIN:lsesports.ru} {
 	redir https://{$SITE_DOMAIN:lsesports.ru}{uri} permanent
 }
 
+{$DEVELOPMENT_DOMAIN:dev.lsesports.ru} {
+	encode zstd gzip
+	request_body {
+		max_size 55MB
+	}
+	header {
+		-Server
+		X-Robots-Tag "noindex, nofollow, noarchive"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+	reverse_proxy development-site:3000 {
+		lb_try_duration 30s
+		lb_try_interval 250ms
+		lb_retry_match method GET HEAD
+	}
+}
+
 {$SITE_DOMAIN:lsesports.ru} {
 	encode zstd gzip
 
