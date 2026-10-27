@@ -11,6 +11,7 @@ services:
     image: postgres:15-alpine
     restart: unless-stopped
     mem_limit: 128m
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=20", "-c", "work_mem=2MB", "-c", "maintenance_work_mem=32MB"]
     env_file: .env.development
     volumes:
       - ./development/postgres:/var/lib/postgresql/data

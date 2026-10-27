@@ -35,3 +35,4 @@ compose exec -T site node -e \
 compose exec -T db sh -c \
   'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT current_database(), COUNT(*) AS players FROM players;"'
 echo "Development site is healthy at revision $revision"
+docker image prune --force
