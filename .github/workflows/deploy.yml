@@ -34,8 +34,10 @@ jobs:
           cache-dependency-path: site/tools/arcana-replay-parser/go.sum
       - name: Validate production and development configuration
         run: |
-          docker compose --env-file .env.example config --no-env-resolution --quiet
-          docker compose --env-file .env.example -f docker-compose.development.yml config --no-env-resolution --quiet
+          cp .env.example .env
+          cp .env.example .env.development
+          docker compose config --quiet
+          docker compose -f docker-compose.development.yml config --quiet
           bash -n scripts/deploy-development.sh
       - name: Check bot
         working-directory: bot
