@@ -29,12 +29,12 @@ def development_environment(production: dict[str, str], existing: dict[str, str]
     return result
 
 
-def compose_environment(directory: Path, filename: str) -> dict[str, str]:
+def compose_environment(directory: Path, filename: str, service: str = "site") -> dict[str, str]:
     configuration = subprocess.check_output(
         ["docker", "compose", "-f", filename, "config", "--format", "json"],
         cwd=directory, text=True,
     )
-    return json.loads(configuration)["services"]["site"]["environment"]
+    return json.loads(configuration)["services"][service]["environment"]
 
 
 def main() -> None:
@@ -43,7 +43,7 @@ def main() -> None:
     parser.add_argument("--revision", required=True)
     arguments = parser.parse_args()
     production = compose_environment(arguments.production_dir, "docker-compose.yml")
-    existing = compose_environment(Path.cwd(), "docker-compose.development.yml") if Path(".env.development").exists() else {}
+    existing = compose_environment(Path.cwd(), "docker-compose.development.yml", "development-site") if Path(".env.development").exists() else {}
     environment = development_environment(production, existing, arguments.revision)
     target = Path(".env.development")
     with open(target, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o600)) as output:

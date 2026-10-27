@@ -34,7 +34,7 @@ services:
         condition: service_healthy
     logging: *development-logging
 
-  site:
+  development-site:
     image: dotaleaguebot-site:development
     restart: unless-stopped
     mem_limit: 320m
@@ -48,8 +48,7 @@ services:
       - ./development/uploads:/data/uploads
     networks:
       default: {}
-      development:
-        aliases: [development-site]
+      development: {}
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 10s

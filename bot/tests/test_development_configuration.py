@@ -1,5 +1,7 @@
 import importlib.util
+import json
 from pathlib import Path
+import subprocess
 import sys
 
 
@@ -55,3 +57,23 @@ def test_configuration_command_writes_only_isolated_settings(tmp_path, monkeypat
     assert "SITE_RELEASE_SHA='checked-release'" in saved
     assert "SITE_ENVIRONMENT='development'" in saved
     assert "example-with-\\'quote-and-$dollar" in saved
+
+
+def test_development_cannot_shadow_the_live_site_on_the_shared_proxy_network(tmp_path):
+    (tmp_path / ".env.development").write_text(
+        "POSTGRES_USER=test\nPOSTGRES_PASSWORD=test\nPOSTGRES_DB=test\n", encoding="utf-8"
+    )
+    compose_file = SCRIPT.parents[1] / "docker-compose.development.yml"
+    configuration = subprocess.check_output(
+        ["docker", "compose", "--project-directory", str(tmp_path), "-f", str(compose_file), "config", "--format", "json"],
+        cwd=tmp_path, text=True,
+    )
+    services = json.loads(configuration)["services"]
+    assert "site" not in services, "The live proxy resolves 'site' on its shared networks"
+    assert "development-site" in services
+    assert "development" not in services["db"]["networks"]
+    assert "ports" not in services["db"]
+    assert "ports" not in services["development-site"]
+    assert "bot" not in services
+    aliases = services["development-site"]["networks"]["development"].get("aliases", [])
+    assert "site" not in aliases

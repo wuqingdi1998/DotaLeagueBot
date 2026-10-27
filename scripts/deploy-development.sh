@@ -27,10 +27,10 @@ if [ ! -f development/initialized ]; then
   touch development/initialized
 fi
 
-compose stop site
+compose stop development-site
 compose run --rm migrate
-compose up -d --no-deps --wait site
-compose exec -T site node -e \
+compose up -d --no-deps --wait development-site
+compose exec -T development-site node -e \
   "fetch('http://127.0.0.1:3000/api/version').then(async r=>{const v=await r.json();if(v.revision!=='$revision')process.exit(1)})"
 compose exec -T db sh -c \
   'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "SELECT current_database(), COUNT(*) AS players FROM players;"'
