@@ -25,11 +25,12 @@ def bash_executable() -> str:
 
 
 @pytest.mark.parametrize(
-    ("has_marker", "reader_exit", "is_success"),
-    [(True, 0, True), (False, 0, False), (True, 17, False)],
+    ("marker", "reader_exit", "is_success"),
+    [(SYNC_MARKER, 0, True), ("[OCTOBER CLANS] Roles removed for guild 123", 0, True),
+     ("", 0, False), (SYNC_MARKER, 17, False), ("[OCTOBER CLANS] Roles removed for guild 123", 17, False)],
 )
 def test_clan_probe_reads_large_logs_and_preserves_failures(
-    tmp_path: Path, has_marker: bool, reader_exit: int, is_success: bool
+    tmp_path: Path, marker: str, reader_exit: int, is_success: bool
 ) -> None:
     workflow = (PROJECT_ROOT / ".github/workflows/deploy.yml").read_text(encoding="utf-8")
     step = workflow.split("- name: Verify October clan eligibility and role removal", 1)[1]
@@ -37,7 +38,7 @@ def test_clan_probe_reads_large_logs_and_preserves_failures(
     assert probe, "The clan synchronization log check must remain mandatory"
     log_path = tmp_path / "bot.log"
     log_path.write_text(
-        (SYNC_MARKER + "\n" if has_marker else "") + "Other bot event\n" * 100_000,
+        (marker + "\n" if marker else "") + "Other bot event\n" * 100_000,
         encoding="utf-8",
     )
     script = """set -o pipefail

@@ -66,3 +66,19 @@ async def test_departure_event_only_applies_to_compendium_server(monkeypatch) ->
     record.assert_not_awaited()
     await cog.on_member_remove(SimpleNamespace(id=42, guild=guild))
     record.assert_awaited_once_with("session", 42, False)
+
+
+@pytest.mark.parametrize("has_roles", [False, True])
+async def test_completed_compendium_confirms_role_removal_even_when_already_empty(capsys, has_roles):
+    roles = [SimpleNamespace(name=name, delete=AsyncMock()) for name in ("Морбус", "Панацея")] if has_roles else []
+    await cog_module.delete_clan_roles(SimpleNamespace(id=123, roles=roles))
+    for role in roles:
+        role.delete.assert_awaited_once()
+    assert "[OCTOBER CLANS] Roles removed for guild 123" in capsys.readouterr().out
+
+
+async def test_failed_role_removal_does_not_report_success(capsys):
+    role = SimpleNamespace(name="Морбус", delete=AsyncMock(side_effect=RuntimeError("denied")))
+    with pytest.raises(RuntimeError, match="denied"):
+        await cog_module.delete_clan_roles(SimpleNamespace(id=123, roles=[role]))
+    assert "Roles removed" not in capsys.readouterr().out

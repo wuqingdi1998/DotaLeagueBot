@@ -201,3 +201,4 @@ async def delete_clan_roles(guild: discord.Guild) -> None:
         role = discord.utils.get(guild.roles, name=name)
         if role is not None:
             await role.delete(reason="Компендиум завершён более суток назад")
+    print(f"[OCTOBER CLANS] Roles removed for guild {guild.id}", flush=True)

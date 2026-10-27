@@ -5,7 +5,12 @@ on:
     branches:
       - main
       - codex/dev
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      bootstrap_development:
+        description: Install both sites from one fully validated release
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-main
@@ -182,7 +187,7 @@ jobs:
             if docker compose ps --status running proxy | grep -q proxy; then
               bash scripts/reload-site-proxy.sh
             fi
-            docker compose up -d --no-deps --remove-orphans bot site proxy
+            docker compose up -d --no-deps --remove-orphans site proxy
             bash scripts/reload-site-proxy.sh
 
             for attempt in $(seq 1 30); do
@@ -209,6 +214,8 @@ jobs:
               fi
               sleep 5
             done
+
+            docker compose up -d --no-deps bot
 
             # Release the requested private preview only after the updated bot is running.
             docker compose exec -T db sh -c \
@@ -745,7 +752,7 @@ jobs:
             cd /root/DotaLeagueBot
             for attempt in $(seq 1 60); do
               if docker compose logs --since=10m bot 2>&1 |
-                grep -F '[OCTOBER CLANS] Roles synchronized for guild' >/dev/null; then
+                grep -E '\[OCTOBER CLANS\] Roles (synchronized|removed) for guild' >/dev/null; then
                 break
               fi
               if [ "$attempt" -eq 60 ]; then
@@ -825,8 +832,12 @@ jobs:
           grep -qi '^x-avatar-cache: ' "$avatar_headers"
 
   development:
-    if: github.ref == 'refs/heads/codex/dev'
-    needs: validate
+    if: >-
+      always() && needs.validate.result == 'success' &&
+      (needs.deploy.result == 'success' || needs.deploy.result == 'skipped') &&
+      (github.ref == 'refs/heads/codex/dev' ||
+      (github.ref == 'refs/heads/main' && inputs.bootstrap_development))
+    needs: [validate, deploy]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -835,12 +846,14 @@ jobs:
       - name: Record development release
         run: python scripts/build-release-manifest.py
       - name: Build isolated development images
+        if: github.ref == 'refs/heads/codex/dev'
         run: |
           docker build --tag dotaleaguebot-bot:development --file bot/Dockerfile .
           docker build --tag dotaleaguebot-site:development ./site
           docker save dotaleaguebot-bot:development dotaleaguebot-site:development |
             gzip -1 > development-images.tar.gz
       - name: Transfer development images
+        if: github.ref == 'refs/heads/codex/dev'
         uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -867,11 +880,17 @@ jobs:
             git fetch origin main codex/dev
             git checkout codex/dev
             git reset --hard ${{ github.sha }}
-            artifact=/tmp/dotaleaguebot-dev-${{ github.sha }}/development-images.tar.gz
-            test -s "$artifact"
-            gzip -dc "$artifact" | docker load
-            rm "$artifact"
-            rmdir /tmp/dotaleaguebot-dev-${{ github.sha }}
+            if [ '${{ github.ref }}' = refs/heads/main ]; then
+              # Bootstrap reuses the exact images just verified on the live site.
+              docker tag dotaleaguebot-bot:deploy dotaleaguebot-bot:development
+              docker tag dotaleaguebot-site:deploy dotaleaguebot-site:development
+            else
+              artifact=/tmp/dotaleaguebot-dev-${{ github.sha }}/development-images.tar.gz
+              test -s "$artifact"
+              gzip -dc "$artifact" | docker load
+              rm "$artifact"
+              rmdir /tmp/dotaleaguebot-dev-${{ github.sha }}
+            fi
             bash scripts/deploy-development.sh
       - name: Verify development site externally
         run: |

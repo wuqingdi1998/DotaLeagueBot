@@ -58,6 +58,7 @@ services:
       POSTGRES_HOST: db
       POSTGRES_PORT: "5432"
       GOOGLE_CREDENTIALS_PATH: /run/secrets/google-credentials.json
+      COMPENDIUM_SITE_URL: http://site:3000
     volumes:
       - ./credentials.json:/run/secrets/google-credentials.json:ro
     depends_on:

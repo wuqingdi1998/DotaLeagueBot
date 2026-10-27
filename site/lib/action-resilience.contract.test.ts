@@ -22,7 +22,11 @@ describe("site-wide action resilience", () => {
   it("reloads the actual proxy configuration before replacing the site", () => {
     const workflow = readFileSync(new URL("../../.github/workflows/deploy.yml", import.meta.url), "utf8");
     const script = readFileSync(new URL("../../scripts/reload-site-proxy.sh", import.meta.url), "utf8");
-    expect(workflow.indexOf("bash scripts/reload-site-proxy.sh")).toBeLessThan(workflow.indexOf("docker compose up -d --no-deps --remove-orphans bot site proxy"));
+    const startSite = workflow.indexOf("docker compose up -d --no-deps --remove-orphans site proxy");
+    expect(startSite).toBeGreaterThan(0);
+    expect(workflow.indexOf("bash scripts/reload-site-proxy.sh")).toBeLessThan(startSite);
+    const startBot = workflow.indexOf("docker compose up -d --no-deps bot");
+    expect(startBot).toBeGreaterThan(workflow.indexOf('public_url="https://'));
     expect(script).toContain("--config /dev/stdin --adapter caddyfile < Caddyfile");
     expect(script).toContain('policy.get("try_duration") == 30000000000');
     expect(script).toContain('[{"method": ["GET", "HEAD"]}]');
