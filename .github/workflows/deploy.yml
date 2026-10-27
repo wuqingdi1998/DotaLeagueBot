@@ -34,6 +34,7 @@ jobs:
           cache-dependency-path: site/tools/arcana-replay-parser/go.sum
       - name: Validate production and development configuration
         run: |
+          trap 'rm -f .env .env.development' EXIT
           cp .env.example .env
           cp .env.example .env.development
           docker compose config --quiet
