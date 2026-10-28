@@ -76,7 +76,16 @@ try {
             if (fixture === "organizer-archive") {
               const groups = document.querySelectorAll(".organizer-compendium-archive");
               if (groups.length !== 2) issues.push("archive must show both numbered compendiums");
-              if (document.querySelectorAll(".organizer-archive-menu a").length !== 6) issues.push("each compendium must have page, results and base links");
+              for (const group of groups) {
+                const menu = group.querySelector(".organizer-archive-menu");
+                const label = menu.getAttribute("aria-label");
+                for (const title of ["Страница", "Результаты", "База участников"]) {
+                  if (![...menu.querySelectorAll("a")].some((link) => link.textContent.trim() === title)) issues.push(`${label}: missing ${title}`);
+                }
+                const hasTestPreview = label === "Компендиум №2";
+                if (menu.querySelectorAll("a").length !== (hasTestPreview ? 4 : 3)) issues.push(`${label}: unexpected archive links`);
+                if (hasTestPreview && !menu.querySelector('a[href="/compendium/test"]')) issues.push("Compendium 2 must retain its archived test preview");
+              }
             }
             return issues;
           }
