@@ -3,7 +3,7 @@ import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FiArchive, FiDatabase, FiEye, FiPlayCircle } from "react-icons/fi";
+import { FiArchive, FiDatabase, FiPlayCircle } from "react-icons/fi";
 import {
   OCTOBER_PREVIEW_MAXIMUM_STARS,
   OCTOBER_PREVIEW_STARTED_PARAM,
@@ -46,7 +46,6 @@ export function OctoberPreviewProfileActions({
       <Link className="profile-popover-link" href="/organizer/compendium-october/base">
         План заданий компендиума №{COMPENDIUM_ARCHIVES.october.number} <FiDatabase aria-hidden="true" />
       </Link>
-      <a className="profile-popover-link" href="/compendium/test">Предпросмотр (тест) <FiEye aria-hidden="true" /></a>
       <Link className="profile-popover-link" href="/organizer/compendium-october/launch">
         Центр запуска <FiPlayCircle aria-hidden="true" />
       </Link>

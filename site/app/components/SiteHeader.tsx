@@ -17,11 +17,10 @@ import { PlayerActionNotificationBadge } from "./header/PlayerActionNotification
 import { ParticipantViewToggle } from "./ParticipantViewToggle";
 import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
 import { CompendiumNavigationLink } from "./header/CompendiumNavigationLink";
-import { useCompendiumAvailability } from "./compendium-access/CompendiumAvailability";
+import { CUP_CONSTRUCTOR_HREF } from "@/app/organizer/cup/model/cup-board";
 import {
   FiArrowRight,
-  FiDatabase,
-  FiEye,
+  FiGrid,
   FiLogIn,
   FiMenu,
   FiMoon,
@@ -92,7 +91,6 @@ export function SiteHeader({
   discordUrl = "https://discord.gg/lsesports",
   profileMenuExtras,
 }: SiteHeaderProps) {
-  const isCompendiumEnabled = useCompendiumAvailability();
   const pathname = usePathname();
   const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -308,23 +306,15 @@ export function SiteHeader({
                     {user.hasOrganizerAccess && (
                       <>
                         <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
-                        {isCompendiumEnabled && <>
-                        <Link
-                          className="profile-popover-link"
-                          href="/compendium/base"
-                          onClick={() => setProfileOpen(false)}
-                        >
-                          База компендиума <FiDatabase aria-hidden="true" />
-                        </Link>
-                        <a className="profile-popover-link" href="/compendium/test" onClick={() => setProfileOpen(false)}>
-                          Предпросмотр (тест) <FiEye aria-hidden="true" />
-                        </a>
-                        </>}
                         {profileMenuExtras}
                       </>
                     )}
                   </>
                 )}
+                {user.isAdmin && <Link className="profile-popover-link" href={CUP_CONSTRUCTOR_HREF}
+                  onClick={() => setProfileOpen(false)}>
+                  Конструктор кубка <FiGrid aria-hidden="true" />
+                </Link>}
                 <button
                   type="button"
                   onClick={logoutAndReload}

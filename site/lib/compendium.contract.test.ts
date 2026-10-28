@@ -184,11 +184,12 @@ describe("compendium persistence and security contract", () => {
     expect(dashboard).not.toContain("Сегодня по Москве");
   });
 
-  it("shows the base only to organizers inside the profile menu", () => {
+  it("keeps the base restricted to organizers after removing its direct profile link", () => {
     const header = source("../app/components/SiteHeader.tsx");
     expect(dashboard).not.toContain('href="/compendium/base"');
     expect(header).toContain("user.hasOrganizerAccess");
-    expect(header).toContain('href="/compendium/base"');
+    expect(header).not.toContain('href="/compendium/base"');
+    expect(header).toContain("Конструктор кубка");
     expect(basePage).toContain("if (!user?.isAdmin) notFound()");
   });
 

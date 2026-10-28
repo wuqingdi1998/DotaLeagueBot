@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FiArrowRight, FiAward, FiBookOpen, FiDatabase, FiPlayCircle } from "react-icons/fi";
+import { FiArrowRight, FiAward, FiBookOpen, FiDatabase, FiEye, FiPlayCircle } from "react-icons/fi";
 import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
 import { useCompendiumAvailability } from "@/app/components/compendium-access/CompendiumAvailability";
 
@@ -41,6 +41,11 @@ export function OrganizerArchive() {
                 </Link>
               );
             })}
+            {archive.period === "october" && <Link href="/compendium/test">
+              <FiEye className="organizer-archive-menu-icon" aria-hidden="true" />
+              <span><strong>Предпросмотр (тест)</strong></span>
+              <FiArrowRight className="organizer-archive-menu-arrow" aria-hidden="true" />
+            </Link>}
           </nav>
         </section>
       ))}

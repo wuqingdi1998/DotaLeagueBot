@@ -37,6 +37,15 @@ describe("organizer archive navigation", () => {
     expect(header).not.toContain("Результаты<br />компендиума");
   });
 
+  it("replaces direct base and test profile buttons with the cup constructor and retains the archived test", () => {
+    expect(header).not.toContain('href="/compendium/base"');
+    expect(header).not.toContain('href="/compendium/test"');
+    expect(header).toContain("user.isAdmin && <Link");
+    expect(header).toContain("Конструктор кубка");
+    expect(organizerArchive).toContain('href="/compendium/test"');
+    expect(source("../app/organizer/compendium-october/components/OctoberPreviewProfileActions.tsx")).not.toContain('href="/compendium/test"');
+  });
+
   it("separates each numbered compendium into page, results and participant base links", () => {
     const html = renderToStaticMarkup(createElement(OrganizerArchive));
     expect(organizerArchive).toContain("COMPENDIUM_ARCHIVES");
