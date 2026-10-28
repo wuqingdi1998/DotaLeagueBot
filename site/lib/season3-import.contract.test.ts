@@ -132,7 +132,7 @@ describe("Season 3 archive import", () => {
       "Результат перенесён из итоговой таблицы",
     );
     expect(standingsPanel).toContain(
-      "data?.tournament.season_activity_points_note",
+      "activityPointsNote={data.tournament.season_activity_points_note}",
     );
     expect(roundsPanel).toContain("Составы лобби этого тура не сохранились");
     expect(tournamentRoute).toContain("season_activity_points_note");
