@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useLayoutEffect, useRef, useState } from "react";
 import { FiInfo } from "react-icons/fi";
 
 export function SeasonStandingsInfo({ hasActivityPoints, activityPointsNote }: {
@@ -14,8 +14,22 @@ export function SeasonStandingsInfo({ hasActivityPoints, activityPointsNote }: {
   const legendId = useId();
   const isOpen = isHovered || isPinned || isKeyboardFocused;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen) return;
+    const positionLegend = () => {
+      const anchor = container.current;
+      const legend = anchor?.querySelector<HTMLElement>(".season-standings-legend");
+      if (!anchor || !legend) return;
+      const bounds = anchor.getBoundingClientRect();
+      const viewportGap = 16;
+      const header = document.querySelector(".site-header")?.getBoundingClientRect();
+      const viewportTop = Math.max(viewportGap, header && header.top <= 0 ? header.bottom + viewportGap / 2 : 0);
+      const availableBelow = window.innerHeight - bounds.bottom - viewportGap;
+      const availableAbove = bounds.top - viewportTop;
+      const shouldOpenAbove = legend.scrollHeight + 2 > availableBelow && availableAbove > availableBelow;
+      anchor.dataset.side = shouldOpenAbove ? "above" : "below";
+      anchor.style.setProperty("--season-info-max-height", `${Math.max(0, shouldOpenAbove ? availableAbove : availableBelow)}px`);
+    };
     const close = () => { setIsHovered(false); setIsPinned(false); setIsKeyboardFocused(false); };
     const closeOutside = (event: PointerEvent) => {
       if (!container.current?.contains(event.target as Node)) close();
@@ -23,9 +37,14 @@ export function SeasonStandingsInfo({ hasActivityPoints, activityPointsNote }: {
     const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") close(); };
     document.addEventListener("pointerdown", closeOutside);
     document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", positionLegend);
+    window.addEventListener("scroll", positionLegend, true);
+    positionLegend();
     return () => {
       document.removeEventListener("pointerdown", closeOutside);
       document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", positionLegend);
+      window.removeEventListener("scroll", positionLegend, true);
     };
   }, [isOpen]);
 

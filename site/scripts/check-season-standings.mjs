@@ -66,9 +66,14 @@ try {
       else await button.tap();
       const tooltip = page.getByRole("tooltip", { name: "Легенда таблицы" });
       await tooltip.waitFor();
+      await page.waitForFunction(() => {
+        const bounds = document.querySelector(".season-standings-legend")?.getBoundingClientRect();
+        return bounds && bounds.top >= 15 && bounds.bottom <= innerHeight - 15;
+      });
       assert.equal(await tooltip.getByText("Базовые очки за активность этого сезона.", { exact: false }).count(), historical ? 1 : 0);
       const bounds = await tooltip.boundingBox();
       assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= width + 1, "Scoring information must fit the screen");
+      assert.ok(bounds.y >= 15 && bounds.y + bounds.height <= height - 15, "Scoring information must fit vertically");
       assert.deepEqual(await scroll.boundingBox(), previousBounds, "Opening information must not narrow the table");
       await page.screenshot({ path: fileURLToPath(new URL(`info-${historical ? "archive" : "current"}-${width}.png`, directory)) });
       if (width >= 600) {
@@ -90,6 +95,26 @@ try {
       await tooltip.waitFor();
       await page.locator("#outside").click();
       await tooltip.waitFor({ state: "detached" });
+      await page.locator("#outside").evaluate((node) => { node.style.marginBottom = "340px"; });
+      await page.evaluate(() => {
+        const header = document.createElement("header");
+        header.id = "fixture-sticky-header";
+        header.className = "site-header";
+        Object.assign(header.style, { position: "fixed", top: "0", left: "0", right: "0", height: "76px", zIndex: "20" });
+        document.body.append(header);
+      });
+      await button.scrollIntoViewIfNeeded();
+      await button.click();
+      await tooltip.waitFor();
+      await page.waitForFunction(() => {
+        const bounds = document.querySelector(".season-standings-legend")?.getBoundingClientRect();
+        return bounds && bounds.top >= 83 && bounds.bottom <= innerHeight - 15;
+      });
+      const lowerBounds = await tooltip.boundingBox();
+      assert.ok(lowerBounds.y >= 83 && lowerBounds.y + lowerBounds.height <= height - 15, "Scoring information must fit between the sticky header and screen edge");
+      await page.keyboard.press("Escape");
+      await page.locator("#fixture-sticky-header").evaluate((node) => node.remove());
+      await page.locator("#outside").evaluate((node) => { node.style.marginBottom = "0px"; });
       await page.getByLabel("Предпросмотр скрытых туров").check();
       assert.ok((await table.locator("thead th").allTextContents()).includes("Тур 15"));
       await scroll.evaluate((node) => { node.scrollLeft = 280; });

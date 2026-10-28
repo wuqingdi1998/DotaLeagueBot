@@ -16,7 +16,7 @@
   top: 100%;
   right: 0;
   width: min(340px, calc(100vw - 40px));
-  max-height: calc(100dvh - 32px);
+  max-height: var(--season-info-max-height, calc(100dvh - 32px));
   overflow-y: auto;
   display: grid;
   gap: 10px;
@@ -37,8 +37,13 @@
 
 .season-standings-info {
   position: relative;
-  padding-bottom: 8px;
-  margin-bottom: -8px;
+  padding: 8px 0;
+  margin: -8px 0;
+}
+
+.season-standings-info[data-side="above"] .season-standings-legend {
+  top: auto;
+  bottom: 100%;
 }
 
 .season-standings-info-button {
