@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx tests/compendium-parity-fixtures.test.tsx && node scripts/check-october-layout.mjs && node scripts/check-clan-activity.mjs && node scripts/check-final-race-preview.mjs && node scripts/build-compendium-test.mjs && node scripts/check-compendium-test.mjs && node scripts/check-compendium-parity.mjs && node scripts/check-league-backdrops.mjs && node scripts/check-development-site.mjs && node scripts/check-results-availability.mjs && node scripts/check-cup-constructor.mjs",
+    "test:layout": "vitest run tests/october-layout-fixtures.test.tsx tests/compendium-parity-fixtures.test.tsx && node scripts/check-october-layout.mjs && node scripts/check-clan-activity.mjs && node scripts/check-final-race-preview.mjs && node scripts/build-compendium-test.mjs && node scripts/check-compendium-test.mjs && node scripts/check-compendium-parity.mjs && node scripts/check-league-backdrops.mjs && node scripts/check-development-site.mjs && node scripts/check-results-availability.mjs && node scripts/check-cup-constructor.mjs && node scripts/check-season-standings.mjs",
     "test:parity:production": "vitest run tests/compendium-parity-fixtures.test.tsx && node scripts/check-compendium-parity.mjs --production",
     "test:draft-performance": "node scripts/check-draft-performance.mjs",
     "check": "npm run lint && npm run typecheck && npm run test && npm run test:layout && npm run build && npm run test:draft-performance && npm run test:parity:production"

@@ -18,6 +18,7 @@ import type {
 } from "../model/season-types";
 import { HorizontalDragScroll } from "../components/HorizontalDragScroll";
 import { SeasonCoolingCell, SeasonCoolingHeader } from "../components/SeasonCoolingColumn";
+import { SeasonStandingsInfo } from "../components/SeasonStandingsInfo";
 
 export function SeasonStandingsPanel() {
   const { activeTab, data, season } = useTournament();
@@ -60,16 +61,20 @@ export function SeasonStandingsPanel() {
           <p className="card-kicker">Общий зачёт</p>
           <h3>Таблица сезона</h3>
         </div>
-        {season.data.isOrganizer && (
-          <label className="season-preview-toggle">
-            <input
-              type="checkbox"
-              checked={showPreview}
-              onChange={(event) => setShowPreview(event.target.checked)}
-            />
-            Предпросмотр скрытых туров
-          </label>
-        )}
+        <div className="season-standings-actions">
+          <SeasonStandingsInfo hasActivityPoints={standings.some((row) => row.hasActivityPoints)}
+            activityPointsNote={data.tournament.season_activity_points_note} />
+          {season.data.isOrganizer && (
+            <label className="season-preview-toggle">
+              <input
+                type="checkbox"
+                checked={showPreview}
+                onChange={(event) => setShowPreview(event.target.checked)}
+              />
+              Предпросмотр скрытых туров
+            </label>
+          )}
+        </div>
       </div>
       {!rounds.length ? (
         <div className="empty-standings">
@@ -79,7 +84,6 @@ export function SeasonStandingsPanel() {
         <>
           <div className="season-standings-layout">
             <StandingsTable rows={activeRows} rounds={rounds} isRanked />
-            <SeasonStandingsLegend />
           </div>
           {inactiveRows.length > 0 && (
             <section className="season-inactive-standings">
@@ -120,7 +124,7 @@ function StandingsTable({
       <table className="season-standings-table">
         <thead>
           <tr>
-            <th>Место</th>
+            <th className="season-place-column">Место</th>
             <th
               className="season-player-avatar-column"
               aria-label="Аватар игрока"
@@ -144,7 +148,7 @@ function StandingsTable({
         <tbody>
           {rows.map((row, index) => (
             <tr key={row.playerId}>
-              <td>{isRanked ? index + 1 : "—"}</td>
+              <td className="season-place-column">{isRanked ? index + 1 : "—"}</td>
               <PlayerIdentityCells
                 dotaId={row.dotaId}
                 nickname={row.nickname}
@@ -222,39 +226,6 @@ function StandingsTable({
         </tbody>
       </table>
     </HorizontalDragScroll>
-  );
-}
-
-function SeasonStandingsLegend() {
-  const { data, season } = useTournament();
-  const showsActivityPoints = Boolean(
-    season.data?.standings.some((row) => row.hasActivityPoints),
-  );
-  return (
-    <aside className="season-standings-legend" aria-label="Легенда таблицы">
-      <h4>Как начисляются очки</h4>
-      <p><i className="win" /> Победа <strong>+2</strong></p>
-      <p><i className="draw" /> Ничья <strong>+1</strong></p>
-      <p><i className="loss" /> Поражение <strong>0</strong></p>
-      <p><i className="substitute" /> Игрок замены</p>
-      <p><i className="suspended" /> Пропуск из-за штрафа</p>
-      <hr />
-      <p className="season-legend-explanation">
-        <b>p</b> — ручные поправки, бонусы за замену и снятия за штрафные
-        огоньки.
-      </p>
-      {showsActivityPoints && (
-        <p className="season-legend-explanation">
-          <b>+ap</b> —{" "}
-          {data?.tournament.season_activity_points_note ??
-            "отдельные базовые очки за активность по правилам этого сезона."}
-        </p>
-      )}
-      <p className="season-legend-explanation">
-        <b>%WR</b> — процент выигранных карт. При равенстве очков выше
-        ставится игрок с большим %WR, затем с большим числом сыгранных туров.
-      </p>
-    </aside>
   );
 }
 
@@ -403,8 +374,8 @@ function PlayerIdentityCells({
           <AvatarImage
             source={avatarUrl}
             alt=""
-            width={34}
-            height={34}
+            width={32}
+            height={32}
             unoptimized
             fallback={<i>{nickname.slice(0, 1).toUpperCase()}</i>}
           />

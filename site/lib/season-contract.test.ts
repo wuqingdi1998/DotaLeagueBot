@@ -26,6 +26,7 @@ const horizontalDragScroll = source(
 const standings = source(
   "../app/tournaments/[slug]/sections/SeasonStandingsPanel.tsx",
 );
+const standingsInfo = source("../app/tournaments/[slug]/components/SeasonStandingsInfo.tsx");
 const disciplineAdmin = source(
   "../app/tournaments/[slug]/admin/SeasonDisciplineAdmin.tsx",
 );
@@ -240,7 +241,7 @@ describe("season interface contract", () => {
       10,
     );
     expect(styles).toMatch(
-      /\.season-standings-table \.season-compact-column\s*\{[^}]*width:\s*48px;[^}]*min-width:\s*48px;/,
+      /\.season-standings-table \.season-compact-column\s*\{[^}]*width:\s*44px;[^}]*min-width:\s*44px;/,
     );
     expect(styles).toMatch(
       /\.season-player-avatar-link (?:img|img,\s*\.season-player-avatar-link i)[\s\S]*?aspect-ratio:\s*1;[^}]*object-fit:\s*cover;/,
@@ -253,11 +254,21 @@ describe("season interface contract", () => {
   });
 
   it("keeps legend explanations inline and removes the unused pending item", () => {
-    expect(standings).not.toContain("Результат ещё не внесён");
-    expect(standings.match(/season-legend-explanation/g)).toHaveLength(3);
+    expect(standingsInfo).not.toContain("Результат ещё не внесён");
+    expect(standingsInfo.match(/season-legend-explanation/g)).toHaveLength(3);
     expect(styles).toMatch(
       /\.season-standings-legend p\.season-legend-explanation\s*\{[^}]*display:\s*block;/,
     );
+  });
+
+  it("uses the full standings width and opens scoring information from the heading", () => {
+    expect(standings).toContain("<SeasonStandingsInfo");
+    expect(standings).not.toContain("<SeasonStandingsLegend");
+    expect(styles).toMatch(/\.season-standings-layout\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/);
+    expect(standingsInfo).toContain('aria-expanded={isOpen}');
+    expect(standingsInfo).toContain("onPointerEnter");
+    expect(standingsInfo).toContain('event.key === "Escape"');
+    expect(styles).toMatch(/\.season-player-avatar-column::before\s*\{[^}]*width:\s*1px;[^}]*background:\s*var\(--season-identity-divider\)/);
   });
 
   it("keeps historical seasonal nicknames but links to live profiles", () => {

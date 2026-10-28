@@ -2,9 +2,8 @@
 
 .season-standings-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 230px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 18px;
 }
 
 .season-standings-layout .season-table-scroll {
@@ -12,15 +11,42 @@
 }
 
 .season-standings-legend {
-  position: sticky;
-  top: 100px;
+  position: absolute;
+  z-index: 12;
+  top: 100%;
+  right: 0;
+  width: min(340px, calc(100vw - 40px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
   display: grid;
   gap: 10px;
-  margin-top: 24px;
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 18px;
   background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.season-standings-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.season-standings-info {
+  position: relative;
+  padding-bottom: 8px;
+  margin-bottom: -8px;
+}
+
+.season-standings-info-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  font-size: 13px;
 }
 
 .season-standings-legend h4,
@@ -366,22 +392,6 @@
 }
 
 @media (max-width: 900px) {
-  .season-standings-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .season-standings-legend {
-    position: static;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    margin-top: 0;
-  }
-
-  .season-standings-legend h4,
-  .season-standings-legend hr,
-  .season-standings-legend .season-legend-explanation {
-    grid-column: 1 / -1;
-  }
-
   .season-inline-admin-form {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -396,15 +406,8 @@
 }
 
 @media (max-width: 540px) {
-  .season-standings-legend {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .season-standings-legend h4,
-  .season-standings-legend hr,
-  .season-standings-legend .season-legend-explanation {
-    grid-column: auto;
-  }
+  .season-standings-actions { width: 100%; justify-content: flex-start; }
+  .season-standings-info { margin-left: auto; }
 
   .season-inline-admin-form {
     grid-template-columns: minmax(0, 1fr);
