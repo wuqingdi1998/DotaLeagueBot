@@ -12,6 +12,7 @@ import {
 import { StarRacePrizePreview } from "../components/StarRacePrizePreview";
 import { CompendiumClanResults } from "./CompendiumClanResults";
 import { CompendiumClanPrizeResults } from "./CompendiumClanPrizeResults";
+import { ResultsAvailabilityCountdown, type ResultsAvailability } from "../components/ResultsAvailabilityCountdown";
 
 function PlayerAvatar({ player }: { player: CompendiumLeaderboardEntry }) {
   return (
@@ -94,16 +95,21 @@ function ResultsTable({
 export function CompendiumResults({
   data,
   currentPlayerId,
+  availability,
 }: {
   data: CompendiumResultsData;
   currentPlayerId?: string;
+  availability?: ResultsAvailability;
 }) {
   const isOctober = data.period === "october";
   return (
     <main className={`compendium-results-page${isOctober ? " compendium-results-page--compact" : ""}`}>
       <section className="compendium-results-hero">
         <div className="compendium-results-hero-copy">
-          <span className="compendium-results-eyebrow">{isOctober ? "СЕЗОН 9 · 5–25 ОКТЯБРЯ 2026" : "THE INTERNATIONAL 2026"}</span>
+          <div className="compendium-results-heading-meta">
+            <span className="compendium-results-eyebrow">{isOctober ? "СЕЗОН 9 · 5–25 ОКТЯБРЯ 2026" : "THE INTERNATIONAL 2026"}</span>
+            {isOctober && availability && <ResultsAvailabilityCountdown {...availability} />}
+          </div>
           <h1>{data.closure === "settling" ? "Подведение итогов Компендиума" : "Результаты Компендиума"}</h1>
           <p>
             {isOctober

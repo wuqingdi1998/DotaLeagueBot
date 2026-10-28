@@ -4,3 +4,8 @@ export const OCTOBER_NORMAL_ALL_PICK_START_AT = "2026-10-08T00:00:00+03:00";
 // Task deadline; the final league round may be credited later.
 export const OCTOBER_COMPENDIUM_END_AT = "2026-10-26T00:00:00+03:00";
 export const OCTOBER_COMPENDIUM_DATE_LABEL = "5–25 октября 2026";
+export const OCTOBER_RESULTS_ARCHIVE_AT = "2026-10-31T21:00:00+03:00";
+
+export function areOctoberResultsArchived(now: Date = new Date()): boolean {
+  return now.getTime() >= Date.parse(OCTOBER_RESULTS_ARCHIVE_AT);
+}

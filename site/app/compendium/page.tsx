@@ -22,6 +22,7 @@ import { loadOctoberDailyQuests } from "@/app/organizer/compendium-october/servi
 import { loadStarRace } from "./services/star-race";
 import { CompendiumClosingPage } from "./sections/CompendiumClosingPage";
 import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
+import { archivedCompendiumDestination } from "./model/public-results-access";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,8 @@ export default async function CompendiumPage() {
   const now = new Date();
   const scheduledPhase = octoberCompendiumPhase(now);
   const user = await getSession();
+  const archiveDestination = archivedCompendiumDestination(user?.isAdmin === true, now);
+  if (archiveDestination) redirect(archiveDestination);
   if (!user || user.isStandaloneOrganizer) {
     redirect("/login?returnTo=%2Fcompendium");
   }

@@ -14,6 +14,16 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllEnvs());
 
 describe("development data access", () => {
+  it.each(["/compendium", "/compendium/results", "/compendium/base", "/compendium/test",
+    "/organizer/compendium", "/organizer/compendium-october/results", "/api/compendium",
+    "/api/admin/compendium-base/participants/1/history", "/api/internal/compendium-october/form-clans"])("removes %s from development even for organizers", async (path) => {
+    access.mockResolvedValue(true);
+    const response = await developmentAccessResponse(new NextRequest(`https://dev.lsesports.ru${path}`));
+    expect(response?.status).toBe(404);
+    expect(access).not.toHaveBeenCalled();
+    vi.stubEnv("SITE_ENVIRONMENT", "production");
+    expect(await developmentAccessResponse(new NextRequest(`https://lsesports.ru${path}`))).toBeNull();
+  });
   it("does not affect production visitors", async () => {
     vi.stubEnv("SITE_ENVIRONMENT", "production");
     expect(await developmentAccessResponse(new NextRequest("https://lsesports.ru/players/123"))).toBeNull();

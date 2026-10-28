@@ -9,6 +9,9 @@ import { loadCompendiumResults } from "../services/results-repository";
 import { CompendiumClosingRefresh } from "../components/CompendiumClosingRefresh";
 import { OctoberReleaseRefresh } from "@/app/organizer/compendium-october/components/OctoberReleaseRefresh";
 import { OCTOBER_COMPENDIUM_END_AT } from "@/lib/october-compendium-schedule";
+import { OCTOBER_RESULTS_ARCHIVE_AT } from "@/lib/october-compendium-schedule";
+import { archivedCompendiumDestination } from "../model/public-results-access";
+import { COMPENDIUM_ARCHIVES } from "../model/archive";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +21,10 @@ export const metadata: Metadata = {
 };
 
 export default async function CompendiumResultsPage() {
+  const now = new Date();
   const user = await getSession();
+  const archiveDestination = archivedCompendiumDestination(user?.isAdmin === true, now);
+  if (archiveDestination) redirect(archiveDestination);
   if (!user || user.isStandaloneOrganizer) {
     redirect("/login?returnTo=%2Fcompendium%2Fresults");
   }
@@ -34,7 +40,10 @@ export default async function CompendiumResultsPage() {
     <PlatformShell user={user}>
       <CompendiumClosingRefresh isWaiting={data.closure === "settling"} />
       <OctoberReleaseRefresh nextTransitionAt={data.closure === "active" ? OCTOBER_COMPENDIUM_END_AT : null} />
-      <CompendiumResults data={data} currentPlayerId={user.discordId} />
+      <CompendiumResults data={data} currentPlayerId={user.discordId} availability={{
+        serverNow: now.toISOString(), archiveAt: OCTOBER_RESULTS_ARCHIVE_AT,
+        archiveHref: user.isAdmin ? COMPENDIUM_ARCHIVES.october.resultsHref : "/",
+      }} />
     </PlatformShell>
   );
 }

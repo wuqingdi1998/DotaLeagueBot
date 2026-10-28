@@ -17,6 +17,7 @@ import { PlayerActionNotificationBadge } from "./header/PlayerActionNotification
 import { ParticipantViewToggle } from "./ParticipantViewToggle";
 import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
 import { CompendiumNavigationLink } from "./header/CompendiumNavigationLink";
+import { useCompendiumAvailability } from "./compendium-access/CompendiumAvailability";
 import {
   FiArrowRight,
   FiDatabase,
@@ -91,6 +92,7 @@ export function SiteHeader({
   discordUrl = "https://discord.gg/lsesports",
   profileMenuExtras,
 }: SiteHeaderProps) {
+  const isCompendiumEnabled = useCompendiumAvailability();
   const pathname = usePathname();
   const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -306,6 +308,7 @@ export function SiteHeader({
                     {user.hasOrganizerAccess && (
                       <>
                         <ParticipantViewToggle isEnabled={Boolean(user.isParticipantView)} />
+                        {isCompendiumEnabled && <>
                         <Link
                           className="profile-popover-link"
                           href="/compendium/base"
@@ -316,6 +319,7 @@ export function SiteHeader({
                         <a className="profile-popover-link" href="/compendium/test" onClick={() => setProfileOpen(false)}>
                           Предпросмотр (тест) <FiEye aria-hidden="true" />
                         </a>
+                        </>}
                         {profileMenuExtras}
                       </>
                     )}

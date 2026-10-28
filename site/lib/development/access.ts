@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { organizerSessionCookie, playerSessionCookie } from "@/lib/auth-session";
 import { hasOrganizerAccess } from "@/lib/site-break";
 import { isDevelopmentSite } from "./environment";
+import { isCompendiumPath } from "./compendium";
 
 const publicPaths = new Set([
   "/development/login",
@@ -13,7 +14,11 @@ const publicPaths = new Set([
 
 /** The private data copy must remain inaccessible when session checks fail. */
 export async function developmentAccessResponse(request: NextRequest) {
-  if (!isDevelopmentSite() || publicPaths.has(request.nextUrl.pathname)) return null;
+  if (!isDevelopmentSite()) return null;
+  if (isCompendiumPath(request.nextUrl.pathname)) {
+    return new NextResponse(null, { status: 404 });
+  }
+  if (publicPaths.has(request.nextUrl.pathname)) return null;
   try {
     const hasAccess = await hasOrganizerAccess({
       playerSessionToken: request.cookies.get(playerSessionCookie)?.value ?? null,

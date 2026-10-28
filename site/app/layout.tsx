@@ -8,6 +8,7 @@ import { HeaderNavigationAnimation } from "./components/header/HeaderNavigationA
 import { OctoberClanBadgesProvider } from "./components/october-clan-badges/OctoberClanBadgesProvider";
 import { DevelopmentTools } from "./components/development/DevelopmentTools";
 import { isDevelopmentSite } from "@/lib/development/environment";
+import { CompendiumAvailabilityProvider } from "./components/compendium-access/CompendiumAvailability";
 
 export async function generateMetadata(): Promise<Metadata> {
   const requestHeaders = await headers();
@@ -62,9 +63,11 @@ export default function RootLayout({
         <PreventSpaceScroll />
         <SiteBreakWatcher />
         <DevelopmentTools />
-        <OctoberClanBadgesProvider>
-          <HeaderNavigationAnimation>{children}</HeaderNavigationAnimation>
-        </OctoberClanBadgesProvider>
+        <CompendiumAvailabilityProvider isEnabled={!isDevelopmentSite()}>
+          <OctoberClanBadgesProvider>
+            <HeaderNavigationAnimation>{children}</HeaderNavigationAnimation>
+          </OctoberClanBadgesProvider>
+        </CompendiumAvailabilityProvider>
       </body>
     </html>
   );

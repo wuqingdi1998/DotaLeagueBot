@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { OCTOBER_PUBLIC_LAUNCH_AT } from "@/lib/october-compendium-release";
 import { HeaderNavigationLink } from "./HeaderNavigationLink";
+import { useCompendiumAvailability } from "../compendium-access/CompendiumAvailability";
+import { areOctoberResultsArchived, OCTOBER_RESULTS_ARCHIVE_AT } from "@/lib/october-compendium-schedule";
 
 type CompendiumNavigationLinkProps = {
   beginNavigation: (link: HTMLAnchorElement) => void;
@@ -15,9 +17,18 @@ export function CompendiumNavigationLink({
   isActive,
   onSelect,
 }: CompendiumNavigationLinkProps) {
+  const isCompendiumEnabled = useCompendiumAvailability();
+  const [isArchived, setIsArchived] = useState(() => areOctoberResultsArchived());
   const [isLaunched, setIsLaunched] = useState(
     () => Date.now() >= Date.parse(OCTOBER_PUBLIC_LAUNCH_AT),
   );
+
+  useEffect(() => {
+    const delay = Date.parse(OCTOBER_RESULTS_ARCHIVE_AT) - Date.now();
+    if (delay <= 0) return;
+    const timer = window.setTimeout(() => setIsArchived(true), delay);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const launchAt = Date.parse(OCTOBER_PUBLIC_LAUNCH_AT);
@@ -29,6 +40,7 @@ export function CompendiumNavigationLink({
     return () => window.clearTimeout(timer);
   }, []);
 
+  if (!isCompendiumEnabled || isArchived) return null;
   if (!isLaunched) {
     return (
       <span

@@ -13,6 +13,7 @@ import type { VerificationRequest } from "@/app/compendium/model/verification-re
 import { ProfileBadgesCard } from "@/app/players/[dotaId]/ProfileBadgesCard";
 import { OctoberClanShowcase } from "@/app/organizer/compendium-october/sections/OctoberClanShowcase";
 import { FiCalendar } from "react-icons/fi";
+import { OCTOBER_RESULTS_ARCHIVE_AT } from "@/lib/october-compendium-schedule";
 import { FinalRacePreviewPanel } from "@/app/compendium/admin/FinalRacePreview";
 import { compendiumClanResults } from "@/app/compendium/model/clan-results";
 import { OrganizerArchive } from "@/app/organizer/sections/OrganizerArchive";
@@ -64,7 +65,8 @@ it("renders live layout scenarios with progress, timers, completed tasks and run
     };
     const name = `results-${period}${closure === "settling" ? "-settling" : ""}`;
     fixtures.push(name);
-    writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><header style="height:76px"></header>${renderToStaticMarkup(<CompendiumResults data={data} currentPlayerId="100" />)}<footer style="height:120px"></footer></div>`);
+    const availability = period === "october" ? { serverNow: "2026-10-28T12:00:00+03:00", archiveAt: OCTOBER_RESULTS_ARCHIVE_AT, archiveHref: "/" } : undefined;
+    writeFileSync(new URL(`${name}.html`, directory), `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div class="site-shell" data-theme="dark"><header style="height:76px"></header>${renderToStaticMarkup(<CompendiumResults data={data} currentPlayerId="100" availability={availability} />)}<footer style="height:120px"></footer></div>`);
   }
 
   for (const [weekIndex, week] of [...OCTOBER_COMPENDIUM_WEEKS, { ...OCTOBER_COMPENDIUM_WEEKS[2], quests: finalRaceQuests("support") }].entries()) {

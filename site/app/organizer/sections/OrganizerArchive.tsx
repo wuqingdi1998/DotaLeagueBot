@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { FiArrowRight, FiAward, FiBookOpen, FiDatabase, FiPlayCircle } from "react-icons/fi";
 import { COMPENDIUM_ARCHIVES } from "@/app/compendium/model/archive";
+import { useCompendiumAvailability } from "@/app/components/compendium-access/CompendiumAvailability";
 
 const archiveActions = [
   { hrefKey: "pageHref", title: "Страница", icon: FiBookOpen },
@@ -9,6 +12,8 @@ const archiveActions = [
 ] as const;
 
 export function OrganizerArchive() {
+  const isCompendiumEnabled = useCompendiumAvailability();
+  if (!isCompendiumEnabled) return null;
   return (
     <section className="organizer-archive">
       <div className="organizer-archive-heading">

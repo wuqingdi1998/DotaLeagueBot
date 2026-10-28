@@ -14,6 +14,7 @@ import {
 import { OCTOBER_CLAN_PUBLICATION_AT } from "@/lib/october-compendium-release";
 import { OCTOBER_CLANS } from "@/lib/october-clans";
 import type { OctoberClanBadgeDirectory } from "@/lib/october-clan-badge-directory";
+import { useCompendiumAvailability } from "../compendium-access/CompendiumAvailability";
 
 type OctoberClanBadgeContextValue = {
   clansByDotaId: OctoberClanBadgeDirectory;
@@ -42,10 +43,12 @@ function isClanDirectory(value: unknown): value is OctoberClanBadgeDirectory {
 }
 
 export function OctoberClanBadgesProvider({ children }: { children: ReactNode }) {
+  const isCompendiumEnabled = useCompendiumAvailability();
   const [clansByDotaId, setClansByDotaId] = useState<OctoberClanBadgeDirectory>({});
-  const [isActive, setIsActive] = useState(() => isBadgeWindow(Date.now()));
+  const [isActive, setIsActive] = useState(() => isCompendiumEnabled && isBadgeWindow(Date.now()));
 
   useEffect(() => {
+    if (!isCompendiumEnabled) return;
     const controller = new AbortController();
     let startTimer: ReturnType<typeof setTimeout> | undefined;
     let assignedClanTimer: ReturnType<typeof setTimeout> | undefined;
@@ -93,7 +96,7 @@ export function OctoberClanBadgesProvider({ children }: { children: ReactNode })
       if (assignedClanTimer) clearTimeout(assignedClanTimer);
       if (endTimer) clearTimeout(endTimer);
     };
-  }, []);
+  }, [isCompendiumEnabled]);
 
   const value = useMemo(
     () => ({ clansByDotaId, isActive }),
