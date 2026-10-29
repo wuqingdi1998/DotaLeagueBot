@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -32,6 +33,15 @@ def test_refresh_paths_cannot_escape_the_development_workspace(tmp_path):
         MODULE.child_path(tmp_path / ".." / "outside", tmp_path)
     with pytest.raises(RuntimeError, match="stay inside"):
         MODULE.child_path(tmp_path, tmp_path)
+
+
+@pytest.mark.parametrize("payload", [b"", bytes(range(256)) * 8193], ids=["empty", "multiple-blocks"])
+def test_upload_checksums_work_on_the_servers_python_310(tmp_path, monkeypatch, payload):
+    monkeypatch.delattr(hashlib, "file_digest", raising=False)
+    folder = tmp_path / "nested"
+    folder.mkdir()
+    (folder / "upload.bin").write_bytes(payload)
+    assert MODULE.uploads_fingerprint(tmp_path) == {"nested/upload.bin": hashlib.sha256(payload).hexdigest()}
 
 
 def test_refresh_rejects_an_unisolated_target_before_any_write(tmp_path, monkeypatch):

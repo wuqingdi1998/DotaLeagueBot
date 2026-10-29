@@ -107,7 +107,10 @@ def uploads_fingerprint(root: Path) -> dict[str, str]:
             raise RuntimeError("Upload snapshots must not contain symbolic links")
         if path.is_file():
             with path.open("rb") as stream:
-                result[path.relative_to(root).as_posix()] = hashlib.file_digest(stream, "sha256").hexdigest()
+                digest = hashlib.sha256()
+                for block in iter(lambda: stream.read(1024 * 1024), b""):
+                    digest.update(block)
+                result[path.relative_to(root).as_posix()] = digest.hexdigest()
     return result
 
 
