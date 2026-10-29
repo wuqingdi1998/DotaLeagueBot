@@ -1,5 +1,7 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
+import { isSafeUploadKey } from "@/lib/validation";
+import { storeRosterEmblem } from "./roster-emblem";
 
 const roles = [
   "safe_lane",
@@ -41,12 +43,13 @@ function validate(body: RosterBody) {
     return "Название команды — до 80 символов, тег — до 5";
   }
   if (players.length < 5 || players.length > 6) {
-    return "В архивном составе должны быть 5 игроков и, при наличии, один тренер";
+    return "В составе должны быть 5 игроков и, при наличии, один тренер";
   }
+  if (body.logoKey && !isSafeUploadKey(body.logoKey)) return "Некорректный логотип";
   if (
     players.some(
       (player) =>
-        !player.nickname?.trim() ||
+        !player.nickname?.trim() || player.nickname.length > 100 ||
         !player.role ||
         (player.role !== "coach" && !roles.includes(player.role)) ||
         (player.dotaId !== null &&
@@ -72,17 +75,25 @@ function validate(body: RosterBody) {
   if (playingPlayers.filter((player) => player.isCaptain).length !== 1) {
     return "Укажите одного капитана";
   }
+  if (players.some((player) => player.role === "coach" && player.isCaptain)) {
+    return "Тренер не может быть капитаном игрового состава";
+  }
   return "";
 }
 
 export async function PUT(request: Request) {
+  let storedEmblem: Awaited<ReturnType<typeof storeRosterEmblem>> = null;
   try {
     const admin = await requireAdmin();
-    const body = (await request.json()) as RosterBody;
+    const form = request.headers.get("content-type")?.includes("multipart/form-data")
+      ? await request.formData() : null;
+    const body = (form ? JSON.parse(String(form.get("roster"))) : await request.json()) as RosterBody;
     const validationError = validate(body);
     if (validationError) {
       return Response.json({ error: validationError }, { status: 400 });
     }
+    storedEmblem = await storeRosterEmblem(form?.get("emblem") ?? null);
+    if (storedEmblem) body.logoKey = storedEmblem.key;
 
     const players = body.players as Array<
       RosterPlayer & {
@@ -106,7 +117,7 @@ export async function PUT(request: Request) {
       if (id) {
         const updated = await client.query(
           `UPDATE tournament_team_applications SET
-             team_name = $1, tag = $2, contact = $3, logo_key = $4,
+             team_name = $1, tag = $2, contact = $3, logo_key = COALESCE($4, logo_key),
              selection_method = $5, captain_name_snapshot = $6,
              team_tier_total_snapshot = $7, status = 'approved',
              updated_at = NOW()
@@ -116,7 +127,7 @@ export async function PUT(request: Request) {
             body.teamName?.trim(),
             body.tag?.trim(),
             body.contact?.trim() || "Архив",
-            body.logoKey?.trim() || "",
+            body.logoKey?.trim() ?? null,
             body.selectionMethod?.trim() || "Регистрация",
             captain?.nickname.trim(),
             body.teamTierTotal ?? null,
@@ -193,8 +204,19 @@ export async function PUT(request: Request) {
       return id;
     });
 
+    storedEmblem = null;
     return Response.json({ ok: true, id: applicationId });
   } catch (error) {
+    if (storedEmblem) await storedEmblem.remove();
+    if (error instanceof SyntaxError) {
+      return Response.json({ error: "Некорректные данные состава" }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.startsWith("EMBLEM:")) {
+      return Response.json({ error: error.message.slice(7) }, { status: 400 });
+    }
+    if (error instanceof Error && "code" in error && error.code === "23505") {
+      return Response.json({ error: "Команда с таким названием или тегом уже есть в турнире" }, { status: 409 });
+    }
     if (
       error instanceof Error &&
       (["TOURNAMENT_NOT_FOUND", "APPLICATION_NOT_FOUND", "ARCHIVE_TEAM_SIZE"].includes(
@@ -204,7 +226,7 @@ export async function PUT(request: Request) {
       const messages: Record<string, string> = {
         TOURNAMENT_NOT_FOUND: "Турнир не найден",
         APPLICATION_NOT_FOUND: "Команда не найдена в этом турнире",
-        ARCHIVE_TEAM_SIZE: "Редактор архивных составов сейчас поддерживает формат 5 × 5",
+        ARCHIVE_TEAM_SIZE: "Редактор составов поддерживает формат 5 × 5",
       };
       const message = error.message.startsWith("PLAYER_NOT_FOUND:")
         ? `Профиль с Dota ID ${error.message.split(":")[1]} не найден`

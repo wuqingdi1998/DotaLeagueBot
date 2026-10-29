@@ -6,25 +6,33 @@ import { useTournament } from "../hooks/TournamentContext";
 export function ArchiveRostersAdmin() {
   const { data, loadData, setToast } = useTournament();
   if (!data) return null;
+  const isHistorical = ["finished", "archived"].includes(data.tournament.status);
 
   return (
     <section className="applications-panel archive-rosters-admin">
       <div className="editor-heading">
         <div>
-          <p className="card-kicker">Архивные данные</p>
-          <h3>Составы и исторические тиры</h3>
+          <p className="card-kicker">{isHistorical ? "Архивные данные" : "Управление командами"}</p>
+          <h3>{isHistorical ? "Составы и исторические тиры" : "Команды и составы"}</h3>
+          {!isHistorical && <p>
+            Добавьте команды по одной: название, тег, пять игроков по позициям и тренер.
+            Логотип можно загрузить сразу или позже. Тиры и Dota ID необязательны.
+            Команды сразу допускаются к турниру без приглашений игрокам.
+          </p>}
+          {isHistorical &&
           <p>
             Никнейм и тир сохраняются в том виде, в котором игрок участвовал в
             этом турнире. Для старого ника можно указать Dota ID актуального
             профиля — тогда ник станет ссылкой, но его историческое написание не
             изменится. Пустой Dota ID оставляет ник обычным текстом.
-          </p>
+          </p>}
         </div>
       </div>
       <details>
-        <summary>Добавить архивную команду</summary>
+        <summary>{isHistorical ? "Добавить архивную команду" : "Добавить команду"}</summary>
         <ArchiveRosterEditor
           tournamentId={data.tournament.id}
+          isHistorical={isHistorical}
           onSaved={loadData}
           onMessage={setToast}
         />
@@ -37,6 +45,7 @@ export function ArchiveRostersAdmin() {
           <ArchiveRosterEditor
             tournamentId={data.tournament.id}
             team={application}
+            isHistorical={isHistorical}
             onSaved={loadData}
             onMessage={setToast}
           />

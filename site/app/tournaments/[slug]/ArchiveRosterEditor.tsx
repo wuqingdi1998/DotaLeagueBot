@@ -3,6 +3,7 @@
 import { fetchSiteRequest } from "@/lib/site-request";
 
 import { FormEvent, useMemo, useState } from "react";
+import { CompactTeamEmblem } from "./components/CompactTeamEmblem";
 
 const roles = [
   ["safe_lane", "1 · Safe Lane"],
@@ -26,6 +27,7 @@ type ExistingTeam = {
   team_name: string;
   tag: string;
   contact: string;
+  logo_key?: string | null;
   selection_method?: string;
   team_tier_total_snapshot?: number | null;
   members: Array<{
@@ -40,6 +42,7 @@ type ExistingTeam = {
 type Props = {
   tournamentId: number;
   team?: ExistingTeam;
+  isHistorical?: boolean;
   onSaved: () => Promise<void>;
   onMessage: (message: string) => void;
 };
@@ -47,6 +50,7 @@ type Props = {
 export function ArchiveRosterEditor({
   tournamentId,
   team,
+  isHistorical = true,
   onSaved,
   onMessage,
 }: Props) {
@@ -85,14 +89,14 @@ export function ArchiveRosterEditor({
   );
   const [players, setPlayers] = useState(initialPlayers);
   const [saving, setSaving] = useState(false);
+  const [emblem, setEmblem] = useState<File | null>(null);
+  const [emblemInputKey, setEmblemInputKey] = useState(0);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
-    const response = await fetchSiteRequest("/api/admin/archive-rosters", {
-      method: "PUT",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
+    try {
+      const roster = JSON.stringify({
         applicationId: team?.id,
         tournamentId,
         teamName,
@@ -104,16 +108,35 @@ export function ArchiveRosterEditor({
           dotaId: player.dotaId.trim() || null,
           tier: player.tier ? Number(player.tier) : null,
         })),
-      }),
-    });
-    const result = (await response.json()) as { error?: string };
-    setSaving(false);
-    if (!response.ok) {
-      onMessage(result.error ?? "Не удалось сохранить состав");
-      return;
+      });
+      const form = new FormData();
+      form.set("roster", roster);
+      if (emblem) form.set("emblem", emblem);
+      const response = await fetchSiteRequest("/api/admin/archive-rosters", {
+        method: "PUT",
+        headers: emblem ? undefined : { "content-type": "application/json" },
+        body: emblem ? form : roster,
+      });
+      const result = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        onMessage(result.error ?? "Не удалось сохранить состав");
+        return;
+      }
+      onMessage(team ? "Состав обновлён" : "Команда добавлена");
+      await onSaved();
+      setEmblem(null);
+      setEmblemInputKey((current) => current + 1);
+      if (!team) {
+        setTeamName("");
+        setTag("");
+        setTeamTierTotal("");
+        setPlayers(initialPlayers);
+      }
+    } catch {
+      onMessage("Не удалось сохранить состав. Проверьте соединение и повторите попытку.");
+    } finally {
+      setSaving(false);
     }
-    onMessage(team ? "Архивный состав обновлён" : "Архивная команда добавлена");
-    await onSaved();
   }
 
   async function removeTeam() {
@@ -171,6 +194,28 @@ export function ArchiveRosterEditor({
           />
         </label>
       </div>
+      <div className="roster-emblem-field">
+        <CompactTeamEmblem className="roster-logo" logoKey={team?.logo_key} teamName={teamName || "Команда"} />
+        <label>
+          <span>Логотип команды (необязательно)</span>
+          <input
+            key={emblemInputKey}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={(event) => setEmblem(event.target.files?.[0] ?? null)}
+          />
+          <small>PNG, JPG или WebP, до 2 МБ. Можно добавить или заменить позже.</small>
+        </label>
+      </div>
+      <div className="archive-roster-actions">
+        <button className="secondary-button" type="button" onClick={() => setPlayers((current) =>
+          current.some((player) => player.role === "coach")
+            ? current.filter((player) => player.role !== "coach")
+            : [...current, { role: "coach", nickname: "", dotaId: "", tier: "", isCaptain: false }],
+        )}>
+          {players.some((player) => player.role === "coach") ? "Убрать тренера" : "Добавить тренера"}
+        </button>
+      </div>
       <div className="archive-roster-players">
         {players.map((player, index) => (
           <div className="archive-player-row" key={player.role}>
@@ -195,7 +240,7 @@ export function ArchiveRosterEditor({
               type="number"
               min="0"
               max="12"
-              aria-label={`Исторический тир, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
+              aria-label={`${isHistorical ? "Исторический тир" : "Тир"}, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
               placeholder="Тир"
               value={player.tier}
               onChange={(event) =>
@@ -252,7 +297,7 @@ export function ArchiveRosterEditor({
       </div>
       <div className="archive-roster-actions">
         <button
-          className={team ? "tournament-save-button" : undefined}
+          className={team ? "primary-button tournament-save-button" : "primary-button"}
           type="submit"
           disabled={saving}
         >
@@ -263,7 +308,7 @@ export function ArchiveRosterEditor({
               : "Добавить команду"}
         </button>
         {team && (
-          <button className="danger" type="button" onClick={removeTeam}>
+          <button className="secondary-button danger" type="button" onClick={removeTeam}>
             Удалить команду
           </button>
         )}

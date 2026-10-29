@@ -262,6 +262,37 @@
   padding: 0 18px 18px;
 }
 
+.roster-emblem-field {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.roster-emblem-field label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.roster-emblem-field input,
+.archive-player-row input,
+.archive-roster-team-fields input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.roster-emblem-field small {
+  color: var(--muted);
+}
+
+.archive-player-row input:not([type="radio"]),
+.archive-roster-team-fields input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+}
+
 .archive-roster-team-fields {
   display: grid;
   grid-template-columns: 1.4fr 0.6fr 1fr 0.8fr;
