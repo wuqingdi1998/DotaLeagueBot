@@ -5,6 +5,11 @@ PRODUCTION_DIR=/root/DotaLeagueBot
 test "$PWD" = /root/DotaLeagueBotDev
 test -f "$PRODUCTION_DIR/.env"
 revision="$(git rev-parse HEAD)"
+refresh_mode="${1:-preserve}"
+case "$refresh_mode" in
+  preserve|--refresh-from-production) ;;
+  *) echo "Unknown development deployment mode" >&2; exit 1 ;;
+esac
 
 python3 scripts/prepare-development-env.py --production-dir "$PRODUCTION_DIR" --revision "$revision"
 compose() { docker compose -f docker-compose.development.yml "$@"; }
@@ -13,17 +18,14 @@ docker network inspect dotaleaguebot-development >/dev/null
 install -d -m 0775 -o 1001 -g 1001 development/uploads
 compose up -d --wait db
 
-if [ ! -f development/initialized ]; then
-  # Take a consistent read-only snapshot; never connect a test service to live data.
-  docker compose --project-directory "$PRODUCTION_DIR" exec -T db sh -c \
-    'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" --format=custom --no-owner --no-acl' > development/initial.dump
-  compose exec -T db sh -c \
-    'pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists --no-owner --no-acl --exit-on-error --single-transaction' < development/initial.dump
-  compose exec -T db sh -c \
-    'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c "TRUNCATE web_sessions, web_organizer_sessions, temporary_organizer_passwords, web_organizer_login_attempts;"'
-  cp -a "$PRODUCTION_DIR/uploads_data/." development/uploads/
+if [ "$refresh_mode" = --refresh-from-production ] || [ ! -f development/initialized ]; then
+  production_revision="$(git -C "$PRODUCTION_DIR" rev-parse HEAD)"
+  if [ "$refresh_mode" = --refresh-from-production ]; then
+    test "$production_revision" = "$revision"
+  fi
+  python3 scripts/refresh-development-data.py \
+    --production-dir "$PRODUCTION_DIR" --production-revision "$production_revision"
   chown -R 1001:1001 development/uploads
-  rm development/initial.dump
   touch development/initialized
 fi
 

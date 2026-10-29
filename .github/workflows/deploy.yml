@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       bootstrap_development:
-        description: Install both sites from one fully validated release
+        description: Compatibility option; successful main releases always refresh development
         type: boolean
         default: false
 
@@ -51,7 +51,8 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
           python -m compileall -q .
           pip-audit -r requirements.txt
-          ruff check .
+          ruff check . ../scripts/refresh-development-data.py
+          mypy ../scripts/refresh-development-data.py
           mypy cogs/postponed_posts.py services/announcement_delivery.py services/postponed_posts.py services/postponed_command_verification.py database/core.py database/migrate.py cogs/channel_announcements.py cogs/subscription_admin.py cogs/website_bridge.py cogs/fearless_draft_deadlines.py cogs/october_compendium_announcement.py cogs/season_lobby_deadlines.py cogs/season_lobby_host_roles.py cogs/season_lobby_notifications.py cogs/season_nine_outreach.py cogs/titan_checkup.py cogs/tournament_registration_opening.py services/durable_scheduler.py services/october_compendium_announcement_campaign.py services/season_checkin_reminder.py services/season_game_channel_access.py services/season_round_channel_sync.py services/season_lobby_host_roles.py services/season_lobby_notifications.py services/season_nine_outreach.py services/subscription_role_grants.py services/titan_checkup_service.py services/tournament_registration_opening.py utils/website_notifications.py
           python -m pytest
       - name: Check site
@@ -835,10 +836,11 @@ jobs:
     if: >-
       always() && needs.validate.result == 'success' &&
       (needs.deploy.result == 'success' || needs.deploy.result == 'skipped') &&
-      (github.ref == 'refs/heads/codex/dev' ||
-      (github.ref == 'refs/heads/main' && inputs.bootstrap_development))
+      (github.ref == 'refs/heads/codex/dev' || github.ref == 'refs/heads/main')
     needs: [validate, deploy]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -881,7 +883,7 @@ jobs:
             git checkout codex/dev
             git reset --hard ${{ github.sha }}
             if [ '${{ github.ref }}' = refs/heads/main ]; then
-              # Bootstrap reuses the exact images just verified on the live site.
+              # Reuse the exact images verified on production before refreshing its data copy.
               docker tag dotaleaguebot-bot:deploy dotaleaguebot-bot:development
               docker tag dotaleaguebot-site:deploy dotaleaguebot-site:development
             else
@@ -891,7 +893,11 @@ jobs:
               rm "$artifact"
               rmdir /tmp/dotaleaguebot-dev-${{ github.sha }}
             fi
-            bash scripts/deploy-development.sh
+            if [ '${{ github.ref }}' = refs/heads/main ]; then
+              bash scripts/deploy-development.sh --refresh-from-production
+            else
+              bash scripts/deploy-development.sh
+            fi
       - name: Verify development site externally
         run: |
           set -euo pipefail
@@ -903,3 +909,16 @@ jobs:
           status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
             --max-time 15 https://dev.lsesports.ru/api/development/changes)
           test "$status" = 401
+      - name: Align development source with verified production
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          git fetch origin codex/dev
+          if git merge-base --is-ancestor origin/codex/dev HEAD; then
+            git push origin HEAD:refs/heads/codex/dev
+          elif git merge-base --is-ancestor HEAD origin/codex/dev; then
+            echo "New development work already contains this production release; preserving it"
+          else
+            echo "Development and production histories diverged; refusing to overwrite work" >&2
+            exit 1
+          fi
