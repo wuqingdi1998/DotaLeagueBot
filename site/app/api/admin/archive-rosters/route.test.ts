@@ -43,8 +43,8 @@ beforeAll(async () => {
   await db.exec(`
     CREATE TABLE tournaments(id int PRIMARY KEY, team_size int);
     INSERT INTO tournaments VALUES(1,5),(2,5);
-    CREATE TABLE players(discord_id bigint PRIMARY KEY, steam_id32 bigint, ingame_name text);
-    INSERT INTO players VALUES(100,12345,'Player 0');
+    CREATE TABLE players(discord_id bigint PRIMARY KEY, steam_id32 bigint, ingame_name text, internal_rating int, rank_tier int);
+    INSERT INTO players VALUES(100,12345,'Player 0',8,0);
     CREATE TABLE tournament_team_applications(
       id serial PRIMARY KEY, tournament_id int REFERENCES tournaments(id),
       team_name text, tag text, captain_discord_id bigint, contact text, logo_key text,
@@ -152,4 +152,12 @@ it.each([
 ])("rejects invalid or oversized logos", async (file) => {
   expect((await PUT(request(roster(), file))).status).toBe(400);
   expect(mocks.transaction).not.toHaveBeenCalled();
+});
+
+it("uses profile tiers rather than submitted tiers and excludes coach from total", async () => {
+  const body = roster({ useProfileTiers: true });
+  body.players.forEach(p => Object.assign(p, { nickname: "Player 0", tier: 1 }));
+  expect((await PUT(request(body))).status).toBe(200);
+  expect((await db.query<{ tier_snapshot: number }>("SELECT tier_snapshot FROM tournament_roster_snapshots")).rows.every(r => r.tier_snapshot === 8)).toBe(true);
+  expect((await db.query("SELECT team_tier_total_snapshot FROM tournament_team_applications")).rows[0]).toEqual({ team_tier_total_snapshot: 40 });
 });

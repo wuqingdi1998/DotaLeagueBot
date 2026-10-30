@@ -3,6 +3,7 @@
 import { fetchSiteRequest } from "@/lib/site-request";
 
 import { FormEvent, useMemo, useState } from "react";
+import { PlayerAutocomplete } from "./components/PlayerAutocomplete";
 import { CompactTeamEmblem } from "./components/CompactTeamEmblem";
 
 const roles = [
@@ -92,6 +93,10 @@ export function ArchiveRosterEditor({
   const [emblem, setEmblem] = useState<File | null>(null);
   const [emblemInputKey, setEmblemInputKey] = useState(0);
 
+  const scoringPlayers = players.filter((player) => player.role !== "coach");
+  const profileTierTotal = scoringPlayers.every((player) => player.tier !== "")
+    ? scoringPlayers.reduce((sum, player) => sum + Number(player.tier), 0) : null;
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -102,7 +107,8 @@ export function ArchiveRosterEditor({
         teamName,
         tag,
         selectionMethod,
-        teamTierTotal: teamTierTotal ? Number(teamTierTotal) : null,
+        useProfileTiers: !isHistorical,
+        teamTierTotal: isHistorical ? (teamTierTotal ? Number(teamTierTotal) : null) : profileTierTotal,
         players: players.map((player) => ({
           ...player,
           dotaId: player.dotaId.trim() || null,
@@ -189,7 +195,8 @@ export function ArchiveRosterEditor({
             type="number"
             min="0"
             max="100"
-            value={teamTierTotal}
+            readOnly={!isHistorical}
+            value={isHistorical ? teamTierTotal : profileTierTotal ?? ""}
             onChange={(event) => setTeamTierTotal(event.target.value)}
           />
         </label>
@@ -218,8 +225,15 @@ export function ArchiveRosterEditor({
       </div>
       <div className="archive-roster-players">
         {players.map((player, index) => (
-          <div className="archive-player-row" key={player.role}>
+          <div className={`archive-player-row${isHistorical ? "" : " roster-profile-row"}`} key={player.role}>
             <strong>{player.role === "coach" ? "Тренер" : roles[index][1]}</strong>
+            {!isHistorical ? <PlayerAutocomplete
+              label={`Никнейм, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
+              value={player.nickname}
+              onChange={(nickname) => setPlayers((current) => current.map((item, i) => i === index ? { ...item, nickname, dotaId: "", tier: "" } : item))}
+              onSelected={(option) => setPlayers((current) => current.map((item, i) => i === index ? { ...item, nickname: option.ingame_name, dotaId: option.dota_id ?? "" } : item))}
+              onTierResolved={(tier) => setPlayers((current) => current.map((item, i) => i === index ? { ...item, tier: tier === null ? "" : String(tier) } : item))}
+            /> : (
             <input
               required
               maxLength={100}
@@ -236,11 +250,13 @@ export function ArchiveRosterEditor({
                 )
               }
             />
+            )}
             <input
               type="number"
               min="0"
               max="12"
               aria-label={`${isHistorical ? "Исторический тир" : "Тир"}, ${player.role === "coach" ? "тренер" : roles[index][1]}`}
+              readOnly={!isHistorical}
               placeholder="Тир"
               value={player.tier}
               onChange={(event) =>
@@ -253,7 +269,7 @@ export function ArchiveRosterEditor({
                 )
               }
             />
-            <label className="archive-player-profile-link">
+            {isHistorical && <label className="archive-player-profile-link">
               <span>Dota ID профиля</span>
               <input
                 inputMode="numeric"
@@ -275,7 +291,7 @@ export function ArchiveRosterEditor({
                   )
                 }
               />
-            </label>
+            </label>}
             {player.role !== "coach" && <label className="archive-captain-choice">
               <input
                 type="radio"

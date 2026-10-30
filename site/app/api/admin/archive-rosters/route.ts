@@ -30,6 +30,7 @@ type RosterBody = {
   contact?: string;
   logoKey?: string;
   players?: RosterPlayer[];
+  useProfileTiers?: boolean;
 };
 
 function validate(body: RosterBody) {
@@ -162,10 +163,11 @@ export async function PUT(request: Request) {
         "DELETE FROM tournament_roster_snapshots WHERE application_id = $1",
         [id],
       );
+      let profileTotal: number | null = 0;
       for (const [index, player] of players.entries()) {
         const dotaId = player.dotaId?.trim() ?? "";
-        const matched = await client.query<{ discord_id: string }>(
-          `SELECT discord_id::text
+        const matched = await client.query<{ discord_id: string; tier: number | null }>(
+          `SELECT discord_id::text, COALESCE(NULLIF(internal_rating, 0), CASE WHEN rank_tier >= 10 THEN rank_tier / 10 WHEN rank_tier > 0 THEN rank_tier END)::int AS tier
            FROM players
            WHERE CASE
              WHEN $2::text <> '' THEN steam_id32::text = $2
@@ -175,8 +177,12 @@ export async function PUT(request: Request) {
            LIMIT 1`,
           [player.nickname.trim(), dotaId],
         );
-        if (dotaId && !matched.rowCount) {
+        if ((dotaId || body.useProfileTiers) && !matched.rowCount) {
           throw new Error(`PLAYER_NOT_FOUND:${dotaId}`);
+        }
+        if (player.role !== "coach") {
+          const tier = matched.rows[0]?.tier;
+          profileTotal = profileTotal === null || tier == null ? null : profileTotal + tier;
         }
         await client.query(
           `INSERT INTO tournament_roster_snapshots (
@@ -188,13 +194,16 @@ export async function PUT(request: Request) {
             matched.rows[0]?.discord_id ?? null,
             player.nickname.trim(),
             player.role,
-            player.tier ?? null,
+            body.useProfileTiers ? matched.rows[0]?.tier ?? null : player.tier ?? null,
             player.isCaptain,
             index + 1,
           ],
         );
       }
 
+      if (body.useProfileTiers) {
+        await client.query("UPDATE tournament_team_applications SET team_tier_total_snapshot = $1 WHERE id = $2", [profileTotal, id]);
+      }
       await client.query(
         `INSERT INTO tournament_audit_log (
            tournament_id, actor_discord_id, action, entity_type, entity_id

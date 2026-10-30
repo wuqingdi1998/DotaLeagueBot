@@ -2,7 +2,8 @@
 
 import { KeyboardEvent, useEffect, useId, useRef, useState } from "react";
 
-type PlayerOption = {
+export type PlayerOption = {
+  dota_id?: string | null;
   ingame_name: string;
   tier: number | null;
   tier_status: string;
@@ -13,6 +14,7 @@ type PlayerAutocompleteProps = {
   value: string;
   onChange: (value: string) => void;
   onTierResolved: (tier: number | null) => void;
+  onSelected?: (player: PlayerOption) => void;
 };
 
 const minimumPlayerSearchLength = 2;
@@ -22,6 +24,7 @@ export function PlayerAutocomplete({
   value,
   onChange,
   onTierResolved,
+  onSelected,
 }: PlayerAutocompleteProps) {
   const listId = useId();
   const tierCallback = useRef(onTierResolved);
@@ -66,6 +69,8 @@ export function PlayerAutocomplete({
         tierCallback.current(
           exact?.tier_status === "current" ? exact.tier : null,
         );
+      } catch {
+        if (!controller.signal.aborted) setOptions([]);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -79,6 +84,7 @@ export function PlayerAutocomplete({
 
   function selectPlayer(option: PlayerOption) {
     onChange(option.ingame_name);
+    onSelected?.(option);
     tierCallback.current(
       option.tier_status === "current" ? option.tier : null,
     );
