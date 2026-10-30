@@ -2,6 +2,7 @@ import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { transaction } from "@/lib/db";
 import { parseMaximumTeamTier } from "@/lib/tournament-registration-tier";
 import { setSeasonTournamentRegistrationDeadline } from "@/lib/tournament-settings";
+import { seasonalCupPlayoffDateError } from "@/lib/seasonal-cup-schedule";
 import {
   editableTournamentFields as editableFields,
   missingFieldsMessage,
@@ -35,6 +36,8 @@ export async function PATCH(request: Request) {
       return Response.json({ error: dateError }, { status: 400 });
     }
     setSeasonTournamentRegistrationDeadline(body);
+    const playoffDateError = seasonalCupPlayoffDateError(body);
+    if (playoffDateError) return Response.json({ error: playoffDateError }, { status: 400 });
     const registrationDateError = registrationStartDateError(body);
     if (registrationDateError) {
       return Response.json({ error: registrationDateError }, { status: 400 });
@@ -80,9 +83,9 @@ export async function PATCH(request: Request) {
           region = $15, server = $16, check_in_minutes = $17,
           group_format = $18, playoff_format = $19, final_format = $20,
           discord_url = $21, status = $22, slug = $23, playoff_type = $24,
-          max_team_tier = $25, show_tiers = $26, updated_at = NOW()
-        WHERE id = $27`,
-        [...values, slug, playoffType, maximumTeamTier, showTiers, id],
+          max_team_tier = $25, show_tiers = $26, playoff_starts_on = $27, updated_at = NOW()
+        WHERE id = $28`,
+        [...values, slug, playoffType, maximumTeamTier, showTiers, body.playoff_starts_on, id],
       );
       await client.query(
         `INSERT INTO tournament_audit_log

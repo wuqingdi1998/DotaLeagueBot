@@ -61,6 +61,7 @@ export function useTournamentController() {
   );
   const registrationAvailable = Boolean(
     data &&
+      data.tournament.tournament_type !== "seasonal_cup" &&
       Number.isFinite(currentTimeMs) &&
       new Date(data.tournament.registration_deadline).getTime() > currentTimeMs,
   );

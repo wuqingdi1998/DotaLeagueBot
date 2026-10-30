@@ -29,6 +29,7 @@ export type Tournament = {
   start_at: string;
   first_match_at: string | null;
   end_at: string;
+  playoff_starts_on?: string | null;
   registration_starts_at: string | null;
   registration_deadline: string;
   status_label: string;

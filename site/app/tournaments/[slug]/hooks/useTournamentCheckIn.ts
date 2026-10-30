@@ -23,12 +23,14 @@ export function useTournamentCheckIn({
       tournamentCheckInWindow({
         firstMatchAt: data?.tournament.first_match_at ?? null,
         checkInMinutes: data?.tournament.check_in_minutes ?? 0,
+        tournamentType: data?.tournament.tournament_type,
         now: new Date(currentTimeMs),
       }),
     [
       currentTimeMs,
       data?.tournament.check_in_minutes,
       data?.tournament.first_match_at,
+      data?.tournament.tournament_type,
     ],
   );
 

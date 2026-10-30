@@ -92,6 +92,7 @@ class WebsiteBridge(commands.Cog):
                 WHERE application.status = 'approved'
                   AND application.captain_discord_id IS NOT NULL
                   AND tournament.status IN ('registration', 'active')
+                  AND tournament.tournament_type <> 'seasonal_cup'
                   AND NOW() >= start_time.first_match_at
                       - (tournament.check_in_minutes || ' minutes')::interval
                   AND NOW() < start_time.first_match_at
@@ -430,6 +431,7 @@ class WebsiteBridge(commands.Cog):
                         WHERE application.status = 'approved'
                           AND application.captain_discord_id IS NOT NULL
                           AND tournament.status IN ('registration', 'active')
+                          AND tournament.tournament_type <> 'seasonal_cup'
                           AND start_time.first_match_at > NOW()
                           AND NOT EXISTS (
                               SELECT 1 FROM notification_outbox notification

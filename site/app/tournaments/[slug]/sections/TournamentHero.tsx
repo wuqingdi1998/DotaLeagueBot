@@ -148,6 +148,8 @@ export function TournamentHero() {
                     {formatDayMonth(tournament.registration_deadline)}
                   </time>
                 </>
+              : tournament.tournament_type === "seasonal_cup" && !isPast
+                ? "Участие по приглашению организатора"
               : tournament.status === "planned" &&
                   tournament.registration_starts_at
                 ? <>

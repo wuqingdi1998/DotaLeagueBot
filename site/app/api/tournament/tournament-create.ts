@@ -4,6 +4,7 @@ import { validSeasonRoundCount } from "@/lib/season";
 import { defaultSeasonFacts } from "@/lib/season-facts";
 import { parseMaximumTeamTier } from "@/lib/tournament-registration-tier";
 import { setSeasonTournamentRegistrationDeadline } from "@/lib/tournament-settings";
+import { seasonalCupPlayoffDateError } from "@/lib/seasonal-cup-schedule";
 import {
   editableTournamentFields,
   missingFieldsMessage,
@@ -40,6 +41,8 @@ export async function POST(request: Request) {
       return Response.json({ error: dateError }, { status: 400 });
     }
     setSeasonTournamentRegistrationDeadline(body);
+    const playoffDateError = seasonalCupPlayoffDateError(body);
+    if (playoffDateError) return Response.json({ error: playoffDateError }, { status: 400 });
     const registrationDateError = registrationStartDateError(body);
     if (registrationDateError) {
       return Response.json({ error: registrationDateError }, { status: 400 });
@@ -93,11 +96,11 @@ export async function POST(request: Request) {
           team_size, max_teams, region, server, check_in_minutes,
           group_format, playoff_format, final_format, discord_url, status,
           playoff_type, tournament_type, season_round_count,
-          max_team_tier, show_tiers, ordinary_match_rooms_enabled
+          max_team_tier, show_tiers, ordinary_match_rooms_enabled, playoff_starts_on
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
           $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23,
-          $24, $25, $26, $27, $28, $29
+          $24, $25, $26, $27, $28, $29, $30
         ) RETURNING id::int`,
         [
           slug,
@@ -108,6 +111,7 @@ export async function POST(request: Request) {
           maximumTeamTier,
           showTiers,
           tournamentType === "ordinary",
+          body.playoff_starts_on,
         ],
       );
       const id = result.rows[0].id;

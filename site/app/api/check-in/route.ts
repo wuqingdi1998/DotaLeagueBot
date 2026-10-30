@@ -38,6 +38,7 @@ export async function POST(request: Request) {
          WHERE tournament_id = t.id
        ) first_match
        WHERE t.id = $1 AND a.id = $2 AND a.status = 'approved'
+         AND t.tournament_type <> 'seasonal_cup'
          AND a.captain_discord_id = $3
          AND first_match.scheduled_at IS NOT NULL`,
       [body.tournamentId, body.applicationId, user.discordId],

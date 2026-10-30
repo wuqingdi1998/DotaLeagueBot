@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       max_team_tier: number | null;
     }>(
       `SELECT id::int,
-        (status = 'registration' AND registration_deadline > NOW()) AS registration_open,
+        (tournament_type <> 'seasonal_cup' AND status = 'registration' AND registration_deadline > NOW()) AS registration_open,
         max_teams, max_team_tier::int
        FROM tournaments WHERE id = $1`,
       [tournamentId],
@@ -201,7 +201,7 @@ export async function POST(request: Request) {
         max_team_tier: number | null;
       }>(
         `SELECT
-           (status = 'registration' AND registration_deadline > NOW())
+           (tournament_type <> 'seasonal_cup' AND status = 'registration' AND registration_deadline > NOW())
              AS registration_open,
            max_team_tier::int
          FROM tournaments

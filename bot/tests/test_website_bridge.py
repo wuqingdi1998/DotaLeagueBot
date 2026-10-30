@@ -99,6 +99,10 @@ def test_bridge_queues_one_tournament_checkin_message_per_captain() -> None:
     assert "tournament_check_in" in BRIDGE
 
 
+def test_seasonal_cups_do_not_queue_checkins_or_schedule_their_reminders() -> None:
+    assert BRIDGE.count("AND tournament.tournament_type <> 'seasonal_cup'") == 2
+
+
 def test_bridge_queues_season_round_checkin_messages_and_missing_report() -> None:
     assert "_queue_season_round_checkins" in BRIDGE
     assert "_queue_season_round_missing_checkins" in BRIDGE

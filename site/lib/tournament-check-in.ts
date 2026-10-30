@@ -1,3 +1,5 @@
+import type { TournamentType } from "./tournament-type";
+
 const statusVisibilityMinutes = 10;
 
 export type TournamentCheckInWindow = {
@@ -13,12 +15,14 @@ export function tournamentCheckInWindow({
   firstMatchAt,
   checkInMinutes,
   now = new Date(),
+  tournamentType,
 }: {
   firstMatchAt: string | null;
   checkInMinutes: number;
   now?: Date;
+  tournamentType?: TournamentType;
 }): TournamentCheckInWindow | null {
-  if (!firstMatchAt) return null;
+  if (!firstMatchAt || tournamentType === "seasonal_cup") return null;
 
   const firstMatchTime = new Date(firstMatchAt).getTime();
   if (!Number.isFinite(firstMatchTime)) return null;

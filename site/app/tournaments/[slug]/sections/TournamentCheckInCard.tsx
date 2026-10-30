@@ -13,7 +13,7 @@ export function TournamentCheckInCard() {
     startDiscordLogin,
   } = useTournament();
 
-  if (!data || !checkInWindow?.shouldShowStatus) return null;
+  if (!data || data.tournament.tournament_type === "seasonal_cup" || !checkInWindow?.shouldShowStatus) return null;
 
   const captainTeam = captainApplications[0];
   if (data.user && !captainTeam) return null;

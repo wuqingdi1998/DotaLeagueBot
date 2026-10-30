@@ -2,6 +2,7 @@
 
 import { Fragment } from "react";
 import { tournamentTimeline } from "@/lib/tournament-timeline";
+import { formatTournamentStageDateRange } from "@/lib/tournament-date";
 import { useTournament } from "../hooks/TournamentContext";
 import {
   formatMatchCount,
@@ -22,8 +23,13 @@ export function OverviewPanel() {
 
   const timeline = tournamentTimeline({
     registrationDeadline: data.tournament.registration_deadline,
-    startAt: data.tournament.first_match_at ?? data.tournament.start_at,
+    startAt: data.tournament.tournament_type === "seasonal_cup"
+      ? data.tournament.start_at
+      : data.tournament.first_match_at ?? data.tournament.start_at,
     checkInMinutes: data.tournament.check_in_minutes,
+    tournamentType: data.tournament.tournament_type,
+    endAt: data.tournament.end_at,
+    playoffStartsOn: data.tournament.playoff_starts_on,
   });
 
   return (
@@ -47,7 +53,9 @@ export function OverviewPanel() {
                 <strong>{stage.label}</strong>
                 <small>
                   <time dateTime={stage.at}>
-                    {formatTimelineMoment(stage.at)}
+                    {stage.endAt
+                      ? formatTournamentStageDateRange(stage.at, stage.endAt)
+                      : formatTimelineMoment(stage.at)}
                   </time>
                 </small>
               </div>

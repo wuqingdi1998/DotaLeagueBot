@@ -103,7 +103,7 @@ export function TournamentDetailsEditor({
               ) : (
                 <input
                   value={String(draft[field])}
-                  placeholder={placeholder}
+                  placeholder={field === "status_label" && tournament.tournament_type === "seasonal_cup" ? "Кубок запланирован" : placeholder}
                   onChange={(event) => setField(field, event.target.value)}
                 />
               )}
@@ -112,7 +112,7 @@ export function TournamentDetailsEditor({
         )}
 
         <label>
-          <span>Начало турнира</span>
+          <span>{tournament.tournament_type === "seasonal_cup" ? "Начало группового этапа" : "Начало турнира"}</span>
           <input
             type="datetime-local"
             value={toDateTimeInput(draft.start_at)}
@@ -122,7 +122,7 @@ export function TournamentDetailsEditor({
           />
         </label>
         <label>
-          <span>Окончание турнира</span>
+          <span>{tournament.tournament_type === "seasonal_cup" ? "Окончание плей-офф" : "Окончание турнира"}</span>
           <input
             type="datetime-local"
             value={toDateTimeInput(draft.end_at)}
@@ -131,7 +131,14 @@ export function TournamentDetailsEditor({
             }
           />
         </label>
-        <label>
+        {tournament.tournament_type === "seasonal_cup" && (
+          <label>
+            <span>Начало плей-офф</span>
+            <input type="date" value={draft.playoff_starts_on ?? ""}
+              onChange={(event) => setField("playoff_starts_on", event.target.value || null)} />
+          </label>
+        )}
+        {tournament.tournament_type !== "seasonal_cup" && <label>
           <span>Старт регистрации</span>
           <input
             type="datetime-local"
@@ -145,10 +152,10 @@ export function TournamentDetailsEditor({
                 : setField("registration_starts_at", null)
             }
           />
-        </label>
+        </label>}
         {tournament.tournament_type !== "seasonal" && (
           <>
-            <label>
+            {tournament.tournament_type !== "seasonal_cup" && <label>
               <span>Дедлайн регистрации</span>
               <input
                 type="datetime-local"
@@ -160,7 +167,7 @@ export function TournamentDetailsEditor({
                   )
                 }
               />
-            </label>
+            </label>}
             <label>
               <span>Количество игроков</span>
               <input
@@ -185,7 +192,7 @@ export function TournamentDetailsEditor({
                 }
               />
             </label>
-            <label>
+            {tournament.tournament_type !== "seasonal_cup" && <label>
               <span>Check-in, минут</span>
               <input
                 type="number"
@@ -196,7 +203,7 @@ export function TournamentDetailsEditor({
                   setField("check_in_minutes", Number(event.target.value))
                 }
               />
-            </label>
+            </label>}
             <label>
               <span>Максимальный тир</span>
               <input
@@ -245,7 +252,7 @@ export function TournamentDetailsEditor({
           >
             <option value="draft">Черновик</option>
             <option value="planned">Турнир запланирован</option>
-            <option value="registration">Регистрация открыта</option>
+            {tournament.tournament_type !== "seasonal_cup" && <option value="registration">Регистрация открыта</option>}
             <option value="active">Турнир идёт</option>
             <option value="finished">Завершён</option>
             <option value="archived">В архиве</option>

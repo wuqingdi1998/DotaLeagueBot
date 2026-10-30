@@ -1,5 +1,12 @@
 const tournamentTimeZone = "Europe/Moscow";
+const stageDateFormatter = new Intl.DateTimeFormat("ru-RU", {
+  day: "2-digit", month: "2-digit", timeZone: tournamentTimeZone,
+});
 const dateSeparator = " — ";
+
+export function formatTournamentStageDateRange(start: string, end: string) {
+  return `${stageDateFormatter.format(new Date(start))} – ${stageDateFormatter.format(new Date(end))}`;
+}
 
 const calendarDateFormatter = new Intl.DateTimeFormat("en-CA", {
   year: "numeric",

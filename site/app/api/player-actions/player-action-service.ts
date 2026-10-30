@@ -109,6 +109,7 @@ export async function loadPlayerActionNotifications(
          WHERE match.tournament_id = tournament.id
        ) first_match
        WHERE application.status = 'approved'
+         AND tournament.tournament_type <> 'seasonal_cup'
          AND application.captain_discord_id = $1
          AND first_match.scheduled_at > NOW()
          AND NOT EXISTS (

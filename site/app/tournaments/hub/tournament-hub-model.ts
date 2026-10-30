@@ -73,6 +73,7 @@ export type NewTournament = {
   about: string;
   start_at: string;
   end_at: string;
+  playoff_starts_on: string;
   registration_starts_at: string;
   registration_deadline: string;
   status_label: string;
@@ -104,6 +105,7 @@ export const emptyTournament: NewTournament = {
   about: "",
   start_at: "",
   end_at: "",
+  playoff_starts_on: "",
   registration_starts_at: "",
   registration_deadline: "",
   status_label: "",
