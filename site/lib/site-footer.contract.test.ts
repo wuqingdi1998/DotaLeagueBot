@@ -36,12 +36,12 @@ describe("site footer", () => {
     expect(tournamentFooter).toContain('<footer className="site-footer">');
   });
 
-  it("keeps the platform footer at a stable height when page content shrinks", () => {
+  it("keeps every page footer at the bottom when content shrinks", () => {
     expect(platformShell).toContain(
       'platform-shell${hasFooter ? " has-platform-footer" : ""}',
     );
     expect(footerStyles).toMatch(
-      /\.platform-shell\.has-platform-footer\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/,
+      /\.site-shell:has\(> \.site-footer\)\s*\{[^}]*display:\s*flex;[^}]*flex-direction:\s*column;/,
     );
     expect(footerStyles).toMatch(
       /\.platform-footer\s*\{[^}]*flex:\s*0 0 120px;[^}]*margin-top:\s*auto;/,
