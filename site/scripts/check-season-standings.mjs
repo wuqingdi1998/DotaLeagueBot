@@ -47,6 +47,10 @@ try {
       const button = page.getByRole("button", { name: "Как начисляются очки", exact: true });
       await button.waitFor();
       await page.evaluate(() => document.fonts.ready);
+      // The panel enters with an 8px translation; compare only its settled geometry.
+      await page.locator(".season-standings-panel").evaluate(async (node) => {
+        await Promise.all(node.getAnimations().map((animation) => animation.finished));
+      });
       const table = page.locator(".season-standings-table").first();
       const scroll = page.locator(".season-table-scroll").first();
       const fullWidth = await page.locator(".season-standings-panel").evaluate((node) => node.clientWidth);
