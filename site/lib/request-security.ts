@@ -57,6 +57,15 @@ function requestPolicy(pathname: string, method: string): RequestPolicy {
       windowMs: 60_000,
     };
   }
+  if (pathname === "/api/admin/archive-rosters" && method === "PUT") {
+    return {
+      bucket: "mutation",
+      // Leave room for multipart headers and the roster alongside a 2 MiB logo.
+      maximumBodyBytes: 3 * mebibyte,
+      maximumRequests: 90,
+      windowMs: 60_000,
+    };
+  }
   if (/^\/api\/players\/[^/]+\/background$/.test(pathname)) {
     return {
       bucket: "profile-background",

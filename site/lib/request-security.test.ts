@@ -43,6 +43,23 @@ describe("API request protection", () => {
     ).toMatchObject({ status: 413 });
   });
 
+  it("allows a 2 MB roster logo with room for form data", () => {
+    expect(inspectApiRequest(request({
+      pathname: "/api/admin/archive-rosters", method: "PUT",
+      contentLength: 2 * 1024 * 1024 + 16 * 1024,
+    }))).toBeNull();
+  });
+
+  it("keeps size and origin protection on roster uploads", () => {
+    const upload = { pathname: "/api/admin/archive-rosters", method: "PUT" };
+    expect(inspectApiRequest(request({ ...upload, contentLength: 3 * 1024 * 1024 + 1 })))
+      .toMatchObject({ status: 413 });
+    expect(inspectApiRequest(request({ ...upload, origin: "https://attacker.example" })))
+      .toMatchObject({ status: 403 });
+    expect(inspectApiRequest(request({ ...upload, method: "POST", contentLength: 600 * 1024 })))
+      .toMatchObject({ status: 413 });
+  });
+
   it("allows two profile backgrounds up to 25 MB each", () => {
     expect(
       inspectApiRequest(

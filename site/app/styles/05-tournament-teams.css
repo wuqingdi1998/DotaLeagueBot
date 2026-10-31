@@ -28,8 +28,14 @@
 
 .team-card-head {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.team-card-heading {
+  min-width: 0;
+  flex: 1;
 }
 
 .team-avatar,
@@ -54,6 +60,7 @@
 .team-avatar {
   width: 60px;
   height: 60px;
+  flex: 0 0 auto;
   font-size: 15px;
 }
 
@@ -97,6 +104,7 @@
   z-index: 1;
   width: 60px;
   height: 60px;
+  flex: 0 0 auto;
   flex: 0 0 auto;
 }
 
@@ -229,9 +237,8 @@
 }
 
 .team-tag {
-  margin: 28px 0 5px;
   color: var(--blue-deep);
-  font-size: 15px;
+  font-size: 0.65em;
   font-weight: 600;
 }
 
@@ -240,11 +247,12 @@
 }
 
 .team-card h3 {
-  margin: 0 0 23px;
+  margin: 0 0 8px;
   font-family: "5ka Sans Design", sans-serif;
   font-size: 27px;
   font-weight: 600;
   text-transform: none;
+  overflow-wrap: anywhere;
 }
 
 .team-card ul {

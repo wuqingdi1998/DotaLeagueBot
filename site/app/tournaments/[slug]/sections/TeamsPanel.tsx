@@ -59,21 +59,25 @@ export function TeamsPanel() {
                     {initials(team.team_name)}
                   </div>
                 )}
-                <span className={`status-badge ${team.status}`}>
-                  {team.status === "approved"
-                    ? "Допущена"
-                    : team.status === "awaiting_members"
-                      ? "Ждёт игроков"
-                      : "На проверке"}
-                </span>
+                <div className="team-card-heading">
+                  <h3>
+                    {team.team_name}{" "}
+                    {team.tag && <small className="team-tag">({team.tag})</small>}
+                  </h3>
+                  <span className={`status-badge ${team.status}`}>
+                    {team.status === "approved"
+                      ? "Допущена"
+                      : team.status === "awaiting_members"
+                        ? "Ждёт игроков"
+                        : "На проверке"}
+                  </span>
+                </div>
               </div>
               {team.is_checked_in && checkInWindow?.shouldShowStatus && (
                 <div className="team-checkin-badge">
                   <FiCheckCircle aria-hidden="true" /> Прошел чек-ин
                 </div>
               )}
-              <p className="team-tag">{team.tag}</p>
-              <h3>{team.team_name}</h3>
               {(team.selection_method.trim() || (tournament.show_tiers && team.team_tier_total_snapshot !== null)) && <div className="team-archive-meta">
                 {team.selection_method.trim() && <span>{team.selection_method}</span>}
                 {tournament.show_tiers && team.team_tier_total_snapshot !== null && (

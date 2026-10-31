@@ -52,6 +52,12 @@ it("applies the two-column layout only to league cups", () => {
   expect(renderToStaticMarkup(<TeamsPanel />)).not.toContain("teams-grid-league-cup");
 });
 
+it("places the team name and smaller parenthesized tag together beside the avatar", () => {
+  const html = renderToStaticMarkup(<TeamsPanel />);
+  expect(html).toContain('<div class="team-card-heading"><h3>Команда <small class="team-tag">(TEAM)</small></h3>');
+  expect(html).not.toContain('<p class="team-tag">');
+});
+
 it.each([false, true])("allows empty editable participation details in the roster form, historical: %s", (isHistorical) => {
   const html = renderToStaticMarkup(<ArchiveRosterEditor
     tournamentId={52} isHistorical={isHistorical} onSaved={async () => {}} onMessage={() => {}} />);

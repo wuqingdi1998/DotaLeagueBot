@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
+import { inspectApiRequest, resetApiRequestLimitsForTests } from "@/lib/request-security";
 
 const mocks = vi.hoisted(() => ({ admin: vi.fn(), query: vi.fn(), transaction: vi.fn() }));
 vi.mock("@/lib/auth", () => ({
@@ -125,6 +126,22 @@ it("uploads a logo during creation and links a player using Dota ID", async () =
   Object.assign(body.players[0], { dotaId: "12345" });
   expect((await PUT(request(body, image()))).status).toBe(200);
   expect((await db.query("SELECT player_id::text FROM tournament_roster_snapshots WHERE is_captain")).rows[0]).toEqual({ player_id: "100" });
+  expect((await db.query<{ logo_key: string }>("SELECT logo_key FROM tournament_team_applications")).rows[0].logo_key).toMatch(/\.png$/);
+});
+
+it("accepts a logo exactly 2 MB through request protection and roster saving", async () => {
+  const bytes = new Uint8Array(2 * 1024 * 1024);
+  bytes.set([137, 80, 78, 71, 13, 10, 26, 10]);
+  const upload = request(roster(), new File([bytes], "logo.png", { type: "image/png" }));
+  const contentLength = (await upload.clone().arrayBuffer()).byteLength;
+  expect(contentLength).toBeGreaterThan(bytes.length);
+  resetApiRequestLimitsForTests();
+  expect(inspectApiRequest({
+    method: "PUT", pathname: "/api/admin/archive-rosters", contentLength,
+    origin: "https://example.test", expectedOrigin: "https://example.test",
+    fetchSite: "same-origin", clientAddress: "203.0.113.20",
+  })).toBeNull();
+  expect((await PUT(upload)).status).toBe(200);
   expect((await db.query<{ logo_key: string }>("SELECT logo_key FROM tournament_team_applications")).rows[0].logo_key).toMatch(/\.png$/);
 });
 
