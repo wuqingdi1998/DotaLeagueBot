@@ -40,7 +40,7 @@ export function ArchiveRostersAdmin() {
       {data.applications.map((application) => (
         <details key={application.id}>
           <summary>
-            {application.team_name} · {application.selection_method}
+            {application.team_name}{application.selection_method.trim() && ` · ${application.selection_method}`}
           </summary>
           <ArchiveRosterEditor
             tournamentId={data.tournament.id}

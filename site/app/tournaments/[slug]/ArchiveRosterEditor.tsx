@@ -83,7 +83,7 @@ export function ArchiveRosterEditor({
   const [teamName, setTeamName] = useState(team?.team_name ?? "");
   const [tag, setTag] = useState(team?.tag ?? "");
   const [selectionMethod, setSelectionMethod] = useState(
-    team?.selection_method ?? "Регистрация",
+    team?.selection_method ?? "",
   );
   const [teamTierTotal, setTeamTierTotal] = useState(
     team?.team_tier_total_snapshot?.toString() ?? "",
@@ -92,10 +92,6 @@ export function ArchiveRosterEditor({
   const [saving, setSaving] = useState(false);
   const [emblem, setEmblem] = useState<File | null>(null);
   const [emblemInputKey, setEmblemInputKey] = useState(0);
-
-  const scoringPlayers = players.filter((player) => player.role !== "coach");
-  const profileTierTotal = scoringPlayers.every((player) => player.tier !== "")
-    ? scoringPlayers.reduce((sum, player) => sum + Number(player.tier), 0) : null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -108,7 +104,7 @@ export function ArchiveRosterEditor({
         tag,
         selectionMethod,
         useProfileTiers: !isHistorical,
-        teamTierTotal: isHistorical ? (teamTierTotal ? Number(teamTierTotal) : null) : profileTierTotal,
+        teamTierTotal: teamTierTotal === "" ? null : Number(teamTierTotal),
         players: players.map((player) => ({
           ...player,
           dotaId: player.dotaId.trim() || null,
@@ -135,6 +131,7 @@ export function ArchiveRosterEditor({
       if (!team) {
         setTeamName("");
         setTag("");
+        setSelectionMethod("");
         setTeamTierTotal("");
         setPlayers(initialPlayers);
       }
@@ -181,22 +178,20 @@ export function ArchiveRosterEditor({
           />
         </label>
         <label>
-          <span>Метод участия</span>
+          <span>Метод участия (необязательно)</span>
           <input
-            required
             maxLength={80}
             value={selectionMethod}
             onChange={(event) => setSelectionMethod(event.target.value)}
           />
         </label>
         <label>
-          <span>Суммарный тир команды</span>
+          <span>Суммарный тир команды (необязательно)</span>
           <input
             type="number"
             min="0"
             max="100"
-            readOnly={!isHistorical}
-            value={isHistorical ? teamTierTotal : profileTierTotal ?? ""}
+            value={teamTierTotal}
             onChange={(event) => setTeamTierTotal(event.target.value)}
           />
         </label>

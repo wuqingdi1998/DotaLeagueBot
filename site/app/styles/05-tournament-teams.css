@@ -14,6 +14,12 @@
   gap: 17px;
 }
 
+@media (min-width: 761px) {
+  .teams-grid-league-cup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .team-card,
 .empty-team {
   min-height: 400px;

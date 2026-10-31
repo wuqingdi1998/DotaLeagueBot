@@ -43,7 +43,7 @@ export function TeamsPanel() {
           </button>
         )}
       </div>
-      <div className="teams-grid">
+      <div className={`teams-grid${tournament.tournament_type === "seasonal_cup" ? " teams-grid-league-cup" : ""}`}>
         {data.applications
           .filter((team) => team.status !== "declined")
           .map((team) => (
@@ -74,12 +74,12 @@ export function TeamsPanel() {
               )}
               <p className="team-tag">{team.tag}</p>
               <h3>{team.team_name}</h3>
-              <div className="team-archive-meta">
-                <span>{team.selection_method}</span>
+              {(team.selection_method.trim() || (tournament.show_tiers && team.team_tier_total_snapshot !== null)) && <div className="team-archive-meta">
+                {team.selection_method.trim() && <span>{team.selection_method}</span>}
                 {tournament.show_tiers && team.team_tier_total_snapshot !== null && (
                   <span>Тир команды: {team.team_tier_total_snapshot}</span>
                 )}
-              </div>
+              </div>}
               {(team.result_label || team.placement) && (
                 <div className="team-result-badge">
                   {team.result_label || `${team.placement}-е место`}

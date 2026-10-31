@@ -154,10 +154,24 @@ it.each([
   expect(mocks.transaction).not.toHaveBeenCalled();
 });
 
-it("uses profile tiers rather than submitted tiers and excludes coach from total", async () => {
-  const body = roster({ useProfileTiers: true });
+it("uses profile tiers for players and preserves the submitted team total", async () => {
+  const body = roster({ useProfileTiers: true, teamTierTotal: 31 });
   body.players.forEach(p => Object.assign(p, { nickname: "Player 0", tier: 1 }));
   expect((await PUT(request(body))).status).toBe(200);
   expect((await db.query<{ tier_snapshot: number }>("SELECT tier_snapshot FROM tournament_roster_snapshots")).rows.every(r => r.tier_snapshot === 8)).toBe(true);
-  expect((await db.query("SELECT team_tier_total_snapshot FROM tournament_team_applications")).rows[0]).toEqual({ team_tier_total_snapshot: 40 });
+  expect((await db.query("SELECT team_tier_total_snapshot FROM tournament_team_applications")).rows[0]).toEqual({ team_tier_total_snapshot: 31 });
+});
+
+it.each([false, true])("saves and clears optional team details with profile tiers: %s", async (useProfileTiers) => {
+  const body = roster({ useProfileTiers });
+  if (useProfileTiers) body.players.forEach(player => Object.assign(player, { nickname: "Player 0" }));
+  const details = async () => (await db.query("SELECT selection_method, team_tier_total_snapshot FROM tournament_team_applications")).rows[0];
+  const created = await PUT(request(body));
+  expect(created.status).toBe(200);
+  const { id } = await created.json();
+  expect(await details()).toEqual({ selection_method: "", team_tier_total_snapshot: null });
+  expect((await PUT(request({ ...body, applicationId: id, selectionMethod: " Приглашение ", teamTierTotal: 0 }))).status).toBe(200);
+  expect(await details()).toEqual({ selection_method: "Приглашение", team_tier_total_snapshot: 0 });
+  expect((await PUT(request({ ...body, applicationId: id, selectionMethod: "   ", teamTierTotal: null }))).status).toBe(200);
+  expect(await details()).toEqual({ selection_method: "", team_tier_total_snapshot: null });
 });

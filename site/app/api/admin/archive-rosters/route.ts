@@ -129,7 +129,7 @@ export async function PUT(request: Request) {
             body.tag?.trim(),
             body.contact?.trim() || "Архив",
             body.logoKey?.trim() ?? null,
-            body.selectionMethod?.trim() || "Регистрация",
+            body.selectionMethod?.trim() ?? "",
             captain?.nickname.trim(),
             body.teamTierTotal ?? null,
             id,
@@ -151,7 +151,7 @@ export async function PUT(request: Request) {
             body.tag?.trim(),
             body.contact?.trim() || "Архив",
             body.logoKey?.trim() || "",
-            body.selectionMethod?.trim() || "Регистрация",
+            body.selectionMethod?.trim() ?? "",
             captain?.nickname.trim(),
             body.teamTierTotal ?? null,
           ],
@@ -163,7 +163,6 @@ export async function PUT(request: Request) {
         "DELETE FROM tournament_roster_snapshots WHERE application_id = $1",
         [id],
       );
-      let profileTotal: number | null = 0;
       for (const [index, player] of players.entries()) {
         const dotaId = player.dotaId?.trim() ?? "";
         const matched = await client.query<{ discord_id: string; tier: number | null }>(
@@ -179,10 +178,6 @@ export async function PUT(request: Request) {
         );
         if ((dotaId || body.useProfileTiers) && !matched.rowCount) {
           throw new Error(`PLAYER_NOT_FOUND:${dotaId}`);
-        }
-        if (player.role !== "coach") {
-          const tier = matched.rows[0]?.tier;
-          profileTotal = profileTotal === null || tier == null ? null : profileTotal + tier;
         }
         await client.query(
           `INSERT INTO tournament_roster_snapshots (
@@ -201,9 +196,6 @@ export async function PUT(request: Request) {
         );
       }
 
-      if (body.useProfileTiers) {
-        await client.query("UPDATE tournament_team_applications SET team_tier_total_snapshot = $1 WHERE id = $2", [profileTotal, id]);
-      }
       await client.query(
         `INSERT INTO tournament_audit_log (
            tournament_id, actor_discord_id, action, entity_type, entity_id
