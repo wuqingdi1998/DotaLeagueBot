@@ -290,6 +290,21 @@
   }
 }
 
+@media (max-width: 380px) {
+  .team-card {
+    padding: 12px;
+  }
+
+  .team-card-head {
+    gap: 8px;
+  }
+
+  .team-card h3 {
+    gap: 4px;
+    font-size: 28px;
+  }
+}
+
 .team-card ul {
   margin: 0;
   padding: 0;
