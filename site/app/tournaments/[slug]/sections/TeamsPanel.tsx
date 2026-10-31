@@ -22,6 +22,7 @@ export function TeamsPanel() {
   if (!data || activeTab !== "teams") return null;
 
   const { tournament } = data;
+  const isSeasonalCup = tournament.tournament_type === "seasonal_cup";
   const canRegister =
     !isPastTournament(tournament.status) &&
     tournament.status === "registration" &&
@@ -43,7 +44,7 @@ export function TeamsPanel() {
           </button>
         )}
       </div>
-      <div className={`teams-grid${tournament.tournament_type === "seasonal_cup" ? " teams-grid-league-cup" : ""}`}>
+      <div className={`teams-grid${isSeasonalCup ? " teams-grid-league-cup" : ""}`}>
         {data.applications
           .filter((team) => team.status !== "declined")
           .map((team) => (
@@ -61,16 +62,16 @@ export function TeamsPanel() {
                 )}
                 <div className="team-card-heading">
                   <h3>
-                    {team.team_name}{" "}
+                    <span className="team-card-name">{team.team_name}</span>{" "}
                     {team.tag && <small className="team-tag">({team.tag})</small>}
                   </h3>
-                  <span className={`status-badge ${team.status}`}>
+                  {!(isSeasonalCup && team.status === "approved") && <span className={`status-badge ${team.status}`}>
                     {team.status === "approved"
                       ? "Допущена"
                       : team.status === "awaiting_members"
                         ? "Ждёт игроков"
                         : "На проверке"}
-                  </span>
+                  </span>}
                 </div>
               </div>
               {team.is_checked_in && checkInWindow?.shouldShowStatus && (

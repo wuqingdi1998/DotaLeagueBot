@@ -12,8 +12,8 @@ export function TeamEmblemPreview({ src, alt }: TeamEmblemPreviewProps) {
         className="team-emblem"
         src={src}
         alt={alt}
-        width={60}
-        height={60}
+        width={120}
+        height={120}
         unoptimized
       />
       <span className="team-emblem-popup" aria-hidden="true">

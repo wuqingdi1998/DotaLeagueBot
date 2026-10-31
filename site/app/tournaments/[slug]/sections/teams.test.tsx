@@ -48,13 +48,16 @@ it("shows each optional detail independently, including a zero team total", () =
 
 it("applies the two-column layout only to league cups", () => {
   expect(renderToStaticMarkup(<TeamsPanel />)).toContain("teams-grid-league-cup");
+  expect(renderToStaticMarkup(<TeamsPanel />)).not.toContain("Допущена");
   context.data.tournament.tournament_type = "ordinary";
-  expect(renderToStaticMarkup(<TeamsPanel />)).not.toContain("teams-grid-league-cup");
+  const ordinaryHtml = renderToStaticMarkup(<TeamsPanel />);
+  expect(ordinaryHtml).not.toContain("teams-grid-league-cup");
+  expect(ordinaryHtml).toContain("Допущена");
 });
 
 it("places the team name and smaller parenthesized tag together beside the avatar", () => {
   const html = renderToStaticMarkup(<TeamsPanel />);
-  expect(html).toContain('<div class="team-card-heading"><h3>Команда <small class="team-tag">(TEAM)</small></h3>');
+  expect(html).toContain('<div class="team-card-heading"><h3><span class="team-card-name">Команда</span> <small class="team-tag">(TEAM)</small></h3>');
   expect(html).not.toContain('<p class="team-tag">');
 });
 
