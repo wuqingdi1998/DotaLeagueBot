@@ -28,7 +28,7 @@ const server = createServer((request, response) => {
     response.end(readFileSync(new URL("bundle/preview.js", directory)));
   } else {
     response.setHeader("content-type", "text/html; charset=utf-8");
-    response.end(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div id="root"></div><script src="/preview.js"></script>`);
+    response.end(`<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style><div id="root"></div><button style="position:fixed;right:16px;bottom:16px;z-index:110;width:80px;height:44px">DEV i</button><script src="/preview.js"></script>`);
   }
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
