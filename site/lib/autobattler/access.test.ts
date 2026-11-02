@@ -1,0 +1,10 @@
+import {it,expect,vi,beforeEach} from 'vitest';
+const mocks=vi.hoisted(()=>({session:vi.fn(),database:vi.fn(),environment:vi.fn()}));
+vi.mock('@/lib/auth',()=>({getSession:mocks.session}));
+vi.mock('@/lib/db',()=>({one:mocks.database}));
+vi.mock('@/lib/development/environment',()=>({isDevelopmentSite:mocks.environment}));
+import {gameUser} from './access';
+beforeEach(()=>{vi.clearAllMocks();mocks.environment.mockReturnValue(true);mocks.database.mockResolvedValue({name:'linkens_development'});mocks.session.mockResolvedValue({discordId:'1'});});
+it('never touches production database when disabled',async()=>{mocks.environment.mockReturnValue(false);await expect(gameUser()).rejects.toMatchObject({status:404});expect(mocks.database).not.toHaveBeenCalled();});
+it('fails closed on production connection even when dev flag is set',async()=>{mocks.database.mockResolvedValue({name:'linkens'});await expect(gameUser()).rejects.toMatchObject({status:503});expect(mocks.session).not.toHaveBeenCalled();});
+it('requires a signed-in user on confirmed dev database',async()=>{mocks.session.mockResolvedValue(null);await expect(gameUser()).rejects.toMatchObject({status:401});});
