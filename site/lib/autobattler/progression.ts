@@ -27,5 +27,5 @@ export function validateTeam(profile:Profile,team:unknown):asserts team is strin
 }
 export function rewardStage(profile:Profile,stage:number,isWin:boolean){
   if(!isWin||profile.cleared.includes(stage))return 0;
-  profile.cleared.push(stage);profile.unlocked=Math.min(15,Math.max(profile.unlocked,stage+1));profile.tickets+=rules.reward;return rules.reward;
+  profile.cleared.push(stage);profile.unlocked=Math.min(rules.stageCount,Math.max(profile.unlocked,stage+1));profile.tickets+=rules.reward;return rules.reward;
 }

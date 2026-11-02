@@ -8,6 +8,7 @@ describe('authoritative autobattler',()=>{
     expect(new Set(heroes.map(hero=>hero.id)).size).toBe(24);
     expect(['Rare','Epic','Legendary'].map(rarity=>heroes.filter(hero=>hero.rarity===rarity).length)).toEqual([14,8,2]);
     expect(stages).toHaveLength(15);
+    for(const stage of stages){expect(stage.team).toHaveLength(5);expect(stage.team.every(id=>heroes.some(hero=>hero.id===id))).toBe(true);}
   });
   it('replays a deterministic real fight with motion, skills, healing and bounded duration',()=>{
     const first=simulate(starter,starter,42);expect(first).toEqual(simulate(starter,starter,42));

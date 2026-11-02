@@ -1,4 +1,4 @@
-import { heroById, heroes } from './catalog';
+import { heroById, heroes, rules } from './catalog';
 import { grantHero, newProfile, type Profile } from './progression';
 export function adminChange(profile:Profile,input:Record<string,unknown>){
   const now=new Date().toISOString();
@@ -13,9 +13,9 @@ export function adminChange(profile:Profile,input:Record<string,unknown>){
     case 'remove':if(typeof input.hero!=='string')throw new Error('Выберите героя');delete profile.collection[input.hero];profile.team=profile.team.filter(id=>id!==input.hero);break;
     case 'copies':if(typeof input.hero!=='string'||!profile.collection[input.hero]||!Number.isSafeInteger(value)||value<1||value>100000)throw new Error('Проверьте героя и количество');profile.collection[input.hero].count=value;break;
     case 'collection':profile.collection=newProfile().collection;profile.team=newProfile().team;break;
-    case 'unlock':if(!Number.isInteger(value)||value<1||value>15)throw new Error('Этап от 1 до 15');profile.unlocked=value;break;
+    case 'unlock':if(!Number.isInteger(value)||value<1||value>rules.stageCount)throw new Error(`Этап от 1 до ${rules.stageCount}`);profile.unlocked=value;break;
     case 'campaign':profile.cleared=[];profile.unlocked=1;break;
-    case 'clear':if(!Number.isInteger(value)||value<1||value>15)throw new Error('Этап от 1 до 15');if(!profile.cleared.includes(value))profile.cleared.push(value);profile.unlocked=Math.max(profile.unlocked,Math.min(15,value+1));break;
+    case 'clear':if(!Number.isInteger(value)||value<1||value>rules.stageCount)throw new Error(`Этап от 1 до ${rules.stageCount}`);if(!profile.cleared.includes(value))profile.cleared.push(value);profile.unlocked=Math.max(profile.unlocked,Math.min(rules.stageCount,value+1));break;
     case 'rewards':profile.cleared=[];break;
     case 'pity':profile.epic=0;profile.legendary=0;break;
     case 'reset':if(input.confirmation!=='СБРОСИТЬ')throw new Error('Введите СБРОСИТЬ для подтверждения');Object.assign(profile,newProfile());break;

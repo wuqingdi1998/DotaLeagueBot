@@ -35,8 +35,14 @@ try {
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.goto(`http://127.0.0.1:${server.address().port}`);
     await page.getByRole('button',{name:'Мой отряд',exact:true}).waitFor();
+    for(const theme of ['light','dark']){
+      await page.evaluate(theme=>{document.body.className='site-shell';document.body.dataset.theme=theme;},theme);
+      assert.equal(await page.locator('.ab-game').evaluate(element=>getComputedStyle(element).color),'rgb(233, 239, 255)');
+      await page.screenshot({path:fileURLToPath(new URL(`home-${theme}-${width}.png`,directory))});
+    }
     for(const tab of ['Герои','Команда','Призыв','Кампания','Разработчик']){
       await page.getByRole('button',{name:tab,exact:true}).click();
+      if(tab==='Герои'){await page.getByText('Сравнить характеристики героев',{exact:true}).click();await page.getByLabel('Второй герой',{exact:true}).selectOption('orion');}
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,`${tab} overflows at ${width}`);
       await page.screenshot({path:fileURLToPath(new URL(`${tab}-${width}.png`,directory))});
     }
