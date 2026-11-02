@@ -1,0 +1,218 @@
+{
+  "bastion": {
+    "frame": 0,
+    "stride": 0.8,
+    "phase": 0.0,
+    "effect": "ward",
+    "color": 7920315,
+    "glyph": "⬡",
+    "portraitX": 68
+  },
+  "iskra": {
+    "frame": 1,
+    "stride": 1.2,
+    "phase": 0.71,
+    "effect": "flame",
+    "color": 16743221,
+    "glyph": "✹",
+    "portraitX": 65
+  },
+  "veya": {
+    "frame": 2,
+    "stride": 0.55,
+    "phase": 1.42,
+    "effect": "blossom",
+    "color": 11534272,
+    "glyph": "❀",
+    "portraitX": 55
+  },
+  "sokol": {
+    "frame": 3,
+    "stride": 0.9,
+    "phase": 2.13,
+    "effect": "feather",
+    "color": 14603157,
+    "glyph": "➶",
+    "portraitX": 50
+  },
+  "mirra": {
+    "frame": 4,
+    "stride": 0.65,
+    "phase": 2.84,
+    "effect": "frost",
+    "color": 10350591,
+    "glyph": "❄",
+    "portraitX": 65
+  },
+  "ten": {
+    "frame": 5,
+    "stride": 1.6,
+    "phase": 3.55,
+    "effect": "crescent",
+    "color": 13280253,
+    "glyph": "☽",
+    "portraitX": 85
+  },
+  "kremen": {
+    "frame": 6,
+    "stride": 0.7,
+    "phase": 4.26,
+    "effect": "stone",
+    "color": 12368036,
+    "glyph": "⬢",
+    "portraitX": 40
+  },
+  "ruta": {
+    "frame": 7,
+    "stride": 0.6,
+    "phase": 4.97,
+    "effect": "vines",
+    "color": 10738045,
+    "glyph": "❧",
+    "portraitX": 40
+  },
+  "bor": {
+    "frame": 8,
+    "stride": 0.5,
+    "phase": 5.68,
+    "effect": "hammer",
+    "color": 16759910,
+    "glyph": "⚒",
+    "portraitX": 55
+  },
+  "lira": {
+    "frame": 9,
+    "stride": 1.1,
+    "phase": 6.39,
+    "effect": "venom",
+    "color": 9628741,
+    "glyph": "✺",
+    "portraitX": 65
+  },
+  "morok": {
+    "frame": 10,
+    "stride": 0.4,
+    "phase": 7.1,
+    "effect": "spirits",
+    "color": 11962879,
+    "glyph": "♆",
+    "portraitX": 55
+  },
+  "zefir": {
+    "frame": 11,
+    "stride": 1.8,
+    "phase": 7.81,
+    "effect": "wind",
+    "color": 11069951,
+    "glyph": "〰",
+    "portraitX": 80
+  },
+  "yantar": {
+    "frame": 12,
+    "stride": 0.75,
+    "phase": 8.52,
+    "effect": "sun",
+    "color": 16768635,
+    "glyph": "☀",
+    "portraitX": 50
+  },
+  "azur": {
+    "frame": 13,
+    "stride": 0.7,
+    "phase": 9.23,
+    "effect": "tide",
+    "color": 4249575,
+    "glyph": "♒",
+    "portraitX": 50
+  },
+  "astra": {
+    "frame": 14,
+    "stride": 0.5,
+    "phase": 9.94,
+    "effect": "stars",
+    "color": 16242943,
+    "glyph": "✧",
+    "portraitX": 55
+  },
+  "granit": {
+    "frame": 15,
+    "stride": 0.35,
+    "phase": 10.65,
+    "effect": "quake",
+    "color": 7780589,
+    "glyph": "◈",
+    "portraitX": 65
+  },
+  "nox": {
+    "frame": 16,
+    "stride": 1.5,
+    "phase": 11.36,
+    "effect": "ravens",
+    "color": 8885961,
+    "glyph": "⋖",
+    "portraitX": 60
+  },
+  "sol": {
+    "frame": 17,
+    "stride": 0.85,
+    "phase": 12.07,
+    "effect": "nova",
+    "color": 16773060,
+    "glyph": "✴",
+    "portraitX": 60
+  },
+  "taiga": {
+    "frame": 18,
+    "stride": 1.1,
+    "phase": 12.78,
+    "effect": "arrows",
+    "color": 12901354,
+    "glyph": "➹",
+    "portraitX": 45
+  },
+  "rion": {
+    "frame": 19,
+    "stride": 1.2,
+    "phase": 13.49,
+    "effect": "blood",
+    "color": 15234168,
+    "glyph": "❯",
+    "portraitX": 50
+  },
+  "flor": {
+    "frame": 20,
+    "stride": 0.9,
+    "phase": 14.2,
+    "effect": "petals",
+    "color": 16101090,
+    "glyph": "❋",
+    "portraitX": 50
+  },
+  "echo": {
+    "frame": 21,
+    "stride": 0.45,
+    "phase": 14.91,
+    "effect": "sound",
+    "color": 16240770,
+    "glyph": "◎",
+    "portraitX": 65
+  },
+  "orion": {
+    "frame": 22,
+    "stride": 0.6,
+    "phase": 15.62,
+    "effect": "wings",
+    "color": 16769960,
+    "glyph": "⋈",
+    "portraitX": 60
+  },
+  "selena": {
+    "frame": 23,
+    "stride": 1.4,
+    "phase": 16.33,
+    "effect": "moon",
+    "color": 13217023,
+    "glyph": "☾",
+    "portraitX": 75
+  }
+}

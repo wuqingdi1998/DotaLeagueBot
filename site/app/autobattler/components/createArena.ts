@@ -1,7 +1,7 @@
 import type PhaserType from 'phaser';
 import type {Battle,Unit} from '@/lib/autobattler/simulation';
 import {heroById,stages} from '@/lib/autobattler/catalog';
-import {heroVisuals,sceneBackground,skillGlyphs} from '../model/visuals';
+import {heroVisuals,sceneBackground} from '../model/visuals';
 type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Image;legs:PhaserType.GameObjects.Image[];label:PhaserType.GameObjects.Text;death:number};
 export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
  return class Arena extends Phaser.Scene{
@@ -63,7 +63,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
     const a=this.position(source),b=this.position(target),age=this.elapsed+this.outro-event.time,progress=age/750,visual=heroVisuals[source.hero];
     if(event.kind==='skill'){
-     const key=`skill-${event.time}-${event.actor}`;if(!this.shown.has(key)){this.shown.add(key);const rune=this.add.text(a.x,a.y-95,skillGlyphs[visual.index],{fontSize:'68px',color:`#${visual.color.toString(16)}`,stroke:'#06182e',strokeThickness:2}).setOrigin(.5).setDepth(2500);this.tweens.add({targets:rune,scale:1.7,alpha:0,angle:visual.index%2?35:-35,duration:750,onComplete:()=>rune.destroy()});}
+     const key=`skill-${event.time}-${event.actor}`;if(!this.shown.has(key)){this.shown.add(key);const rune=this.add.text(a.x,a.y-95,visual.glyph,{fontSize:'68px',color:`#${visual.color.toString(16)}`,stroke:'#06182e',strokeThickness:2}).setOrigin(.5).setDepth(2500);this.tweens.add({targets:rune,scale:1.7,alpha:0,angle:visual.index%2?35:-35,duration:750,onComplete:()=>rune.destroy()});}
 
      const radius=25+progress*(55+visual.index%5*13);g.lineStyle(3,visual.color,1-progress);
      if(visual.index%4===0)g.strokeEllipse(a.x,a.y-40,radius*2,radius);else if(visual.index%4===1){for(let i=0;i<5;i++){const angle=i*Math.PI*.4+progress*4;g.lineBetween(a.x,a.y-50,a.x+Math.cos(angle)*radius,a.y-50+Math.sin(angle)*radius);}}else if(visual.index%4===2)g.strokeCircle(a.x,a.y-65,radius);else{for(let i=0;i<7;i++)g.strokeCircle(a.x+Math.sin(i*2+age/150)*radius,a.y-60+Math.cos(i*2)*radius,5+progress*8);}
