@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from database.core import engine
 from database.models import Base
+from database.migration_files import migration_files
 
 MIGRATION_LOCK_ID = 729_412_853
 
@@ -51,7 +52,8 @@ async def run_migrations() -> None:
             """
         )
         await connection.execute("SELECT pg_advisory_lock($1)", MIGRATION_LOCK_ID)
-        for path in sorted(migrations_dir.glob("*.sql")):
+        database_name = await connection.fetchval("SELECT current_database()")
+        for path in migration_files(migrations_dir, database_name):
             sql = path.read_text(encoding="utf-8")
             checksum = hashlib.sha256(sql.encode("utf-8")).hexdigest()
             row = await connection.fetchrow(

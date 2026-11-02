@@ -11,7 +11,7 @@ vi.mock('@/lib/db',()=>({transaction:<T>(callback:(client:PoolClient)=>Promise<T
 import {mutateProfile,readProfile} from './storage';
 const database=new PGlite();
 beforeAll(async()=>{
-  const migration=readFileSync('../bot/database/migrations/0194_autobattler.sql','utf8');
+  const migration=readFileSync('../bot/database/migrations/development/0194_autobattler.sql','utf8');
   await database.exec(migration);
   expect((await database.query("SELECT tablename FROM pg_tables WHERE tablename LIKE 'autobattler_%'")).rows).toHaveLength(0);
   // Embedded test PostgreSQL uses a fixed database name; only the guard expression is substituted.
