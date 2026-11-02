@@ -21,3 +21,5 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 @media(prefers-reduced-motion:reduce){.ab-summon-phase-3:after{display:none}}
 
 .ab-world:before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,#c5e9d9aa 1px,transparent 2px);background-size:113px 137px;opacity:.3;animation:ab-motes 30s linear infinite;mask-image:linear-gradient(transparent,#000,transparent)}
+
+.ab-saved-team{display:flex;gap:4px;justify-content:center;align-items:center}.ab-saved-team .ab-portrait{height:36px;width:36px;flex:none}.ab-saved-team small{font-size:10px;letter-spacing:0;max-width:90px}.ab-saved-team>span{width:36px;font-size:24px}
