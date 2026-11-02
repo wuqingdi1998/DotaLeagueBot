@@ -12,7 +12,12 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
         }
         update(_time:number,delta:number){
           if(!control.current.isPaused)this.elapsed=Math.min(battle.duration,this.elapsed+Math.min(delta,200)*control.current.speed);
-          const frame=battle.frames[Math.min(battle.frames.length-1,Math.floor(this.elapsed/200))];
+          const frameIndex=this.elapsed>=battle.duration?battle.frames.length-1:Math.min(battle.frames.length-1,Math.floor(this.elapsed/200));
+          const current=battle.frames[frameIndex];
+          const next=battle.frames[Math.min(battle.frames.length-1,frameIndex+1)];
+          const fraction=Math.min(1,(this.elapsed-current.time)/200);
+          const frame={units:current.units.map((unit,index)=>({...unit,
+            x:unit.x+(next.units[index].x-unit.x)*fraction,y:unit.y+(next.units[index].y-unit.y)*fraction}))};
           const g=this.graphics;g.clear();g.fillStyle(0x101e34);g.fillRect(0,0,1000,500);
           g.lineStyle(1,0x30475a);for(let y=100;y<500;y+=70)g.lineBetween(20,y,980,y);
           g.fillStyle(0x57d2c5,.08);g.fillEllipse(500,300,900,330);

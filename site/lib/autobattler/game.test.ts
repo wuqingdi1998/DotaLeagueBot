@@ -12,6 +12,7 @@ describe('authoritative autobattler',()=>{
   it('replays a deterministic real fight with motion, skills, healing and bounded duration',()=>{
     const first=simulate(starter,starter,42);expect(first).toEqual(simulate(starter,starter,42));
     expect(first.duration).toBeLessThanOrEqual(rules.limit);expect(first.duration).toBeGreaterThan(10000);
+    expect(first.frames.at(-1)?.units).toEqual(first.units);
     expect(first.events.some(event=>event.kind==='heal')).toBe(true);
     expect(first.events.some(event=>event.kind==='skill')).toBe(true);
     expect(first.frames[30].units[0].x).not.toBe(first.frames[0].units[0].x);

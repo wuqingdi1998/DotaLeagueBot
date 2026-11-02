@@ -79,5 +79,6 @@ export function simulate(left:string[],right:string[],seed:number,scale=1):Battl
       battle.duration=time;break;
     }
   }
+  if(battle.frames.at(-1)?.time!==battle.duration)battle.frames.push({time:battle.duration,units:structuredClone(units)});
   return battle;
 }

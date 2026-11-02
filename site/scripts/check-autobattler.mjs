@@ -30,7 +30,7 @@ const server = createServer((request, response) => {
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 try {
-  for (const [width,height] of [[360,640],[390,844],[768,1024],[1366,768],[1920,1080]]) {
+  for (const [width,height] of (process.argv.includes('--focused') ? [[360,640],[1366,768]] : [[360,640],[390,844],[768,1024],[1366,768],[1920,1080]])) {
     const page=await browser.newPage({viewport:{width,height}});
     const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.goto(`http://127.0.0.1:${server.address().port}`);
