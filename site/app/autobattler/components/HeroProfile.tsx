@@ -1,0 +1,10 @@
+'use client';
+import {useState,type CSSProperties} from 'react';
+import SkillPreview from './SkillPreview';
+import type {Hero} from '@/lib/autobattler/catalog';
+import {heroVisuals} from '../model/visuals';
+import {HeroPortrait,roleNames} from './HeroCard';
+export default function HeroProfile({hero,onClose}:{hero:Hero;onClose:()=>void}){
+  const [tab,setTab]=useState('Умение');const [preview,setPreview]=useState(0);
+  return <div className="ab-modal-backdrop"><section className={`ab-hero-profile ab-${hero.rarity}`} role="dialog" aria-modal="true" aria-label={hero.name}><button className="ab-close" onClick={onClose} aria-label="Закрыть героя">×</button><div className={`ab-hero-stage ${preview?'ab-skill-preview':''}`} key={preview} style={{'--hero-color':`#${heroVisuals[hero.id].color.toString(16)}`,'--hero-rhythm':`${heroVisuals[hero.id].stride}s`} as CSSProperties}><HeroPortrait hero={hero}/>{preview>0&&<SkillPreview id={hero.id}/>}</div><div className="ab-hero-info"><small>{hero.rarity} · {roleNames[hero.role]}</small><h2>{hero.name}</h2><div className="ab-toolbar">{['Умение','Характеристики'].map(name=><button key={name} onClick={()=>setTab(name)} aria-pressed={tab===name}>{name}</button>)}</div>{tab==='Умение'?<><h3>{hero.skill.name}</h3><p>{hero.skill.description}</p><small>Целей: {hero.skill.targets} · {hero.skill.duration/1000} с.</small><button className="ab-primary" onClick={()=>setPreview(preview+1)}>Показать способность</button></>:<div className="ab-hero-stats">{[['Здоровье',hero.hp],['Атака',hero.attack],['Защита',hero.defense],['Атак/сек',(1000/hero.interval).toFixed(2)],['Дальность',hero.range],['Движение',hero.movement]].map(([name,value])=><p key={name}><span>{name}</span><strong>{value}</strong></p>)}</div>}</div></section></div>;
+}

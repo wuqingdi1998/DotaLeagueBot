@@ -39,6 +39,7 @@ export async function POST(request:Request){
           else throw new Error('Выберите пять противников');
         }
         const battle=simulate(profile.team,enemies,randomInt(0,0x100000000),action==='test'?1:stage.scale);
+        battle.chapter=stage.chapter;
         extra={battle,reward:action==='battle'?rewardStage(profile,stage.id,battle.winner===0):0};
       }
       return {profile,...extra};

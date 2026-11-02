@@ -1,6 +1,6 @@
 import { heroes, rules, starter, type Rarity } from './catalog';
 export interface Copy { count:number; first:string; last:string }
-export interface Profile { version:number; tickets:number; collection:Record<string,Copy>; team:string[];
+export interface Profile { version:number; tickets:number; collection:Record<string,Copy>; team:(string|null)[];
   cleared:number[]; unlocked:number; epic:number; legendary:number; summons:{hero:string; at:string}[] }
 export function newProfile(now=new Date().toISOString()):Profile {
   return {version:rules.version,tickets:rules.initialTickets,collection:Object.fromEntries(starter.map(id=>[id,{count:1,first:now,last:now}])),

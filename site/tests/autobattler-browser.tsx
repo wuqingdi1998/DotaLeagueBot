@@ -11,7 +11,7 @@ window.fetch=async(_input,init)=>{
   if(input?.action==='summon')extra.summoned=summon(profile,input.count,()=>.9);
   if(input?.action==='team'){validateTeam(profile,input.team);profile.team=input.team;}
   if(input?.action==='battle'){
-    const stage=stages[input.stage-1];const battle=simulate(profile.team,stage.team,17,stage.scale);
+    const stage=stages[input.stage-1];validateTeam(profile,profile.team);const battle=simulate(profile.team,stage.team,17,stage.scale);
     extra.battle=battle;extra.reward=rewardStage(profile,stage.id,battle.winner===0);
   }
   profile=structuredClone(profile);

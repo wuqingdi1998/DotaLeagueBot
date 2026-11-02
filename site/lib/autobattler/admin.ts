@@ -10,7 +10,7 @@ export function adminChange(profile:Profile,input:Record<string,unknown>){
     case 'zero':profile.tickets=0;break;
     case 'all':heroes.forEach(hero=>grantHero(profile,hero.id,now));break;
     case 'hero':if(typeof input.hero!=='string'||!heroById[input.hero])throw new Error('Неизвестный герой');grantHero(profile,input.hero,now);break;
-    case 'remove':if(typeof input.hero!=='string')throw new Error('Выберите героя');delete profile.collection[input.hero];profile.team=profile.team.filter(id=>id!==input.hero);break;
+    case 'remove':if(typeof input.hero!=='string')throw new Error('Выберите героя');delete profile.collection[input.hero];profile.team=profile.team.map(id=>id===input.hero?null:id);break;
     case 'copies':if(typeof input.hero!=='string'||!profile.collection[input.hero]||!Number.isSafeInteger(value)||value<1||value>100000)throw new Error('Проверьте героя и количество');profile.collection[input.hero].count=value;break;
     case 'collection':profile.collection=newProfile().collection;profile.team=newProfile().team;break;
     case 'unlock':if(!Number.isInteger(value)||value<1||value>rules.stageCount)throw new Error(`Этап от 1 до ${rules.stageCount}`);profile.unlocked=value;break;

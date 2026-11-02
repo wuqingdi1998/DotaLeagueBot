@@ -1,57 +1,81 @@
 import type PhaserType from 'phaser';
-import type {Battle} from '@/lib/autobattler/simulation';
-import {heroById} from '@/lib/autobattler/catalog';
+import type {Battle,Unit} from '@/lib/autobattler/simulation';
+import {heroById,stages} from '@/lib/autobattler/catalog';
+import {heroVisuals,sceneBackground,skillGlyphs} from '../model/visuals';
+type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Image;legs:PhaserType.GameObjects.Image[];label:PhaserType.GameObjects.Text;death:number};
 export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
-      class Arena extends Phaser.Scene{
-        elapsed=0; graphics!:import('phaser').GameObjects.Graphics;
-        labels:import('phaser').GameObjects.Text[]=[]; timer!:import('phaser').GameObjects.Text;
-        create(){
-          this.graphics=this.add.graphics();
-          this.timer=this.add.text(500,20,'',{fontSize:'20px',color:'#e1ecff'}).setOrigin(.5,0);
-          this.labels=battle.units.map(unit=>this.add.text(unit.x,unit.y,heroById[unit.hero].name,{fontSize:'16px',color:'#ffffff'}).setOrigin(.5));
-        }
-        update(_time:number,delta:number){
-          if(!control.current.isPaused)this.elapsed=Math.min(battle.duration,this.elapsed+Math.min(delta,200)*control.current.speed);
-          const frameIndex=this.elapsed>=battle.duration?battle.frames.length-1:Math.min(battle.frames.length-1,Math.floor(this.elapsed/200));
-          const current=battle.frames[frameIndex];
-          const next=battle.frames[Math.min(battle.frames.length-1,frameIndex+1)];
-          const fraction=Math.min(1,(this.elapsed-current.time)/200);
-          const frame={units:current.units.map((unit,index)=>({...unit,
-            x:unit.x+(next.units[index].x-unit.x)*fraction,y:unit.y+(next.units[index].y-unit.y)*fraction}))};
-          const g=this.graphics;g.clear();g.fillStyle(0x101e34);g.fillRect(0,0,1000,500);
-          g.lineStyle(1,0x30475a);for(let y=100;y<500;y+=70)g.lineBetween(20,y,980,y);
-          g.fillStyle(0x57d2c5,.08);g.fillEllipse(500,300,900,330);
-          g.fillStyle(0x263c55);for(const x of [40,140,860,960]){g.fillRect(x-18,40,36,80);g.fillTriangle(x-28,40,x,6,x+28,40);}
-          g.lineStyle(2,0x9bc6d0,.25);g.strokeEllipse(500,300,880,310);
-          this.timer.setText(`${(this.elapsed/1000).toFixed(1)} с / ${(battle.duration/1000).toFixed(1)} с`);
-          frame.units.forEach((unit,index)=>{
-            const label=this.labels[index];label.setVisible(unit.hp>0);if(unit.hp<=0)return;
-            const hero=heroById[unit.hero];const bob=Math.sin(this.elapsed/170+index)*2;
-            g.fillStyle(0x000000,.3);g.fillEllipse(unit.x,unit.y+31,48,13);
-            g.fillStyle(hero.color);g.fillTriangle(unit.x-18,unit.y+22,unit.x,unit.y-23+bob,unit.x+18,unit.y+22);
-            g.lineStyle(6,0x394660);g.lineBetween(unit.x-8,unit.y+16,unit.x-12,unit.y+32+bob);g.lineBetween(unit.x+8,unit.y+16,unit.x+12,unit.y+32-bob);
-            g.lineStyle(5,hero.color);g.lineBetween(unit.x-10,unit.y-12,unit.x-25,unit.y+8+bob);g.lineBetween(unit.x+10,unit.y-12,unit.x+22,unit.y+4+bob);
-            g.fillStyle(0xefd4bb);g.fillCircle(unit.x,unit.y-25+bob,10);
-            g.fillStyle(hero.color);g.fillTriangle(unit.x-12,unit.y-29+bob,unit.x,unit.y-45+bob,unit.x+12,unit.y-29+bob);
-            g.lineStyle(4,hero.color);g.lineBetween(unit.x+22,unit.y-25,unit.x+22,unit.y+20);
-            if(['Mage','Support'].includes(hero.role)){g.fillStyle(0xc2eaff);g.fillCircle(unit.x+22,unit.y-28,6);}
-            if(hero.role==='Tank'){g.fillStyle(0x8aadc4);g.fillRoundedRect(unit.x-30,unit.y-15,17,30,5);}
-            if(hero.role==='Marksman'){g.lineStyle(2,0xebd8ab);g.strokeEllipse(unit.x+22,unit.y-5,18,46);}
-            if(unit.shield>0){g.lineStyle(2,0x80cfff,.8);g.strokeCircle(unit.x,unit.y,33);}
-            if(unit.stunnedUntil>this.elapsed){g.fillStyle(0xffdd62);g.fillCircle(unit.x,unit.y-62,6);}
-            g.fillStyle(0x07121f);g.fillRect(unit.x-27,unit.y-49,54,7);
-            g.fillStyle(unit.side?0xf28299:0x69e1bb);g.fillRect(unit.x-27,unit.y-49,54*unit.hp/unit.maxHp,7);
-            g.fillStyle(0x859bff);g.fillRect(unit.x-27,unit.y-39,54*unit.energy/100,3);
-            label.setPosition(unit.x,unit.y+44);
-          });
-          battle.events.filter(event=>event.time<=this.elapsed&&event.time>this.elapsed-220).slice(-14).forEach(event=>{
-            const actor=frame.units.find(unit=>unit.id===event.actor)!;const target=frame.units.find(unit=>unit.id===event.target)!;
-            g.lineStyle(event.kind==='skill'?5:2,event.kind==='heal'?0x76e5a5:event.kind==='skill'?0xffdc73:0xffffff,.65);
-            g.lineBetween(actor.x,actor.y,target.x,target.y);
-            if(event.kind==='skill')g.strokeCircle(actor.x,actor.y,35+(this.elapsed-event.time)/8);
-          });
-          if(this.elapsed>=battle.duration){this.scene.pause();onFinish();}
-        }
-      }
-return Arena;
+ return class Arena extends Phaser.Scene{
+  elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;
+  preload(){const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/${['citadel','forest','temple'][(battle.chapter??stage?.chapter??1)-1]}.webp`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
+  create(){
+   this.width=this.scale.width;this.height=this.scale.height;
+   const environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height));
+   this.add.rectangle(this.width/2,this.height/2,this.width,this.height,0x05152a,.22);
+   this.actors=battle.units.map(unit=>{
+    const texture=this.textures.get(unit.hero);if(!texture.has('torso')){texture.add('torso',0,0,0,256,185);texture.add('left-leg',0,0,185,128,71);texture.add('right-leg',0,128,185,128,71);}
+    const root=this.add.container(0,0);const size=this.width<800?125:155;
+    const left=this.add.image(-size/2,-size*71/256,unit.hero,'left-leg').setOrigin(0,0).setDisplaySize(size/2,size*71/256);
+    const right=this.add.image(0,-size*71/256,unit.hero,'right-leg').setOrigin(0,0).setDisplaySize(size/2,size*71/256);
+    const body=this.add.image(-size/2,-size,unit.hero,'torso').setOrigin(0,0).setDisplaySize(size,size*185/256);
+    root.add([left,right,body]);const label=this.add.text(0,0,heroById[unit.hero].name,{fontSize:this.width<800?'18px':'17px',fontFamily:'Georgia',color:'#fff2d6',stroke:'#071323',strokeThickness:4}).setOrigin(.5);
+    return {root,body,legs:[left,right],label,death:-1};
+   });this.graphics=this.add.graphics().setDepth(2000);this.clock=this.add.text(this.width/2,25,'',{fontSize:'24px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(3000);
+  }
+  position(unit:Unit){return {x:unit.x/1000*this.width,y:this.height*.27+unit.y/500*this.height*.63};}
+  update(_time:number,delta:number){
+   if(!control.current.isPaused&&this.hitStop<=0)this.elapsed=Math.min(battle.duration,this.elapsed+Math.min(delta,150)*control.current.speed);
+   if(!control.current.isPaused)this.hitStop=Math.max(0,this.hitStop-delta*control.current.speed);
+   this.tweens.timeScale=control.current.isPaused||this.hitStop>0?0:control.current.speed;
+   if(this.elapsed>=battle.duration&&!control.current.isPaused)this.outro+=delta*control.current.speed;
+   this.clock.setText(`${Math.floor(this.elapsed/60000)}:${String(Math.floor(this.elapsed/1000)%60).padStart(2,'0')}`);
+   const frameIndex=this.elapsed>=battle.duration?battle.frames.length-1:Math.min(battle.frames.length-1,Math.floor(this.elapsed/200));
+   const current=battle.frames[frameIndex],next=battle.frames[Math.min(battle.frames.length-1,frameIndex+1)];
+   const fraction=Math.max(0,Math.min(1,(this.elapsed-current.time)/Math.max(1,next.time-current.time)));
+   const units=current.units.map((unit,index)=>({...unit,x:Phaser.Math.Linear(unit.x,next.units[index].x,fraction),y:Phaser.Math.Linear(unit.y,next.units[index].y,fraction)}));
+   for(const event of battle.events){if(event.time<=current.time||event.time>this.elapsed)continue;const target=units.find(unit=>unit.id===event.target);if(target){if(event.kind==='damage')target.hp=event.health??Math.max(0,target.hp-event.amount);if(event.kind==='heal')target.hp=event.health??Math.min(target.maxHp,target.hp+event.amount);}}
+   const g=this.graphics;g.clear();
+   const upcoming=battle.events.filter(event=>event.kind==='damage'&&event.delivery!=='dot'&&event.time>this.elapsed&&event.time<=this.elapsed+220);
+   for(const event of upcoming){const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;if(!['Mage','Marksman','Support'].includes(heroById[source.hero].role)||source.hp<=0)continue;const a=this.position(source),b=this.position(target),flight=1-(event.time-this.elapsed)/220;const x=Phaser.Math.Linear(a.x,b.x,flight),y=Phaser.Math.Linear(a.y,b.y,flight)-65;g.lineStyle(3,heroVisuals[source.hero].color);g.lineBetween(x-12*(source.side?-1:1),y,x,y);g.fillStyle(0xffe7ad);g.fillCircle(x,y,4);}
+
+   const active=battle.events.filter(event=>event.time<=this.elapsed&&event.time>this.elapsed+this.outro-750).slice(-28);
+   units.forEach((unit,index)=>{
+    const actor=this.actors[index],visual=heroVisuals[unit.hero],position=this.position(unit),time=this.elapsed+this.outro;
+    const moving=Math.hypot(unit.x-next.units[index].x,unit.y-next.units[index].y)>1;
+    const attack=[...active,...upcoming].findLast(event=>event.actor===unit.id&&event.kind==='damage'&&(event.delivery??'attack')==='attack'&&event.time>time-500);
+    const skill=active.findLast(event=>event.actor===unit.id&&event.kind==='skill');
+    const hit=active.findLast(event=>event.target===unit.id&&event.kind==='damage'&&event.amount>0&&event.time>time-220);
+    if(unit.hp<=0){if(actor.death<0)actor.death=time;const progress=Math.min(1,(time-actor.death)/650);actor.root.setAlpha(1-progress).setRotation(progress*(unit.side?-.7:.7)).setY(position.y+progress*30);actor.label.setVisible(false);return;}
+    const stride=Math.sin(time/95*visual.stride+visual.phase),direction=unit.side?-1:1;
+    const role=heroById[unit.hero].role;const isAttacking=!!attack&&unit.stunnedUntil<=time;const amplitude={Tank:.12,Fighter:.24,Assassin:.14,Marksman:.035,Mage:.06,Support:.04}[role];
+    const attackPhase=attack?Math.max(0,Math.min(1,(time-attack.time+220)/500)):1;
+    actor.root.setPosition(position.x+(isAttacking?Math.sin(attackPhase*Math.PI)*(role==='Assassin'?28:role==='Marksman'?3:12)*direction:0)+(hit?Math.sin((time-hit.time)*.06)*4:0),position.y+(moving?Math.abs(stride)*3:Math.sin(time/700+visual.phase)*2));actor.root.setDepth(position.y).setScale(direction,1);
+    actor.body.setRotation(skill&&unit.stunnedUntil<=time?Math.sin((time-skill.time)/800*Math.PI)*(.08+visual.index%5*.025):isAttacking?Math.sin(attackPhase*Math.PI)*amplitude:0);
+    actor.legs.forEach((leg,legIndex)=>leg.setRotation(moving?stride*(legIndex?-.12:.12):0));
+    actor.body.setTint(hit?0xffb6a6:0xffffff);actor.label.setPosition(position.x,position.y+17).setDepth(position.y+1);
+    const size=this.width<800?64:78,barY=position.y-(this.width<800?126:156);
+    g.fillStyle(0x050b17,.9);g.fillRoundedRect(position.x-size/2-2,barY-2,size+4,13,3);
+    g.fillStyle(unit.side?0xe98193:0x79e0b3);g.fillRect(position.x-size/2,barY,size*unit.hp/unit.maxHp,6);
+    g.fillStyle(0xe6ce83);g.fillRect(position.x-size/2,barY+8,size*unit.energy/100,2);
+    if(unit.shield>0){g.lineStyle(2,0x9ce8ff,.6);g.strokeEllipse(position.x,position.y-65,100,140);}
+    if(unit.stunnedUntil>time){g.lineStyle(2,0xffe49b);g.strokeEllipse(position.x,barY-17,30,9);for(let n=0;n<3;n++){g.fillStyle(0xffe49b);g.fillCircle(position.x+Math.cos(time/200+n*2.1)*18,barY-17+Math.sin(time/200+n*2.1)*5,3);}}
+   });
+   active.forEach(event=>{
+    const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
+    const a=this.position(source),b=this.position(target),age=this.elapsed+this.outro-event.time,progress=age/750,visual=heroVisuals[source.hero];
+    if(event.kind==='skill'){
+     const key=`skill-${event.time}-${event.actor}`;if(!this.shown.has(key)){this.shown.add(key);const rune=this.add.text(a.x,a.y-95,skillGlyphs[visual.index],{fontSize:'68px',color:`#${visual.color.toString(16)}`,stroke:'#06182e',strokeThickness:2}).setOrigin(.5).setDepth(2500);this.tweens.add({targets:rune,scale:1.7,alpha:0,angle:visual.index%2?35:-35,duration:750,onComplete:()=>rune.destroy()});}
+
+     const radius=25+progress*(55+visual.index%5*13);g.lineStyle(3,visual.color,1-progress);
+     if(visual.index%4===0)g.strokeEllipse(a.x,a.y-40,radius*2,radius);else if(visual.index%4===1){for(let i=0;i<5;i++){const angle=i*Math.PI*.4+progress*4;g.lineBetween(a.x,a.y-50,a.x+Math.cos(angle)*radius,a.y-50+Math.sin(angle)*radius);}}else if(visual.index%4===2)g.strokeCircle(a.x,a.y-65,radius);else{for(let i=0;i<7;i++)g.strokeCircle(a.x+Math.sin(i*2+age/150)*radius,a.y-60+Math.cos(i*2)*radius,5+progress*8);}
+    }else if(event.amount>0){
+     const color=event.kind==='heal'?0x89ffbd:visual.color;
+     if(age<200&&event.delivery!=='dot'){g.lineStyle(3,color,1-age/220);g.lineBetween(a.x,a.y-65,b.x,b.y-65);g.fillStyle(color);g.fillCircle(b.x,b.y-65,6+age/50);}
+     for(let i=0;i<5;i++){g.fillStyle(color,1-progress);g.fillCircle(b.x+Math.cos(i*1.3)*progress*36,b.y-65+Math.sin(i*1.3)*progress*36,Math.max(1,4*(1-progress)));}
+     const key=`${event.time}-${event.actor}-${event.target}-${event.kind}`;
+     if(!this.shown.has(key)){this.shown.add(key);if(event.kind==='damage'&&event.amount>250){this.cameras.main.shake(90,.002);this.hitStop=45;}const number=this.add.text(b.x,b.y-100,String(Math.round(event.amount)),{fontSize:event.amount>250?'26px':'20px',color:event.kind==='heal'?'#98ffd1':'#fff0cd',stroke:'#162039',strokeThickness:4}).setOrigin(.5).setDepth(10000);this.tweens.add({targets:number,y:number.y-35,alpha:0,duration:650,onComplete:()=>number.destroy()});}
+    }
+   });
+   if(this.elapsed>=battle.duration&&this.outro>=750){this.scene.pause();onFinish();}
+  }
+ };
 }

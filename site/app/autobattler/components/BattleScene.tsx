@@ -7,14 +7,16 @@ export default function BattleScene({battle,onFinish}:{battle:Battle;onFinish:()
   const [isPaused,setPaused]=useState(false);const [speed,setSpeed]=useState(1);const [error,setError]=useState('');
   useEffect(()=>{control.current={isPaused,speed};},[isPaused,speed]);
   useEffect(()=>{
-    let isDisposed=false;let game:import('phaser').Game|undefined;
+    let isDisposed=false;let game:import('phaser').Game|undefined;let observer:ResizeObserver|undefined;
     import('phaser').then(({default:Phaser})=>{
       if(isDisposed||!host.current)return;
       const Arena=createArena(Phaser,battle,control,onFinish);
-      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current,width:1000,height:500,backgroundColor:'#101e34',
+      const isPortrait=host.current.clientWidth<650;
+      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current,width:isPortrait?600:1000,height:isPortrait?800:600,backgroundColor:'#101e34',
         scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},scene:Arena,audio:{noAudio:true},render:{antialias:true}});
+      observer=new ResizeObserver(()=>game?.scale.refresh());observer.observe(host.current);
     }).catch(()=>setError('Не удалось загрузить арену. Обновите страницу.'));
-    return()=>{isDisposed=true;game?.destroy(true);};
+    return()=>{isDisposed=true;observer?.disconnect();game?.destroy(true);};
   },[battle,onFinish]);
-  return <section><div className="ab-toolbar"><button onClick={()=>setPaused(!isPaused)}>{isPaused?'Продолжить':'Пауза'}</button><button onClick={()=>setSpeed(speed===1?2:1)}>Скорость ×{speed}</button><span>Способности применяются автоматически · Звука нет</span></div><p className="ab-rotate">Для более крупного поля поверните телефон горизонтально.</p><div ref={host} className="ab-arena"/>{error&&<p role="alert">{error}</p>}<p>Лимит – 90 секунд. При лимите побеждает команда с большей суммой долей здоровья; равенство – ничья.</p></section>;
+  return <section><div className="ab-toolbar"><button onClick={()=>setPaused(!isPaused)}>{isPaused?'Продолжить':'Пауза'}</button><button onClick={()=>setSpeed(speed===1?2:1)}>Скорость ×{speed}</button><strong>АВТОБОЙ · 5 × 5</strong></div><div ref={host} className="ab-arena"/>{error&&<p role="alert">{error}</p>}</section>;
 }

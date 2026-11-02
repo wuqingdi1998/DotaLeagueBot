@@ -52,6 +52,7 @@ describe('authoritative autobattler',()=>{
   it('awards a stage once and validates ownership and duplicate slots',()=>{
     const profile=newProfile();expect(rewardStage(profile,1,false)).toBe(0);expect(rewardStage(profile,1,true)).toBe(2);expect(rewardStage(profile,1,true)).toBe(0);expect(profile.unlocked).toBe(2);
     expect(()=>validateTeam(profile,starter)).not.toThrow();expect(()=>validateTeam(profile,Array(5).fill('bastion'))).toThrow();expect(()=>validateTeam(profile,['orion',...starter.slice(1)])).toThrow();
+    adminChange(profile,{command:'remove',hero:'iskra'});expect(profile.team).toEqual(['bastion',null,'veya','sokol','mirra']);
     adminChange(profile,{command:'campaign'});expect(profile.cleared).toEqual([]);expect(profile.unlocked).toBe(1);
     expect(()=>adminChange(profile,{command:'reset'})).toThrow();
   });

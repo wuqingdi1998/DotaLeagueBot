@@ -1,42 +1,37 @@
 'use client';
-import {useCallback,useState} from 'react';
-import type {Battle} from '@/lib/autobattler/simulation';
-import {heroes,heroById,stages,rules,type Role} from '@/lib/autobattler/catalog';
+import {useCallback,useState,useEffect} from 'react';
+import {heroById,stages,type Hero} from '@/lib/autobattler/catalog';
 import {useGame} from '../hooks/useGame';
-import HeroCard,{HeroPortrait,roleNames} from './HeroCard';
-import HeroComparison from './HeroComparison';
+import {HeroPortrait} from './HeroCard';
+import HeroProfile from './HeroProfile';
+import HeroGallery from '../sections/HeroGallery';
+import TeamScene from '../sections/TeamScene';
+import CampaignMap from '../sections/CampaignMap';
+import SummonScene,{pendingKey} from '../sections/SummonScene';
 import BattleScene from './BattleScene';
 import DeveloperPanel from '../admin/DeveloperPanel';
-const tabs=['Главная','Кампания','Герои','Команда','Призыв'];
+import type {GameResponse} from '../services/client';
+const navigation=[['Главная','⌂'],['Кампания','⚑'],['Герои','♜'],['Команда','♟'],['Призыв','✦']];
 export default function Game(){
-  const {data,error,isBusy,act}=useGame();const [tab,setTab]=useState('Главная');
-  const [selected,setSelected]=useState<string>();const [role,setRole]=useState('Все');const [sort,setSort]=useState('Каталог');
-  const [team,setTeam]=useState<string[]>();const [slot,setSlot]=useState(0);const [isFinished,setFinished]=useState(false);const [replay,setReplay]=useState(0);
-  const [savedBattle,setSavedBattle]=useState<Battle>();
-  const displayBattle=savedBattle??data?.battle;
-  const finish=useCallback(()=>setFinished(true),[]);
-  async function run(input:Record<string,unknown>){const result=await act(input);if(result?.battle){setSavedBattle(undefined);setFinished(false);setTab('Бой');setReplay(value=>value+1);}return result;}
-  const profile=data?.profile;const lineup=team??profile?.team??[];
-  const hero=selected?heroById[selected]:undefined;
-  return <main className="ab-game"><header className="ab-header"><div><p>LSE · ЭКСПЕРИМЕНТАЛЬНАЯ ИГРА</p><h1>Heroes <span>Compendium</span></h1><p>Соберите отряд. Откройте свою легенду.</p></div><strong className="ab-tickets">✦ {profile?.tickets??'…'} билетов</strong></header>
-    <nav className="ab-toolbar" aria-label="Разделы игры">{[...tabs,...(data?.isAdmin?['Разработчик']:[])].map(name=><button aria-current={tab===name?'page':undefined} key={name} onClick={()=>setTab(name)}>{name}</button>)}</nav>
-    {error&&<p role="alert" className="ab-error">{error} <button onClick={()=>void act()}>Обновить данные</button></p>}
-    {!profile&&!error&&<p role="status">Загружаем ваш отряд…</p>}
-    {profile&&<fieldset disabled={isBusy} className="ab-content"><legend className="ab-sr">Игровые действия</legend>
-      {tab==='Главная'&&<section className="ab-panel ab-welcome"><p>ВАШ ПУТЬ НАЧИНАЕТСЯ ЗДЕСЬ</p><h2>Пять героев.<br/>Одна команда.</h2><p>Получайте героев → выбирайте позиции → побеждайте в кампании → призывайте новых союзников.</p><div className="ab-toolbar"><button onClick={()=>setTab('Кампания')}>Продолжить кампанию · {profile.unlocked}/{stages.length}</button><button onClick={()=>setTab('Команда')}>Мой отряд</button></div><div className="ab-grid">{profile.team.map(id=><HeroCard key={id} hero={heroById[id]} count={profile.collection[id]?.count??0} onClick={()=>setSelected(id)}/>)}</div><p>Открыто {Object.keys(profile.collection).length}/{heroes.length} героев · Пройдено {profile.cleared.length}/{stages.length} этапов. Графика временная, оригинальная.</p></section>}
-      {tab==='Кампания'&&<section><h2>Кампания</h2><p>Первое прохождение: +{rules.reward} билета. Повторные бои без наград.</p>{Array.from(new Set(stages.map(stage=>stage.chapter))).map(chapter=><section className="ab-panel" key={chapter}><h3>Глава {chapter} · {stages.find(stage=>stage.chapter===chapter)?.name}</h3><div className="ab-stage-grid">{stages.filter(stage=>stage.chapter===chapter).map(stage=><article key={stage.id}><h3>{stage.id} · {profile.cleared.includes(stage.id)?'Пройден':stage.id<=profile.unlocked?'Открыт':'Закрыт'}</h3><p>{stage.team.map(id=>heroById[id].name).join(' · ')}</p><button disabled={stage.id>profile.unlocked} onClick={()=>void run({action:'battle',stage:stage.id})}>В бой</button></article>)}</div></section>)}</section>}
-      {(tab==='Герои'||tab==='Команда')&&<section><h2>{tab==='Команда'?'Расстановка отряда':'Коллекция героев'}</h2>
-        {tab==='Команда'&&<><p>Выберите позицию, затем героя в коллекции. Позиции 1–2 – передняя линия, 3–5 – задняя.</p><div className="ab-toolbar">{Array.from({length:5},(_,i)=><button key={i} aria-pressed={slot===i} onClick={()=>setSlot(i)}>{i+1}. {heroById[lineup[i]]?.name??'Пусто'}</button>)}<button onClick={()=>setTeam(lineup.filter((_,i)=>i!==slot))}>Убрать выбранного</button></div><p>Примерная сила: {lineup.reduce((sum,id)=>sum+heroById[id].hp+heroById[id].attack*10,0)}</p><button disabled={lineup.length!==5||new Set(lineup).size!==5} onClick={()=>void run({action:'team',team:lineup})}>Сохранить состав</button></>}
-        <div className="ab-toolbar"><label>Класс <select value={role} onChange={event=>setRole(event.target.value)}><option>Все</option>{Object.entries(roleNames).map(([id,name])=><option value={id} key={id}>{name}</option>)}</select></label><label>Сортировка <select value={sort} onChange={event=>setSort(event.target.value)}><option>Каталог</option><option>Имя</option><option>Полученные</option></select></label></div>
-        {tab==='Герои'&&<HeroComparison/>}<div className="ab-grid">{heroes.filter(hero=>role==='Все'||hero.role===role as Role).toSorted((a,b)=>sort==='Имя'?a.name.localeCompare(b.name):sort==='Полученные'?(profile.collection[b.id]?.count??0)-(profile.collection[a.id]?.count??0):0).map(hero=><HeroCard key={hero.id} hero={hero} count={profile.collection[hero.id]?.count??0} onClick={()=>setSelected(hero.id)}/>)}</div>
-      </section>}
-      {tab==='Призыв'&&<section className="ab-panel ab-summon"><p>ПОРТАЛ СОЮЗНИКОВ</p><h2>Кто ответит на зов?</h2><div className="ab-orb">✦</div><p>Rare – 80% · Epic – 18% · Legendary – 2%</p><p>Epic или выше не позднее каждого {rules.epicPity}-го призыва; Legendary – {rules.legendaryPity}-го. Получение сбрасывает соответствующую гарантию.</p><p>До гарантии Epic+: {rules.epicPity-profile.epic} · Legendary: {rules.legendaryPity-profile.legendary}</p><div className="ab-toolbar">{[1,10].map(count=><button key={count} disabled={profile.tickets<count} onClick={()=>void run({action:'summon',count})}>Призвать {count} · {count} бил.</button>)}</div>{data.summoned&&<div className="ab-grid ab-reveal">{data.summoned.map((id,i)=><HeroCard key={`${id}-${i}`} hero={heroById[id]} count={profile.collection[id].count} onClick={()=>setSelected(id)}/>)}</div>}</section>}
-      {tab==='Бой'&&displayBattle&&<><BattleScene key={replay} battle={displayBattle} onFinish={finish}/>{isFinished&&<section className="ab-panel"><h2>{displayBattle.winner===0?'Победа':displayBattle.winner===1?'Поражение':'Ничья'}</h2><p>Награда: {data.reward??0} билетов. Результат уже сохранён сервером.</p><button onClick={()=>{setFinished(false);setReplay(value=>value+1);}}>Повторить запись</button><button onClick={()=>setTab('Кампания')}>К кампании</button><div className="ab-table"><table><thead><tr><th>Герой</th><th>Урон</th><th>Получено</th><th>Лечение</th><th>Способности</th></tr></thead><tbody>{displayBattle.units.map(unit=><tr key={unit.id}><td>{unit.side?'Враг: ':''}{heroById[unit.hero].name}</td><td>{Math.round(unit.damage)}</td><td>{Math.round(unit.received)}</td><td>{Math.round(unit.healing)}</td><td>{unit.skills}</td></tr>)}</tbody></table></div><details><summary>Журнал событий</summary><pre>{displayBattle.events.map(event=>`${event.time/1000}с ${event.actor} → ${event.target}: ${event.kind} ${event.amount}`).join('\n')}</pre></details></section>}</>}
-      {tab==='Разработчик'&&data.isAdmin&&<DeveloperPanel profile={profile} act={input=>void run(input)}/>}
-      {tab==='Разработчик'&&data.isAdmin&&<section className="ab-panel"><button onClick={()=>void run({action:'statistics'})}>Проверить 100000 призывов без наград</button>{data.statistics&&<p>Выборка: {data.statistics.count} · Seed: {data.statistics.seed} · {Object.entries(data.statistics.totals).map(([rarity,count])=>`${rarity}: ${count} (${(100*count/data.statistics!.count).toFixed(2)}%)`).join(' · ')}</p>}</section>}
-      {tab==='Главная'&&data.history&&<section className="ab-panel"><h2>Сохранённые бои</h2>{data.history.filter(entry=>entry.result.battle).map(entry=><button key={entry.operation_id} onClick={()=>{setSavedBattle(entry.result.battle);setFinished(false);setTab('Бой');setReplay(value=>value+1);}}>Повтор записи · {new Date(entry.created_at).toLocaleString('ru-RU')}</button>)}</section>}
-    </fieldset>}
-    {hero&&<div className="ab-modal-backdrop" onClick={()=>setSelected(undefined)}><section className="ab-modal" role="dialog" aria-modal="true" aria-label={hero.name} onClick={event=>event.stopPropagation()}><button onClick={()=>setSelected(undefined)}>Закрыть</button><HeroPortrait hero={hero}/><h2>{hero.name}</h2><p>{hero.rarity} · {roleNames[hero.role]}</p><p>Здоровье: {hero.hp} · Атака: {hero.attack} · Защита: {hero.defense}</p><p>Атак/сек: {(1000/hero.interval).toFixed(2)} · Дальность: {hero.range} · Передвижение: {hero.movement}</p><p>Обычная атака: одиночный урон с учётом защиты. Каждая атака даёт 20 энергии.</p><h3>{hero.skill.name}</h3><p>{hero.skill.description} Целей: {hero.skill.targets}. Сила: {hero.skill.power}. Длительность: {hero.skill.duration/1000} с.</p>{tab==='Команда'&&profile?.collection[hero.id]&&<button onClick={()=>{const next=[...lineup];const previous=next.indexOf(hero.id);if(previous>=0)[next[previous],next[slot]]=[next[slot],next[previous]];else next[slot]=hero.id;setTeam(next.filter(Boolean));setSelected(undefined);}}>На позицию {slot+1}</button>}</section></div>}
-    {isBusy&&<p className="ab-saving" role="status">Сохраняем действие…</p>}
-  </main>;
+ const {data,error,isBusy,act}=useGame();const [tab,setTab]=useState('Главная');const [selected,setSelected]=useState<Hero>();const [isFinished,setFinished]=useState(false);const [battleData,setBattleData]=useState<GameResponse>();const [replay,setReplay]=useState(0);
+ const [isRevealing,setRevealing]=useState(false);
+ useEffect(()=>{if(localStorage.getItem(pendingKey)){const timer=setTimeout(()=>{setTab('Призыв');setRevealing(true);},0);return()=>clearTimeout(timer);}},[]);
+ const finish=useCallback(()=>setFinished(true),[]);
+ async function run(input:Record<string,unknown>){const result=await act(input);if(result?.battle){setBattleData(result);setFinished(false);setReplay(value=>value+1);setTab('Бой');}return result;}
+ const profile=data?.profile;const lead=profile?.collection.bastion?heroById.bastion:profile?heroById[Object.keys(profile.collection)[0]]:undefined;
+ return <main className="ab-game"><div className="ab-world"/><header className="ab-header"><button className="ab-brand" disabled={isRevealing} onClick={()=>setTab('Главная')}><small>LINKEN’S SPHERE</small><strong>HEROES <span>COMPENDIUM</span></strong></button><div className="ab-header-actions"><strong className="ab-tickets">✦ {profile?.tickets??'…'} билетов</strong>{data?.isAdmin&&<button aria-label="Разработчик" disabled={isRevealing} onClick={()=>setTab('Разработчик')}>⚙</button>}<a href="/" aria-label="Вернуться на сайт LSE">×</a></div></header>
+ {error&&<div className="ab-error" role="alert">{error}<button onClick={()=>void act()}>Обновить данные</button></div>}
+ <div className={`ab-scene ab-scene-${tab}`} key={tab}>
+ {!profile?<div className="ab-loading">✦<p>Открываем врата мира…</p></div>:<>
+ {tab==='Главная'&&<section className="ab-home"><div className="ab-home-copy"><small>ХРОНИКИ ИЗУМРУДНОЙ ЦИТАДЕЛИ</small><h1>Ваша легенда<br/><em>начинается здесь</em></h1><p>Соберите союзников. Пробудите силу сферы.</p></div>{lead&&<div className="ab-home-hero"><HeroPortrait hero={lead}/></div>}<div className="ab-home-cta"><span>Кампания · {profile.cleared.length}/{stages.length}</span><button className="ab-primary" onClick={()=>setTab('Кампания')}>Продолжить приключение <span>➜</span></button><button onClick={()=>setTab('Команда')}>Мой отряд</button></div></section>}
+ {tab==='Герои'&&<section className="ab-collection"><div className="ab-scene-heading"><small>ЗАЛ СОЮЗНИКОВ</small><h2>Герои</h2></div><HeroGallery profile={profile} onSelect={setSelected}/></section>}
+ {tab==='Команда'&&<TeamScene profile={profile} onSave={team=>run({action:'team',team})}/>}
+ {tab==='Кампания'&&<CampaignMap profile={profile} onBattle={stage=>void run({action:'battle',stage})}/>}
+ {tab==='Призыв'&&<SummonScene data={data} onSummon={run} onLockChange={setRevealing}/>}
+ {tab==='Бой'&&battleData?.battle&&<section className="ab-battle-scene"><BattleScene key={replay} battle={battleData.battle} onFinish={finish}/>{isFinished&&<div className={`ab-battle-result ${battleData.battle.winner===0?'is-victory':'is-defeat'}`}><small>СРАЖЕНИЕ ЗАВЕРШЕНО</small><h2>{battleData.battle.winner===0?'ПОБЕДА':battleData.battle.winner===1?'ПОРАЖЕНИЕ':'НИЧЬЯ'}</h2><p>✦ {battleData.reward??0} билетов · Результат сохранён</p><button className="ab-primary" onClick={()=>setTab('Кампания')}>К кампании</button><button onClick={()=>{setFinished(false);setReplay(value=>value+1);}}>Повторить запись</button></div>}</section>}
+ {tab==='Разработчик'&&data.isAdmin&&<div className="ab-admin-scene"><DeveloperPanel profile={profile} data={data} act={input=>void run(input)} onReplay={entry=>{setBattleData({profile,...entry.result});setFinished(false);setReplay(value=>value+1);setTab('Бой');}}/></div>}
+ </>}
+ </div><nav className="ab-navigation" aria-label="Разделы игры">{navigation.map(([name,icon])=><button key={name} aria-label={name} disabled={isRevealing} aria-current={tab===name?'page':undefined} onClick={()=>setTab(name)}><span>{icon}</span>{name}</button>)}</nav>
+ {selected&&<HeroProfile hero={selected} onClose={()=>setSelected(undefined)}/>}{isBusy&&<div className="ab-saving" role="status">Связь со сферой…</div>}
+ </main>;
 }
