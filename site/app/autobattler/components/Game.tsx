@@ -13,25 +13,25 @@ import DeveloperPanel from '../admin/DeveloperPanel';
 import type {GameResponse} from '../services/client';
 const navigation=[['Главная','⌂'],['Кампания','⚑'],['Герои','♜'],['Команда','♟'],['Призыв','✦']];
 export default function Game(){
- const {data,error,isBusy,act}=useGame();const [tab,setTab]=useState('Главная');const [selected,setSelected]=useState<Hero>();const [isFinished,setFinished]=useState(false);const [battleData,setBattleData]=useState<GameResponse>();const [replay,setReplay]=useState(0);
+ const {data,error,isBusy,act}=useGame();const profile=data?.profile;const [tab,setTab]=useState('Главная');const [selected,setSelected]=useState<Hero>();const [isFinished,setFinished]=useState(false);const [battleData,setBattleData]=useState<GameResponse>();const [replay,setReplay]=useState(0);const [preparedStage,setPreparedStage]=useState<number>();
  const [isRevealing,setRevealing]=useState(false);
  useEffect(()=>{if(localStorage.getItem(pendingKey)){const timer=setTimeout(()=>{setTab('Призыв');setRevealing(true);},0);return()=>clearTimeout(timer);}},[]);
  const finish=useCallback(()=>setFinished(true),[]);
  async function run(input:Record<string,unknown>){const result=await act(input);if(result?.battle){setBattleData(result);setFinished(false);setReplay(value=>value+1);setTab('Бой');}return result;}
- const profile=data?.profile;const lead=profile?.collection.bastion?heroById.bastion:profile?heroById[Object.keys(profile.collection)[0]]:undefined;
+ const lead=profile?.collection.bastion?heroById.bastion:profile?heroById[Object.keys(profile.collection)[0]]:undefined;
  return <main className="ab-game"><div className="ab-world"/><header className="ab-header"><button className="ab-brand" disabled={isRevealing} onClick={()=>setTab('Главная')}><small>LINKEN’S SPHERE</small><strong>HEROES <span>COMPENDIUM</span></strong></button><div className="ab-header-actions"><strong className="ab-tickets">✦ {profile?.tickets??'…'} билетов</strong>{data?.isAdmin&&<button aria-label="Разработчик" disabled={isRevealing} onClick={()=>setTab('Разработчик')}>⚙</button>}<a href="/" aria-label="Вернуться на сайт LSE">×</a></div></header>
  {error&&<div className="ab-error" role="alert">{error}<button onClick={()=>void act()}>Обновить данные</button></div>}
  <div className={`ab-scene ab-scene-${tab}`} key={tab}>
  {!profile?<div className="ab-loading">✦<p>Открываем врата мира…</p></div>:<>
  {tab==='Главная'&&<section className="ab-home"><div className="ab-home-copy"><small>ХРОНИКИ ИЗУМРУДНОЙ ЦИТАДЕЛИ</small><h1>Ваша легенда<br/><em>начинается здесь</em></h1><p>Соберите союзников. Пробудите силу сферы.</p></div>{lead&&<div className="ab-home-hero"><HeroPortrait hero={lead}/></div>}<div className="ab-home-cta"><span>Кампания · {profile.cleared.length}/{stages.length}</span><button className="ab-primary" onClick={()=>setTab('Кампания')}>Продолжить приключение <span>➜</span></button><button onClick={()=>setTab('Команда')}>Мой отряд</button></div></section>}
  {tab==='Герои'&&<section className="ab-collection"><div className="ab-scene-heading"><small>ЗАЛ СОЮЗНИКОВ</small><h2>Герои</h2></div><HeroGallery profile={profile} onSelect={setSelected}/></section>}
- {tab==='Команда'&&<TeamScene profile={profile} onSave={team=>run({action:'team',team})}/>}
- {tab==='Кампания'&&<CampaignMap profile={profile} onBattle={stage=>void run({action:'battle',stage})}/>}
+ {tab==='Команда'&&<TeamScene profile={profile} stageId={preparedStage??profile.unlocked} onSave={team=>run({action:'team',team})} onBattle={stage=>void run({action:'battle',stage})}/>}
+ {tab==='Кампания'&&<CampaignMap profile={profile} onBattle={stage=>{setPreparedStage(stage);setTab('Команда');}}/>}
  {tab==='Призыв'&&<SummonScene data={data} onSummon={run} onLockChange={setRevealing}/>}
  {tab==='Бой'&&battleData?.battle&&<section className="ab-battle-scene"><BattleScene key={replay} battle={battleData.battle} onFinish={finish}/>{isFinished&&<div className={`ab-battle-result ${battleData.battle.winner===0?'is-victory':'is-defeat'}`}><small>СРАЖЕНИЕ ЗАВЕРШЕНО</small><h2>{battleData.battle.winner===0?'ПОБЕДА':battleData.battle.winner===1?'ПОРАЖЕНИЕ':'НИЧЬЯ'}</h2><p>✦ {battleData.reward??0} билетов · Результат сохранён</p><button className="ab-primary" onClick={()=>setTab('Кампания')}>К кампании</button><button onClick={()=>{setFinished(false);setReplay(value=>value+1);}}>Повторить запись</button></div>}</section>}
  {tab==='Разработчик'&&data.isAdmin&&<div className="ab-admin-scene"><DeveloperPanel profile={profile} data={data} act={input=>void run(input)} onReplay={entry=>{setBattleData({profile,...entry.result});setFinished(false);setReplay(value=>value+1);setTab('Бой');}}/></div>}
  </>}
  </div><nav className="ab-navigation" aria-label="Разделы игры">{navigation.map(([name,icon])=><button key={name} aria-label={name} disabled={isRevealing} aria-current={tab===name?'page':undefined} onClick={()=>setTab(name)}><span>{icon}</span>{name}</button>)}</nav>
- {selected&&<HeroProfile hero={selected} onClose={()=>setSelected(undefined)}/>}{isBusy&&<div className="ab-saving" role="status">Связь со сферой…</div>}
+ {selected&&<HeroProfile hero={selected} onChange={setSelected} onClose={()=>setSelected(undefined)}/>}{isBusy&&<div className="ab-saving" role="status">Связь со сферой…</div>}
  </main>;
 }

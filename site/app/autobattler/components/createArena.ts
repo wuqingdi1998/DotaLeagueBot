@@ -12,12 +12,12 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
    const environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height));
    this.add.rectangle(this.width/2,this.height/2,this.width,this.height,0x05152a,.22);
    this.actors=battle.units.map(unit=>{
-    const texture=this.textures.get(unit.hero);if(!texture.has('torso')){texture.add('torso',0,0,0,256,185);texture.add('left-leg',0,0,185,128,71);texture.add('right-leg',0,128,185,128,71);}
-    const root=this.add.container(0,0);const size=this.width<800?125:155;
-    const left=this.add.image(-size/2,-size*71/256,unit.hero,'left-leg').setOrigin(0,0).setDisplaySize(size/2,size*71/256);
-    const right=this.add.image(0,-size*71/256,unit.hero,'right-leg').setOrigin(0,0).setDisplaySize(size/2,size*71/256);
-    const body=this.add.image(-size/2,-size,unit.hero,'torso').setOrigin(0,0).setDisplaySize(size,size*185/256);
-    root.add([left,right,body]);const label=this.add.text(0,0,heroById[unit.hero].name,{fontSize:this.width<800?'18px':'17px',fontFamily:'Georgia',color:'#fff2d6',stroke:'#071323',strokeThickness:4}).setOrigin(.5);
+    const texture=this.textures.get(unit.hero);if(!texture.has('torso')){texture.add('torso',0,0,0,512,350);texture.add('left-leg',0,0,350,256,162);texture.add('right-leg',0,256,350,256,162);}
+    const root=this.add.container(0,0);const size=this.width<800?104:146;
+    const left=this.add.image(-size/2,-size*162/512,unit.hero,'left-leg').setOrigin(0,0).setDisplaySize(size/2,size*162/512);
+    const right=this.add.image(0,-size*162/512,unit.hero,'right-leg').setOrigin(0,0).setDisplaySize(size/2,size*162/512);
+    const body=this.add.image(-size/2,-size,unit.hero,'torso').setOrigin(0,0).setDisplaySize(size,size*350/512);
+    root.add([left,right,body]);const label=this.add.text(0,0,heroById[unit.hero].name,{fontSize:this.width<800?'12px':'13px',fontFamily:'Georgia',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5);
     return {root,body,legs:[left,right],label,death:-1};
    });this.graphics=this.add.graphics().setDepth(2000);this.clock=this.add.text(this.width/2,25,'',{fontSize:'24px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(3000);
   }
@@ -51,7 +51,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     actor.root.setPosition(position.x+(isAttacking?Math.sin(attackPhase*Math.PI)*(role==='Assassin'?28:role==='Marksman'?3:12)*direction:0)+(hit?Math.sin((time-hit.time)*.06)*4:0),position.y+(moving?Math.abs(stride)*3:Math.sin(time/700+visual.phase)*2));actor.root.setDepth(position.y).setScale(direction,1);
     actor.body.setRotation(skill&&unit.stunnedUntil<=time?Math.sin((time-skill.time)/800*Math.PI)*(.08+visual.index%5*.025):isAttacking?Math.sin(attackPhase*Math.PI)*amplitude:0);
     actor.legs.forEach((leg,legIndex)=>leg.setRotation(moving?stride*(legIndex?-.12:.12):0));
-    actor.body.setTint(hit?0xffb6a6:0xffffff);actor.label.setPosition(position.x,position.y+17).setDepth(position.y+1);
+    actor.body.setTint(hit?0xffb6a6:0xffffff);actor.label.setPosition(position.x,position.y+30).setDepth(1900);
     const size=this.width<800?64:78,barY=position.y-(this.width<800?126:156);
     g.fillStyle(0x050b17,.9);g.fillRoundedRect(position.x-size/2-2,barY-2,size+4,13,3);
     g.fillStyle(unit.side?0xe98193:0x79e0b3);g.fillRect(position.x-size/2,barY,size*unit.hp/unit.maxHp,6);

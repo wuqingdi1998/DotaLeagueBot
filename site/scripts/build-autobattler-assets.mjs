@@ -1,26 +1,23 @@
 import sharp from 'sharp';
-import {readFileSync,writeFileSync,existsSync,mkdirSync} from 'node:fs';
+import {readFileSync,writeFileSync,mkdirSync,statSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 const root=new URL('../public/autobattler/',import.meta.url);
 const path=name=>fileURLToPath(new URL(name,root));
 const catalog=readFileSync(new URL('../lib/autobattler/catalog.ts',import.meta.url),'utf8');
 const ids=[...catalog.matchAll(/^  \['([^']+)','[^']+','(?:Tank|Fighter|Assassin|Mage|Marksman|Support)'/gm)].map(match=>match[1]);
-const manifest=JSON.parse(readFileSync(path('hero-visuals.json'),'utf8'));
 if(!ids.length||new Set(ids).size!==ids.length)throw new Error('Invalid hero IDs');
-mkdirSync(path('portraits'),{recursive:true});
-async function save(name,pipeline,quality=94){writeFileSync(path(name),await pipeline.webp({quality}).toBuffer());}
 const transparent={r:0,g:0,b:0,alpha:0};
+for(const directory of ['heroes','portraits','environments'])mkdirSync(path(directory),{recursive:true});
+async function save(name,pipeline,quality=92){writeFileSync(path(name),await pipeline.webp({quality,effort:6,alphaQuality:100}).toBuffer());}
 for(const id of ids){
- const original=existsSync(path(`sources/${id}.png`))?path(`sources/${id}.png`):id==='bastion'?path('bastion-source.png'):undefined;
- const frame=manifest[id]?.frame;
- if(!original&&(!Number.isInteger(frame)||frame<0||frame>=24))throw new Error(`Missing original artwork for ${id}`);
- const buffer=original?readFileSync(original):await sharp(path('heroes-source.png')).extract({left:frame%6*256,top:Math.floor(frame/6)*256,width:256,height:256}).png().toBuffer();
- const size=await sharp(buffer).metadata();const portraitSize=Math.min(768,Math.max(size.width,size.height));
- await save(`heroes/${id}.webp`,sharp(buffer).resize(256,256,{fit:'contain',background:transparent}));
- await save(`portraits/${id}.webp`,sharp(buffer).resize(portraitSize,portraitSize,{fit:'contain',background:transparent}));
+ const source=path(`sources/${id}.webp`);const meta=await sharp(source).metadata();
+ if(!meta.hasAlpha||!meta.width||!meta.height)throw new Error(`Expected transparent full-body art for ${id}`);
+ await save(`heroes/${id}.webp`,sharp(source).resize(512,512,{fit:'contain',background:transparent}),94);
+ const side=Math.min(meta.width,meta.height);
+ await save(`portraits/${id}.webp`,sharp(source).extract({left:Math.floor((meta.width-side)/2),top:0,width:side,height:side}).resize(512,512),94);
 }
-for(const name of ['citadel','forest','temple'])await save(`${name}.webp`,sharp(path(`${name}-source.png`)),90);
-// Keep the published first-version URL valid for already open browsers.
+for(const name of ['citadel','forest','temple'])await save(`${name}.webp`,sharp(path(`environments/${name}-source.webp`)).resize({width:1600,withoutEnlargement:true}),90);
+await save('altar.webp',sharp(path('environments/shrine-source.webp')).resize({width:1100,withoutEnlargement:true}),92);
 writeFileSync(path('bastion-portrait.webp'),readFileSync(path('portraits/bastion.webp')));
-await save('altar.webp',sharp(path('altar-source.png')).resize({width:768}));
-console.log(`${ids.length} hero portraits and combat textures, three environments and altar prepared`);
+const total=ids.reduce((sum,id)=>sum+statSync(path(`heroes/${id}.webp`)).size+statSync(path(`portraits/${id}.webp`)).size,0);
+console.log(`${ids.length} original hero portraits/full-body images, three environments and altar prepared (${Math.round(total/1024/1024)} MB)`);
