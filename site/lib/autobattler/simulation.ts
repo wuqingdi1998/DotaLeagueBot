@@ -1,7 +1,7 @@
 import { heroById, rules, type Hero } from './catalog';
 export interface Unit { id:string; hero:string; side:number; x:number; y:number; hp:number; maxHp:number;
   energy:number; shield:number; shieldUntil:number; stunnedUntil:number; immuneUntil:number; hasteUntil:number;
-  weakUntil:number; poisonUntil:number; poisonPower:number; nextAttack:number; nextSkill:number;
+  weakUntil:number; poisonUntil:number; poisonPower:number; poisonSource:string; nextAttack:number; nextSkill:number;
   damage:number; received:number; healing:number; skills:number }
 export interface Battle { version:number; seed:number; frames:{time:number; units:Unit[]}[];
   events:{time:number; actor:string; target:string; kind:string; amount:number}[];
@@ -15,7 +15,7 @@ export function simulate(left:string[],right:string[],seed:number,scale=1):Battl
     id:`${side}-${position}`,hero,side,x:side===0?(position<2?260:130):(position<2?740:870),
     y:position<2?180+position*150:120+(position-2)*140,hp:Math.round(heroById[hero].hp*(side?scale:1)),
     maxHp:Math.round(heroById[hero].hp*(side?scale:1)),energy:0,shield:0,shieldUntil:0,stunnedUntil:0,
-    immuneUntil:0,hasteUntil:0,weakUntil:0,poisonUntil:0,poisonPower:0,nextAttack:500+Math.floor(random()*400),nextSkill:0,
+    immuneUntil:0,hasteUntil:0,weakUntil:0,poisonUntil:0,poisonPower:0,poisonSource:'',nextAttack:500+Math.floor(random()*400),nextSkill:0,
     damage:0,received:0,healing:0,skills:0 })));
   const battle:Battle={version:rules.version,seed,frames:[],events:[],winner:-1,duration:0,units};
   const record=(time:number,actor:Unit,target:Unit,kind:string,amount:number)=>battle.events.push({time,actor:actor.id,target:target.id,kind,amount:Math.round(amount)});
@@ -30,7 +30,7 @@ export function simulate(left:string[],right:string[],seed:number,scale=1):Battl
     for(const unit of units){
       if(unit.shieldUntil<=time)unit.shield=0;
       if(unit.hp<=0)continue;
-      if(unit.poisonUntil>time && time%1000===0){const source=units.find(other=>other.side!==unit.side && other.hp>0);if(source)hit(time,source,unit,unit.poisonPower);}
+      if(unit.poisonUntil>time && time%1000===0){const source=units.find(other=>other.id===unit.poisonSource);if(source)hit(time,source,unit,unit.poisonPower);}
     }
     // Both sides choose actions from the same living snapshot; lethal exchanges can draw.
     const living=units.filter(unit=>unit.hp>0);
@@ -52,7 +52,7 @@ export function simulate(left:string[],right:string[],seed:number,scale=1):Battl
           if(skill.effect==='heal')heal(time,unit,other,skill.power);
           else if(skill.effect==='shield'){other.shield=Math.max(other.shield,skill.power);other.shieldUntil=time+skill.duration;}
           else if(skill.effect==='haste')other.hasteUntil=time+skill.duration;
-          else if(skill.effect==='poison'){other.poisonUntil=time+skill.duration;other.poisonPower=hero.attack*skill.power;}
+          else if(skill.effect==='poison'){other.poisonUntil=time+skill.duration;other.poisonPower=hero.attack*skill.power;other.poisonSource=unit.id;}
           else {const amount=hit(time,unit,other,hero.attack*skill.power*(unit.side?scale:1));
             if(skill.effect==='drain'&&unit.hp>0)heal(time,unit,unit,amount*.45);
             if(skill.effect==='weaken')other.weakUntil=time+skill.duration;
