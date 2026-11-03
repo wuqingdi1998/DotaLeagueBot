@@ -81,7 +81,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-tactics-field:after{content:'';position:absolute;inset:42% 4% 5%;border:1px solid #86c0f122;transform:skewX(-17deg);background:repeating-linear-gradient(90deg,transparent 0 19%,#bedbff12 20%);z-index:-1}
 .ab-field-side{position:absolute;top:10px;font-size:10px;letter-spacing:.15em;color:#c0e8ff;text-shadow:0 1px 4px #000}
 .ab-side-player{left:12%}.ab-side-enemy{right:12%}
-.ab-game .ab-field-unit{position:absolute;left:var(--unit-x);top:var(--unit-y);transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:18%;max-width:175px;height:38%;max-height:160px;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;padding:0;gap:0}
+.ab-game .ab-field-unit{position:absolute;left:var(--unit-x);top:var(--unit-y);transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:18%;max-width:175px;height:26%;max-height:120px;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;padding:0;gap:0}
 .ab-field-unit:after{content:'';position:absolute;left:15%;right:15%;bottom:10px;height:15%;background:#183c55;border:1px solid #72a5c6;box-shadow:0 3px 0 #071627;border-radius:50%;z-index:-1}
 .ab-field-unit .ab-portrait{flex:1;min-height:0;width:100%;filter:drop-shadow(0 3px 3px #0009)}
 .ab-enemy-unit .ab-portrait{scale:-1 1}
@@ -259,7 +259,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-grid{gap:6px}.ab-card-caption{padding:18px 3px 6px}.ab-card-caption strong{font-size:12px}.ab-card-caption>span{font-size:8px;flex-wrap:wrap;gap:2px}
  .ab-card .ab-card-role{width:28px;height:29px;font-size:21px}.ab-pager{padding:5px 0;gap:15px}.ab-pager button{min-height:28px}
  .ab-team-heading{min-height:54px;padding:5px 8px;gap:8px}.ab-team-heading h2{font-size:17px}.ab-team-heading small{font-size:9px}.ab-power{font-size:17px;gap:7px}.ab-power span{font-size:12px}
- .ab-tactics-field{min-height:175px}.ab-game .ab-field-unit{width:23%;height:35%;max-height:125px}
+ .ab-tactics-field{min-height:175px}.ab-game .ab-field-unit{width:23%;height:26%;max-height:100px}
  .ab-field-unit small{font-size:9px}.ab-unit-level{font-size:9px;padding:0 4px}.ab-field-side{font-size:8px;top:4px}
  .ab-team-tools{font-size:10px;padding:2px 6px;min-height:31px}.ab-team-tools button{font-size:10px;min-height:26px;padding:2px 5px}
  .ab-roster{height:126px}.ab-roster .ab-gallery-main{padding:0 6px;grid-template-columns:minmax(0,1fr) 100px;gap:4px;grid-template-rows:94px 28px}
