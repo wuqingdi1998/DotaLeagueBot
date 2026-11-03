@@ -153,10 +153,10 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-ray-2{clip-path:polygon(50% 0,65% 35%,100% 50%,65% 65%,50% 100%,35% 65%,0 50%,35% 35%);background:currentColor}
 .ab-ray-3{border-radius:0;transform:rotate(45deg)}
 .ab-skill-preview>.ab-portrait{animation:ab-cast 1.3s ease-in-out}
-.ab-summon-scene{position:relative;display:flex;flex-direction:column;align-items:center;height:100%;text-align:center;isolation:isolate;background:radial-gradient(ellipse at 55% 40%,#3a80a14a,#071630ee 75%)}
+.ab-summon-scene{position:relative;display:flex;flex-direction:column;align-items:center;height:100%;overflow:clip;text-align:center;isolation:isolate;background:radial-gradient(ellipse at 55% 40%,#3a80a14a,#071630ee 75%)}
 .ab-summon-scene>.ab-scene-heading{align-self:flex-start;text-align:left;z-index:2}
 .ab-portal{position:relative;flex:1;min-height:0;width:min(100%,900px);display:grid;place-items:center}
-.ab-summon-guide{position:absolute;inset:-12% 0 -20%;opacity:.55;mask-image:linear-gradient(#000 50%,transparent)}
+.ab-summon-guide{position:absolute;inset:-12% 0 -20%;opacity:.55;pointer-events:none;mask-image:linear-gradient(#000 50%,transparent)}
 .ab-summon-guide .ab-portrait{background-size:contain;filter:drop-shadow(0 0 30px #45bdff99)}
 .ab-ring{position:absolute;width:58%;aspect-ratio:1;border-radius:50%;border:2px dashed #a0e6e966;box-shadow:0 0 30px #76cbdf55,inset 0 0 45px #83bed733;animation:ab-orbit 22s linear infinite;transform:rotateX(40deg)}
 .ab-ring-two{width:43%;animation-direction:reverse;border-color:#f3d49a66}
@@ -166,7 +166,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-summon-controls>div{display:flex;justify-content:center;gap:30px}
 .ab-summon-controls .ab-primary{min-width:250px;padding:15px;font-size:20px}
 .ab-summon-controls p{font-size:14px}
-.ab-summoned-hero{position:absolute;inset:-15% 12% -10%;animation:ab-reveal .9s ease-out}
+.ab-summoned-hero{position:absolute;inset:-15% 12% -10%;pointer-events:none;animation:ab-reveal .9s ease-out}
 .ab-reveal-rarity{position:absolute;left:6%;top:10%;font:48px Georgia,serif;color:var(--rarity-color,#73dfff);text-shadow:0 0 15px currentColor;z-index:2}
 .ab-reveal-banner{position:absolute;bottom:6%;right:0;left:30%;padding:14px 20px;background:linear-gradient(100deg,transparent,#3eace2cc);font-size:36px;transform:rotate(-5deg);text-shadow:0 2px 3px #000}
 .ab-reveal-Legendary .ab-reveal-banner{background:linear-gradient(100deg,transparent,#e4b849dd)}
