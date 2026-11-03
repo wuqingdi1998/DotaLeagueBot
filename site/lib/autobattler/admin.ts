@@ -7,6 +7,7 @@ export function adminChange(profile:Profile,input:Record<string,unknown>){
     case 'tickets':
       if(!Number.isSafeInteger(value)||value<1||value>100000)throw new Error('Укажите от 1 до 100000 билетов');
       profile.tickets=Math.min(1000000,profile.tickets+value);break;
+    case 'gold':if(!Number.isSafeInteger(value)||value<1||value>100000)throw new Error('Проверьте количество');profile.goldenShards=Math.min(1000000,(profile.goldenShards??0)+value);break;
     case 'zero':profile.tickets=0;break;
     case 'all':heroes.forEach(hero=>grantHero(profile,hero.id,now));break;
     case 'hero':if(typeof input.hero!=='string'||!heroById[input.hero])throw new Error('Неизвестный герой');grantHero(profile,input.hero,now);break;

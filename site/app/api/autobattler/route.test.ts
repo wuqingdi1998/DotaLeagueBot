@@ -14,7 +14,7 @@ it('requires existing session and denies admin commands to regular users',async(
 it('rejects locked stages and ignores fabricated winner and reward values',async()=>{
   expect((await post({action:'battle',stage:15})).status).toBe(400);
   const response=await post({action:'battle',stage:1,winner:0,reward:1000000});const result=await response.json();
-  expect(response.status).toBe(200);expect(result.reward).toBe(2);expect(result.profile.tickets).toBe(12);expect(result.battle.frames.length).toBeGreaterThan(20);
+  expect(response.status).toBe(200);expect(result.reward).toBe(result.battle.winner===0?2:0);expect(result.profile.tickets).toBe(10+result.reward);expect(result.battle.frames.length).toBeGreaterThan(20);
 });
 it('binds every operation to the current account and keeps dev commands self-only',async()=>{
   mocks.user.mockResolvedValue({discordId:'owner',isAdmin:true});

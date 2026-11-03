@@ -3,6 +3,7 @@ import { gameUser } from '@/lib/autobattler/access';
 import { mutateProfile, readProfile, gameHistory } from '@/lib/autobattler/storage';
 import { rewardStage, summon, validateTeam, levelUp } from '@/lib/autobattler/progression';
 import { stages, heroById } from '@/lib/autobattler/catalog';
+import {simulateCampaign} from '@/lib/autobattler/campaign';
 import { simulate } from '@/lib/autobattler/simulation';
 import { adminChange } from '@/lib/autobattler/admin';
 import {summonStatistics} from '@/lib/autobattler/statistics';
@@ -27,7 +28,7 @@ export async function POST(request:Request){
       if(action==='statistics')extra={statistics:summonStatistics()};
       if(action==='team'){validateTeam(profile,input.team);profile.team=input.team;}
       if(action==='level')levelUp(profile,input.hero);
-      if(action==='summon')extra={summoned:summon(profile,Number(input.count),random)};
+      if(action==='summon')extra={summoned:summon(profile,Number(input.count),random,undefined,input.shard??"blue")};
       if(action==='admin')adminChange(profile,input);
       if(action==='battle'||action==='test'){
         validateTeam(profile,profile.team);
@@ -40,7 +41,8 @@ export async function POST(request:Request){
           else throw new Error('Выберите пять противников');
         }
         const levels=Object.fromEntries(Object.entries(profile.collection).map(([id,copy])=>[id,copy.level??1]));
-        const battle=simulate(profile.team,enemies,randomInt(0,0x100000000),action==='test'?1:stage.scale,levels,action==='test'&&input.mirror===true?levels:{});
+        const seed=randomInt(0,0x100000000);
+        const battle=action==='battle'?simulateCampaign(profile.team,enemies,seed,stage.scale,levels):simulate(profile.team,enemies,seed,1,levels,input.mirror===true?levels:{});
         battle.chapter=stage.chapter;
         const experienceBefore=profile.experience??0;
         extra={battle,reward:action==='battle'?rewardStage(profile,stage.id,battle.winner===0):0,experienceReward:(profile.experience??0)-experienceBefore};

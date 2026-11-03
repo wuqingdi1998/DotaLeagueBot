@@ -32,22 +32,23 @@ describe('authoritative autobattler',()=>{
       for(const unit of battle.units){const death=battle.frames.find(frame=>frame.units.find(other=>other.id===unit.id)!.hp===0);if(death){expect(battle.frames.filter(frame=>frame.time>=death.time).every(frame=>frame.units.find(other=>other.id===unit.id)!.hp===0)).toBe(true);expect(battle.events.filter(event=>event.actor===unit.id&&event.kind==='skill'&&event.time>death.time)).toHaveLength(0);}}
     }
   });
-  it('persists guarantees across batches and refuses free summons',()=>{
-    const profile=newProfile();expect(summon(profile,10,()=>0)).toHaveLength(10);expect(profile.tickets).toBe(0);
-    expect(profile.summons.at(-1)?.hero).toBe('astra');expect(profile.epic).toBe(0);
-    expect(()=>summon(profile,1,()=>0)).toThrow();expect(()=>summon(profile,-1,()=>0)).toThrow();
-    profile.tickets=50;for(let i=0;i<50;i++)summon(profile,1,()=>0);
-    expect(profile.summons.at(-1)?.hero).toBe('orion');expect(profile.legendary).toBe(0);
-    expect(profile.collection.bastion.count).toBeGreaterThan(1);
+  it('charges independent shards and uses exact rarity boundaries without hidden guarantees',()=>{
+    const profile=newProfile();profile.goldenShards=2;profile.epic=99;profile.legendary=99;
+    for(const [roll,rarity] of [[0,'Rare'],[.889,'Rare'],[.89,'Epic'],[.989,'Epic'],[.99,'Legendary']] as const){
+      const [id]=summon(profile,1,()=>roll);expect(heroes.find(hero=>hero.id===id)?.rarity).toBe(rarity);
+    }
+    expect(profile.tickets).toBe(5);
+    for(const [roll,rarity] of [[.799,'Epic'],[.8,'Legendary']] as const){const [id]=summon(profile,1,()=>roll,undefined,'gold');expect(heroes.find(hero=>hero.id===id)?.rarity).toBe(rarity);}
+    expect(profile.goldenShards).toBe(0);expect(profile.tickets).toBe(5);
+    expect(()=>summon(profile,1,()=>0,undefined,'gold')).toThrow();expect(()=>summon(profile,-1,()=>0)).toThrow();expect(()=>summon(profile,1,()=>0,undefined,'fake')).toThrow();
   });
-  it('measures 100000 summons with guarantees',()=>{
+  it('measures the specified blue shard rates over 100000 rolls',()=>{
     const profile=newProfile();profile.tickets=100000;let state=19;
     const random=()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};
     for(let i=0;i<10000;i++)summon(profile,10,random);
-    const counts=Object.fromEntries(['Rare','Epic','Legendary'].map(rarity=>[rarity,profile.summons.filter(entry=>heroes.find(hero=>hero.id===entry.hero)?.rarity===rarity).length]));
-    expect(profile.summons).toHaveLength(100000);expect(counts.Legendary).toBeGreaterThan(2000);expect(counts.Epic).toBeGreaterThan(18000);
-    let epic=0,legendary=0;for(const item of profile.summons){const rarity=heroes.find(hero=>hero.id===item.hero)!.rarity;epic=rarity==='Rare'?epic+1:0;legendary=rarity==='Legendary'?0:legendary+1;expect(epic).toBeLessThan(10);expect(legendary).toBeLessThan(60);}
-    console.log('100000 summons:',counts);
+    const legendary=profile.summons.filter(entry=>heroes.find(hero=>hero.id===entry.hero)?.rarity==='Legendary').length;
+    const epic=profile.summons.filter(entry=>heroes.find(hero=>hero.id===entry.hero)?.rarity==='Epic').length;
+    expect(legendary).toBeGreaterThan(850);expect(legendary).toBeLessThan(1150);expect(epic).toBeGreaterThan(9500);expect(epic).toBeLessThan(10500);
   });
   it('awards a stage once and validates ownership and duplicate slots',()=>{
     const profile=newProfile();expect(rewardStage(profile,1,false)).toBe(0);expect(rewardStage(profile,1,true)).toBe(2);expect(rewardStage(profile,1,true)).toBe(0);expect(profile.unlocked).toBe(2);

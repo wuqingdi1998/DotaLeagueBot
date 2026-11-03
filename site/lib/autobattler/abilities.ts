@@ -19,7 +19,7 @@ export function basicSkill(hero:Hero):Hero['skill']{
 }
 export function heroStats(hero:Hero,level=1){
  const factor=levelMultiplier(level);
- return {hp:Math.round(hero.hp*factor),attack:Math.round(hero.attack*factor*(hero.role==='Fighter'?1.1:1)),defense:Math.round(hero.defense*factor*(hero.role==='Tank'?1.15:1)),interval:hero.interval/(hero.role==='Assassin'?1.12:1)};
+ return {hp:Math.round(hero.hp*factor),attack:Math.round(hero.attack*factor*(hero.rarity!=='Legendary'&&hero.role==='Fighter'?1.1:1)),defense:Math.round(hero.defense*factor*(hero.rarity!=='Legendary'&&hero.role==='Tank'?1.15:1)),interval:hero.interval/(hero.rarity!=='Legendary'&&hero.role==='Assassin'?1.12:1)};
 }
 export function heroAbilities(hero:Hero,level=1){
  const basic=basicSkill(hero),ultimate=hero.skill,passive=passives[hero.role];
@@ -27,6 +27,6 @@ export function heroAbilities(hero:Hero,level=1){
  return [
   {type:'Базовый навык',name:basic.name,description:basic.description,glyph:hero.role==='Support'?'❋':'⚔',tag:hero.role==='Support'?'Лечение':'Урон',detail:'Первое применение через 3 сек. · затем каждые 6 сек.'},
   {type:'Ультимейт',name:ultimate.name,description:ultimate.description,glyph:'✦',tag:{damage:'Урон',heal:'Лечение',shield:'Защита',stun:'Контроль',poison:'Яд',haste:'Ускорение',drain:'Поглощение',weaken:'Ослабление'}[ultimate.effect],detail:`100 энергии · ${power} · целей: ${ultimate.targets}${ultimate.duration?` · ${ultimate.duration/1000} сек.`:''}`},
-  {type:'Пассивка',...passive,tag:'Усиление',detail:'Действует автоматически с начала боя.'},
+  hero.rarity==='Legendary'?{type:'Лидерская пассивка',name:hero.role==='Tank'?'Небесное покровительство':'Лунный марш',description:hero.role==='Tank'?'Защита всех союзников увеличена на 5%.':'Обычные атаки всех союзников на 4% быстрее.',glyph:'♛',tag:'Весь отряд',detail:'Действует весь бой. Одинаковые ауры не складываются.'}:{type:'Пассивка',...passive,tag:'Усиление',detail:'Действует автоматически с начала боя.'},
  ];
 }

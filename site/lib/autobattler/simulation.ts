@@ -5,11 +5,11 @@ export interface Unit { id:string; hero:string; side:number; x:number; y:number;
   energy:number; shield:number; shieldUntil:number; stunnedUntil:number; immuneUntil:number; hasteUntil:number; hasteFactor:number;
   weakUntil:number; poisonUntil:number; poisonPower:number; poisonSource:string; nextAttack:number; nextSkill:number;
   damage:number; received:number; healing:number; skills:number }
-export interface Battle { chapter?:number; version:number; seed:number; frames:{time:number; units:Unit[]}[];
+export interface Battle { waves?:{start:number;end:number}[]; chapter?:number; version:number; seed:number; frames:{time:number; units:Unit[]}[];
   events:{time:number; actor:string; target:string; kind:string; amount:number;delivery?:'attack'|'skill'|'dot';health?:number}[];
   winner:number; duration:number; units:Unit[] }
 /** Fixed 100ms authoritative simulation. Rendering never influences combat. */
-export function simulate(left:string[],right:string[],seed:number,scale=1,levels:Record<string,number>={},enemyLevels:Record<string,number>={}):Battle {
+export function simulate(left:string[],right:string[],seed:number,scale=1,levels:Record<string,number>={},enemyLevels:Record<string,number>={},survivors?:Unit[]):Battle {
   if(left.length!==5 || right.length!==5 || [...left,...right].some(id=>!heroById[id])) throw new Error('Нужны два состава по пять героев');
   let randomState=seed>>>0;
   const random=()=>{randomState=(Math.imul(randomState,1664525)+1013904223)>>>0;return randomState/4294967296;};
@@ -22,6 +22,8 @@ export function simulate(left:string[],right:string[],seed:number,scale=1,levels
     maxHp:Math.round(stats.hp*factor),energy:heroById[hero].role==='Mage'?20:0,shield:0,shieldUntil:0,stunnedUntil:0,
     immuneUntil:0,hasteUntil:0,hasteFactor:1,weakUntil:0,poisonUntil:0,poisonPower:0,poisonSource:'',nextAttack:500+Math.floor(random()*400),nextSkill:0,
     damage:0,received:0,healing:0,skills:0 };}));
+  for(const unit of units){const allies=units.filter(other=>other.side===unit.side);if(allies.some(other=>other.hero==='orion'))unit.defense*=1.05;if(allies.some(other=>other.hero==='selena'))unit.interval/=1.04;}
+  if(survivors)for(const unit of units.filter(unit=>unit.side===0)){const previous=survivors.find(other=>other.id===unit.id);if(previous){unit.hp=Math.min(unit.maxHp,previous.hp);unit.energy=previous.energy;unit.damage=previous.damage;unit.received=previous.received;unit.healing=previous.healing;unit.skills=previous.skills;}}
   const battle:Battle={version:rules.version,seed,frames:[],events:[],winner:-1,duration:0,units};
   const record=(time:number,actor:Unit,target:Unit,kind:string,amount:number,delivery?:'attack'|'skill'|'dot')=>battle.events.push({time,actor:actor.id,target:target.id,kind,amount:Math.round(amount),...(delivery?{delivery}:{}),...(['damage','heal'].includes(kind)?{health:target.hp}:{})});
   const heal=(time:number,actor:Unit,target:Unit,amount:number)=>{const restored=Math.min(target.maxHp-target.hp,amount*(heroById[actor.hero].role==='Support'?1.15:1));target.hp+=restored;actor.healing+=restored;record(time,actor,target,'heal',restored);};

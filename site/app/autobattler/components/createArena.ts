@@ -2,19 +2,20 @@ import type PhaserType from 'phaser';
 import type {Battle,Unit} from '@/lib/autobattler/simulation';
 import {heroById,stages} from '@/lib/autobattler/catalog';
 import {heroVisuals,sceneBackground} from '../model/visuals';
-type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Image;label:PhaserType.GameObjects.Text;death:number};
+import {createCharacterRig,poseCharacter} from './characterRig';
+type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Mesh2D;label:PhaserType.GameObjects.Text;death:number};
 export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
  return class Arena extends Phaser.Scene{
-  elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;
-  preload(){const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/${['citadel','forest','temple'][(battle.chapter??stage?.chapter??1)-1]}.webp`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
+  elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;environment!:PhaserType.GameObjects.Image;
+  preload(){const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/field-${battle.chapter??stage?.chapter??1}.svg`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
   create(){
    this.width=this.scale.width;this.height=this.scale.height;
-   const environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height));
+   const environment=this.environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height)*1.12);
    this.add.rectangle(this.width/2,this.height/2,this.width,this.height,0x05152a,.22);
    this.actors=battle.units.map(unit=>{
     const root=this.add.container(0,0);const size=this.width<800?102:125;
     const shadow=this.add.ellipse(0,-3,size*.58,20,0x061326,.4);
-    const body=this.add.image(0,0,unit.hero).setOrigin(.5,1).setDisplaySize(size,size);
+    const body=createCharacterRig(Phaser,this,unit.hero,size);
     root.add([shadow,body]);const label=this.add.text(0,0,`${heroById[unit.hero].name} · ${unit.level??1}`,{fontSize:this.width<800?'12px':'13px',fontFamily:'Arial',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5);
     return {root,body,label,death:-1};
    });this.graphics=this.add.graphics().setDepth(2000);this.clock=this.add.text(this.width/2,25,'',{fontSize:'24px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(3000);
@@ -25,8 +26,9 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
    if(!control.current.isPaused)this.hitStop=Math.max(0,this.hitStop-delta*control.current.speed);
    this.tweens.timeScale=control.current.isPaused||this.hitStop>0?0:control.current.speed;
    if(this.elapsed>=battle.duration&&!control.current.isPaused)this.outro+=delta*control.current.speed;
-   this.clock.setText(`${Math.floor(this.elapsed/60000)}:${String(Math.floor(this.elapsed/1000)%60).padStart(2,'0')}`);
-   const frameIndex=this.elapsed>=battle.duration?battle.frames.length-1:Math.min(battle.frames.length-1,Math.floor(this.elapsed/200));
+   const wave=battle.waves?.findIndex(item=>this.elapsed<=item.end)??-1;
+   this.clock.setText(`${battle.waves?`Волна ${wave<0?battle.waves.length:wave+1}/3 · `:''}${Math.floor(this.elapsed/60000)}:${String(Math.floor(this.elapsed/1000)%60).padStart(2,'0')}`);
+   let frameIndex=battle.frames.findIndex(frame=>frame.time>this.elapsed)-1;if(frameIndex<0)frameIndex=this.elapsed>=battle.duration?battle.frames.length-1:0;
    const current=battle.frames[frameIndex],next=battle.frames[Math.min(battle.frames.length-1,frameIndex+1)];
    const fraction=Math.max(0,Math.min(1,(this.elapsed-current.time)/Math.max(1,next.time-current.time)));
    const units=current.units.map((unit,index)=>({...unit,x:Phaser.Math.Linear(unit.x,next.units[index].x,fraction),y:Phaser.Math.Linear(unit.y,next.units[index].y,fraction)}));
@@ -43,13 +45,14 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const skill=active.findLast(event=>event.actor===unit.id&&['skill','basic'].includes(event.kind));
     const hit=active.findLast(event=>event.target===unit.id&&event.kind==='damage'&&event.amount>0&&event.time>time-220);
     if(unit.hp<=0){if(actor.death<0)actor.death=time;const progress=Math.min(1,(time-actor.death)/650);actor.root.setAlpha(1-progress).setRotation(progress*(unit.side?-.7:.7)).setY(position.y+progress*30);actor.label.setVisible(false);return;}
+    actor.death=-1;actor.root.setAlpha(1).setRotation(0);actor.label.setVisible(true);
     const stride=Math.sin(time/95*visual.stride+visual.phase),direction=unit.side?-1:1;
     const role=heroById[unit.hero].role;const isAttacking=!!attack&&unit.stunnedUntil<=time;const amplitude={Tank:.12,Fighter:.24,Assassin:.14,Marksman:.035,Mage:.06,Support:.04}[role];
     const attackPhase=attack?Math.max(0,Math.min(1,(time-attack.time+220)/500)):1;
     actor.root.setPosition(position.x+(isAttacking?Math.sin(attackPhase*Math.PI)*(role==='Assassin'?28:role==='Marksman'?3:12)*direction:0)+(hit?Math.sin((time-hit.time)*.06)*4:0),position.y+(moving?Math.abs(stride)*3:Math.sin(time/700+visual.phase)*2));actor.root.setDepth(position.y).setScale(direction,1);
     actor.body.setRotation(skill&&unit.stunnedUntil<=time?Math.sin((time-skill.time)/800*Math.PI)*(.08+visual.index%5*.025):isAttacking?Math.sin(attackPhase*Math.PI)*amplitude:0);
     if(moving&&!isAttacking&&!skill)actor.body.setRotation(stride*.035);
-    actor.body.setTint(hit?0xffb6a6:0xffffff);actor.label.setPosition(position.x,position.y+11).setDepth(1900);
+    poseCharacter(actor.body,stride,moving&&unit.stunnedUntil<=time,isAttacking?Math.sin(attackPhase*Math.PI):skill?.time?Math.sin((time-skill.time)/800*Math.PI):0);actor.label.setPosition(position.x,position.y+11).setDepth(1900);
     const size=this.width<800?60:74,barY=position.y-(this.width<800?112:135);
     g.fillStyle(0x050b17,.9);g.fillRoundedRect(position.x-size/2-2,barY-2,size+4,13,3);
     g.fillStyle(unit.side?0xe98193:0x79e0b3);g.fillRect(position.x-size/2,barY,size*unit.hp/unit.maxHp,6);
@@ -75,6 +78,9 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
      if(!this.shown.has(key)){this.shown.add(key);if(event.kind==='damage'&&event.amount>250){this.cameras.main.shake(90,.002);this.hitStop=45;}const number=this.add.text(b.x,b.y-100,String(Math.round(event.amount)),{fontSize:event.amount>250?'26px':'20px',color:event.kind==='heal'?'#98ffd1':'#fff0cd',stroke:'#162039',strokeThickness:4}).setOrigin(.5).setDepth(10000);this.tweens.add({targets:number,y:number.y-35,alpha:0,duration:650,onComplete:()=>number.destroy()});}
     }
    });
+   const transition=battle.waves?.find((item,index)=>index<battle.waves!.length-1&&this.elapsed>item.end&&this.elapsed<battle.waves![index+1].start);
+   if(transition){const progress=(this.elapsed-transition.end)/3200;this.environment.x=this.width/2-progress*this.width*.05;g.fillStyle(0x102032,Math.max(0,(progress-.8)*5));g.fillRect(0,0,this.width,this.height);}
+   else{const start=battle.waves?.findLast(item=>item.start<=this.elapsed)?.start??0;if(start>0&&this.elapsed-start<400){g.fillStyle(0x102032,1-(this.elapsed-start)/400);g.fillRect(0,0,this.width,this.height);}}
    if(this.elapsed>=battle.duration&&this.outro>=750){this.scene.pause();onFinish();}
   }
  };

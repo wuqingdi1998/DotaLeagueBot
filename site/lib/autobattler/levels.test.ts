@@ -26,7 +26,7 @@ describe('hero levels and three abilities',()=>{
   const stats=heroStats(heroById.bastion,5),unit=battle.units[0];expect(unit.maxHp).toBe(stats.hp);expect(unit.attack).toBe(stats.attack);expect(unit.defense).toBe(stats.defense);expect(battle.units[5].level).toBe(1);
  });
  it('runs basics, ultimates and role passives as separate combat mechanics',()=>{
-  for(const hero of heroes)expect(heroAbilities(hero).map(item=>item.type)).toEqual(['Базовый навык','Ультимейт','Пассивка']);
+  for(const hero of heroes)expect(heroAbilities(hero).map(item=>item.type)).toEqual(['Базовый навык','Ультимейт',hero.rarity==='Legendary'?'Лидерская пассивка':'Пассивка']);
   const battle=simulate(starter,starter,42);
   expect(battle.events.some(event=>event.kind==='basic')).toBe(true);expect(battle.events.some(event=>event.kind==='skill')).toBe(true);expect(battle.events.some(event=>event.kind==='passive'&&event.actor==='0-3')).toBe(true);
   expect(battle.units[0].defense).toBe(Math.round(heroById.bastion.defense*1.15));
