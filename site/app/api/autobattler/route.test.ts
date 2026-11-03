@@ -21,3 +21,8 @@ it('binds every operation to the current account and keeps dev commands self-onl
   await post({action:'admin',command:'tickets',value:100,userId:'someone-else'});
   expect(mocks.mutate.mock.calls[0][0]).toBe('owner');expect(profile.tickets).toBe(110);
 });
+it('ignores fabricated level and experience and charges the authenticated profile',async()=>{
+  const result=await (await post({action:'level',hero:'bastion',level:20,experience:999999,userId:'other'})).json();
+  expect(result.profile.collection.bastion.level).toBe(2);expect(result.profile.experience).toBe(260);expect(mocks.mutate.mock.calls[0][0]).toBe('owner');
+  expect((await post({action:'level',hero:'orion'})).status).toBe(400);
+});

@@ -2,7 +2,7 @@ import type PhaserType from 'phaser';
 import type {Battle,Unit} from '@/lib/autobattler/simulation';
 import {heroById,stages} from '@/lib/autobattler/catalog';
 import {heroVisuals,sceneBackground} from '../model/visuals';
-type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Image;legs:PhaserType.GameObjects.Image[];label:PhaserType.GameObjects.Text;death:number};
+type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Image;label:PhaserType.GameObjects.Text;death:number};
 export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
  return class Arena extends Phaser.Scene{
   elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;
@@ -12,13 +12,11 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
    const environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height));
    this.add.rectangle(this.width/2,this.height/2,this.width,this.height,0x05152a,.22);
    this.actors=battle.units.map(unit=>{
-    const texture=this.textures.get(unit.hero);if(!texture.has('torso')){texture.add('torso',0,0,0,512,350);texture.add('left-leg',0,0,350,256,162);texture.add('right-leg',0,256,350,256,162);}
-    const root=this.add.container(0,0);const size=this.width<800?104:146;
-    const left=this.add.image(-size/2,-size*162/512,unit.hero,'left-leg').setOrigin(0,0).setDisplaySize(size/2,size*162/512);
-    const right=this.add.image(0,-size*162/512,unit.hero,'right-leg').setOrigin(0,0).setDisplaySize(size/2,size*162/512);
-    const body=this.add.image(-size/2,-size,unit.hero,'torso').setOrigin(0,0).setDisplaySize(size,size*350/512);
-    root.add([left,right,body]);const label=this.add.text(0,0,heroById[unit.hero].name,{fontSize:this.width<800?'12px':'13px',fontFamily:'Georgia',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5);
-    return {root,body,legs:[left,right],label,death:-1};
+    const root=this.add.container(0,0);const size=this.width<800?102:125;
+    const shadow=this.add.ellipse(0,-3,size*.58,20,0x061326,.4);
+    const body=this.add.image(0,0,unit.hero).setOrigin(.5,1).setDisplaySize(size,size);
+    root.add([shadow,body]);const label=this.add.text(0,0,`${heroById[unit.hero].name} · ${unit.level??1}`,{fontSize:this.width<800?'12px':'13px',fontFamily:'Arial',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5);
+    return {root,body,label,death:-1};
    });this.graphics=this.add.graphics().setDepth(2000);this.clock=this.add.text(this.width/2,25,'',{fontSize:'24px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(3000);
   }
   position(unit:Unit){return {x:unit.x/1000*this.width,y:this.height*.27+unit.y/500*this.height*.63};}
@@ -42,7 +40,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const actor=this.actors[index],visual=heroVisuals[unit.hero],position=this.position(unit),time=this.elapsed+this.outro;
     const moving=Math.hypot(unit.x-next.units[index].x,unit.y-next.units[index].y)>1;
     const attack=[...active,...upcoming].findLast(event=>event.actor===unit.id&&event.kind==='damage'&&(event.delivery??'attack')==='attack'&&event.time>time-500);
-    const skill=active.findLast(event=>event.actor===unit.id&&event.kind==='skill');
+    const skill=active.findLast(event=>event.actor===unit.id&&['skill','basic'].includes(event.kind));
     const hit=active.findLast(event=>event.target===unit.id&&event.kind==='damage'&&event.amount>0&&event.time>time-220);
     if(unit.hp<=0){if(actor.death<0)actor.death=time;const progress=Math.min(1,(time-actor.death)/650);actor.root.setAlpha(1-progress).setRotation(progress*(unit.side?-.7:.7)).setY(position.y+progress*30);actor.label.setVisible(false);return;}
     const stride=Math.sin(time/95*visual.stride+visual.phase),direction=unit.side?-1:1;
@@ -50,9 +48,9 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const attackPhase=attack?Math.max(0,Math.min(1,(time-attack.time+220)/500)):1;
     actor.root.setPosition(position.x+(isAttacking?Math.sin(attackPhase*Math.PI)*(role==='Assassin'?28:role==='Marksman'?3:12)*direction:0)+(hit?Math.sin((time-hit.time)*.06)*4:0),position.y+(moving?Math.abs(stride)*3:Math.sin(time/700+visual.phase)*2));actor.root.setDepth(position.y).setScale(direction,1);
     actor.body.setRotation(skill&&unit.stunnedUntil<=time?Math.sin((time-skill.time)/800*Math.PI)*(.08+visual.index%5*.025):isAttacking?Math.sin(attackPhase*Math.PI)*amplitude:0);
-    actor.legs.forEach((leg,legIndex)=>leg.setRotation(moving?stride*(legIndex?-.12:.12):0));
-    actor.body.setTint(hit?0xffb6a6:0xffffff);actor.label.setPosition(position.x,position.y+30).setDepth(1900);
-    const size=this.width<800?64:78,barY=position.y-(this.width<800?126:156);
+    if(moving&&!isAttacking&&!skill)actor.body.setRotation(stride*.035);
+    actor.body.setTint(hit?0xffb6a6:0xffffff);actor.label.setPosition(position.x,position.y+11).setDepth(1900);
+    const size=this.width<800?60:74,barY=position.y-(this.width<800?112:135);
     g.fillStyle(0x050b17,.9);g.fillRoundedRect(position.x-size/2-2,barY-2,size+4,13,3);
     g.fillStyle(unit.side?0xe98193:0x79e0b3);g.fillRect(position.x-size/2,barY,size*unit.hp/unit.maxHp,6);
     g.fillStyle(0xe6ce83);g.fillRect(position.x-size/2,barY+8,size*unit.energy/100,2);
@@ -63,7 +61,9 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
     const a=this.position(source),b=this.position(target),age=this.elapsed+this.outro-event.time,progress=age/750,visual=heroVisuals[source.hero];
     if(event.kind==='skill'){
-     const key=`skill-${event.time}-${event.actor}`;if(!this.shown.has(key)){this.shown.add(key);const rune=this.add.text(a.x,a.y-95,visual.glyph,{fontSize:'68px',color:`#${visual.color.toString(16)}`,stroke:'#06182e',strokeThickness:2}).setOrigin(.5).setDepth(2500);this.tweens.add({targets:rune,scale:1.7,alpha:0,angle:visual.index%2?35:-35,duration:750,onComplete:()=>rune.destroy()});}
+     const key=`skill-${event.time}-${event.actor}`;if(!this.shown.has(key)){this.shown.add(key);const rune=this.add.text(a.x,a.y-95,visual.glyph,{fontSize:'68px',color:`#${visual.color.toString(16)}`,stroke:'#06182e',strokeThickness:2}).setOrigin(.5).setDepth(2500);this.tweens.add({targets:rune,scale:1.7,alpha:0,angle:visual.index%2?35:-35,duration:750,onComplete:()=>rune.destroy()});
+      const banner=this.add.container(this.width/2,75).setDepth(5000);const plate=this.add.rectangle(0,0,Math.min(520,this.width*.85),58,0x102345,.92).setStrokeStyle(1,visual.color);const title=this.add.text(0,0,`${heroById[source.hero].name} · ${heroById[source.hero].skill.name}`,{fontSize:this.width<800?'17px':'21px',fontFamily:'Arial',color:'#fff0ba'}).setOrigin(.5);banner.add([plate,title]);this.tweens.add({targets:banner,alpha:0,y:60,delay:450,duration:300,onComplete:()=>banner.destroy()});
+     }
 
      const radius=25+progress*(55+visual.index%5*13);g.lineStyle(3,visual.color,1-progress);
      if(visual.index%4===0)g.strokeEllipse(a.x,a.y-40,radius*2,radius);else if(visual.index%4===1){for(let i=0;i<5;i++){const angle=i*Math.PI*.4+progress*4;g.lineBetween(a.x,a.y-50,a.x+Math.cos(angle)*radius,a.y-50+Math.sin(angle)*radius);}}else if(visual.index%4===2)g.strokeCircle(a.x,a.y-65,radius);else{for(let i=0;i<7;i++)g.strokeCircle(a.x+Math.sin(i*2+age/150)*radius,a.y-60+Math.cos(i*2)*radius,5+progress*8);}

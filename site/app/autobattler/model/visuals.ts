@@ -4,6 +4,6 @@ interface VisualPreset {frame?:number;stride:number;phase:number;effect:string;c
 const presets:Record<string,VisualPreset>=manifest;
 export const heroVisuals=Object.fromEntries(heroes.map((hero,index)=>{
  const preset=presets[hero.id]??{stride:1,phase:0,effect:'arcane',color:hero.color,glyph:'✧',portraitX:50};
- return [hero.id,{...preset,index:preset.frame??index,texture:`/autobattler/heroes/${hero.id}.webp`,portrait:`/autobattler/portraits/${hero.id}.webp`}];
+ return [hero.id,{...preset,index:preset.frame??index,texture:`/autobattler/combat/${hero.id}.webp`,illustration:`/autobattler/heroes/${hero.id}.webp`,portrait:`/autobattler/portraits/${hero.id}.webp`}];
 }));
 export const sceneBackground='/autobattler/citadel.webp';

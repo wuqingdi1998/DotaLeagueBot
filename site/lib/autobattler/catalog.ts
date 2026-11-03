@@ -6,7 +6,7 @@ export interface Hero {
   hp: number; attack: number; defense: number; interval: number; range: number; movement: number;
   skill: { name: string; description: string; effect: Effect; power: number; targets: number; duration: number };
 }
-export const rules = { version: 2, step: 100, limit: 90000, initialTickets: 10, reward: 2,
+export const rules = { version: 3, step: 100, limit: 90000, initialTickets: 10, reward: 2,
   epicPity: 10, legendaryPity: 60, stageCount: 15, rareChance: .8, epicChance: .18, summonCost: 1 };
 const roles: Record<Role, [number, number, number, number, number, number, number]> = {
   Tank: [2200, 90, 65, 1400, 65, 85, 0x59d2c5],

@@ -7,12 +7,15 @@ const catalog=readFileSync(new URL('../lib/autobattler/catalog.ts',import.meta.u
 const ids=[...catalog.matchAll(/^  \['([^']+)','[^']+','(?:Tank|Fighter|Assassin|Mage|Marksman|Support)'/gm)].map(match=>match[1]);
 if(!ids.length||new Set(ids).size!==ids.length)throw new Error('Invalid hero IDs');
 const transparent={r:0,g:0,b:0,alpha:0};
-for(const directory of ['heroes','portraits','environments'])mkdirSync(path(directory),{recursive:true});
+for(const directory of ['heroes','portraits','combat','environments'])mkdirSync(path(directory),{recursive:true});
 async function save(name,pipeline,quality=92){writeFileSync(path(name),await pipeline.webp({quality,effort:6,alphaQuality:100}).toBuffer());}
 for(const id of ids){
  const source=path(`sources/${id}.webp`);const meta=await sharp(source).metadata();
  if(!meta.hasAlpha||!meta.width||!meta.height)throw new Error(`Expected transparent full-body art for ${id}`);
  await save(`heroes/${id}.webp`,sharp(source).resize(512,512,{fit:'contain',background:transparent}),94);
+ const combatSource=path(`combat-sources/${id}.webp`);const combatMeta=await sharp(combatSource).metadata();
+ if(!combatMeta.hasAlpha)throw new Error(`Expected transparent combat sprite for ${id}`);
+ await save(`combat/${id}.webp`,sharp(combatSource).resize(488,488,{fit:'contain',background:transparent}).extend({top:12,bottom:12,left:12,right:12,background:transparent}),94);
  const side=Math.min(meta.width,meta.height);
  await save(`portraits/${id}.webp`,sharp(source).extract({left:Math.floor((meta.width-side)/2),top:0,width:side,height:side}).resize(512,512),94);
 }

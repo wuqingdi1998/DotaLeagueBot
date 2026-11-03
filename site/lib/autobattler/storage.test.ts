@@ -2,7 +2,7 @@ import {afterAll,beforeAll,describe,it,expect,vi} from 'vitest';
 import {PGlite} from '@electric-sql/pglite';
 import {readFileSync} from 'node:fs';
 import type {PoolClient} from 'pg';
-import {newProfile,summon,rewardStage} from './progression';
+import {newProfile,summon,rewardStage,levelUp} from './progression';
 const runtime=vi.hoisted(()=>({client:null as unknown as PoolClient,queue:Promise.resolve()}));
 vi.mock('@/lib/db',()=>({transaction:<T>(callback:(client:PoolClient)=>Promise<T>)=>{
   const result=runtime.queue.then(async()=>{await runtime.client.query('BEGIN');try{const result=await callback(runtime.client);await runtime.client.query('COMMIT');return result;}catch(error){await runtime.client.query('ROLLBACK');throw error;}});
@@ -20,6 +20,15 @@ beforeAll(async()=>{
 });
 afterAll(()=>database.close());
 describe('isolated PostgreSQL game storage',()=>{
+  it('serializes level spending, replays without double charge and migrates legacy JSON',async()=>{
+    const old=newProfile();delete old.experience;delete old.collection.bastion.level;old.version=2;old.cleared=[1];old.unlocked=2;
+    await database.query('INSERT INTO autobattler_profiles(user_id,state) VALUES($1,$2)',['legacy',JSON.stringify(old)]);
+    expect((await readProfile('legacy')).experience).toBe(740);
+    const upgrade=(id:string)=>mutateProfile('legacy',id,'level',profile=>{levelUp(profile,'bastion');return {profile};});
+    const [one,two]=await Promise.all([upgrade('00000000-0000-4000-8000-000000000101'),upgrade('00000000-0000-4000-8000-000000000101')]);expect(two).toEqual(one);
+    await Promise.all([upgrade('00000000-0000-4000-8000-000000000102'),upgrade('00000000-0000-4000-8000-000000000103')]);
+    const saved=await readProfile('legacy');expect(saved.collection.bastion.level).toBe(4);expect(saved.experience).toBe(500);expect(saved.cleared).toEqual([1]);expect(saved.tickets).toBe(old.tickets);
+  });
   it('initializes once, replays operations, persists state and serializes concurrent spending',async()=>{
     expect((await readProfile('player')).tickets).toBe(10);expect((await readProfile('player')).tickets).toBe(10);
     const spend=()=>mutateProfile('player','00000000-0000-4000-8000-000000000001','summon',profile=>({summoned:summon(profile,10,()=>0),profile}));

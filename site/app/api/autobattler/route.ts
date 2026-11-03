@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto';
 import { gameUser } from '@/lib/autobattler/access';
 import { mutateProfile, readProfile, gameHistory } from '@/lib/autobattler/storage';
-import { rewardStage, summon, validateTeam } from '@/lib/autobattler/progression';
+import { rewardStage, summon, validateTeam, levelUp } from '@/lib/autobattler/progression';
 import { stages, heroById } from '@/lib/autobattler/catalog';
 import { simulate } from '@/lib/autobattler/simulation';
 import { adminChange } from '@/lib/autobattler/admin';
@@ -19,13 +19,14 @@ export async function POST(request:Request){
   try{
     const user=await gameUser(); const input:Record<string,unknown>=await request.json();
     if(typeof input.operationId!=='string'||!/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/.test(input.operationId))throw new Error('Нужен номер операции');
-    if(typeof input.action!=='string'||!['team','summon','battle','admin','test','statistics'].includes(input.action))throw new Error('Неизвестное действие');
+    if(typeof input.action!=='string'||!['team','summon','battle','level','admin','test','statistics'].includes(input.action))throw new Error('Неизвестное действие');
     if(['admin','test','statistics'].includes(input.action)&&!user.isAdmin)throw new Response(null,{status:403});
     const action=input.action;
     const result=await mutateProfile(user.discordId,input.operationId,JSON.stringify(input),profile=>{
       let extra:Record<string,unknown>={};
       if(action==='statistics')extra={statistics:summonStatistics()};
       if(action==='team'){validateTeam(profile,input.team);profile.team=input.team;}
+      if(action==='level')levelUp(profile,input.hero);
       if(action==='summon')extra={summoned:summon(profile,Number(input.count),random)};
       if(action==='admin')adminChange(profile,input);
       if(action==='battle'||action==='test'){
@@ -38,9 +39,11 @@ export async function POST(request:Request){
           else if(Array.isArray(input.enemies)&&input.enemies.length===5&&input.enemies.every(id=>typeof id==='string'&&heroById[id]))enemies=input.enemies;
           else throw new Error('Выберите пять противников');
         }
-        const battle=simulate(profile.team,enemies,randomInt(0,0x100000000),action==='test'?1:stage.scale);
+        const levels=Object.fromEntries(Object.entries(profile.collection).map(([id,copy])=>[id,copy.level??1]));
+        const battle=simulate(profile.team,enemies,randomInt(0,0x100000000),action==='test'?1:stage.scale,levels,action==='test'&&input.mirror===true?levels:{});
         battle.chapter=stage.chapter;
-        extra={battle,reward:action==='battle'?rewardStage(profile,stage.id,battle.winner===0):0};
+        const experienceBefore=profile.experience??0;
+        extra={battle,reward:action==='battle'?rewardStage(profile,stage.id,battle.winner===0):0,experienceReward:(profile.experience??0)-experienceBefore};
       }
       return {profile,...extra};
     });

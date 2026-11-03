@@ -1,10 +1,31 @@
 'use client';
-import {useState,type CSSProperties} from 'react';
-import SkillPreview from './SkillPreview';
+import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {heroes,type Hero} from '@/lib/autobattler/catalog';
+import {heroAbilities,heroStats,levelCost,levelRules} from '@/lib/autobattler/abilities';
+import type {Profile} from '@/lib/autobattler/progression';
 import {heroVisuals} from '../model/visuals';
-import {HeroPortrait,roleNames} from './HeroCard';
-export default function HeroProfile({hero,onClose,onChange}:{hero:Hero;onClose:()=>void;onChange:(hero:Hero)=>void}){
-  const [tab,setTab]=useState('Обзор');const [preview,setPreview]=useState(0);const index=heroes.findIndex(item=>item.id===hero.id);
-  return <div className="ab-modal-backdrop"><section className={`ab-hero-profile ab-${hero.rarity}`} role="dialog" aria-modal="true" aria-label={hero.name}><button className="ab-close" onClick={onClose} aria-label="Закрыть героя">×</button><div className={`ab-hero-stage ${preview?'ab-skill-preview':''}`} key={`${hero.id}-${preview}`} style={{'--hero-color':`#${heroVisuals[hero.id].color.toString(16)}`,'--hero-rhythm':`${heroVisuals[hero.id].stride}s`} as CSSProperties}><button className="ab-profile-switch" aria-label="Предыдущий герой" onClick={()=>{onChange(heroes[(index+heroes.length-1)%heroes.length]);setTab('Обзор');setPreview(0);}}>‹</button><HeroPortrait hero={hero} full/>{preview>0&&<SkillPreview id={hero.id}/>}<button className="ab-profile-switch" aria-label="Следующий герой" onClick={()=>{onChange(heroes[(index+1)%heroes.length]);setTab('Обзор');setPreview(0);}}>›</button></div><div className="ab-hero-info"><small>{hero.rarity} · {roleNames[hero.role]}</small><h2>{hero.name}</h2><div className="ab-toolbar">{['Обзор','Характеристики','Способность'].map(name=><button key={name} onClick={()=>setTab(name)} aria-pressed={tab===name}>{name}</button>)}</div>{tab==='Способность'?<><h3>{hero.skill.name}</h3><p>{hero.skill.description}</p><small>Целей: {hero.skill.targets} · {hero.skill.duration/1000} с.</small><button className="ab-primary" onClick={()=>setPreview(preview+1)}>Показать способность</button></>:tab==='Характеристики'?<div className="ab-hero-stats">{[['Здоровье',hero.hp],['Атака',hero.attack],['Защита',hero.defense],['Атак/сек',(1000/hero.interval).toFixed(2)],['Дальность',hero.range],['Движение',hero.movement]].map(([name,value])=><p key={name}><span>{name}</span><strong>{value}</strong></p>)}</div>:<><p>{hero.skill.description}</p><small>Роль: {roleNames[hero.role]} · редкость {hero.rarity}</small><h3>{hero.skill.name}</h3></>}</div></section></div>;
+import {HeroPortrait,roleNames,roleIcons} from './HeroCard';
+import SkillPreview from './SkillPreview';
+import AbilityDetails from './AbilityDetails';
+export default function HeroProfile({hero,profile,isBusy,onLevel,onClose,onChange}:{hero:Hero;profile:Profile;isBusy:boolean;onLevel:()=>void;onClose:()=>void;onChange:(hero:Hero)=>void}){
+ const [ability,setAbility]=useState<number|null>(null),[preview,setPreview]=useState(0);
+ const dialog=useRef<HTMLElement>(null);
+ useEffect(()=>{const previous=document.activeElement as HTMLElement|null;dialog.current?.focus();return()=>previous?.focus();},[]);
+ const index=heroes.findIndex(item=>item.id===hero.id),copy=profile.collection[hero.id],level=copy?.level??1,stats=heroStats(hero,level),cost=levelCost(level);
+ function switchHero(direction:number){onChange(heroes[(index+heroes.length+direction)%heroes.length]);setAbility(null);setPreview(0);}
+ return <div className="ab-modal-backdrop"><section ref={dialog} tabIndex={-1} className={`ab-hero-profile ab-${hero.rarity}`} role="dialog" aria-modal="true" aria-label={hero.name} onKeyDown={event=>{
+  if(event.key==='Escape'){if(ability!==null)setAbility(null);else onClose();}
+  if(event.key==='Tab'){const scope=dialog.current?.querySelector('.ab-ability-dialog')??dialog.current;const controls=Array.from(scope?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')??[]);const first=controls[0],last=controls.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}}
+ }} style={{'--hero-color':`#${heroVisuals[hero.id].color.toString(16)}`} as CSSProperties}>
+  <div className="ab-profile-illustration" aria-hidden="true"><HeroPortrait hero={hero} full/></div>
+  <header className="ab-profile-header"><button onClick={onClose} aria-label="Закрыть героя">‹ <span>Герои</span></button><span>❋ {profile.experience??0} опыта</span></header>
+  <div className="ab-hero-info"><small>{hero.rarity}</small><h2>{hero.name}</h2><p className="ab-profile-role">{roleIcons[hero.role]} {roleNames[hero.role]}</p><div className="ab-profile-level">Ур. <strong>{level}</strong><span> / {levelRules.max}</span></div>
+   <div className="ab-hero-stats">{[['♡','Здоровье',stats.hp],['⚔','Атака',stats.attack],['⬡','Защита',stats.defense]].map(([icon,name,value])=><p key={name}><span>{icon} {name}</span><strong>{value}</strong></p>)}</div>
+   <div className="ab-skill-buttons">{heroAbilities(hero).map((item,i)=><button key={item.type} aria-label={item.type} aria-pressed={ability===i} onClick={()=>setAbility(i)}><span className={`ab-ability-emblem ab-ability-${i}`}>{item.glyph}</span><small>{item.type}</small></button>)}</div>
+  </div>
+  <div className={`ab-hero-stage ${preview?'ab-skill-preview':''}`} key={`${hero.id}-${preview}`}><div className="ab-pedestal"/><HeroPortrait hero={hero} combat/>{preview>0&&<SkillPreview id={hero.id}/>}</div>
+  <button className="ab-profile-switch ab-profile-prev" aria-label="Предыдущий герой" onClick={()=>switchHero(-1)}>‹</button><button className="ab-profile-switch ab-profile-next" aria-label="Следующий герой" onClick={()=>switchHero(1)}>›</button>
+  <footer className="ab-profile-upgrade">{copy?<><small>{level>=levelRules.max?'Максимальный уровень':`Здоровье, атака и защита растут с уровнем · опыт за новые этапы`}</small><button className="ab-primary" disabled={isBusy||level>=levelRules.max||(profile.experience??0)<cost} onClick={onLevel}>{level>=levelRules.max?'Уровень 20':`Повысить уровень · ${cost} опыта`}</button></>:<p>Герой ещё не получен · доступен в призыве</p>}</footer>
+  {ability!==null&&<AbilityDetails hero={hero} level={level} index={ability} onClose={()=>setAbility(null)} onPreview={()=>setPreview(preview+1)}/>}
+ </section></div>;
 }
