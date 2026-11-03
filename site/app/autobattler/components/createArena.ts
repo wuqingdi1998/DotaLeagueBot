@@ -1,3 +1,4 @@
+import orionAtlas from '@/public/autobattler/orion-cutout.json';
 import {battleEffects,visibleBattleEffects} from '@/lib/autobattler/battleEffects';
 import {projectFormation} from '@/lib/autobattler/formationGeometry';
 import type PhaserType from 'phaser';
@@ -10,7 +11,7 @@ type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObject
 export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
  return class Arena extends Phaser.Scene{
   elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;environment!:PhaserType.GameObjects.Image;
-  preload(){if(battle.units.some(unit=>unit.hero==='orion'))this.load.atlas('orion-cutout','/autobattler/orion-cutout.webp','/autobattler/orion-cutout.json');const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/chapter-${battle.chapter??stage?.chapter??1}.webp`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
+  preload(){if(battle.units.some(unit=>unit.hero==='orion'))this.load.atlas('orion-cutout','/autobattler/orion-cutout.webp',orionAtlas);const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/chapter-${battle.chapter??stage?.chapter??1}.webp`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
   create(){
    this.width=this.scale.width;this.height=this.scale.height;
    const environment=this.environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height)*1.12);
