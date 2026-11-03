@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import { chromium } from "playwright";
+import {checkSummonPresentation} from "./check-summon-presentation.mjs";
 
 const root = new URL("../", import.meta.url);
 const directory = new URL(".data/autobattler/", root);
@@ -17,7 +18,7 @@ await build({
     lib: { entry: fileURLToPath(new URL("tests/autobattler-browser.tsx", root)), formats: ["iife"], name: "DevelopmentCheck", fileName: () => "preview.js" },
   },
 });
-const css = ['01-foundation.css','autobattler.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
+const css = ['01-foundation.css','autobattler.css','autobattler-summon.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
 const server = createServer((request, response) => {
   if(request.url?.startsWith('/autobattler/')){
     const asset=new URL(`public${request.url}`,root);
@@ -34,7 +35,8 @@ const server = createServer((request, response) => {
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 try {
- for(const [width,height] of (process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
+ await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ for(const [width,height] of (process.argv.includes('--summon')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
   const page=await browser.newPage({viewport:{width,height}});const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/autobattler/')&&response.status()>=400)errors.push(`Asset ${response.status()}: ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${server.address().port}`);await page.getByRole('button',{name:'Герои',exact:true}).last().waitFor({timeout:10000}).catch(async error=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:fileURLToPath(new URL('failure.png',directory))});throw error;});
   async function fits(name){
@@ -72,7 +74,6 @@ try {
   assert.equal(await page.locator('.ab-game').evaluate(element=>!element.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}))),true);
 await page.getByRole('button',{name:/^Позиция 5/}).click();await page.locator('.ab-card').first().click();await page.getByRole('button',{name:'Сохранить',exact:true}).click();await page.getByText('Состав сохранён',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Кампания',exact:true}).last().click();await page.getByRole('button',{name:/^Подготовить отряд/}).click();assert.equal(await page.locator('.ab-field-unit').count(),10);await page.getByRole('button',{name:'Начать бой',exact:true}).click();await page.locator('canvas').waitFor();await page.getByRole('button',{name:'Скорость ×1',exact:true}).click();await page.getByRole('button',{name:'Пауза',exact:true}).click();await fits('arena');await page.getByRole('button',{name:'Продолжить',exact:true}).click();await page.getByRole('button',{name:'К кампании',exact:true}).waitFor({timeout:60000});await fits('result');
-  if(width===360||width===1366){const mass=await browser.newPage({viewport:{width,height}});await mass.goto(`http://127.0.0.1:${server.address().port}`);await mass.getByRole('button',{name:'Призыв',exact:true}).click();await mass.getByRole('button',{name:'Призвать 10 · 10 оск.',exact:true}).click();await mass.waitForTimeout(2000);assert.equal(await mass.locator('.ab-summoned-hero').count(),0);await mass.getByRole('button',{name:'Следующий · 1/10',exact:true}).waitFor();for(let index=1;index<10;index++)await mass.getByRole('button',{name:`Следующий · ${index}/10`,exact:true}).click();await mass.getByRole('button',{name:'Все результаты',exact:true}).click();assert.equal(await mass.locator('.ab-summon-ribbons .ab-card').count(),10);await mass.screenshot({path:fileURLToPath(new URL(`summon-ten-${width}.png`,directory))});await mass.getByRole('button',{name:'Продолжить',exact:true}).click();await mass.getByRole('button',{name:'Герои',exact:true}).click();await mass.locator('.ab-card').first().waitFor();await mass.close();}
   if(width===1920){
    const roster=await browser.newPage({viewport:{width,height}});
    await roster.goto(`http://127.0.0.1:${server.address().port}/?all=1`);

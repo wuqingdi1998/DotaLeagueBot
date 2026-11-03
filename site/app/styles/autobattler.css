@@ -143,26 +143,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-ray-2{clip-path:polygon(50% 0,65% 35%,100% 50%,65% 65%,50% 100%,35% 65%,0 50%,35% 35%);background:currentColor}
 .ab-ray-3{border-radius:0;transform:rotate(45deg)}
 .ab-skill-preview>.ab-portrait{animation:ab-cast 1.3s ease-in-out}
-.ab-summon-scene{position:relative;display:flex;flex-direction:column;align-items:center;height:100%;overflow:clip;text-align:center;isolation:isolate;background:radial-gradient(ellipse at 55% 40%,#3a80a14a,#071630ee 75%)}
-.ab-summon-scene>.ab-scene-heading{align-self:flex-start;text-align:left;z-index:2}
-.ab-portal{position:relative;flex:1;min-height:0;width:min(100%,900px);display:grid;place-items:center}
-.ab-summon-controls{position:relative;z-index:2;display:grid;gap:9px;width:min(100%,900px);padding:15px;background:linear-gradient(transparent,#081326ed)}
-.ab-summon-controls>div{display:flex;justify-content:center;gap:30px}
-.ab-summon-controls .ab-primary{min-width:250px;padding:15px;font-size:20px}
-.ab-summon-controls p{font-size:14px}
-.ab-summoned-hero{position:absolute;inset:-15% 12% -10%;pointer-events:none;animation:ab-hero-emerges .9s ease-out}
-.ab-reveal-rarity{position:absolute;left:6%;top:10%;font:48px Georgia,serif;color:var(--rarity-color,#73dfff);text-shadow:0 0 15px currentColor;z-index:2}
-.ab-reveal-banner{position:absolute;bottom:6%;right:0;left:30%;padding:14px 20px;background:linear-gradient(100deg,transparent,#3eace2cc);font-size:36px;transform:rotate(-5deg);text-shadow:0 2px 3px #000}
-.ab-reveal-Legendary .ab-reveal-banner{background:linear-gradient(100deg,transparent,#e4b849dd)}
-.ab-reveal-Epic .ab-reveal-banner{background:linear-gradient(100deg,transparent,#9473e2dd)}
-.ab-reveal-Epic{--rarity-color:#c0a5ff}.ab-reveal-Legendary{--rarity-color:#f2cd79}
-.ab-summon-phase-3:after{content:'';position:absolute;inset:0;background:#eaffff;animation:ab-flash 1.6s ease-out;pointer-events:none}
-.ab-summon-summary{display:flex;flex-direction:column;height:100%;width:100%;padding:20px 25px;gap:20px}
-.ab-summon-summary h2{text-align:left}
-.ab-summon-ribbons{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:8px;flex:1;min-height:0;align-items:center}
-.ab-summon-ribbons .ab-card{height:80%;max-height:440px;aspect-ratio:auto;clip-path:polygon(50% 0,100% 7%,100% 92%,50% 100%,0 92%,0 7%)}
-.ab-summon-ribbons .ab-card-caption{padding-bottom:28px}
-.ab-summon-summary>button{align-self:center;min-width:220px}
 .ab-map{background-position:center;background-size:cover;flex:1;position:relative;display:flex;flex-direction:column;min-height:0}
 .ab-map-title{display:flex;align-items:center;justify-content:center;gap:24px;padding:12px 0;text-align:center}
 .ab-map-path{flex:1;position:relative;width:min(65%,700px);margin:auto;min-height:0}
@@ -207,7 +187,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 @keyframes ab-enter{from{opacity:0}to{opacity:1}}
 @keyframes ab-breathe{50%{transform:translateY(-5px)}}
 @keyframes ab-reveal{from{opacity:0;transform:scale(.85);filter:brightness(3)}to{opacity:1;transform:scale(1);filter:brightness(1)}}
-@keyframes ab-flash{0%,100%{opacity:0}45%{opacity:.9}}
 @keyframes ab-cast{30%{transform:translateX(-12px) rotate(-5deg)}55%{transform:translateX(20px) rotate(5deg)}to{transform:none}}
 @keyframes ab-preview{0%{opacity:0;transform:scale(.1) rotate(0)}60%{opacity:1;transform:scale(1) rotate(100deg)}100%{opacity:0;transform:scale(1.5) rotate(150deg)}}
 @keyframes ab-ray{0%{opacity:0;translate:0 0;scale:.1}40%{opacity:1}100%{opacity:0;translate:100px 0;scale:1.4}}
@@ -219,9 +198,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-collection>.ab-scene-heading{display:none}
  .ab-class-rail{width:90px}
  .ab-gallery-main{padding:10px 14px}
- .ab-summon-ribbons{grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr))}
- .ab-summon-ribbons .ab-card{height:100%}
- .ab-summon-ribbons .ab-card-caption{padding-bottom:20px}
 }
 @media(max-width:650px){
  .ab-game{grid-template-rows:54px minmax(0,1fr) 58px;padding-left:6px;padding-right:6px}
@@ -258,10 +234,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-profile-upgrade{left:5%;right:5%;bottom:4%;gap:8px}.ab-profile-upgrade small{font-size:10px}.ab-profile-upgrade .ab-primary{font-size:15px;padding:12px 18px}
  .ab-ability-dialog{padding:20px 18px;gap:12px}.ab-ability-dialog h2{font-size:22px}.ab-ability-dialog p{font-size:16px}.ab-ability-dialog small{font-size:12px}.ab-ability-dialog>h3{font-size:20px}
  .ab-scene-heading{padding:12px 10px}.ab-scene-heading h2{font-size:23px}
- .ab-summon-controls{padding:10px 6px;gap:8px}.ab-summon-controls p{font-size:11px}.ab-summon-controls small{font-size:10px}
- .ab-summon-controls>div{gap:10px}.ab-summon-controls .ab-primary{min-width:0;font-size:13px;padding:12px;flex:1}
- .ab-summoned-hero{inset:-5% -8% 0}.ab-reveal-rarity{font-size:28px;left:7%;top:5%}.ab-reveal-banner{font-size:27px;left:12%;padding:10px;bottom:4%}
- .ab-summon-summary{padding:12px 5px;gap:12px}.ab-summon-summary h2{font-size:22px}.ab-summon-ribbons{gap:5px}.ab-summon-ribbons .ab-card-caption{padding-bottom:20px}.ab-summon-ribbons .ab-card-caption strong{font-size:10px}
  .ab-map-title{gap:10px}.ab-map-title h2{font-size:22px}.ab-map-path{width:90%}.ab-game .ab-map-node{width:43px;height:43px;min-height:43px}
  .ab-stage-preview{padding:10px;gap:7px}.ab-stage-preview p{font-size:11px}.ab-battle-result{gap:17px}.ab-battle-result p{font-size:12px;text-align:center}
 }
@@ -286,10 +258,8 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 @media(prefers-reduced-motion:reduce){.ab-game .ab-level-burst{animation:ab-level-fade 2s both}}
 @keyframes ab-level-fade{0%,80%{opacity:1}100%{opacity:0}}
 
-.ab-shard-tabs button[aria-pressed=true]{border-color:#f2d193;background:#38577b}
 .ab-game:has(.ab-collection) .ab-world{background:radial-gradient(ellipse at center,#284a6d,#0a1729)}
 .ab-game:has(.ab-team-scene) .ab-world{background:#0c1929}
-.ab-game:has(.ab-summon-scene) .ab-world{background:radial-gradient(ellipse at top,#283c72,#0a1029)}
 
 .ab-inspectable-card{position:relative;min-height:0;height:100%;min-width:0}
 .ab-inspectable-card>.ab-card{width:100%;height:100%}
@@ -302,20 +272,4 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-roster .ab-card-info{width:21px;height:21px;min-height:21px;font-size:13px}
 .ab-tactics-field{background-image:linear-gradient(0deg,#07162577,#07162511),url("/autobattler/chapter-1.webp")}
 
-.ab-shrine{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.ab-summon-scene .ab-portal{width:100%;overflow:clip}
-.ab-shrine-focus{transform-origin:50% 55%;animation:ab-shrine-camera 5.6s ease-out both}
-.ab-shrine-light{opacity:.24}
-.ab-shrine-focus .ab-shrine-light{animation:ab-shrine-charge 5.6s ease-in both}
-.ab-shrine-energy{stroke-dasharray:100;stroke-dashoffset:100}
-.ab-shrine-focus .ab-shrine-energy{animation:ab-shrine-flow 5.6s ease-in both}
-.ab-shard-gold .ab-shrine-artifact{filter:hue-rotate(186deg)}
-@keyframes ab-shrine-camera{to{transform:scale(1.14)}}
-@keyframes ab-shrine-charge{60%{opacity:.48}90%{opacity:.98}100%{opacity:.55}}
-@keyframes ab-shrine-flow{20%{stroke-dashoffset:96}85%,100%{stroke-dashoffset:0}}
-
-@keyframes ab-hero-emerges{0%{opacity:0;filter:brightness(0)}28%{opacity:.86;filter:brightness(0)}70%{opacity:1;filter:brightness(1.18)}100%{opacity:1;filter:brightness(1)}}
-.ab-summon-phase-4 .ab-reveal-rarity,.ab-summon-phase-4 .ab-reveal-banner{animation:ab-enter .35s .35s both}
-.ab-reveal-Legendary .ab-shrine-light{fill:#ffc573;opacity:.16}
-.ab-reveal-Epic .ab-shrine-light{fill:#ae90e5;opacity:.14}
-@media(prefers-reduced-motion:reduce){.ab-shrine-focus,.ab-shrine-focus .ab-shrine-light,.ab-shrine-focus .ab-shrine-energy,.ab-summon-phase-4 .ab-reveal-rarity,.ab-summon-phase-4 .ab-reveal-banner,.ab-summoned-hero{animation:none}}
+@media(prefers-reduced-motion:reduce){.ab-game *{animation:none;transition:none}}

@@ -1,0 +1,122 @@
+html:has(.ab-summon-scene){scrollbar-gutter:auto}
+.ab-game:has(.ab-summon-scene){padding-inline:env(safe-area-inset-left) env(safe-area-inset-right);background:#080f1b}
+.ab-game:has(.ab-summon-scene) .ab-world{background:#080f1b}
+.ab-game:has(.ab-summon-scene) .ab-header{padding-inline:16px;background:#0e1725}
+.ab-summon-scene{
+ --ritual-color:#a6ddff;
+ --ritual-rgb:94,179,255;
+ position:relative;isolation:isolate;display:grid;grid-template-rows:auto minmax(0,1fr) auto;
+ height:100%;min-height:0;overflow:clip;text-align:center;
+ background:linear-gradient(180deg,#0c1726 0%,#182535 52%,#090f1d 100%);
+}
+.ab-summon-scene.ab-reveal-Epic{--ritual-color:#e4bdff;--ritual-rgb:174,86,244}
+.ab-summon-scene.ab-reveal-Legendary{--ritual-color:#ffe3a2;--ritual-rgb:255,181,60}
+.ab-summon-heading{z-index:2;display:grid;gap:3px;justify-items:center;padding:12px 16px 8px}
+.ab-summon-heading small{color:var(--ritual-color);font-size:10px;letter-spacing:.23em;text-transform:uppercase}
+.ab-summon-heading h2{font:clamp(21px,3vw,39px)/1.08 Georgia,serif}
+.ab-summon-heading [role=status]{font-size:13px;color:#c6d9e9}
+.ab-summon-stage{position:relative;min-height:0;isolation:isolate;overflow:clip}
+.ab-shrine-stage{
+ position:absolute;inset:0;overflow:clip;
+ background:linear-gradient(0deg,#080f1bc9,transparent 33%,transparent 76%,#0c1726a0),url('/autobattler/summon-shrine.webp') center 37%/cover no-repeat;
+}
+.ab-shrine-stage canvas{width:100%;height:100%;display:block}
+.ab-shrine-charge{animation:ab-ritual-camera 2.2s ease-out both}
+@keyframes ab-ritual-camera{to{transform:scale(1.045)}}
+.ab-summon-controls{
+ display:grid;justify-items:center;gap:8px;padding:10px 16px 15px;
+ background:linear-gradient(180deg,#101b2b,#0a111e);border-top:1px solid #70634d52;
+}
+.ab-summon-controls>div{display:flex;justify-content:center;gap:12px;width:min(100%,570px)}
+.ab-summon-controls p{font-size:13px;color:#c9dcec}
+.ab-summon-controls .ab-primary{min-width:min(100%,230px)}
+.ab-summon-controls .ab-shard-tabs button[aria-pressed=true]{border-color:var(--ritual-color);background:#2b4962}
+.ab-summon-stage.is-board{
+ background:radial-gradient(ellipse at 50% 47%,#192b44bd 10%,#07111fe6 72%),url('/autobattler/summon-shrine.webp') center/cover no-repeat;
+ display:grid;grid-template: minmax(0,1fr) / minmax(0,1fr);place-items:center;padding:clamp(8px,2vh,25px) clamp(9px,4vw,72px);
+}
+.ab-summon-board{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));
+ gap:clamp(7px,1.3vw,20px);width:min(100%,1250px);height:min(100%,690px);margin:0;padding:0;list-style:none;
+}
+.ab-summon-slot{--card-light:#7db6d2;--card-rgb:105,166,210;position:relative;min-height:0;min-width:0}
+.ab-summon-slot.ab-result-Epic{--card-light:#d69aff;--card-rgb:181,103,246}
+.ab-summon-slot.ab-result-Legendary{--card-light:#ffe09a;--card-rgb:244,180,77}
+.ab-summon-seal,.ab-game .ab-summon-card{
+ position:relative;isolation:isolate;display:grid;place-items:center;width:100%;height:100%;min-height:0;
+ border:1px solid var(--card-light);border-radius:10px;background:#14243a;overflow:clip;
+ box-shadow:inset 0 0 0 3px #08101e9c,0 4px 16px #02081180;
+}
+.ab-summon-seal{background:repeating-linear-gradient(132deg,transparent 0 17px,#7392aa12 18px 19px),radial-gradient(ellipse,#20334e,#0d1b30 75%)}
+.ab-summon-seal::before{
+ content:'';position:absolute;inset:9%;border:1px solid #7da4bd44;border-radius:7px;
+}
+.ab-seal-emblem{color:#8ca8bc;font:clamp(20px,5vw,67px) Georgia,serif}
+.ab-seal-number{position:absolute;bottom:8%;color:#91a5bc;font-size:11px;letter-spacing:.12em}
+.ab-summon-slot.is-opening{z-index:1}
+.ab-summon-slot.is-opening .ab-summon-seal{animation:ab-seal-charge var(--opening-time) both}
+.ab-summon-slot.is-opening .ab-seal-emblem{animation:ab-seal-shatter var(--opening-time) both}
+.ab-summon-slot.is-opening::after{
+ content:'';position:absolute;inset:-15%;pointer-events:none;
+ background:radial-gradient(ellipse,rgba(var(--card-rgb),.72),transparent 66%);
+ mix-blend-mode:screen;animation:ab-seal-light var(--opening-time) both;
+}
+.ab-summon-slot.is-opening.ab-result-Epic::before{
+ content:'';position:absolute;inset:-10%;pointer-events:none;
+ background:conic-gradient(from 25deg,transparent 0 12%,#b888fb86 14%,transparent 17% 47%,#e5a4ff90 49%,transparent 54% 100%);
+ animation:ab-epic-orbit var(--opening-time) both;
+}
+.ab-summon-slot.is-opening.ab-result-Legendary::before{
+ content:'';position:absolute;inset:-17%;pointer-events:none;
+ background:linear-gradient(90deg,transparent 30%,#ffbc5e99 48%,#fff1bc 50%,#ffbc5e99 52%,transparent 70%);
+ mask-image:radial-gradient(ellipse,#000 15%,transparent 73%);
+ animation:ab-legend-column var(--opening-time) both;
+}
+@keyframes ab-seal-charge{0%,16%{filter:brightness(1)}65%{filter:brightness(1.65);box-shadow:0 0 18px var(--card-light)}94%{filter:brightness(2.3)}100%{filter:brightness(1)}}
+@keyframes ab-seal-shatter{0%,55%{transform:scale(1)}92%{transform:scale(1.7);opacity:.3}100%{opacity:0}}
+@keyframes ab-seal-light{0%,20%{opacity:0}65%{opacity:.55}94%{opacity:1}100%{opacity:0}}
+@keyframes ab-epic-orbit{0%{opacity:0;transform:rotate(-35deg) scale(.76)}55%{opacity:.74}100%{opacity:0;transform:rotate(100deg) scale(1.32)}}
+@keyframes ab-legend-column{0%,18%{opacity:0;transform:scaleX(.24)}65%{opacity:.95}92%{opacity:1;transform:scaleX(1.4)}100%{opacity:0}}
+.ab-game .ab-summon-card{display:block;padding:0;box-shadow:0 0 10px rgba(var(--card-rgb),.32);animation:ab-card-unseal .38s both}
+.ab-summon-card .ab-portrait{background-size:cover;background-position:center 19%}
+.ab-result-role{
+ position:absolute;top:7px;left:7px;z-index:1;display:grid;place-items:center;
+ width:29px;height:29px;border:1px solid var(--card-light);border-radius:6px;
+ background:#081421e8;color:var(--card-light);font-size:17px;
+}
+.ab-result-caption{
+ position:absolute;inset:auto 0 0;padding:20px 5px 7px;
+ background:linear-gradient(transparent,#071326 58%);text-shadow:0 1px 3px #000;
+ display:grid;gap:2px;justify-items:center;color:#fff;
+}
+.ab-result-caption span{font-size:11px;color:var(--card-light)}
+.ab-result-caption strong{font-size:clamp(11px,1.4vw,19px)}
+@keyframes ab-card-unseal{from{opacity:.5;filter:brightness(1.65)}to{opacity:1;filter:brightness(1)}}
+.ab-summon-hero-reveal{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(var(--ritual-rgb),.20),#0a1222 66%)}
+.ab-summon-hero-portal{
+ position:absolute;inset:3% 8%;background:radial-gradient(ellipse at center,rgba(var(--ritual-rgb),.57),transparent 64%);
+ animation:ab-portal-arrival 1.15s both;
+}
+.ab-summoned-hero{position:absolute;inset:1% 12% 0;animation:ab-hero-arrival .98s both}
+.ab-reveal-Epic .ab-summoned-hero{animation-duration:1.18s}
+.ab-reveal-Legendary .ab-summoned-hero{animation-duration:1.48s}
+@keyframes ab-hero-arrival{0%{opacity:0;filter:brightness(0);transform:translateY(5%)}28%{opacity:.92;filter:brightness(0)}100%{opacity:1;filter:brightness(1);transform:none}}
+@keyframes ab-portal-arrival{0%{opacity:0;transform:scale(.74)}42%{opacity:1}100%{opacity:.62;transform:scale(1)}}
+@media(max-width:650px){
+ .ab-summon-heading{padding:8px 6px 6px}
+ .ab-summon-controls{padding:8px 8px 12px;gap:5px}
+ .ab-summon-controls>div{gap:6px}
+ .ab-summon-controls .ab-primary{min-width:0;flex:1;font-size:12px;padding-inline:4px}
+ .ab-summon-controls p,.ab-summon-heading [role=status]{font-size:11px}
+ .ab-summon-stage.is-board{padding:10px 5px}
+ .ab-summon-board{gap:4px;height:min(100%,395px)}
+ .ab-summon-seal,.ab-game .ab-summon-card{border-radius:5px}
+ .ab-result-role{width:20px;height:20px;top:4px;left:4px;font-size:13px}
+ .ab-result-caption{padding:11px 1px 6px}
+ .ab-result-caption span{font-size:8px}
+ .ab-result-caption strong{font-size:10px}
+ .ab-summoned-hero{inset:0 2%}
+}
+@media(prefers-reduced-motion:reduce){
+ .ab-summon-scene *,.ab-summon-scene *::before,.ab-summon-scene *::after{animation:none!important}
+}
