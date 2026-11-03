@@ -1,13 +1,16 @@
+import {battleEffects,visibleBattleEffects} from '@/lib/autobattler/battleEffects';
+import {projectFormation} from '@/lib/autobattler/formationGeometry';
 import type PhaserType from 'phaser';
 import type {Battle,Unit} from '@/lib/autobattler/simulation';
 import {heroById,stages} from '@/lib/autobattler/catalog';
 import {heroVisuals,sceneBackground} from '../model/visuals';
 import {createCharacterRig,poseCharacter} from './characterRig';
-type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Mesh2D;label:PhaserType.GameObjects.Text;death:number};
+import {createOrionRig} from './orionRig';
+type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Mesh2D|PhaserType.GameObjects.Container;pose:(stride:number,walking:boolean,attack:number,cast:number)=>void;label:PhaserType.GameObjects.Text;death:number;effects:PhaserType.GameObjects.Text[]};
 export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
  return class Arena extends Phaser.Scene{
   elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;environment!:PhaserType.GameObjects.Image;
-  preload(){const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/field-${battle.chapter??stage?.chapter??1}.svg`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
+  preload(){if(battle.units.some(unit=>unit.hero==='orion'))this.load.atlas('orion-cutout','/autobattler/orion-cutout.webp','/autobattler/orion-cutout.json');const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/chapter-${battle.chapter??stage?.chapter??1}.webp`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
   create(){
    this.width=this.scale.width;this.height=this.scale.height;
    const environment=this.environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height)*1.12);
@@ -15,12 +18,16 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
    this.actors=battle.units.map(unit=>{
     const root=this.add.container(0,0);const size=this.width<800?102:125;
     const shadow=this.add.ellipse(0,-3,size*.58,20,0x061326,.4);
-    const body=createCharacterRig(Phaser,this,unit.hero,size);
+    const orion=unit.hero==='orion'?createOrionRig(this,size):undefined;
+    const mesh=orion?undefined:createCharacterRig(Phaser,this,unit.hero,size);
+    const body=orion?.rig??mesh!;
+    const pose=orion?.pose??((stride:number,walking:boolean,attack:number,cast:number)=>poseCharacter(mesh!,stride,walking,attack||cast));
     root.add([shadow,body]);const label=this.add.text(0,0,`${heroById[unit.hero].name} · ${unit.level??1}`,{fontSize:this.width<800?'12px':'13px',fontFamily:'Arial',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5);
-    return {root,body,label,death:-1};
+    const effects=battleEffects.map(effect=>this.add.text(0,0,effect.icon,{fontSize:"11px",color:"#fff"}).setOrigin(.5).setDepth(2100).setVisible(false));
+    return {root,body,pose,label,effects,death:-1};
    });this.graphics=this.add.graphics().setDepth(2000);this.clock=this.add.text(this.width/2,25,'',{fontSize:'24px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(3000);
   }
-  position(unit:Unit){return {x:unit.x/1000*this.width,y:this.height*.27+unit.y/500*this.height*.63};}
+  position(unit:Unit){const point=projectFormation(unit);return {x:point.x/100*this.width,y:point.y/100*this.height};}
   update(_time:number,delta:number){
    if(!control.current.isPaused&&this.hitStop<=0)this.elapsed=Math.min(battle.duration,this.elapsed+Math.min(delta,150)*control.current.speed);
    if(!control.current.isPaused)this.hitStop=Math.max(0,this.hitStop-delta*control.current.speed);
@@ -35,7 +42,21 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
    for(const event of battle.events){if(event.time<=current.time||event.time>this.elapsed)continue;const target=units.find(unit=>unit.id===event.target);if(target){if(event.kind==='damage')target.hp=event.health??Math.max(0,target.hp-event.amount);if(event.kind==='heal')target.hp=event.health??Math.min(target.maxHp,target.hp+event.amount);}}
    const g=this.graphics;g.clear();
    const upcoming=battle.events.filter(event=>event.kind==='damage'&&event.delivery!=='dot'&&event.time>this.elapsed&&event.time<=this.elapsed+220);
-   for(const event of upcoming){const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;if(!['Mage','Marksman','Support'].includes(heroById[source.hero].role)||source.hp<=0)continue;const a=this.position(source),b=this.position(target),flight=1-(event.time-this.elapsed)/220;const x=Phaser.Math.Linear(a.x,b.x,flight),y=Phaser.Math.Linear(a.y,b.y,flight)-65;g.lineStyle(3,heroVisuals[source.hero].color);g.lineBetween(x-12*(source.side?-1:1),y,x,y);g.fillStyle(0xffe7ad);g.fillCircle(x,y,4);}
+   for(const event of upcoming){
+    const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
+    const role=heroById[source.hero].role;
+    if(!['Mage','Marksman','Support'].includes(role)||source.hp<=0)continue;
+    const a=this.position(source),b=this.position(target),flight=1-(event.time-this.elapsed)/220;
+    const x=Phaser.Math.Linear(a.x,b.x,flight),y=Phaser.Math.Linear(a.y,b.y,flight)-65-Math.sin(flight*Math.PI)*12;
+    if(role==='Marksman'&&event.delivery==='attack'){
+     const angle=Math.atan2(b.y-a.y,b.x-a.x);
+     g.lineStyle(2,0xf7e2b5);g.lineBetween(x-Math.cos(angle)*17,y-Math.sin(angle)*17,x,y);
+     g.fillStyle(0xfff5d4);g.fillTriangle(x,y,x-Math.cos(angle-.35)*7,y-Math.sin(angle-.35)*7,x-Math.cos(angle+.35)*7,y-Math.sin(angle+.35)*7);
+    }else{
+     g.fillStyle(heroVisuals[source.hero].color,.5);g.fillCircle(x,y,8);
+     g.fillStyle(0xfff0d0);g.fillCircle(x,y,3);
+    }
+   }
 
    const active=battle.events.filter(event=>event.time<=this.elapsed&&event.time>this.elapsed+this.outro-750).slice(-28);
    units.forEach((unit,index)=>{
@@ -44,6 +65,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const attack=[...active,...upcoming].findLast(event=>event.actor===unit.id&&event.kind==='damage'&&(event.delivery??'attack')==='attack'&&event.time>time-500);
     const skill=active.findLast(event=>event.actor===unit.id&&['skill','basic'].includes(event.kind));
     const hit=active.findLast(event=>event.target===unit.id&&event.kind==='damage'&&event.amount>0&&event.time>time-220);
+    actor.effects.forEach(icon=>icon.setVisible(false));
     if(unit.hp<=0){if(actor.death<0)actor.death=time;const progress=Math.min(1,(time-actor.death)/650);actor.root.setAlpha(1-progress).setRotation(progress*(unit.side?-.7:.7)).setY(position.y+progress*30);actor.label.setVisible(false);return;}
     actor.death=-1;actor.root.setAlpha(1).setRotation(0);actor.label.setVisible(true);
     const stride=Math.sin(time/95*visual.stride+visual.phase),direction=unit.side?-1:1;
@@ -52,13 +74,20 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     actor.root.setPosition(position.x+(isAttacking?Math.sin(attackPhase*Math.PI)*(role==='Assassin'?28:role==='Marksman'?3:12)*direction:0)+(hit?Math.sin((time-hit.time)*.06)*4:0),position.y+(moving?Math.abs(stride)*3:Math.sin(time/700+visual.phase)*2));actor.root.setDepth(position.y).setScale(direction,1);
     actor.body.setRotation(skill&&unit.stunnedUntil<=time?Math.sin((time-skill.time)/800*Math.PI)*(.08+visual.index%5*.025):isAttacking?Math.sin(attackPhase*Math.PI)*amplitude:0);
     if(moving&&!isAttacking&&!skill)actor.body.setRotation(stride*.035);
-    poseCharacter(actor.body,stride,moving&&unit.stunnedUntil<=time,isAttacking?Math.sin(attackPhase*Math.PI):skill?.time?Math.sin((time-skill.time)/800*Math.PI):0);actor.label.setPosition(position.x,position.y+11).setDepth(1900);
+    actor.pose(stride,moving&&unit.stunnedUntil<=time,isAttacking?Math.sin(attackPhase*Math.PI):0,skill?Math.sin((time-skill.time)/800*Math.PI):0);actor.label.setPosition(position.x,position.y+11).setDepth(1900);
     const size=this.width<800?60:74,barY=position.y-(this.width<800?112:135);
     g.fillStyle(0x050b17,.9);g.fillRoundedRect(position.x-size/2-2,barY-2,size+4,13,3);
     g.fillStyle(unit.side?0xe98193:0x79e0b3);g.fillRect(position.x-size/2,barY,size*unit.hp/unit.maxHp,6);
     g.fillStyle(0xe6ce83);g.fillRect(position.x-size/2,barY+8,size*unit.energy/100,2);
+    const effects=visibleBattleEffects(unit,time);
+    effects.forEach((effect,index)=>{
+      const x=position.x+(index-(effects.length-1)/2)*17,y=barY-13;
+      g.fillStyle(effect.isBuff?0x205b91:0x91384e);
+      g.fillRoundedRect(x-7,y-7,14,14,2);
+      g.fillStyle(0xffffff,.85);g.fillRect(x-6,y+5,12*effect.progress,1);
+      actor.effects[index].setText(effect.icon).setPosition(x,y-1).setVisible(true);
+    });
     if(unit.shield>0){g.lineStyle(2,0x9ce8ff,.6);g.strokeEllipse(position.x,position.y-65,100,140);}
-    if(unit.stunnedUntil>time){g.lineStyle(2,0xffe49b);g.strokeEllipse(position.x,barY-17,30,9);for(let n=0;n<3;n++){g.fillStyle(0xffe49b);g.fillCircle(position.x+Math.cos(time/200+n*2.1)*18,barY-17+Math.sin(time/200+n*2.1)*5,3);}}
    });
    active.forEach(event=>{
     const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
@@ -72,7 +101,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
      if(visual.index%4===0)g.strokeEllipse(a.x,a.y-40,radius*2,radius);else if(visual.index%4===1){for(let i=0;i<5;i++){const angle=i*Math.PI*.4+progress*4;g.lineBetween(a.x,a.y-50,a.x+Math.cos(angle)*radius,a.y-50+Math.sin(angle)*radius);}}else if(visual.index%4===2)g.strokeCircle(a.x,a.y-65,radius);else{for(let i=0;i<7;i++)g.strokeCircle(a.x+Math.sin(i*2+age/150)*radius,a.y-60+Math.cos(i*2)*radius,5+progress*8);}
     }else if(event.amount>0){
      const color=event.kind==='heal'?0x89ffbd:visual.color;
-     if(age<200&&event.delivery!=='dot'){g.lineStyle(3,color,1-age/220);g.lineBetween(a.x,a.y-65,b.x,b.y-65);g.fillStyle(color);g.fillCircle(b.x,b.y-65,6+age/50);}
+     if(age<200&&event.delivery!=='dot'){g.lineStyle(2,color,1-age/200);g.strokeCircle(b.x,b.y-65,7+age/18);}
      for(let i=0;i<5;i++){g.fillStyle(color,1-progress);g.fillCircle(b.x+Math.cos(i*1.3)*progress*36,b.y-65+Math.sin(i*1.3)*progress*36,Math.max(1,4*(1-progress)));}
      const key=`${event.time}-${event.actor}-${event.target}-${event.kind}`;
      if(!this.shown.has(key)){this.shown.add(key);if(event.kind==='damage'&&event.amount>250){this.cameras.main.shake(90,.002);this.hitStop=45;}const number=this.add.text(b.x,b.y-100,String(Math.round(event.amount)),{fontSize:event.amount>250?'26px':'20px',color:event.kind==='heal'?'#98ffd1':'#fff0cd',stroke:'#162039',strokeThickness:4}).setOrigin(.5).setDepth(10000);this.tweens.add({targets:number,y:number.y-35,alpha:0,duration:650,onComplete:()=>number.destroy()});}

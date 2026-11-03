@@ -6,4 +6,4 @@ export const heroVisuals=Object.fromEntries(heroes.map((hero,index)=>{
  const preset=presets[hero.id]??{stride:1,phase:0,effect:'arcane',color:hero.color,glyph:'✧',portraitX:50};
  return [hero.id,{...preset,index:preset.frame??index,texture:`/autobattler/combat/${hero.id}.webp`,illustration:`/autobattler/heroes/${hero.id}.webp`,portrait:`/autobattler/portraits/${hero.id}.webp`}];
 }));
-export const sceneBackground='/autobattler/field-1.svg';
+export const sceneBackground='/autobattler/chapter-1.webp';

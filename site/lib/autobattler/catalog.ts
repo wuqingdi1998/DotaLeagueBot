@@ -6,7 +6,7 @@ export interface Hero {
   hp: number; attack: number; defense: number; interval: number; range: number; movement: number;
   skill: { name: string; description: string; effect: Effect; power: number; targets: number; duration: number };
 }
-export const rules = { version: 4, step: 100, limit: 90000, initialTickets: 10, reward: 2,
+export const rules = { version: 5, step: 100, limit: 90000, initialTickets: 10, reward: 2,
   stageCount: 15 };
 const roles: Record<Role, [number, number, number, number, number, number, number]> = {
   Tank: [2200, 90, 65, 1400, 65, 85, 0x59d2c5],
@@ -61,5 +61,5 @@ export const starter = heroes.slice(0,5).map(hero=>hero.id);
 const lineups = [starter, ['kremen','bor','ruta','lira','azur'], ['bastion','yantar','veya','morok','sokol'],
   ['granit','iskra','astra','taiga','mirra'], ['orion','rion','flor','echo','selena']];
 export const stages = Array.from({length:rules.stageCount},(_,i)=>({id:i+1,chapter:Math.floor(i/5)+1,
-  name:['Изумрудные врата','Осколки рассвета','Лунная цитадель'][Math.floor(i/5)],
+  name:['Лесная тропа','Сумрачная чаща','Заброшенная деревня'][Math.floor(i/5)],
   team:lineups[Math.floor(i/3)], scale:.65+i*.025}));

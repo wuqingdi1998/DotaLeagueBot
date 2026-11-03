@@ -1,8 +1,9 @@
+import {rules} from './catalog';
 import {simulate,type Battle,type Unit} from './simulation';
 
 /** Three authoritative encounters preserve survivors and award the stage only after the last wave. */
 export function simulateCampaign(team:string[],enemies:string[],seed:number,scale:number,levels:Record<string,number>={}):Battle{
- const result:Battle={version:4,seed,frames:[],events:[],winner:1,duration:0,units:[],waves:[]};
+ const result:Battle={version:rules.version,seed,frames:[],events:[],winner:1,duration:0,units:[],waves:[]};
  let offset=0,survivors:Unit[]|undefined;
  for(let wave=0;wave<3;wave++){
   const fight=simulate(team,enemies,seed+wave,scale*(.8+wave*.1),levels,{},survivors);

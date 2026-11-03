@@ -19,13 +19,13 @@ it('plays three waves with deterministic survivors and a walking interval',()=>{
  for(let index=1;index<battle.frames.length;index++)expect(battle.frames[index].time).toBeGreaterThan(battle.frames[index-1].time);
  expect(simulateCampaign(starter,starter,42,5).waves).toHaveLength(1);
 });
-it('replaces legendary personal passives with team auras and never buffs the enemy',()=>{
+it('does not apply unconditional legendary stat bonuses',()=>{
  const team=['orion','selena',...starter.slice(2)];
  const battle=simulate(team,starter,42);
  for(const unit of battle.frames[0].units){
   const base=heroStats(heroById[unit.hero]);
-  expect(unit.defense).toBeCloseTo(base.defense*(unit.side===0?1.05:1));
-  expect(unit.interval).toBeCloseTo(base.interval/(unit.side===0?1.04:1));
+  expect(unit.defense).toBeCloseTo(base.defense);
+  expect(unit.interval).toBeCloseTo(base.interval);
  }
  expect(heroStats(heroById.orion).defense).toBe(heroById.orion.defense);
  expect(heroStats(heroById.selena).interval).toBe(heroById.selena.interval);

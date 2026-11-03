@@ -12,7 +12,9 @@ export default function BattleScene({battle,onFinish}:{battle:Battle;onFinish:()
       if(isDisposed||!host.current)return;
       const Arena=createArena(Phaser,battle,control,onFinish);
       const isPortrait=host.current.clientWidth<650;
-      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current,width:isPortrait?600:1000,height:isPortrait?800:600,backgroundColor:'#101e34',
+      const height=isPortrait?800:600;
+      const width=Math.round(host.current.clientWidth/Math.max(1,host.current.clientHeight)*height);
+      game=new Phaser.Game({type:Phaser.AUTO,parent:host.current,width:Math.max(isPortrait?540:1000,width),height,backgroundColor:'#101e34',
         scale:{mode:Phaser.Scale.FIT,autoCenter:Phaser.Scale.CENTER_BOTH},scene:Arena,audio:{noAudio:true},render:{antialias:true}});
       observer=new ResizeObserver(()=>game?.scale.refresh());observer.observe(host.current);
     }).catch(()=>setError('Не удалось загрузить арену. Обновите страницу.'));

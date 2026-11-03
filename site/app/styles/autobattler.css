@@ -1,7 +1,7 @@
 html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-game{--ab-ink:#09182d;--ab-panel:#142a49ed;--ab-gold:#f2d193;--ab-line:#6a9bc26b;--ab-accent:#73deff;position:fixed;inset:0;z-index:120;height:100dvh;display:grid;grid-template-rows:64px minmax(0,1fr) 68px;background:#102644;color:#f3f5ff;font-family:Arial,sans-serif;isolation:isolate;padding:env(safe-area-inset-top) max(16px,env(safe-area-inset-right)) env(safe-area-inset-bottom) max(16px,env(safe-area-inset-left));box-sizing:border-box}
 .ab-game *{box-sizing:border-box}
-.ab-world{position:absolute;inset:0;z-index:-2;background:linear-gradient(0deg,#09213be8,transparent 55%,#101c32a6),url('/autobattler/field-1.svg') center/cover}
+.ab-world{position:absolute;inset:0;z-index:-2;background:linear-gradient(0deg,#09213be8,transparent 55%,#101c32a6),url('/autobattler/chapter-1.webp') center/cover}
 .ab-world:after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 60% 40%,transparent,#06122988)}
 .ab-game button,.ab-game select,.ab-game input{font:inherit;color:inherit;min-height:40px;border:1px solid var(--ab-line);border-radius:3px;background:linear-gradient(#284c78,#112b4c);padding:8px 14px}
 .ab-game button{cursor:pointer;box-shadow:inset 0 1px #fff2;transition:filter .18s,transform .18s}
@@ -29,18 +29,8 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-navigation button[aria-current=page]{color:white;background:radial-gradient(ellipse at bottom,#39baf099,transparent 75%);box-shadow:inset 0 -3px #73dfff}
 .ab-scene-heading{padding:16px 20px 12px}
 .ab-scene-heading small{letter-spacing:.14em;font-size:10px}
-.ab-home{position:relative;flex:1;min-height:0}
-.ab-home-copy{position:absolute;left:5%;top:8%;z-index:1}
-.ab-home-copy h1{font:clamp(28px,4.7vw,65px)/1.15 Georgia,serif;text-shadow:0 3px 12px #000}
-.ab-home-copy em{color:var(--ab-gold);font-style:normal}
-.ab-home-copy p{margin-top:14px;font-size:15px}
-.ab-home-copy small{display:block;margin-bottom:12px}
-.ab-home-hero{position:absolute;right:4%;bottom:0;height:100%;width:65%;animation:ab-breathe 4s ease-in-out infinite}
 .ab-portrait{width:100%;height:100%;background-repeat:no-repeat;background-position:center;background-size:contain;filter:drop-shadow(0 8px 10px #0007)}
 .ab-portrait.ab-full-portrait{background-size:contain;background-position:center bottom}
-.ab-home-cta{position:absolute;left:5%;bottom:8%;display:grid;gap:12px;z-index:2}
-.ab-home-cta .ab-primary{font-size:20px;padding:18px 24px}
-.ab-home-cta>span{font-size:14px;color:var(--ab-gold)}
 .ab-collection{display:flex;flex-direction:column;min-height:0;flex:1;background:radial-gradient(ellipse at 65% 65%,#436daeaa,#132b49ee)}
 .ab-collection>.ab-scene-heading{position:absolute;top:0;left:120px;pointer-events:none;padding-top:10px}
 .ab-collection>.ab-scene-heading h2{font-size:25px}
@@ -77,7 +67,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-team-heading h2{font-size:25px}
 .ab-power{display:flex;align-items:center;gap:20px;color:var(--ab-gold);font-size:26px}
 .ab-power span{color:#cbdfff;font-size:19px}
-.ab-tactics-field{flex:1;min-height:0;position:relative;background-size:cover;background-position:center 65%;isolation:isolate}
+.ab-tactics-field{flex:1;min-height:0;position:relative;background-size:cover;background-position:center 65%;background-repeat:no-repeat;isolation:isolate}
 .ab-tactics-field:after{content:'';position:absolute;inset:42% 4% 5%;border:1px solid #86c0f122;transform:skewX(-17deg);background:repeating-linear-gradient(90deg,transparent 0 19%,#bedbff12 20%);z-index:-1}
 .ab-field-side{position:absolute;top:10px;font-size:10px;letter-spacing:.15em;color:#c0e8ff;text-shadow:0 1px 4px #000}
 .ab-side-player{left:12%}.ab-side-enemy{right:12%}
@@ -98,7 +88,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-roster .ab-gallery-tools select{max-width:115px;font-size:11px;min-height:28px}
 .ab-roster .ab-grid{grid-column:1;grid-row:1/3;gap:10px;grid-template-columns:repeat(6,minmax(0,95px));align-items:stretch}
 .ab-roster .ab-card{height:100%;aspect-ratio:auto}
-.ab-roster .ab-card .ab-portrait{background-size:cover}
+.ab-roster .ab-card .ab-portrait{background-size:cover;background-position:center 31%}
 .ab-roster .ab-card-caption{padding:12px 3px 4px}
 .ab-roster .ab-card-caption strong{font-size:12px;margin-top:2px}
 .ab-roster .ab-card-caption>span{font-size:9px}
@@ -156,26 +146,16 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-summon-scene{position:relative;display:flex;flex-direction:column;align-items:center;height:100%;overflow:clip;text-align:center;isolation:isolate;background:radial-gradient(ellipse at 55% 40%,#3a80a14a,#071630ee 75%)}
 .ab-summon-scene>.ab-scene-heading{align-self:flex-start;text-align:left;z-index:2}
 .ab-portal{position:relative;flex:1;min-height:0;width:min(100%,900px);display:grid;place-items:center}
-.ab-summon-guide{position:absolute;inset:-12% 0 -20%;opacity:.12;pointer-events:none;mask-image:linear-gradient(#000 50%,transparent)}
-.ab-summon-guide .ab-portrait{background-size:contain;filter:drop-shadow(0 0 30px #45bdff99)}
-.ab-ring{position:absolute;width:58%;aspect-ratio:1;border-radius:50%;border:2px dashed #a0e6e966;box-shadow:0 0 30px #76cbdf55,inset 0 0 45px #83bed733;animation:ab-orbit 22s linear infinite;transform:rotateX(40deg)}
-.ab-ring-two{width:43%;animation-direction:reverse;border-color:#f3d49a66}
-.ab-crystal{position:relative;transition:scale 1.8s ease,filter 1s ease;width:clamp(85px,16vw,180px);height:65%;max-height:280px;background:linear-gradient(115deg,#d9faff 0 22%,#78cfff 23% 48%,#1b72ce 49% 72%,#114e96 73%);clip-path:polygon(48% 0,90% 30%,77% 76%,45% 100%,8% 65%,15% 20%);filter:drop-shadow(0 0 25px #72c7e755);animation:ab-breathe 3s ease-in-out infinite}
-.ab-portal-motes{position:absolute;inset:0;background-image:radial-gradient(circle,#c7faff 1px,transparent 2px);background-size:67px 83px;mask-image:radial-gradient(ellipse,#000,transparent 60%);animation:ab-motes 8s linear infinite;pointer-events:none}
 .ab-summon-controls{position:relative;z-index:2;display:grid;gap:9px;width:min(100%,900px);padding:15px;background:linear-gradient(transparent,#081326ed)}
 .ab-summon-controls>div{display:flex;justify-content:center;gap:30px}
 .ab-summon-controls .ab-primary{min-width:250px;padding:15px;font-size:20px}
 .ab-summon-controls p{font-size:14px}
-.ab-summoned-hero{position:absolute;inset:-15% 12% -10%;pointer-events:none;animation:ab-reveal .9s ease-out}
+.ab-summoned-hero{position:absolute;inset:-15% 12% -10%;pointer-events:none;animation:ab-hero-emerges .9s ease-out}
 .ab-reveal-rarity{position:absolute;left:6%;top:10%;font:48px Georgia,serif;color:var(--rarity-color,#73dfff);text-shadow:0 0 15px currentColor;z-index:2}
 .ab-reveal-banner{position:absolute;bottom:6%;right:0;left:30%;padding:14px 20px;background:linear-gradient(100deg,transparent,#3eace2cc);font-size:36px;transform:rotate(-5deg);text-shadow:0 2px 3px #000}
 .ab-reveal-Legendary .ab-reveal-banner{background:linear-gradient(100deg,transparent,#e4b849dd)}
 .ab-reveal-Epic .ab-reveal-banner{background:linear-gradient(100deg,transparent,#9473e2dd)}
 .ab-reveal-Epic{--rarity-color:#c0a5ff}.ab-reveal-Legendary{--rarity-color:#f2cd79}
-.ab-summon-phase-1 .ab-ring{animation-duration:6s}
-.ab-summon-phase-2 .ab-ring{animation-duration:2s;box-shadow:0 0 90px #bdefff}
-.ab-summon-phase-2 .ab-crystal{scale:1.1;filter:drop-shadow(0 0 45px #bdefff) brightness(1.5)}
-.ab-summon-phase-3 .ab-crystal{scale:1.2;filter:brightness(3)}
 .ab-summon-phase-3:after{content:'';position:absolute;inset:0;background:#eaffff;animation:ab-flash 1.6s ease-out;pointer-events:none}
 .ab-summon-summary{display:flex;flex-direction:column;height:100%;width:100%;padding:20px 25px;gap:20px}
 .ab-summon-summary h2{text-align:left}
@@ -226,8 +206,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-admin-page>button{font-size:13px}
 @keyframes ab-enter{from{opacity:0}to{opacity:1}}
 @keyframes ab-breathe{50%{transform:translateY(-5px)}}
-@keyframes ab-orbit{to{rotate:360deg}}
-@keyframes ab-motes{to{background-position:30px -166px}}
 @keyframes ab-reveal{from{opacity:0;transform:scale(.85);filter:brightness(3)}to{opacity:1;transform:scale(1);filter:brightness(1)}}
 @keyframes ab-flash{0%,100%{opacity:0}45%{opacity:.9}}
 @keyframes ab-cast{30%{transform:translateX(-12px) rotate(-5deg)}55%{transform:translateX(20px) rotate(5deg)}to{transform:none}}
@@ -251,8 +229,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-header-actions{gap:4px}.ab-tickets{font-size:11px}.ab-header-actions a{font-size:22px}.ab-header-actions button{min-height:32px;padding:3px 7px}
  .ab-navigation button{padding:3px 1px;font-size:10px}
  .ab-navigation button>span{display:block;margin:0;font-size:23px;line-height:27px}
- .ab-home-copy{left:3%;top:7%;right:3%;text-align:center}.ab-home-copy h1{font-size:32px}.ab-home-copy p{font-size:13px}.ab-home-copy small{font-size:9px}
- .ab-home-hero{right:5%;bottom:8%;height:72%;width:90%}.ab-home-cta{bottom:4%;left:5%;right:5%;gap:7px;text-align:center}.ab-home-cta .ab-primary{font-size:16px;padding:13px}.ab-home-cta>button:last-child{display:none}
  .ab-class-rail{width:58px}.ab-class-rail button{font-size:9px}.ab-class-rail button>span{font-size:25px}
  .ab-gallery-main{padding:6px 7px}.ab-gallery-tools{gap:5px;font-size:10px;min-height:55px;margin:0 0 6px;flex-wrap:wrap}
  .ab-gallery-tools select{font-size:11px;min-height:28px;max-width:128px}.ab-list-tabs button{font-size:11px;padding:4px 12px;min-height:27px}
@@ -264,7 +240,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-team-tools{font-size:10px;padding:2px 6px;min-height:31px}.ab-team-tools button{font-size:10px;min-height:26px;padding:2px 5px}
  .ab-roster{height:126px}.ab-roster .ab-gallery-main{padding:0 6px;grid-template-columns:minmax(0,1fr) 100px;gap:4px;grid-template-rows:94px 28px}
  .ab-roster .ab-grid{grid-column:1/3;grid-row:1;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:1fr;gap:4px}
- .ab-roster .ab-card .ab-portrait{background-size:auto 100%}
+ .ab-roster .ab-card .ab-portrait{background-size:cover}
  .ab-roster .ab-card-role{width:22px;height:23px;font-size:17px}.ab-roster .ab-card-caption{padding:12px 2px 4px}
  .ab-roster .ab-card-caption>span{font-size:8px}.ab-roster .ab-card-caption strong{font-size:10px;margin-top:3px}
  .ab-roster .ab-gallery-tools{grid-column:1;grid-row:2;flex-direction:row;justify-content:start;font-size:10px;min-height:0;gap:6px;flex-wrap:nowrap}.ab-roster .ab-gallery-tools select{max-width:105px;font-size:10px;min-height:26px;padding:2px}
@@ -284,21 +260,19 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-scene-heading{padding:12px 10px}.ab-scene-heading h2{font-size:23px}
  .ab-summon-controls{padding:10px 6px;gap:8px}.ab-summon-controls p{font-size:11px}.ab-summon-controls small{font-size:10px}
  .ab-summon-controls>div{gap:10px}.ab-summon-controls .ab-primary{min-width:0;font-size:13px;padding:12px;flex:1}
- .ab-crystal{width:42%}.ab-ring{width:85%}.ab-ring-two{width:68%}
  .ab-summoned-hero{inset:-5% -8% 0}.ab-reveal-rarity{font-size:28px;left:7%;top:5%}.ab-reveal-banner{font-size:27px;left:12%;padding:10px;bottom:4%}
  .ab-summon-summary{padding:12px 5px;gap:12px}.ab-summon-summary h2{font-size:22px}.ab-summon-ribbons{gap:5px}.ab-summon-ribbons .ab-card-caption{padding-bottom:20px}.ab-summon-ribbons .ab-card-caption strong{font-size:10px}
  .ab-map-title{gap:10px}.ab-map-title h2{font-size:22px}.ab-map-path{width:90%}.ab-game .ab-map-node{width:43px;height:43px;min-height:43px}
  .ab-stage-preview{padding:10px;gap:7px}.ab-stage-preview p{font-size:11px}.ab-battle-result{gap:17px}.ab-battle-result p{font-size:12px;text-align:center}
 }
 @media(max-height:700px) and (max-width:650px){
- .ab-home-copy h1{font-size:27px}.ab-home-copy p{display:none}.ab-home-hero{height:71%}
  .ab-hero-info{gap:7px}.ab-profile-role{padding:6px 0}.ab-hero-stats{gap:7px}.ab-skill-buttons{margin-top:8px}
  .ab-hero-stage{top:57%;bottom:17%}
 }
 @media(prefers-reduced-motion:reduce){.ab-game *{animation:none;transition:none}.ab-summon-phase-3:after{display:none}}
 
 .ab-game .ab-map-node:active{transform:translate(-50%,-50%)}
-.ab-team-workshop{background:radial-gradient(ellipse at center,#28425b,#0c1929)}
+.ab-team-workshop{background-color:#0c1929}
 .ab-team-workshop:after{display:none}
 
 .ab-team-scene [data-formation-hero]{touch-action:none;user-select:none}
@@ -312,7 +286,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 @media(prefers-reduced-motion:reduce){.ab-game .ab-level-burst{animation:ab-level-fade 2s both}}
 @keyframes ab-level-fade{0%,80%{opacity:1}100%{opacity:0}}
 
-.ab-shard-gold .ab-crystal{background:linear-gradient(115deg,#fff3ba 0 22%,#ffe18b 23% 48%,#deaa31 49% 72%,#9b6419 73%)}
 .ab-shard-tabs button[aria-pressed=true]{border-color:#f2d193;background:#38577b}
 .ab-game:has(.ab-collection) .ab-world{background:radial-gradient(ellipse at center,#284a6d,#0a1729)}
 .ab-game:has(.ab-team-scene) .ab-world{background:#0c1929}
@@ -321,3 +294,28 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-inspectable-card{position:relative;min-height:0;height:100%;min-width:0}
 .ab-inspectable-card>.ab-card{width:100%;height:100%}
 .ab-game .ab-card-info{position:absolute;right:2px;top:2px;z-index:3;border-radius:50%;width:28px;min-height:28px;height:28px;padding:0;background:#102744e8;font:bold 18px Georgia,serif}
+
+.ab-roster .ab-grid{gap:4px}
+.ab-roster .ab-card-caption>span{display:none}
+.ab-roster .ab-card-caption strong{font-size:10px}
+.ab-roster .ab-card-role{font-size:14px;width:20px;height:20px}
+.ab-roster .ab-card-info{width:21px;height:21px;min-height:21px;font-size:13px}
+.ab-tactics-field{background-image:linear-gradient(0deg,#07162577,#07162511),url("/autobattler/chapter-1.webp")}
+
+.ab-shrine{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.ab-summon-scene .ab-portal{width:100%;overflow:clip}
+.ab-shrine-focus{transform-origin:50% 55%;animation:ab-shrine-camera 5.6s ease-out both}
+.ab-shrine-light{opacity:.24}
+.ab-shrine-focus .ab-shrine-light{animation:ab-shrine-charge 5.6s ease-in both}
+.ab-shrine-energy{stroke-dasharray:100;stroke-dashoffset:100}
+.ab-shrine-focus .ab-shrine-energy{animation:ab-shrine-flow 5.6s ease-in both}
+.ab-shard-gold .ab-shrine-artifact{filter:hue-rotate(186deg)}
+@keyframes ab-shrine-camera{to{transform:scale(1.14)}}
+@keyframes ab-shrine-charge{60%{opacity:.48}90%{opacity:.98}100%{opacity:.55}}
+@keyframes ab-shrine-flow{20%{stroke-dashoffset:96}85%,100%{stroke-dashoffset:0}}
+
+@keyframes ab-hero-emerges{0%{opacity:0;filter:brightness(0)}28%{opacity:.86;filter:brightness(0)}70%{opacity:1;filter:brightness(1.18)}100%{opacity:1;filter:brightness(1)}}
+.ab-summon-phase-4 .ab-reveal-rarity,.ab-summon-phase-4 .ab-reveal-banner{animation:ab-enter .35s .35s both}
+.ab-reveal-Legendary .ab-shrine-light{fill:#ffc573;opacity:.16}
+.ab-reveal-Epic .ab-shrine-light{fill:#ae90e5;opacity:.14}
+@media(prefers-reduced-motion:reduce){.ab-shrine-focus,.ab-shrine-focus .ab-shrine-light,.ab-shrine-focus .ab-shrine-energy,.ab-summon-phase-4 .ab-reveal-rarity,.ab-summon-phase-4 .ab-reveal-banner,.ab-summoned-hero{animation:none}}
