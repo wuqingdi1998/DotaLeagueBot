@@ -3,6 +3,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { cupTournament } from "@/tests/cup-schedule-context";
 import { ArchiveRosterEditor } from "../ArchiveRosterEditor";
 import { TeamsPanel } from "./TeamsPanel";
+import { ApplicationsAdmin } from "../admin/ApplicationsAdmin";
 
 const context = vi.hoisted(() => ({
   activeTab: "teams", approvedTeams: [], registrationAvailable: false,
@@ -26,8 +27,10 @@ beforeEach(() => {
 
 it("labels the current cup leader as manager and keeps earlier cup captains", () => {
   expect(renderToStaticMarkup(<TeamsPanel />)).toContain("менеджер");
+  expect(renderToStaticMarkup(<ApplicationsAdmin />)).toContain("Менеджер:");
   context.data.tournament.start_at = "2025-11-01T00:00:00+03:00";
   expect(renderToStaticMarkup(<TeamsPanel />)).toContain("капитан");
+  expect(renderToStaticMarkup(<ApplicationsAdmin />)).toContain("Капитан:");
 });
 
 it.each(["", "   "])("omits empty participation details (%j) while keeping player tiers", (method) => {
