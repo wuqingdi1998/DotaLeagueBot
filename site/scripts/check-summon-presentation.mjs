@@ -17,7 +17,11 @@ export async function checkSummonPresentation(browser,url,directory){
    await page.locator('.ab-summon-slot.is-opening.ab-result-Legendary').waitFor();
    assert.equal(await page.locator('.ab-summon-card').count(),0);
    assert.equal(await page.locator('.ab-summon-seal').count(),10);
+   const initialTint=await page.locator('.ab-ritual-atmosphere').evaluate(element=>Number(getComputedStyle(element).opacity));
+   assert.ok(initialTint<.12,'Rarity light must start dim instead of changing the backdrop immediately');
    await page.waitForTimeout(1400);
+   const growingTint=await page.locator('.ab-ritual-atmosphere').evaluate(element=>Number(getComputedStyle(element).opacity));
+   assert.ok(growingTint>initialTint+.10,'Rarity light must build progressively');
    await shot('summon-legendary-opening');
    await page.locator('.ab-summon-slot.is-opening.ab-result-Epic').waitFor();
    assert.equal(await page.locator('.ab-summon-card').count(),1);
@@ -69,5 +73,21 @@ export async function checkSummonPresentation(browser,url,directory){
   assert.equal(await automatic.locator('.ab-summon-card').count(),10);
   assert.equal(await automatic.evaluate(()=>JSON.parse(sessionStorage.getItem('heroes-summon-fixture')).history.length),1);
  }finally{await automatic.close();}
+ const motion=await browser.newPage({viewport:{width:1366,height:768},recordVideo:{dir:fileURLToPath(directory),size:{width:1366,height:768}}});
+ try{
+  await motion.goto(url);
+  await motion.getByRole('button',{name:'Призыв',exact:true}).click();
+  await motion.waitForTimeout(2300);
+  await motion.getByRole('button',{name:'Призвать 1 · 1 оск.',exact:true}).click();
+  await motion.locator('.ab-summon-opening').waitFor();
+  for(const [name,delay] of [['neutral',20],['tint',850],['seams',850],['breakup',900],['debris',530]]){
+   await motion.waitForTimeout(delay);
+   await motion.screenshot({path:fileURLToPath(new URL(`crystal-motion-${name}.png`,directory))});
+  }
+  await motion.getByRole('button',{name:'Продолжить',exact:true}).waitFor();
+  await motion.waitForTimeout(1000);
+ }finally{
+  const video=motion.video();await motion.close();await video.saveAs(fileURLToPath(new URL('summon-motion-review.webm',directory)));
+ }
  console.log('Summon presentation passed: epic solo, legendary and epic batch, restore, both skip gestures and unclipped roles');
 }

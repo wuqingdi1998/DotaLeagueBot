@@ -1,177 +1,167 @@
 import type {Rarity} from '@/lib/autobattler/catalog';
 import type {ShardColor} from '../model/summonSequence';
+import {add,average,dot,normalize,rotate,smoothstep,subtract,type Vec3} from '../model/crystalMath';
+import {crystalFragments,fragmentFaceNormal,transformFragment,type CrystalMaterial} from '../model/crystalGeometry';
+import {ritualFrame} from '../model/ritualFrame';
 
-type Vertex={x:number;y:number;z:number};
-const sides=7;
-const rings=[[-.78,.24],[-.18,.43],[.56,.29]] as const;
-const vertices:Vertex[]=[
- {x:-.09,y:-1.54,z:.035},
- ...rings.flatMap(([y,radius],ring)=>Array.from({length:sides},(_,i)=>{
-  const angle=i*Math.PI*2/sides;
-  const variation=1+.09*Math.sin(i*4.7+ring);
-  return {x:Math.cos(angle)*radius*variation+.04*ring,y:y+.085*Math.sin(i*3.9),z:Math.sin(angle)*radius*variation};
- })),
- {x:.075,y:1.02,z:0},
-];
-const faces:number[][]=[];
-for(let i=0;i<sides;i++){
- const a=1+i,b=1+(i+1)%sides;
- faces.push([0,a,b],[a,a+sides,b+sides,b],[a+sides,a+2*sides,b+2*sides],[a+sides,b+2*sides,b+sides],[a+2*sides,vertices.length-1,b+2*sides]);
-}
-
-function polygon(ctx:CanvasRenderingContext2D,points:{x:number;y:number}[]){
+type Projected={x:number;y:number};
+function polygon(ctx:CanvasRenderingContext2D,points:Projected[]){
  ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);
- for(const p of points.slice(1))ctx.lineTo(p.x,p.y);
+ for(const point of points.slice(1))ctx.lineTo(point.x,point.y);
  ctx.closePath();
 }
-
-function halo(ctx:CanvasRenderingContext2D,x:number,y:number,radius:number,hue:number,strength:number){
- const light=ctx.createRadialGradient(x,y,0,x,y,radius);
- light.addColorStop(0,`hsla(${hue},95%,75%,${strength})`);
- light.addColorStop(.35,`hsla(${hue},88%,58%,${strength*.48})`);
- light.addColorStop(1,`hsla(${hue},80%,45%,0)`);
- ctx.fillStyle=light;ctx.fillRect(x-radius,y-radius,radius*2,radius*2);
+function halo(ctx:CanvasRenderingContext2D,x:number,y:number,radius:number,hue:number,alpha:number){
+ if(alpha<=0)return;
+ const gradient=ctx.createRadialGradient(x,y,0,x,y,radius);
+ gradient.addColorStop(0,`hsla(${hue},92%,81%,${alpha})`);
+ gradient.addColorStop(.24,`hsla(${hue},90%,62%,${alpha*.51})`);
+ gradient.addColorStop(1,`hsla(${hue},82%,44%,0)`);
+ ctx.fillStyle=gradient;ctx.fillRect(x-radius,y-radius,2*radius,2*radius);
+}
+function materialColor(material:CrystalMaterial,shard:ShardColor,light:number,specular:number,edge:number,energy:number,cut:boolean){
+ const palette=material==='gold'?[.91,.63,.28]:material==='inlay'?[1,.89,.59]:shard==='gold'?[1,.68,.22]:[.14,.57,.84];
+ return palette.map((channel,index)=>{
+  const env=[.15,.23,.35][index];
+  const highlight=specular*(material==='gold'?1.1:.76);
+  const reflection=edge*(material==='glass'?.34:.18);
+  const emission=material==='glass'?energy*(cut?.23:.025):0;
+  return Math.round(Math.min(1,channel*(.18+light*.64)+env*.25+highlight+reflection+emission)*255);
+ }).join(',');
 }
 
-export function drawSummonCrystal(ctx:CanvasRenderingContext2D,width:number,height:number,time:number,progress:number,shard:ShardColor,phase:string,rarity?:Rarity){
- const size=Math.min(width*.30,height*.29);
- const x=width/2,y=height*.49+Math.sin(time*.0018)*size*.04;
- const charging=phase==='charge',opening=phase==='opening';
- const hue=shard==='gold'?40:204;
- const revealHue=rarity==='Legendary'?42:rarity==='Epic'?280:hue;
- const energy=charging?progress*.62:opening?.62+progress*.38:0;
- const fracture=opening?Math.max(0,(progress-.57)/.43):0;
- const spin=time*.00055+energy*.42;
- const turn=Math.cos(spin),side=Math.sin(spin);
- const body=vertices.map(p=>({x:p.x*turn-p.z*side,y:p.y,z:p.x*side+p.z*turn}));
- const project=(p:Vertex)=>{
-  const depth=4.2/(4.2-p.z);
-  return {x:x+(p.x+p.y*.06)*size*depth,y:y+p.y*size*depth};
+export function drawSummonCrystal(ctx:CanvasRenderingContext2D,width:number,height:number,time:number,progress:number,shard:ShardColor,phase:string,rarity?:Rarity,environment?:CanvasImageSource){
+ const frame=ritualFrame(phase,progress,shard,rarity);
+ const size=Math.min(width*.30,height*.29),x=width/2,y=height*.49+Math.sin(time*.0014)*size*.025;
+ const yaw=time*.00031+frame.energy*.12;
+ const pitch=.055+Math.sin(time*.0005)*.028;
+ const project=(point:Vec3)=>{
+  const depth=4.8/(4.8-point.z);
+  return {x:x+point.x*size*depth,y:y+point.y*size*depth};
  };
  ctx.clearRect(0,0,width,height);
- ctx.save();
- ctx.globalCompositeOperation='screen';
- halo(ctx,x,y+size*.83,size*2.65,revealHue,.12+energy*.22);
- halo(ctx,x,y-size*.26,size*1.8,revealHue,.12+energy*.37);
+ // The ground reflection and neutral core accumulate before the rarity tint arrives.
+ ctx.save();ctx.globalCompositeOperation='screen';
+ halo(ctx,x,y+size*.96,size*1.85,frame.baseHue,.05+frame.energy*.13);
+ halo(ctx,x,y-size*.18,size*1.65,frame.baseHue,(.04+frame.energy*.2)*(1-frame.rarityBlend));
+ halo(ctx,x,y-size*.18,size*(1.7+frame.glow*.45),frame.rareHue,frame.rarityBlend*frame.glow*.28);
  ctx.restore();
- if(opening&&rarity!=='Rare')drawRarityPrelude(ctx,x,y,size,progress,rarity);
-
- const ordered=faces.map((face,index)=>{
-  const points=face.map(i=>body[i]);
-  return {index,points,z:points.reduce((total,p)=>total+p.z,0)/points.length};
- }).sort((a,b)=>a.z-b.z);
- for(const face of ordered){
-  const {index,z}=face;
-  const burst=fracture*fracture*(.9+(index%5)*.25);
-  const angle=index*2.39996;
-  const points=face.points.map(p=>project({x:p.x+Math.cos(angle)*burst,y:p.y+Math.sin(angle)*burst,z:p.z+burst*.35}));
-  const light=.5+.5*Math.sin(spin+index*.91);
-  const tone=ctx.createLinearGradient(x-size*.4,y-size*1.4,x+size*.58,y+size);
-  tone.addColorStop(0,`hsl(${hue-13},82%,${67+light*19}%)`);
-  tone.addColorStop(.35,`hsl(${hue+9},70%,${32+light*31}%)`);
-  tone.addColorStop(.68,`hsl(${hue-7},92%,${30+light*30+energy*8}%)`);
-  tone.addColorStop(1,`hsl(${hue+22},67%,${17+light*13}%)`);
-  ctx.globalAlpha=(z<0?.63:.94)*(1-fracture*.82);
-  polygon(ctx,points);ctx.fillStyle=tone;ctx.fill();
-  ctx.strokeStyle=`hsla(${hue-12},88%,88%,${.21+light*.50+energy*.19})`;ctx.lineWidth=Math.max(.55,size*.009);ctx.stroke();
-  ctx.save();ctx.clip();
-  const sweep=(Math.sin(time*.0016+index*.73)*.5+.5);
-  const reflection=ctx.createLinearGradient(x-size,y-size,x+size,y+size);
-  reflection.addColorStop(0,'transparent');
-  reflection.addColorStop(Math.max(.015,sweep*.82),'transparent');
-  reflection.addColorStop(Math.max(.025,sweep*.82+.06),`hsla(${hue-22},95%,91%,${.27+energy*.3})`);
-  reflection.addColorStop(Math.max(.035,sweep*.82+.13),'transparent');
-  reflection.addColorStop(1,'transparent');
-  ctx.fillStyle=reflection;ctx.fillRect(x-size*3,y-size*3,size*6,size*6);
-  ctx.restore();
+ const camera={x:0,y:0,z:4.8};
+ const light=normalize({x:-.72,y:-.88,z:1.4});
+ const surfaces=crystalFragments.flatMap(fragment=>{
+  const vertices=transformFragment(fragment,yaw,pitch,frame.separation,frame.burst);
+  const center=average(vertices);
+  return fragment.faces.flatMap((face,index)=>{
+   const cut=fragment.material==='glass'&&index>0;
+   if(cut&&frame.separation===0&&frame.burst===0)return [];
+   const points=face.map(i=>vertices[i]);
+   const normal=fragmentFaceNormal(points,center);
+   const facing=dot(normal,normalize(subtract(camera,average(points))));
+   if(facing<=0)return [];
+   return [{points,normal,depth:average(points).z,material:fragment.material,cut,facing}];
+  });
+ }).sort((a,b)=>a.depth-b.depth);
+ const opacity=1-smoothstep(.82,1,frame.burst);
+ for(const surface of surfaces){
+  const center=average(surface.points);
+  const diffuse=Math.max(0,dot(surface.normal,light));
+  const view=normalize(subtract(camera,center));
+  const half=normalize(add(light,view));
+  const specular=Math.pow(Math.max(0,dot(surface.normal,half)),surface.material==='gold'?32:70);
+  const edge=Math.pow(1-surface.facing,3);
+  const points=surface.points.map(project);
+  polygon(ctx,points);
+  const tone=ctx.createLinearGradient(x-size,y-size*1.5,x+size*.9,y+size);
+  tone.addColorStop(0,`rgb(${materialColor(surface.material,shard,diffuse+.12,specular,edge,frame.energy,surface.cut)})`);
+  tone.addColorStop(1,`rgb(${materialColor(surface.material,shard,diffuse*.72,specular*.68,edge,frame.energy,surface.cut)})`);
+  ctx.globalAlpha=opacity;ctx.fillStyle=tone;ctx.fill();
+  if(environment&&surface.material==='glass'){
+   ctx.save();ctx.clip();ctx.globalAlpha=opacity*.20;
+   const offsetX=surface.normal.x*size*.45,offsetY=surface.normal.y*size*.25;
+   ctx.drawImage(environment,offsetX-size*.24,offsetY-size*.18,width+size*.48,height+size*.36);
+   ctx.restore();
+  }
+  if(surface.material==='gold'){
+   ctx.save();ctx.clip();ctx.globalCompositeOperation='screen';
+   const highlight=ctx.createLinearGradient(x-size*.7,y-size*.9,x+size*.8,y+size);
+   highlight.addColorStop(0,'#76553300');highlight.addColorStop(.24,'#f9edb52b');
+   highlight.addColorStop(.4,'#fff4d46b');highlight.addColorStop(.5,'#80562b00');
+   highlight.addColorStop(.8,'#f7ca6e44');highlight.addColorStop(1,'#60442b00');
+   ctx.fillStyle=highlight;ctx.fillRect(x-size*3,y-size*3,size*6,size*6);ctx.restore();
+  }
+  if(surface.material==='glass'){
+   ctx.lineWidth=Math.max(.55,size*.004);
+   ctx.strokeStyle=`rgba(184,231,255,${Math.min(.45,.08+specular*.48+edge*.3)})`;ctx.stroke();
+   ctx.save();ctx.clip();ctx.globalCompositeOperation='screen';
+   const reflection=ctx.createLinearGradient(x-size*.55,y-size,x+size*.72,y+size);
+   reflection.addColorStop(0,'transparent');reflection.addColorStop(.39,'transparent');
+   reflection.addColorStop(.48,`rgba(213,243,255,${.04+specular*.39+edge*.13})`);
+   reflection.addColorStop(.56,'transparent');reflection.addColorStop(1,'transparent');
+   ctx.fillStyle=reflection;ctx.fillRect(x-size*4,y-size*4,size*8,size*8);ctx.restore();
+  }
  }
  ctx.globalAlpha=1;
- if(fracture<.12)drawMount(ctx,x,y+size*.52,size,spin,energy,1-fracture/.12);
- if(energy>.17)drawDischarge(ctx,x,y-size*.22,size,time,revealHue,energy,fracture,rarity);
-}
-
-function drawMount(ctx:CanvasRenderingContext2D,x:number,y:number,size:number,turn:number,energy:number,alpha:number){
- const metal=ctx.createLinearGradient(x-size*.45,y-size*.24,x+size*.40,y+size*.44);
- metal.addColorStop(0,'#866348');metal.addColorStop(.27,'#fff1be');metal.addColorStop(.43,'#9b6d40');metal.addColorStop(.71,'#38272c');metal.addColorStop(.88,'#e9be82');metal.addColorStop(1,'#755033');
- ctx.save();ctx.globalAlpha=alpha;
- for(const direction of [-1,1]){
-  const shift=Math.sin(turn)*size*.055;
-  polygon(ctx,[{x:x+shift,y:y+size*.47},{x:x+direction*size*.41,y:y-size*.03},{x:x+direction*size*.31,y:y-size*.23},{x:x+direction*size*.24,y:y+size*.018},{x:x+shift,y:y+size*.28}]);
-  ctx.fillStyle=metal;ctx.fill();ctx.strokeStyle='#e6bb7c';ctx.lineWidth=size*.012;ctx.stroke();
- }
- polygon(ctx,[{x,y:y-size*.06},{x:x+size*.13,y:y+size*.10},{x,y:y+size*.25},{x:x-size*.13,y:y+size*.10}]);
- ctx.fillStyle=metal;ctx.fill();
- ctx.fillStyle=`rgba(255,242,197,${.62+energy*.38})`;
- polygon(ctx,[{x,y:y+size*.025},{x:x+size*.052,y:y+size*.1},{x,y:y+size*.17},{x:x-size*.052,y:y+size*.1}]);ctx.fill();ctx.restore();
-}
-
-function drawDischarge(ctx:CanvasRenderingContext2D,x:number,y:number,size:number,time:number,hue:number,energy:number,fracture:number,rarity?:Rarity){
+ if(phase==='opening')drawRelease(ctx,x,y-size*.13,size,time,progress,frame);
+ if(phase==='opening'&&rarity!=='Rare')drawRarityPrelude(ctx,x,y,size,progress,rarity,frame.rarityBlend);
+ // A shared parent rotation applies to the glass, metal claws and the inlay.
+ const tip=project(rotate({x:0,y:1.02,z:0},yaw,pitch));
  ctx.save();ctx.globalCompositeOperation='screen';
- const power=Math.max(0,(energy-.17)/.83);
- ctx.strokeStyle=`hsla(${hue},95%,88%,${power*(1-fracture)})`;ctx.lineWidth=Math.max(1,size*.012);
- for(let i=0;i<5;i++){
-  const angle=i*2.4;
-  ctx.beginPath();ctx.moveTo(x,y);
-  ctx.lineTo(x+Math.cos(angle)*size*.14,y+Math.sin(angle)*size*.22);
-  ctx.lineTo(x+Math.cos(angle+.38)*size*.23,y+Math.sin(angle+.15)*size*.43);
-  ctx.lineTo(x+Math.cos(angle)*size*.31,y+Math.sin(angle)*size*.65);
-  ctx.stroke();
+ halo(ctx,tip.x,tip.y,size*.23,frame.baseHue,frame.flash*.24);ctx.restore();
+}
+
+function drawRelease(ctx:CanvasRenderingContext2D,x:number,y:number,size:number,time:number,progress:number,frame:ReturnType<typeof ritualFrame>){
+ ctx.save();ctx.globalCompositeOperation='screen';
+ const aperture=smoothstep(.20,.68,progress);
+ for(let index=0;index<9;index++){
+  const angle=index*2.39996+Math.sin(time*.0005)*.1;
+  const length=size*(.44+aperture*1.7);
+  const end={x:x+Math.cos(angle)*length,y:y+Math.sin(angle)*length};
+  const gradient=ctx.createLinearGradient(x,y,end.x,end.y);
+  gradient.addColorStop(0,`rgba(213,241,255,${aperture*(1-frame.burst)*.36})`);
+  gradient.addColorStop(1,'transparent');ctx.fillStyle=gradient;
+  polygon(ctx,[{x,y},{x:end.x-Math.sin(angle)*size*.024,y:end.y+Math.cos(angle)*size*.024},{x:end.x+Math.sin(angle)*size*.024,y:end.y-Math.cos(angle)*size*.024}]);ctx.fill();
  }
- const rays=rarity==='Legendary'?12:rarity==='Epic'?8:5;
- for(let i=0;i<rays;i++){
-  const angle=i*Math.PI*2/rays+Math.sin(time*.001)*.15;
-  const length=size*(.45+power*1.75+fracture);
-  const ex=x+Math.cos(angle)*length,ey=y+Math.sin(angle)*length;
-  const fade=ctx.createLinearGradient(x,y,ex,ey);
-  fade.addColorStop(0,`hsla(${hue},96%,86%,${power*.58*(1-fracture*.7)})`);fade.addColorStop(1,'transparent');
-  polygon(ctx,[{x,y},{x:ex-Math.sin(angle)*size*.065,y:ey+Math.cos(angle)*size*.065},{x:ex+Math.sin(angle)*size*.065,y:ey-Math.cos(angle)*size*.065}]);
-  ctx.fillStyle=fade;ctx.fill();
- }
- if(fracture>0){
-  halo(ctx,x,y,size*(1+fracture*1.4),hue,Math.sin(fracture*Math.PI)*.88);
-  for(let i=0;i<28;i++){
-   const angle=i*2.39996,travel=size*fracture*(.8+i%6*.28);
-   ctx.fillStyle=`hsla(${hue},92%,${i%2?85:58}%,${1-fracture})`;
-   ctx.fillRect(x+Math.cos(angle)*travel,y+Math.sin(angle)*travel,size*.024,size*.013);
+ halo(ctx,x,y,size*(.28+frame.flash*.9),202,frame.flash*.76);
+ if(frame.burst>.05){
+  for(let index=0;index<26;index++){
+   const angle=index*2.39996,travel=size*frame.burst*(.8+index%6*.31);
+   const px=x+Math.cos(angle)*travel,py=y+Math.sin(angle)*travel+size*frame.burst*frame.burst*.3;
+   ctx.fillStyle=`rgba(220,246,255,${(1-frame.burst)*.64})`;
+   polygon(ctx,[{x:px,y:py-size*.013},{x:px+size*.02,y:py+size*.011},{x:px-size*.018,y:py+size*.014}]);ctx.fill();
   }
  }
  ctx.restore();
 }
 
-function drawRarityPrelude(ctx:CanvasRenderingContext2D,x:number,y:number,size:number,progress:number,rarity?:Rarity){
- const envelope=Math.sin(Math.PI*Math.min(1,progress*1.15));
+function drawRarityPrelude(ctx:CanvasRenderingContext2D,x:number,y:number,size:number,progress:number,rarity:Rarity|undefined,blend:number){
+ const envelope=blend*(1-smoothstep(.84,1,progress));
  if(envelope<=0)return;
  ctx.save();ctx.globalCompositeOperation='screen';ctx.globalAlpha=envelope;
  if(rarity==='Epic'){
-  ctx.lineWidth=Math.max(1.5,size*.018);
+  ctx.lineWidth=Math.max(1.4,size*.012);
   for(const side of [-1,1]){
-   const drift=progress*5;
-   const path=ctx.createLinearGradient(x-size,y-size,x+size,y+size);
-   path.addColorStop(0,'transparent');path.addColorStop(.45,'#b455ef');path.addColorStop(.62,'#efd4ff');path.addColorStop(1,'transparent');
-   ctx.strokeStyle=path;ctx.beginPath();
-   for(let step=0;step<=54;step++){
-    const t=step/54,angle=t*7+drift+(side===1?0:Math.PI);
-    const px=x+Math.cos(angle)*size*(.9-t*.65);
-    const py=y+size*(1.18-t*2.4)+Math.sin(angle)*size*.11;
-    if(step===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+   const gradient=ctx.createLinearGradient(x-size,y-size,x+size,y+size);
+   gradient.addColorStop(0,'transparent');gradient.addColorStop(.45,'#a45ce1');gradient.addColorStop(.62,'#ebd7ff');gradient.addColorStop(1,'transparent');
+   ctx.strokeStyle=gradient;ctx.beginPath();
+   for(let step=0;step<=64;step++){
+    const t=step/64,angle=t*7+progress*4+(side===1?0:Math.PI);
+    const point={x:x+Math.cos(angle)*size*(.8-t*.5),y:y+size*(1.1-t*2.2)+Math.sin(angle)*size*.11};
+    if(step===0)ctx.moveTo(point.x,point.y);else ctx.lineTo(point.x,point.y);
    }
    ctx.stroke();
   }
- }else if(rarity==='Legendary'){
+ }else{
   const column=ctx.createLinearGradient(x,0,x,y+size*.6);
-  column.addColorStop(0,'transparent');column.addColorStop(.58,'#ffd18070');column.addColorStop(1,'#fff0ac');
-  const width=size*(.03+.15*progress);
-  polygon(ctx,[{x:x-width*.44,y:0},{x:x+width*.44,y:0},{x:x+width,y:y+size*.52},{x:x-width,y:y+size*.52}]);
-  ctx.fillStyle=column;ctx.fill();
+  column.addColorStop(0,'transparent');column.addColorStop(.58,'#ffd18060');column.addColorStop(1,'#fff0ac');
+  const width=size*(.02+.16*smoothstep(.23,.67,progress));
+  polygon(ctx,[{x:x-width*.44,y:0},{x:x+width*.44,y:0},{x:x+width,y:y+size*.52},{x:x-width,y:y+size*.52}]);ctx.fillStyle=column;ctx.fill();
   const floor=y+size*.98;
-  ctx.strokeStyle='#f7c779';ctx.lineWidth=size*.011;
+  ctx.strokeStyle='#f7c779';ctx.lineWidth=size*.009;
   for(let i=0;i<6;i++){
-   const angle=i*Math.PI/3+progress*.8;
-   const sx=x+Math.cos(angle)*size*.98,sy=floor+Math.sin(angle)*size*.22;
-   const span=size*.11;
+   const angle=i*Math.PI/3+progress*.5;
+   const sx=x+Math.cos(angle)*size*.98,sy=floor+Math.sin(angle)*size*.22,span=size*.09;
    polygon(ctx,[{x:sx,y:sy-span*.35},{x:sx+span,y:sy},{x:sx,y:sy+span*.35},{x:sx-span,y:sy}]);ctx.stroke();
   }
-  halo(ctx,x,floor,size*1.8,41,.38*envelope);
+  halo(ctx,x,floor,size*1.8,41,.3*envelope);
  }
  ctx.restore();
 }

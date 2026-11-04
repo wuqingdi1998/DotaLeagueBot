@@ -1,11 +1,12 @@
 'use client';
-import {useState} from 'react';
+import {useState,type CSSProperties} from 'react';
 import {shardDescription} from '@/lib/autobattler/shards';
 import {heroById} from '@/lib/autobattler/catalog';
 import type {GameResponse} from '../services/client';
 import {HeroPortrait,roleNames} from '../components/HeroCard';
 import {SummonShrine} from '../components/SummonShrine';
 import {SummonResults} from '../components/SummonResults';
+import {summonTiming} from '../model/summonSequence';
 import {useSummonSequence} from '../hooks/useSummonSequence';
 
 export {pendingKey} from '../model/summonSequence';
@@ -23,12 +24,13 @@ export default function SummonScene({data,onSummon,onLockChange}:{data:GameRespo
  const heading=hero?.name??(showBoard?'Ваши новые союзники':phase==='idle'?'Портал призыва':'Астральный призыв');
  return <section className={`ab-summon-scene ab-summon-${phase} ab-shard-${shard} ${displayRarity?`ab-reveal-${displayRarity}`:''}`} aria-label="Астральный призыв">
   <header className="ab-summon-heading">
-   <small>{displayRarity?rarityNames[displayRarity]:'СВЯТИЛИЩЕ ОСКОЛКОВ'}</small>
+   <small key={`${phase}-${revealed}-${inspected}`}>{displayRarity?rarityNames[displayRarity]:'СВЯТИЛИЩЕ ОСКОЛКОВ'}</small>
    <h2>{heading}</h2>
    {showBoard&&<span role="status">Открыто {revealed} из {results.length}</span>}
   </header>
   <div className={`ab-summon-stage ${showBoard?'is-board':''}`} onClick={isBatch&&canSkip?skip:undefined}>
-   {showBoard?<SummonResults results={results} revealed={revealed} profile={data.profile} shouldAnimate={canSkip} onInspect={setInspected}/>:hero?
+   {phase==='opening'&&<div key={revealed} className={`ab-ritual-atmosphere ab-atmosphere-${rarity}`} style={{'--opening-time':`${summonTiming[rarity??'Rare']}ms`} as CSSProperties}/>}
+   {showBoard?<SummonResults results={results} revealed={revealed} profile={data.profile} shouldAnimate={canSkip} shard={shard} onInspect={setInspected}/>:hero?
     <div className="ab-summon-hero-reveal" key={hero.id}><div className="ab-summon-hero-portal"/><div className="ab-summoned-hero"><HeroPortrait hero={hero} full/></div></div>:
     <SummonShrine phase={phase} shard={shard} rarity={displayRarity}/>}
   </div>
