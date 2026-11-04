@@ -24,6 +24,12 @@ beforeEach(() => {
   context.data.applications[0].team_tier_total_snapshot = null;
 });
 
+it("labels the current cup leader as manager and keeps earlier cup captains", () => {
+  expect(renderToStaticMarkup(<TeamsPanel />)).toContain("менеджер");
+  context.data.tournament.start_at = "2025-11-01T00:00:00+03:00";
+  expect(renderToStaticMarkup(<TeamsPanel />)).toContain("капитан");
+});
+
 it.each(["", "   "])("omits empty participation details (%j) while keeping player tiers", (method) => {
   context.data.applications[0].selection_method = method;
   const html = renderToStaticMarkup(<TeamsPanel />);

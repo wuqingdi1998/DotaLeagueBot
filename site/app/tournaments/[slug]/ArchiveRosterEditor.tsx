@@ -44,6 +44,7 @@ type Props = {
   tournamentId: number;
   team?: ExistingTeam;
   isHistorical?: boolean;
+  isManagerSelection?: boolean;
   onSaved: () => Promise<void>;
   onMessage: (message: string) => void;
 };
@@ -52,6 +53,7 @@ export function ArchiveRosterEditor({
   tournamentId,
   team,
   isHistorical = true,
+  isManagerSelection = false,
   onSaved,
   onMessage,
 }: Props) {
@@ -74,7 +76,7 @@ export function ArchiveRosterEditor({
             nickname: coach.name,
             dotaId: coach.dota_id ?? "",
             tier: coach.tier_snapshot?.toString() ?? "",
-            isCaptain: false,
+            isCaptain: coach.is_captain,
           }]
         : playingRoster;
     },
@@ -92,6 +94,16 @@ export function ArchiveRosterEditor({
   const [saving, setSaving] = useState(false);
   const [emblem, setEmblem] = useState<File | null>(null);
   const [emblemInputKey, setEmblemInputKey] = useState(0);
+
+  function toggleCoach() {
+    setPlayers((current) => {
+      const coach = current.find((player) => player.role === "coach");
+      if (!coach) return [...current, { role: "coach", nickname: "", dotaId: "", tier: "", isCaptain: false }];
+      return current.filter((player) => player.role !== "coach").map((player, index) => (
+        coach.isCaptain ? { ...player, isCaptain: index === 0 } : player
+      ));
+    });
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -210,11 +222,7 @@ export function ArchiveRosterEditor({
         </label>
       </div>
       <div className="archive-roster-actions">
-        <button className="secondary-button" type="button" onClick={() => setPlayers((current) =>
-          current.some((player) => player.role === "coach")
-            ? current.filter((player) => player.role !== "coach")
-            : [...current, { role: "coach", nickname: "", dotaId: "", tier: "", isCaptain: false }],
-        )}>
+        <button className="secondary-button" type="button" onClick={toggleCoach}>
           {players.some((player) => player.role === "coach") ? "Убрать тренера" : "Добавить тренера"}
         </button>
       </div>
@@ -287,7 +295,7 @@ export function ArchiveRosterEditor({
                 }
               />
             </label>}
-            {player.role !== "coach" && <label className="archive-captain-choice">
+            {(isManagerSelection || player.role !== "coach") && <label className="archive-captain-choice">
               <input
                 type="radio"
                 name={`captain-${team?.id ?? "new"}`}
@@ -301,7 +309,7 @@ export function ArchiveRosterEditor({
                   )
                 }
               />
-              Капитан
+              {isManagerSelection ? "Менеджер" : "Капитан"}
             </label>}
           </div>
         ))}

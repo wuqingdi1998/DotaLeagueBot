@@ -42,8 +42,9 @@ beforeAll(async () => {
   uploads = await mkdtemp(path.join(os.tmpdir(), "roster-test-"));
   vi.stubEnv("UPLOADS_DIR", uploads);
   await db.exec(`
-    CREATE TABLE tournaments(id int PRIMARY KEY, team_size int);
-    INSERT INTO tournaments VALUES(1,5),(2,5);
+    CREATE TABLE tournaments(id int PRIMARY KEY, team_size int, tournament_type text DEFAULT 'ordinary', start_at timestamptz DEFAULT '2026-11-01');
+    INSERT INTO tournaments(id,team_size) VALUES(1,5),(2,5);
+    INSERT INTO tournaments VALUES(3,5,'seasonal_cup','2026-11-02'),(4,5,'seasonal_cup','2025-11-01'),(5,5,'seasonal_cup','2027-11-01');
     CREATE TABLE players(discord_id bigint PRIMARY KEY, steam_id32 bigint, ingame_name text, internal_rating int, rank_tier int);
     INSERT INTO players VALUES(100,12345,'Player 0',8,0);
     CREATE TABLE tournament_team_applications(
@@ -159,7 +160,7 @@ it.each([
   ["duplicate positions", () => ({ players: roster().players.map((p, i) => ({ ...p, role: i === 1 ? "safe_lane" : p.role })) })],
 ])("rejects invalid roster: %s", async (_label, changes) => {
   expect((await PUT(request(roster(changes())))).status).toBe(400);
-  expect(mocks.transaction).not.toHaveBeenCalled();
+  expect((await db.query("SELECT * FROM tournament_team_applications")).rows).toHaveLength(0);
 });
 
 it.each([
@@ -191,4 +192,34 @@ it.each([false, true])("saves and clears optional team details with profile tier
   expect(await details()).toEqual({ selection_method: "Приглашение", team_tier_total_snapshot: 0 });
   expect((await PUT(request({ ...body, applicationId: id, selectionMethod: "   ", teamTierTotal: null }))).status).toBe(200);
   expect(await details()).toEqual({ selection_method: "", team_tier_total_snapshot: null });
+});
+
+it.each([3, 5])("allows the coach to manage current and future league cups (%s), including updates", async (tournamentId) => {
+  const body = roster({ tournamentId });
+  body.players.forEach(player => { player.isCaptain = player.role === "coach"; });
+  const response = await PUT(request(body));
+  expect(response.status).toBe(200);
+  const { id } = await response.json();
+  expect((await db.query("SELECT role,nickname_snapshot FROM tournament_roster_snapshots WHERE is_captain")).rows)
+    .toEqual([{ role: "coach", nickname_snapshot: "Player 5" }]);
+  expect((await db.query("SELECT captain_name_snapshot FROM tournament_team_applications")).rows)
+    .toEqual([{ captain_name_snapshot: "Player 5" }]);
+  body.players.forEach(player => { player.isCaptain = player.role === "mid_lane"; });
+  expect((await PUT(request({ ...body, applicationId: id }))).status).toBe(200);
+  expect((await db.query("SELECT role FROM tournament_roster_snapshots WHERE is_captain")).rows).toEqual([{ role: "mid_lane" }]);
+});
+
+it.each([1, 4])("rejects a coach captain in ordinary tournaments and older cups (%s)", async (tournamentId) => {
+  const body = roster({ tournamentId });
+  body.players.forEach(player => { player.isCaptain = player.role === "coach"; });
+  expect((await PUT(request(body))).status).toBe(400);
+  expect((await db.query("SELECT * FROM tournament_team_applications")).rows).toHaveLength(0);
+});
+
+it.each([0, 2])("requires exactly one manager for a league cup (%s selected)", async (count) => {
+  const body = roster({ tournamentId: 3 });
+  body.players.forEach((player, index) => { player.isCaptain = index < count; });
+  const response = await PUT(request(body));
+  expect(response.status).toBe(400);
+  expect((await response.json()).error).toBe("Укажите одного менеджера");
 });

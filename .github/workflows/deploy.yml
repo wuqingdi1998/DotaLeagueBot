@@ -852,7 +852,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Check protected development work
+        id: development_policy
+        run: |
+          git fetch origin codex/dev
+          python scripts/development-release-policy.py '${{ github.ref }}'
       - name: Record development release
+        if: steps.development_policy.outputs.preserve != 'true'
         run: python scripts/build-release-manifest.py
       - name: Build isolated development images
         if: github.ref == 'refs/heads/codex/dev'
@@ -872,6 +878,7 @@ jobs:
           source: development-images.tar.gz
           target: /tmp/dotaleaguebot-dev-${{ github.sha }}
       - name: Deploy isolated test site
+        if: steps.development_policy.outputs.preserve != 'true'
         uses: appleboy/ssh-action@v1.2.4
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -908,6 +915,7 @@ jobs:
               bash scripts/deploy-development.sh
             fi
       - name: Verify development site externally
+        if: steps.development_policy.outputs.preserve != 'true'
         run: |
           set -euo pipefail
           curl --fail --silent --show-error \
@@ -919,7 +927,7 @@ jobs:
             --max-time 15 https://dev.lsesports.ru/api/development/changes)
           test "$status" = 401
       - name: Align development source with verified production
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && steps.development_policy.outputs.preserve != 'true'
         run: |
           set -euo pipefail
           git fetch origin codex/dev

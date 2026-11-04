@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FaCrown } from "react-icons/fa";
 import { FiArrowRight, FiCheckCircle } from "react-icons/fi";
 import { isPastTournament } from "@/lib/tournaments";
+import { usesLeagueCupManager } from "@/lib/tournament-team-leader";
 import { RoleIcon } from "../components/RoleField";
 import { TeamEmblemPreview } from "../components/TeamEmblemPreview";
 import { PlayerProfileLink } from "@/app/components/PlayerProfileLink";
@@ -115,7 +116,7 @@ export function TeamsPanel() {
                     )}
                     {player.isCaptain && (
                       <small className="captain-badge">
-                        <FaCrown aria-hidden="true" /> капитан
+                        <FaCrown aria-hidden="true" /> {usesLeagueCupManager(tournament) ? "менеджер" : "капитан"}
                       </small>
                     )}
                     {tournament.show_tiers && player.tier !== null && (

@@ -1,6 +1,8 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
 import { isSafeUploadKey } from "@/lib/validation";
+import { usesLeagueCupManager } from "@/lib/tournament-team-leader";
+import type { TournamentType } from "@/lib/tournament-type";
 import { storeRosterEmblem } from "./roster-emblem";
 
 const roles = [
@@ -73,12 +75,6 @@ function validate(body: RosterBody) {
   if (players.filter((player) => player.role === "coach").length > 1) {
     return "В составе может быть только один тренер";
   }
-  if (playingPlayers.filter((player) => player.isCaptain).length !== 1) {
-    return "Укажите одного капитана";
-  }
-  if (players.some((player) => player.role === "coach" && player.isCaptain)) {
-    return "Тренер не может быть капитаном игрового состава";
-  }
   return "";
 }
 
@@ -105,13 +101,20 @@ export async function PUT(request: Request) {
     >;
     const captain = players.find((player) => player.isCaptain);
     const applicationId = await transaction(async (client) => {
-      const tournament = await client.query<{ team_size: number }>(
-        "SELECT team_size::int FROM tournaments WHERE id = $1 FOR UPDATE",
+      const tournament = await client.query<{ team_size: number; tournament_type: TournamentType; start_at: Date }>(
+        "SELECT team_size::int, tournament_type, start_at FROM tournaments WHERE id = $1 FOR UPDATE",
         [body.tournamentId],
       );
       if (!tournament.rowCount) throw new Error("TOURNAMENT_NOT_FOUND");
       if (tournament.rows[0].team_size !== 5) {
         throw new Error("ARCHIVE_TEAM_SIZE");
+      }
+      const isManagerSelection = usesLeagueCupManager(tournament.rows[0]);
+      if (players.filter((player) => player.isCaptain).length !== 1) {
+        throw new Error(`ROSTER_LEADER:Укажите одного ${isManagerSelection ? "менеджера" : "капитана"}`);
+      }
+      if (!isManagerSelection && players.some((player) => player.role === "coach" && player.isCaptain)) {
+        throw new Error("ROSTER_LEADER:Тренер не может быть капитаном игрового состава");
       }
 
       let id = Number(body.applicationId) || 0;
@@ -211,6 +214,9 @@ export async function PUT(request: Request) {
     if (storedEmblem) await storedEmblem.remove();
     if (error instanceof SyntaxError) {
       return Response.json({ error: "Некорректные данные состава" }, { status: 400 });
+    }
+    if (error instanceof Error && error.message.startsWith("ROSTER_LEADER:")) {
+      return Response.json({ error: error.message.slice(14) }, { status: 400 });
     }
     if (error instanceof Error && error.message.startsWith("EMBLEM:")) {
       return Response.json({ error: error.message.slice(7) }, { status: 400 });
