@@ -1,0 +1,64 @@
+.ab-team-scene{display:grid;grid-template-rows:auto minmax(180px,1fr) clamp(240px,34vh,370px) auto;min-height:0;height:100%;background:#0d213b;font-size:22px}
+.ab-team-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:8px 24px;border-bottom:1px solid var(--ab-line)}
+.ab-team-heading small{font-size:22px}
+.ab-team-heading h2{font-size:clamp(34px,3vw,50px);line-height:1.1}
+.ab-power{display:flex;align-items:center;gap:24px;color:var(--ab-gold);font-size:48px}
+.ab-power span{font-size:28px;color:#cbdfff}
+.ab-tactics-field{min-height:0;position:relative;background:linear-gradient(0deg,#07162577,#07162511),url('/autobattler/chapter-1.webp') center 65%/cover no-repeat;isolation:isolate}
+.ab-field-side{position:absolute;top:8px;font-size:20px;letter-spacing:.05em;color:#d9efff;text-shadow:0 1px 4px #000}
+.ab-side-player{left:8%}.ab-side-enemy{right:8%}
+.ab-game .ab-field-unit{position:absolute;left:var(--unit-x);top:var(--unit-y);transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:18%;max-width:190px;height:25%;max-height:160px;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;padding:0;gap:0}
+.ab-team-workshop .ab-field-unit{height:65%;max-height:220px}
+.ab-field-unit:after{content:'';position:absolute;left:15%;right:15%;bottom:20px;height:15%;background:#183c55;border:1px solid #72a5c6;box-shadow:0 3px 0 #071627;border-radius:50%;z-index:-1}
+.ab-field-unit .ab-portrait{flex:1;min-height:0;width:100%;filter:drop-shadow(0 3px 3px #0009)}
+.ab-enemy-unit .ab-portrait{scale:-1 1}
+.ab-field-unit small{font-family:var(--ab-font-heading),Georgia,serif;font-size:24px;line-height:1;white-space:nowrap;color:#fff;text-shadow:0 1px 4px #000}
+.ab-unit-level{font-size:20px;line-height:1.15;color:#fff;text-shadow:0 1px 3px #000;background:#102544ae;border-radius:14px;padding:1px 8px;white-space:nowrap}
+.ab-game .ab-field-slot.is-selected:after{background:#40baff66;box-shadow:0 0 0 2px #8eeaff}
+.ab-game .ab-field-slot:active{transform:translate(-50%,-50%)}
+.ab-empty-unit{height:100%;display:grid;place-items:center;font-size:46px;color:#b5e6fa}
+.ab-team-scene [data-formation-hero]{touch-action:none;user-select:none;-webkit-touch-callout:none}
+.ab-drag-hero{position:fixed;z-index:200;pointer-events:none;width:120px;height:150px;transform:translate(-50%,-70%);filter:drop-shadow(0 0 12px #8ce8ff)}
+.ab-team-scene.is-dragging .ab-field-slot:after{box-shadow:0 0 0 2px #8eeaff}
+.ab-team-scene.is-dragging .ab-roster{outline:2px dashed #8eeaff;outline-offset:-2px}
+.ab-game:has(.ab-team-scene) .ab-world{background:#0c1929}
+.ab-roster{min-height:0;border-top:1px solid var(--ab-line);--library-blue:#69b9e7}
+.ab-roster .ab-gallery-main{height:100%;padding:10px 20px;display:grid;grid-template-rows:auto minmax(0,1fr);gap:10px;position:relative}
+.ab-roster-tools{display:flex;align-items:center;gap:24px;min-width:0}
+.ab-roster-sorting{display:flex;gap:10px}
+.ab-roster-sorting button{display:flex;align-items:center;gap:12px;font-size:22px;min-height:46px;padding:6px 14px}
+.ab-roster-sorting button[aria-pressed=true]{border-color:var(--ab-gold);color:var(--ab-gold);background:#263950}
+.ab-roster .ab-grid{display:grid;grid-template-columns:repeat(var(--roster-columns),minmax(0,152px));grid-template-rows:repeat(2,minmax(0,1fr));grid-auto-flow:column;gap:10px;align-items:stretch;min-height:0;min-width:0}
+.ab-roster .ab-card{height:100%;aspect-ratio:auto;border-radius:6px}
+.ab-roster .ab-card .ab-portrait{background-size:cover;background-position:center 30%}
+.ab-roster .ab-card-caption{padding:10px 4px 5px;background:linear-gradient(transparent,#071728ef 25%)}
+.ab-roster .ab-card-caption strong{font-size:24px;line-height:1.05;margin:0}
+.ab-roster .ab-card-caption>span{display:none}
+.ab-roster .ab-card .ab-card-role{top:6px;left:6px;width:30px;height:30px;font-size:26px;line-height:26px;padding:0;border-radius:50%;background:#102744d9}
+.ab-roster-level{position:absolute;top:6px;right:6px;font-size:18px;line-height:1.25;background:#102744df;border-radius:4px;padding:1px 4px;text-shadow:0 1px #000}
+.ab-roster .ab-card-check{left:36%;top:24%;font-size:38px}
+.ab-roster .ab-pager{margin-left:auto;font-size:22px;padding:0;gap:10px}
+.ab-roster .ab-pager button{font-size:28px;min-height:44px;padding:2px 12px}
+.ab-roster .ab-empty-collection{inset:55% 20px auto;font-size:22px;text-align:center}
+.ab-team-actions{display:flex;align-items:center;justify-content:flex-end;gap:12px;min-height:64px;padding:8px 20px;border-top:1px solid var(--ab-line)}
+.ab-team-actions [role=status]{margin-right:auto;font-size:22px;color:#bde0f2}
+.ab-team-actions button,.ab-team-actions .ab-primary{min-width:180px;font-size:28px;padding:6px 20px;min-height:48px}
+@media(max-width:650px){
+ .ab-team-scene{grid-template-rows:auto minmax(150px,1fr) clamp(248px,34vh,310px) auto;font-size:18px}
+ .ab-team-heading{padding:3px 10px;gap:10px;line-height:1.1}.ab-team-heading small{font-size:18px}.ab-team-heading h2{font-size:34px}
+ .ab-power{font-size:32px;gap:8px}.ab-power span{font-size:18px}
+ .ab-field-side{font-size:12px;top:5px;letter-spacing:0}.ab-side-player{left:5%}.ab-side-enemy{right:5%}
+ .ab-game .ab-field-unit{max-width:110px;width:23%;height:25%;max-height:120px}
+ .ab-team-workshop .ab-field-unit{left:var(--mobile-unit-x);top:var(--mobile-unit-y);height:42%}
+ .ab-field-unit small{font-size:18px}.ab-unit-level{font-size:14px;padding:1px 4px}.ab-field-unit:after{bottom:14px}
+ .ab-roster .ab-gallery-main{padding:7px 10px;gap:7px}
+ .ab-roster-tools{gap:8px;flex-wrap:wrap}.ab-roster-sorting{gap:6px;flex:1}
+ .ab-roster-sorting button{font-size:16px;padding:4px 8px;min-height:38px;gap:5px;flex:1;white-space:nowrap}
+ .ab-roster .ab-rarity-filter{gap:5px}.ab-roster .ab-rarity-orb{width:30px;height:30px;min-height:30px;padding:3px}.ab-roster .ab-rarity-orb>span{width:20px;height:20px}
+ .ab-roster .ab-grid{grid-template-columns:repeat(var(--roster-columns),minmax(0,1fr));gap:6px}
+ .ab-roster .ab-card-caption strong{font-size:20px}.ab-roster .ab-card .ab-card-role{width:24px;height:24px;font-size:20px;line-height:20px;top:4px;left:4px}
+ .ab-roster-level{font-size:14px;top:4px;right:4px;padding:1px 3px}.ab-roster .ab-card-check{font-size:28px}
+ .ab-roster .ab-pager{font-size:16px;gap:6px}.ab-roster .ab-pager button{font-size:22px;min-height:34px;padding:0 8px}
+ .ab-team-actions{min-height:52px;padding:6px 10px;gap:8px}.ab-team-actions button,.ab-team-actions .ab-primary{min-width:0;min-height:40px;padding:4px 12px;font-size:20px}
+ .ab-team-actions [role=status]{font-size:14px}
+}

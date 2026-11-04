@@ -12,6 +12,7 @@ let profile=saved?.profile??newProfile();
 const history=saved?.history??[];
 const isEpic=new URLSearchParams(location.search).has('epic');
 if(new URLSearchParams(location.search).has("all"))for(const hero of heroes)if(!profile.collection[hero.id])grantHero(profile,hero.id,new Date().toISOString());
+if(new URLSearchParams(location.search).has('formation')){profile.team=[];for(const [index,hero]of heroes.entries())profile.collection[hero.id].level=[2,4,3,10,6][index];}
 const summonRolls=[isEpic?.93:.995,.8,.93,.1,.86,.25,.44,.6,.8,.51,.93,.1,.5,.12,.2,.7,.88,.6,.1,.9];let rollIndex=saved?.rollIndex??0;
 window.fetch=async(_input,init)=>{
   const input=init?.body?JSON.parse(String(init.body)):undefined;

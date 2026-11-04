@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import { chromium } from "playwright";
 import {checkCombatPresentation} from "./check-combat-presentation.mjs";
+import {checkTeamPresentation} from "./check-team-presentation.mjs";
 import {checkHeroLibrary} from "./check-hero-library.mjs";
 import {checkSummonPresentation} from "./check-summon-presentation.mjs";
 
@@ -20,7 +21,7 @@ await build({
     lib: { entry: fileURLToPath(new URL("tests/autobattler-browser.tsx", root)), formats: ["iife"], name: "DevelopmentCheck", fileName: () => "preview.js" },
   },
 });
-const css = ['01-foundation.css','autobattler.css','autobattler-summon.css','autobattler-library.css','autobattler-combat.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
+const css = ['01-foundation.css','autobattler.css','autobattler-summon.css','autobattler-library.css','autobattler-combat.css','autobattler-team.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
 const server = createServer((request, response) => {
   if(request.url?.startsWith('/autobattler/')||request.url?.startsWith('/fonts/heroes/')){
     const asset=new URL(`public${request.url}`,root);
@@ -36,12 +37,13 @@ const server = createServer((request, response) => {
 });
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
-const onlyScenes=process.argv.includes('--scenes');
+const onlyScenes=process.argv.includes('--scenes'),onlyTeam=process.argv.includes('--team');
 try {
- if(!onlyScenes&&!process.argv.includes('--library')&&!process.argv.includes('--combat'))await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
- if(!onlyScenes&&!process.argv.includes('--summon')&&!process.argv.includes('--combat'))await checkHeroLibrary(browser,`http://127.0.0.1:${server.address().port}`,directory);
- if(!onlyScenes&&!process.argv.includes('--summon')&&!process.argv.includes('--library'))await checkCombatPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
- for(const [width,height] of (onlyScenes?[[390,844],[1366,768]]:process.argv.includes('--summon')||process.argv.includes('--library')||process.argv.includes('--combat')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
+ if(onlyTeam||(!onlyScenes&&!process.argv.includes('--summon')&&!process.argv.includes('--library')&&!process.argv.includes('--combat')))await checkTeamPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ if(!onlyTeam&&!onlyScenes&&!process.argv.includes('--library')&&!process.argv.includes('--combat'))await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ if(!onlyTeam&&!onlyScenes&&!process.argv.includes('--summon')&&!process.argv.includes('--combat'))await checkHeroLibrary(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ if(!onlyTeam&&!onlyScenes&&!process.argv.includes('--summon')&&!process.argv.includes('--library'))await checkCombatPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ for(const [width,height] of (onlyTeam?[]:onlyScenes?[[390,844],[1366,768]]:process.argv.includes('--summon')||process.argv.includes('--library')||process.argv.includes('--combat')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
   const page=await browser.newPage({viewport:{width,height}});const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/autobattler/')&&response.status()>=400)errors.push(`Asset ${response.status()}: ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${server.address().port}`);await page.getByRole('button',{name:'Герои',exact:true}).last().waitFor({timeout:10000}).catch(async error=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:fileURLToPath(new URL('failure.png',directory))});throw error;});
   async function fits(name){
@@ -70,11 +72,11 @@ try {
   await page.locator('.ab-card').first().click();await page.getByRole('button',{name:'Повысить уровень · 40 опыта',exact:true}).click();await page.getByRole('button',{name:'Повысить уровень · 80 опыта',exact:true}).waitFor();assert.equal(await page.locator('.ab-profile-level strong').innerText(),'2');await page.getByRole('button',{name:'Закрыть героя'}).click();
   await page.getByRole('button',{name:'Призыв',exact:true}).last().click();await page.getByRole('button',{name:'Призвать 1 · 1 оск.',exact:true}).click();await page.waitForTimeout(2000);assert.equal(await page.locator('.ab-summoned-hero').count(),0);await page.getByRole('button',{name:'Продолжить',exact:true}).waitFor();await fits('summon-reveal');await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await page.getByRole('button',{name:'Команда',exact:true}).last().click();assert.equal(await page.locator('.ab-field-unit').count(),5);assert.equal(await page.locator('.ab-enemy-unit').count(),0);
-  await page.getByRole('button',{name:'Подробнее: Бастион',exact:true}).click();await page.getByRole('dialog',{name:'Бастион',exact:true}).waitFor();await page.getByRole('button',{name:'Закрыть героя'}).click();
+  const bastion=page.locator('.ab-roster [data-formation-hero="bastion"]');const inspect=await bastion.boundingBox();await page.mouse.move(inspect.x+inspect.width/2,inspect.y+inspect.height/2);await page.mouse.down();await page.getByRole('dialog',{name:'Бастион',exact:true}).waitFor();await page.mouse.up();await page.getByRole('dialog',{name:'Бастион',exact:true}).waitFor();await page.getByRole('button',{name:'Закрыть героя'}).click();
   async function dragTo(source,target){const a=await source.boundingBox(),b=await target.boundingBox();assert.ok(a&&b);await page.mouse.move(a.x+a.width/2,a.y+a.height/2);await page.mouse.down();await page.mouse.move(b.x+b.width/2,b.y+b.height/2,{steps:12});await page.mouse.up();}
   const first=page.locator('[data-formation-slot="0"]'),second=page.locator('[data-formation-slot="1"]');
   await dragTo(first,second);assert.equal(await second.getAttribute('data-formation-hero'),'bastion');
-  await dragTo(second,page.locator('.ab-roster .ab-gallery-tools'));assert.equal(await second.getAttribute('data-formation-hero'),null);
+  await dragTo(second,page.locator('.ab-roster-tools'));assert.equal(await second.getAttribute('data-formation-hero'),null);
   await dragTo(page.locator('.ab-roster [data-formation-hero="bastion"]'),second);assert.equal(await second.getAttribute('data-formation-hero'),'bastion');
   assert.equal(await page.locator('.ab-game').evaluate(element=>!element.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}))),true);
 await page.getByRole('button',{name:/^Позиция 5/}).click();await page.locator('.ab-card').first().click();await page.getByRole('button',{name:'Сохранить',exact:true}).click();await page.getByText('Состав сохранён',{exact:true}).waitFor();
@@ -87,7 +89,7 @@ await page.getByRole('button',{name:/^Позиция 5/}).click();await page.loc
    await cards.nth(4).waitFor();
    await roster.waitForTimeout(450);
    assert.equal(await cards.count(),5);
-   assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),1);
+   assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),2);
    await roster.screenshot({path:fileURLToPath(new URL('roster-all-1920.png',directory))});
    await roster.close();
   }

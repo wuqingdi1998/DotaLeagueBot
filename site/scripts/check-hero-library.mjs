@@ -76,7 +76,7 @@ export async function checkHeroLibrary(browser,url,directory){
    await page.getByRole('button',{name:'Команда',exact:true}).click();
    const owned=page.locator('.ab-roster .ab-card');assert.equal(await owned.count(),5);
    await page.waitForTimeout(200);
-   if(width>1000)assert.equal(await owned.evaluateAll(items=>items.every(item=>item.getBoundingClientRect().width<=130&&item.getBoundingClientRect().height>=80)),true);
+   if(width>1000)assert.equal(await owned.evaluateAll(items=>items.every(item=>item.getBoundingClientRect().width<=180&&item.getBoundingClientRect().height>=80)),true);
    await page.screenshot({path:fileURLToPath(new URL(`five-roster-${width}.png`,directory))});
    assert.deepEqual(errors,[]);
    console.log(`Hero library: two rows, rarity circles, sorting, all pages and profile verified ${width}×${height}`);
