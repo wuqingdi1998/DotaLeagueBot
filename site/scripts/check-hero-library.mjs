@@ -1,0 +1,50 @@
+import assert from 'node:assert/strict';
+import {fileURLToPath} from 'node:url';
+
+export async function checkHeroLibrary(browser,url,directory){
+ for(const [width,height] of [[360,640],[390,844],[1366,768],[1920,1080],[2560,1440]]){
+  const page=await browser.newPage({viewport:{width,height}});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  try{
+   await page.goto(url);
+   await page.getByRole('button',{name:'Герои',exact:true}).click();
+   const library=page.locator('.ab-hero-library'),cards=library.locator('.ab-card');
+   await cards.first().waitFor();await page.waitForTimeout(200);
+   assert.equal(await library.locator('select').count(),0);
+   assert.equal(await library.getByRole('button',{name:'Галерея',exact:true}).count(),0);
+   assert.equal(await library.getByRole('button',{name:'Список',exact:true}).count(),0);
+   assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),2,`${width}: exactly two rows`);
+   assert.equal(await cards.first().evaluate(element=>element.classList.contains('ab-Legendary')),true);
+   const names=new Set();const next=library.getByRole('button',{name:'Следующие герои'}),previous=library.getByRole('button',{name:'Предыдущие герои'});
+   for(let i=0;i<12;i++){
+    assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),2,`${width}: each page has two rows`);
+    for(const name of await cards.locator('strong').allTextContents())names.add(name);
+    if(await next.isDisabled())break;
+    await next.click();
+   }
+   assert.equal(names.size,24);assert.equal(await next.isDisabled(),true);
+   await library.getByRole('button',{name:'Эпические',exact:true}).click();
+   assert.equal(await previous.isDisabled(),true);
+   assert.equal(await cards.evaluateAll(items=>items.every(item=>item.classList.contains('ab-Epic'))),true);
+   await library.getByRole('button',{name:'Легендарные',exact:true}).click();
+   assert.equal(await library.getByRole('button',{name:'Эпические',exact:true}).getAttribute('aria-pressed'),'true');
+   assert.equal(await cards.evaluateAll(items=>items.every(item=>!item.classList.contains('ab-Rare'))),true);
+   await library.getByRole('button',{name:'Эпические',exact:true}).click();
+   await library.getByRole('button',{name:'Легендарные',exact:true}).click();
+   await library.getByRole('button',{name:'Редкость: от высокой к низкой',exact:true}).click();
+   assert.equal(await cards.first().evaluate(element=>element.classList.contains('ab-Rare')),true);
+   await cards.first().click();await page.getByRole('dialog').waitFor();
+   await page.getByRole('button',{name:'Закрыть героя'}).click();
+   await library.getByRole('button',{name:'Редкость: от низкой к высокой',exact:true}).click();
+   const bounds=await library.locator('.ab-library-grid').boundingBox(),left=await previous.boundingBox(),right=await next.boundingBox();
+   assert.ok(left.x+left.width<=bounds.x&&right.x>=bounds.x+bounds.width-1);
+   assert.ok(left.height>left.width*3&&right.height>right.width*3);
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollHeight>innerHeight||document.documentElement.scrollWidth>innerWidth),false,`${width}: page overflow`);
+   const clipped=await library.evaluate(root=>[...root.querySelectorAll('button,h2,.ab-card-role,.ab-card-caption')].filter(element=>{const r=element.getBoundingClientRect();return r.top<0||r.left<0||r.right>innerWidth+1||r.bottom>innerHeight+1;}).map(element=>element.className));
+   assert.deepEqual(clipped,[]);
+   await page.screenshot({path:fileURLToPath(new URL(`hero-library-${width}.png`,directory))});
+   assert.deepEqual(errors,[]);
+   console.log(`Hero library: two rows, rarity circles, sorting, all pages and profile verified ${width}×${height}`);
+  }finally{await page.close();}
+ }
+}

@@ -32,9 +32,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-portrait{width:100%;height:100%;background-repeat:no-repeat;background-position:center;background-size:contain;filter:drop-shadow(0 8px 10px #0007)}
 .ab-portrait.ab-full-portrait{background-size:contain;background-position:center bottom}
 .ab-collection{display:flex;flex-direction:column;min-height:0;flex:1;background:radial-gradient(ellipse at 65% 65%,#436daeaa,#132b49ee)}
-.ab-collection>.ab-scene-heading{position:absolute;top:0;left:120px;pointer-events:none;padding-top:10px}
-.ab-collection>.ab-scene-heading h2{font-size:25px}
-.ab-collection>.ab-scene-heading small{display:none}
 .ab-gallery{min-height:0;flex:1;display:flex;position:relative}
 .ab-class-rail{width:112px;display:grid;grid-template-rows:repeat(7,1fr);border-right:1px solid var(--ab-line);flex:none}
 .ab-class-rail button{min-height:0;border:0;background:#0e234b77;border-radius:0;font-size:13px;padding:3px;box-shadow:none;color:#a6c1df}
@@ -43,9 +40,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 .ab-gallery-main{display:flex;flex-direction:column;min-width:0;min-height:0;flex:1;padding:10px 22px}
 .ab-gallery-tools{display:flex;justify-content:flex-end;align-items:center;font-size:13px;gap:12px;flex:none;min-height:36px;margin:0 0 16px}
 .ab-gallery-tools select{max-width:155px;padding:5px;min-height:34px}
-.ab-list-tabs{display:flex}
-.ab-list-tabs button{border-radius:0;min-height:34px;padding:5px 18px}
-.ab-list-tabs button[aria-pressed=true]{background:linear-gradient(#286fb3,#49b6eb)}
 .ab-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);align-items:start;gap:14px;flex:1;min-height:0}
 .ab-game .ab-card{--rarity-color:#69b9e7;position:relative;display:block;padding:0;min-width:0;min-height:0;height:min(100%,390px);width:100%;aspect-ratio:.57;border:1px solid var(--rarity-color);border-radius:2px;background:radial-gradient(ellipse at 50% 40%,#5284b0,#132f55 80%);overflow:hidden;box-shadow:0 4px 6px #0007}
 .ab-card.ab-Epic,.ab-Epic{--rarity-color:#c0a5ff}
@@ -193,7 +187,6 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
 @media(max-width:900px){
  .ab-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
  .ab-game .ab-card{height:100%;aspect-ratio:auto}
- .ab-library .ab-card .ab-portrait{background-size:cover;background-position:center 15%}
  .ab-roster .ab-grid{grid-template-rows:1fr}
  .ab-collection>.ab-scene-heading{display:none}
  .ab-class-rail{width:90px}
@@ -207,7 +200,7 @@ html:has(.ab-game),body:has(.ab-game){height:100dvh;overflow:clip}
  .ab-navigation button>span{display:block;margin:0;font-size:23px;line-height:27px}
  .ab-class-rail{width:58px}.ab-class-rail button{font-size:9px}.ab-class-rail button>span{font-size:25px}
  .ab-gallery-main{padding:6px 7px}.ab-gallery-tools{gap:5px;font-size:10px;min-height:55px;margin:0 0 6px;flex-wrap:wrap}
- .ab-gallery-tools select{font-size:11px;min-height:28px;max-width:128px}.ab-list-tabs button{font-size:11px;padding:4px 12px;min-height:27px}
+ .ab-gallery-tools select{font-size:11px;min-height:28px;max-width:128px}
  .ab-grid{gap:6px}.ab-card-caption{padding:18px 3px 6px}.ab-card-caption strong{font-size:12px}.ab-card-caption>span{font-size:8px;flex-wrap:wrap;gap:2px}
  .ab-card .ab-card-role{width:28px;height:29px;font-size:21px}.ab-pager{padding:5px 0;gap:15px}.ab-pager button{min-height:28px}
  .ab-team-heading{min-height:54px;padding:5px 8px;gap:8px}.ab-team-heading h2{font-size:17px}.ab-team-heading small{font-size:9px}.ab-power{font-size:17px;gap:7px}.ab-power span{font-size:12px}

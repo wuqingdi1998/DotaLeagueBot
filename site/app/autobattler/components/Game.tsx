@@ -21,7 +21,7 @@ export default function Game(){
  {error&&<div className="ab-error" role="alert">{error}<button onClick={()=>void act()}>Обновить данные</button></div>}
  <div className={`ab-scene ab-scene-${tab}`} key={tab}>
  {!profile?<div className="ab-loading">✦<p>Открываем врата мира…</p></div>:<>
- {tab==='Герои'&&<section className="ab-collection"><div className="ab-scene-heading"><small>ЗАЛ СОЮЗНИКОВ</small><h2>Герои</h2></div><HeroGallery profile={profile} onSelect={setSelected}/></section>}
+ {tab==='Герои'&&<section className="ab-collection"><HeroGallery profile={profile} onSelect={setSelected}/></section>}
  {tab==='Команда'&&<TeamScene profile={profile} stageId={preparedStage} onInspect={setSelected} onSave={team=>run({action:'team',team})} onBattle={stage=>void run({action:'battle',stage})}/>}
  {tab==='Кампания'&&<CampaignMap profile={profile} onBattle={stage=>{setPreparedStage(stage);setTab('Команда');}}/>}
  {tab==='Призыв'&&<SummonScene data={data} onSummon={run} onLockChange={setRevealing}/>}

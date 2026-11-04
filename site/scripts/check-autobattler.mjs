@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import { chromium } from "playwright";
+import {checkHeroLibrary} from "./check-hero-library.mjs";
 import {checkSummonPresentation} from "./check-summon-presentation.mjs";
 
 const root = new URL("../", import.meta.url);
@@ -18,7 +19,7 @@ await build({
     lib: { entry: fileURLToPath(new URL("tests/autobattler-browser.tsx", root)), formats: ["iife"], name: "DevelopmentCheck", fileName: () => "preview.js" },
   },
 });
-const css = ['01-foundation.css','autobattler.css','autobattler-summon.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
+const css = ['01-foundation.css','autobattler.css','autobattler-summon.css','autobattler-library.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
 const server = createServer((request, response) => {
   if(request.url?.startsWith('/autobattler/')){
     const asset=new URL(`public${request.url}`,root);
@@ -35,8 +36,9 @@ const server = createServer((request, response) => {
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 try {
- await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
- for(const [width,height] of (process.argv.includes('--summon')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
+ if(!process.argv.includes('--library'))await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ if(!process.argv.includes('--summon'))await checkHeroLibrary(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ for(const [width,height] of (process.argv.includes('--summon')||process.argv.includes('--library')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
   const page=await browser.newPage({viewport:{width,height}});const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/autobattler/')&&response.status()>=400)errors.push(`Asset ${response.status()}: ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${server.address().port}`);await page.getByRole('button',{name:'Герои',exact:true}).last().waitFor({timeout:10000}).catch(async error=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:fileURLToPath(new URL('failure.png',directory))});throw error;});
   async function fits(name){
@@ -50,8 +52,8 @@ try {
   }
   await fits('campaign-start');
   for(const tab of ['Герои','Команда','Призыв','Кампания','Разработчик']){await page.getByRole('button',{name:tab,exact:true}).last().click();await fits(tab);}
-  await page.getByRole('button',{name:'Герои',exact:true}).last().click();assert.equal(await page.locator('.ab-card').count(),6);await page.getByLabel('Редкость героя').selectOption('Epic');assert.ok(await page.locator('.ab-card').count()>0);await page.getByLabel('Редкость героя').selectOption('Все');
-  const names=new Set();for(let i=0;i<4;i++){for(const name of await page.locator('.ab-card strong').allTextContents())names.add(name);if(i<3)await page.getByRole('button',{name:'Следующие герои',exact:true}).click();}assert.equal(names.size,24);
+  await page.getByRole('button',{name:'Герои',exact:true}).last().click();await page.getByRole('button',{name:'Эпические',exact:true}).click();assert.ok(await page.locator('.ab-card').count()>0);await page.getByRole('button',{name:'Эпические',exact:true}).click();
+  const names=new Set();for(let i=0;i<12;i++){for(const name of await page.locator('.ab-card strong').allTextContents())names.add(name);const next=page.getByRole('button',{name:'Следующие герои',exact:true});if(await next.isDisabled())break;await next.click();}assert.equal(names.size,24);
   await page.locator('.ab-card').first().click();await fits('hero-profile');
   assert.equal(await page.locator('.ab-skill-buttons button').count(),3);
   for(const type of ['Базовый навык','Ультимейт',await page.getByRole('button',{name:'Лидерская пассивка',exact:true}).count()?'Лидерская пассивка':'Пассивка']){
@@ -61,7 +63,7 @@ try {
    await page.getByRole('button',{name:'Закрыть умение'}).click();
   }
   await page.getByRole('button',{name:'Ультимейт',exact:true}).click();await page.getByRole('button',{name:'Показать способность'}).click();await page.getByRole('button',{name:'Закрыть героя'}).click();
-  for(let i=0;i<3;i++)await page.getByRole('button',{name:'Предыдущие герои',exact:true}).click();
+  await page.getByRole('button',{name:'Редкие',exact:true}).click();
   await page.locator('.ab-card').first().click();await page.getByRole('button',{name:'Повысить уровень · 40 опыта',exact:true}).click();await page.getByRole('button',{name:'Повысить уровень · 80 опыта',exact:true}).waitFor();assert.equal(await page.locator('.ab-profile-level strong').innerText(),'2');await page.getByRole('button',{name:'Закрыть героя'}).click();
   await page.getByRole('button',{name:'Призыв',exact:true}).last().click();await page.getByRole('button',{name:'Призвать 1 · 1 оск.',exact:true}).click();await page.waitForTimeout(2000);assert.equal(await page.locator('.ab-summoned-hero').count(),0);await page.getByRole('button',{name:'Продолжить',exact:true}).waitFor();await fits('summon-reveal');await page.getByRole('button',{name:'Продолжить',exact:true}).click();
   await page.getByRole('button',{name:'Команда',exact:true}).last().click();assert.equal(await page.locator('.ab-field-unit').count(),5);assert.equal(await page.locator('.ab-enemy-unit').count(),0);
