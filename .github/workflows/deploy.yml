@@ -882,11 +882,13 @@ jobs:
           script: |
             set -euo pipefail
             APP_DIR=/root/DotaLeagueBotDev
+            REPO=https://github.com/wuqingdi1998/DotaLeagueBot.git
             if [ ! -d "$APP_DIR/.git" ]; then
-              git clone --branch codex/dev git@github.com:wuqingdi1998/DotaLeagueBot.git "$APP_DIR"
+              git clone --branch codex/dev "$REPO" "$APP_DIR"
             fi
             cd "$APP_DIR"
-            git fetch origin main codex/dev
+            # Public source reads do not depend on the server's GitHub SSH key.
+            git fetch "$REPO" main:refs/remotes/origin/main codex/dev:refs/remotes/origin/codex/dev
             git checkout codex/dev
             git reset --hard ${{ github.sha }}
             if [ '${{ github.ref }}' = refs/heads/main ]; then

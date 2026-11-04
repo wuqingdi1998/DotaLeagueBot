@@ -69,6 +69,18 @@ def test_main_release_refresh_is_gated_by_successful_production_and_preserves_ne
     assert 'if [ "$refresh_mode" = --refresh-from-production ] || [ ! -f development/initialized ]' in deployment
 
 
+def test_development_checkout_reads_public_https_without_a_server_github_key():
+    workflow = (ROOT / ".github/workflows/deploy.yml").read_text(encoding="utf-8")
+    checkout = workflow.split("- name: Deploy isolated test site", 1)[1].split(
+        "- name: Verify development site externally", 1
+    )[0]
+    assert "REPO=https://github.com/wuqingdi1998/DotaLeagueBot.git" in checkout
+    assert 'git clone --branch codex/dev "$REPO" "$APP_DIR"' in checkout
+    assert 'git fetch "$REPO" main:refs/remotes/origin/main codex/dev:refs/remotes/origin/codex/dev' in checkout
+    assert "git fetch origin" not in checkout
+    assert "git@github.com" not in checkout
+
+
 def test_recovery_retention_keeps_two_copies_and_never_removes_unverified_folders(tmp_path):
     root = tmp_path / "development/refresh"
     root.mkdir(parents=True)
