@@ -12,6 +12,12 @@ export async function checkHeroLibrary(browser,url,directory){
    await cards.first().waitFor();
    async function settleBook(){await library.evaluate(async element=>{await Promise.all(element.getAnimations({subtree:true}).filter(animation=>animation.effect?.getComputedTiming().iterations!==Infinity).map(animation=>animation.finished.catch(()=>{})));});}
    await settleBook();
+   const fonts=await page.evaluate(async()=>{
+    await document.fonts.ready;
+    return {heading:getComputedStyle(document.querySelector('.ab-library-title h2')).fontFamily,body:getComputedStyle(document.querySelector('.ab-rarity-sort')).fontFamily,loaded:['Forum','Manrope'].map(font=>document.fonts.check(`400 18px "${font}"`,'Селена Ёжик Щит 123'))};
+   });
+   assert.ok(fonts.heading.startsWith('Forum')&&fonts.body.startsWith('Manrope'));
+   assert.deepEqual(fonts.loaded,[true,true],'Both local fonts include Cyrillic and have loaded');
    assert.equal(await library.locator('select').count(),0);
    assert.equal(await library.getByRole('button',{name:'Галерея',exact:true}).count(),0);
    assert.equal(await library.getByRole('button',{name:'Список',exact:true}).count(),0);

@@ -1,3 +1,4 @@
+import {gameTypography} from '../model/typography';
 import type Phaser from 'phaser';
 import type {Unit} from '@/lib/autobattler/simulation';
 import {heroById} from '@/lib/autobattler/catalog';
@@ -25,8 +26,8 @@ export function createCombatActor(Phaser:typeof import('phaser'),scene:Phaser.Sc
   else poseCharacter(mesh!,pose.stride,pose.isWalking,pose.attack||pose.cast);
  };
  root.add([shadow,body]);
- const label=scene.add.text(0,0,`${heroById[unit.hero].name} · ${unit.level??1}`,{fontSize:width<800?'12px':'13px',fontFamily:'Arial',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5).setDepth(2100);
- const icons=battleEffects.map(effect=>scene.add.text(0,0,effect.icon,{fontSize:'12px',color:'#ffffff'}).setOrigin(.5).setDepth(2100).setVisible(false));
+ const label=scene.add.text(0,0,`${heroById[unit.hero].name} · ${unit.level??1}`,{fontSize:width<800?'12px':'13px',fontFamily:gameTypography.interface,color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5).setDepth(2100);
+ const icons=battleEffects.map(effect=>scene.add.text(0,0,effect.icon,{fontFamily:gameTypography.interface,fontSize:'12px',color:'#ffffff'}).setOrigin(.5).setDepth(2100).setVisible(false));
  return {root,body,shadow,label,icons,pose,flash:articulated?.flash,deathTime:-1,size};
 }
 export type CombatActor=ReturnType<typeof createCombatActor>;

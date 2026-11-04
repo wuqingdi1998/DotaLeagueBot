@@ -13,7 +13,7 @@ export default function BattleScene({battle,onFinish}:{battle:Battle;onFinish:()
   useEffect(()=>{const timer=setTimeout(()=>setMuted(localStorage.getItem('ab-combat-muted')==='true'),0);return()=>clearTimeout(timer);},[]);
   useEffect(()=>{
     let isDisposed=false;let game:import('phaser').Game|undefined;let observer:ResizeObserver|undefined;
-    import('phaser').then(({default:Phaser})=>{
+    Promise.all([import('phaser'),document.fonts.ready]).then(([{default:Phaser}])=>{
       if(isDisposed||!host.current)return;
       audio.current=createCombatAudio();
       const Arena=createArena(Phaser,battle,control,onFinish,audio.current,setProgress);

@@ -1,3 +1,4 @@
+import {gameTypography} from '../model/typography';
 import selenaAtlas from '@/public/autobattler/selena-cutout.json';
 import rutaAtlas from '@/public/autobattler/ruta-cutout.json';
 import orionAtlas from '@/public/autobattler/orion-cutout.json';
@@ -38,9 +39,9 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
    this.actorHud=this.add.graphics().setDepth(2000);
    this.hud=this.add.graphics().setDepth(4000);
    this.effects=createCombatEffects(this,this.width,this.height,audio);
-   this.clock=this.add.text(this.width/2,24,'',{fontFamily:'Arial',fontSize:'20px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(4500);
-   this.bossTitle=this.add.text(this.width/2,49,'',{fontFamily:'Arial',fontSize:'15px',color:'#ffdba4',stroke:'#081323',strokeThickness:4}).setOrigin(.5).setDepth(4500);
-   this.caption=this.add.text(this.width/2,this.height*.29,'',{fontFamily:'Georgia',fontSize:this.width<800?'29px':'38px',color:'#fff1cf',stroke:'#091626',strokeThickness:5,align:'center'}).setOrigin(.5).setDepth(5000);
+   this.clock=this.add.text(this.width/2,24,'',{fontFamily:gameTypography.interface,fontSize:'20px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(4500);
+   this.bossTitle=this.add.text(this.width/2,49,'',{fontFamily:gameTypography.interface,fontSize:'15px',color:'#ffdba4',stroke:'#081323',strokeThickness:4}).setOrigin(.5).setDepth(4500);
+   this.caption=this.add.text(this.width/2,this.height*.29,'',{fontFamily:gameTypography.heading,fontSize:this.width<800?'29px':'38px',color:'#fff1cf',stroke:'#091626',strokeThickness:5,align:'center'}).setOrigin(.5).setDepth(5000);
    void audio.resume();
    this.input.on('pointerdown',()=>void audio.resume());
   }

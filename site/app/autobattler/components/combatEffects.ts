@@ -1,3 +1,4 @@
+import {gameTypography} from '../model/typography';
 import type Phaser from 'phaser';
 import {heroById} from '@/lib/autobattler/catalog';
 import {basicSkill} from '@/lib/autobattler/abilities';
@@ -9,7 +10,7 @@ import {screenPosition} from './combatActors';
 
 export function createCombatEffects(scene:Phaser.Scene,width:number,height:number,audio:CombatAudio){
  const graphics=scene.add.graphics().setDepth(2200),numbers=scene.add.container(0,0).setDepth(2500);
- const banner=scene.add.text(width/2,105,'',{fontFamily:'Arial',fontSize:width<800?'17px':'22px',color:'#ffe4a4',stroke:'#091725',strokeThickness:5,align:'center'}).setOrigin(.5).setDepth(3000);
+ const banner=scene.add.text(width/2,105,'',{fontFamily:gameTypography.interface,fontSize:width<800?'17px':'22px',color:'#ffe4a4',stroke:'#091725',strokeThickness:5,align:'center'}).setOrigin(.5).setDepth(3000);
  const labels:{text:Phaser.GameObjects.Text;start:number;x:number;y:number}[]=[],lanes=new Map<string,number>();
  const windups=new Set<string>();
  let previous=-1,bannerTime=-2000;
@@ -85,7 +86,7 @@ export function createCombatEffects(scene:Phaser.Scene,width:number,height:numbe
     if(canPlay&&event.kind==='damage')audio.play(isBlocked?'shield':isDot?'magic':source.hero==='iskra'?'fire':hero.role==='Tank'?'heavy':hero.range<100?'sword':'magic');
     const lane=lanes.get(target.id)??0;lanes.set(target.id,(lane+1)%3);
     const x=b.x+(lane-1)*22,y=b.y-(width<800?128:158)-lane*14;
-    const text=scene.add.text(x,y,isBlocked?'ЩИТ':`${isHeal?'+':''}${Math.round(event.amount)}`,{fontFamily:'Arial',fontSize:isBlocked?'13px':event.amount>target.maxHp*.12?'25px':'19px',fontStyle:'bold',color:isHeal?'#a6ffd2':isBlocked?'#a3e6ff':isDot?'#c5e69c':'#fff0d0',stroke:'#101a29',strokeThickness:4}).setOrigin(.5);
+    const text=scene.add.text(x,y,isBlocked?'ЩИТ':`${isHeal?'+':''}${Math.round(event.amount)}`,{fontFamily:gameTypography.interface,fontSize:isBlocked?'13px':event.amount>target.maxHp*.12?'25px':'19px',fontStyle:'bold',color:isHeal?'#a6ffd2':isBlocked?'#a3e6ff':isDot?'#c5e69c':'#fff0d0',stroke:'#101a29',strokeThickness:4}).setOrigin(.5);
     numbers.add(text);labels.push({text,start:time,x,y});
    }
   }

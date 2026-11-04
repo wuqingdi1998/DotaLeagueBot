@@ -1,5 +1,6 @@
 'use client';
-import {useCallback,useState,useEffect} from 'react';
+import {useCallback,useState,useEffect,type CSSProperties} from 'react';
+import {gameTypography} from '../model/typography';
 import {type Hero} from '@/lib/autobattler/catalog';
 import {useGame} from '../hooks/useGame';
 import HeroProfile from './HeroProfile';
@@ -18,7 +19,7 @@ export default function Game(){
  useEffect(()=>{if(localStorage.getItem(pendingKey)){const timer=setTimeout(()=>{setTab('Призыв');setRevealing(true);},0);return()=>clearTimeout(timer);}},[]);
  const finish=useCallback(()=>setFinished(true),[]);
  async function run(input:Record<string,unknown>){const result=await act(input);if(result?.battle){setPreview(false);setBattleData(result);setFinished(false);setReplay(value=>value+1);setTab('Бой');}return result;}
- return <main className="ab-game" onContextMenu={event=>event.preventDefault()}><div className="ab-world"/><header className="ab-header"><button className="ab-brand" disabled={isRevealing} onClick={()=>setTab('Кампания')}><small>LINKEN’S SPHERE</small><strong>HEROES <span>COMPENDIUM</span></strong></button><div className="ab-header-actions"><strong className="ab-tickets">✦ {profile?.tickets??'…'} синих · {profile?.goldenShards??0} золотых</strong>{data?.isAdmin&&<button aria-label="Разработчик" disabled={isRevealing} onClick={()=>setTab('Разработчик')}>⚙</button>}<a href="/" aria-label="Вернуться на сайт LSE">×</a></div></header>
+ return <main className="ab-game" style={{'--ab-font-heading':gameTypography.heading,'--ab-font-interface':gameTypography.interface} as CSSProperties} onContextMenu={event=>event.preventDefault()}><div className="ab-world"/><header className="ab-header"><button className="ab-brand" disabled={isRevealing} onClick={()=>setTab('Кампания')}><small>LINKEN’S SPHERE</small><strong>HEROES <span>COMPENDIUM</span></strong></button><div className="ab-header-actions"><strong className="ab-tickets">✦ {profile?.tickets??'…'} синих · {profile?.goldenShards??0} золотых</strong>{data?.isAdmin&&<button aria-label="Разработчик" disabled={isRevealing} onClick={()=>setTab('Разработчик')}>⚙</button>}<a href="/" aria-label="Вернуться на сайт LSE">×</a></div></header>
  {error&&<div className="ab-error" role="alert">{error}<button onClick={()=>void act()}>Обновить данные</button></div>}
  <div className={`ab-scene ab-scene-${tab}`} key={tab}>
  {!profile?<div className="ab-loading">✦<p>Открываем врата мира…</p></div>:<>

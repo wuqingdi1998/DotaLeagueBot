@@ -13,7 +13,7 @@ html:has(.ab-summon-scene){scrollbar-gutter:auto}
 .ab-summon-results.ab-reveal-Legendary{--ritual-color:#ffe3a2;--ritual-rgb:255,181,60}
 .ab-summon-heading{z-index:2;display:grid;gap:3px;justify-items:center;padding:12px 16px 8px}
 .ab-summon-heading small{color:var(--ritual-color);transition:color .7s ease;font-size:10px;letter-spacing:.23em;text-transform:uppercase}
-.ab-summon-heading h2{font:clamp(21px,3vw,39px)/1.08 Georgia,serif}
+.ab-summon-heading h2{font:clamp(21px,3vw,39px)/1.08 var(--ab-font-heading),Georgia,serif}
 .ab-summon-heading [role=status]{font-size:13px;color:#c6d9e9}
 .ab-summon-stage{position:relative;min-height:0;isolation:isolate;overflow:clip}
 .ab-shrine-stage{
@@ -52,7 +52,7 @@ html:has(.ab-summon-scene){scrollbar-gutter:auto}
 .ab-summon-seal::before{
  content:'';position:absolute;inset:9%;border:1px solid #7da4bd44;border-radius:7px;
 }
-.ab-seal-emblem{color:#8ca8bc;font:clamp(20px,5vw,67px) Georgia,serif}
+.ab-seal-emblem{color:#8ca8bc;font:clamp(20px,5vw,67px) var(--ab-font-heading),Georgia,serif}
 .ab-seal-number{position:absolute;bottom:8%;color:#91a5bc;font-size:11px;letter-spacing:.12em}
 .ab-summon-slot.is-opening{z-index:1}
 .ab-summon-slot.is-opening .ab-summon-seal{animation:ab-seal-charge var(--opening-time) both;border-color:#7db6d2;background:#102035}
@@ -110,7 +110,7 @@ html:has(.ab-summon-scene){scrollbar-gutter:auto}
  .ab-result-role{width:20px;height:20px;top:4px;left:4px;font-size:13px}
  .ab-result-caption{padding:11px 1px 6px}
  .ab-result-caption span{font-size:8px}
- .ab-result-caption strong{font-size:10px}
+ .ab-result-caption strong{font-size:12px}
  .ab-summoned-hero{inset:0 2%}
 }
 @media(prefers-reduced-motion:reduce){
