@@ -1,117 +1,108 @@
 import orionAtlas from '@/public/autobattler/orion-cutout.json';
-import {battleEffects,visibleBattleEffects} from '@/lib/autobattler/battleEffects';
-import {projectFormation} from '@/lib/autobattler/formationGeometry';
+import bastionAtlas from '@/public/autobattler/bastion-cutout.json';
+import iskraAtlas from '@/public/autobattler/iskra-cutout.json';
 import type PhaserType from 'phaser';
-import type {Battle,Unit} from '@/lib/autobattler/simulation';
+import type {Battle} from '@/lib/autobattler/simulation';
 import {heroById,stages} from '@/lib/autobattler/catalog';
 import {heroVisuals,sceneBackground} from '../model/visuals';
-import {createCharacterRig,poseCharacter} from './characterRig';
-import {createOrionRig} from './orionRig';
-type Character={root:PhaserType.GameObjects.Container;body:PhaserType.GameObjects.Mesh2D|PhaserType.GameObjects.Container;pose:(stride:number,walking:boolean,attack:number,cast:number)=>void;label:PhaserType.GameObjects.Text;death:number;effects:PhaserType.GameObjects.Text[]};
-export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:{isPaused:boolean;speed:number}},onFinish:()=>void){
+import {battleFrame,clamp,combatTiming,marchingFormation,smooth,spreadPortraitFormation,wavePresentation} from '../model/combatPresentation';
+import type {CombatAudio} from '../services/combatAudio';
+import {createCombatActor,drawCombatActor,type CombatActor} from './combatActors';
+import {createCombatEffects} from './combatEffects';
+
+export interface CombatControl {isPaused:boolean;speed:number;isMuted:boolean}
+export interface BattleProgress {wave:number;count:number;phase:'entry'|'fight'|'march'|'boss'}
+export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{current:CombatControl},onFinish:()=>void,audio:CombatAudio,onProgress:(progress:BattleProgress)=>void){
  return class Arena extends Phaser.Scene{
-  elapsed=0;outro=0;graphics!:PhaserType.GameObjects.Graphics;actors:Character[]=[];width=1000;height=700;shown=new Set<string>();hitStop=0;clock!:PhaserType.GameObjects.Text;environment!:PhaserType.GameObjects.Image;
-  preload(){if(battle.units.some(unit=>unit.hero==='orion'))this.load.atlas('orion-cutout','/autobattler/orion-cutout.webp',orionAtlas);const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));this.load.image('arena',battle.chapter||stage?`/autobattler/chapter-${battle.chapter??stage?.chapter??1}.webp`:sceneBackground);for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);}
+  elapsed=0;outro=0;hitStop=0;entryElapsed=0;entryWave=-1;lastCue='';lastTime=-1;lastStep=0;isPreviouslyPaused=false;
+  actors:CombatActor[]=[];width=1000;height=700;
+  environment!:PhaserType.GameObjects.Image;hud!:PhaserType.GameObjects.Graphics;actorHud!:PhaserType.GameObjects.Graphics;floor!:PhaserType.GameObjects.Graphics;
+  clock!:PhaserType.GameObjects.Text;caption!:PhaserType.GameObjects.Text;bossTitle!:PhaserType.GameObjects.Text;
+  effects!:ReturnType<typeof createCombatEffects>;
+  preload(){
+   const atlases={'orion':orionAtlas,'bastion':bastionAtlas,'iskra':iskraAtlas};
+   for(const [id,atlas] of Object.entries(atlases))if(battle.units.some(unit=>unit.hero===id))this.load.atlas(`${id}-cutout`,`/autobattler/${id}-cutout.webp`,atlas);
+   const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));
+   this.load.image('arena',battle.chapter||stage?`/autobattler/chapter-${battle.chapter??stage?.chapter??1}.webp`:sceneBackground);
+   for(const id of new Set(battle.units.map(unit=>unit.hero)))this.load.image(id,heroVisuals[id].texture);
+  }
   create(){
    this.width=this.scale.width;this.height=this.scale.height;
-   const environment=this.environment=this.add.image(this.width/2,this.height/2,'arena');environment.setScale(Math.max(this.width/environment.width,this.height/environment.height)*1.12);
-   this.add.rectangle(this.width/2,this.height/2,this.width,this.height,0x05152a,.22);
-   this.actors=battle.units.map(unit=>{
-    const root=this.add.container(0,0);const size=this.width<800?102:125;
-    const shadow=this.add.ellipse(0,-3,size*.58,20,0x061326,.4);
-    const orion=unit.hero==='orion'?createOrionRig(this,size):undefined;
-    const mesh=orion?undefined:createCharacterRig(Phaser,this,unit.hero,size);
-    const body=orion?.rig??mesh!;
-    const pose=orion?.pose??((stride:number,walking:boolean,attack:number,cast:number)=>poseCharacter(mesh!,stride,walking,attack||cast));
-    root.add([shadow,body]);const label=this.add.text(0,0,`${heroById[unit.hero].name} · ${unit.level??1}`,{fontSize:this.width<800?'12px':'13px',fontFamily:'Arial',color:'#fff2d6',stroke:'#071323',strokeThickness:3}).setOrigin(.5);
-    const effects=battleEffects.map(effect=>this.add.text(0,0,effect.icon,{fontSize:"11px",color:"#fff"}).setOrigin(.5).setDepth(2100).setVisible(false));
-    return {root,body,pose,label,effects,death:-1};
-   });this.graphics=this.add.graphics().setDepth(2000);this.clock=this.add.text(this.width/2,25,'',{fontSize:'24px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(3000);
+   const environment=this.environment=this.add.image(this.width/2,this.height/2,'arena');
+   environment.setScale(Math.max(this.width/environment.width,this.height/environment.height)*1.4);
+   this.add.rectangle(this.width/2,this.height/2,this.width,this.height,0x05121f,.18);
+   this.floor=this.add.graphics().setDepth(1);
+   this.actors=battle.units.map(unit=>createCombatActor(Phaser,this,unit,this.width));
+   this.actorHud=this.add.graphics().setDepth(2000);
+   this.hud=this.add.graphics().setDepth(4000);
+   this.effects=createCombatEffects(this,this.width,this.height,audio);
+   this.clock=this.add.text(this.width/2,24,'',{fontFamily:'Arial',fontSize:'20px',color:'#f2dfb4',stroke:'#091626',strokeThickness:4}).setOrigin(.5).setDepth(4500);
+   this.bossTitle=this.add.text(this.width/2,49,'',{fontFamily:'Arial',fontSize:'15px',color:'#ffdba4',stroke:'#081323',strokeThickness:4}).setOrigin(.5).setDepth(4500);
+   this.caption=this.add.text(this.width/2,this.height*.29,'',{fontFamily:'Georgia',fontSize:this.width<800?'29px':'38px',color:'#fff1cf',stroke:'#091626',strokeThickness:5,align:'center'}).setOrigin(.5).setDepth(5000);
+   void audio.resume();
+   this.input.on('pointerdown',()=>void audio.resume());
   }
-  position(unit:Unit){const point=projectFormation(unit);return {x:point.x/100*this.width,y:point.y/100*this.height};}
   update(_time:number,delta:number){
-   if(!control.current.isPaused&&this.hitStop<=0)this.elapsed=Math.min(battle.duration,this.elapsed+Math.min(delta,150)*control.current.speed);
-   if(!control.current.isPaused)this.hitStop=Math.max(0,this.hitStop-delta*control.current.speed);
-   this.tweens.timeScale=control.current.isPaused||this.hitStop>0?0:control.current.speed;
-   if(this.elapsed>=battle.duration&&!control.current.isPaused)this.outro+=delta*control.current.speed;
-   const wave=battle.waves?.findIndex(item=>this.elapsed<=item.end)??-1;
-   this.clock.setText(`${battle.waves?`Волна ${wave<0?battle.waves.length:wave+1}/3 · `:''}${Math.floor(this.elapsed/60000)}:${String(Math.floor(this.elapsed/1000)%60).padStart(2,'0')}`);
-   let frameIndex=battle.frames.findIndex(frame=>frame.time>this.elapsed)-1;if(frameIndex<0)frameIndex=this.elapsed>=battle.duration?battle.frames.length-1:0;
-   const current=battle.frames[frameIndex],next=battle.frames[Math.min(battle.frames.length-1,frameIndex+1)];
-   const fraction=Math.max(0,Math.min(1,(this.elapsed-current.time)/Math.max(1,next.time-current.time)));
-   const units=current.units.map((unit,index)=>({...unit,x:Phaser.Math.Linear(unit.x,next.units[index].x,fraction),y:Phaser.Math.Linear(unit.y,next.units[index].y,fraction)}));
-   for(const event of battle.events){if(event.time<=current.time||event.time>this.elapsed)continue;const target=units.find(unit=>unit.id===event.target);if(target){if(event.kind==='damage')target.hp=event.health??Math.max(0,target.hp-event.amount);if(event.kind==='heal')target.hp=event.health??Math.min(target.maxHp,target.hp+event.amount);}}
-   const g=this.graphics;g.clear();
-   const upcoming=battle.events.filter(event=>event.kind==='damage'&&event.delivery!=='dot'&&event.time>this.elapsed&&event.time<=this.elapsed+220);
-   for(const event of upcoming){
-    const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
-    const role=heroById[source.hero].role;
-    if(!['Mage','Marksman','Support'].includes(role)||source.hp<=0)continue;
-    const a=this.position(source),b=this.position(target),flight=1-(event.time-this.elapsed)/220;
-    const x=Phaser.Math.Linear(a.x,b.x,flight),y=Phaser.Math.Linear(a.y,b.y,flight)-65-Math.sin(flight*Math.PI)*12;
-    if(role==='Marksman'&&event.delivery==='attack'){
-     const angle=Math.atan2(b.y-a.y,b.x-a.x);
-     g.lineStyle(2,0xf7e2b5);g.lineBetween(x-Math.cos(angle)*17,y-Math.sin(angle)*17,x,y);
-     g.fillStyle(0xfff5d4);g.fillTriangle(x,y,x-Math.cos(angle-.35)*7,y-Math.sin(angle-.35)*7,x-Math.cos(angle+.35)*7,y-Math.sin(angle+.35)*7);
-    }else{
-     g.fillStyle(heroVisuals[source.hero].color,.5);g.fillCircle(x,y,8);
-     g.fillStyle(0xfff0d0);g.fillCircle(x,y,3);
-    }
+   const settings=control.current,step=Math.min(delta,80)*settings.speed;
+   audio.setEnabled(!settings.isMuted&&!settings.isPaused);
+   if(settings.isPaused&&!this.isPreviouslyPaused)audio.stop();
+   this.isPreviouslyPaused=settings.isPaused;
+   let phase=wavePresentation(battle,this.elapsed);
+   if(this.entryWave!==phase.index){
+    this.entryWave=phase.index;this.entryElapsed=0;
+    if(phase.isBoss&&!settings.isMuted)audio.play('boss');
    }
-
-   const active=battle.events.filter(event=>event.time<=this.elapsed&&event.time>this.elapsed+this.outro-750).slice(-28);
-   units.forEach((unit,index)=>{
-    const actor=this.actors[index],visual=heroVisuals[unit.hero],position=this.position(unit),time=this.elapsed+this.outro;
-    const moving=Math.hypot(unit.x-next.units[index].x,unit.y-next.units[index].y)>1;
-    const attack=[...active,...upcoming].findLast(event=>event.actor===unit.id&&event.kind==='damage'&&(event.delivery??'attack')==='attack'&&event.time>time-500);
-    const skill=active.findLast(event=>event.actor===unit.id&&['skill','basic'].includes(event.kind));
-    const hit=active.findLast(event=>event.target===unit.id&&event.kind==='damage'&&event.amount>0&&event.time>time-220);
-    actor.effects.forEach(icon=>icon.setVisible(false));
-    if(unit.hp<=0){if(actor.death<0)actor.death=time;const progress=Math.min(1,(time-actor.death)/650);actor.root.setAlpha(1-progress).setRotation(progress*(unit.side?-.7:.7)).setY(position.y+progress*30);actor.label.setVisible(false);return;}
-    actor.death=-1;actor.root.setAlpha(1).setRotation(0);actor.label.setVisible(true);
-    const stride=Math.sin(time/95*visual.stride+visual.phase),direction=unit.side?-1:1;
-    const role=heroById[unit.hero].role;const isAttacking=!!attack&&unit.stunnedUntil<=time;const amplitude={Tank:.12,Fighter:.24,Assassin:.14,Marksman:.035,Mage:.06,Support:.04}[role];
-    const attackPhase=attack?Math.max(0,Math.min(1,(time-attack.time+220)/500)):1;
-    actor.root.setPosition(position.x+(isAttacking?Math.sin(attackPhase*Math.PI)*(role==='Assassin'?28:role==='Marksman'?3:12)*direction:0)+(hit?Math.sin((time-hit.time)*.06)*4:0),position.y+(moving?Math.abs(stride)*3:Math.sin(time/700+visual.phase)*2));actor.root.setDepth(position.y).setScale(direction,1);
-    actor.body.setRotation(skill&&unit.stunnedUntil<=time?Math.sin((time-skill.time)/800*Math.PI)*(.08+visual.index%5*.025):isAttacking?Math.sin(attackPhase*Math.PI)*amplitude:0);
-    if(moving&&!isAttacking&&!skill)actor.body.setRotation(stride*.035);
-    actor.pose(stride,moving&&unit.stunnedUntil<=time,isAttacking?Math.sin(attackPhase*Math.PI):0,skill?Math.sin((time-skill.time)/800*Math.PI):0);actor.label.setPosition(position.x,position.y+11).setDepth(1900);
-    const size=this.width<800?60:74,barY=position.y-(this.width<800?112:135);
-    g.fillStyle(0x050b17,.9);g.fillRoundedRect(position.x-size/2-2,barY-2,size+4,13,3);
-    g.fillStyle(unit.side?0xe98193:0x79e0b3);g.fillRect(position.x-size/2,barY,size*unit.hp/unit.maxHp,6);
-    g.fillStyle(0xe6ce83);g.fillRect(position.x-size/2,barY+8,size*unit.energy/100,2);
-    const effects=visibleBattleEffects(unit,time);
-    effects.forEach((effect,index)=>{
-      const x=position.x+(index-(effects.length-1)/2)*17,y=barY-13;
-      g.fillStyle(effect.isBuff?0x205b91:0x91384e);
-      g.fillRoundedRect(x-7,y-7,14,14,2);
-      g.fillStyle(0xffffff,.85);g.fillRect(x-6,y+5,12*effect.progress,1);
-      actor.effects[index].setText(effect.icon).setPosition(x,y-1).setVisible(true);
-    });
-    if(unit.shield>0){g.lineStyle(2,0x9ce8ff,.6);g.strokeEllipse(position.x,position.y-65,100,140);}
-   });
-   active.forEach(event=>{
-    const source=units.find(unit=>unit.id===event.actor)!,target=units.find(unit=>unit.id===event.target)!;
-    const a=this.position(source),b=this.position(target),age=this.elapsed+this.outro-event.time,progress=age/750,visual=heroVisuals[source.hero];
-    if(event.kind==='skill'){
-     const key=`skill-${event.time}-${event.actor}`;if(!this.shown.has(key)){this.shown.add(key);const rune=this.add.text(a.x,a.y-95,visual.glyph,{fontSize:'68px',color:`#${visual.color.toString(16)}`,stroke:'#06182e',strokeThickness:2}).setOrigin(.5).setDepth(2500);this.tweens.add({targets:rune,scale:1.7,alpha:0,angle:visual.index%2?35:-35,duration:750,onComplete:()=>rune.destroy()});
-      const banner=this.add.container(this.width/2,75).setDepth(5000);const plate=this.add.rectangle(0,0,Math.min(520,this.width*.85),58,0x102345,.92).setStrokeStyle(1,visual.color);const title=this.add.text(0,0,`${heroById[source.hero].name} · ${heroById[source.hero].skill.name}`,{fontSize:this.width<800?'17px':'21px',fontFamily:'Arial',color:'#fff0ba'}).setOrigin(.5);banner.add([plate,title]);this.tweens.add({targets:banner,alpha:0,y:60,delay:450,duration:300,onComplete:()=>banner.destroy()});
-     }
-
-     const radius=25+progress*(55+visual.index%5*13);g.lineStyle(3,visual.color,1-progress);
-     if(visual.index%4===0)g.strokeEllipse(a.x,a.y-40,radius*2,radius);else if(visual.index%4===1){for(let i=0;i<5;i++){const angle=i*Math.PI*.4+progress*4;g.lineBetween(a.x,a.y-50,a.x+Math.cos(angle)*radius,a.y-50+Math.sin(angle)*radius);}}else if(visual.index%4===2)g.strokeCircle(a.x,a.y-65,radius);else{for(let i=0;i<7;i++)g.strokeCircle(a.x+Math.sin(i*2+age/150)*radius,a.y-60+Math.cos(i*2)*radius,5+progress*8);}
-    }else if(event.amount>0){
-     const color=event.kind==='heal'?0x89ffbd:visual.color;
-     if(age<200&&event.delivery!=='dot'){g.lineStyle(2,color,1-age/200);g.strokeCircle(b.x,b.y-65,7+age/18);}
-     for(let i=0;i<5;i++){g.fillStyle(color,1-progress);g.fillCircle(b.x+Math.cos(i*1.3)*progress*36,b.y-65+Math.sin(i*1.3)*progress*36,Math.max(1,4*(1-progress)));}
-     const key=`${event.time}-${event.actor}-${event.target}-${event.kind}`;
-     if(!this.shown.has(key)){this.shown.add(key);if(event.kind==='damage'&&event.amount>250){this.cameras.main.shake(90,.002);this.hitStop=45;}const number=this.add.text(b.x,b.y-100,String(Math.round(event.amount)),{fontSize:event.amount>250?'26px':'20px',color:event.kind==='heal'?'#98ffd1':'#fff0cd',stroke:'#162039',strokeThickness:4}).setOrigin(.5).setDepth(10000);this.tweens.add({targets:number,y:number.y-35,alpha:0,duration:650,onComplete:()=>number.destroy()});}
+   const opening=phase.isBoss?combatTiming.bossOpening:combatTiming.opening;
+   if(!settings.isPaused){
+    if(this.entryElapsed<opening)this.entryElapsed+=step;
+    else if(this.hitStop>0)this.hitStop=Math.max(0,this.hitStop-step);
+    else this.elapsed=Math.min(battle.duration,this.elapsed+step);
+    if(this.elapsed>=battle.duration)this.outro+=step;
+   }
+   phase=wavePresentation(battle,this.elapsed);
+   if(this.entryWave!==phase.index){this.entryWave=phase.index;this.entryElapsed=0;if(phase.isBoss&&!settings.isMuted)audio.play('boss');}
+   const entry=clamp(this.entryElapsed/(phase.isBoss?combatTiming.bossOpening:combatTiming.opening));
+   const progress:BattleProgress={wave:phase.index+1,count:phase.count,phase:phase.isMarching?'march':entry<1?(phase.isBoss?'boss':'entry'):'fight'};
+   const cue=`${progress.wave}-${progress.phase}`;
+   if(this.lastCue!==cue){this.lastCue=cue;onProgress(progress);}
+   this.clock.setText(`${battle.waves?`Волна ${phase.index+1}/${phase.count} · `:''}${Math.floor(this.elapsed/60000)}:${String(Math.floor(this.elapsed/1000)%60).padStart(2,'0')}`);
+   const frame=battleFrame(battle,phase.isMarching?battle.waves![phase.index].end:this.elapsed);
+   const raw=phase.isMarching?marchingFormation(frame.units,phase.progress):frame.units;
+   const next=spreadPortraitFormation(frame.next.units,this.width,this.height),units=spreadPortraitFormation(raw,this.width,this.height),time=this.elapsed+this.outro;
+   this.environment.x=this.width/2-phase.environmentOffset*this.width;
+   this.floor.clear();
+   if(phase.isMarching){
+    for(let i=0;i<16;i++){
+     const x=((i*137-phase.progress*this.width*.4)%this.width+this.width)%this.width,y=this.height*(.64+(i%4)*.075);
+     this.floor.fillStyle(0xdabf92,.12*(1-phase.progress));this.floor.fillEllipse(x,y,14,3);
     }
-   });
-   const transition=battle.waves?.find((item,index)=>index<battle.waves!.length-1&&this.elapsed>item.end&&this.elapsed<battle.waves![index+1].start);
-   if(transition){const progress=(this.elapsed-transition.end)/3200;this.environment.x=this.width/2-progress*this.width*.05;g.fillStyle(0x102032,Math.max(0,(progress-.8)*5));g.fillRect(0,0,this.width,this.height);}
-   else{const start=battle.waves?.findLast(item=>item.start<=this.elapsed)?.start??0;if(start>0&&this.elapsed-start<400){g.fillStyle(0x102032,1-(this.elapsed-start)/400);g.fillRect(0,0,this.width,this.height);}}
-   if(this.elapsed>=battle.duration&&this.outro>=750){this.scene.pause();onFinish();}
+    if(!settings.isPaused&&!settings.isMuted&&this.elapsed-this.lastStep>340){audio.play('step');this.lastStep=this.elapsed;}
+   }
+   this.actorHud.clear();
+   units.forEach((unit,index)=>drawCombatActor(this.actors[index],unit,next[index],this,this.actorHud,battle.events,time,{width:this.width,height:this.height,isMarching:phase.isMarching,marchProgress:phase.progress,isBoss:unit.id===phase.bossId,entry:smooth(entry),poseTime:time+this.entryElapsed}));
+   this.effects.draw(battle.events,units,time,!settings.isMuted&&!settings.isPaused);
+   if(battle.events.some(event=>event.time>this.lastTime&&event.time<=this.elapsed&&event.kind==='skill'))this.hitStop=70;
+   this.lastTime=this.elapsed;
+   this.hud.clear();
+   const boss=phase.bossId?units.find(unit=>unit.id===phase.bossId):undefined;
+   this.bossTitle.setVisible(!!boss&&boss.hp>0);
+   if(boss&&boss.hp>0){
+    this.bossTitle.setText(`БОСС · ${heroById[boss.hero].name}`);
+    const width=Math.min(380,this.width*.6),x=this.width/2-width/2;
+    this.hud.fillStyle(0x06101c,.94);this.hud.fillRoundedRect(x-2,62,width+4,12,3);
+    this.hud.fillStyle(0xb85d48);this.hud.fillRect(x,64,width*boss.hp/boss.maxHp,7);
+    this.hud.lineStyle(1,0xe0b578,.8);this.hud.strokeRoundedRect(x-2,62,width+4,12,3);
+   }
+   this.hud.fillStyle(0x081321,(phase.isMarching?phase.curtain:1-smooth(entry/.7))*.85);this.hud.fillRect(0,0,this.width,this.height);
+   const isIntro=entry<1;
+   this.caption.setVisible(isIntro||phase.isMarching);
+   this.caption.setText(phase.isMarching?'Волна пройдена\nОтряд движется дальше':phase.isBoss?`ТРЕТЬЯ ВОЛНА\n${boss?heroById[boss.hero].name:'Босс'}`:`ВОЛНА ${phase.index+1}`);
+   this.caption.setAlpha(phase.isMarching?Math.sin(phase.progress*Math.PI)*.9:Math.sin(entry*Math.PI));
+   if(phase.isBoss&&isIntro){
+    const actor=this.actors[units.findIndex(unit=>unit.id===phase.bossId)];
+    if(actor){this.hud.lineStyle(2,0xf0be6f,(1-entry)*.5);this.hud.strokeEllipse(actor.root.x,actor.root.y,80+entry*170,20+entry*40);}
+   }
+   if(this.elapsed>=battle.duration&&this.outro>=1100){this.scene.pause();audio.stop();onFinish();}
   }
  };
 }

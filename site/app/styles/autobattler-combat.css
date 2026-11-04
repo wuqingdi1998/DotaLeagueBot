@@ -1,0 +1,9 @@
+.ab-game:has(.ab-battle-scene){grid-template-columns:minmax(0,1fr)}
+.ab-battle-scene,.ab-battle-scene>section,.ab-battle-scene .ab-arena{min-width:0;width:100%}
+.ab-battle-scene .ab-toolbar{padding:8px;gap:7px;background:#0b1c32dc;border-bottom:1px solid #8fbad333}
+.ab-battle-scene .ab-toolbar strong{min-width:0;max-width:100%;text-align:center;color:#d1e2ed;font-weight:500}
+@media(max-width:650px){
+ .ab-battle-scene .ab-toolbar{gap:6px;padding:7px 4px}
+ .ab-battle-scene .ab-toolbar button{font-size:11px;padding:6px 9px;min-height:36px}
+ .ab-battle-scene .ab-toolbar strong{width:100%;font-size:11px;line-height:16px}
+}

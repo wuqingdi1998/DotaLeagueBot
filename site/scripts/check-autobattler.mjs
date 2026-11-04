@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
 import { build } from "vite";
 import { chromium } from "playwright";
+import {checkCombatPresentation} from "./check-combat-presentation.mjs";
 import {checkHeroLibrary} from "./check-hero-library.mjs";
 import {checkSummonPresentation} from "./check-summon-presentation.mjs";
 
@@ -19,7 +20,7 @@ await build({
     lib: { entry: fileURLToPath(new URL("tests/autobattler-browser.tsx", root)), formats: ["iife"], name: "DevelopmentCheck", fileName: () => "preview.js" },
   },
 });
-const css = ['01-foundation.css','autobattler.css','autobattler-summon.css','autobattler-library.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
+const css = ['01-foundation.css','autobattler.css','autobattler-summon.css','autobattler-library.css','autobattler-combat.css'].map(name=>readFileSync(new URL(`app/styles/${name}`,root),'utf8')).join('\n');
 const server = createServer((request, response) => {
   if(request.url?.startsWith('/autobattler/')){
     const asset=new URL(`public${request.url}`,root);
@@ -36,9 +37,10 @@ const server = createServer((request, response) => {
 await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || undefined });
 try {
- if(!process.argv.includes('--library'))await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
- if(!process.argv.includes('--summon'))await checkHeroLibrary(browser,`http://127.0.0.1:${server.address().port}`,directory);
- for(const [width,height] of (process.argv.includes('--summon')||process.argv.includes('--library')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
+ if(!process.argv.includes('--library')&&!process.argv.includes('--combat'))await checkSummonPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ if(!process.argv.includes('--summon')&&!process.argv.includes('--combat'))await checkHeroLibrary(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ if(!process.argv.includes('--summon')&&!process.argv.includes('--library'))await checkCombatPresentation(browser,`http://127.0.0.1:${server.address().port}`,directory);
+ for(const [width,height] of (process.argv.includes('--summon')||process.argv.includes('--library')||process.argv.includes('--combat')?[]:process.argv.includes('--focused')?[[390,844],[1366,768],[1920,1080],[2560,1440]]:[[360,640],[390,844],[430,932],[1366,768],[1920,1080],[2560,1440]])){
   const page=await browser.newPage({viewport:{width,height}});const errors=[];page.on('pageerror',error=>errors.push(error.message));page.on('response',response=>{if(response.url().includes('/autobattler/')&&response.status()>=400)errors.push(`Asset ${response.status()}: ${response.url()}`);});
   await page.goto(`http://127.0.0.1:${server.address().port}`);await page.getByRole('button',{name:'Герои',exact:true}).last().waitFor({timeout:10000}).catch(async error=>{console.log(errors,await page.locator('body').innerText());await page.screenshot({path:fileURLToPath(new URL('failure.png',directory))});throw error;});
   async function fits(name){
