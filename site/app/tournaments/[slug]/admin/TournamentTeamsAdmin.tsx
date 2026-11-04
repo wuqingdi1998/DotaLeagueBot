@@ -2,6 +2,7 @@
 
 import { ArchiveRosterEditor } from "../ArchiveRosterEditor";
 import { useTournament } from "../hooks/TournamentContext";
+import { usesLeagueCupManager } from "@/lib/tournament-team-leader";
 
 export function ArchiveRostersAdmin() {
   const { data, loadData, setToast } = useTournament();
@@ -33,6 +34,7 @@ export function ArchiveRostersAdmin() {
         <ArchiveRosterEditor
           tournamentId={data.tournament.id}
           isHistorical={isHistorical}
+          isManagerSelection={usesLeagueCupManager(data.tournament)}
           onSaved={loadData}
           onMessage={setToast}
         />
@@ -46,6 +48,7 @@ export function ArchiveRostersAdmin() {
             tournamentId={data.tournament.id}
             team={application}
             isHistorical={isHistorical}
+            isManagerSelection={usesLeagueCupManager(data.tournament)}
             onSaved={loadData}
             onMessage={setToast}
           />
