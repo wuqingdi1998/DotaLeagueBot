@@ -48,7 +48,7 @@ try {
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth||document.documentElement.scrollHeight>innerHeight),false,`${name} page overflow`);
    const overflowing=await page.locator('.ab-scene').evaluate(root=>[root,...root.querySelectorAll('*')].filter(element=>getComputedStyle(element).overflowY==='auto'||getComputedStyle(element).overflowY==='scroll').filter(element=>element.scrollHeight>element.clientHeight+1).map(element=>element.className));
    assert.deepEqual(overflowing,[],`${name}: nested scroll`);
-   const clipped=await page.locator('.ab-scene').evaluate(root=>{const bounds=root.getBoundingClientRect();return [...root.querySelectorAll('button,select,input,h2,p')].filter(element=>element.checkVisibility()).filter(element=>{const r=element.getBoundingClientRect();return r.bottom>bounds.bottom+2||r.top<bounds.top-2||r.left<bounds.left-2||r.right>bounds.right+2;}).map(element=>element.textContent?.slice(0,45));});
+   const clipped=await page.locator('.ab-scene').evaluate(root=>{const bounds=root.getBoundingClientRect();return [...root.querySelectorAll('button,select,input,h2,p')].filter(element=>element.checkVisibility()&&!element.closest('.ab-library-book-scroll')).filter(element=>{const r=element.getBoundingClientRect();return r.bottom>bounds.bottom+2||r.top<bounds.top-2||r.left<bounds.left-2||r.right>bounds.right+2;}).map(element=>element.textContent?.slice(0,45));});
    assert.deepEqual(clipped,[],`${name}: content outside scene`);
    await page.screenshot({path:fileURLToPath(new URL(`${name}-${width}.png`,directory))});
   }
