@@ -45,7 +45,7 @@ export function drawCombatActor(actor:CombatActor,unit:Unit,next:Unit,scene:Phas
  const walk=isMoving&&!isDead&&unit.stunnedUntil<=time&&Math.abs(attack)<.05&&Math.abs(cast)<.05;
  const lunge=Math.max(0,attack)*(heroById[unit.hero].range<100?18:3)*direction;
  const entryX=unit.side===1?(1-entry)*width*.2:-(1-entry)*width*.08;
- const marchX=isMarching?smooth(marchProgress)*width*.07:0;
+ const marchX=isMarching?smooth(marchProgress)*width*(isDead?-.045:.07):0;
  const x=position.x+lunge+entryX+marchX-motion.hit*direction*5,y=position.y+(isDead?dying.vertical:walk?Math.abs(stride)*2.2:Math.sin(time/650+visual.phase)*1.2);
  actor.root.setPosition(x,y).setDepth(position.y).setScale(direction*(isBoss?1.22:1),isBoss?1.22:1).setRotation((isDead?dying.fall:0)*direction*1.48).setAlpha(isDead?dying.alpha:1);
  actor.shadow.setAlpha(isDead?dying.alpha*.25:1).setRotation(-actor.root.rotation*direction);
