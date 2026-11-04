@@ -85,7 +85,7 @@ await page.getByRole('button',{name:/^Позиция 5/}).click();await page.loc
    const cards=roster.locator('.ab-roster .ab-card');
    await cards.nth(4).waitFor();
    assert.equal(await cards.count(),5);
-   assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),2);
+   assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),1);
    await roster.waitForTimeout(450);
    await roster.screenshot({path:fileURLToPath(new URL('roster-all-1920.png',directory))});
    await roster.close();

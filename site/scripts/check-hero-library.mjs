@@ -43,6 +43,11 @@ export async function checkHeroLibrary(browser,url,directory){
    const clipped=await library.evaluate(root=>[...root.querySelectorAll('button,h2,.ab-card-role,.ab-card-caption')].filter(element=>{const r=element.getBoundingClientRect();return r.top<0||r.left<0||r.right>innerWidth+1||r.bottom>innerHeight+1;}).map(element=>element.className));
    assert.deepEqual(clipped,[]);
    await page.screenshot({path:fileURLToPath(new URL(`hero-library-${width}.png`,directory))});
+   await page.getByRole('button',{name:'Команда',exact:true}).click();
+   const owned=page.locator('.ab-roster .ab-card');assert.equal(await owned.count(),5);
+   await page.waitForTimeout(200);
+   if(width>1000)assert.equal(await owned.evaluateAll(items=>items.every(item=>item.getBoundingClientRect().width<=130&&item.getBoundingClientRect().height>=80)),true);
+   await page.screenshot({path:fileURLToPath(new URL(`five-roster-${width}.png`,directory))});
    assert.deepEqual(errors,[]);
    console.log(`Hero library: two rows, rarity circles, sorting, all pages and profile verified ${width}×${height}`);
   }finally{await page.close();}
