@@ -21,7 +21,7 @@ export function createCombatActor(Phaser:typeof import('phaser'),scene:Phaser.Sc
  const body=articulated?.rig??orion?.rig??mesh!;
  const pose=(pose:RigPose)=>{
   if(articulated)articulated.pose(pose);
-  else if(orion)orion.pose(pose.stride,pose.isWalking,pose.attack,pose.cast,pose.death,pose.hit);
+  else if(orion)orion.pose(pose.stride,pose.isWalking,pose.attack,pose.cast,pose.death,pose.hit,Math.abs(root.rotation));
   else poseCharacter(mesh!,pose.stride,pose.isWalking,pose.attack||pose.cast);
  };
  root.add([shadow,body]);
