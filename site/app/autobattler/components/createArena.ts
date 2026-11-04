@@ -104,7 +104,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
     const actor=this.actors[units.findIndex(unit=>unit.id===phase.bossId)];
     if(actor){this.hud.lineStyle(2,0xf0be6f,(1-entry)*.5);this.hud.strokeEllipse(actor.root.x,actor.root.y,80+entry*170,20+entry*40);}
    }
-   if(this.elapsed>=battle.duration&&this.outro>=1100){this.scene.pause();audio.stop();onFinish();}
+   if(this.elapsed>=battle.duration&&this.outro>=1600){this.scene.pause();audio.stop();onFinish();}
   }
  };
 }

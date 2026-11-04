@@ -2,7 +2,7 @@ import type {Battle} from '@/lib/autobattler/simulation';
 import {formationPoint} from '@/lib/autobattler/formationGeometry';
 
 export type CombatEvent=Battle['events'][number];
-export const combatTiming={windup:260,recovery:340,castWindup:420,castRecovery:650,death:850,opening:850,bossOpening:1400};
+export const combatTiming={windup:260,recovery:340,castWindup:420,castRecovery:650,death:1050,opening:850,bossOpening:1400};
 export const clamp=(value:number)=>Math.max(0,Math.min(1,value));
 export const smooth=(value:number)=>{const t=clamp(value);return t*t*(3-2*t);};
 
