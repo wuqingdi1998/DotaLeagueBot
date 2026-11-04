@@ -23,6 +23,7 @@ export async function checkCombatPresentation(browser,url,directory){
    const tickets=await page.locator('.ab-tickets').innerText();
    await page.getByRole('button',{name:'Образец анимаций · 3 волны',exact:true}).click();
    const arena=page.locator('.ab-arena');await arena.locator('canvas').waitFor();
+   await page.waitForFunction(()=>document.querySelector('.ab-arena')?.getAttribute('data-battle-phase')==='fight',{},{timeout:20000});
    await arena.locator('canvas').click();
    await page.getByRole('button',{name:'Звук включён',exact:true}).click();
    assert.equal(await page.getByRole('button',{name:'Звук выключен',exact:true}).getAttribute('aria-pressed'),'false');
@@ -33,7 +34,8 @@ export async function checkCombatPresentation(browser,url,directory){
    assert.equal((await arena.screenshot()).equals(paused),true,'paused geometry and effects are frozen');
    await page.getByRole('button',{name:'Продолжить',exact:true}).click();
    await page.waitForTimeout(1800);
-   assert.ok(await page.evaluate(()=>window.combatAudioCheck?.voices>0),'Web Audio actually schedules sound');
+   await page.waitForFunction(()=>window.combatAudioCheck?.voices>0,{},{timeout:15000});
+   assert.equal(await page.evaluate(()=>window.combatAudioCheck?.context.state),'running','Web Audio actually schedules sound in a running context');
    await page.screenshot({path:fileURLToPath(new URL(`combat-actions-${width}.png`,directory))});
    for(const asset of ['/autobattler/bastion-cutout.webp','/autobattler/iskra-cutout.webp'])assert.equal(assets.has(asset),true,asset);
    await page.getByRole('button',{name:'Скорость ×1',exact:true}).click();
