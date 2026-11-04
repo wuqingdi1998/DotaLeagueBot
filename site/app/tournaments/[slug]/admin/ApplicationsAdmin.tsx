@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { FiCheckCircle } from "react-icons/fi";
+import { usesLeagueCupManager } from "@/lib/tournament-team-leader";
 import { roleOptions } from "../model/constants";
 import { useTournament } from "../hooks/TournamentContext";
 import { getTeamPlayers, initials } from "../model/formatters";
@@ -11,6 +12,7 @@ import { getTeamPlayers, initials } from "../model/formatters";
 export function ApplicationsAdmin() {
   const { data, deleteApplication, updateApplicationStatus } = useTournament();
   if (!data) return null;
+  const isManagerSelection = usesLeagueCupManager(data.tournament);
 
   return (
     <section className="applications-panel">
@@ -51,7 +53,7 @@ export function ApplicationsAdmin() {
                 {application.team_name} <small>[{application.tag}]</small>
               </h4>
               <p>
-                Капитан: {application.captain} · {application.contact}
+                {isManagerSelection ? "Менеджер" : "Капитан"}: {application.captain} · {application.contact}
               </p>
               <p>
                 Сумма тиров при регистрации: {application.team_tier_total_snapshot ?? "—"}
@@ -97,7 +99,7 @@ export function ApplicationsAdmin() {
                           </span>
                         )}
                       </span>
-                      {player.isCaptain && <small>капитан</small>}
+                      {player.isCaptain && <small>{isManagerSelection ? "менеджер" : "капитан"}</small>}
                       {application.uses_player_confirmation &&
                         player.invitationStatus === "accepted" && (
                           <small
