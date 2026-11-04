@@ -14,7 +14,7 @@ describe('hero levels and three abilities',()=>{
  it('spends exact experience, preserves level on duplicates, prevents unowned and capped upgrades',()=>{
   const profile=newProfile();levelUp(profile,'bastion');expect(profile.collection.bastion.level).toBe(2);expect(profile.experience).toBe(260);
   grantHero(profile,'bastion','now');expect(profile.collection.bastion.level).toBe(2);
-  expect(()=>levelUp(profile,'orion')).toThrow();expect(()=>levelUp(profile,'__proto__')).toThrow();profile.experience=0;expect(()=>levelUp(profile,'bastion')).toThrow();
+  expect(()=>levelUp(profile,'veya')).toThrow();expect(()=>levelUp(profile,'__proto__')).toThrow();profile.experience=0;expect(()=>levelUp(profile,'bastion')).toThrow();
   profile.experience=10000;profile.collection.bastion.level=levelRules.max;expect(()=>levelUp(profile,'bastion')).toThrow();expect(profile.experience).toBe(10000);
  });
  it('awards experience only on first victory',()=>{
@@ -27,7 +27,7 @@ describe('hero levels and three abilities',()=>{
  });
  it('runs basics, ultimates and role passives as separate combat mechanics',()=>{
   for(const hero of heroes)expect(heroAbilities(hero).map(item=>item.type)).toEqual(['Базовый навык','Ультимейт',hero.rarity==='Legendary'?'Лидерская пассивка':'Пассивка']);
-  const battle=simulate(starter,starter,42);
+  const battle=simulate(['bastion','iskra','veya','sokol','mirra'],['bastion','iskra','veya','sokol','mirra'],42);
   expect(battle.events.some(event=>event.kind==='basic')).toBe(true);expect(battle.events.some(event=>event.kind==='skill')).toBe(true);expect(battle.events.some(event=>event.kind==='passive'&&event.actor==='0-3')).toBe(true);
   expect(battle.units[0].defense).toBe(Math.round(heroById.bastion.defense*1.15));
   expect(battle.frames[0].units[4].energy).toBe(20);

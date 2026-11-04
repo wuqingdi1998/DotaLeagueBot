@@ -2,7 +2,7 @@ import { randomInt } from 'node:crypto';
 import { gameUser } from '@/lib/autobattler/access';
 import { mutateProfile, readProfile, gameHistory } from '@/lib/autobattler/storage';
 import { rewardStage, summon, validateTeam, levelUp } from '@/lib/autobattler/progression';
-import { stages, heroById } from '@/lib/autobattler/catalog';
+import { stages, heroes } from '@/lib/autobattler/catalog';
 import {simulateCampaign} from '@/lib/autobattler/campaign';
 import { simulate } from '@/lib/autobattler/simulation';
 import { adminChange } from '@/lib/autobattler/admin';
@@ -37,7 +37,7 @@ export async function POST(request:Request){
         let enemies=stage.team;
         if(action==='test'){
           if(input.mirror===true)enemies=profile.team;
-          else if(Array.isArray(input.enemies)&&input.enemies.length===5&&input.enemies.every(id=>typeof id==='string'&&heroById[id]))enemies=input.enemies;
+          else if(Array.isArray(input.enemies)&&input.enemies.length===5&&input.enemies.every(id=>typeof id==='string'&&heroes.some(hero=>hero.id===id)))enemies=input.enemies;
           else throw new Error('Выберите пять противников');
         }
         const levels=Object.fromEntries(Object.entries(profile.collection).map(([id,copy])=>[id,copy.level??1]));

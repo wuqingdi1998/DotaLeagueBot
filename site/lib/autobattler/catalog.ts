@@ -6,7 +6,7 @@ export interface Hero {
   hp: number; attack: number; defense: number; interval: number; range: number; movement: number;
   skill: { name: string; description: string; effect: Effect; power: number; targets: number; duration: number };
 }
-export const rules = { version: 5, step: 100, limit: 90000, initialTickets: 10, reward: 2,
+export const rules = { version: 6, step: 100, limit: 90000, initialTickets: 10, reward: 2,
   stageCount: 15 };
 const roles: Record<Role, [number, number, number, number, number, number, number]> = {
   Tank: [2200, 90, 65, 1400, 65, 85, 0x59d2c5],
@@ -25,7 +25,7 @@ const entries: Entry[] = [
   ['mirra','Мирра','Mage','Ледяной звон','stun',1.1,2,1400],
   ['ten','Тень','Assassin','Похищение жизни','drain',2.4,1,0],
   ['kremen','Кремень','Tank','Железный круг','shield',380,3,4000],
-  ['ruta','Рута','Support','Лесной покров','heal',300,3,0],
+  ['ruta','Рута','Support','Лесной покров','heal',300,3,0,'Epic'],
   ['bor','Бор','Fighter','Горный удар','stun',1.8,1,1800],
   ['lira','Лира','Marksman','Ядовитое перо','poison',.4,2,5000],
   ['morok','Морок','Mage','Увядание','weaken',1.4,3,4000],
@@ -51,15 +51,17 @@ const descriptions: Record<Effect,string> = {
   drain:'Наносит урон и восстанавливает себе 45% нанесённого урона.',
   weaken:'Наносит урон и временно снижает атаку противников на 25%.',
 };
-export const heroes: Hero[] = entries.map(([id,name,role,skill,effect,power,targets,duration,rarity='Rare']) => {
+const historicalHeroes: Hero[] = entries.map(([id,name,role,skill,effect,power,targets,duration,rarity='Rare']) => {
   const [hp,attack,defense,interval,range,movement,color] = roles[role];
   return {id,name,role,rarity,hp,attack,defense,interval,range,movement,color,
     skill:{name:skill,description:effect==='haste'?`Ускоряет атаки союзников на ${Math.round((power-1)*100)}%.`:descriptions[effect],effect,power,targets,duration}};
 });
-export const heroById = Object.fromEntries(heroes.map(hero=>[hero.id,hero]));
-export const starter = heroes.slice(0,5).map(hero=>hero.id);
-const lineups = [starter, ['kremen','bor','ruta','lira','azur'], ['bastion','yantar','veya','morok','sokol'],
-  ['granit','iskra','astra','taiga','mirra'], ['orion','rion','flor','echo','selena']];
+// Historical definitions only decode old saved replays; playable content is restricted below.
+export const activeHeroIds=['bastion','iskra','ruta','orion','selena'] as const;
+export const heroes=historicalHeroes.filter(hero=>activeHeroIds.some(id=>id===hero.id));
+export const heroById = Object.fromEntries(historicalHeroes.map(hero=>[hero.id,hero]));
+export const starter = [...activeHeroIds];
+const lineups = [starter,[...starter].reverse(),['orion','bastion','selena','iskra','ruta'],['bastion','orion','ruta','selena','iskra'],['orion','bastion','iskra','selena','ruta']];
 export const stages = Array.from({length:rules.stageCount},(_,i)=>({id:i+1,chapter:Math.floor(i/5)+1,
   name:['Лесная тропа','Сумрачная чаща','Заброшенная деревня'][Math.floor(i/5)],
   team:lineups[Math.floor(i/3)], scale:.65+i*.025}));

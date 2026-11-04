@@ -13,6 +13,14 @@ export function grantHero(profile:Profile,id:string,now:string){
 }
 /** Add level progression to existing JSON profiles without resetting collections or campaign. */
 export function normalizeProfile(profile:Profile){
+  const active=new Set(heroes.map(hero=>hero.id));
+  if(profile.version<6){
+    profile.collection=Object.fromEntries(Object.entries(profile.collection).filter(([id])=>active.has(id)));
+    for(const id of starter)if(!profile.collection[id])grantHero(profile,id,new Date().toISOString());
+    const chosen=profile.team.filter((id):id is string=>!!id&&active.has(id));
+    profile.team=[...new Set([...chosen,...starter])].slice(0,5);
+    profile.summons=profile.summons.filter(entry=>active.has(entry.hero));
+  }
   profile.goldenShards??=0;
   profile.experience??=levelRules.initialExperience+profile.cleared.reduce((sum,stage)=>sum+stageExperience(stage),0);
   for(const copy of Object.values(profile.collection))copy.level??=1;
@@ -41,7 +49,7 @@ export function summon(profile:Profile,count:number,random:()=>number,now=new Da
   if(shard==='gold')profile.goldenShards=balance-count;else profile.tickets=balance-count;return result;
 }
 export function validateTeam(profile:Profile,team:unknown):asserts team is string[]{
-  if(!Array.isArray(team)||team.length!==5||new Set(team).size!==5||team.some(id=>typeof id!=='string'||!profile.collection[id]))throw new Error('Выберите пять разных полученных героев');
+  if(!Array.isArray(team)||team.length!==5||new Set(team).size!==5||team.some(id=>typeof id!=='string'||(!profile.collection[id]||!heroes.some(hero=>hero.id===id))))throw new Error('Выберите пять разных полученных героев');
 }
 export function rewardStage(profile:Profile,stage:number,isWin:boolean){
   if(!isWin||profile.cleared.includes(stage))return 0;

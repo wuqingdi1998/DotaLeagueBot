@@ -1,4 +1,4 @@
-import { heroById, heroes, rules } from './catalog';
+import { heroes, rules } from './catalog';
 import { grantHero, newProfile, type Profile } from './progression';
 export function adminChange(profile:Profile,input:Record<string,unknown>){
   const now=new Date().toISOString();
@@ -10,7 +10,7 @@ export function adminChange(profile:Profile,input:Record<string,unknown>){
     case 'gold':if(!Number.isSafeInteger(value)||value<1||value>100000)throw new Error('Проверьте количество');profile.goldenShards=Math.min(1000000,(profile.goldenShards??0)+value);break;
     case 'zero':profile.tickets=0;break;
     case 'all':heroes.forEach(hero=>grantHero(profile,hero.id,now));break;
-    case 'hero':if(typeof input.hero!=='string'||!heroById[input.hero])throw new Error('Неизвестный герой');grantHero(profile,input.hero,now);break;
+    case 'hero':if(typeof input.hero!=='string'||!heroes.some(hero=>hero.id===input.hero))throw new Error('Неизвестный герой');grantHero(profile,input.hero,now);break;
     case 'remove':if(typeof input.hero!=='string')throw new Error('Выберите героя');delete profile.collection[input.hero];profile.team=profile.team.map(id=>id===input.hero?null:id);break;
     case 'copies':if(typeof input.hero!=='string'||!profile.collection[input.hero]||!Number.isSafeInteger(value)||value<1||value>100000)throw new Error('Проверьте героя и количество');profile.collection[input.hero].count=value;break;
     case 'collection':profile.collection=newProfile().collection;profile.team=newProfile().team;break;

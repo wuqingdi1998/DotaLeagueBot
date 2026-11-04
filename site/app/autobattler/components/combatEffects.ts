@@ -73,7 +73,8 @@ export function createCombatEffects(scene:Phaser.Scene,width:number,height:numbe
     }
    }else if(!isDot&&hero.range<100&&age<250){
     const direction=source.side?-1:1;
-    g.lineStyle(source.hero==='iskra'?6:3,color,(1-age/250)*.8);g.beginPath();g.arc(b.x-direction*12,b.y-75,26+progress*20,-1.1+(direction<0?Math.PI:0),1.1+(direction<0?Math.PI:0));g.strokePath();
+    if(source.hero==='orion'){g.lineStyle(3,color,1-age/250);g.lineBetween(b.x-direction*45,b.y-75,b.x+direction*9,b.y-75);}
+    else {g.lineStyle(source.hero==='iskra'?6:3,color,(1-age/250)*.8);g.beginPath();g.arc(b.x-direction*12,b.y-75,26+progress*20,-1.1+(direction<0?Math.PI:0),1.1+(direction<0?Math.PI:0));g.strokePath();}
    }
    if(!isDot)for(let i=0;i<5;i++){
     const angle=i*1.9+event.time*.01,x=b.x+Math.cos(angle)*progress*45,y=b.y-75+Math.sin(angle)*progress*35+progress*progress*20;

@@ -4,14 +4,14 @@ import {simulate} from './simulation';
 import {newProfile,summon,rewardStage,validateTeam} from './progression';
 import {adminChange} from './admin';
 describe('authoritative autobattler',()=>{
-  it('has 24 distinct heroes, rarity budgets and 15 stages',()=>{
-    expect(new Set(heroes.map(hero=>hero.id)).size).toBe(24);
-    expect(['Rare','Epic','Legendary'].map(rarity=>heroes.filter(hero=>hero.rarity===rarity).length)).toEqual([14,8,2]);
+  it('has five distinct heroes, rarity budgets and 15 stages',()=>{
+    expect(new Set(heroes.map(hero=>hero.id)).size).toBe(5);
+    expect(['Rare','Epic','Legendary'].map(rarity=>heroes.filter(hero=>hero.rarity===rarity).length)).toEqual([2,1,2]);
     expect(stages).toHaveLength(15);
     for(const stage of stages){expect(stage.team).toHaveLength(5);expect(stage.team.every(id=>heroes.some(hero=>hero.id===id))).toBe(true);}
   });
   it('replays a deterministic real fight with motion, skills, healing and bounded duration',()=>{
-    const first=simulate(starter,starter,42);expect(first).toEqual(simulate(starter,starter,42));
+    const first=simulate(['bastion','iskra','veya','sokol','mirra'],['bastion','iskra','veya','sokol','mirra'],42);expect(first).toEqual(simulate(['bastion','iskra','veya','sokol','mirra'],['bastion','iskra','veya','sokol','mirra'],42));
     expect(first.duration).toBeLessThanOrEqual(rules.limit);expect(first.duration).toBeGreaterThan(10000);
     expect(first.frames.at(-1)?.units).toEqual(first.units);
     expect(first.events.some(event=>event.kind==='heal')).toBe(true);
@@ -52,8 +52,8 @@ describe('authoritative autobattler',()=>{
   });
   it('awards a stage once and validates ownership and duplicate slots',()=>{
     const profile=newProfile();expect(rewardStage(profile,1,false)).toBe(0);expect(rewardStage(profile,1,true)).toBe(2);expect(rewardStage(profile,1,true)).toBe(0);expect(profile.unlocked).toBe(2);
-    expect(()=>validateTeam(profile,starter)).not.toThrow();expect(()=>validateTeam(profile,Array(5).fill('bastion'))).toThrow();expect(()=>validateTeam(profile,['orion',...starter.slice(1)])).toThrow();
-    adminChange(profile,{command:'remove',hero:'iskra'});expect(profile.team).toEqual(['bastion',null,'veya','sokol','mirra']);
+    expect(()=>validateTeam(profile,starter)).not.toThrow();expect(()=>validateTeam(profile,Array(5).fill('bastion'))).toThrow();expect(()=>validateTeam(profile,['veya',...starter.slice(1)])).toThrow();
+    adminChange(profile,{command:'remove',hero:'iskra'});expect(profile.team).toEqual(['bastion',null,'ruta','orion','selena']);
     adminChange(profile,{command:'campaign'});expect(profile.cleared).toEqual([]);expect(profile.unlocked).toBe(1);
     expect(()=>adminChange(profile,{command:'reset'})).toThrow();
   });

@@ -14,13 +14,13 @@ export function screenPosition(unit:Pick<Unit,'x'|'y'>,width:number,height:numbe
 export function createCombatActor(Phaser:typeof import('phaser'),scene:Phaser.Scene,unit:Unit,width:number){
  const size=width<800?114:145,root=scene.add.container(0,0);
  const shadow=scene.add.ellipse(0,-2,size*.55,15,0x030d18,.42);
- const articulated=unit.hero==='bastion'||unit.hero==='iskra'?createHumanoidRig(scene,unit.hero,size):undefined;
+ const articulated=unit.hero==='bastion'||unit.hero==='iskra'||unit.hero==='selena'||unit.hero==='ruta'?createHumanoidRig(scene,unit.hero,size):undefined;
  const orion=unit.hero==='orion'?createOrionRig(scene,size):undefined;
  const mesh=articulated||orion?undefined:createCharacterRig(Phaser,scene,unit.hero,size);
  const body=articulated?.rig??orion?.rig??mesh!;
  const pose=(pose:RigPose)=>{
   if(articulated)articulated.pose(pose);
-  else if(orion)orion.pose(pose.stride,pose.isWalking,pose.attack,pose.cast);
+  else if(orion)orion.pose(pose.stride,pose.isWalking,pose.attack,pose.cast,pose.death,pose.hit);
   else poseCharacter(mesh!,pose.stride,pose.isWalking,pose.attack||pose.cast);
  };
  root.add([shadow,body]);
@@ -46,8 +46,8 @@ export function drawCombatActor(actor:CombatActor,unit:Unit,next:Unit,scene:Phas
  const entryX=unit.side===1?(1-entry)*width*.2:-(1-entry)*width*.08;
  const marchX=isMarching?smooth(marchProgress)*width*.07:0;
  const x=position.x+lunge+entryX+marchX-motion.hit*direction*5,y=position.y+(walk?Math.abs(stride)*2.2:Math.sin(time/650+visual.phase)*1.2)+death*15;
- actor.root.setPosition(x,y).setDepth(position.y).setScale(direction*(isBoss?1.22:1),isBoss?1.22:1).setRotation(death*direction*1.35).setAlpha(isDead?Math.max(0,1-smooth((time-actor.deathTime-600)/750)):1);
- actor.shadow.setAlpha(isDead?1-death:1);
+ actor.root.setPosition(x,y).setDepth(position.y).setScale(direction*(isBoss?1.22:1),isBoss?1.22:1).setRotation(smooth(death)*direction*1.48).setAlpha(isDead?Math.max(0,1-smooth((time-actor.deathTime-600)/750)):1);
+ actor.shadow.setAlpha(isDead?1-death:1).setRotation(-actor.root.rotation*direction);
  actor.pose({stride,isWalking:walk,attack,cast,hit:motion.hit,death,time:options.poseTime});
  actor.flash?.(motion.isFlashing);
  actor.body.setRotation(isDead?0:cast*.045+attack*.065-motion.hit*.065);

@@ -1,3 +1,5 @@
+import selenaAtlas from '@/public/autobattler/selena-cutout.json';
+import rutaAtlas from '@/public/autobattler/ruta-cutout.json';
 import orionAtlas from '@/public/autobattler/orion-cutout.json';
 import bastionAtlas from '@/public/autobattler/bastion-cutout.json';
 import iskraAtlas from '@/public/autobattler/iskra-cutout.json';
@@ -20,7 +22,7 @@ export function createArena(Phaser:typeof PhaserType,battle:Battle,control:{curr
   clock!:PhaserType.GameObjects.Text;caption!:PhaserType.GameObjects.Text;bossTitle!:PhaserType.GameObjects.Text;
   effects!:ReturnType<typeof createCombatEffects>;
   preload(){
-   const atlases={'orion':orionAtlas,'bastion':bastionAtlas,'iskra':iskraAtlas};
+   const atlases={'orion':orionAtlas,'bastion':bastionAtlas,'iskra':iskraAtlas,'selena':selenaAtlas,'ruta':rutaAtlas};
    for(const [id,atlas] of Object.entries(atlases))if(battle.units.some(unit=>unit.hero===id))this.load.atlas(`${id}-cutout`,`/autobattler/${id}-cutout.webp`,atlas);
    const stage=stages.find(stage=>stage.team.join(',')===battle.units.filter(unit=>unit.side===1).map(unit=>unit.hero).join(','));
    this.load.image('arena',battle.chapter||stage?`/autobattler/chapter-${battle.chapter??stage?.chapter??1}.webp`:sceneBackground);

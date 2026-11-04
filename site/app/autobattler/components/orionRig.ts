@@ -22,18 +22,20 @@ export function createOrionRig(scene:PhaserType.Scene,size:number){
  guardElbow.add([part('forearm',0,0,26,17,.12,.5),part('shield',-11,1,49,54)]);
  const torso=part('torso',-3,-62,54,58),head=part('head',-7,-99,66,64,.55,.55);
  rig.add([cape,rear.hip,front.hip,upper,torso,head,guard]);
- function pose(stride:number,isWalking:boolean,attack:number,cast:number){
+ function pose(stride:number,isWalking:boolean,attack:number,cast:number,death=0,hit=0){
   const step=isWalking?stride:0;
   for(const [limb,direction] of [[front,1],[rear,-1]] as const){
-   limb.hip.rotation=step*direction*.42;
-   limb.knee.rotation=Math.max(0,-step*direction)*.62;
+   limb.hip.rotation=step*direction*.42+death*direction*.65;
+   limb.knee.rotation=Math.max(0,-step*direction)*.62+death*1.1;
   }
-  upper.rotation=-step*.2-attack*.95-cast*.55;
+  upper.x=16+Math.max(0,attack)*26;
+  upper.y=-72-Math.max(0,attack)*7;
+  upper.rotation=-step*.2-attack*.18-cast*.55+death*.9+hit*.15;
   elbow.rotation=-.25+attack*.57;
-  spear.rotation=attack*.18;
+  spear.rotation=.2+attack*.62+death*.6;
   guard.rotation=step*.13+attack*.26-cast*.3;
   guardElbow.rotation=-attack*.28;
-  head.rotation=-step*.045+attack*.06;
+  head.rotation=-step*.045+attack*.06+death*.5+hit*.12;
   cape.rotation=step*.13+attack*.2;
  }
  return {rig,pose};

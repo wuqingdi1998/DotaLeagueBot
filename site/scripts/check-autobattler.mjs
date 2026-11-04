@@ -55,7 +55,7 @@ try {
   await fits('campaign-start');
   for(const tab of ['Герои','Команда','Призыв','Кампания','Разработчик']){await page.getByRole('button',{name:tab,exact:true}).last().click();await fits(tab);}
   await page.getByRole('button',{name:'Герои',exact:true}).last().click();await page.getByRole('button',{name:'Эпические',exact:true}).click();assert.ok(await page.locator('.ab-card').count()>0);await page.getByRole('button',{name:'Эпические',exact:true}).click();
-  const names=new Set();for(let i=0;i<12;i++){for(const name of await page.locator('.ab-card strong').allTextContents())names.add(name);const next=page.getByRole('button',{name:'Следующие герои',exact:true});if(await next.isDisabled())break;await next.click();}assert.equal(names.size,24);
+  const names=new Set();for(let i=0;i<12;i++){for(const name of await page.locator('.ab-card strong').allTextContents())names.add(name);const next=page.getByRole('button',{name:'Следующие герои',exact:true});if(await next.isDisabled())break;await next.click();}assert.equal(names.size,5);
   await page.locator('.ab-card').first().click();await fits('hero-profile');
   assert.equal(await page.locator('.ab-skill-buttons button').count(),3);
   for(const type of ['Базовый навык','Ультимейт',await page.getByRole('button',{name:'Лидерская пассивка',exact:true}).count()?'Лидерская пассивка':'Пассивка']){
@@ -83,8 +83,8 @@ await page.getByRole('button',{name:/^Позиция 5/}).click();await page.loc
    await roster.goto(`http://127.0.0.1:${server.address().port}/?all=1`);
    await roster.getByRole('button',{name:'Команда',exact:true}).click();
    const cards=roster.locator('.ab-roster .ab-card');
-   await cards.nth(23).waitFor();
-   assert.equal(await cards.count(),24);
+   await cards.nth(4).waitFor();
+   assert.equal(await cards.count(),5);
    assert.equal(await cards.evaluateAll(items=>new Set(items.map(item=>Math.round(item.getBoundingClientRect().top))).size),2);
    await roster.waitForTimeout(450);
    await roster.screenshot({path:fileURLToPath(new URL('roster-all-1920.png',directory))});
@@ -100,6 +100,6 @@ await page.getByRole('button',{name:/^Позиция 5/}).click();await page.loc
    await page.getByRole('button',{name:'Пауза',exact:true}).click();
    await fits('orion-rig');
   }
-  assert.deepEqual(errors,[]);console.log(`Fullscreen scenes, 24 heroes, summon concealment, fixed formation and combat verified ${width}×${height}`);await page.close();
+  assert.deepEqual(errors,[]);console.log(`Fullscreen scenes, five heroes, summon concealment, fixed formation and combat verified ${width}×${height}`);await page.close();
  }
 }finally{await browser.close();server.close();}
