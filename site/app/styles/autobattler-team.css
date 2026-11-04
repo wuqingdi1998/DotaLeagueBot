@@ -5,10 +5,10 @@
 .ab-power{display:flex;align-items:center;gap:24px;color:var(--ab-gold);font-size:48px}
 .ab-power span{font-size:28px;color:#cbdfff}
 .ab-tactics-field{min-height:0;position:relative;background:linear-gradient(0deg,#07162577,#07162511),url('/autobattler/chapter-1.webp') center 65%/cover no-repeat;isolation:isolate}
-.ab-field-side{position:absolute;top:8px;font-size:20px;letter-spacing:.05em;color:#d9efff;text-shadow:0 1px 4px #000}
+.ab-field-side{position:absolute;top:6px;font-size:20px;line-height:1;letter-spacing:.05em;color:#d9efff;text-shadow:0 1px 4px #000}
 .ab-side-player{left:8%}.ab-side-enemy{right:8%}
-.ab-game .ab-field-unit{position:absolute;left:var(--unit-x);top:var(--unit-y);transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:18%;max-width:190px;height:25%;max-height:160px;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;padding:0;gap:0}
-.ab-team-workshop .ab-field-unit{height:65%;max-height:220px}
+.ab-game .ab-field-unit{position:absolute;left:var(--unit-x);top:var(--unit-y);transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;width:13%;max-width:150px;height:42%;max-height:170px;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;padding:0;gap:0}
+.ab-team-workshop .ab-field-unit{width:18%;max-width:190px;height:65%;max-height:220px}
 .ab-field-unit:after{content:'';position:absolute;left:15%;right:15%;bottom:20px;height:15%;background:#183c55;border:1px solid #72a5c6;box-shadow:0 3px 0 #071627;border-radius:50%;z-index:-1}
 .ab-field-unit .ab-portrait{flex:1;min-height:0;width:100%;filter:drop-shadow(0 3px 3px #0009)}
 .ab-enemy-unit .ab-portrait{scale:-1 1}
@@ -47,10 +47,13 @@
  .ab-team-scene{grid-template-rows:auto minmax(150px,1fr) clamp(248px,34vh,310px) auto;font-size:18px}
  .ab-team-heading{padding:3px 10px;gap:10px;line-height:1.1}.ab-team-heading small{font-size:18px}.ab-team-heading h2{font-size:34px}
  .ab-power{font-size:32px;gap:8px}.ab-power span{font-size:18px}
- .ab-field-side{font-size:12px;top:5px;letter-spacing:0}.ab-side-player{left:5%}.ab-side-enemy{right:5%}
- .ab-game .ab-field-unit{max-width:110px;width:23%;height:25%;max-height:120px}
- .ab-team-workshop .ab-field-unit{left:var(--mobile-unit-x);top:var(--mobile-unit-y);height:42%}
- .ab-field-unit small{font-size:18px}.ab-unit-level{font-size:14px;padding:1px 4px}.ab-field-unit:after{bottom:14px}
+ .ab-team-preparation .ab-team-heading>div:first-child{min-width:0}
+ .ab-team-preparation .ab-team-heading small{font-size:12px}.ab-team-preparation .ab-team-heading h2{font-size:26px}
+ .ab-team-preparation .ab-power{font-size:22px;gap:6px;white-space:nowrap}.ab-team-preparation .ab-power span{font-size:14px}
+ .ab-field-side{font-size:12px;top:2px;letter-spacing:0}.ab-side-player{left:5%}.ab-side-enemy{right:5%}
+ .ab-game .ab-field-unit{max-width:110px;width:13%;height:42%;max-height:120px}
+ .ab-team-workshop .ab-field-unit{width:25%;left:var(--mobile-unit-x);top:var(--mobile-unit-y);height:42%}
+ .ab-field-unit small{font-size:14px}.ab-team-workshop .ab-field-unit small{font-size:18px}.ab-team-workshop .ab-unit-level{font-size:14px}.ab-unit-level{font-size:12px;padding:1px 4px}.ab-field-unit:after{bottom:14px}
  .ab-roster .ab-gallery-main{padding:7px 10px;gap:7px}
  .ab-roster-tools{gap:8px;flex-wrap:wrap}.ab-roster-sorting{gap:6px;flex:1}
  .ab-roster-sorting button{font-size:16px;padding:4px 8px;min-height:38px;gap:5px;flex:1;white-space:nowrap}

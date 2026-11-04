@@ -44,11 +44,17 @@ export async function checkTeamPresentation(browser,url,directory){
    await page.getByRole('button',{name:'Закрыть героя',exact:true}).click();
    await team.getByRole('button',{name:'Сохранить',exact:true}).click();await team.getByText('Состав сохранён',{exact:true}).waitFor();
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth||document.documentElement.scrollHeight>innerHeight),false);
-   const clipped=await team.evaluate(root=>[...root.querySelectorAll('button,small,strong,.ab-unit-level')].filter(element=>element.checkVisibility()).filter(element=>{const r=element.getBoundingClientRect();return r.left<0||r.top<0||r.right>innerWidth+1||r.bottom>innerHeight+1;}).map(element=>element.textContent));
+   const clipped=await team.evaluate(root=>[...root.querySelectorAll('button,small,strong,.ab-unit-level')].filter(element=>element.checkVisibility()).filter(element=>{const r=element.getBoundingClientRect(),bounds=root.closest('.ab-scene').getBoundingClientRect();return r.left<bounds.left-1||r.top<bounds.top-1||r.right>bounds.right+1||r.bottom>bounds.bottom+1;}).map(element=>element.textContent));
    assert.deepEqual(clipped,[],`${width}: visible controls and labels fit`);
    const overlaps=await team.locator('.ab-field-slot').evaluateAll(slots=>slots.flatMap((slot,index)=>[...slot.querySelectorAll('small,.ab-unit-level')].flatMap(label=>slots.slice(index+1).flatMap(other=>[...other.querySelectorAll('small,.ab-unit-level')].filter(next=>{const a=label.getBoundingClientRect(),b=next.getBoundingClientRect();return a.left<b.right&&a.right>b.left&&a.top<b.bottom&&a.bottom>b.top;}).map(next=>`${label.textContent}/${next.textContent}`)))));
    assert.deepEqual(overlaps,[],`${width}: different heroes' labels do not overlap`);
    await page.screenshot({path:fileURLToPath(new URL(`team-filled-${width}.png`,directory))});
+   await page.getByRole('button',{name:'Кампания',exact:true}).click();await page.getByRole('button',{name:/^Подготовить отряд/}).click();
+   const preparation=page.locator('.ab-team-scene');assert.equal(await preparation.locator('.ab-field-unit').count(),10);
+   assert.equal(await preparation.locator('.ab-field-unit .ab-portrait').evaluateAll(items=>items.every(item=>item.getBoundingClientRect().height>=30)),true,`${width}: preparation figures retain visible height`);
+   await page.locator('.ab-scene').evaluate(async root=>{await Promise.all(root.getAnimations({subtree:true}).filter(animation=>animation.effect?.getComputedTiming().iterations!==Infinity).map(animation=>animation.finished.catch(()=>{})));});
+   const footer=await preparation.locator('.ab-team-actions').boundingBox(),scene=await page.locator('.ab-scene').boundingBox();assert.ok(footer.y+footer.height<=scene.y+scene.height+1,`${width}: preparation actions stay above navigation`);
+   await page.screenshot({path:fileURLToPath(new URL(`team-preparation-${width}.png`,directory))});
    assert.deepEqual(errors,[]);console.log(`Team: two rows, larger text, sorting, hold, drag and save passed ${width}×${height}`);
   }catch(error){await page.screenshot({path:fileURLToPath(new URL(`team-failure-${width}.png`,directory))});throw error;}finally{await page.close();}
  }
