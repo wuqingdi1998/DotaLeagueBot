@@ -39,8 +39,8 @@ export function createHumanoidRig(scene:Phaser.Scene,hero:'bastion'|'iskra'|'sel
   }
   const breath=Math.sin(time/520)*.018;
   torso.rotation=attack*.06+cast*.045-hit*.08+death*.13;
-  weaponArm.rotation=(isCaster?-cast*.6:0)-step*.24-attack*(isTank?.6:1.05)-cast*.55+hit*.22+death*.8;
-  weaponElbow.rotation=-.22+attack*.72-cast*.8+death*.6;
+  weaponArm.rotation=(isCaster?-cast*.6:0)-step*.24-attack*(isCaster?.24:isTank?.6:1.05)-cast*.55+hit*.22+death*.8;
+  weaponElbow.rotation=-.22+attack*(isCaster?.12:.72)-cast*(isCaster?.25:.8)+death*.6;
   weapon.rotation=isCaster?-.25-cast*.45+attack*.2:.1+attack*(isTank?1.35:1.85)+cast*.4;
   guard.rotation=step*.2+(isTank?-cast*.6-hit*.65:attack*.4)-death*.9;
   guardElbow.rotation=-.2+(isTank?cast*.2:attack*.6)+death*.5;

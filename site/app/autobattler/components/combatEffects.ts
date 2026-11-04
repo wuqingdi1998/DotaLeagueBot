@@ -26,7 +26,8 @@ export function createCombatEffects(scene:Phaser.Scene,width:number,height:numbe
    const windupKey=`${event.time}-${event.actor}`;
    if(!isRanged&&!windups.has(windupKey)){windups.add(windupKey);if(canPlay)audio.play('swing');}
    if(isRanged){
-    const x=a.x+(b.x-a.x)*progress,y=a.y+(b.y-a.y)*progress-75-Math.sin(progress*Math.PI)*18;
+    const startX=a.x+(source.hero==='ruta'?(source.side?-27:27):0),startY=a.y-(source.hero==='ruta'?145:75);
+    const x=startX+(b.x-startX)*progress,y=startY+(b.y-75-startY)*progress-Math.sin(progress*Math.PI)*18;
     g.lineStyle(2,heroVisuals[source.hero].color,.65);g.lineBetween(x-(b.x-a.x)*.07,y-(b.y-a.y)*.07,x,y);
     g.fillStyle(0xffe8ae);g.fillCircle(x,y,3);
    }
