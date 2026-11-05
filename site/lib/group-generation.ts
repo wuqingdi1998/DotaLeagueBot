@@ -1,3 +1,8 @@
+import { buildDoubleEliminationPlan } from "./postseason-double-elimination";
+import { groupSeedLabel } from "./tournament-group-name";
+import type { PostseasonMatchPlan } from "./postseason-types";
+export type { PostseasonMatchPlan } from "./postseason-types";
+
 export function parseGroupCount(value: unknown): number | null {
   const groupCount = Number(value ?? 2);
   if (
@@ -44,15 +49,6 @@ type RoundRobinSlotMatch = {
   slot: number;
   teamASlot: number;
   teamBSlot: number;
-};
-
-export type PostseasonMatchPlan = {
-  stage: string;
-  bracketSide: "upper" | "lower" | "grand_final";
-  bracketRound: number;
-  bracketSlot: number;
-  teamAPlaceholder: string;
-  teamBPlaceholder: string;
 };
 
 export function buildSerpentineAssignments(
@@ -170,16 +166,18 @@ export function buildPostseasonMatches({
   advancingPerGroup,
   hasPlayoffStage,
   playoffType,
+  groupAdvancement,
 }: {
   groupNames: string[];
   advancingPerGroup: number;
   hasPlayoffStage: boolean;
   playoffType: "single_elimination" | "double_elimination";
+  groupAdvancement?: Array<{ advance_to_playoff: number; advance_to_upper: number; advance_to_lower: number }>;
 }): PostseasonMatchPlan[] {
-  const seedLabels = groupNames.flatMap((groupName) =>
+  const seedLabels = groupNames.flatMap((groupName, groupIndex) =>
     Array.from(
-      { length: Math.max(1, advancingPerGroup) },
-      (_, index) => `${index + 1}-е место · ${groupName}`,
+      { length: Math.max(1, groupAdvancement?.[groupIndex]?.advance_to_playoff ?? advancingPerGroup) },
+      (_, index) => groupSeedLabel(groupName, index + 1, groupIndex, groupNames.length),
     ),
   );
   while (seedLabels.length < 2) {
@@ -199,6 +197,19 @@ export function buildPostseasonMatches({
     ];
   }
 
+  if (playoffType === "double_elimination") {
+    const upper: string[] = [], lower: string[] = [];
+    groupNames.forEach((name, groupIndex) => {
+      const settings = groupAdvancement?.[groupIndex];
+      const upperCount = settings?.advance_to_upper ?? advancingPerGroup;
+      const lowerCount = settings?.advance_to_lower ?? 0;
+      for (let place = 1; place <= upperCount + lowerCount; place++) {
+        (place <= upperCount ? upper : lower).push(groupSeedLabel(name, place, groupIndex, groupNames.length));
+      }
+    });
+    return buildDoubleEliminationPlan(upper, lower);
+  }
+
   const bracketSize = nextPowerOfTwo(seedLabels.length);
   const paddedSeeds = [
     ...seedLabels,
@@ -208,10 +219,7 @@ export function buildPostseasonMatches({
     ),
   ];
   const roundCount = Math.log2(bracketSize);
-  if (playoffType === "single_elimination" || roundCount === 1) {
-    return buildSingleEliminationMatches(paddedSeeds, roundCount);
-  }
-  return buildDoubleEliminationMatches(paddedSeeds, roundCount);
+  return buildSingleEliminationMatches(paddedSeeds, roundCount);
 }
 
 function buildSingleEliminationMatches(
@@ -239,59 +247,6 @@ function buildSingleEliminationMatches(
       });
     }
   }
-  return matches;
-}
-
-function buildDoubleEliminationMatches(
-  seeds: string[],
-  roundCount: number,
-): PostseasonMatchPlan[] {
-  const matches: PostseasonMatchPlan[] = [];
-  for (let round = 1; round <= roundCount; round += 1) {
-    const matchCount = seeds.length / 2 ** round;
-    for (let slot = 1; slot <= matchCount; slot += 1) {
-      matches.push({
-        stage: `Верхняя сетка · Раунд ${round}`,
-        bracketSide: "upper",
-        bracketRound: round,
-        bracketSlot: slot,
-        teamAPlaceholder:
-          round === 1
-            ? seeds[(slot - 1) * 2]
-            : `Победитель верхней сетки · раунд ${round - 1}`,
-        teamBPlaceholder:
-          round === 1
-            ? seeds[(slot - 1) * 2 + 1]
-            : `Победитель верхней сетки · раунд ${round - 1}`,
-      });
-    }
-  }
-
-  for (let round = 1; round <= (roundCount - 1) * 2; round += 1) {
-    const matchCount = Math.max(
-      1,
-      seeds.length / 2 ** (Math.floor((round + 1) / 2) + 1),
-    );
-    for (let slot = 1; slot <= matchCount; slot += 1) {
-      matches.push({
-        stage: `Нижняя сетка · Раунд ${round}`,
-        bracketSide: "lower",
-        bracketRound: round,
-        bracketSlot: slot,
-        teamAPlaceholder: `Участник нижней сетки · ${round}.${slot}.A`,
-        teamBPlaceholder: `Участник нижней сетки · ${round}.${slot}.B`,
-      });
-    }
-  }
-
-  matches.push({
-    stage: "Гранд-финал",
-    bracketSide: "grand_final",
-    bracketRound: 1,
-    bracketSlot: 1,
-    teamAPlaceholder: "Победитель верхней сетки",
-    teamBPlaceholder: "Победитель нижней сетки",
-  });
   return matches;
 }
 

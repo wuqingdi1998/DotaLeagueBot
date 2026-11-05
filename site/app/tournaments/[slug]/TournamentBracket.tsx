@@ -14,6 +14,7 @@ import {
 import { FiMove } from "react-icons/fi";
 import {
   automaticBracketLayout,
+  bracketDisplayRound,
   bracketGridSize,
   resolvedBracketLayout,
   type BracketGridPosition,
@@ -63,7 +64,7 @@ export function TournamentBracket({
     const result = new Map<number, BracketMatch[]>();
     for (const match of matches) {
       if (!match.bracket_side || match.bracket_side === "group") continue;
-      const round = match.bracket_round ?? 1;
+      const round = bracketDisplayRound(match, matches);
       const rows = result.get(round) ?? [];
       rows.push(match);
       result.set(round, rows);

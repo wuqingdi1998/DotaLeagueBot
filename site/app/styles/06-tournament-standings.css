@@ -119,6 +119,30 @@
   color: #c93f55;
 }
 
+.standing-group-league-cup {
+  --upper-outcome-color: #237b43;
+  --lower-outcome-color: #8a6200;
+}
+
+[data-theme="dark"] .standing-group-league-cup {
+  --upper-outcome-color: #72d899;
+  --lower-outcome-color: #efcf67;
+}
+
+.standing-group-league-cup .standing-outcome.upper {
+  --outcome-color: var(--upper-outcome-color);
+}
+
+.standing-group-league-cup .standing-outcome.lower {
+  --outcome-color: var(--lower-outcome-color);
+}
+
+.standing-group-league-cup .standing-outcome:is(.upper, .lower) {
+  border-color: color-mix(in srgb, var(--outcome-color) 40%, var(--line));
+  background: color-mix(in srgb, var(--outcome-color) 12%, var(--surface));
+  color: var(--outcome-color);
+}
+
 .group-explanation {
   margin: 12px 0 0;
   border-left: 4px solid var(--blue);

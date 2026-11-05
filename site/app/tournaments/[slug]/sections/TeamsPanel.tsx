@@ -23,6 +23,7 @@ export function TeamsPanel() {
   if (!data || activeTab !== "teams") return null;
 
   const { tournament } = data;
+  const isManagerSelection = usesLeagueCupManager(tournament);
   const isSeasonalCup = tournament.tournament_type === "seasonal_cup";
   const canRegister =
     !isPastTournament(tournament.status) &&
@@ -116,7 +117,7 @@ export function TeamsPanel() {
                     )}
                     {player.isCaptain && (
                       <small className="captain-badge">
-                        <FaCrown aria-hidden="true" /> {usesLeagueCupManager(tournament) ? "менеджер" : "капитан"}
+                        {!isManagerSelection && <FaCrown aria-hidden="true" />} {isManagerSelection ? "менеджер" : "капитан"}
                       </small>
                     )}
                     {tournament.show_tiers && player.tier !== null && (

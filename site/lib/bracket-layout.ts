@@ -22,13 +22,24 @@ function bracketSideOrder(match: BracketLayoutMatch) {
   return 2;
 }
 
+type BracketRoundMatch = Pick<BracketLayoutMatch, "bracket_side" | "bracket_round">;
+
+/** Finals use their own display column even when stored as round one. */
+export function bracketDisplayRound(match: BracketRoundMatch, matches: BracketRoundMatch[]) {
+  if (match.bracket_side !== "grand_final") return match.bracket_round ?? 1;
+  const precedingRounds = matches
+    .filter(row => row.bracket_side === "upper" || row.bracket_side === "lower")
+    .map(row => row.bracket_round ?? 1);
+  return Math.max(0, ...precedingRounds) + 1;
+}
+
 export function automaticBracketLayout(
   matches: BracketLayoutMatch[],
 ): Record<number, BracketGridPosition> {
   const rounds = new Map<number, BracketLayoutMatch[]>();
   for (const match of matches) {
     if (!match.bracket_side || match.bracket_side === "group") continue;
-    const round = match.bracket_round ?? 1;
+    const round = bracketDisplayRound(match, matches);
     const roundMatches = rounds.get(round) ?? [];
     roundMatches.push(match);
     rounds.set(round, roundMatches);
