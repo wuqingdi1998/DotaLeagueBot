@@ -22,6 +22,11 @@ const GroupSettingsEditor = dynamic(
   { ssr: false },
 );
 
+const PostseasonRebuildButton = dynamic(
+  () => import("../admin/PostseasonRebuildButton").then(module => module.PostseasonRebuildButton),
+  { ssr: false },
+);
+
 export function GroupsPanel() {
   const {
     activeTab,
@@ -51,8 +56,8 @@ export function GroupsPanel() {
       {adminMode && <GroupShuffleToolbar />}
       <div className="standings-groups">
         {standingGroups.map(({ group, rows }) => (
-          <section className="standing-group" key={group.id}>
-            <h4>{group.name}</h4>
+          <section className={`standing-group${data.tournament.tournament_type === "seasonal_cup" ? " standing-group-league-cup" : ""}`} key={group.id}>
+            {group.name && <h4>{group.name}</h4>}
             <div className="standings">
               <div className="standing-row standing-head">
                 <span>#</span>
@@ -90,7 +95,7 @@ export function GroupsPanel() {
                     <strong>{row.series_wins}</strong>
                     <span>({row.maps_won}–{row.maps_lost})</span>
                     <span
-                      className={`standing-outcome${
+                      className={`standing-outcome ${outcome}${
                         eliminated ? " eliminated" : ""
                       }`}
                     >
@@ -105,7 +110,7 @@ export function GroupsPanel() {
             )}
             {adminMode && (
               <GroupSettingsEditor
-                key={`${group.id}:${group.team_capacity}:${group.advance_to_playoff}:${group.advance_to_upper}:${group.advance_to_lower}:${group.explanation}`}
+                key={`${group.id}:${group.name}:${group.team_capacity}:${group.advance_to_playoff}:${group.advance_to_upper}:${group.advance_to_lower}:${group.explanation}`}
                 group={group}
                 playoffType={data.tournament.playoff_type}
                 onSaved={loadData}
@@ -147,6 +152,7 @@ export function PlayoffsPanel() {
           Наведите на команду, чтобы увидеть её путь
         </span>
       </div>
+      {adminMode && <PostseasonRebuildButton />}
       <TournamentBracket
         key={matches
           .map(

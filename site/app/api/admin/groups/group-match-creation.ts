@@ -1,13 +1,13 @@
 import type { PoolClient } from "pg";
+import { groupMatchStage } from "@/lib/tournament-group-name";
+import { savePostseason } from "./postseason-persistence";
 import {
   buildGroupMatchPlan,
-  buildPostseasonMatches,
   parseBestOf,
 } from "@/lib/group-generation";
 import {
   filterTournamentMatchSchedule,
   limitedMatchStage,
-  postseasonScheduleRow,
 } from "@/lib/tournament-match-schedule";
 import type {
   GroupRow,
@@ -67,7 +67,7 @@ export async function createGroupMatches(
         scheduleRow?.scheduled_at ?? tournament.start_at,
         limitedMatchStage(
           scheduleRow?.stage_name ??
-            `Групповой этап · ${match.group.name} · Раунд ${match.round}`,
+            groupMatchStage(match.group.name, match.round),
         ),
         match.teamAId,
         match.teamBId,
@@ -91,57 +91,13 @@ export async function createPostseasonIfMissing(
   tournament: TournamentSettings,
   groups: GroupRow[],
 ): Promise<number> {
-  const existing = await client.query<{ count: number }>(
-    `SELECT COUNT(*)::int AS count
-     FROM tournament_matches
-     WHERE tournament_id = $1
-       AND bracket_side IN ('upper', 'lower', 'grand_final')`,
-    [tournament.id],
-  );
-  if (existing.rows[0].count > 0) return 0;
+  return savePostseason(client, tournament, groups, await loadSchedule(client, tournament.id, false), "missing");
+}
 
-  const schedule = await loadSchedule(client, tournament.id, false);
-  const plan = buildPostseasonMatches({
-    groupNames: groups.map(({ name }) => name),
-    advancingPerGroup: groups[0]?.advance_to_playoff ?? 2,
-    hasPlayoffStage: Boolean(tournament.playoff_format.trim()),
-    playoffType: tournament.playoff_type,
-  });
-  for (const [index, match] of plan.entries()) {
-    const scheduleRow = postseasonScheduleRow(
-      schedule,
-      match.bracketSide,
-      index,
-    );
-    const defaultFormat =
-      match.bracketSide === "grand_final"
-        ? tournament.final_format
-        : tournament.playoff_format;
-    await client.query(
-      `INSERT INTO tournament_matches(
-         tournament_id, scheduled_at, stage,
-         team_a_placeholder, team_b_placeholder,
-         best_of, sort_order, bracket_round, bracket_side, bracket_slot
-       )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [
-        tournament.id,
-        scheduleRow?.scheduled_at ??
-          (match.bracketSide === "grand_final"
-            ? tournament.end_at
-            : tournament.start_at),
-        limitedMatchStage(scheduleRow?.stage_name ?? match.stage),
-        match.teamAPlaceholder,
-        match.teamBPlaceholder,
-        parseBestOf(scheduleRow?.series_format ?? defaultFormat, 1),
-        10_000 + index,
-        match.bracketRound,
-        match.bracketSide,
-        match.bracketSlot,
-      ],
-    );
-  }
-  return plan.length;
+export async function refreshPostseason(
+  client: PoolClient, tournament: TournamentSettings, groups: GroupRow[], requireReplaceable = true,
+) {
+  return savePostseason(client, tournament, groups, await loadSchedule(client, tournament.id, false), "refresh", requireReplaceable);
 }
 
 async function loadSchedule(

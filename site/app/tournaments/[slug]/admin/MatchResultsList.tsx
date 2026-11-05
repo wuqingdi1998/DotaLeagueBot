@@ -1,5 +1,7 @@
 "use client";
 
+import { tournamentGroupLabel } from "@/lib/tournament-group-name";
+
 import { useState } from "react";
 import { matchUsesBracketRouting } from "@/lib/bracket";
 import { useTournament } from "../hooks/TournamentContext";
@@ -131,7 +133,7 @@ function MatchBaseFields({ match }: { match: TournamentMatch }) {
             <option value="">Без группы</option>
             {data.groups.map((group) => (
               <option value={group.id} key={group.id}>
-                {group.name}
+                {tournamentGroupLabel(group)}
               </option>
             ))}
           </select>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   automaticBracketLayout,
+  bracketDisplayRound,
   resolvedBracketLayout,
   type BracketLayoutMatch,
 } from "./bracket-layout";
@@ -41,6 +42,12 @@ const matches: BracketLayoutMatch[] = [
 ];
 
 describe("playoff bracket grid layout", () => {
+  it("places a stored round-one grand final after both brackets and labels it separately", () => {
+    const plan = matches.map(match => match.bracket_side === "grand_final" ? { ...match, bracket_round: 1 } : match);
+    expect(automaticBracketLayout(plan)[4].column).toBeGreaterThan(automaticBracketLayout(plan)[3].column);
+    expect(bracketDisplayRound(plan[3], plan)).toBe(3);
+    expect(bracketDisplayRound(plan[0], plan)).toBe(1);
+  });
   it("places the upper bracket above the lower bracket in the same round", () => {
     const sameRoundMatches: BracketLayoutMatch[] = [
       {

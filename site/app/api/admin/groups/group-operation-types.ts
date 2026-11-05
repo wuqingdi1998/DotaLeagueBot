@@ -14,4 +14,6 @@ export type GroupRow = {
   capacity: number;
   sort_order: number;
   advance_to_playoff: number;
+  advance_to_upper: number;
+  advance_to_lower: number;
 };

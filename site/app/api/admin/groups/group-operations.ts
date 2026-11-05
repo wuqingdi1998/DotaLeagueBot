@@ -7,6 +7,7 @@ import {
 import {
   createGroupMatches,
   createPostseasonIfMissing,
+  refreshPostseason,
 } from "./group-match-creation";
 import type {
   GroupRow,
@@ -181,6 +182,18 @@ export async function shuffleTournamentGroups({
   });
 }
 
+export async function rebuildTournamentPostseason({ tournamentId, actorDiscordId }: { tournamentId: number; actorDiscordId: string | null }) {
+  return transaction(async client => {
+    await client.query("SELECT pg_advisory_xact_lock(71004, $1::int)", [tournamentId]);
+    const tournament = await loadTournament(client, tournamentId);
+    const groups = await loadGroups(client, tournamentId);
+    if (!groups.length) throw new GroupOperationError("Сначала сформируйте группы", 409);
+    const postseasonMatchCount = await refreshPostseason(client, tournament, groups);
+    await saveAudit(client, { tournamentId, actorDiscordId, action: "rebuild_playoffs", details: { postseasonMatchCount } });
+    return { postseasonMatchCount };
+  });
+}
+
 async function loadTournament(
   client: PoolClient,
   tournamentId: number,
@@ -218,7 +231,7 @@ async function loadGroups(
 ): Promise<GroupRow[]> {
   const result = await client.query<GroupRow>(
     `SELECT id::int, name, team_capacity::int AS capacity,
-       sort_order::int, advance_to_playoff::int
+       sort_order::int, advance_to_playoff::int, advance_to_upper::int, advance_to_lower::int
      FROM tournament_groups
      WHERE tournament_id = $1
      ORDER BY sort_order, id`,
@@ -267,6 +280,8 @@ async function createGroups(
       capacity: teamsPerGroup,
       sort_order: index,
       advance_to_playoff: advanceToPlayoff,
+      advance_to_upper: advanceToUpper,
+      advance_to_lower: advanceToLower,
     });
   }
   return groups;
@@ -334,7 +349,7 @@ async function saveAudit(
   }: {
     tournamentId: number;
     actorDiscordId: string | null;
-    action: "generate_groups" | "shuffle_groups";
+    action: "generate_groups" | "shuffle_groups" | "rebuild_playoffs";
     details: Record<string, number>;
   },
 ) {

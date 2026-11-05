@@ -1,5 +1,7 @@
 "use client";
 
+import { tournamentGroupLabel } from "@/lib/tournament-group-name";
+
 import { useTournament } from "../hooks/TournamentContext";
 
 export function MatchCreateForm() {
@@ -52,7 +54,7 @@ export function MatchCreateForm() {
                 <option value="">Без группы</option>
                 {data.groups.map((group) => (
                   <option value={group.id} key={group.id}>
-                    {group.name}
+                    {tournamentGroupLabel(group)}
                   </option>
                 ))}
               </select>

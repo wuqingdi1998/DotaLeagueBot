@@ -18,6 +18,7 @@ export function GroupSettingsEditor({
   onSaved,
   onMessage,
 }: GroupSettingsEditorProps) {
+  const [name, setName] = useState(group.name);
   const [teamCapacity, setTeamCapacity] = useState(group.team_capacity);
   const [advanceToPlayoff, setAdvanceToPlayoff] = useState(
     group.advance_to_playoff,
@@ -39,6 +40,7 @@ export function GroupSettingsEditor({
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         groupId: group.id,
+        name,
         teamCapacity,
         advanceToPlayoff,
         advanceToUpper,
@@ -52,7 +54,7 @@ export function GroupSettingsEditor({
       onMessage(result.error ?? "Не удалось сохранить настройки группы");
       return;
     }
-    onMessage(`Настройки ${group.name} сохранены`);
+    onMessage("Настройки группы сохранены");
     await onSaved();
   }
 
@@ -60,7 +62,7 @@ export function GroupSettingsEditor({
     <form className="group-settings-editor" onSubmit={save}>
       <div className="group-settings-heading">
         <div>
-          <strong>Настройки {group.name}</strong>
+          <strong>Настройки группы{group.name ? `: ${group.name}` : ""}</strong>
           <span>
             {playoffType === "double_elimination"
               ? "Double Elimination"
@@ -69,6 +71,10 @@ export function GroupSettingsEditor({
         </div>
       </div>
       <div className="group-settings-grid">
+        <label className="group-explanation-field">
+          <span>Название группы (необязательно)</span>
+          <input value={name} maxLength={80} onChange={event => setName(event.target.value)} placeholder="Можно оставить пустым" />
+        </label>
         <label>
           <span>Команд в группе</span>
           <input
