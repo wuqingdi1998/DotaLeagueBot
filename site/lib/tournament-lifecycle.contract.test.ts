@@ -74,9 +74,9 @@ describe("complete tournament lifecycle", () => {
     );
   });
 
-  it("serializes forming and shuffling groups for the same tournament", () => {
+  it("serializes forming, shuffling and rebuilding playoffs for the same tournament", () => {
     expect(
       groupOperations.match(/pg_advisory_xact_lock\(71004/g),
-    ).toHaveLength(2);
+    ).toHaveLength(3);
   });
 });
