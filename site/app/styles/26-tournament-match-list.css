@@ -264,7 +264,7 @@
 
   .match-actions {
     grid-column: 1 / -1;
-    grid-row: 3;
+    grid-row: 4;
     align-items: stretch;
     flex-direction: column;
     border-top: 1px solid var(--line);
