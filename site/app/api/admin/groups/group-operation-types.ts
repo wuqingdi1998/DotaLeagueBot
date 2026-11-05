@@ -2,6 +2,7 @@ export type TournamentSettings = {
   id: number;
   start_at: Date;
   end_at: Date;
+  playoff_starts_on?: string | null;
   group_format: string;
   playoff_format: string;
   final_format: string;

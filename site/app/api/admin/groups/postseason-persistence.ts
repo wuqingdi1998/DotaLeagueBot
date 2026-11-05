@@ -1,6 +1,7 @@
 import type { PoolClient } from "pg";
 import { buildPostseasonMatches, parseBestOf } from "@/lib/group-generation";
 import { postseasonMatchKey } from "@/lib/postseason-types";
+import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
 import { limitedMatchStage, postseasonScheduleRow } from "@/lib/tournament-match-schedule";
 import { GroupConfigurationError } from "./group-configuration-error";
 import type { GroupRow, TournamentSettings } from "./group-operation-types";
@@ -38,6 +39,9 @@ export async function savePostseason(
   });
   if (!plan.length) throw new GroupConfigurationError("Для плей-офф нужны минимум два участника, включая хотя бы одну команду в верхней сетке.", 400);
   const ids = new Map<string, number>();
+  const playoffStart = tournament.playoff_starts_on
+    ? moscowDateTimeInputToIso(`${tournament.playoff_starts_on}T00:00`)
+    : null;
   const retained = new Set<number>();
   for (const [index, match] of plan.entries()) {
     const key = postseasonMatchKey(match);
@@ -56,7 +60,7 @@ export async function savePostseason(
         `INSERT INTO tournament_matches(tournament_id, scheduled_at, stage, team_a_placeholder,
          team_b_placeholder, best_of, sort_order, bracket_round, bracket_side, bracket_slot)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id::int`,
-        [tournament.id, row?.scheduled_at ?? (match.bracketSide === "grand_final" ? tournament.end_at : tournament.start_at),
+        [tournament.id, row?.scheduled_at ?? (match.bracketSide === "grand_final" ? tournament.end_at : playoffStart ?? tournament.start_at),
           limitedMatchStage(row?.stage_name ?? match.stage), match.teamAPlaceholder, match.teamBPlaceholder,
           parseBestOf(row?.series_format ?? format, 1), 10_000 + index,
           match.bracketRound, match.bracketSide, match.bracketSlot],

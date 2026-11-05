@@ -20,7 +20,7 @@ beforeAll(async () => {
   db = new PGlite();
   await db.exec(`
     CREATE TABLE tournaments(id int PRIMARY KEY, start_at timestamptz, end_at timestamptz,
-      group_format text, playoff_format text, final_format text, playoff_type text);
+      group_format text, playoff_format text, final_format text, playoff_type text, playoff_starts_on date);
     CREATE TABLE tournament_groups(id serial PRIMARY KEY, tournament_id int REFERENCES tournaments(id),
       name text NOT NULL, team_capacity int, sort_order int, explanation text,
       advance_to_playoff int, advance_to_upper int, advance_to_lower int, UNIQUE(tournament_id,name));
@@ -37,7 +37,7 @@ beforeAll(async () => {
       entity_type text, entity_id text, details jsonb);
     CREATE TABLE tournament_schedule_days(id int, tournament_id int, day_date date, sort_order int);
     CREATE TABLE tournament_schedule_entries(day_id int, start_time time, stage_name text, series_format text, sort_order int);
-    INSERT INTO tournaments VALUES(1,'2026-11-02','2026-12-13','BO2','Double Elimination · BO3','BO5','double_elimination');
+    INSERT INTO tournaments VALUES(1,'2026-11-02','2026-12-13','BO2','Double Elimination · BO3','BO5','double_elimination','2026-11-30');
   `);
   await db.exec(readFileSync(new URL("../../../../../bot/database/migrations/0195_optional_group_names.sql", import.meta.url), "utf8"));
 });
@@ -83,6 +83,18 @@ it("repairs 2 upper + 2 lower, retains the grand final and leaves group matches 
   expect(matches.some(m => m.id === upper.loser_to_match_id && m.bracket_side === "lower")).toBe(true);
   expect((await db.query("SELECT id,scheduled_at,best_of FROM tournament_matches WHERE bracket_side='grand_final'")).rows).toEqual(finalBefore);
   expect((await db.query("SELECT * FROM tournament_matches WHERE bracket_side='group'")).rows).toEqual(before);
+  expect((await db.query(`SELECT DISTINCT to_char(scheduled_at AT TIME ZONE 'Europe/Moscow','YYYY-MM-DD HH24:MI') AS at
+    FROM tournament_matches WHERE bracket_side IN ('upper','lower')`)).rows).toEqual([{ at: "2026-11-30 00:00" }]);
+});
+
+it("keeps the explicitly scheduled playoff time instead of the fallback date", async () => {
+  await db.exec(`INSERT INTO tournament_schedule_days VALUES(1,1,'2026-12-01',0);
+    INSERT INTO tournament_schedule_entries VALUES(1,'19:00','Верхняя сетка','BO3',0)`);
+  try {
+    expect((await POST(request({ action: "rebuild_playoffs", tournamentId: 1 }, "POST"))).status).toBe(200);
+    expect((await db.query(`SELECT to_char(scheduled_at AT TIME ZONE 'Europe/Moscow','YYYY-MM-DD HH24:MI') AS at
+      FROM tournament_matches WHERE bracket_side='upper'`)).rows).toEqual([{ at: "2026-12-01 19:00" }]);
+  } finally { await db.exec("TRUNCATE tournament_schedule_entries,tournament_schedule_days"); }
 });
 
 it("updates qualification and regenerates pending slots atomically", async () => {

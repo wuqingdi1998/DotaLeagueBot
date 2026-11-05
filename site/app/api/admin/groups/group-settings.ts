@@ -25,7 +25,7 @@ export async function updateGroupSettings(body: GroupSettingsInput, actorDiscord
     const tournamentId = lookup.rows[0].tournament_id;
     await client.query("SELECT pg_advisory_xact_lock(71004, $1::int)", [tournamentId]);
     const tournament = (await client.query<TournamentSettings>(`SELECT id::int, start_at, end_at, group_format,
-      playoff_format, final_format, playoff_type FROM tournaments WHERE id = $1 FOR UPDATE`, [tournamentId])).rows[0];
+      playoff_format, final_format, playoff_type, playoff_starts_on::text FROM tournaments WHERE id = $1 FOR UPDATE`, [tournamentId])).rows[0];
     const groups = (await client.query<GroupRow>(`SELECT id::int, name, team_capacity::int AS capacity, sort_order::int,
       advance_to_playoff::int, advance_to_upper::int, advance_to_lower::int FROM tournament_groups
       WHERE tournament_id = $1 ORDER BY sort_order, id FOR UPDATE`, [tournamentId])).rows;
