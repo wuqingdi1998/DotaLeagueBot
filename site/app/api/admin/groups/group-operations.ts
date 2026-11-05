@@ -200,7 +200,7 @@ async function loadTournament(
 ): Promise<TournamentSettings> {
   const result = await client.query<TournamentSettings>(
     `SELECT id::int, start_at, end_at, group_format, playoff_format,
-       final_format, playoff_type
+       final_format, playoff_type, playoff_starts_on::text
      FROM tournaments
      WHERE id = $1`,
     [tournamentId],
