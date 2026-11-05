@@ -40,9 +40,8 @@ export function MatchResultsList() {
                 </strong>
                 <small>
                   {match.stage} ·{" "}
-                  <time dateTime={match.scheduled_at}>
-                    {formatDayMonth(match.scheduled_at)}{" "}
-                    {formatTime(match.scheduled_at)}
+                  <time dateTime={match.scheduled_at ?? undefined}>
+                    {match.scheduled_at ? `${formatDayMonth(match.scheduled_at)} ${formatTime(match.scheduled_at)}` : "TBA"}
                   </time>{" "}
                   · BO{match.best_of}
                 </small>
@@ -119,10 +118,9 @@ function MatchBaseFields({ match }: { match: TournamentMatch }) {
           />
         </label>
         <label>
-          <span>Дата и время</span>
+          <span>Дата и время (пусто – TBA)</span>
           <input
             name="scheduledAt"
-            required
             type="datetime-local"
             defaultValue={toDateTimeInput(match.scheduled_at)}
           />

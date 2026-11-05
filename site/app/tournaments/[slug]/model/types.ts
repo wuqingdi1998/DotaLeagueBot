@@ -93,7 +93,7 @@ export type TournamentMatch = {
   id: number;
   tournament_id: number;
   group_id: number | null;
-  scheduled_at: string;
+  scheduled_at: string | null;
   stage: string;
   team_a: string;
   team_b: string;

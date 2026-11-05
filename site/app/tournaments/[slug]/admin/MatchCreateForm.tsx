@@ -35,9 +35,8 @@ export function MatchCreateForm() {
               />
             </label>
             <label>
-              <span>Дата и время</span>
+              <span>Дата и время (пусто – TBA)</span>
               <input
-                required
                 type="datetime-local"
                 value={matchDraft.scheduledAt}
                 onChange={(event) =>

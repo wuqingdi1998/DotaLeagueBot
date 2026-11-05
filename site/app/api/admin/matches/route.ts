@@ -1,13 +1,13 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
 import { validateFinishedMatchScore } from "@/lib/match-validation";
-import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
+import { normalizeMatchScheduledAt } from "@/lib/match-scheduled-at";
 
 type MatchBody = {
   id?: number;
   tournamentId?: number;
   groupId?: number | null;
-  scheduledAt?: string;
+  scheduledAt?: string | null;
   stage?: string;
   teamAId?: number | null;
   teamBId?: number | null;
@@ -32,17 +32,9 @@ type MatchBody = {
   eliminatedTeamId?: number | null;
 };
 
-function normalizeScheduledAt(body: MatchBody): boolean {
-  if (body.scheduledAt === undefined) return true;
-  const normalized = moscowDateTimeInputToIso(body.scheduledAt);
-  if (!normalized) return false;
-  body.scheduledAt = normalized;
-  return true;
-}
-
 function validMatch(body: MatchBody): string {
-  if (!body.tournamentId || !body.scheduledAt || !body.stage?.trim()) {
-    return "Заполните турнир, этап и время матча";
+  if (!body.tournamentId || body.scheduledAt === undefined || !body.stage?.trim()) {
+    return "Заполните турнир и этап матча";
   }
   if (!body.teamAId && !body.teamAPlaceholder?.trim()) {
     return "Укажите первую команду или подпись-заполнитель";
@@ -53,7 +45,7 @@ function validMatch(body: MatchBody): string {
   if (![1, 2, 3, 5].includes(Number(body.bestOf))) {
     return "Формат серии должен быть BO1, BO2, BO3 или BO5";
   }
-  if (Number.isNaN(Date.parse(body.scheduledAt))) {
+  if (body.scheduledAt !== null && Number.isNaN(Date.parse(body.scheduledAt))) {
     return "Укажите корректные дату и время матча";
   }
   if (body.stage.trim().length > 100) {
@@ -117,7 +109,8 @@ export async function POST(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = (await request.json()) as MatchBody;
-    if (!normalizeScheduledAt(body)) {
+    body.scheduledAt ??= null;
+    if (!normalizeMatchScheduledAt(body)) {
       return Response.json(
         { error: "Укажите корректные дату и время матча" },
         { status: 400 },
@@ -143,7 +136,7 @@ export async function POST(request: Request) {
          FROM tournament_matches
          WHERE tournament_id = $1
            AND group_id IS NOT DISTINCT FROM $2::bigint
-           AND scheduled_at = $3
+           AND scheduled_at IS NOT DISTINCT FROM $3::timestamptz
            AND stage = $4
            AND team_a_application_id IS NOT DISTINCT FROM $5::bigint
            AND team_b_application_id IS NOT DISTINCT FROM $6::bigint
@@ -221,7 +214,7 @@ export async function PATCH(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = (await request.json()) as MatchBody;
-    if (!normalizeScheduledAt(body)) {
+    if (!normalizeMatchScheduledAt(body)) {
       return Response.json(
         { error: "Укажите корректные дату и время матча" },
         { status: 400 },
@@ -234,7 +227,7 @@ export async function PATCH(request: Request) {
       );
     }
     const fullMatchUpdate = Boolean(
-      body.tournamentId && body.scheduledAt && body.stage?.trim() && body.bestOf,
+      body.tournamentId && body.scheduledAt !== undefined && body.stage?.trim() && body.bestOf,
     );
     if (fullMatchUpdate) {
       const validationError = validMatch(body);

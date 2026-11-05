@@ -48,15 +48,15 @@ export function MatchesPanel() {
             <article className="match-row" key={match.id}>
               <div className="match-date">
                 <strong>
-                  <time dateTime={match.scheduled_at}>
+                  <time dateTime={match.scheduled_at ?? undefined}>
                     {formatTime(match.scheduled_at)}
                   </time>
                 </strong>
-                <span>
-                  <time dateTime={match.scheduled_at}>
+                {match.scheduled_at && <span>
+                  <time dateTime={match.scheduled_at ?? undefined}>
                     {formatDayMonth(match.scheduled_at)}
                   </time>
-                </span>
+                </span>}
               </div>
               <div className="match-stage">
                 {match.stage}
