@@ -1,5 +1,6 @@
 "use client";
 
+import { matchStageLabels } from "@/lib/match-stage-labels";
 import Link from "next/link";
 import { isPastTournament } from "@/lib/tournaments";
 import { CompactTeamEmblem } from "../components/CompactTeamEmblem";
@@ -9,13 +10,6 @@ import {
   formatDayMonth,
   formatTime,
 } from "../model/formatters";
-
-const bracketLabels = {
-  group: "Группы",
-  upper: "Верхняя сетка",
-  lower: "Нижняя сетка",
-  grand_final: "Гранд-финал",
-} as const;
 
 export function MatchesPanel() {
   const { activeTab, data } = useTournament();
@@ -37,6 +31,7 @@ export function MatchesPanel() {
       </div>
       <div className="matches-list">
         {data.matches.map((match) => {
+          const labels = matchStageLabels(match, data.matches);
           const teamA = match.team_a_application_id === null
             ? null
             : applicationsById.get(match.team_a_application_id);
@@ -48,26 +43,19 @@ export function MatchesPanel() {
             <article className="match-row" key={match.id}>
               <div className="match-date">
                 <strong>
-                  <time dateTime={match.scheduled_at}>
+                  <time dateTime={match.scheduled_at ?? undefined}>
                     {formatTime(match.scheduled_at)}
                   </time>
                 </strong>
-                <span>
-                  <time dateTime={match.scheduled_at}>
+                {match.scheduled_at && <span>
+                  <time dateTime={match.scheduled_at ?? undefined}>
                     {formatDayMonth(match.scheduled_at)}
                   </time>
-                </span>
+                </span>}
               </div>
               <div className="match-stage">
-                {match.stage}
-                {match.bracket_side && (
-                  <small>
-                    {bracketLabels[match.bracket_side]}
-                    {match.bracket_round
-                      ? ` · раунд ${match.bracket_round}`
-                      : ""}
-                  </small>
-                )}
+                <span>{labels.title}</span>
+                {labels.detail && <small>{labels.detail}</small>}
               </div>
               <div className="match-team first">
                 <CompactTeamEmblem

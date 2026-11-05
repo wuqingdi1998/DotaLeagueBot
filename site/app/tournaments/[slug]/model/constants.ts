@@ -33,6 +33,7 @@ export const emptyMatchDraft: MatchDraft = {
   groupId: "",
   scheduledAt: "",
   stage: "Групповой этап",
+  stageDetail: "Матч 1",
   teamAId: "",
   teamBId: "",
   teamAPlaceholder: "",

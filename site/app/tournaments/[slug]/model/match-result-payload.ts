@@ -44,6 +44,7 @@ export function buildMatchResultPayload(
       groupId: optionalNumber("groupId"),
       scheduledAt: moscowDateTimeInputToIso(text("scheduledAt")),
       stage: text("stage"),
+      stageDetail: text("stageDetail"),
       teamAId: teamAId ? Number(teamAId) : null,
       teamBId: teamBId ? Number(teamBId) : null,
       teamAPlaceholder: optionalText("teamAPlaceholder"),

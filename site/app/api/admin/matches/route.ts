@@ -1,14 +1,15 @@
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { query, transaction } from "@/lib/db";
 import { validateFinishedMatchScore } from "@/lib/match-validation";
-import { moscowDateTimeInputToIso } from "@/lib/moscow-date-time";
+import { normalizeMatchScheduledAt } from "@/lib/match-scheduled-at";
 
 type MatchBody = {
   id?: number;
   tournamentId?: number;
   groupId?: number | null;
-  scheduledAt?: string;
+  scheduledAt?: string | null;
   stage?: string;
+  stageDetail?: string | null;
   teamAId?: number | null;
   teamBId?: number | null;
   teamAPlaceholder?: string | null;
@@ -32,17 +33,9 @@ type MatchBody = {
   eliminatedTeamId?: number | null;
 };
 
-function normalizeScheduledAt(body: MatchBody): boolean {
-  if (body.scheduledAt === undefined) return true;
-  const normalized = moscowDateTimeInputToIso(body.scheduledAt);
-  if (!normalized) return false;
-  body.scheduledAt = normalized;
-  return true;
-}
-
 function validMatch(body: MatchBody): string {
-  if (!body.tournamentId || !body.scheduledAt || !body.stage?.trim()) {
-    return "Заполните турнир, этап и время матча";
+  if (!body.tournamentId || body.scheduledAt === undefined || !body.stage?.trim()) {
+    return "Заполните турнир и этап матча";
   }
   if (!body.teamAId && !body.teamAPlaceholder?.trim()) {
     return "Укажите первую команду или подпись-заполнитель";
@@ -53,10 +46,10 @@ function validMatch(body: MatchBody): string {
   if (![1, 2, 3, 5].includes(Number(body.bestOf))) {
     return "Формат серии должен быть BO1, BO2, BO3 или BO5";
   }
-  if (Number.isNaN(Date.parse(body.scheduledAt))) {
+  if (body.scheduledAt !== null && Number.isNaN(Date.parse(body.scheduledAt))) {
     return "Укажите корректные дату и время матча";
   }
-  if (body.stage.trim().length > 100) {
+  if (body.stage.trim().length > 100 || (body.stageDetail?.trim().length ?? 0) > 100) {
     return "Название этапа не может быть длиннее 100 символов";
   }
   if (
@@ -117,7 +110,8 @@ export async function POST(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = (await request.json()) as MatchBody;
-    if (!normalizeScheduledAt(body)) {
+    body.scheduledAt ??= null;
+    if (!normalizeMatchScheduledAt(body)) {
       return Response.json(
         { error: "Укажите корректные дату и время матча" },
         { status: 400 },
@@ -143,7 +137,7 @@ export async function POST(request: Request) {
          FROM tournament_matches
          WHERE tournament_id = $1
            AND group_id IS NOT DISTINCT FROM $2::bigint
-           AND scheduled_at = $3
+           AND scheduled_at IS NOT DISTINCT FROM $3::timestamptz
            AND stage = $4
            AND team_a_application_id IS NOT DISTINCT FROM $5::bigint
            AND team_b_application_id IS NOT DISTINCT FROM $6::bigint
@@ -154,6 +148,7 @@ export async function POST(request: Request) {
            AND bracket_round IS NOT DISTINCT FROM $11::int
            AND bracket_side IS NOT DISTINCT FROM $12
            AND bracket_slot IS NOT DISTINCT FROM $13::int
+           AND stage_detail IS NOT DISTINCT FROM $14
          LIMIT 1`,
         [
           body.tournamentId,
@@ -169,6 +164,7 @@ export async function POST(request: Request) {
           body.bracketRound ?? null,
           body.bracketSide ?? null,
           body.bracketSlot ?? null,
+          body.stageDetail?.trim() ?? null,
         ],
       );
       if (existing.rowCount) {
@@ -179,8 +175,8 @@ export async function POST(request: Request) {
           tournament_id, group_id, scheduled_at, stage,
           team_a_application_id, team_b_application_id,
           team_a_placeholder, team_b_placeholder, best_of, sort_order,
-          result_type, bracket_round, bracket_side, bracket_slot
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+          result_type, bracket_round, bracket_side, bracket_slot, stage_detail
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
         RETURNING id::int`,
         [
           body.tournamentId,
@@ -197,6 +193,7 @@ export async function POST(request: Request) {
           body.bracketRound ?? null,
           body.bracketSide ?? null,
           body.bracketSlot ?? null,
+          body.stageDetail?.trim() ?? null,
         ],
       );
       const id = result.rows[0].id;
@@ -221,7 +218,7 @@ export async function PATCH(request: Request) {
   try {
     const admin = await requireAdmin();
     const body = (await request.json()) as MatchBody;
-    if (!normalizeScheduledAt(body)) {
+    if (!normalizeMatchScheduledAt(body)) {
       return Response.json(
         { error: "Укажите корректные дату и время матча" },
         { status: 400 },
@@ -234,7 +231,7 @@ export async function PATCH(request: Request) {
       );
     }
     const fullMatchUpdate = Boolean(
-      body.tournamentId && body.scheduledAt && body.stage?.trim() && body.bestOf,
+      body.tournamentId && body.scheduledAt !== undefined && body.stage?.trim() && body.bestOf,
     );
     if (fullMatchUpdate) {
       const validationError = validMatch(body);
@@ -410,6 +407,7 @@ export async function PATCH(request: Request) {
          group_id = CASE WHEN $15 THEN $16 ELSE group_id END,
          scheduled_at = CASE WHEN $15 THEN $17 ELSE scheduled_at END,
          stage = CASE WHEN $15 THEN $18 ELSE stage END,
+         stage_detail = CASE WHEN $15 THEN $27 ELSE stage_detail END,
          team_a_application_id = CASE WHEN $15 THEN $19 ELSE team_a_application_id END,
          team_b_application_id = CASE WHEN $15 THEN $20 ELSE team_b_application_id END,
          team_a_placeholder = CASE WHEN $15 THEN $21 ELSE team_a_placeholder END,
@@ -447,6 +445,7 @@ export async function PATCH(request: Request) {
         body.sortOrder ?? null,
         body.eliminatedTeamId ?? null,
         body.id,
+        body.stageDetail?.trim() ?? null,
       ],
     );
     if (!updated.length) {

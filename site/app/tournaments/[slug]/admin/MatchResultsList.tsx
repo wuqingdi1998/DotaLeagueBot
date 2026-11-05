@@ -1,5 +1,6 @@
 "use client";
 
+import { matchStageLabels } from "@/lib/match-stage-labels";
 import { tournamentGroupLabel } from "@/lib/tournament-group-name";
 
 import { useState } from "react";
@@ -39,10 +40,9 @@ export function MatchResultsList() {
                   {match.team_a} — {match.team_b}
                 </strong>
                 <small>
-                  {match.stage} ·{" "}
-                  <time dateTime={match.scheduled_at}>
-                    {formatDayMonth(match.scheduled_at)}{" "}
-                    {formatTime(match.scheduled_at)}
+                  {matchStageLabels(match, data.matches).title} · {matchStageLabels(match, data.matches).detail} ·{" "}
+                  <time dateTime={match.scheduled_at ?? undefined}>
+                    {match.scheduled_at ? `${formatDayMonth(match.scheduled_at)} ${formatTime(match.scheduled_at)}` : "TBA"}
                   </time>{" "}
                   · BO{match.best_of}
                 </small>
@@ -70,7 +70,9 @@ export function MatchResultsList() {
                     />
                   </div>
                 </fieldset>
-                <BracketPositionFields match={match} />
+                <input type="hidden" name="bracketSide" value={match.bracket_side ?? ""} />
+                <input type="hidden" name="bracketRound" value={match.bracket_round ?? ""} />
+                <input type="hidden" name="bracketSlot" value={match.bracket_slot ?? ""} />
                 <BracketRoutingFields match={match} />
                 <label className="match-decision-editor">
                   <span>Комментарий организатора</span>
@@ -110,19 +112,22 @@ function MatchBaseFields({ match }: { match: TournamentMatch }) {
       <legend>Основные данные матча</legend>
       <div className="match-form-grid">
         <label>
-          <span>Название этапа</span>
+          <span>Верхняя строка</span>
           <input
             name="stage"
             required
-            defaultValue={match.stage}
+            defaultValue={matchStageLabels(match, data.matches).title}
             placeholder="Этап"
           />
         </label>
         <label>
-          <span>Дата и время</span>
+          <span>Нижняя строка</span>
+          <input name="stageDetail" maxLength={100} defaultValue={matchStageLabels(match, data.matches).detail} />
+        </label>
+        <label>
+          <span>Дата и время (пусто – TBA)</span>
           <input
             name="scheduledAt"
-            required
             type="datetime-local"
             defaultValue={toDateTimeInput(match.scheduled_at)}
           />
@@ -273,44 +278,6 @@ function TeamResultEditor({
         </label>
       )}
     </div>
-  );
-}
-
-function BracketPositionFields({ match }: { match: TournamentMatch }) {
-  return (
-    <fieldset className="match-editor-section">
-      <legend>Положение в сетке</legend>
-      <div className="match-form-grid three-columns">
-        <label>
-          <span>Секция</span>
-          <select name="bracketSide" defaultValue={match.bracket_side ?? ""}>
-            <option value="">Без секции сетки</option>
-            <option value="group">Групповой этап</option>
-            <option value="upper">Верхняя сетка</option>
-            <option value="lower">Нижняя сетка</option>
-            <option value="grand_final">Гранд-финал</option>
-          </select>
-        </label>
-        <label>
-          <span>Раунд</span>
-          <input
-            name="bracketRound"
-            type="number"
-            min="1"
-            defaultValue={match.bracket_round ?? ""}
-          />
-        </label>
-        <label>
-          <span>Порядок в раунде</span>
-          <input
-            name="bracketSlot"
-            type="number"
-            min="1"
-            defaultValue={match.bracket_slot ?? ""}
-          />
-        </label>
-      </div>
-    </fieldset>
   );
 }
 

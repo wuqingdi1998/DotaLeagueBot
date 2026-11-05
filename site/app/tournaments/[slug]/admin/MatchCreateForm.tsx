@@ -26,18 +26,21 @@ export function MatchCreateForm() {
           <legend>Основные данные</legend>
           <div className="match-form-grid">
             <label>
-              <span>Название этапа</span>
+              <span>Верхняя строка</span>
               <input
                 required
                 value={matchDraft.stage}
                 onChange={(event) => update("stage", event.target.value)}
-                placeholder="Например: Нижняя сетка"
+                placeholder="Групповой этап / Play Off"
               />
             </label>
             <label>
-              <span>Дата и время</span>
+              <span>Нижняя строка</span>
+              <input value={matchDraft.stageDetail ?? ""} maxLength={100} onChange={event => update("stageDetail", event.target.value)} placeholder="Матч 1 / Верхняя сетка · Раунд 1" />
+            </label>
+            <label>
+              <span>Дата и время (пусто – TBA)</span>
               <input
-                required
                 type="datetime-local"
                 value={matchDraft.scheduledAt}
                 onChange={(event) =>
@@ -101,48 +104,6 @@ export function MatchCreateForm() {
           </div>
         </fieldset>
 
-        <fieldset className="match-editor-section">
-          <legend>Положение в сетке</legend>
-          <div className="match-form-grid three-columns">
-            <label>
-              <span>Секция</span>
-              <select
-                value={matchDraft.bracketSide}
-                onChange={(event) =>
-                  update("bracketSide", event.target.value)
-                }
-              >
-                <option value="">Без секции</option>
-                <option value="group">Групповой этап</option>
-                <option value="upper">Верхняя сетка</option>
-                <option value="lower">Нижняя сетка</option>
-                <option value="grand_final">Гранд-финал</option>
-              </select>
-            </label>
-            <label>
-              <span>Раунд</span>
-              <input
-                type="number"
-                min="1"
-                value={matchDraft.bracketRound}
-                onChange={(event) =>
-                  update("bracketRound", event.target.value)
-                }
-              />
-            </label>
-            <label>
-              <span>Порядок в раунде</span>
-              <input
-                type="number"
-                min="1"
-                value={matchDraft.bracketSlot}
-                onChange={(event) =>
-                  update("bracketSlot", event.target.value)
-                }
-              />
-            </label>
-          </div>
-        </fieldset>
         <div className="match-editor-actions">
           <button className="primary-button compact" type="submit">
             Добавить матч

@@ -31,7 +31,8 @@ export function getTeamNameError(value: string) {
   return "";
 }
 
-export function formatDayMonth(value: string) {
+export function formatDayMonth(value: string | null) {
+  if (!value) return "TBA";
   return new Intl.DateTimeFormat("ru-RU", {
     day: "numeric",
     month: "long",
@@ -39,7 +40,8 @@ export function formatDayMonth(value: string) {
   }).format(new Date(value));
 }
 
-export function formatTime(value: string) {
+export function formatTime(value: string | null) {
+  if (!value) return "TBA";
   return new Intl.DateTimeFormat("ru-RU", {
     hour: "2-digit",
     minute: "2-digit",
@@ -47,7 +49,7 @@ export function formatTime(value: string) {
   }).format(new Date(value));
 }
 
-export function toDateTimeInput(value: string) {
+export function toDateTimeInput(value: string | null) {
   return toMoscowDateTimeInput(value);
 }
 

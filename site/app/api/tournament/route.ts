@@ -1,3 +1,4 @@
+import { sortTournamentMatches } from "@/lib/tournament-match-order";
 import { getSession } from "@/lib/auth";
 import { one, query } from "@/lib/db";
 import { defaultSeasonFacts } from "@/lib/season-facts";
@@ -273,9 +274,9 @@ export async function GET(request: Request) {
            END`,
         [...visibilityValues, [...subscriptionRoleNames]],
       ),
-      query<Record<string, unknown>>(
+      query<Record<string, unknown> & { id: number; scheduled_at: Date | null }>(
          `SELECT m.id::int, m.tournament_id::int, m.group_id::int,
-           m.scheduled_at, m.stage,
+           m.scheduled_at, m.stage, m.stage_detail,
            m.team_a_application_id::int, m.team_b_application_id::int,
            m.team_a_placeholder, m.team_b_placeholder,
            COALESCE(a.team_name, m.team_a_placeholder) AS team_a,
@@ -427,7 +428,7 @@ export async function GET(request: Request) {
         user,
       ),
     ),
-    matches,
+    matches: sortTournamentMatches(matches),
     standings,
     groups,
     rules,
