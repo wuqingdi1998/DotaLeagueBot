@@ -95,6 +95,7 @@ export type TournamentMatch = {
   group_id: number | null;
   scheduled_at: string | null;
   stage: string;
+  stage_detail?: string | null;
   team_a: string;
   team_b: string;
   team_a_application_id: number | null;
@@ -230,6 +231,8 @@ export type MatchDraft = {
   groupId: string;
   scheduledAt: string;
   stage: string;
+  stage_detail?: string | null;
+  stageDetail?: string;
   teamAId: string;
   teamBId: string;
   teamAPlaceholder: string;

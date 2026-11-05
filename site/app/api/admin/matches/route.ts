@@ -9,6 +9,7 @@ type MatchBody = {
   groupId?: number | null;
   scheduledAt?: string | null;
   stage?: string;
+  stageDetail?: string | null;
   teamAId?: number | null;
   teamBId?: number | null;
   teamAPlaceholder?: string | null;
@@ -48,7 +49,7 @@ function validMatch(body: MatchBody): string {
   if (body.scheduledAt !== null && Number.isNaN(Date.parse(body.scheduledAt))) {
     return "Укажите корректные дату и время матча";
   }
-  if (body.stage.trim().length > 100) {
+  if (body.stage.trim().length > 100 || (body.stageDetail?.trim().length ?? 0) > 100) {
     return "Название этапа не может быть длиннее 100 символов";
   }
   if (
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
            AND bracket_round IS NOT DISTINCT FROM $11::int
            AND bracket_side IS NOT DISTINCT FROM $12
            AND bracket_slot IS NOT DISTINCT FROM $13::int
+           AND stage_detail IS NOT DISTINCT FROM $14
          LIMIT 1`,
         [
           body.tournamentId,
@@ -162,6 +164,7 @@ export async function POST(request: Request) {
           body.bracketRound ?? null,
           body.bracketSide ?? null,
           body.bracketSlot ?? null,
+          body.stageDetail?.trim() ?? null,
         ],
       );
       if (existing.rowCount) {
@@ -172,8 +175,8 @@ export async function POST(request: Request) {
           tournament_id, group_id, scheduled_at, stage,
           team_a_application_id, team_b_application_id,
           team_a_placeholder, team_b_placeholder, best_of, sort_order,
-          result_type, bracket_round, bracket_side, bracket_slot
-        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+          result_type, bracket_round, bracket_side, bracket_slot, stage_detail
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
         RETURNING id::int`,
         [
           body.tournamentId,
@@ -190,6 +193,7 @@ export async function POST(request: Request) {
           body.bracketRound ?? null,
           body.bracketSide ?? null,
           body.bracketSlot ?? null,
+          body.stageDetail?.trim() ?? null,
         ],
       );
       const id = result.rows[0].id;
@@ -403,6 +407,7 @@ export async function PATCH(request: Request) {
          group_id = CASE WHEN $15 THEN $16 ELSE group_id END,
          scheduled_at = CASE WHEN $15 THEN $17 ELSE scheduled_at END,
          stage = CASE WHEN $15 THEN $18 ELSE stage END,
+         stage_detail = CASE WHEN $15 THEN $27 ELSE stage_detail END,
          team_a_application_id = CASE WHEN $15 THEN $19 ELSE team_a_application_id END,
          team_b_application_id = CASE WHEN $15 THEN $20 ELSE team_b_application_id END,
          team_a_placeholder = CASE WHEN $15 THEN $21 ELSE team_a_placeholder END,
@@ -440,6 +445,7 @@ export async function PATCH(request: Request) {
         body.sortOrder ?? null,
         body.eliminatedTeamId ?? null,
         body.id,
+        body.stageDetail?.trim() ?? null,
       ],
     );
     if (!updated.length) {

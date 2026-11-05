@@ -56,7 +56,11 @@
 }
 
 [data-theme="dark"] .match-stage {
-  color: var(--blue);
+  color: #00a8d6;
+}
+
+[data-theme="dark"] .match-stage small {
+  color: var(--blue-soft);
 }
 
 .match-team {
@@ -201,6 +205,7 @@
     grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1fr);
     grid-template-areas:
       "date date format"
+      "stage stage stage"
       "team-a score team-b";
     gap: 14px 10px;
     padding: 16px;
@@ -221,7 +226,7 @@
   }
 
   .match-stage {
-    display: none;
+    display: block;
   }
 
   .match-team,

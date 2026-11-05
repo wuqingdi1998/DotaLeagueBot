@@ -276,7 +276,7 @@ export async function GET(request: Request) {
       ),
       query<Record<string, unknown> & { id: number; scheduled_at: Date | null }>(
          `SELECT m.id::int, m.tournament_id::int, m.group_id::int,
-           m.scheduled_at, m.stage,
+           m.scheduled_at, m.stage, m.stage_detail,
            m.team_a_application_id::int, m.team_b_application_id::int,
            m.team_a_placeholder, m.team_b_placeholder,
            COALESCE(a.team_name, m.team_a_placeholder) AS team_a,

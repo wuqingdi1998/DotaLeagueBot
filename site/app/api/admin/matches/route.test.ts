@@ -6,7 +6,7 @@ vi.mock("@/lib/db",()=>({query:mocks.query,transaction:mocks.transaction}));
 vi.mock("@/lib/auth",()=>({requireAdmin:mocks.admin,responseFromAuthError:(e:unknown)=>{if(e instanceof Response)return e;throw e;}}));
 import { POST, PATCH } from "./route";
 let db:PGlite;
-const body={tournamentId:1,stage:"Группа",bestOf:3,teamAPlaceholder:"A",teamBPlaceholder:"B",status:"scheduled"};
+const body={tournamentId:1,stage:"Групповой этап",stageDetail:"Матч 1",bestOf:3,teamAPlaceholder:"A",teamBPlaceholder:"B",status:"scheduled"};
 const request=(data:object,method="POST")=>new Request("https://test.local",{method,headers:{"content-type":"application/json"},body:JSON.stringify(data)});
 beforeAll(async()=>{
  db=new PGlite();
@@ -14,7 +14,7 @@ beforeAll(async()=>{
  CREATE TABLE tournament_groups(id int,tournament_id int);
  CREATE TABLE tournament_team_applications(id int,tournament_id int);
  CREATE TABLE tournament_matches(id serial PRIMARY KEY,tournament_id int,group_id int,scheduled_at timestamptz NOT NULL,
- stage text,team_a_application_id int,team_b_application_id int,team_a_placeholder text,team_b_placeholder text,
+ stage text,stage_detail text,team_a_application_id int,team_b_application_id int,team_a_placeholder text,team_b_placeholder text,
  best_of int,sort_order int,result_type text,bracket_round int,bracket_side text,bracket_slot int,
  team_a_score int,team_b_score int,status text,team_a_result_label text,team_b_result_label text,decision_note text,
  winner_to_match_id int,winner_to_slot text,loser_to_match_id int,loser_to_slot text,eliminated_team_application_id int,updated_at timestamptz);
@@ -49,6 +49,7 @@ it("edits a dated match to TBA and back without creating another match",async()=
  expect((await db.query<{scheduled_at:Date}>("SELECT scheduled_at FROM tournament_matches")).rows[0].scheduled_at.toISOString()).toBe("2026-12-01T17:00:00.000Z");
 });
 it("rejects malformed dates and unauthenticated writes",async()=>{
+ expect((await db.query("SELECT stage,stage_detail FROM tournament_matches WHERE id=1")).rows[0]).toEqual({stage:"Групповой этап",stage_detail:"Матч 1"});
  expect((await POST(request({...body,scheduledAt:"wrong"}))).status).toBe(400);
  mocks.admin.mockRejectedValueOnce(new Response("",{status:403}));
  expect((await PATCH(request({...body,id:1,scheduledAt:null},"PATCH"))).status).toBe(403);

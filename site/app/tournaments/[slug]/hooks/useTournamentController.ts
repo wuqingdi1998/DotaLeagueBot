@@ -1,5 +1,6 @@
 "use client";
 
+import { bracketFromStageDetail } from "@/lib/match-stage-labels";
 import { fetchSiteRequest } from "@/lib/site-request";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -317,18 +318,13 @@ export function useTournamentController() {
         groupId: matchDraft.groupId ? Number(matchDraft.groupId) : null,
         scheduledAt: moscowDateTimeInputToIso(matchDraft.scheduledAt),
         stage: matchDraft.stage,
+        stageDetail: matchDraft.stageDetail,
+        ...bracketFromStageDetail(matchDraft.stageDetail ?? ""),
         teamAId: matchDraft.teamAId ? Number(matchDraft.teamAId) : null,
         teamBId: matchDraft.teamBId ? Number(matchDraft.teamBId) : null,
         teamAPlaceholder: matchDraft.teamAPlaceholder || null,
         teamBPlaceholder: matchDraft.teamBPlaceholder || null,
         bestOf: Number(matchDraft.bestOf),
-        bracketSide: matchDraft.bracketSide || null,
-        bracketRound: matchDraft.bracketRound
-          ? Number(matchDraft.bracketRound)
-          : null,
-        bracketSlot: matchDraft.bracketSlot
-          ? Number(matchDraft.bracketSlot)
-          : null,
         sortOrder: data.matches.length,
       }),
     });
