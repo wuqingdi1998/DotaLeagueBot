@@ -46,7 +46,7 @@ function rank(placements: SeasonLobbyOptimizedPlacement[]) {
   return [placements.filter((player) => !canFillSeasonLobbyRole(player, player.slotNumber)).length,
     ...assignmentScore(metrics(teams[0]), metrics(teams[1]),
       [Math.max(...gaps), gaps.reduce((sum, gap) => sum + gap, 0)],
-      { variant: "optimal", repeatedTeammateCount: 0, teamTierSpreads: [0, 0] })];
+      { variant: "optimal", pairHistoryPenalty: [0, 0], teamTierSpreads: [0, 0] })];
 }
 
 describe("ranked lobby alternatives", () => {

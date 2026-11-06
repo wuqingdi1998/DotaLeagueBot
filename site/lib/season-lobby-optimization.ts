@@ -5,6 +5,11 @@ import {
   type SeasonLobbyRoleHistory,
 } from "./season-lobby-role-policy";
 import { assignmentScore } from "./season-lobby-assignment-score";
+import {
+  EMPTY_SEASON_LOBBY_PAIR_HISTORY,
+  seasonLobbyPairHistoryPenalty,
+  type SeasonLobbyPairHistory,
+} from "./season-lobby-pair-history";
 import { isChallengeSeasonLobbyVariant, optimalSeasonLobbyVariantIndex } from "./season-lobby-variants";
 import type { SeasonLobbyOptimizationVariant } from "./season-lobby-variants";
 
@@ -30,7 +35,7 @@ export { SEASON_LOBBY_OPTIMIZATION_VARIANTS } from "./season-lobby-variants";
 export type { SeasonLobbyOptimizationVariant } from "./season-lobby-variants";
 
 export type SeasonLobbyOptimizationOptions = {
-  recentTeammatePairs?: ReadonlySet<string>;
+  pairHistory?: SeasonLobbyPairHistory;
   roleHistory?: ReadonlyMap<string, SeasonLobbyRoleHistory>;
   variant?: SeasonLobbyOptimizationVariant;
 };
@@ -103,7 +108,7 @@ export function optimizeSeasonLobbyPlayers(
     );
   const lobbies = lobbyGroups.map((lobbyPlayers) => ({
     placements: balanceLobbyPlayers(lobbyPlayers, {
-      recentTeammatePairs: options.recentTeammatePairs ?? new Set<string>(),
+      pairHistory: options.pairHistory ?? EMPTY_SEASON_LOBBY_PAIR_HISTORY,
       roleHistory: options.roleHistory ?? new Map(),
       variant,
     }),
@@ -265,10 +270,10 @@ function balanceLobbyPlayers(
       leftPlayers,
       rightPlayers,
     );
-    const repeatedTeammateCount = countRepeatedTeammatePairs(
+    const pairHistoryPenalty = seasonLobbyPairHistoryPenalty(
       leftPlayers,
       rightPlayers,
-      options.recentTeammatePairs,
+      options.pairHistory,
     );
     const teamTierSpreads = [
       teamTierSpread(leftPlayers),
@@ -278,7 +283,7 @@ function balanceLobbyPlayers(
     for (const left of leftAssignments) {
       for (const right of rightAssignments) {
         const assignmentRank = assignmentScore(left, right, primaryRoleBalance, {
-          repeatedTeammateCount,
+          pairHistoryPenalty,
           teamTierSpreads,
           variant: options.variant,
         });
@@ -430,41 +435,6 @@ function permutations<T>(values: T[]): T[][] {
 function teamTierSpread(players: PlayerWithRoles[]) {
   const tiers = players.map(({ tierSnapshot }) => tierSnapshot);
   return Math.max(...tiers) - Math.min(...tiers);
-}
-
-function countRepeatedTeammatePairs(
-  leftPlayers: PlayerWithRoles[],
-  rightPlayers: PlayerWithRoles[],
-  recentTeammatePairs: ReadonlySet<string>,
-) {
-  return [leftPlayers, rightPlayers].reduce((total, team) => {
-    for (let firstIndex = 0; firstIndex < team.length; firstIndex += 1) {
-      for (
-        let secondIndex = firstIndex + 1;
-        secondIndex < team.length;
-        secondIndex += 1
-      ) {
-        if (
-          recentTeammatePairs.has(
-            seasonLobbyTeammatePairKey(
-              team[firstIndex].playerId,
-              team[secondIndex].playerId,
-            ),
-          )
-        ) {
-          total += 1;
-        }
-      }
-    }
-    return total;
-  }, 0);
-}
-
-export function seasonLobbyTeammatePairKey(
-  firstPlayerId: string,
-  secondPlayerId: string,
-) {
-  return [firstPlayerId, secondPlayerId].sort().join(":");
 }
 
 function compareScores(left: number[], right: number[]) {

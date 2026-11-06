@@ -22,7 +22,7 @@ const optimizationOptions: Array<{
     variant,
   })),
   {
-    description: "Снижает повторы команд из прошлого тура",
+    description: "Снижает частоту повторных команд и соперников за весь сезон",
     label: "Играли вместе",
     variant: "together",
   },

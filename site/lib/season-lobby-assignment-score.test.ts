@@ -35,7 +35,7 @@ describe("optimal season lobby fairness", () => {
 
   it("ranks similar core-role burden above one-sided secondary-role burden", () => {
     const options = {
-      repeatedTeammateCount: 0,
+      pairHistoryPenalty: [0, 0] as [number, number],
       teamTierSpreads: [3, 3],
       variant: "optimal" as const,
     };
@@ -53,5 +53,27 @@ describe("optimal season lobby fairness", () => {
     expect(even).not.toBeNull();
     expect(uneven).not.toBeNull();
     expect(even?.[5]).toBeLessThan(uneven?.[5] ?? 0);
+  });
+
+  it("ranks teammate frequency before opponent frequency for together mode", () => {
+    const common = {
+      teamTierSpreads: [3, 3],
+      variant: "together" as const,
+    };
+    const frequentTeammates = assignmentScore(
+      metrics(), metrics(), [0, 0],
+      { ...common, pairHistoryPenalty: [4, 0] },
+    );
+    const fewerTeammates = assignmentScore(
+      metrics(), metrics(), [0, 0],
+      { ...common, pairHistoryPenalty: [2, 8] },
+    );
+    const fewerOpponents = assignmentScore(
+      metrics(), metrics(), [0, 0],
+      { ...common, pairHistoryPenalty: [2, 3] },
+    );
+
+    expect(fewerTeammates[4]).toBeLessThan(frequentTeammates[4]);
+    expect(fewerOpponents[5]).toBeLessThan(fewerTeammates[5]);
   });
 });

@@ -13,7 +13,7 @@ export type SeasonLobbyAssignmentMetrics = {
 };
 
 export type SeasonLobbyScoreOptions = {
-  repeatedTeammateCount: number;
+  pairHistoryPenalty: [number, number];
   teamTierSpreads: number[];
   variant: SeasonLobbyOptimizationVariant;
 };
@@ -72,9 +72,7 @@ export function assignmentScore(
     totalTierDifference > MAX_SEASON_TEAM_TIER_DIFFERENCE
       ? totalTierDifference
       : 0,
-    ...(options.variant === "together"
-      ? [options.repeatedTeammateCount]
-      : []),
+    ...options.pairHistoryPenalty,
     ...primaryRoleBalance,
     Math.abs(left.secondaryRoleCount - right.secondaryRoleCount),
     Math.max(left.secondaryRoleCount, right.secondaryRoleCount),

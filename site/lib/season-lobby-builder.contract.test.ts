@@ -189,8 +189,10 @@ describe("season lobby builder contract", () => {
     expect(optimizationMenuStyles).toContain(
       ".season-builder-optimization-menu:focus-within .season-builder-optimization-options",
     );
-    expect(optimizationActions).toContain("loadRecentTeammatePairs");
-    expect(optimizationActions).toContain("previous.round_number < current.round_number");
+    expect(optimizationActions).toContain("loadSeasonLobbyPairHistory");
+    expect(source("./season-lobby-pair-history.ts")).toContain(
+      "historical_round.round_number < current.round_number",
+    );
   });
 
   it("shows circular tier badges in reserve and assigned lobby slots", () => {
