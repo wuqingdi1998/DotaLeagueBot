@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   optimizeSeasonLobbyPlayers,
-  seasonLobbyTeammatePairKey,
   sortSeasonLobbyTeamByTier,
   type SeasonLobbyOptimizationPlayer,
 } from "./season-lobby-optimization";
+import { seasonLobbyPairKey } from "./season-lobby-pair-history";
 
 function player(
   index: number,
@@ -31,9 +31,9 @@ function teamMembershipSignature(
   ).join("|");
 }
 
-function repeatedPairCount(
+function teammateFrequency(
   plan: ReturnType<typeof optimizeSeasonLobbyPlayers>,
-  teammatePairs: ReadonlySet<string>,
+  teammateCounts: ReadonlyMap<string, number>,
 ) {
   return plan.lobbies.reduce((total, lobby) => {
     for (const teamSide of ["a", "b"] as const) {
@@ -46,16 +46,10 @@ function repeatedPairCount(
           secondIndex < team.length;
           secondIndex += 1
         ) {
-          if (
-            teammatePairs.has(
-              seasonLobbyTeammatePairKey(
-                team[firstIndex].playerId,
-                team[secondIndex].playerId,
-              ),
-            )
-          ) {
-            total += 1;
-          }
+          total += teammateCounts.get(seasonLobbyPairKey(
+            team[firstIndex].playerId,
+            team[secondIndex].playerId,
+          )) ?? 0;
         }
       }
     }
@@ -305,12 +299,12 @@ describe("season lobby optimization", () => {
     }
   });
 
-  it("reduces pairs who were teammates in the immediately previous round", () => {
+  it("reduces the accumulated frequency of prior teammates", () => {
     const players = Array.from({ length: 10 }, (_, index) =>
       player(index, 8, (index % 5) + 1),
     );
     const optimal = optimizeSeasonLobbyPlayers(players, 1);
-    const recentTeammatePairs = new Set<string>();
+    const teammateCounts = new Map<string, number>();
     for (const teamSide of ["a", "b"] as const) {
       const team = optimal.lobbies[0].placements.filter(
         (placement) => placement.teamSide === teamSide,
@@ -321,23 +315,24 @@ describe("season lobby optimization", () => {
           secondIndex < team.length;
           secondIndex += 1
         ) {
-          recentTeammatePairs.add(
-            seasonLobbyTeammatePairKey(
+          teammateCounts.set(
+            seasonLobbyPairKey(
               team[firstIndex].playerId,
               team[secondIndex].playerId,
             ),
+            firstIndex === 0 ? 4 : 1,
           );
         }
       }
     }
 
     const together = optimizeSeasonLobbyPlayers(players, 1, {
-      recentTeammatePairs,
+      pairHistory: { teammateCounts, opponentCounts: new Map() },
       variant: "together",
     });
 
-    expect(repeatedPairCount(together, recentTeammatePairs)).toBeLessThan(
-      repeatedPairCount(optimal, recentTeammatePairs),
+    expect(teammateFrequency(together, teammateCounts)).toBeLessThan(
+      teammateFrequency(optimal, teammateCounts),
     );
   });
 

@@ -1,9 +1,12 @@
 import type { PoolClient } from "pg";
+import {
+  EMPTY_SEASON_LOBBY_PAIR_HISTORY,
+  loadSeasonLobbyPairHistory,
+} from "@/lib/season-lobby-pair-history";
 import { loadSeasonLobbyRoleHistory } from "@/lib/season-lobby-role-history";
 import {
   MAX_SEASON_LOBBY_COUNT,
   optimizeSeasonLobbyPlayers,
-  seasonLobbyTeammatePairKey,
   SEASON_LOBBY_SIZE,
   sortSeasonLobbyTeamByTier,
   type SeasonLobbyOptimizationPlayer,
@@ -27,11 +30,6 @@ type AssignedPlayerRow = {
   team_side: "a" | "b";
   tier_snapshot: number | null;
   slot_number: number | null;
-};
-
-type RecentTeammateRow = {
-  first_player_id: string;
-  second_player_id: string;
 };
 
 export async function optimizeSeasonLobbyConfiguration(
@@ -64,12 +62,12 @@ export async function optimizeSeasonLobbyConfiguration(
       tierSnapshot: tier_snapshot,
     }),
   );
-  const recentTeammatePairs = variant === "together"
-    ? await loadRecentTeammatePairs(client, roundId)
-    : new Set<string>();
+  const pairHistory = variant === "together"
+    ? await loadSeasonLobbyPairHistory(client, roundId)
+    : EMPTY_SEASON_LOBBY_PAIR_HISTORY;
   const roleHistory = await loadSeasonLobbyRoleHistory(client, roundId, players);
   const plan = optimizeSeasonLobbyPlayers(players, MAX_SEASON_LOBBY_COUNT, {
-    recentTeammatePairs,
+    pairHistory,
     roleHistory,
     variant,
   });
@@ -111,55 +109,6 @@ export async function optimizeSeasonLobbyConfiguration(
     }
   }
   return { reservePlayerIds: plan.reservePlayerIds };
-}
-
-async function loadRecentTeammatePairs(
-  client: PoolClient,
-  roundId: number,
-) {
-  const result = await client.query<RecentTeammateRow>(
-    `WITH current_round AS (
-       SELECT tournament_id, round_number
-       FROM season_rounds
-       WHERE id = $1
-     ), previous_round AS (
-       SELECT previous.id
-       FROM season_rounds previous
-       CROSS JOIN current_round current
-       WHERE previous.tournament_id = current.tournament_id
-         AND previous.round_kind = 'regular'
-         AND previous.round_number < current.round_number
-       ORDER BY previous.round_number DESC
-       LIMIT 1
-     ), normalized_participants AS (
-       SELECT participant.match_id, participant.team_side,
-         COALESCE(
-           identity.registered_player_id::text,
-           participant.player_id::text
-         ) AS player_id
-       FROM season_match_participants participant
-       JOIN season_matches match ON match.id = participant.match_id
-       JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-       JOIN previous_round ON previous_round.id = lobby.round_id
-       LEFT JOIN player_identity_members identity_member
-         ON identity_member.player_id = participant.player_id
-       LEFT JOIN player_identities identity
-         ON identity.id = identity_member.identity_id
-     )
-     SELECT DISTINCT first_player.player_id AS first_player_id,
-       second_player.player_id AS second_player_id
-     FROM normalized_participants first_player
-     JOIN normalized_participants second_player
-       ON second_player.match_id = first_player.match_id
-      AND second_player.team_side = first_player.team_side
-      AND second_player.player_id > first_player.player_id`,
-    [roundId],
-  );
-  return new Set(
-    result.rows.map(({ first_player_id, second_player_id }) =>
-      seasonLobbyTeammatePairKey(first_player_id, second_player_id),
-    ),
-  );
 }
 
 export async function sortSeasonLobbyConfigurationByTier(
