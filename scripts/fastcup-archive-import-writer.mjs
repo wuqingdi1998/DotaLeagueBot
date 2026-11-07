@@ -15,7 +15,7 @@ const json = (value, tag) =>
 const teamCountText = (count) =>
   `${count} ${count === 1 ? "команда" : count >= 2 && count <= 4 ? "команды" : "команд"}`;
 
-const flattenImportData = (tournaments) => {
+export const flattenImportData = (tournaments, archiveIdBase = -8600000000010000n) => {
   const teams = [];
   const rosters = [];
   const groups = [];
@@ -30,7 +30,7 @@ const flattenImportData = (tournaments) => {
     if (!archiveIds.has(identityKey)) {
       archiveIds.set(
         identityKey,
-        String(-8600000000010000n - BigInt(archiveIds.size + 1)),
+        String(archiveIdBase - BigInt(archiveIds.size + 1)),
       );
     }
     return archiveIds.get(identityKey);
@@ -78,6 +78,8 @@ const flattenImportData = (tournaments) => {
       sortOrder: index + 1,
       teamCapacity: tournament.groupOrder.filter((entry) => entry.groupName === groupName).length,
       advanceToPlayoff: tournament.metadata.advanceToPlayoff,
+      advanceToUpper: tournament.metadata.advanceToUpper ?? 0,
+      advanceToLower: tournament.metadata.advanceToLower ?? 0,
     })));
     matches.push(
       ...tournament.matches.map((match) => ({
@@ -120,7 +122,7 @@ const tournamentSource = (tournaments) =>
     slug: tournament.metadata.slug,
     name: tournament.name,
     description: tournament.metadata.description ?? `${teamCountText(tournament.teams.length)}, групповой этап и плей-офф по результатам таблицы турнира.`,
-    about: `${tournament.metadata.gameMode ?? "Captain's Mode"}. ${tournament.metadata.mmrLimit
+    about: tournament.metadata.about ?? `${tournament.metadata.gameMode ?? "Captain's Mode"}. ${tournament.metadata.mmrLimit
       ? `Сумма ММР пяти игроков — не более ${tournament.metadata.mmrLimit}`
       : `Сумма тиров пяти игроков — не более ${tournament.metadata.tierLimit}`}, минимальный ранг — Герой.${tournament.metadata.participationNote ? ` ${tournament.metadata.participationNote}` : ""}`,
     startAt: tournament.metadata.startAt,
@@ -135,7 +137,7 @@ const tournamentSource = (tournaments) =>
     playoffType: tournament.metadata.playoffType ?? "single_elimination",
   }));
 
-const buildSql = (tournaments, data) => `-- Файл сформирован scripts/generate-fastcup-archive-import.mjs.
+export const buildSql = (tournaments, data) => `-- Файл сформирован scripts/generate-fastcup-archive-import.mjs.
 -- Справочные листы игроков использованы только для данных составов и идентификации профилей.
 CREATE TEMP TABLE imported_fastcups ON COMMIT DROP AS
 SELECT * FROM jsonb_to_recordset(${json(tournamentSource(tournaments), "tournaments")}) AS source(
@@ -244,7 +246,7 @@ INSERT INTO players (
 SELECT
   resolution.archive_id, nextval('archived_player_steam_id_seq'),
   resolution.archive_dota_id, resolution.archive_nickname,
-  'Архивная запись LS Fastcup — профиль не привязан', TRUE, NOW()
+  'Архивная запись турнира — профиль не привязан', TRUE, NOW()
 FROM imported_fastcup_player_resolutions resolution
 WHERE resolution.registered_player_id IS NULL
 ON CONFLICT (discord_id) DO NOTHING;
@@ -270,7 +272,8 @@ ON CONFLICT (application_id, role) DO NOTHING;
 CREATE TEMP TABLE imported_fastcup_groups ON COMMIT DROP AS
 SELECT * FROM jsonb_to_recordset(${json(data.groups, "groups")}) AS source(
   slug TEXT, "groupName" TEXT, "sortOrder" SMALLINT,
-  "teamCapacity" SMALLINT, "advanceToPlayoff" SMALLINT
+  "teamCapacity" SMALLINT, "advanceToPlayoff" SMALLINT,
+  "advanceToUpper" SMALLINT, "advanceToLower" SMALLINT
 );
 
 INSERT INTO tournament_groups (
@@ -279,11 +282,14 @@ INSERT INTO tournament_groups (
 )
 SELECT
   tournament.id, source."groupName", source."sortOrder", source."teamCapacity",
-  source."advanceToPlayoff", 0, 0,
+  source."advanceToPlayoff", source."advanceToUpper", source."advanceToLower",
   'Итоговые места определялись по числу выигранных карт и правилам тай-брейка турнира.'
 FROM imported_fastcup_groups source
 JOIN tournaments tournament ON tournament.slug = source.slug
-ON CONFLICT (tournament_id, name) DO NOTHING;
+WHERE NOT EXISTS (
+  SELECT 1 FROM tournament_groups existing
+  WHERE existing.tournament_id = tournament.id AND existing.name = source."groupName"
+);
 
 CREATE TEMP TABLE imported_fastcup_group_order ON COMMIT DROP AS
 SELECT * FROM jsonb_to_recordset(${json(data.groupOrders, "group_order")}) AS source(

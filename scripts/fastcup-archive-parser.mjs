@@ -34,7 +34,7 @@ const numberFrom = (value) => {
   return Number.isFinite(number) ? number : null;
 };
 
-const scoreFrom = (rows, rowIndex, columnIndex) => {
+export const scoreFrom = (rows, rowIndex, columnIndex) => {
   for (let offset = 1; offset <= 3; offset += 1) {
     const value = clean(rows[rowIndex]?.[columnIndex + offset]);
     if (value) return value;
@@ -44,7 +44,7 @@ const scoreFrom = (rows, rowIndex, columnIndex) => {
 
 const seriesBestOf = (format) => Number(clean(format).match(/\d+/)?.[0] ?? 1);
 
-const parsePlayerReferenceSheet = (workbook) => {
+export const parsePlayerReferenceSheet = (workbook) => {
   const tierSheet = findSheet(workbook, "Тир игроков");
   const mmrSheet = findSheet(workbook, "ММР игроков");
   const sheet = tierSheet ?? mmrSheet;
@@ -81,7 +81,7 @@ const parsePlayerReferenceSheet = (workbook) => {
 const canonicalTeamName = (teamName, metadata) =>
   metadata.teamNameAliases?.[key(teamName)] ?? clean(teamName);
 
-const parseTeams = (tournamentRows) => {
+export const parseTeams = (tournamentRows) => {
   const teams = [];
   const participantsRow = tournamentRows.findIndex((row) =>
     row.some((value) => key(value) === "участники"),
@@ -108,7 +108,7 @@ const referenceForRoster = (nickname, referenceMap) => {
   return referenceMap.get(key(nickname)) ?? referenceMap.get(key(linkedNickname)) ?? null;
 };
 
-const parseRosters = (workbook, teams, referenceMap, metadata, discrepancies) => {
+export const parseRosters = (workbook, teams, referenceMap, metadata, discrepancies) => {
   const sheet = findSheet(workbook, "Составы");
   if (!sheet) throw new Error(`${workbook.FileName}: не найден лист «Составы»`);
   const rows = displayedRows(sheet);
@@ -197,7 +197,7 @@ const parseRosters = (workbook, teams, referenceMap, metadata, discrepancies) =>
   }
 };
 
-const parsePlacements = (rows, teams, metadata, discrepancies) => {
+export const parsePlacements = (rows, teams, metadata, discrepancies) => {
   const titleRow = rows.findIndex((row) =>
     row.some((value) => key(value) === "итоговое положение команд"),
   );
@@ -238,7 +238,7 @@ const parsePlacements = (rows, teams, metadata, discrepancies) => {
   }
 };
 
-const parseGroupOrder = (rows, teams, metadata) => {
+export const parseGroupOrder = (rows, teams, metadata) => {
   const titles = [];
   for (const [rowIndex, row] of rows.entries()) {
     for (const [columnIndex, value] of row.entries()) {
@@ -264,7 +264,7 @@ const parseGroupOrder = (rows, teams, metadata) => {
   return order;
 };
 
-const matchResult = (teamA, teamB, scoreA, scoreB) => {
+export const matchResult = (teamA, teamB, scoreA, scoreB) => {
   const numericA = numberFrom(scoreA);
   const numericB = numberFrom(scoreB);
   if (Number.isInteger(numericA) && Number.isInteger(numericB)) {
@@ -300,7 +300,7 @@ const matchResult = (teamA, teamB, scoreA, scoreB) => {
   };
 };
 
-const winnerAndLoser = (match) => {
+export const winnerAndLoser = (match) => {
   const labelA = key(match.labelA);
   const labelB = key(match.labelB);
   if (labelA === "w" || labelA === ">" || ["ff", "тп", "тл"].includes(labelB)) {
@@ -440,7 +440,7 @@ const parseMatches = (rows, metadata, discrepancies) => {
   }));
 };
 
-const parseRules = (workbook, discrepancies) => {
+export const parseRules = (workbook, discrepancies) => {
   const sheet = findSheet(workbook, "Доп. правила");
   if (!sheet) return [];
   const rules = [];
