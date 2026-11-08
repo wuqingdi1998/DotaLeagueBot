@@ -329,6 +329,21 @@
   grid-column: 1 / -1;
 }
 
+.editor-grid .tournament-start-visibility {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.editor-grid .tournament-start-visibility input {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--blue);
+}
+
 .editor-grid input,
 .editor-grid textarea,
 .modal input,

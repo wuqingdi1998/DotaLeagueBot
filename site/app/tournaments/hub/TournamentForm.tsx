@@ -35,16 +35,15 @@ export function TournamentForm({
     event.preventDefault();
     const start = new Date(toTournamentIso(form.start_at));
     const end = new Date(toTournamentIso(form.end_at));
-    const registrationDeadline = new Date(
-      toTournamentIso(form.registration_deadline),
-    );
+    const registrationDeadline = form.registration_deadline
+      ? new Date(toTournamentIso(form.registration_deadline)) : null;
     const registrationStart = form.registration_starts_at
       ? new Date(toTournamentIso(form.registration_starts_at))
       : null;
     if (
       !Number.isFinite(start.getTime()) ||
       !Number.isFinite(end.getTime()) ||
-      (form.tournament_type === "ordinary" &&
+      (form.tournament_type === "ordinary" && registrationDeadline &&
         (!Number.isFinite(registrationDeadline.getTime()) ||
           registrationDeadline > start ||
           (registrationStart && registrationStart >= registrationDeadline))) ||
@@ -65,9 +64,8 @@ export function TournamentForm({
           ...form,
           start_at: toTournamentIso(form.start_at),
           end_at: toTournamentIso(form.end_at),
-          registration_deadline: toTournamentIso(
-            form.registration_deadline,
-          ),
+          registration_deadline: form.registration_deadline
+            ? toTournamentIso(form.registration_deadline) : null,
           registration_starts_at: form.registration_starts_at
             ? toTournamentIso(form.registration_starts_at)
             : null,
@@ -182,6 +180,11 @@ export function TournamentForm({
               value={form.end_at}
               onChange={(value) => setField("end_at", value)}
             />
+            {form.tournament_type === "ordinary" && <label className="tournament-start-visibility">
+              <input type="checkbox" checked={form.show_start_in_overview}
+                onChange={(event) => setField("show_start_in_overview", event.target.checked)} />
+              <span>Показывать старт турнира в обзоре</span>
+            </label>}
             {form.tournament_type === "seasonal_cup" && <label>
               <span>Начало плей-офф</span>
               <input type="date" value={form.playoff_starts_on}
@@ -196,6 +199,7 @@ export function TournamentForm({
             {form.tournament_type === "ordinary" && (
               <DateField
                 label="Дедлайн регистрации"
+                required={false}
                 value={form.registration_deadline}
                 onChange={(value) => setField("registration_deadline", value)}
               />
@@ -216,13 +220,13 @@ export function TournamentForm({
                   value={form.max_teams}
                   onChange={(value) => setField("max_teams", value)}
                 />
-                {form.tournament_type !== "seasonal_cup" && <NumberField
-                  label="Check-in, минут"
-                  min={5}
-                  max={180}
-                  value={form.check_in_minutes}
-                  onChange={(value) => setField("check_in_minutes", value)}
-                />}
+                {form.tournament_type !== "seasonal_cup" && <label>
+                  <span>Check-in, минут</span>
+                  <input type="number" min="5" max="180" placeholder="Не указан"
+                    value={form.check_in_minutes ?? ""}
+                    onChange={(event) => setField("check_in_minutes",
+                      event.target.value ? Number(event.target.value) : null)} />
+                </label>}
                 <label>
                   <span>Максимальный тир</span>
                   <input

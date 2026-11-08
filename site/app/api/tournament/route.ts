@@ -107,7 +107,7 @@ export async function GET(request: Request) {
         WHERE match.tournament_id = tournaments.id) AS first_match_at,
        end_at, playoff_starts_on::text, registration_starts_at, registration_deadline,
        status_label, format, team_size, max_teams, region, server,
-       check_in_minutes, group_format, playoff_format, final_format,
+       check_in_minutes, show_start_in_overview, group_format, playoff_format, final_format,
        max_team_tier::int, show_tiers,
        playoff_type, tournament_type, season_round_count::int,
        season_activity_points_note, ordinary_match_rooms_enabled,

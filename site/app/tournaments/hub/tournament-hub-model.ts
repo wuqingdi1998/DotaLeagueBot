@@ -15,7 +15,7 @@ export type TournamentSummary = {
   start_at: string;
   end_at: string;
   registration_starts_at: string | null;
-  registration_deadline: string;
+  registration_deadline: string | null;
   status_label: string;
   format: string;
   team_size: number;
@@ -84,7 +84,8 @@ export type NewTournament = {
   show_tiers: boolean;
   region: string;
   server: string;
-  check_in_minutes: number;
+  check_in_minutes: number | null;
+  show_start_in_overview: boolean;
   group_format: string;
   playoff_format: string;
   playoff_type: "single_elimination" | "double_elimination";
@@ -116,7 +117,8 @@ export const emptyTournament: NewTournament = {
   show_tiers: false,
   region: "EU / RU",
   server: "EU West",
-  check_in_minutes: 60,
+  check_in_minutes: null,
+  show_start_in_overview: true,
   group_format: "",
   playoff_format: "",
   playoff_type: "double_elimination",

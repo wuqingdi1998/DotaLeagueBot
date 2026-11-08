@@ -31,7 +31,7 @@ export type Tournament = {
   end_at: string;
   playoff_starts_on?: string | null;
   registration_starts_at: string | null;
-  registration_deadline: string;
+  registration_deadline: string | null;
   status_label: string;
   format: string;
   team_size: number;
@@ -40,7 +40,8 @@ export type Tournament = {
   show_tiers: boolean;
   region: string;
   server: string;
-  check_in_minutes: number;
+  check_in_minutes: number | null;
+  show_start_in_overview?: boolean;
   group_format: string;
   playoff_format: string;
   final_format: string;

@@ -21,6 +21,9 @@ def test_fresh_dev_copy_selects_game_and_archive_migrations_again():
     directory = Path(__file__).parents[1] / "database" / "migrations"
     production = {path.name for path in migration_files(directory, "ls_db")}
     development = {path.name for path in migration_files(directory, "linkens_development")}
-    development_only = {"0194_autobattler.sql", "0198_selected_archive_tournaments.sql"}
+    development_only = {
+        "0194_autobattler.sql", "0198_selected_archive_tournaments.sql",
+        "0200_selected_archive_confirmations.sql",
+    }
     assert production.isdisjoint(development_only)
     assert development - production == development_only

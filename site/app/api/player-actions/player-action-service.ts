@@ -12,7 +12,7 @@ type TeamCheckInRow = {
   team_name: string;
   tournament_name: string;
   slug: string;
-  check_in_minutes: number;
+  check_in_minutes: number | null;
   first_match_at: Date;
 };
 

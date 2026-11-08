@@ -4,6 +4,10 @@ import { tournamentCheckInWindow } from "./tournament-check-in";
 describe("tournament team check-in window", () => {
   const firstMatchAt = "2026-08-15T17:00:00.000Z";
 
+  it.each([null, 0])("has no confirmation window or marks when check-in is absent (%s)", (checkInMinutes) => {
+    expect(tournamentCheckInWindow({ firstMatchAt, checkInMinutes })).toBeNull();
+  });
+
   it("opens from the configured hour before the first match", () => {
     const window = tournamentCheckInWindow({
       firstMatchAt,

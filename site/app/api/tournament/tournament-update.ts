@@ -8,6 +8,7 @@ import {
   missingFieldsMessage,
   missingRequiredTournamentFields,
   normalizeTournamentDateFields,
+  normalizeOptionalTournamentTiming,
   registrationStartDateError,
 } from "./tournament-validation";
 
@@ -31,7 +32,7 @@ export async function PATCH(request: Request) {
         { status: 400 },
       );
     }
-    const dateError = normalizeTournamentDateFields(body);
+    const dateError = normalizeTournamentDateFields(body) || normalizeOptionalTournamentTiming(body);
     if (dateError) {
       return Response.json({ error: dateError }, { status: 400 });
     }
@@ -83,9 +84,11 @@ export async function PATCH(request: Request) {
           region = $15, server = $16, check_in_minutes = $17,
           group_format = $18, playoff_format = $19, final_format = $20,
           discord_url = $21, status = $22, slug = $23, playoff_type = $24,
-          max_team_tier = $25, show_tiers = $26, playoff_starts_on = $27, updated_at = NOW()
-        WHERE id = $28`,
-        [...values, slug, playoffType, maximumTeamTier, showTiers, body.playoff_starts_on, id],
+          max_team_tier = $25, show_tiers = $26, playoff_starts_on = $27,
+          show_start_in_overview = COALESCE($28, show_start_in_overview), updated_at = NOW()
+        WHERE id = $29`,
+        [...values, slug, playoffType, maximumTeamTier, showTiers, body.playoff_starts_on,
+          body.show_start_in_overview ?? null, id],
       );
       await client.query(
         `INSERT INTO tournament_audit_log
