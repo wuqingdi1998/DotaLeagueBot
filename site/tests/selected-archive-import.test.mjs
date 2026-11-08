@@ -16,7 +16,7 @@ beforeAll(async () => {
   await database.exec(read("./fixtures/selected-archive-schema.sql"));
   await database.exec(`
     INSERT INTO players(discord_id,steam_id32,ingame_name) VALUES
-      (1000,1000,'Flower today'), (1001,1001,'Future linked profile'), (1002,1002,'Sanraizu');
+      (1000,1000,'Flower today'), (1001,1001,'Future linked profile'), (203058168408965120,1002,'Sanraizu');
     INSERT INTO player_nickname_history(player_id,nickname)
       VALUES (1000,'.flowerZ');
   `);
@@ -132,12 +132,13 @@ describe("selected tournament archive import", () => {
   }, 30000);
 
   it("applies owner confirmations, preserves historical nicknames and merges all five Bash maps", async () => {
-    const before = await loadPlayerMapStatistics(["1002"]);
+    const before = await loadPlayerMapStatistics(["203058168408965120"]);
+    await database.exec("UPDATE players SET ingame_name='Renamed current player' WHERE discord_id=203058168408965120");
     const timing = read("../../bot/database/migrations/0199_optional_tournament_timing.sql");
     const confirmation = read("../../bot/database/migrations/development/0200_selected_archive_confirmations.sql");
     await database.exec(`BEGIN;${timing}${confirmation}COMMIT;`);
     const after = await loadPlayerMapStatistics((await database.query(`SELECT member.player_id::text AS id
-      FROM player_identity_members member WHERE identity_id=(SELECT identity_id FROM player_identity_members WHERE player_id=1002)`)).rows.map((r) => r.id));
+      FROM player_identity_members member WHERE identity_id=(SELECT identity_id FROM player_identity_members WHERE player_id=203058168408965120)`)).rows.map((r) => r.id));
     expect(after.maps - before.maps).toBe(5);
     expect(after.mapWins - before.mapWins).toBe(2);
     expect(after.tournaments.find((t) => t.tournamentName === "LS Pre-season Bash")).toMatchObject({ maps: 5, mapWins: 2 });
