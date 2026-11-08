@@ -4,6 +4,9 @@ import { cupTournament } from "@/tests/cup-schedule-context";
 import { ArchiveRosterEditor } from "../ArchiveRosterEditor";
 import { TeamsPanel } from "./TeamsPanel";
 import { ApplicationsAdmin } from "../admin/ApplicationsAdmin";
+import { readFileSync, mkdirSync } from "node:fs";
+import { chromium } from "playwright";
+import { dirname, resolve } from "node:path";
 
 const context = vi.hoisted(() => ({
   activeTab: "teams", approvedTeams: [], registrationAvailable: false,
@@ -69,6 +72,48 @@ it("places the team name and smaller parenthesized tag together beside the avata
   expect(html).toContain('<div class="team-card-heading"><h3><span class="team-card-name">Команда</span> <small class="team-tag">(TEAM)</small></h3>');
   expect(html).not.toContain('<p class="team-tag">');
 });
+
+it.each(["ordinary", "seasonal"] as const)("keeps the original team presentation outside league cups: %s", (type) => {
+  context.data.tournament.tournament_type = type;
+  const html = renderToStaticMarkup(<TeamsPanel />);
+  expect(html).not.toContain("team-card-league-cup");
+  expect(html).toContain('<p class="team-tag">TEAM</p><h3>Команда</h3>');
+  expect(html).not.toContain('(TEAM)');
+});
+
+it("keeps cup and ordinary team layouts separate on desktop and phones", async () => {
+  function loadStyles(file: string): string {
+    return readFileSync(file, "utf8").replace(/@import\s+["'](.+?)["'];/g,
+      (_, path: string) => path.endsWith(".css") ? loadStyles(resolve(dirname(file), path)) : "");
+  }
+  const css = loadStyles("app/globals.css") + loadStyles("app/styles/tournaments-route.css");
+  const browser = await chromium.launch();
+  mkdirSync(".data/team-layout", { recursive: true });
+  try {
+    for (const width of [1366, 393, 360]) {
+      for (const type of ["ordinary", "seasonal_cup"] as const) {
+        context.data.tournament.tournament_type = type;
+        const page = await browser.newPage({ viewport: { width, height: 900 } });
+        await page.emulateMedia({ reducedMotion: "reduce" });
+        await page.setContent(`<html data-theme="dark"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style>${renderToStaticMarkup(<TeamsPanel />)}</html>`);
+        await page.locator(".team-card").evaluate((node) => node.getAnimations().forEach((animation) => animation.finish()));
+        const size = await page.locator(".team-avatar").boundingBox();
+        expect(size!.width).toBeCloseTo(type === "ordinary" ? 60 : 120, 1);
+        expect(size!.height).toBeCloseTo(type === "ordinary" ? 60 : 120, 1);
+        const heading = page.locator(".team-card h3");
+        expect(await heading.evaluate((node) => getComputedStyle(node).fontSize))
+          .toBe(`${type === "ordinary" ? 27 : width > 760 ? 36 : width > 380 ? 32 : 28}px`);
+        const tag = page.locator(".team-tag");
+        expect(await tag.textContent()).toBe(type === "ordinary" ? "TEAM" : "(TEAM)");
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        await page.screenshot({ path: `.data/team-layout/${type}-${width}.png`, fullPage: true });
+        await page.close();
+      }
+    }
+  } finally {
+    await browser.close();
+  }
+}, 30000);
 
 it.each([false, true])("allows empty editable participation details in the roster form, historical: %s", (isHistorical) => {
   const html = renderToStaticMarkup(<ArchiveRosterEditor

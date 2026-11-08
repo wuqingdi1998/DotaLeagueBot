@@ -50,7 +50,7 @@ export function TeamsPanel() {
         {data.applications
           .filter((team) => team.status !== "declined")
           .map((team) => (
-            <article className="team-card" key={team.id}>
+            <article className={`team-card${isSeasonalCup ? " team-card-league-cup" : ""}`} key={team.id}>
               <div className="team-card-head">
                 {team.logo_key ? (
                   <TeamEmblemPreview
@@ -63,10 +63,10 @@ export function TeamsPanel() {
                   </div>
                 )}
                 <div className="team-card-heading">
-                  <h3>
+                  {isSeasonalCup && <h3>
                     <span className="team-card-name">{team.team_name}</span>{" "}
                     {team.tag && <small className="team-tag">({team.tag})</small>}
-                  </h3>
+                  </h3>}
                   {!(isSeasonalCup && team.status === "approved") && <span className={`status-badge ${team.status}`}>
                     {team.status === "approved"
                       ? "Допущена"
@@ -81,6 +81,10 @@ export function TeamsPanel() {
                   <FiCheckCircle aria-hidden="true" /> Прошел чек-ин
                 </div>
               )}
+              {!isSeasonalCup && <>
+                {team.tag && <p className="team-tag">{team.tag}</p>}
+                <h3>{team.team_name}</h3>
+              </>}
               {(team.selection_method.trim() || (tournament.show_tiers && team.team_tier_total_snapshot !== null)) && <div className="team-archive-meta">
                 {team.selection_method.trim() && <span>{team.selection_method}</span>}
                 {tournament.show_tiers && team.team_tier_total_snapshot !== null && (
