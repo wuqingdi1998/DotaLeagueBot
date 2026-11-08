@@ -52,6 +52,7 @@ jobs:
           docker compose config --quiet
           docker compose -f docker-compose.development.yml config --quiet
           bash -n scripts/deploy-development.sh
+          bash -n scripts/development-transport.sh
       - name: Check bot
         working-directory: bot
         run: |
@@ -869,24 +870,23 @@ jobs:
             gzip -1 > development-images.tar.gz
       - name: Transfer development images
         if: github.ref == 'refs/heads/codex/dev'
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          source: development-images.tar.gz
-          target: /tmp/dotaleaguebot-dev-${{ github.sha }}
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+        run: bash scripts/development-transport.sh transfer
       - name: Deploy isolated test site
         if: steps.development_policy.outputs.preserve != 'true'
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 20m
-          script: |
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+        run: |
+            timeout 20m bash scripts/development-transport.sh deploy <<'DEPLOY_SCRIPT'
             set -euo pipefail
             APP_DIR=/root/DotaLeagueBotDev
             REPO=https://github.com/wuqingdi1998/DotaLeagueBot.git
@@ -914,6 +914,7 @@ jobs:
             else
               bash scripts/deploy-development.sh
             fi
+            DEPLOY_SCRIPT
       - name: Verify development site externally
         if: steps.development_policy.outputs.preserve != 'true'
         run: |
