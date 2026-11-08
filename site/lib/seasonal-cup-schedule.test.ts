@@ -43,6 +43,7 @@ describe("invitation cup stages", () => {
       checkInMinutes: 60, now: new Date("2026-11-01T20:30:00Z") })).toBeNull();
   });
 
+  // A cold database start can exceed five seconds when CI runs other database suites.
   it("applies the requested dates only to the current league cup", async () => {
     const database = new PGlite();
     try {
@@ -60,5 +61,5 @@ describe("invitation cup stages", () => {
         { slug: "league-cup-season-9", start: "2026-11-02", playoff: "2026-11-30" },
       ]);
     } finally { await database.close(); }
-  });
+  }, 30_000);
 });
