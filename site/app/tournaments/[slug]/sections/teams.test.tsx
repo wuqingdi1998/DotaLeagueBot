@@ -94,8 +94,12 @@ it("keeps cup and ordinary team layouts separate on desktop and phones", async (
       for (const type of ["ordinary", "seasonal_cup"] as const) {
         context.data.tournament.tournament_type = type;
         const page = await browser.newPage({ viewport: { width, height: 900 } });
+        await page.route("https://team-layout.test/fonts/**", (route) => route.fulfill({
+          body: readFileSync(`public${new URL(route.request().url()).pathname}`),
+        }));
         await page.emulateMedia({ reducedMotion: "reduce" });
-        await page.setContent(`<html data-theme="dark"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style>${renderToStaticMarkup(<TeamsPanel />)}</html>`);
+        await page.setContent(`<html data-theme="dark"><base href="https://team-layout.test"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style>${renderToStaticMarkup(<TeamsPanel />)}</html>`);
+        await page.evaluate(() => document.fonts.ready);
         await page.locator(".team-card").evaluate((node) => node.getAnimations().forEach((animation) => animation.finish()));
         const size = await page.locator(".team-avatar").boundingBox();
         expect(size!.width).toBeCloseTo(type === "ordinary" ? 60 : 120, 1);
@@ -105,7 +109,7 @@ it("keeps cup and ordinary team layouts separate on desktop and phones", async (
           .toBe(`${type === "ordinary" ? 27 : width > 760 ? 36 : width > 380 ? 32 : 28}px`);
         const tag = page.locator(".team-tag");
         expect(await tag.textContent()).toBe(type === "ordinary" ? "TEAM" : "(TEAM)");
-        expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth), `${type} at ${width}px`).toBeLessThanOrEqual(width);
         await page.screenshot({ path: `.data/team-layout/${type}-${width}.png`, fullPage: true });
         await page.close();
       }
