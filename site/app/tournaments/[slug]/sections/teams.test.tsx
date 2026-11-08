@@ -97,6 +97,10 @@ it("keeps cup and ordinary team layouts separate on desktop and phones", async (
         await page.route("https://team-layout.test/fonts/**", (route) => route.fulfill({
           body: readFileSync(`public${new URL(route.request().url()).pathname}`),
         }));
+        await page.route("https://team-layout.test/tournament-roles/**", (route) => route.fulfill({
+          contentType: "image/png",
+          body: readFileSync(`public${new URL(route.request().url()).pathname}`),
+        }));
         await page.emulateMedia({ reducedMotion: "reduce" });
         await page.setContent(`<html data-theme="dark"><base href="https://team-layout.test"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css}</style>${renderToStaticMarkup(<TeamsPanel />)}</html>`);
         await page.evaluate(() => document.fonts.ready);

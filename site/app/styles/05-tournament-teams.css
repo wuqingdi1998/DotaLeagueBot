@@ -353,46 +353,62 @@
   font-size: 18px;
 }
 
+.role-icon-symbol {
+  width: 22px;
+  height: 22px;
+  background: currentColor;
+  mask: var(--role-icon-image) center / contain no-repeat;
+}
+
+.role-coach {
+  --role-icon-image: url("/tournament-roles/coach.png");
+}
+
 .team-card .role-icon {
   margin-right: 11px;
 }
 
 .role-safe_lane {
+  --role-icon-image: url("/tournament-roles/safe-lane.png");
+  border-color: rgba(0, 157, 217, 0.34);
+  background: rgba(0, 157, 217, 0.12);
+  color: #167db8;
+}
+
+.role-mid_lane {
+  --role-icon-image: url("/tournament-roles/mid-lane.png");
   border-color: rgba(219, 60, 72, 0.34);
   background: rgba(219, 60, 72, 0.12);
   color: #c53645;
 }
 
-.role-mid_lane {
-  border-color: rgba(99, 102, 241, 0.28);
-  background: rgba(99, 102, 241, 0.1);
-  color: #5364d9;
-}
-
 .role-off_lane {
+  --role-icon-image: url("/tournament-roles/off-lane.png");
   border-color: rgba(145, 91, 48, 0.34);
   background: rgba(145, 91, 48, 0.13);
   color: #8b562d;
 }
 
 .role-soft_support {
-  border-color: rgba(36, 183, 118, 0.3);
-  background: rgba(36, 183, 118, 0.11);
-  color: #148b59;
-}
-
-.role-hard_support {
+  --role-icon-image: url("/tournament-roles/soft-support.png");
   border-color: rgba(212, 169, 37, 0.38);
   background: rgba(255, 221, 103, 0.24);
   color: #a77d00;
 }
 
+.role-hard_support {
+  --role-icon-image: url("/tournament-roles/hard-support.png");
+  border-color: rgba(36, 183, 118, 0.3);
+  background: rgba(36, 183, 118, 0.11);
+  color: #148b59;
+}
+
 [data-theme="dark"] .role-safe_lane {
-  color: #ff7180;
+  color: #66c9ff;
 }
 
 [data-theme="dark"] .role-mid_lane {
-  color: #aeb6ff;
+  color: #ff7180;
 }
 
 [data-theme="dark"] .role-off_lane {
@@ -400,11 +416,11 @@
 }
 
 [data-theme="dark"] .role-soft_support {
-  color: #5ed79b;
+  color: #ffe27a;
 }
 
 [data-theme="dark"] .role-hard_support {
-  color: #ffe27a;
+  color: #5ed79b;
 }
 
 .team-card .player-name {
