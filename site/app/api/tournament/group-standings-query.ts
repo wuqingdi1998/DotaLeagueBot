@@ -69,7 +69,9 @@ export const GROUP_STANDINGS_QUERY = `
   SELECT
     ROW_NUMBER() OVER (
       PARTITION BY g.id
-      ORDER BY COALESCE(r.series_wins, 0) DESC, gt.sort_order, a.team_name
+      ORDER BY COALESCE(r.series_wins, 0) DESC,
+        (COALESCE(r.maps_won, 0) - COALESCE(r.maps_lost, 0)) DESC,
+        gt.sort_order, a.team_name
     )::int AS id,
     g.tournament_id::int,
     g.id::int AS group_id,
@@ -77,7 +79,9 @@ export const GROUP_STANDINGS_QUERY = `
     g.name AS group_name,
     ROW_NUMBER() OVER (
       PARTITION BY g.id
-      ORDER BY COALESCE(r.series_wins, 0) DESC, gt.sort_order, a.team_name
+      ORDER BY COALESCE(r.series_wins, 0) DESC,
+        (COALESCE(r.maps_won, 0) - COALESCE(r.maps_lost, 0)) DESC,
+        gt.sort_order, a.team_name
     )::int AS place,
     a.team_name,
     COALESCE(r.games, 0)::int AS games,

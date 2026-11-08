@@ -77,10 +77,31 @@ describe("ordinary tournament group standings", () => {
     ).toEqual([
       { team_name: "Alpha", games: 2, series_wins: 2, maps_won: 3, maps_lost: 1 },
       { team_name: "Delta", games: 1, series_wins: 1, maps_won: 1, maps_lost: 0 },
-      { team_name: "Bravo", games: 3, series_wins: 0, maps_won: 2, maps_lost: 4 },
       { team_name: "Charlie", games: 2, series_wins: 0, maps_won: 1, maps_lost: 2 },
+      { team_name: "Bravo", games: 3, series_wins: 0, maps_won: 2, maps_lost: 4 },
     ]);
     await database.close();
+  }, 15_000);
+
+  it("breaks equal series wins by map difference before the original group order", async () => {
+    const database = await standingsDatabase();
+    try {
+      await database.exec(`
+        DELETE FROM tournament_matches;
+        INSERT INTO tournament_matches VALUES
+          (1, 1, 'finished', 101, 103, 2, 0, NULL, NULL),
+          (2, 1, 'finished', 102, 104, 1, 1, NULL, NULL),
+          (3, 1, 'live', 103, 104, 9, 0, NULL, NULL);
+      `);
+      const result = await database.query<{ application_id: number; place: number; id: number }>(
+        GROUP_STANDINGS_QUERY, [10],
+      );
+      expect(result.rows.map((row) => row.application_id)).toEqual([101, 102, 104, 103]);
+      expect(result.rows.map((row) => row.place)).toEqual([1, 2, 3, 4]);
+      expect(result.rows.map((row) => row.id)).toEqual([1, 2, 3, 4]);
+    } finally {
+      await database.close();
+    }
   }, 15_000);
 
   it("describes and displays series wins instead of maps", () => {
