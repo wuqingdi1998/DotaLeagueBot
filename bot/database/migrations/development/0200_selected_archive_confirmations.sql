@@ -27,7 +27,8 @@ BEGIN
     SELECT member.identity_id, player.discord_id INTO STRICT target_identity, target_player
     FROM players player
     JOIN player_identity_members member ON member.player_id = player.discord_id
-    WHERE LOWER(player.ingame_name) = 'sanraizu' AND player.is_archived = FALSE;
+    -- Подтверждённый профиль Sanraizu: связь сохраняется и после смены текущего ника.
+    WHERE player.discord_id = 203058168408965120;
 
     IF source_identity IS NULL THEN RAISE EXCEPTION 'Historical !Flopz! roster not found'; END IF;
     IF source_identity <> target_identity THEN
