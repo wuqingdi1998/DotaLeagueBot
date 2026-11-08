@@ -840,6 +840,11 @@ jobs:
             --max-time 30 https://lsesports.ru/api/health |
             grep -q '"ok":true'
 
+          curl --fail --silent --show-error \
+            --retry 12 --retry-delay 5 --retry-all-errors --retry-max-time 120 \
+            --max-time 30 https://lsesports.ru/api/version |
+            python -c 'import json,sys; version=json.load(sys.stdin); assert version.get("revision") == "${{ github.sha }}", version'
+
           avatar_headers="$(mktemp)"
           trap 'rm -f "$avatar_headers"' EXIT
           curl --fail --silent --show-error \

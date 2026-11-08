@@ -39,7 +39,9 @@ case "${1:-}" in
     retry_transfer scp "${options[@]}" -P "$port" -- "$artifact" "$destination:$target/"
     ;;
   deploy)
-    ssh "${options[@]}" -p "$port" -- "$destination" 'bash -se'
+    # Docker commands may read stdin; capture the complete program before running it.
+    ssh "${options[@]}" -p "$port" -- "$destination" \
+      'deployment_script=$(cat); exec bash -e -c "$deployment_script" </dev/null'
     ;;
   *) echo "Expected transfer or deploy" >&2; exit 2 ;;
 esac
