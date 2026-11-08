@@ -27,7 +27,9 @@ ssh() {
     esac
     previous="$argument"
   done
-  if [ "${!#}" = 'bash -se' ]; then cat > "$TRANSPORT_REMOTE_INPUT"; fi
+  if [[ "${!#}" == deployment_script=* ]]; then
+    tee "$TRANSPORT_REMOTE_INPUT" | bash -c "${!#}"
+  fi
 }
 scp() {
   printf '%s\n' scp "$@" >> "$TRANSPORT_CALL_LOG"
@@ -59,7 +61,8 @@ def run_transport(tmp_path: Path, mode: str, **overrides: str) -> subprocess.Com
     wrapper.write_text(MOCKS, encoding="utf-8", newline="\n")
     return subprocess.run(
         [bash, str(wrapper)], cwd=tmp_path, env=env, text=True,
-        input='echo "$KEEP_LITERAL"\n', capture_output=True, check=False,
+        input=overrides.get("TRANSPORT_TEST_INPUT", 'echo "$KEEP_LITERAL"\n'),
+        capture_output=True, check=False,
     )
 
 
@@ -78,7 +81,16 @@ def test_deploy_passes_the_script_unchanged_and_cleans_credentials(tmp_path):
     result = run_transport(tmp_path, "deploy")
     assert result.returncode == 0, result.stderr
     assert (tmp_path / "remote-input").read_text(encoding="utf-8") == 'echo "$KEEP_LITERAL"\n'
-    assert "bash -se" in (tmp_path / "calls").read_text(encoding="utf-8")
+    assert 'bash -e -c "$deployment_script" </dev/null' in (
+        tmp_path / "calls").read_text(encoding="utf-8")
+
+
+def test_remote_commands_cannot_consume_the_remaining_deployment_program(tmp_path):
+    marker = (tmp_path / "completed").as_posix()
+    script = f'cat >/dev/null\nprintf "all steps executed" > "{marker}"\n'
+    result = run_transport(tmp_path, "deploy", TRANSPORT_TEST_INPUT=script)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "completed").read_text(encoding="utf-8") == "all steps executed"
 
 
 def test_transfer_refuses_an_invalid_revision_before_connecting(tmp_path):
@@ -98,3 +110,13 @@ def test_failed_transfer_stops_after_three_attempts(tmp_path):
     result = run_transport(tmp_path, "transfer", TRANSPORT_FAIL_COPY="1")
     assert result.returncode != 0
     assert (tmp_path / "calls").read_text(encoding="utf-8").splitlines().count("scp") == 3
+
+
+def test_production_transfer_uses_the_production_archive_and_target(tmp_path):
+    (tmp_path / "deployment-images.tar.gz").write_bytes(b"production images")
+    result = run_transport(tmp_path, "transfer", DEPLOY_ENVIRONMENT="production")
+    assert result.returncode == 0, result.stderr
+    calls = (tmp_path / "calls").read_text(encoding="utf-8")
+    assert f"deploy@example.invalid:/tmp/dotaleaguebot-{REVISION}/" in calls
+    assert "deployment-images.tar.gz" in calls
+    assert "development-images.tar.gz" not in calls
