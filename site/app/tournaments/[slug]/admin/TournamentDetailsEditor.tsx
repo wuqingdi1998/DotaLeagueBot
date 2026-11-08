@@ -121,6 +121,11 @@ export function TournamentDetailsEditor({
             }
           />
         </label>
+        {tournament.tournament_type === "ordinary" && <label className="tournament-start-visibility">
+          <input type="checkbox" checked={draft.show_start_in_overview !== false}
+            onChange={(event) => setField("show_start_in_overview", event.target.checked)} />
+          <span>Показывать старт турнира в обзоре</span>
+        </label>}
         <label>
           <span>{tournament.tournament_type === "seasonal_cup" ? "Окончание плей-офф" : "Окончание турнира"}</span>
           <input
@@ -159,11 +164,11 @@ export function TournamentDetailsEditor({
               <span>Дедлайн регистрации</span>
               <input
                 type="datetime-local"
-                value={toDateTimeInput(draft.registration_deadline)}
+                value={toDateTimeInput(draft.registration_deadline ?? "")}
                 onChange={(event) =>
                   setField(
                     "registration_deadline",
-                    fromDateTimeInput(event.target.value),
+                    event.target.value ? fromDateTimeInput(event.target.value) : null,
                   )
                 }
               />
@@ -198,9 +203,10 @@ export function TournamentDetailsEditor({
                 type="number"
                 min="5"
                 max="180"
-                value={draft.check_in_minutes}
+                value={draft.check_in_minutes ?? ""}
+                placeholder="Не указан"
                 onChange={(event) =>
-                  setField("check_in_minutes", Number(event.target.value))
+                  setField("check_in_minutes", event.target.value ? Number(event.target.value) : null)
                 }
               />
             </label>}

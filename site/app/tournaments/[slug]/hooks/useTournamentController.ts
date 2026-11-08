@@ -64,7 +64,8 @@ export function useTournamentController() {
     data &&
       data.tournament.tournament_type !== "seasonal_cup" &&
       Number.isFinite(currentTimeMs) &&
-      new Date(data.tournament.registration_deadline).getTime() > currentTimeMs,
+      (!data.tournament.registration_deadline ||
+        new Date(data.tournament.registration_deadline).getTime() > currentTimeMs),
   );
   const loadData = useCallback(async () => {
     try {

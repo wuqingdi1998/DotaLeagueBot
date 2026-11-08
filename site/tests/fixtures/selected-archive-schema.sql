@@ -808,3 +808,23 @@ CREATE UNIQUE INDEX season_rounds_discord_channel_unique ON public.season_rounds
 CREATE UNIQUE INDEX season_rounds_one_finals_idx ON public.season_rounds USING btree (tournament_id) WHERE ((round_kind)::text = 'finals'::text);
 
 CREATE UNIQUE INDEX tournament_groups_nonempty_name_key ON public.tournament_groups USING btree (tournament_id, name) WHERE (btrim((name)::text) <> ''::text);
+
+CREATE TABLE public.tournament_audit_log (
+    id bigint NOT NULL,
+    tournament_id bigint,
+    actor_discord_id bigint,
+    action character varying(100) NOT NULL,
+    entity_type character varying(80) NOT NULL,
+    entity_id character varying(80),
+    details jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE SEQUENCE public.tournament_audit_log_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER TABLE ONLY public.tournament_audit_log ALTER COLUMN id SET DEFAULT nextval('public.tournament_audit_log_id_seq'::regclass);

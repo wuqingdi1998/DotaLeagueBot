@@ -27,6 +27,7 @@ export function OverviewPanel() {
       ? data.tournament.start_at
       : data.tournament.first_match_at ?? data.tournament.start_at,
     checkInMinutes: data.tournament.check_in_minutes,
+    showStart: data.tournament.show_start_in_overview,
     tournamentType: data.tournament.tournament_type,
     endAt: data.tournament.end_at,
     playoffStartsOn: data.tournament.playoff_starts_on,
@@ -44,7 +45,7 @@ export function OverviewPanel() {
           </p>
         )}
         <p>{data.tournament.about}</p>
-        <div className="stage-flow">
+        {timeline.length > 0 && <div className="stage-flow">
           {timeline.map((stage, index) => (
             <Fragment key={stage.key}>
               {index > 0 && <i />}
@@ -61,7 +62,7 @@ export function OverviewPanel() {
               </div>
             </Fragment>
           ))}
-        </div>
+        </div>}
       </article>
       <aside className="details-card tournament-schedule-card">
         <div className="tournament-schedule-heading">

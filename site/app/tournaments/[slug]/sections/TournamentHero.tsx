@@ -143,10 +143,10 @@ export function TournamentHero() {
               : canRegister
               ? <>
                   Состав из {tournament.team_size} игроков · участие бесплатное
-                  · регистрация до{" "}
+                  {tournament.registration_deadline && <> · регистрация до{" "}
                   <time dateTime={tournament.registration_deadline}>
                     {formatDayMonth(tournament.registration_deadline)}
-                  </time>
+                  </time></>}
                 </>
               : tournament.tournament_type === "seasonal_cup" && !isPast
                 ? "Участие по приглашению организатора"

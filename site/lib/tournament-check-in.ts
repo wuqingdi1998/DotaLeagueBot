@@ -18,11 +18,11 @@ export function tournamentCheckInWindow({
   tournamentType,
 }: {
   firstMatchAt: string | null;
-  checkInMinutes: number;
+  checkInMinutes: number | null;
   now?: Date;
   tournamentType?: TournamentType;
 }): TournamentCheckInWindow | null {
-  if (!firstMatchAt || tournamentType === "seasonal_cup") return null;
+  if (!firstMatchAt || checkInMinutes === null || checkInMinutes <= 0 || tournamentType === "seasonal_cup") return null;
 
   const firstMatchTime = new Date(firstMatchAt).getTime();
   if (!Number.isFinite(firstMatchTime)) return null;

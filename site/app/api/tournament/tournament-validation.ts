@@ -34,6 +34,8 @@ const optionalEditableFields = new Set<EditableTournamentField>([
   "server",
   "playoff_format",
   "registration_starts_at",
+  "registration_deadline",
+  "check_in_minutes",
 ]);
 
 const editableFieldLabels: Partial<
@@ -68,6 +70,7 @@ const tournamentDateFields = [
 
 const optionalTournamentDateFields = new Set<EditableTournamentField>([
   "registration_starts_at",
+  "registration_deadline",
 ]);
 
 export function normalizeTournamentDateFields(
@@ -84,6 +87,23 @@ export function normalizeTournamentDateFields(
       return `Укажите корректное значение поля «${editableFieldLabels[field]}»`;
     }
     body[field] = normalized;
+  }
+  return "";
+}
+
+export function normalizeOptionalTournamentTiming(body: Record<string, unknown>): string {
+  const minutes = body.check_in_minutes;
+  if (minutes === undefined || minutes === null || String(minutes).trim() === "") {
+    body.check_in_minutes = null;
+  } else {
+    const value = Number(minutes);
+    if (!["number", "string"].includes(typeof minutes) || !Number.isInteger(value) || value < 0 || value > 180) {
+      return "Чек-ин должен быть целым числом от 0 до 180 минут или оставаться пустым";
+    }
+    body.check_in_minutes = value;
+  }
+  if (body.show_start_in_overview !== undefined && typeof body.show_start_in_overview !== "boolean") {
+    return "Укажите, показывать ли старт турнира в обзоре";
   }
   return "";
 }
