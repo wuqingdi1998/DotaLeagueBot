@@ -98,3 +98,13 @@ def test_failed_transfer_stops_after_three_attempts(tmp_path):
     result = run_transport(tmp_path, "transfer", TRANSPORT_FAIL_COPY="1")
     assert result.returncode != 0
     assert (tmp_path / "calls").read_text(encoding="utf-8").splitlines().count("scp") == 3
+
+
+def test_production_transfer_uses_the_production_archive_and_target(tmp_path):
+    (tmp_path / "deployment-images.tar.gz").write_bytes(b"production images")
+    result = run_transport(tmp_path, "transfer", DEPLOY_ENVIRONMENT="production")
+    assert result.returncode == 0, result.stderr
+    calls = (tmp_path / "calls").read_text(encoding="utf-8")
+    assert f"deploy@example.invalid:/tmp/dotaleaguebot-{REVISION}/" in calls
+    assert "deployment-images.tar.gz" in calls
+    assert "development-images.tar.gz" not in calls

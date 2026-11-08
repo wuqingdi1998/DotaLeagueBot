@@ -94,453 +94,502 @@ jobs:
           docker save dotaleaguebot-bot:deploy dotaleaguebot-site:deploy |
             gzip -1 > deployment-images.tar.gz
       - name: Prepare production host
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          script: |
-            set -euo pipefail
-            # Interrupted releases can leave large archives, old images and build cache.
-            # Remove only unused Docker data; running containers and their images stay protected.
-            for stale_artifact in /tmp/dotaleaguebot-*/deployment-images.tar.gz; do
-              [ -f "$stale_artifact" ] || continue
-              stale_dir="${stale_artifact%/*}"
-              rm -f -- "$stale_artifact"
-              rmdir -- "$stale_dir" 2>/dev/null || true
-            done
-            docker container prune --force
-            docker image prune --all --force
-            docker builder prune --all --force
-            df -h / /tmp
-            docker system df
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_ENVIRONMENT: production
+        run: |
+          timeout 45m bash scripts/development-transport.sh deploy <<'DEPLOY_SCRIPT'
+          set -euo pipefail
+          # Interrupted releases can leave large archives, old images and build cache.
+          # Remove only unused Docker data; running containers and their images stay protected.
+          for stale_artifact in /tmp/dotaleaguebot-*/deployment-images.tar.gz; do
+            [ -f "$stale_artifact" ] || continue
+            stale_dir="${stale_artifact%/*}"
+            rm -f -- "$stale_artifact"
+            rmdir -- "$stale_dir" 2>/dev/null || true
+          done
+          docker container prune --force
+          docker image prune --all --force
+          docker builder prune --all --force
+          df -h / /tmp
+          docker system df
+          DEPLOY_SCRIPT
       - name: Transfer production images
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          source: deployment-images.tar.gz
-          target: /tmp/dotaleaguebot-${{ github.sha }}
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_ENVIRONMENT: production
+        run: bash scripts/development-transport.sh transfer
       - name: Deploy bot, site and database migrations
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 45m
-          script: |
-            set -euo pipefail
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_ENVIRONMENT: production
+        run: |
+          timeout 45m bash scripts/development-transport.sh deploy <<'DEPLOY_SCRIPT'
+          set -euo pipefail
 
-            APP_DIR=/root/DotaLeagueBot
-            REPO=git@github.com:wuqingdi1998/DotaLeagueBot.git
-            IMAGE_ARTIFACT_DIR=/tmp/dotaleaguebot-${{ github.sha }}
-            IMAGE_ARTIFACT="$IMAGE_ARTIFACT_DIR/deployment-images.tar.gz"
+          APP_DIR=/root/DotaLeagueBot
+          REPO=https://github.com/wuqingdi1998/DotaLeagueBot.git
+          IMAGE_ARTIFACT_DIR=/tmp/dotaleaguebot-${{ github.sha }}
+          IMAGE_ARTIFACT="$IMAGE_ARTIFACT_DIR/deployment-images.tar.gz"
 
-            if [ ! -d "$APP_DIR/.git" ]; then
-              git clone --branch main "$REPO" "$APP_DIR"
-            fi
+          if [ ! -d "$APP_DIR/.git" ]; then
+            git clone --branch main "$REPO" "$APP_DIR"
+          fi
 
-            cd "$APP_DIR"
-            git fetch origin main
-            git checkout main
-            git reset --hard ${{ github.sha }}
-            export SITE_RELEASE_SHA=${{ github.sha }}
+          cd "$APP_DIR"
+          git fetch "$REPO" main
+          git checkout main
+          git reset --hard ${{ github.sha }}
+          export SITE_RELEASE_SHA=${{ github.sha }}
 
-            if [ ! -s "$IMAGE_ARTIFACT" ]; then
-              echo "Missing prebuilt production images." >&2
-              exit 1
-            fi
-            gzip -dc "$IMAGE_ARTIFACT" | docker load
-            rm -f "$IMAGE_ARTIFACT"
-            rmdir "$IMAGE_ARTIFACT_DIR"
+          if [ ! -s "$IMAGE_ARTIFACT" ]; then
+            echo "Missing prebuilt production images." >&2
+            exit 1
+          fi
+          gzip -dc "$IMAGE_ARTIFACT" | docker load
+          rm -f "$IMAGE_ARTIFACT"
+          rmdir "$IMAGE_ARTIFACT_DIR"
 
-            if [ ! -f .env ]; then
-              echo "Missing $APP_DIR/.env. Copy .env.example and fill secrets." >&2
-              exit 1
-            fi
+          if [ ! -f .env ]; then
+            echo "Missing $APP_DIR/.env. Copy .env.example and fill secrets." >&2
+            exit 1
+          fi
 
-            # Bind mounts keep host ownership and override image-layer
-            # permissions. The site runs as uid/gid 1001 and must be able to
-            # create both team emblems and profile backgrounds.
-            install -d -m 0775 -o 1001 -g 1001 \
-              uploads_data \
-              uploads_data/team-emblems \
-              uploads_data/profile-backgrounds \
-              uploads_data/discord-avatars
-            chown -R 1001:1001 uploads_data
+          # Bind mounts keep host ownership and override image-layer
+          # permissions. The site runs as uid/gid 1001 and must be able to
+          # create both team emblems and profile backgrounds.
+          install -d -m 0775 -o 1001 -g 1001 \
+            uploads_data \
+            uploads_data/team-emblems \
+            uploads_data/profile-backgrounds \
+            uploads_data/discord-avatars
+          chown -R 1001:1001 uploads_data
 
-            mkdir -p backups
-            if docker compose ps --status running db | grep -q db; then
-              backup="backups/postgres-$(date -u +%Y%m%dT%H%M%SZ).sql.gz"
-              docker compose exec -T db sh -c \
-                'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' | gzip > "$backup"
-            fi
-            find backups -type f -name 'postgres-*.sql.gz' -mtime +14 -delete
-
-            docker compose config --quiet
-            docker compose up -d db
-            docker compose stop bot
-            docker compose run --rm migrate
-
-            # The old deployment used PM2. Stop it only after the new images build.
-            if command -v pm2 >/dev/null 2>&1 && pm2 describe DotaLeagueBot >/dev/null 2>&1; then
-              pm2 stop DotaLeagueBot
-              pm2 delete DotaLeagueBot
-              pm2 save
-            fi
-
-            if docker compose ps --status running proxy | grep -q proxy; then
-              bash scripts/reload-site-proxy.sh
-            fi
-            docker compose up -d --no-deps --remove-orphans site proxy
-            bash scripts/reload-site-proxy.sh
-
-            for attempt in $(seq 1 30); do
-              if docker compose exec -T site node -e \
-                "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose logs --tail=200 site bot migrate
-                exit 1
-              fi
-              sleep 2
-            done
-
-            public_url="https://${SITE_DOMAIN:-lsesports.ru}/api/health"
-            for attempt in $(seq 1 30); do
-              if curl --fail --silent --show-error --max-time 30 "$public_url" |
-                grep -q '"ok":true'; then
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose logs --tail=200 proxy site
-                exit 1
-              fi
-              sleep 5
-            done
-
-            docker compose up -d --no-deps bot
-
-            # Release the requested private preview only after the updated bot is running.
+          mkdir -p backups
+          if docker compose ps --status running db | grep -q db; then
+            backup="backups/postgres-$(date -u +%Y%m%dT%H%M%SZ).sql.gz"
             docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE notification_outbox
-               SET status = '\''pending'\'', available_at = NOW()
+              'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' | gzip > "$backup"
+          fi
+          find backups -type f -name 'postgres-*.sql.gz' -mtime +14 -delete
+
+          docker compose config --quiet
+          docker compose up -d db
+          docker compose stop bot
+          docker compose run --rm migrate
+
+          # The old deployment used PM2. Stop it only after the new images build.
+          if command -v pm2 >/dev/null 2>&1 && pm2 describe DotaLeagueBot >/dev/null 2>&1; then
+            pm2 stop DotaLeagueBot
+            pm2 delete DotaLeagueBot
+            pm2 save
+          fi
+
+          if docker compose ps --status running proxy | grep -q proxy; then
+            bash scripts/reload-site-proxy.sh
+          fi
+          docker compose up -d --no-deps --remove-orphans site proxy
+          bash scripts/reload-site-proxy.sh
+
+          for attempt in $(seq 1 30); do
+            if docker compose exec -T site node -e \
+              "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose logs --tail=200 site bot migrate
+              exit 1
+            fi
+            sleep 2
+          done
+
+          public_url="https://${SITE_DOMAIN:-lsesports.ru}/api/health"
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --max-time 30 "$public_url" |
+              grep -q '"ok":true'; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose logs --tail=200 proxy site
+              exit 1
+            fi
+            sleep 5
+          done
+
+          docker compose up -d --no-deps bot
+
+          # Release the requested private preview only after the updated bot is running.
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE notification_outbox
+             SET status = '\''pending'\'', available_at = NOW()
+             WHERE discord_id = 311247030422863882
+               AND event_type = '\''october_compendium_announcement_preview_v2'\''
+               AND status = '\''cancelled'\''"'
+
+          for attempt in $(seq 1 30); do
+            compendium_preview_status="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT status
+               FROM notification_outbox
                WHERE discord_id = 311247030422863882
                  AND event_type = '\''october_compendium_announcement_preview_v2'\''
-                 AND status = '\''cancelled'\''"'
-
-            for attempt in $(seq 1 30); do
-              compendium_preview_status="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT status
+               ORDER BY id DESC
+               LIMIT 1"')"
+            if [ "$compendium_preview_status" = "sent" ]; then
+              echo "Delivered corrected October compendium announcement preview to frokeng"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT status, attempts, last_error
                  FROM notification_outbox
                  WHERE discord_id = 311247030422863882
                    AND event_type = '\''october_compendium_announcement_preview_v2'\''
                  ORDER BY id DESC
-                 LIMIT 1"')"
-              if [ "$compendium_preview_status" = "sent" ]; then
-                echo "Delivered corrected October compendium announcement preview to frokeng"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT status, attempts, last_error
-                   FROM notification_outbox
-                   WHERE discord_id = 311247030422863882
-                     AND event_type = '\''october_compendium_announcement_preview_v2'\''
-                   ORDER BY id DESC
-                   LIMIT 1"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
-
-            for attempt in $(seq 1 30); do
-              preview_delivery="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
-                    || '\''|'\'' ||
-                    COUNT(*) FILTER (WHERE status <> '\''sent'\'')
-                 FROM channel_announcement_outbox
-                 WHERE dedupe_key LIKE '\''season9-registration-preview-round-%'\''"')"
-              if [ "$preview_delivery" = "14|0" ]; then
-                echo "Delivered season 9 preview announcements: 14"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT dedupe_key, status, attempts, last_error
-                   FROM channel_announcement_outbox
-                   WHERE dedupe_key LIKE '\''season9-registration-preview-round-%'\''
-                   ORDER BY id"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
-
-            # Release only previews for rounds that still have future result posts.
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE channel_announcement_outbox
-               SET available_at = NOW()
-               WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''
-                 AND status = '\''pending'\''"'
-
-            for attempt in $(seq 1 30); do
-              result_preview_delivery="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
-                    || '\''|'\'' ||
-                    COUNT(*) FILTER (WHERE status <> '\''sent'\'')
-                 FROM channel_announcement_outbox
-                 WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''"')"
-              if [ "$result_preview_delivery" = "12|0" ]; then
-                echo "Delivered season 9 result previews: 12"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT dedupe_key, status, attempts, last_error
-                   FROM channel_announcement_outbox
-                   WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''
-                   ORDER BY id"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
-
-            # Keep lobby previews paused until the new bot image is running.
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE channel_announcement_outbox
-               SET available_at = NOW()
-               WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''
-                 AND status = '\''pending'\''"'
-
-            for attempt in $(seq 1 30); do
-              lobby_preview_delivery="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
-                    || '\''|'\'' ||
-                    COUNT(*) FILTER (WHERE status <> '\''sent'\'')
-                 FROM channel_announcement_outbox
-                 WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''"')"
-              if [ "$lobby_preview_delivery" = "14|0" ]; then
-                echo "Delivered season 9 lobby preview announcements: 14"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT dedupe_key, status, attempts, last_error
-                   FROM channel_announcement_outbox
-                   WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''
-                   ORDER BY id"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
-
-            scheduled_announcements="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT COUNT(*) || '\''|'\'' ||
-                      COUNT(*) FILTER (WHERE status = '\''failed'\'')
-               FROM channel_announcement_outbox
-               WHERE dedupe_key LIKE '\''season9-registration-round-%'\''"')"
-            if [ "$scheduled_announcements" != "28|0" ]; then
-              echo "Expected 28 scheduled season 9 announcements without failures, got $scheduled_announcements" >&2
+                 LIMIT 1"'
+              docker compose logs --tail=200 bot
               exit 1
             fi
-            echo "Scheduled season 9 registration announcements: 28"
+            sleep 3
+          done
 
-            # Keep the preview paused until the newly deployed bot is running.
-            # Otherwise the outgoing version can consume it during migration.
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE notification_outbox
-               SET status = '\''pending'\'', available_at = NOW()
+          for attempt in $(seq 1 30); do
+            preview_delivery="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                  || '\''|'\'' ||
+                  COUNT(*) FILTER (WHERE status <> '\''sent'\'')
+               FROM channel_announcement_outbox
+               WHERE dedupe_key LIKE '\''season9-registration-preview-round-%'\''"')"
+            if [ "$preview_delivery" = "14|0" ]; then
+              echo "Delivered season 9 preview announcements: 14"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT dedupe_key, status, attempts, last_error
+                 FROM channel_announcement_outbox
+                 WHERE dedupe_key LIKE '\''season9-registration-preview-round-%'\''
+                 ORDER BY id"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
+
+          # Release only previews for rounds that still have future result posts.
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE channel_announcement_outbox
+             SET available_at = NOW()
+             WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''
+               AND status = '\''pending'\''"'
+
+          for attempt in $(seq 1 30); do
+            result_preview_delivery="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                  || '\''|'\'' ||
+                  COUNT(*) FILTER (WHERE status <> '\''sent'\'')
+               FROM channel_announcement_outbox
+               WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''"')"
+            if [ "$result_preview_delivery" = "12|0" ]; then
+              echo "Delivered season 9 result previews: 12"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT dedupe_key, status, attempts, last_error
+                 FROM channel_announcement_outbox
+                 WHERE dedupe_key LIKE '\''season9-results-preview-round-%'\''
+                 ORDER BY id"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
+
+          # Keep lobby previews paused until the new bot image is running.
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE channel_announcement_outbox
+             SET available_at = NOW()
+             WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''
+               AND status = '\''pending'\''"'
+
+          for attempt in $(seq 1 30); do
+            lobby_preview_delivery="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                  || '\''|'\'' ||
+                  COUNT(*) FILTER (WHERE status <> '\''sent'\'')
+               FROM channel_announcement_outbox
+               WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''"')"
+            if [ "$lobby_preview_delivery" = "14|0" ]; then
+              echo "Delivered season 9 lobby preview announcements: 14"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT dedupe_key, status, attempts, last_error
+                 FROM channel_announcement_outbox
+                 WHERE dedupe_key LIKE '\''season9-lobby-preview-round-%'\''
+                 ORDER BY id"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
+
+          scheduled_announcements="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT COUNT(*) || '\''|'\'' ||
+                    COUNT(*) FILTER (WHERE status = '\''failed'\'')
+             FROM channel_announcement_outbox
+             WHERE dedupe_key LIKE '\''season9-registration-round-%'\''"')"
+          if [ "$scheduled_announcements" != "28|0" ]; then
+            echo "Expected 28 scheduled season 9 announcements without failures, got $scheduled_announcements" >&2
+            exit 1
+          fi
+          echo "Scheduled season 9 registration announcements: 28"
+
+          # Keep the preview paused until the newly deployed bot is running.
+          # Otherwise the outgoing version can consume it during migration.
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE notification_outbox
+             SET status = '\''pending'\'', available_at = NOW()
+             WHERE event_type = '\''member_welcome_preview'\''
+               AND discord_id = 311247030422863882
+               AND status = '\''cancelled'\''"'
+
+          for attempt in $(seq 1 30); do
+            welcome_preview_status="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT status
+               FROM notification_outbox
                WHERE event_type = '\''member_welcome_preview'\''
                  AND discord_id = 311247030422863882
-                 AND status = '\''cancelled'\''"'
-
-            for attempt in $(seq 1 30); do
-              welcome_preview_status="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT status
+               ORDER BY id DESC
+               LIMIT 1"')"
+            if [ "$welcome_preview_status" = "sent" ]; then
+              echo "Delivered member welcome preview to frokeng"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT status, attempts, last_error
                  FROM notification_outbox
                  WHERE event_type = '\''member_welcome_preview'\''
                    AND discord_id = 311247030422863882
                  ORDER BY id DESC
-                 LIMIT 1"')"
-              if [ "$welcome_preview_status" = "sent" ]; then
-                echo "Delivered member welcome preview to frokeng"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT status, attempts, last_error
-                   FROM notification_outbox
-                   WHERE event_type = '\''member_welcome_preview'\''
-                     AND discord_id = 311247030422863882
-                   ORDER BY id DESC
-                   LIMIT 1"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
+                 LIMIT 1"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
 
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE notification_outbox
-               SET status = '\''pending'\'', available_at = NOW()
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE notification_outbox
+             SET status = '\''pending'\'', available_at = NOW()
+             WHERE discord_id = 311247030422863882
+               AND event_type IN (
+                 '\''season_nine_registered_player_preview'\'',
+                 '\''season_nine_unregistered_member_preview'\''
+               )
+               AND status = '\''cancelled'\''"'
+
+          for attempt in $(seq 1 30); do
+            season_nine_preview_delivery="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
+                  || '\''|'\'' ||
+                  COUNT(*) FILTER (WHERE status = '\''failed'\'')
+                  || '\''|'\'' ||
+                  COUNT(*)
+               FROM notification_outbox
                WHERE discord_id = 311247030422863882
                  AND event_type IN (
                    '\''season_nine_registered_player_preview'\'',
                    '\''season_nine_unregistered_member_preview'\''
-                 )
-                 AND status = '\''cancelled'\''"'
-
-            for attempt in $(seq 1 30); do
-              season_nine_preview_delivery="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT COUNT(*) FILTER (WHERE status = '\''sent'\'')
-                    || '\''|'\'' ||
-                    COUNT(*) FILTER (WHERE status = '\''failed'\'')
-                    || '\''|'\'' ||
-                    COUNT(*)
+                 )"')"
+            if [ "$season_nine_preview_delivery" = "2|0|2" ]; then
+              echo "Delivered both season 9 direct message previews to frokeng"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT event_type, status, attempts, last_error
                  FROM notification_outbox
                  WHERE discord_id = 311247030422863882
                    AND event_type IN (
                      '\''season_nine_registered_player_preview'\'',
                      '\''season_nine_unregistered_member_preview'\''
-                   )"')"
-              if [ "$season_nine_preview_delivery" = "2|0|2" ]; then
-                echo "Delivered both season 9 direct message previews to frokeng"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT event_type, status, attempts, last_error
-                   FROM notification_outbox
-                   WHERE discord_id = 311247030422863882
-                     AND event_type IN (
-                       '\''season_nine_registered_player_preview'\'',
-                       '\''season_nine_unregistered_member_preview'\''
-                     )
-                   ORDER BY id"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
+                   )
+                 ORDER BY id"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
 
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE notification_outbox
-               SET status = '\''pending'\'', available_at = NOW()
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE notification_outbox
+             SET status = '\''pending'\'', available_at = NOW()
+             WHERE discord_id = 311247030422863882
+               AND event_type = '\''season_nine_ranked_win_reminder_preview'\''
+               AND status = '\''cancelled'\''"'
+
+          for attempt in $(seq 1 30); do
+            ranked_win_preview_status="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT status
+               FROM notification_outbox
                WHERE discord_id = 311247030422863882
                  AND event_type = '\''season_nine_ranked_win_reminder_preview'\''
-                 AND status = '\''cancelled'\''"'
-
-            for attempt in $(seq 1 30); do
-              ranked_win_preview_status="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT status
+               ORDER BY id DESC
+               LIMIT 1"')"
+            if [ "$ranked_win_preview_status" = "sent" ]; then
+              echo "Delivered season 9 ranked-win reminder preview to frokeng"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT status, attempts, last_error
                  FROM notification_outbox
                  WHERE discord_id = 311247030422863882
                    AND event_type = '\''season_nine_ranked_win_reminder_preview'\''
                  ORDER BY id DESC
-                 LIMIT 1"')"
-              if [ "$ranked_win_preview_status" = "sent" ]; then
-                echo "Delivered season 9 ranked-win reminder preview to frokeng"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT status, attempts, last_error
-                   FROM notification_outbox
-                   WHERE discord_id = 311247030422863882
-                     AND event_type = '\''season_nine_ranked_win_reminder_preview'\''
-                   ORDER BY id DESC
-                   LIMIT 1"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
+                 LIMIT 1"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
 
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-              "UPDATE notification_outbox
-               SET status = '\''pending'\'', available_at = NOW()
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE notification_outbox
+             SET status = '\''pending'\'', available_at = NOW()
+             WHERE discord_id = 311247030422863882
+               AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
+               AND status = '\''cancelled'\''"'
+
+          for attempt in $(seq 1 30); do
+            corrected_ranked_win_preview_status="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT status
+               FROM notification_outbox
                WHERE discord_id = 311247030422863882
                  AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
-                 AND status = '\''cancelled'\''"'
-
-            for attempt in $(seq 1 30); do
-              corrected_ranked_win_preview_status="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT status
+               ORDER BY id DESC
+               LIMIT 1"')"
+            if [ "$corrected_ranked_win_preview_status" = "sent" ]; then
+              echo "Delivered corrected season 9 ranked-win reminder preview to frokeng"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT status, attempts, last_error
                  FROM notification_outbox
                  WHERE discord_id = 311247030422863882
                    AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
                  ORDER BY id DESC
-                 LIMIT 1"')"
-              if [ "$corrected_ranked_win_preview_status" = "sent" ]; then
-                echo "Delivered corrected season 9 ranked-win reminder preview to frokeng"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT status, attempts, last_error
-                   FROM notification_outbox
-                   WHERE discord_id = 311247030422863882
-                     AND event_type = '\''season_nine_ranked_win_reminder_corrected_preview'\''
-                   ORDER BY id DESC
-                   LIMIT 1"'
-                docker compose logs --tail=200 bot
-                exit 1
-              fi
-              sleep 3
-            done
+                 LIMIT 1"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
 
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
+            "UPDATE notification_outbox
+             SET status = '\''pending'\'', available_at = NOW()
+             WHERE discord_id = 311247030422863882
+               AND event_type = '\''season_nine_ranked_win_reminder_gavr_preview'\''
+               AND status = '\''cancelled'\''"'
+
+          for attempt in $(seq 1 30); do
+            gavr_ranked_win_preview_status="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT status
+               FROM notification_outbox
+               WHERE discord_id = 311247030422863882
+                 AND event_type = '\''season_nine_ranked_win_reminder_gavr_preview'\''
+               ORDER BY id DESC
+               LIMIT 1"')"
+            if [ "$gavr_ranked_win_preview_status" = "sent" ]; then
+              echo "Delivered Gavr ranked-win reminder preview to frokeng"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT status, attempts, last_error
+                 FROM notification_outbox
+                 WHERE discord_id = 311247030422863882
+                   AND event_type = '\''season_nine_ranked_win_reminder_gavr_preview'\''
+                 ORDER BY id DESC
+                 LIMIT 1"'
+              docker compose logs --tail=200 bot
+              exit 1
+            fi
+            sleep 3
+          done
+
+          season_round_preview_count="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT COUNT(*)
+             FROM notification_outbox
+             WHERE discord_id = 311247030422863882
+               AND event_type = '\''season_round_announcement_preview_moscow_time'\''"')"
+          if [ "$season_round_preview_count" = "0" ]; then
+            echo "No active seasonal league round; frokeng preview was not queued"
+          else
             docker compose exec -T db sh -c \
               'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
               "UPDATE notification_outbox
                SET status = '\''pending'\'', available_at = NOW()
                WHERE discord_id = 311247030422863882
-                 AND event_type = '\''season_nine_ranked_win_reminder_gavr_preview'\''
+                 AND event_type = '\''season_round_announcement_preview_moscow_time'\''
                  AND status = '\''cancelled'\''"'
 
             for attempt in $(seq 1 30); do
-              gavr_ranked_win_preview_status="$(docker compose exec -T db sh -c \
+              season_round_preview_status="$(docker compose exec -T db sh -c \
                 'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
                 "SELECT status
                  FROM notification_outbox
                  WHERE discord_id = 311247030422863882
-                   AND event_type = '\''season_nine_ranked_win_reminder_gavr_preview'\''
+                   AND event_type = '\''season_round_announcement_preview_moscow_time'\''
                  ORDER BY id DESC
                  LIMIT 1"')"
-              if [ "$gavr_ranked_win_preview_status" = "sent" ]; then
-                echo "Delivered Gavr ranked-win reminder preview to frokeng"
+              if [ "$season_round_preview_status" = "sent" ]; then
+                echo "Delivered season round announcement preview to frokeng"
                 break
               fi
               if [ "$attempt" -eq 30 ]; then
@@ -549,7 +598,7 @@ jobs:
                   "SELECT status, attempts, last_error
                    FROM notification_outbox
                    WHERE discord_id = 311247030422863882
-                     AND event_type = '\''season_nine_ranked_win_reminder_gavr_preview'\''
+                     AND event_type = '\''season_round_announcement_preview_moscow_time'\''
                    ORDER BY id DESC
                    LIMIT 1"'
                 docker compose logs --tail=200 bot
@@ -557,270 +606,232 @@ jobs:
               fi
               sleep 3
             done
+          fi
 
-            season_round_preview_count="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT COUNT(*)
-               FROM notification_outbox
-               WHERE discord_id = 311247030422863882
-                 AND event_type = '\''season_round_announcement_preview_moscow_time'\''"')"
-            if [ "$season_round_preview_count" = "0" ]; then
-              echo "No active seasonal league round; frokeng preview was not queued"
-            else
-              docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -v ON_ERROR_STOP=1 -c \
-                "UPDATE notification_outbox
-                 SET status = '\''pending'\'', available_at = NOW()
-                 WHERE discord_id = 311247030422863882
-                   AND event_type = '\''season_round_announcement_preview_moscow_time'\''
-                   AND status = '\''cancelled'\''"'
-
-              for attempt in $(seq 1 30); do
-                season_round_preview_status="$(docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                  "SELECT status
-                   FROM notification_outbox
-                   WHERE discord_id = 311247030422863882
-                     AND event_type = '\''season_round_announcement_preview_moscow_time'\''
-                   ORDER BY id DESC
-                   LIMIT 1"')"
-                if [ "$season_round_preview_status" = "sent" ]; then
-                  echo "Delivered season round announcement preview to frokeng"
-                  break
-                fi
-                if [ "$attempt" -eq 30 ]; then
-                  docker compose exec -T db sh -c \
-                    'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                    "SELECT status, attempts, last_error
-                     FROM notification_outbox
-                     WHERE discord_id = 311247030422863882
-                       AND event_type = '\''season_round_announcement_preview_moscow_time'\''
-                     ORDER BY id DESC
-                     LIMIT 1"'
-                  docker compose logs --tail=200 bot
-                  exit 1
-                fi
-                sleep 3
-              done
-            fi
-
-            outreach_schedule="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT COUNT(*)
-                  || '\''|'\'' ||
-                  COALESCE(
-                    to_char(
-                      MAX(scheduled_at) AT TIME ZONE '\''Europe/Moscow'\'',
-                      '\''YYYY-MM-DD HH24:MI'\''
-                    ),
-                    '\''missing'\''
-                  )
-                  || '\''|'\'' || COALESCE(MAX(batch_size)::text, '\''missing'\'')
-                  || '\''|'\'' || COALESCE(
-                    MAX(batch_interval_seconds)::text,
-                    '\''missing'\''
-                  )
-               FROM direct_message_campaigns
-               WHERE campaign_key = '\''season-nine-round-one-outreach'\''"')"
-            if [ "$outreach_schedule" != "1|2026-09-05 12:00|10|10" ]; then
-              echo "Season 9 outreach schedule is invalid: $outreach_schedule" >&2
-              exit 1
-            fi
-            echo "Scheduled season 9 direct messages for 12:00 MSK"
-
-            for attempt in $(seq 1 30); do
-              bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
-              if [[ "$bot_logs" == *"Загружен ког: season_nine_outreach.py"* ]]; then
-                echo "Season 9 outreach worker is running"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                printf '%s\n' "$bot_logs"
-                exit 1
-              fi
-              sleep 3
-            done
-
-            for attempt in $(seq 1 30); do
-              bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
-              if [[ "$bot_logs" == *"Загружен ког: season_lobby_notifications.py"* \
-                && "$bot_logs" == *"Загружен ког: season_lobby_host_roles.py"* ]]; then
-                echo "Season lobby notification and host role workers are running"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                printf '%s\n' "$bot_logs"
-                exit 1
-              fi
-              sleep 3
-            done
-
-            for attempt in $(seq 1 30); do
-              bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
-              if [[ "$bot_logs" == *"[SCHEDULER] Connected to PostgreSQL event notifications."* \
-                && "$bot_logs" == *"Загружен ког: season_lobby_deadlines.py"* \
-                && "$bot_logs" == *"Загружен ког: fearless_draft_deadlines.py"* \
-                && "$bot_logs" == *"Загружен ког: october_compendium_announcement.py"* \
-                && "$bot_logs" == *"Загружен ког: tournament_registration_opening.py"* ]]; then
-                echo "Event-driven scheduler is connected"
-                break
-              fi
-              if [ "$attempt" -eq 30 ]; then
-                printf '%s\n' "$bot_logs"
-                exit 1
-              fi
-              sleep 3
-            done
-
-            uncovered_lobby_notifications="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT COUNT(*)
-               FROM season_match_room_players participant
-               JOIN season_matches match ON match.id = participant.match_id
-               JOIN season_lobbies lobby ON lobby.id = match.lobby_id
-               JOIN season_rounds round ON round.id = lobby.round_id
-               JOIN season_lobby_announcement_settings settings
-                 ON settings.tournament_id = round.tournament_id
-               WHERE round.round_kind = '\''regular'\''
-                 AND round.lobby_configuration_status = '\''published'\''
-                 AND lobby.scheduled_at > NOW()
-                 AND match.host_player_id IS NOT NULL
-                 AND EXISTS (
-                   SELECT 1 FROM season_match_room_players host
-                   WHERE host.match_id = match.id
-                     AND host.player_id = match.host_player_id
-                 )
-                 AND (
-                   match.dota_lobby_password IS NULL
-                   OR NOT EXISTS (
-                     SELECT 1
-                     FROM season_lobby_notification_outbox notification
-                     WHERE notification.match_id = match.id
-                       AND notification.discord_id = participant.player_id
-                       AND notification.audience = CASE
-                         WHEN participant.player_id = match.host_player_id
-                           THEN '\''host'\''
-                         ELSE '\''player'\''
-                       END
-                       AND notification.status IN ('\''pending'\'', '\''sent'\'')
-                   )
-                 )"')"
-            if [ "$uncovered_lobby_notifications" != "0" ]; then
-              echo "Season lobby notifications are incomplete: $uncovered_lobby_notifications" >&2
-              exit 1
-            fi
-            echo "Season lobby start notifications are scheduled"
-
-            docker image prune --force
-            docker compose ps
-      - name: Verify October Compendium announcement delivery
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 35m
-          script: |
-            set -euo pipefail
-            cd /root/DotaLeagueBot
-            for attempt in $(seq 1 360); do
-              status="$(docker compose exec -T db sh -c \
-                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-                "SELECT status FROM october_compendium_announcement_campaigns
-                 WHERE campaign_key = '\''october-compendium-launch'\''"')"
-              if [ "$status" = "completed" ]; then
-                docker compose exec -T db sh -c \
-                  'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-                  "SELECT campaign.discovered_member_count,
-                          campaign.skipped_bot_count,
-                          campaign.skipped_excluded_count,
-                          COUNT(*) FILTER (WHERE recipient.status = '\''sent'\'') AS sent,
-                          COUNT(*) FILTER (WHERE recipient.status = '\''failed'\'') AS failed
-                   FROM october_compendium_announcement_campaigns campaign
-                   LEFT JOIN october_compendium_announcement_recipients recipient
-                     ON recipient.campaign_id = campaign.id
-                   WHERE campaign.campaign_key = '\''october-compendium-launch'\''
-                   GROUP BY campaign.id"'
-                exit 0
-              fi
-              sleep 5
-            done
-            docker compose logs --tail=300 bot
+          outreach_schedule="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT COUNT(*)
+                || '\''|'\'' ||
+                COALESCE(
+                  to_char(
+                    MAX(scheduled_at) AT TIME ZONE '\''Europe/Moscow'\'',
+                    '\''YYYY-MM-DD HH24:MI'\''
+                  ),
+                  '\''missing'\''
+                )
+                || '\''|'\'' || COALESCE(MAX(batch_size)::text, '\''missing'\'')
+                || '\''|'\'' || COALESCE(
+                  MAX(batch_interval_seconds)::text,
+                  '\''missing'\''
+                )
+             FROM direct_message_campaigns
+             WHERE campaign_key = '\''season-nine-round-one-outreach'\''"')"
+          if [ "$outreach_schedule" != "1|2026-09-05 12:00|10|10" ]; then
+            echo "Season 9 outreach schedule is invalid: $outreach_schedule" >&2
             exit 1
+          fi
+          echo "Scheduled season 9 direct messages for 12:00 MSK"
+
+          for attempt in $(seq 1 30); do
+            bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
+            if [[ "$bot_logs" == *"Загружен ког: season_nine_outreach.py"* ]]; then
+              echo "Season 9 outreach worker is running"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              printf '%s\n' "$bot_logs"
+              exit 1
+            fi
+            sleep 3
+          done
+
+          for attempt in $(seq 1 30); do
+            bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
+            if [[ "$bot_logs" == *"Загружен ког: season_lobby_notifications.py"* \
+              && "$bot_logs" == *"Загружен ког: season_lobby_host_roles.py"* ]]; then
+              echo "Season lobby notification and host role workers are running"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              printf '%s\n' "$bot_logs"
+              exit 1
+            fi
+            sleep 3
+          done
+
+          for attempt in $(seq 1 30); do
+            bot_logs="$(docker compose logs --tail=300 bot 2>&1)"
+            if [[ "$bot_logs" == *"[SCHEDULER] Connected to PostgreSQL event notifications."* \
+              && "$bot_logs" == *"Загружен ког: season_lobby_deadlines.py"* \
+              && "$bot_logs" == *"Загружен ког: fearless_draft_deadlines.py"* \
+              && "$bot_logs" == *"Загружен ког: october_compendium_announcement.py"* \
+              && "$bot_logs" == *"Загружен ког: tournament_registration_opening.py"* ]]; then
+              echo "Event-driven scheduler is connected"
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              printf '%s\n' "$bot_logs"
+              exit 1
+            fi
+            sleep 3
+          done
+
+          uncovered_lobby_notifications="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT COUNT(*)
+             FROM season_match_room_players participant
+             JOIN season_matches match ON match.id = participant.match_id
+             JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+             JOIN season_rounds round ON round.id = lobby.round_id
+             JOIN season_lobby_announcement_settings settings
+               ON settings.tournament_id = round.tournament_id
+             WHERE round.round_kind = '\''regular'\''
+               AND round.lobby_configuration_status = '\''published'\''
+               AND lobby.scheduled_at > NOW()
+               AND match.host_player_id IS NOT NULL
+               AND EXISTS (
+                 SELECT 1 FROM season_match_room_players host
+                 WHERE host.match_id = match.id
+                   AND host.player_id = match.host_player_id
+               )
+               AND (
+                 match.dota_lobby_password IS NULL
+                 OR NOT EXISTS (
+                   SELECT 1
+                   FROM season_lobby_notification_outbox notification
+                   WHERE notification.match_id = match.id
+                     AND notification.discord_id = participant.player_id
+                     AND notification.audience = CASE
+                       WHEN participant.player_id = match.host_player_id
+                         THEN '\''host'\''
+                       ELSE '\''player'\''
+                     END
+                     AND notification.status IN ('\''pending'\'', '\''sent'\'')
+                 )
+               )"')"
+          if [ "$uncovered_lobby_notifications" != "0" ]; then
+            echo "Season lobby notifications are incomplete: $uncovered_lobby_notifications" >&2
+            exit 1
+          fi
+          echo "Season lobby start notifications are scheduled"
+
+          docker image prune --force
+          docker compose ps
+          DEPLOY_SCRIPT
+      - name: Verify October Compendium announcement delivery
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_ENVIRONMENT: production
+        run: |
+          timeout 45m bash scripts/development-transport.sh deploy <<'DEPLOY_SCRIPT'
+          set -euo pipefail
+          cd /root/DotaLeagueBot
+          for attempt in $(seq 1 360); do
+            status="$(docker compose exec -T db sh -c \
+              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+              "SELECT status FROM october_compendium_announcement_campaigns
+               WHERE campaign_key = '\''october-compendium-launch'\''"')"
+            if [ "$status" = "completed" ]; then
+              docker compose exec -T db sh -c \
+                'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+                "SELECT campaign.discovered_member_count,
+                        campaign.skipped_bot_count,
+                        campaign.skipped_excluded_count,
+                        COUNT(*) FILTER (WHERE recipient.status = '\''sent'\'') AS sent,
+                        COUNT(*) FILTER (WHERE recipient.status = '\''failed'\'') AS failed
+                 FROM october_compendium_announcement_campaigns campaign
+                 LEFT JOIN october_compendium_announcement_recipients recipient
+                   ON recipient.campaign_id = campaign.id
+                 WHERE campaign.campaign_key = '\''october-compendium-launch'\''
+                 GROUP BY campaign.id"'
+              exit 0
+            fi
+            sleep 5
+          done
+          docker compose logs --tail=300 bot
+          exit 1
+          DEPLOY_SCRIPT
       - name: Verify October clan eligibility and role removal
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 10m
-          script: |
-            set -euo pipefail
-            cd /root/DotaLeagueBot
-            for attempt in $(seq 1 60); do
-              if docker compose logs --since=10m bot 2>&1 |
-                grep -E '\[OCTOBER CLANS\] Roles (synchronized|removed) for guild' >/dev/null; then
-                break
-              fi
-              if [ "$attempt" -eq 60 ]; then
-                docker compose logs --tail=100 bot
-                exit 1
-              fi
-              sleep 5
-            done
-            remaining="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT COUNT(*) FROM october_compendium_clan_members
-               WHERE NOT october_clan_player_is_eligible(player_id)"')"
-            test "$remaining" = "0"
-            docker compose logs --since=10m bot 2>&1 |
-              grep '\[OCTOBER SERVER\] Membership checked'
-            departed_remaining="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT COUNT(*) FROM october_compendium_server_membership presence
-               LEFT JOIN compendium_player_star_totals stars ON stars.player_id = presence.player_id
-               LEFT JOIN october_compendium_clan_members member ON member.player_id = presence.player_id
-               WHERE presence.is_present = FALSE
-                 AND (COALESCE(stars.total_stars, 0) <> 0 OR member.player_id IS NOT NULL
-                      OR EXISTS (SELECT 1 FROM compendium_star_race_events race
-                                 WHERE race.player_id = presence.player_id))"')"
-            test "$departed_remaining" = "0"
-            rune_ready="$(docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
-              "SELECT to_regclass('\''october_compendium_rune_challenge_selections'\'') IS NOT NULL
-                   AND to_regclass('\''october_compendium_rune_challenge_completions'\'') IS NOT NULL
-                   AND EXISTS (SELECT 1 FROM pg_trigger
-                       WHERE tgrelid = '\''compendium_rune_challenge_selections'\''::regclass
-                         AND tgname = '\''freeze_ti_2026_compendium'\'')
-                   AND NOT EXISTS (SELECT 1 FROM pg_trigger
-                       WHERE tgrelid = '\''october_compendium_rune_challenge_selections'\''::regclass
-                         AND tgname = '\''freeze_ti_2026_compendium'\'')"')"
-            test "$rune_ready" = "t"
-            docker compose exec -T db sh -c \
-              'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
-              "SELECT clan_id, COUNT(*) FROM october_compendium_clan_members
-               GROUP BY clan_id ORDER BY clan_id;
-               SELECT player.ingame_name, player.tier_status,
-                      removed.membership->> '\''clan_id'\'' AS previous_clan
-               FROM october_compendium_removed_clan_members removed
-               LEFT JOIN players player ON player.discord_id = removed.player_id
-               ORDER BY removed.id"'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_ENVIRONMENT: production
+        run: |
+          timeout 45m bash scripts/development-transport.sh deploy <<'DEPLOY_SCRIPT'
+          set -euo pipefail
+          cd /root/DotaLeagueBot
+          for attempt in $(seq 1 60); do
+            if docker compose logs --since=10m bot 2>&1 |
+              grep -E '\[OCTOBER CLANS\] Roles (synchronized|removed) for guild' >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 60 ]; then
+              docker compose logs --tail=100 bot
+              exit 1
+            fi
+            sleep 5
+          done
+          remaining="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT COUNT(*) FROM october_compendium_clan_members
+             WHERE NOT october_clan_player_is_eligible(player_id)"')"
+          test "$remaining" = "0"
+          docker compose logs --since=10m bot 2>&1 |
+            grep '\[OCTOBER SERVER\] Membership checked'
+          departed_remaining="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT COUNT(*) FROM october_compendium_server_membership presence
+             LEFT JOIN compendium_player_star_totals stars ON stars.player_id = presence.player_id
+             LEFT JOIN october_compendium_clan_members member ON member.player_id = presence.player_id
+             WHERE presence.is_present = FALSE
+               AND (COALESCE(stars.total_stars, 0) <> 0 OR member.player_id IS NOT NULL
+                    OR EXISTS (SELECT 1 FROM compendium_star_race_events race
+                               WHERE race.player_id = presence.player_id))"')"
+          test "$departed_remaining" = "0"
+          rune_ready="$(docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -At -c \
+            "SELECT to_regclass('\''october_compendium_rune_challenge_selections'\'') IS NOT NULL
+                 AND to_regclass('\''october_compendium_rune_challenge_completions'\'') IS NOT NULL
+                 AND EXISTS (SELECT 1 FROM pg_trigger
+                     WHERE tgrelid = '\''compendium_rune_challenge_selections'\''::regclass
+                       AND tgname = '\''freeze_ti_2026_compendium'\'')
+                 AND NOT EXISTS (SELECT 1 FROM pg_trigger
+                     WHERE tgrelid = '\''october_compendium_rune_challenge_selections'\''::regclass
+                       AND tgname = '\''freeze_ti_2026_compendium'\'')"')"
+          test "$rune_ready" = "t"
+          docker compose exec -T db sh -c \
+            'psql -U "$POSTGRES_USER" "$POSTGRES_DB" -c \
+            "SELECT clan_id, COUNT(*) FROM october_compendium_clan_members
+             GROUP BY clan_id ORDER BY clan_id;
+             SELECT player.ingame_name, player.tier_status,
+                    removed.membership->> '\''clan_id'\'' AS previous_clan
+             FROM october_compendium_removed_clan_members removed
+             LEFT JOIN players player ON player.discord_id = removed.player_id
+             ORDER BY removed.id"'
+          DEPLOY_SCRIPT
       - name: Verify current Compendium Discord commands
-        uses: appleboy/ssh-action@v1.2.4
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_SSH_KEY }}
-          port: ${{ secrets.DEPLOY_PORT }}
-          command_timeout: 5m
-          script: |
-            set -euo pipefail
-            cd /root/DotaLeagueBot
-            docker compose exec -T bot python -m services.compendium_command_verification
-            docker compose exec -T bot python -m services.postponed_command_verification
-            docker compose logs --tail=1000 bot | grep -F "Загружен ког: postponed_posts.py"
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+          DEPLOY_ENVIRONMENT: production
+        run: |
+          timeout 45m bash scripts/development-transport.sh deploy <<'DEPLOY_SCRIPT'
+          set -euo pipefail
+          cd /root/DotaLeagueBot
+          docker compose exec -T bot python -m services.compendium_command_verification
+          docker compose exec -T bot python -m services.postponed_command_verification
+          docker compose logs --tail=1000 bot | grep -F "Загружен ког: postponed_posts.py"
+          DEPLOY_SCRIPT
       - name: Verify public site externally
         run: |
           set -euo pipefail

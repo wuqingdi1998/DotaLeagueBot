@@ -28,10 +28,15 @@ retry_transfer() {
 case "${1:-}" in
   transfer)
     [[ "${GITHUB_SHA:-}" =~ ^[a-f0-9]{40}$ ]] || { echo "Invalid release revision" >&2; exit 2; }
-    test -s development-images.tar.gz
+    artifact=development-images.tar.gz
     target="/tmp/dotaleaguebot-dev-$GITHUB_SHA"
+    if [ "${DEPLOY_ENVIRONMENT:-development}" = production ]; then
+      artifact=deployment-images.tar.gz
+      target="/tmp/dotaleaguebot-$GITHUB_SHA"
+    fi
+    test -s "$artifact"
     retry_transfer ssh "${options[@]}" -p "$port" -- "$destination" "mkdir -p -- '$target'"
-    retry_transfer scp "${options[@]}" -P "$port" -- development-images.tar.gz "$destination:$target/"
+    retry_transfer scp "${options[@]}" -P "$port" -- "$artifact" "$destination:$target/"
     ;;
   deploy)
     ssh "${options[@]}" -p "$port" -- "$destination" 'bash -se'
