@@ -7,6 +7,7 @@ import {
   loadTournamentHeroPreference,
 } from "@/app/tournaments/[slug]/services/tournament-hero-preferences";
 import { GROUP_STANDINGS_QUERY } from "./group-standings-query";
+import { rankGroupStandings, type GroupStandingResult } from "@/lib/group-standings";
 export { POST } from "./tournament-create";
 export { PATCH } from "./tournament-update";
 
@@ -327,7 +328,7 @@ export async function GET(request: Request) {
          ORDER BY m.sort_order, m.scheduled_at`,
         [tournament.id, user?.discordId ?? null, user?.isAdmin === true],
       ),
-      query<Record<string, unknown>>(GROUP_STANDINGS_QUERY, [tournament.id]),
+      query<GroupStandingResult>(GROUP_STANDINGS_QUERY, [tournament.id]),
       query<Record<string, unknown>>(
         `SELECT id::int, tournament_id::int, name, sort_order,
            explanation, team_capacity::int, advance_to_playoff::int,
@@ -429,7 +430,7 @@ export async function GET(request: Request) {
       ),
     ),
     matches: sortTournamentMatches(matches),
-    standings,
+    standings: rankGroupStandings(standings),
     groups,
     rules,
     prizes,

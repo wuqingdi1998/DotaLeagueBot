@@ -12,7 +12,8 @@ export type GroupOutcome =
   | "upper"
   | "lower"
   | "playoff"
-  | "eliminated";
+  | "eliminated"
+  | "undecided";
 
 export function advancingTeamCount(
   settings: GroupAdvancementSettings,
@@ -49,5 +50,17 @@ export function groupOutcomeLabel(outcome: GroupOutcome) {
     lower: "Нижняя сетка",
     playoff: "Плей-офф",
     eliminated: "Вылет",
+    undecided: "Не определён",
   }[outcome];
+}
+
+/** A shared place can qualify a team only if the entire range has the same outcome. */
+export function groupOutcomeForPlaceRange(
+  firstPlace: number,
+  lastPlace: number,
+  settings: GroupAdvancementSettings,
+  playoffType: PlayoffType,
+): GroupOutcome {
+  const outcome = groupOutcome(firstPlace, settings, playoffType);
+  return outcome === groupOutcome(lastPlace, settings, playoffType) ? outcome : "undecided";
 }

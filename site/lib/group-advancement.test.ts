@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   advancingTeamCount,
   groupOutcome,
+  groupOutcomeForPlaceRange,
   groupOutcomeLabel,
 } from "./group-advancement";
 
@@ -30,5 +31,12 @@ describe("group advancement", () => {
       "eliminated",
     );
     expect(groupOutcomeLabel("eliminated")).toBe("Вылет");
+  });
+
+  it("leaves advancement undecided if a shared place spans different outcomes", () => {
+    expect(groupOutcomeForPlaceRange(1, 2, settings, "double_elimination")).toBe("undecided");
+    expect(groupOutcomeForPlaceRange(2, 3, settings, "single_elimination")).toBe("undecided");
+    expect(groupOutcomeForPlaceRange(1, 2, settings, "single_elimination")).toBe("playoff");
+    expect(groupOutcomeForPlaceRange(3, 4, settings, "double_elimination")).toBe("eliminated");
   });
 });
