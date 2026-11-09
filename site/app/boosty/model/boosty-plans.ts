@@ -109,7 +109,7 @@ export const boostyPlans: readonly BoostyPlan[] = [
     id: "supporter",
     name: "Суппортеры",
     level: "VIP",
-    price: "2 000 ₽/сезон",
+    price: "1 000 ₽/сезон",
     note: "до конца декабря",
     color: "#f0bd29",
     benefitIds: boostyBenefits.map((benefit) => benefit.id),
