@@ -20,7 +20,15 @@
 }
 
 .boosty-external-button {
+  display: inline-flex;
   flex: 0 0 auto;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 13px;
+  padding: 0 17px;
+  font-size: 15px;
+  font-weight: 800;
   white-space: nowrap;
 }
 
