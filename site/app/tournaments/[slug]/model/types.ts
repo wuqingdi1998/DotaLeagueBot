@@ -1,5 +1,6 @@
 import type { TournamentType } from "@/lib/tournament-type";
 import type { TournamentStatus } from "@/lib/tournaments";
+import type { GroupStanding } from "@/lib/group-standings";
 
 export type PlayerRole =
   | "safe_lane"
@@ -129,19 +130,7 @@ export type TournamentMatch = {
   }>;
 };
 
-export type Standing = {
-  id: number;
-  tournament_id: number;
-  group_id: number;
-  application_id: number;
-  group_name: string;
-  place: number;
-  team_name: string;
-  games: number;
-  series_wins: number;
-  maps_won: number;
-  maps_lost: number;
-};
+export type Standing = GroupStanding;
 
 export type TournamentGroup = {
   id: number;

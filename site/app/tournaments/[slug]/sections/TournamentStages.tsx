@@ -1,6 +1,6 @@
 "use client";
 
-import { groupOutcome, groupOutcomeLabel } from "@/lib/group-advancement";
+import { groupOutcomeForPlaceRange, groupOutcomeLabel } from "@/lib/group-advancement";
 import { tournamentCompetitionStages } from "@/lib/tournament-stages";
 import dynamic from "next/dynamic";
 import { CompactTeamEmblem } from "../components/CompactTeamEmblem";
@@ -50,7 +50,7 @@ export function GroupsPanel() {
           <h3>Турнирное положение</h3>
         </div>
         <span className="timezone">
-          Место определяется по победам в матчах
+          Место определяется по победам в матчах, разнице карт и личным встречам
         </span>
       </div>
       {adminMode && <GroupShuffleToolbar />}
@@ -69,8 +69,11 @@ export function GroupsPanel() {
               </div>
               {rows.map((row) => {
                 const application = applicationsById.get(row.application_id);
-                const outcome = groupOutcome(
+                const lastPlace = row.place_end ?? row.place;
+                const isSharedPlace = lastPlace > row.place;
+                const outcome = groupOutcomeForPlaceRange(
                   row.place,
+                  lastPlace,
                   group,
                   data.tournament.playoff_type,
                 );
@@ -78,11 +81,13 @@ export function GroupsPanel() {
                 return (
                   <div
                     className={`standing-row${
-                      eliminated ? " eliminated" : " advanced"
+                      eliminated ? " eliminated" : outcome === "undecided" ? "" : " advanced"
                     }`}
                     key={row.id}
                   >
-                    <span className="place">{row.place}</span>
+                    <span className={isSharedPlace ? "place standing-place-shared" : "place"}>
+                      {isSharedPlace ? `${row.place}–${lastPlace}` : row.place}
+                    </span>
                     <span className="standing-team">
                       <CompactTeamEmblem
                         className="standing-team-emblem"
