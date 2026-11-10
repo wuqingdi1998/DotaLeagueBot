@@ -1,4 +1,5 @@
 import type { PoolClient } from "pg";
+import { one } from "@/lib/db";
 import { SEASON_LOBBY_PRESENCE_TTL_SECONDS } from "@/lib/season-lobby-room";
 import type { SeasonLobbyRoomStatus } from "../model/types";
 import { SeasonLobbyRoomError } from "./errors";
@@ -7,6 +8,36 @@ export type RoomActor = {
   discordId: string;
   isAdmin: boolean;
 };
+
+export const publishedSeasonLobbyCondition = `
+  round.is_visible = TRUE AND (
+    (round.round_kind = 'regular' AND round.lobby_configuration_status = 'published')
+    OR (round.round_kind = 'finals' AND match.status IN ('published', 'completed'))
+  )`;
+
+export async function loadActiveSeasonLobbyMatchId(playerId: string): Promise<number | null> {
+  const match = await one<{ match_id: number }>(
+    `SELECT room.match_id::int
+     FROM season_match_rooms room
+     JOIN season_matches match ON match.id = room.match_id
+     JOIN season_lobbies lobby ON lobby.id = match.lobby_id
+     JOIN season_rounds round ON round.id = lobby.round_id
+     JOIN tournaments tournament ON tournament.id = round.tournament_id
+     WHERE room.status NOT IN ('waiting', 'completed')
+       AND match.status NOT IN ('cancelled', 'completed')
+       AND tournament.tournament_type = 'seasonal'
+       AND tournament.status NOT IN ('finished', 'archived')
+       AND ${publishedSeasonLobbyCondition}
+       AND EXISTS (
+         SELECT 1 FROM season_match_room_players participant
+         WHERE participant.match_id = match.id AND participant.player_id = $1
+       )
+     ORDER BY (room.status = 'playing') DESC, room.updated_at DESC, room.match_id DESC
+     LIMIT 1`,
+    [playerId],
+  );
+  return match?.match_id ?? null;
+}
 
 export type LockedRoom = {
   status: SeasonLobbyRoomStatus;
@@ -53,14 +84,7 @@ export async function participantSide(
      WHERE participant.match_id = $1 AND participant.player_id = $2
        AND match.status NOT IN ('cancelled', 'completed')
        AND tournament.status NOT IN ('finished', 'archived')
-       AND round.is_visible = TRUE
-       AND (
-         (round.round_kind = 'regular'
-           AND round.lobby_configuration_status = 'published')
-         OR
-         (round.round_kind = 'finals'
-           AND match.status IN ('published', 'completed'))
-       )`,
+       AND ${publishedSeasonLobbyCondition}`,
     [matchId, playerId],
   );
   const side = result.rows[0]?.team_side;

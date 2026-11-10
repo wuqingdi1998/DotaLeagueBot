@@ -14,6 +14,8 @@ import { HeaderNavigationLink } from "./header/HeaderNavigationLink";
 import { AvatarImage } from "./AvatarImage";
 import { useHeaderActionCompaction } from "./header/useHeaderActionCompaction";
 import { PlayerActionNotificationBadge } from "./header/PlayerActionNotificationBadge";
+import { SeasonMatchStrip } from "./header/SeasonMatchStrip";
+import { usePlayerActionNotifications } from "./header/usePlayerActionNotifications";
 import { ParticipantViewToggle } from "./ParticipantViewToggle";
 import { OctoberClanBadge } from "./october-clan-badges/OctoberClanBadge";
 import { CompendiumNavigationLink } from "./header/CompendiumNavigationLink";
@@ -93,6 +95,9 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const { beginNavigation, cancelAnimation, isMobileAnimation } = useHeaderNavigation();
+  const playerId = user?.isStandaloneOrganizer ? null : user?.discordId ?? null;
+  const { currentNotification, markCurrentAsOpened, activeSeasonLobbyMatchId } =
+    usePlayerActionNotifications(playerId);
   const [profileOpen, setProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isMobileMenuVisible = mobileMenuOpen || isMobileAnimation;
@@ -271,7 +276,10 @@ export function SiteHeader({
               </span>
             </button>
             {!user.isStandaloneOrganizer && (
-              <PlayerActionNotificationBadge playerId={user.discordId} />
+              <PlayerActionNotificationBadge
+                currentNotification={currentNotification}
+                markCurrentAsOpened={markCurrentAsOpened}
+              />
             )}
             {profileOpen && (
               <div className="player-profile-popover">
@@ -416,6 +424,7 @@ export function SiteHeader({
       <Suspense fallback={null}>
         <AuthErrorBanner />
       </Suspense>
+      <SeasonMatchStrip matchId={activeSeasonLobbyMatchId} pathname={pathname} />
     </header>
   );
 }

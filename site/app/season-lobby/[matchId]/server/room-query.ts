@@ -14,6 +14,7 @@ import type {
 } from "../model/types";
 import { isSelectedCaptainVisible } from "../model/captain-selection";
 import { SeasonLobbyRoomError } from "./errors";
+import { publishedSeasonLobbyCondition } from "./room-access";
 import { playerServerName } from "@/lib/security";
 import { subscriptionRoleNames } from "@/lib/subscription-roles";
 
@@ -92,14 +93,7 @@ async function loadRoomTarget(
          $3::boolean
          OR (
            viewer.player_id IS NOT NULL
-           AND round.is_visible = TRUE
-           AND (
-             (round.round_kind = 'regular'
-               AND round.lobby_configuration_status = 'published')
-             OR
-             (round.round_kind = 'finals'
-               AND match.status IN ('published', 'completed'))
-           )
+           AND ${publishedSeasonLobbyCondition}
          )
        )`,
     [matchId, playerId, isOrganizer, canLoadCompleted],

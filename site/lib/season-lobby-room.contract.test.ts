@@ -84,7 +84,8 @@ describe("season lobby room contract", () => {
   it("lets players and organizers enter an open match and closes completed rooms", () => {
     expect(roomQuery).toContain("LEFT JOIN season_match_room_players viewer");
     expect(roomQuery).toContain("$3::boolean");
-    expect(roomQuery).toContain("lobby_configuration_status = 'published'");
+    expect(roomQuery).toContain("${publishedSeasonLobbyCondition}");
+    expect(roomAccess).toContain("lobby_configuration_status = 'published'");
     expect(roomQuery).toContain("match.status <> 'completed'");
     expect(roomQuery).toContain("tournament.status NOT IN ('finished', 'archived')");
     expect(roomCommands).toContain("if (actor.isAdmin)");

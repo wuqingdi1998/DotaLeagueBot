@@ -1,0 +1,58 @@
+.site-shell:has(> .site-header > .season-match-strip) {
+  --season-match-strip-height: 53px;
+  padding-block-start: var(--season-match-strip-height);
+}
+
+.season-match-strip {
+  position: absolute;
+  top: 100%;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--season-match-strip-height);
+  padding: 4px clamp(17px, 5vw, 78px);
+  border-bottom: 1px solid var(--line-strong);
+  background: var(--surface-blue);
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.season-match-strip-status,
+.season-match-strip-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.season-match-strip-status::before {
+  content: "";
+  flex: 0 0 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #198552;
+}
+
+[data-theme="dark"] .season-match-strip-status::before {
+  background: #6ce6ab;
+}
+
+.season-match-strip-link {
+  flex: none;
+  min-height: 44px;
+  padding-inline: 14px;
+  border-radius: 12px;
+  background: var(--blue-solid);
+  color: white;
+}
+
+.season-match-strip-link:hover {
+  background: color-mix(in srgb, var(--blue-solid), #000 14%);
+}
+
+.season-match-strip-link:focus-visible {
+  outline: 2px solid var(--blue-deep);
+  outline-offset: 2px;
+}
