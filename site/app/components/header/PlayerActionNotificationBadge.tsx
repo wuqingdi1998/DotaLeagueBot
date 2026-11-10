@@ -1,14 +1,14 @@
 "use client";
 
-import { usePlayerActionNotifications } from "./usePlayerActionNotifications";
+import type { PlayerActionNotification } from "@/lib/player-action-notifications";
 
 export function PlayerActionNotificationBadge({
-  playerId,
+  currentNotification,
+  markCurrentAsOpened,
 }: {
-  playerId: string;
+  currentNotification: PlayerActionNotification | null;
+  markCurrentAsOpened: () => PlayerActionNotification | null;
 }) {
-  const { currentNotification, markCurrentAsOpened } =
-    usePlayerActionNotifications(playerId);
   if (!currentNotification) return null;
 
   function openNotification() {
