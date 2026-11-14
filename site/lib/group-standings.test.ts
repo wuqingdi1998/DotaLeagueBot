@@ -127,7 +127,7 @@ describe("ordinary tournament group standings", () => {
     }
   }, 15_000);
 
-  it("keeps places distinct before a direct meeting has a result", async () => {
+  it("shares places before a direct meeting has a result", async () => {
     const database = await standingsDatabase();
     try {
       await database.exec(`
@@ -137,17 +137,39 @@ describe("ordinary tournament group standings", () => {
           (2, 1, 'live', 103, 104, 1, 1, NULL, NULL);
       `);
       const rows = await loadStandings(database);
-      expect(rows.map((row) => [row.place, row.place_end])).toEqual([[1, 1], [2, 2], [3, 3], [4, 4]]);
+      expect(rows.map((row) => [row.place, row.place_end])).toEqual([[1, 4], [1, 4], [1, 4], [1, 4]]);
+    } finally {
+      await database.close();
+    }
+  }, 15_000);
+
+  it("shares second and third places for equal maps despite different series wins", async () => {
+    const database = await standingsDatabase();
+    try {
+      await database.exec(`
+        DELETE FROM tournament_matches;
+        INSERT INTO tournament_matches VALUES
+          (1, 1, 'finished', 103, 101, 0, 2, NULL, NULL),
+          (2, 1, 'finished', 102, 104, 1, 1, NULL, NULL),
+          (3, 1, 'finished', 102, 103, 0, 2, NULL, NULL),
+          (4, 1, 'finished', 101, 104, 1, 1, NULL, NULL),
+          (5, 1, 'scheduled', 104, 103, NULL, NULL, NULL, NULL);
+      `);
+      const rows = await loadStandings(database);
+      expect(rows.map(({ application_id, place, place_end }) => [application_id, place, place_end]))
+        .toEqual([[101, 1, 1], [103, 2, 3], [104, 2, 3], [102, 4, 4]]);
+      expect(rows[1].series_wins).toBe(1);
+      expect(rows[2].series_wins).toBe(0);
     } finally {
       await database.close();
     }
   }, 15_000);
 
   it("describes the ranking criteria and displays wins and maps", () => {
-    expect(groupsPanel).toContain("Место определяется по победам в матчах, разнице карт и личным встречам");
-    expect(groupsPanel).toContain("<span>Победы</span>");
+    expect(groupsPanel).toContain("Место определяется по разнице карт и личным встречам");
+    expect(groupsPanel).not.toContain("<span>Победы</span>");
     expect(groupsPanel).toContain("<span>Карты</span>");
-    expect(groupsPanel).toContain("row.series_wins");
+    expect(groupsPanel).not.toContain("row.series_wins");
     expect(groupsPanel).toContain("({row.maps_won}–{row.maps_lost})");
   });
 
