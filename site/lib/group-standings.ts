@@ -38,7 +38,7 @@ function hasMeeting(
 function rankEqualResults(teams: GroupStandingResult[]) {
   if (teams.length < 2 || !teams.every((left) =>
     teams.every((right) => hasMeeting(left, right, () => true)),
-  )) return teams.map((team) => [team]);
+  )) return [[...teams].sort((left, right) => teamNames.compare(left.team_name, right.team_name))];
 
   const teamIds = new Set(teams.map(({ application_id }) => application_id));
   const byMeetingWins = Map.groupBy(teams, (team) => team.meetings.filter(
@@ -56,14 +56,14 @@ function rankEqualResults(teams: GroupStandingResult[]) {
     });
 }
 
-/** Resolve each group independently, preserving the original order if a tie has no result yet. */
+/** Rank by map difference, sharing places until direct meetings resolve a tie. */
 export function rankGroupStandings(results: GroupStandingResult[]): GroupStanding[] {
   return [...Map.groupBy(results, (team) => team.group_id).values()].flatMap((teams) => {
     const mapDifference = (team: GroupStandingResult) => team.maps_won - team.maps_lost;
     const ordered = [...teams].sort((left, right) =>
-      right.series_wins - left.series_wins || mapDifference(right) - mapDifference(left),
+      mapDifference(right) - mapDifference(left),
     );
-    const byResult = Map.groupBy(ordered, (team) => `${team.series_wins}:${mapDifference(team)}`);
+    const byResult = Map.groupBy(ordered, (team) => mapDifference(team));
     let place = 1;
     return [...byResult.values()].flatMap(rankEqualResults).flatMap((tied) => {
       const firstPlace = place;
