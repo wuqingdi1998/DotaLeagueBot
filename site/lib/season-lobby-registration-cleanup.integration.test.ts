@@ -6,6 +6,7 @@ import { afterAll, beforeAll, beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ transaction: vi.fn() }));
 vi.mock("@/lib/db", () => ({ transaction: mocks.transaction }));
 import { updateSeasonLobbyConfiguration } from "@/app/api/admin/season/season-lobby-configuration-actions";
+import { deleteSeasonRoundRegistration } from "@/app/api/admin/season/season-registration-actions";
 import { removeUnstartedSeasonLobbyPlayer } from "./season-lobby-registration-cleanup";
 
 let db: PGlite;
@@ -98,6 +99,15 @@ it("removes an orphan through the organizer action without requiring registratio
 it("still rejects assigning an unregistered player to a slot", async () => {
   await expect(updateSeasonLobbyConfiguration({ roundId: 2, action: "assign", playerId: "10003", matchId: 6 }, "20001"))
     .rejects.toMatchObject({ status: 400 });
+});
+
+it("removes the registration and lobby place through the organizer registration action", async () => {
+  await deleteSeasonRoundRegistration({ roundId: 2, playerId: "10001" }, "20001");
+  expect((await db.query("SELECT * FROM season_round_registrations")).rows).toHaveLength(0);
+  expect((await db.query("SELECT player_id FROM season_match_participants WHERE match_id = 6")).rows)
+    .toEqual([{ player_id: 10002 }]);
+  await expect(deleteSeasonRoundRegistration({ roundId: 2, playerId: "10001" }, "20001"))
+    .rejects.toMatchObject({ status: 404 });
 });
 
 it("withdraws atomically, clears host/captain state and reopens incomplete published lobbies", async () => {

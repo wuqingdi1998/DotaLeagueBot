@@ -104,6 +104,8 @@ export async function deleteSeasonRoundRegistration(
     throw new Response("Некорректно выбран игрок", { status: 400 });
   }
   return transaction(async (client) => {
+    // Registration and lobby changes share the round lock before touching rows.
+    await client.query("SELECT id FROM season_rounds WHERE id = $1 FOR UPDATE", [roundId]);
     const removed = await client.query<{ tournament_id: number }>(
       `DELETE FROM season_round_registrations registration
        USING season_rounds round
