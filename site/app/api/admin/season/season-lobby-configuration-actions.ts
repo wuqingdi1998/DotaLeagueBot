@@ -1,5 +1,6 @@
 import type { PoolClient } from "pg";
 import { transaction } from "@/lib/db";
+import { removeUnstartedSeasonLobbyPlayer } from "@/lib/season-lobby-registration-cleanup";
 import { isSeasonPlayerDatabaseId } from "@/lib/season";
 import {
   planSeasonLobbySlotDrop,
@@ -143,6 +144,10 @@ async function assignPlayer(
   if (!isSeasonPlayerDatabaseId(playerId)) {
     throw new Response("Некорректно выбран игрок", { status: 400 });
   }
+  if (body.matchId === null || body.matchId === undefined) {
+    await removeUnstartedSeasonLobbyPlayer(client, roundId, playerId);
+    return;
+  }
   const registration = await client.query<{ tier_snapshot: number }>(
     `SELECT tier_snapshot::int
      FROM season_round_registrations
@@ -164,11 +169,6 @@ async function assignPlayer(
     [roundId, playerId],
   );
   const sourceAssignment = sourceResult.rows[0] ?? null;
-
-  if (body.matchId === null || body.matchId === undefined) {
-    await deletePlayerAssignment(client, roundId, playerId);
-    return;
-  }
 
   const matchId = requiredId(body.matchId, "матч");
   const teamSide = enumValue(body.teamSide, ["a", "b"] as const, "команда");
