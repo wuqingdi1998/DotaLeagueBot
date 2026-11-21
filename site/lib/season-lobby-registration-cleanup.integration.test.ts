@@ -60,6 +60,10 @@ beforeAll(async () => {
   ), "utf8"));
   expect((await db.query("SELECT match_id FROM season_match_participants")).rows)
     .toEqual([{ match_id: 7 }]);
+  await db.exec(readFileSync(new URL(
+    "../../bot/database/migrations/0204_allow_unstarted_lobby_cleanup_without_schedule.sql",
+    import.meta.url,
+  ), "utf8"));
   client = { query: async (sql: string, values?: unknown[]) => {
     const result = await db.query(sql, values);
     return { rows: result.rows, rowCount: result.affectedRows || result.rows.length };
@@ -80,7 +84,8 @@ beforeEach(async () => {
     DELETE FROM season_match_captain_votes;
     DELETE FROM season_match_captain_tiebreaks;
     DELETE FROM synced_notifications;
-    UPDATE season_rounds SET lobby_configuration_status = 'editing' WHERE id = 2;
+    UPDATE season_rounds SET lobby_configuration_status = 'editing',
+      scheduled_at = NOW() + INTERVAL '7 days' WHERE id = 2;
     UPDATE season_matches SET host_player_id = 10001, status = 'draft' WHERE id = 6;
     INSERT INTO season_round_registrations VALUES (2, 10001, 5);
     INSERT INTO season_match_participants VALUES
@@ -99,6 +104,13 @@ it("removes an orphan through the organizer action without requiring registratio
 it("still rejects assigning an unregistered player to a slot", async () => {
   await expect(updateSeasonLobbyConfiguration({ roundId: 2, action: "assign", playerId: "10003", matchId: 6 }, "20001"))
     .rejects.toMatchObject({ status: 400 });
+});
+
+it.each([null, "2000-01-01"])("allows editing an unstarted roster regardless of its date (%s)", async (date) => {
+  await db.query("UPDATE season_rounds SET scheduled_at = $1 WHERE id = 2", [date]);
+  await updateSeasonLobbyConfiguration({ roundId: 2, action: "assign", playerId: "10001", matchId: null }, "20001");
+  expect((await db.query("SELECT player_id FROM season_match_participants WHERE match_id = 6")).rows)
+    .toEqual([{ player_id: 10002 }]);
 });
 
 it("removes the registration and lobby place through the organizer registration action", async () => {
