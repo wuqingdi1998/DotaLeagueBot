@@ -1,0 +1,53 @@
+name: Read-only network diagnosis
+on:
+  push:
+    branches: [codex/network-diagnosis]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect encrypted read-only server report
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_HOST_KEY: ${{ vars.DEPLOY_HOST_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/development-transport.sh deploy <<'REMOTE' | openssl cms -encrypt -binary -aes256 -outform DER -out network-report.der .github/diagnostics/network-report.crt
+          set +e
+          date -Is
+          uptime
+          ip -br address
+          ip -s link
+          ip rule
+          ip route show table all
+          ss -ltnp
+          ufw status verbose
+          nft list ruleset
+          iptables-save -c
+          ip6tables-save -c
+          fail2ban-client status
+          sysctl net.ipv4.conf.all.rp_filter net.ipv4.conf.default.rp_filter
+          docker ps --format '{{.Names}} {{.Status}}'
+          curl -sS --max-time 10 --resolve lsesports.ru:443:127.0.0.1 https://lsesports.ru/api/health
+          for address in 185.130.104.238 185.209.161.145 185.244.28.180 142.132.174.167 38.145.202.12; do
+            ip route get "$address"
+          done
+          if command -v tcpdump >/dev/null; then
+            timeout 50 tcpdump -l -ni any -nn 'tcp port 443 and (host 185.130.104.238 or host 185.209.161.145 or host 185.244.28.180 or host 142.132.174.167 or host 38.145.202.12) and (tcp[tcpflags] & tcp-syn != 0)'
+          fi
+          true
+          REMOTE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: encrypted-network-report
+          path: network-report.der
+          retention-days: 1
