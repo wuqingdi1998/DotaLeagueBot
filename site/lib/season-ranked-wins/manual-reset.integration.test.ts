@@ -37,9 +37,9 @@ beforeEach(async () => {
       secondary_role INT,primary_wins INT,secondary_wins INT,checked_at TIMESTAMPTZ,source TEXT,
       PRIMARY KEY(round_id,player_id));
     INSERT INTO season_ranked_win_checks VALUES
-      (12,100,1,5,20,10,'2026-11-20 10:00+03','manual'),
+      (12,100,1,5,20,10,'2026-11-20 10:00:00.123456+03','manual'),
       (11,100,1,5,30,20,'2026-11-01 10:00+03','manual'),
-      (12,101,1,5,40,30,'2026-11-20 10:00+03','manual');
+      (12,101,1,5,40,30,'2026-11-20 10:00:00.123456+03','manual');
     CREATE TABLE tournament_audit_log (tournament_id INT,actor_discord_id TEXT,action TEXT,
       entity_type TEXT,entity_id TEXT,details JSONB);
   `);
@@ -61,9 +61,9 @@ it("keeps the lock when Stratz is unavailable", async () => {
   await expect(updateOrganizerRankedWins(input,"999")).rejects.toThrow("Stratz unavailable");
   expect(await saved()).toEqual(before);
 });
-it("rejects a manual correction made while Stratz was loading", async () => {
+it.each([true, false])("rejects a concurrent correction even if its timestamp changes: %s", async (changeTimestamp) => {
   state.stratz.mockImplementation(async () => {
-    await state.db!.exec("UPDATE season_ranked_win_checks SET primary_wins=25,checked_at=NOW() WHERE round_id=12 AND player_id=100");
+    await state.db!.exec(`UPDATE season_ranked_win_checks SET primary_wins=25${changeTimestamp ? ",checked_at=NOW()" : ""} WHERE round_id=12 AND player_id=100`);
     return fresh();
   });
   await expect(updateOrganizerRankedWins(input,"999")).rejects.toMatchObject({status:409});

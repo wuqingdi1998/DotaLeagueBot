@@ -18,10 +18,13 @@ export async function updateOrganizerRankedWins(
     player_id: string;
     scheduled_at: Date | null;
     wins_source: string | null;
-    wins_checked_at: Date | null;
+    wins_checked_at: string | null;
+    primary_wins: number | null;
+    secondary_wins: number | null;
   }>(
     `SELECT registration.player_id::text, round.scheduled_at,
-       ranked_wins.source AS wins_source, ranked_wins.checked_at AS wins_checked_at
+       ranked_wins.source AS wins_source, ranked_wins.checked_at::text AS wins_checked_at,
+       ranked_wins.primary_wins, ranked_wins.secondary_wins
      FROM season_round_registrations registration
      JOIN season_rounds round ON round.id = registration.round_id
      JOIN tournaments tournament ON tournament.id = round.tournament_id
@@ -100,9 +103,10 @@ export async function updateOrganizerRankedWins(
       const removed = await client.query(
         `DELETE FROM season_ranked_win_checks
          WHERE round_id = $1 AND player_id = $2 AND source = 'manual'
-           AND checked_at = $3
+           AND checked_at = $3 AND primary_wins = $4 AND secondary_wins = $5
          RETURNING primary_role, secondary_role, primary_wins, secondary_wins, checked_at, source`,
-        [update.roundId, update.playerId, registration.wins_checked_at],
+        [update.roundId, update.playerId, registration.wins_checked_at,
+          registration.primary_wins, registration.secondary_wins],
       );
       if (removed.rowCount !== 1) {
         throw new Response("Ручные показатели уже изменены. Обновите страницу", { status: 409 });
