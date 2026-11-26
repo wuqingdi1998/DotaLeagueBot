@@ -317,17 +317,19 @@ export function SeasonRoundRegistration({ round }: { round: SeasonRound }) {
                       {SEASON_SECONDARY_ROLE_WINS_REQUIRED}
                     </span>
                   </a>
-                  {registration.wins_source === "manual" && (
-                    <span
-                      className="season-registration-fixed-wins"
-                      aria-label={SEASON_RANKED_WINS_ADMISSION_MESSAGE}
-                      title={SEASON_RANKED_WINS_ADMISSION_MESSAGE}
-                      tabIndex={0}
-                    >
-                      <FiLock aria-hidden="true" />
-                    </span>
-                  )}
-                  {season.data?.isOrganizer && <SeasonRankedWinEditor registration={registration} />}
+                  <span className="season-ranked-win-controls">
+                    {registration.wins_source === "manual" && (
+                      <span
+                        className="season-registration-fixed-wins"
+                        aria-label={SEASON_RANKED_WINS_ADMISSION_MESSAGE}
+                        title={SEASON_RANKED_WINS_ADMISSION_MESSAGE}
+                        tabIndex={0}
+                      >
+                        <FiLock aria-hidden="true" />
+                      </span>
+                    )}
+                    {season.data?.isOrganizer && <SeasonRankedWinEditor registration={registration} />}
+                  </span>
                 </span>
                 <time dateTime={registration.created_at}>
                   <FiClock aria-hidden="true" />

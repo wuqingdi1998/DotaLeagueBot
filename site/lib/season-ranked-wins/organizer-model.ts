@@ -33,7 +33,9 @@ export function parseRankedWinUpdate(value: unknown) {
   const positions = typeof body.positions === "string" ? parsePlayerPositions(body.positions) : null;
   if (!positions || positions.primaryRole === positions.secondaryRole) return null;
   if (body.source === "manual" && (!isRankedWinCount(body.primaryWins) || !isRankedWinCount(body.secondaryWins))) return null;
+  if (body.resetManual !== undefined && (typeof body.resetManual !== "boolean" || body.source !== "stratz")) return null;
   return {
+    ...(body.resetManual === true ? { resetManual: true } : {}),
     roundId: target.roundId, playerId: target.playerId,
     source: body.source as RankedWinUpdateSource,
     positions: body.positions as string,

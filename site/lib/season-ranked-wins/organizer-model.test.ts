@@ -35,3 +35,9 @@ describe("organizer ranked win input", () => {
       .toBeNull();
   });
 });
+
+it("accepts an explicit manual reset only for a Stratz request", () => {
+  expect(parseRankedWinUpdate({ ...update, source: "stratz", resetManual: true })).toMatchObject({ resetManual: true });
+  expect(parseRankedWinUpdate({ ...update, resetManual: true })).toBeNull();
+  expect(parseRankedWinUpdate({ ...update, source: "stratz", resetManual: "true" })).toBeNull();
+});

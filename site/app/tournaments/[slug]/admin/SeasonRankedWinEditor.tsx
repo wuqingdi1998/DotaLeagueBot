@@ -18,9 +18,12 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
   const isSaving = editor.pendingSource !== null || editor.isSendingWarning;
   if (!season.data?.isOrganizer) return null;
 
-  async function save(source: RankedWinUpdateSource) {
-    const rankedWins = await editor.save(source);
-    if (!rankedWins) return;
+  async function save(source: RankedWinUpdateSource, resetManual = false) {
+    const rankedWins = await editor.save(source, resetManual);
+    if (!rankedWins) {
+      if (resetManual) dialogRef.current?.showModal();
+      return;
+    }
     dialogRef.current?.close();
     setToast(
       `Победы ${registration.nickname}: основная – ${rankedWins.primaryWins}, дополнительная – ${rankedWins.secondaryWins}`,
@@ -35,6 +38,14 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
 
   return (
     <>
+      {registration.wins_source === "manual" && (
+        <button type="button" className="secondary-button season-ranked-win-reset"
+          disabled={isSaving || !positions} aria-busy={editor.pendingSource === "stratz"}
+          title={`Отменить ручное внесение побед ${registration.nickname}`}
+          onClick={() => void save("stratz", true)}>
+          {editor.pendingSource === "stratz" ? "Получаем данные STRATZ…" : "Отменить ручное внесение"}
+        </button>
+      )}
       <button
         type="button" className="season-ranked-win-settings"
         title={`Обновить победы ${registration.nickname}`}

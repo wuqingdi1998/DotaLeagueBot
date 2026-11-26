@@ -43,6 +43,7 @@ export function useRankedWinEditor(
 
   async function save(
     source: RankedWinUpdateSource,
+    resetManual = false,
   ): Promise<RankedWinSnapshot | null> {
     if (isSavingRef.current) return null;
     setError("");
@@ -66,12 +67,13 @@ export function useRankedWinEditor(
         playerId: registration.player_id,
         positions: registration.positions,
         source,
+        ...(resetManual ? { resetManual: true } : {}),
         ...(source === "manual" ? {
           primaryWins: Number(primaryWins),
           secondaryWins: Number(secondaryWins),
         } : {}),
       });
-      const rankedWins = source === "stratz"
+      const rankedWins = source === "stratz" && !resetManual
         ? await checkStratzWithRetries({
           check: request,
           onProgress: ({ message }) => setStatus(message),
