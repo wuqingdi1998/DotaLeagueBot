@@ -115,3 +115,11 @@ describe("organizer win changes", () => {
     expect(mocks.query).toHaveBeenCalledTimes(1);
   });
 });
+
+it.each([null, "stratz", "dotabuff"])("does not reset a non-manual source %s", async (source) => {
+  mocks.one.mockResolvedValue({ player_id: "100", scheduled_at: roundStartsAt, wins_source: source });
+  await expect(updateOrganizerRankedWins({ ...input, source: "stratz", resetManual: true }, "999"))
+    .rejects.toMatchObject({ status: 409 });
+  expect(mocks.stratz).not.toHaveBeenCalled();
+  expect(mocks.save).not.toHaveBeenCalled();
+});

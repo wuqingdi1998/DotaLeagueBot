@@ -36,3 +36,9 @@ describe("organizer ranked win access", () => {
     expect((await POST(new Request("https://example.test", { method: "POST", body: "{" }))).status).toBe(400);
   });
 });
+
+it.each([401, 403])("rejects manual reset from an unauthorized user with %s", async (status) => {
+  mocks.requireAdmin.mockRejectedValue(new Response("Нет доступа", { status }));
+  expect((await POST(request({ ...body, source: "stratz", resetManual: true }))).status).toBe(status);
+  expect(mocks.update).not.toHaveBeenCalled();
+});

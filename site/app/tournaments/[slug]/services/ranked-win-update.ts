@@ -6,6 +6,7 @@ export async function saveRankedWinUpdate(body: {
   playerId: string;
   positions: string | null;
   source: RankedWinUpdateSource;
+  resetManual?: boolean;
   primaryWins?: number;
   secondaryWins?: number;
 }) {

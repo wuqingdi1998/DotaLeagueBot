@@ -18,9 +18,10 @@ export async function updateOrganizerRankedWins(
     player_id: string;
     scheduled_at: Date | null;
     wins_source: string | null;
+    wins_checked_at: Date | null;
   }>(
     `SELECT registration.player_id::text, round.scheduled_at,
-       ranked_wins.source AS wins_source
+       ranked_wins.source AS wins_source, ranked_wins.checked_at AS wins_checked_at
      FROM season_round_registrations registration
      JOIN season_rounds round ON round.id = registration.round_id
      JOIN tournaments tournament ON tournament.id = round.tournament_id
@@ -31,8 +32,12 @@ export async function updateOrganizerRankedWins(
        AND tournament.tournament_type = 'seasonal'`, [update.roundId, update.playerId],
   );
   if (!registration) throw new Response("Регистрация игрока не найдена", { status: 404 });
+  if (update.resetManual && registration.wins_source !== "manual") {
+    throw new Response("Ручная фиксация уже изменена. Обновите страницу", { status: 409 });
+  }
   if (
-    update.source === "stratz"
+    !update.resetManual
+    && update.source === "stratz"
     && ["manual", "dotabuff"].includes(registration.wins_source ?? "")
   ) {
     throw new Response(
@@ -90,6 +95,20 @@ export async function updateOrganizerRankedWins(
     if (currentTarget.positions !== target.positions || currentTarget.dota_id !== target.dota_id) {
       throw new Response("Профиль игрока изменился. Обновите страницу и повторите запрос", { status: 409 });
     }
+    let previousManualWins: QueryResultRow | undefined;
+    if (update.resetManual) {
+      const removed = await client.query(
+        `DELETE FROM season_ranked_win_checks
+         WHERE round_id = $1 AND player_id = $2 AND source = 'manual'
+           AND checked_at = $3
+         RETURNING primary_role, secondary_role, primary_wins, secondary_wins, checked_at, source`,
+        [update.roundId, update.playerId, registration.wins_checked_at],
+      );
+      if (removed.rowCount !== 1) {
+        throw new Response("Ручные показатели уже изменены. Обновите страницу", { status: 409 });
+      }
+      previousManualWins = removed.rows[0];
+    }
     const isSaved = await savePlayerRankedWins(update.roundId, update.playerId, snapshot, {
       source: update.source, execute,
     });
@@ -132,6 +151,7 @@ export async function updateOrganizerRankedWins(
        VALUES ($1, $2, 'update', 'season_ranked_wins', $3, $4::jsonb)`,
       [currentRegistration.rows[0].tournament_id, actorDiscordId, update.playerId,
         JSON.stringify({ roundId: update.roundId, source: update.source,
+          ...(update.resetManual ? { resetManual: true, previousManualWins } : {}),
           ...rankedWins })],
     );
     return { ok: true, rankedWins };
