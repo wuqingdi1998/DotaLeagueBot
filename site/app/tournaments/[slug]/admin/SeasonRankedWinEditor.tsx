@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useRef } from "react";
+import { hasDeveloperAccess } from "@/lib/developer-access";
 import { FiSettings, FiX } from "react-icons/fi";
 import { parsePlayerPositions, SEASON_RANKED_WIN_WINDOW_DAYS } from "@/lib/season-ranked-wins/model";
 import { MAX_MANUAL_RANKED_WINS, type RankedWinUpdateSource } from "@/lib/season-ranked-wins/organizer-model";
@@ -10,7 +11,7 @@ import { buildDotabuffRankedMatchesUrl } from "../model/season-registration";
 import type { SeasonRoundRegistration } from "../model/season-types";
 
 export function SeasonRankedWinEditor({ registration }: { registration: SeasonRoundRegistration }) {
-  const { season, setToast } = useTournament();
+  const { data, season, setToast } = useTournament();
   const editor = useRankedWinEditor(registration, season.load);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -20,10 +21,7 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
 
   async function save(source: RankedWinUpdateSource, resetManual = false) {
     const rankedWins = await editor.save(source, resetManual);
-    if (!rankedWins) {
-      if (resetManual) dialogRef.current?.showModal();
-      return;
-    }
+    if (!rankedWins) return;
     dialogRef.current?.close();
     setToast(
       `Победы ${registration.nickname}: основная – ${rankedWins.primaryWins}, дополнительная – ${rankedWins.secondaryWins}`,
@@ -38,14 +36,6 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
 
   return (
     <>
-      {registration.wins_source === "manual" && (
-        <button type="button" className="secondary-button season-ranked-win-reset"
-          disabled={isSaving || !positions} aria-busy={editor.pendingSource === "stratz"}
-          title={`Отменить ручное внесение побед ${registration.nickname}`}
-          onClick={() => void save("stratz", true)}>
-          {editor.pendingSource === "stratz" ? "Получаем данные STRATZ…" : "Отменить ручное внесение"}
-        </button>
-      )}
       <button
         type="button" className="season-ranked-win-settings"
         title={`Обновить победы ${registration.nickname}`}
@@ -76,6 +66,14 @@ export function SeasonRankedWinEditor({ registration }: { registration: SeasonRo
               ? "Зафиксировано вручную"
               : editor.pendingSource === "stratz" ? "Проверяем STRATZ…" : "STRATZ"}
           </button>
+          {registration.wins_source === "manual" && hasDeveloperAccess(data?.user) && (
+            <button type="button" className="secondary-button"
+              disabled={isSaving || !positions} aria-busy={editor.pendingSource === "stratz"}
+              title={`Отменить ручное внесение побед ${registration.nickname}`}
+              onClick={() => void save("stratz", true)}>
+              {editor.pendingSource === "stratz" ? "Получаем данные STRATZ…" : "Отменить ручное внесение"}
+            </button>
+          )}
           <a className="secondary-button"
             href={buildDotabuffRankedMatchesUrl(registration.dota_id)}
             target="_blank" rel="noopener noreferrer">

@@ -1,24 +1,3 @@
-.season-ranked-win-controls {
-  align-items: center;
-  display: inline-flex;
-  vertical-align: middle;
-}
-
-.season-registration-wins:has(.season-ranked-win-reset) {
-  white-space: normal;
-}
-
-.season-ranked-win-reset {
-  display: inline-flex;
-  font-size: 0.72rem;
-  line-height: 1.25;
-  margin-left: 6px;
-  max-width: 150px;
-  padding: 5px 8px;
-  vertical-align: middle;
-  white-space: normal;
-}
-
 .season-ranked-win-settings {
   align-items: center;
   background: transparent;
