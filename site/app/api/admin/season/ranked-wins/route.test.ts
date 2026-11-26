@@ -42,3 +42,14 @@ it.each([401, 403])("rejects manual reset from an unauthorized user with %s", as
   expect((await POST(request({ ...body, source: "stratz", resetManual: true }))).status).toBe(status);
   expect(mocks.update).not.toHaveBeenCalled();
 });
+
+it.each(["553265835335090177", "0"])("rejects manual reset from non-developer organizer %s", async (discordId) => {
+  mocks.requireAdmin.mockResolvedValue({discordId,isAdmin:true,actorDiscordId:discordId});
+  expect((await POST(request({...body,source:"stratz",resetManual:true}))).status).toBe(403);
+  expect(mocks.update).not.toHaveBeenCalled();
+});
+it("allows the developer to reset manual wins", async () => {
+  mocks.requireAdmin.mockResolvedValue({discordId:"311247030422863882",isAdmin:true,actorDiscordId:"311247030422863882"});
+  expect((await POST(request({...body,source:"stratz",resetManual:true}))).status).toBe(200);
+  expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({resetManual:true}),"311247030422863882");
+});

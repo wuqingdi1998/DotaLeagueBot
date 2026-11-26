@@ -1,3 +1,4 @@
+import { hasDeveloperAccess } from "@/lib/developer-access";
 import { requireAdmin, responseFromAuthError } from "@/lib/auth";
 import { parseRankedWinUpdate } from "@/lib/season-ranked-wins/organizer-model";
 import { updateOrganizerRankedWins } from "@/lib/season-ranked-wins/organizer-service";
@@ -10,6 +11,9 @@ export async function POST(request: Request) {
     const admin = await requireAdmin();
     const update = parseRankedWinUpdate(await request.json().catch(() => null));
     if (!update) return Response.json({ error: "Проверьте игрока, роли и количество побед: нужны два целых неотрицательных числа" }, { status: 400 });
+    if (update.resetManual && !hasDeveloperAccess(admin)) {
+      return Response.json({ error: "Отменить ручное внесение может только разработчик" }, { status: 403 });
+    }
     return Response.json(await updateOrganizerRankedWins(update, admin.actorDiscordId));
   } catch (error) {
     if (error instanceof SeasonRankedWinsError) {
